@@ -44,23 +44,20 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
                             QMessageBox, QPushButton, QTableView,
                             QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
-from pandas import DataFrame, Index, Series, isna
-try:
-    from pandas._libs.tslib import OutOfBoundsDatetime
-except ImportError:  # For pandas version < 0.20
-    from pandas.tslib import OutOfBoundsDatetime
-import numpy as np
+from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, config_shortcut
+from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
                               to_text_string, perf_counter)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Supported Numbers and complex numbers
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
@@ -109,7 +106,8 @@ def global_max(col_vals, index):
 
 
 class DataFrameModel(QAbstractTableModel):
-    """ DataFrame Table Model.
+    """
+    DataFrame Table Model.
 
     Partly based in ExtDataModel and ExtFrameModel classes
     of the gtabview project.
@@ -122,8 +120,8 @@ class DataFrameModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
-        self.df_index = dataFrame.index.tolist()
-        self.df_header = dataFrame.columns.tolist()
+        self.df_columns_list = None
+        self.df_index_list = None
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
@@ -166,6 +164,21 @@ class DataFrameModel(QAbstractTableModel):
         """
         return self.df.columns if axis == 0 else self.df.index
 
+    def _axis_list(self, axis):
+        """
+        Return the corresponding labels as a list taking into account the axis.
+
+        The axis could be horizontal (0) or vertical (1).
+        """
+        if axis == 0:
+            if self.df_columns_list is None:
+                self.df_columns_list = self.df.columns.tolist()
+            return self.df_columns_list
+        else:
+            if self.df_index_list is None:
+                self.df_index_list = self.df.index.tolist()
+            return self.df_index_list
+
     def _axis_levels(self, axis):
         """
         Return the number of levels in the labels taking into account the axis.
@@ -198,8 +211,11 @@ class DataFrameModel(QAbstractTableModel):
         given level.
         """
         ax = self._axis(axis)
-        return ax.values[x] if not hasattr(ax, 'levels') \
-            else ax.values[x][level]
+        if not hasattr(ax, 'levels'):
+            ax = self._axis_list(axis)
+            return ax[x]
+        else:
+            return ax.values[x][level]
 
     def name(self, axis, level):
         """Return the labels of the levels if any."""
@@ -225,19 +241,25 @@ class DataFrameModel(QAbstractTableModel):
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
             return
         self.max_min_col = []
-        for dummy, col in self.df.iteritems():
-            if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
-                if col.dtype in REAL_NUMBER_TYPES:
-                    vmax = col.max(skipna=True)
-                    vmin = col.min(skipna=True)
+        for __, col in self.df.iteritems():
+            # This is necessary to catch an error in Pandas when computing
+            # the maximum of a column.
+            # Fixes spyder-ide/spyder#17145
+            try:
+                if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
+                    if col.dtype in REAL_NUMBER_TYPES:
+                        vmax = col.max(skipna=True)
+                        vmin = col.min(skipna=True)
+                    else:
+                        vmax = col.abs().max(skipna=True)
+                        vmin = col.abs().min(skipna=True)
+                    if vmax != vmin:
+                        max_min = [vmax, vmin]
+                    else:
+                        max_min = [vmax, vmin - 1]
                 else:
-                    vmax = col.abs().max(skipna=True)
-                    vmin = col.abs().min(skipna=True)
-                if vmax != vmin:
-                    max_min = [vmax, vmin]
-                else:
-                    max_min = [vmax, vmin - 1]
-            else:
+                    max_min = None
+            except TypeError:
                 max_min = None
             self.max_min_col.append(max_min)
 
@@ -268,10 +290,12 @@ class DataFrameModel(QAbstractTableModel):
     def get_bgcolor(self, index):
         """Background color depending on value."""
         column = index.column()
+
         if not self.bgcolor_enabled:
             return
+
         value = self.get_value(index.row(), column)
-        if self.max_min_col[column] is None or isna(value):
+        if self.max_min_col[column] is None or pd.isna(value):
             color = QColor(BACKGROUND_NONNUMBER_COLOR)
             if is_text_string(value):
                 color.setAlphaF(BACKGROUND_STRING_ALPHA)
@@ -283,14 +307,27 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column)
+
+            # This is necessary to catch an error in Pandas when computing
+            # the difference between the max and min of a column.
+            # Fixes spyder-ide/spyder#18005
+            try:
+                if vmax - vmin == 0:
+                    vmax_vmin_diff = 1.0
+                else:
+                    vmax_vmin_diff = vmax - vmin
+            except TypeError:
+                return
+
             hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
-                   (vmax - color_func(value)) / (vmax - vmin))
+                   (vmax - color_func(value)) / (vmax_vmin_diff))
             hue = float(abs(hue))
             if hue > 1:
                 hue = 1
             color = QColor.fromHsvF(hue, BACKGROUND_NUMBER_SATURATION,
                                     BACKGROUND_NUMBER_VALUE,
                                     BACKGROUND_NUMBER_ALPHA)
+
         return color
 
     def get_value(self, row, column):
@@ -299,15 +336,11 @@ class DataFrameModel(QAbstractTableModel):
         # handling, so fallback uses iloc
         try:
             value = self.df.iat[row, column]
-        except OutOfBoundsDatetime:
+        except pd._libs.tslib.OutOfBoundsDatetime:
             value = self.df.iloc[:, column].astype(str).iat[row]
         except:
             value = self.df.iloc[row, column]
         return value
-
-    def update_df_index(self):
-        """"Update the DataFrame index"""
-        self.df_index = self.df.index.tolist()
 
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
@@ -346,6 +379,10 @@ class DataFrameModel(QAbstractTableModel):
                          "an error ocurred while trying to do it")
         return to_qvariant()
 
+    def recalculate_index(self):
+        """Recalcuate index information."""
+        self.df_index_list = self.df.index.tolist()
+
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
         if self.complex_intran is not None:
@@ -376,11 +413,11 @@ class DataFrameModel(QAbstractTableModel):
                     # See spyder-ide/spyder#5361.
                     QMessageBox.critical(self.dialog, "Error",
                                          "SystemError: %s" % to_text_string(e))
-                self.update_df_index()
             else:
+                # Update index list
+                self.recalculate_index()
                 # To sort by index
                 self.df.sort_index(inplace=True, ascending=ascending)
-                self.update_df_index()
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
@@ -488,13 +525,12 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class DataFrameView(QTableView):
+class DataFrameView(QTableView, SpyderConfigurationAccessor):
     """
     Data Frame view class.
 
     Signals
     -------
-    sig_option_changed(): Raised after a sort by column.
     sig_sort_by_column(): Raised after more columns are fetched.
     sig_fetch_more_rows(): Raised after more rows are fetched.
     """
@@ -502,25 +538,43 @@ class DataFrameView(QTableView):
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
 
+    CONF_SECTION = 'variable_explorer'
+
     def __init__(self, parent, model, header, hscroll, vscroll):
         """Constructor."""
         QTableView.__init__(self, parent)
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
         self.setVerticalScrollBar(vscroll)
-        self.setHorizontalScrollMode(1)
-        self.setVerticalScrollMode(1)
+        self.setHorizontalScrollMode(QTableView.ScrollPerPixel)
+        self.setVerticalScrollMode(QTableView.ScrollPerPixel)
 
         self.sort_old = [None]
         self.header_class = header
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        config_shortcut(self.copy, context='variable_explorer', name='copy',
-                        parent=self)
+        self.config_shortcut(self.copy, 'copy', self)
         self.horizontalScrollBar().valueChanged.connect(
-                        lambda val: self.load_more_data(val, columns=True))
-        self.verticalScrollBar().valueChanged.connect(
-                        lambda val: self.load_more_data(val, rows=True))
+            self._load_more_columns)
+        self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
+
+    def _load_more_columns(self, value):
+        """Load more columns to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, columns=True)
+        except NameError:
+            pass
+
+    def _load_more_rows(self, value):
+        """Load more rows to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, rows=True)
+        except NameError:
+            pass
 
     def load_more_data(self, value, rows=False, columns=False):
         """Load more rows and columns to display."""
@@ -542,7 +596,6 @@ class DataFrameView(QTableView):
         if self.sort_old == [None]:
             self.header_class.setSortIndicatorShown(True)
         sort_order = self.header_class.sortIndicatorOrder()
-        self.sig_sort_by_column.emit()
         if not self.model().sort(index, sort_order):
             if len(self.sort_old) != 2:
                 self.header_class.setSortIndicatorShown(False)
@@ -551,6 +604,7 @@ class DataFrameView(QTableView):
                                                    self.sort_old[1])
             return
         self.sort_old = [index, self.header_class.sortIndicatorOrder()]
+        self.sig_sort_by_column.emit()
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method."""
@@ -569,7 +623,8 @@ class DataFrameView(QTableView):
                      (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            slot = lambda func=func: self.change_type(func)
+            def slot():
+                self.change_type(func)
             types_in_menu += [create_action(self, name,
                                             triggered=slot,
                                             context=Qt.WidgetShortcut)]
@@ -590,12 +645,22 @@ class DataFrameView(QTableView):
             return
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
-        index = header = False
+        # Copy index and header too (equal True).
+        # See spyder-ide/spyder#11096
+        index = header = True
         df = self.model().df
         obj = df.iloc[slice(row_min, row_max + 1),
                       slice(col_min, col_max + 1)]
         output = io.StringIO()
-        obj.to_csv(output, sep='\t', index=index, header=header)
+        try:
+            obj.to_csv(output, sep='\t', index=index, header=header)
+        except UnicodeEncodeError:
+            # Needed to handle encoding errors in Python 2
+            # See spyder-ide/spyder#4833
+            QMessageBox.critical(
+                self,
+                _("Error"),
+                _("Text can't be copied."))
         if not PY2:
             contents = output.getvalue()
         else:
@@ -628,20 +693,31 @@ class DataFrameHeaderModel(QAbstractTableModel):
         self.model = model
         self.axis = axis
         self._palette = palette
-        if self.axis == 0:
-            self.total_cols = self.model.shape[1]
-            self._shape = (self.model.header_shape[0], self.model.shape[1])
+        self.total_rows = self.model.shape[0]
+        self.total_cols = self.model.shape[1]
+        size = self.total_rows * self.total_cols
+
+        # Use paging when the total size, number of rows or number of
+        # columns is too large
+        if size > LARGE_SIZE:
+            self.rows_loaded = ROWS_TO_LOAD
+            self.cols_loaded = COLS_TO_LOAD
+        else:
             if self.total_cols > LARGE_COLS:
                 self.cols_loaded = COLS_TO_LOAD
             else:
                 self.cols_loaded = self.total_cols
-        else:
-            self.total_rows = self.model.shape[0]
-            self._shape = (self.model.shape[0], self.model.header_shape[1])
             if self.total_rows > LARGE_NROWS:
                 self.rows_loaded = ROWS_TO_LOAD
             else:
                 self.rows_loaded = self.total_rows
+
+        if self.axis == 0:
+            self.total_cols = self.model.shape[1]
+            self._shape = (self.model.header_shape[0], self.model.shape[1])
+        else:
+            self.total_rows = self.model.shape[0]
+            self._shape = (self.model.shape[0], self.model.header_shape[1])
 
     def rowCount(self, index=None):
         """Get number of rows in the header."""
@@ -690,9 +766,9 @@ class DataFrameHeaderModel(QAbstractTableModel):
         """Get the information to put in the header."""
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return Qt.AlignCenter | Qt.AlignBottom
+                return Qt.AlignCenter
             else:
-                return Qt.AlignRight | Qt.AlignVCenter
+                return int(Qt.AlignRight | Qt.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.axis == 1 and self._shape[1] <= 1:
@@ -782,9 +858,9 @@ class DataFrameLevelModel(QAbstractTableModel):
         """
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return Qt.AlignCenter | Qt.AlignBottom
+                return Qt.AlignCenter
             else:
-                return Qt.AlignRight | Qt.AlignVCenter
+                return int(Qt.AlignRight | Qt.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
@@ -819,23 +895,19 @@ class DataFrameLevelModel(QAbstractTableModel):
         return None
 
 
-class DataFrameEditor(QDialog):
+class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     """
     Dialog for displaying and editing DataFrame and related objects.
 
     Based on the gtabview project (ExtTableView).
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
-
-    Signals
-    -------
-    sig_option_changed(str, object): Raised if an option is changed.
-       Arguments are name of option and its new value.
     """
-    sig_option_changed = Signal(str, object)
+    CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -855,21 +927,19 @@ class DataFrameEditor(QDialog):
 
         self.layout = QGridLayout()
         self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setContentsMargins(20, 20, 20, 0)
         self.setLayout(self.layout)
-        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:
             title = _("%s editor") % data.__class__.__name__
-        if isinstance(data, Series):
+        if isinstance(data, pd.Series):
             self.is_series = True
             data = data.to_frame()
-        elif isinstance(data, Index):
-            data = DataFrame(data)
+        elif isinstance(data, pd.Index):
+            data = pd.DataFrame(data)
 
         self.setWindowTitle(title)
-        self.resize(600, 500)
 
         self.hscroll = QScrollBar(Qt.Horizontal)
         self.vscroll = QScrollBar(Qt.Vertical)
@@ -893,7 +963,9 @@ class DataFrameEditor(QDialog):
 
         # autosize columns on-demand
         self._autosized_cols = set()
-        self._max_autosize_ms = None
+        # Set limit time to calculate column sizeHint to 300ms,
+        # See spyder-ide/spyder#11060
+        self._max_autosize_ms = 300
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
@@ -901,18 +973,19 @@ class DataFrameEditor(QDialog):
         self.max_width = avg_width * 64  # Maximum size for columns
 
         self.setLayout(self.layout)
-        self.setMinimumSize(400, 300)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(5)
 
-        btn = QPushButton(_("Format"))
+        btn_format = QPushButton(_("Format"))
         # disable format button for int type
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.change_format)
-        btn = QPushButton(_('Resize'))
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.resize_to_contents)
+        btn_layout.addWidget(btn_format)
+        btn_format.clicked.connect(self.change_format)
+
+        btn_resize = QPushButton(_('Resize'))
+        btn_layout.addWidget(btn_resize)
+        btn_resize.clicked.connect(self.resize_to_contents)
 
         bgcolor = QCheckBox(_('Background color'))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
@@ -940,10 +1013,13 @@ class DataFrameEditor(QDialog):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
-        btn_layout.setContentsMargins(4, 4, 4, 4)
+        btn_layout.setContentsMargins(0, 16, 0, 16)
         self.layout.addLayout(btn_layout, 4, 0, 1, 2)
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
+
+        format = '%' + self.get_conf('dataframe_format')
+        self.dataModel.set_format(format)
 
         return True
 
@@ -1092,8 +1168,8 @@ class DataFrameEditor(QDialog):
         if old_sel_model:
             del old_sel_model
 
-    def setAutosizeLimit(self, limit_ms):
-        """Set maximum size for columns."""
+    def setAutosizeLimitTime(self, limit_ms):
+        """Set maximum time to calculate size hint for columns."""
         self._max_autosize_ms = limit_ms
 
     def setModel(self, model, relayout=True):
@@ -1224,9 +1300,6 @@ class DataFrameEditor(QDialog):
     def change_format(self):
         """
         Ask user for display format for floats and use it.
-
-        This function also checks whether the format is valid and emits
-        `sig_option_changed`.
         """
         format, valid = QInputDialog.getText(self, _('Format'),
                                              _("Float formatting"),
@@ -1245,7 +1318,9 @@ class DataFrameEditor(QDialog):
                 QMessageBox.critical(self, _("Error"), msg)
                 return
             self.dataModel.set_format(format)
-            self.sig_option_changed.emit('dataframe_format', format)
+
+            format = format[1:]
+            self.set_conf('dataframe_format', format)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
@@ -1278,6 +1353,8 @@ class DataFrameEditor(QDialog):
 
         Uses the model of the dataTable as the base.
         """
+        # Update index list calculation
+        self.dataModel.recalculate_index()
         self.setModel(self.dataTable.model())
 
     def _fetch_more_columns(self):
@@ -1302,7 +1379,6 @@ class DataFrameEditor(QDialog):
 #==============================================================================
 def test_edit(data, title="", parent=None):
     """Test subroutine"""
-    app = qapplication()                  # analysis:ignore
     dlg = DataFrameEditor(parent=parent)
 
     if dlg.setup_and_check(data, title=title):
@@ -1318,31 +1394,34 @@ def test():
     from numpy import nan
     from pandas.util.testing import assert_frame_equal, assert_series_equal
 
-    df1 = DataFrame([
-                     [True, "bool"],
-                     [1+1j, "complex"],
-                     ['test', "string"],
-                     [1.11, "float"],
-                     [1, "int"],
-                     [np.random.rand(3, 3), "Unkown type"],
-                     ["Large value", 100],
-                     ["áéí", "unicode"]
-                    ],
-                    index=['a', 'b', nan, nan, nan, 'c',
-                           "Test global max", 'd'],
-                    columns=[nan, 'Type'])
+    app = qapplication()                  # analysis:ignore
+
+    df1 = pd.DataFrame(
+        [
+            [True, "bool"],
+            [1+1j, "complex"],
+            ['test', "string"],
+            [1.11, "float"],
+            [1, "int"],
+            [np.random.rand(3, 3), "Unkown type"],
+            ["Large value", 100],
+            ["áéí", "unicode"]
+        ],
+        index=['a', 'b', nan, nan, nan, 'c', "Test global max", 'd'],
+        columns=[nan, 'Type']
+    )
     out = test_edit(df1)
     assert_frame_equal(df1, out)
 
-    result = Series([True, "bool"], index=[nan, 'Type'], name='a')
+    result = pd.Series([True, "bool"], index=[nan, 'Type'], name='a')
     out = test_edit(df1.iloc[0])
     assert_series_equal(result, out)
 
-    df1 = DataFrame(np.random.rand(100100, 10))
+    df1 = pd.DataFrame(np.random.rand(100100, 10))
     out = test_edit(df1)
     assert_frame_equal(out, df1)
 
-    series = Series(np.arange(10), name=0)
+    series = pd.Series(np.arange(10), name=0)
     out = test_edit(series)
     assert_series_equal(series, out)
 

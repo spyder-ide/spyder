@@ -18,6 +18,8 @@ Important note regarding shortcuts:
 from collections import namedtuple
 
 # Third party imports
+from qtconsole.styles import dark_color
+from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
@@ -25,14 +27,19 @@ from qtpy.QtWidgets import QShortcut
 # Local imports
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
+from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 
-# Third-party imports
-from qtconsole.styles import dark_color
 
 # To save metadata about widget shortcuts (needed to build our
 # preferences page)
 Shortcut = namedtuple('Shortcut', 'data')
+
+# Stylesheet to remove the indicator that appears on tool buttons with a menu.
+STYLE_BUTTON_CSS = "QToolButton::menu-indicator{image: none;}"
+
+# Check for old PyQt versions
+OLD_PYQT = programs.check_version(PYQT_VERSION, "5.12", "<")
 
 
 def font_is_installed(font):
@@ -91,58 +98,27 @@ def set_font(font, section='appearance', option='font'):
     FONT_CACHE[(section, option)] = font
 
 
-def get_shortcut(context, name):
-    """Get keyboard shortcut (key sequence string)"""
-    return CONF.get('shortcuts', '%s/%s' % (context, name))
-
-
-def set_shortcut(context, name, keystr):
-    """Set keyboard shortcut (key sequence string)"""
-    CONF.set('shortcuts', '%s/%s' % (context, name), keystr)
-
-
-def fixed_shortcut(keystr, parent, action):
+def _config_shortcut(action, context, name, keystr, parent):
     """
-    DEPRECATED: This function will be removed in Spyder 4.0
+    Create a Shortcut namedtuple for a widget.
 
-    Define a fixed shortcut according to a keysequence string
+    The data contained in this tuple will be registered in our shortcuts
+    preferences page.
     """
-    sc = QShortcut(QKeySequence(keystr), parent, action)
-    sc.setContext(Qt.WidgetWithChildrenShortcut)
-    return sc
-
-
-def config_shortcut(action, context, name, parent):
-    """
-    Create a Shortcut namedtuple for a widget
-
-    The data contained in this tuple will be registered in
-    our shortcuts preferences page
-    """
-    keystr = get_shortcut(context, name)
     qsc = QShortcut(QKeySequence(keystr), parent, action)
     qsc.setContext(Qt.WidgetWithChildrenShortcut)
     sc = Shortcut(data=(qsc, context, name))
     return sc
 
 
-def iter_shortcuts():
-    """Iterate over keyboard shortcuts."""
-    for context_name, keystr in CONF.items('shortcuts'):
-        context, name = context_name.split("/", 1)
-        yield context, name, keystr
-
-
-def reset_shortcuts():
-    """Reset keyboard shortcuts to default values"""
-    CONF.reset_to_defaults(section='shortcuts')
-
-
 def get_color_scheme(name):
     """Get syntax color scheme"""
     color_scheme = {}
     for key in sh.COLOR_SCHEME_KEYS:
-        color_scheme[key] = CONF.get("appearance", "%s/%s" % (name, key))
+        color_scheme[key] = CONF.get(
+            "appearance",
+            "%s/%s" % (name, key),
+            default=sh.COLOR_SCHEME_DEFAULT_VALUES[key])
     return color_scheme
 
 

@@ -16,14 +16,11 @@ from __future__ import division
 import os
 import sys
 from datetime import datetime
-try:
-    from unittest.mock import Mock, ANY
-except ImportError:
-    from mock import Mock, ANY  # Python 2
+from unittest.mock import Mock, ANY
 
 # Third party imports
 from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
-                    MultiIndex, CategoricalIndex)
+                    MultiIndex, CategoricalIndex, Series)
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy
@@ -67,7 +64,7 @@ def data_index(dfi, i, j, role=Qt.DisplayRole):
     return dfi.data(dfi.createIndex(i, j), role)
 
 def generate_pandas_indexes():
-    """ Creates a dictionnary of many possible pandas indexes """
+    """ Creates a dictionary of many possible pandas indexes """
     return {
         'Index': Index(list('ABCDEFGHIJKLMNOPQRST')),
         'RangeIndex': RangeIndex(0, 20),
@@ -80,10 +77,61 @@ def generate_pandas_indexes():
         }
 
 
-
 # =============================================================================
 # Tests
 # =============================================================================
+def test_dataframemodel_index_sort(qtbot):
+    """Validate the data in the model for index when sorting."""
+    ds = Series(numpy.arange(10))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(ds)
+    index = editor.table_index.model()
+
+    index.sort(-1, order=Qt.AscendingOrder)
+    assert data_index(index, 0, 0, Qt.DisplayRole) == '0'
+    assert data_index(index, 9, 0, Qt.DisplayRole) == '9'
+
+    index.sort(-1, order=Qt.DescendingOrder)
+    assert data_index(index, 0, 0, Qt.DisplayRole) == '9'
+    assert data_index(index, 9, 0, Qt.DisplayRole) == '0'
+
+
+def test_dataframe_to_type(qtbot):
+    """Regression test for spyder-ide/spyder#12296"""
+    # Setup editor
+    d = {'col1': [1, 2], 'col2': [3, 4]}
+    df = DataFrame(data=d)
+    editor = DataFrameEditor()
+    assert editor.setup_and_check(df, 'Test DataFrame To action')
+    with qtbot.waitExposed(editor):
+        editor.show()
+
+    # Check editor doesn't have changes to save and select an initial element
+    assert not editor.btn_save_and_close.isEnabled()
+    view = editor.dataTable
+    view.setCurrentIndex(view.model().index(0, 0))
+
+    # Show context menu and select option `To bool`
+    view.menu.show()
+    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+
+    # Check that changes where made from the editor
+    assert editor.btn_save_and_close.isEnabled()
+
+
+def test_dataframe_datetimeindex(qtbot):
+    """Regression test for spyder-ide/spyder#11129 ."""
+    ds = Series(
+        numpy.arange(10),
+        index=date_range('2019-01-01', periods=10))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(ds)
+    index = editor.table_index.model()
+    assert data_index(index, 0, 0) == '2019-01-01 00:00:00'
+    assert data_index(index, 9, 0) == '2019-01-10 00:00:00'
+
 
 def test_dataframe_simpleindex(qtbot):
     """Test to validate proper creation and handling of a simpleindex."""
@@ -313,16 +361,17 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     assert data(dfm, 0, 0) == '0'
     assert data(dfm, 1, 0) == 'nan'
 
-def test_change_format_emits_signal(qtbot, monkeypatch):
+def test_change_format(qtbot, monkeypatch):
     mockQInputDialog = Mock()
     mockQInputDialog.getText = lambda parent, title, label, mode, text: ('%10.3e', True)
     monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor.QInputDialog', mockQInputDialog)
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
-    with qtbot.waitSignal(editor.sig_option_changed) as blocker:
-        editor.change_format()
-    assert blocker.args == ['dataframe_format', '%10.3e']
+    editor.change_format()
+    assert editor.dataModel._format == '%10.3e'
+    assert editor.get_conf('dataframe_format') == '10.3e'
+    editor.set_conf('dataframe_format', '.6g')
 
 def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch):
     mockQInputDialog = Mock()
@@ -334,8 +383,7 @@ def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch)
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
-    with qtbot.assertNotEmitted(editor.sig_option_changed):
-        editor.change_format()
+    editor.change_format()
 
 
 def test_dataframeeditor_with_various_indexes():
@@ -486,8 +534,8 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.dataTable
 
         qtbot.keyClick(view, Qt.Key_Right)
@@ -563,8 +611,8 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
         test_df = DataFrame(numpy.arange(10, 15), dtype=complex_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.dataTable
 
         qtbot.keyClick(view, Qt.Key_Right)
@@ -636,8 +684,8 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
         test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.dataTable
 
         qtbot.keyClick(view, Qt.Key_Right)

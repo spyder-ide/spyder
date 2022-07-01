@@ -12,24 +12,59 @@ import sre_constants
 import sys
 
 # Third party imports
-from qtpy.QtCore import QUrl, Signal, Slot
-from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
-                            QWidget)
-from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
-                                     QWebEngineView, WEBENGINE)
+import qstylizer.style
+from qtpy import PYQT5
+from qtpy.QtCore import QEvent, Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
+from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
+                                     QWebEngineSettings, QWebEngineView)
+from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
 
 # Local imports
-from spyder.config.base import _, DEV
+from spyder.api.translations import get_translation
+from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.config.base import DEV
+from spyder.config.gui import OLD_PYQT
 from spyder.py3compat import is_text_string, to_text_string
-from spyder.utils.qthelpers import (action2button, add_actions,
-                                    create_action, create_toolbutton,
-                                    create_plugin_layout)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
+from spyder.utils.qthelpers import (action2button, create_plugin_layout,
+                                    create_toolbutton)
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
 
 
+# Localization
+_ = get_translation('spyder')
+
+
+# --- Constants
+# ----------------------------------------------------------------------------
+class WebViewActions:
+    ZoomIn = 'zoom_in_action'
+    ZoomOut = 'zoom_out_action'
+    Back = 'back_action'
+    Forward = 'forward_action'
+    SelectAll = 'select_all_action'
+    Copy = 'copy_action'
+    Inspect = 'inspect_action'
+    Stop = 'stop_action'
+    Refresh = 'refresh_action'
+
+
+class WebViewMenuSections:
+    Move = 'move_section'
+    Select = 'select_section'
+    Zoom = 'zoom_section'
+    Extras = 'extras_section'
+
+
+class WebViewMenus:
+    Context = 'context_menu'
+
+
+# --- Widgets
+# ----------------------------------------------------------------------------
 class WebPage(QWebEnginePage):
     """
     Web page subclass to manage hyperlinks for WebEngine
@@ -47,28 +82,164 @@ class WebPage(QWebEnginePage):
         if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
             self.linkClicked.emit(url)
             return False
-        return True
+
+        return super(WebPage, self).acceptNavigationRequest(
+            url, navigation_type, isMainFrame)
 
 
-class WebView(QWebEngineView):
-    """Web view"""
-    def __init__(self, parent):
-        QWebEngineView.__init__(self, parent)
+class WebView(QWebEngineView, SpyderWidgetMixin):
+    """
+    Web view.
+    """
+    sig_focus_in_event = Signal()
+    """
+    This signal is emitted when the widget receives focus.
+    """
+
+    sig_focus_out_event = Signal()
+    """
+    This signal is emitted when the widget loses focus.
+    """
+
+    def __init__(self, parent, handle_links=True, class_parent=None):
+        class_parent = parent if class_parent is None else class_parent
+        if PYQT5:
+            super().__init__(parent, class_parent=class_parent)
+        else:
+            QWebEngineView.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=class_parent)
+
         self.zoom_factor = 1.
-        self.zoom_out_action = create_action(self, _("Zoom out"),
-                                             icon=ima.icon('zoom_out'),
-                                             triggered=self.zoom_out)
-        self.zoom_in_action = create_action(self, _("Zoom in"),
-                                            icon=ima.icon('zoom_in'),
-                                            triggered=self.zoom_in)
+        self.context_menu = None
+
         if WEBENGINE:
-            web_page = WebPage(self)
+            if handle_links:
+                web_page = WebPage(self)
+            else:
+                web_page = QWebEnginePage(self)
+
             self.setPage(web_page)
             self.source_text = ''
 
+    def setup(self, options={}):
+        # Actions
+        original_back_action = self.pageAction(QWebEnginePage.Back)
+        back_action = self.create_action(
+            name=WebViewActions.Back,
+            text=_("Back"),
+            icon=self.create_icon('previous'),
+            triggered=lambda: original_back_action.trigger(),
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        original_forward_action = self.pageAction(QWebEnginePage.Forward)
+        forward_action = self.create_action(
+            name=WebViewActions.Forward,
+            text=_("Forward"),
+            icon=self.create_icon('next'),
+            triggered=lambda: original_forward_action.trigger(),
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        original_select_action = self.pageAction(QWebEnginePage.SelectAll)
+        select_all_action = self.create_action(
+            name=WebViewActions.SelectAll,
+            text=_("Select all"),
+            triggered=lambda: original_select_action.trigger(),
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        original_copy_action = self.pageAction(QWebEnginePage.Copy)
+        copy_action = self.create_action(
+            name=WebViewActions.Copy,
+            text=_("Copy"),
+            triggered=lambda: original_copy_action.trigger(),
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        self.zoom_in_action = self.create_action(
+            name=WebViewActions.ZoomIn,
+            text=_("Zoom in"),
+            icon=self.create_icon('zoom_in'),
+            triggered=self.zoom_in,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        self.zoom_out_action = self.create_action(
+            name=WebViewActions.ZoomOut,
+            text=_("Zoom out"),
+            icon=self.create_icon('zoom_out'),
+            triggered=self.zoom_out,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        original_inspect_action = self.pageAction(
+            QWebEnginePage.InspectElement)
+        inspect_action = self.create_action(
+            name=WebViewActions.Inspect,
+            text=_("Inspect"),
+            triggered=lambda: original_inspect_action.trigger(),
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        original_refresh_action = self.pageAction(QWebEnginePage.Reload)
+        self.create_action(
+            name=WebViewActions.Refresh,
+            text=_("Refresh"),
+            icon=self.create_icon('refresh'),
+            triggered=lambda: original_refresh_action.trigger(),
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        original_stop_action = self.pageAction(QWebEnginePage.Stop)
+        self.create_action(
+            name=WebViewActions.Stop,
+            text=_("Stop"),
+            icon=self.create_icon('stop'),
+            triggered=lambda: original_stop_action.trigger(),
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+        menu = self.create_menu(WebViewMenus.Context)
+        self.context_menu = menu
+        for item in [back_action, forward_action]:
+            self.add_item_to_menu(
+                item,
+                menu=menu,
+                section=WebViewMenuSections.Move,
+            )
+
+        for item in [select_all_action, copy_action]:
+            self.add_item_to_menu(
+                item,
+                menu=menu,
+                section=WebViewMenuSections.Select,
+            )
+
+        for item in [self.zoom_in_action, self.zoom_out_action]:
+            self.add_item_to_menu(
+                item,
+                menu=menu,
+                section=WebViewMenuSections.Zoom,
+            )
+
+        self.add_item_to_menu(
+            inspect_action,
+            menu=menu,
+            section=WebViewMenuSections.Extras,
+        )
+
+        if DEV and not WEBENGINE:
+            settings = self.page().settings()
+            settings.setAttribute(QWebEngineSettings.DeveloperExtrasEnabled,
+                                  True)
+            inspect_action.setVisible(True)
+        else:
+            inspect_action.setVisible(False)
+
     def find_text(self, text, changed=True, forward=True, case=False,
                   word=False, regexp=False):
-        """Find text"""
+        """Find text."""
         if not WEBENGINE:
             findflag = QWebEnginePage.FindWrapsAroundDocument
         else:
@@ -136,7 +307,7 @@ class WebView(QWebEngineView):
         settings.setFontSize(settings.DefaultFixedFontSize, size)
 
     def apply_zoom_factor(self):
-        """Apply zoom factor"""
+        """Apply zoom factor."""
         if hasattr(self, 'setZoomFactor'):
             # Assuming Qt >=v4.5
             self.setZoomFactor(self.zoom_factor)
@@ -145,23 +316,23 @@ class WebView(QWebEngineView):
             self.setTextSizeMultiplier(self.zoom_factor)
 
     def set_zoom_factor(self, zoom_factor):
-        """Set zoom factor"""
+        """Set zoom factor."""
         self.zoom_factor = zoom_factor
         self.apply_zoom_factor()
 
     def get_zoom_factor(self):
-        """Return zoom factor"""
+        """Return zoom factor."""
         return self.zoom_factor
 
     @Slot()
     def zoom_out(self):
-        """Zoom out"""
+        """Zoom out."""
         self.zoom_factor = max(.1, self.zoom_factor-.1)
         self.apply_zoom_factor()
 
     @Slot()
     def zoom_in(self):
-        """Zoom in"""
+        """Zoom in."""
         self.zoom_factor += .1
         self.apply_zoom_factor()
 
@@ -175,19 +346,9 @@ class WebView(QWebEngineView):
             pass
 
     def contextMenuEvent(self, event):
-        menu = QMenu(self)
-        actions = [self.pageAction(QWebEnginePage.Back),
-                   self.pageAction(QWebEnginePage.Forward), None,
-                   self.pageAction(QWebEnginePage.SelectAll),
-                   self.pageAction(QWebEnginePage.Copy), None,
-                   self.zoom_in_action, self.zoom_out_action]
-        if DEV and not WEBENGINE:
-            settings = self.page().settings()
-            settings.setAttribute(QWebEngineSettings.DeveloperExtrasEnabled, True)
-            actions += [None, self.pageAction(QWebEnginePage.InspectElement)]
-        add_actions(menu, actions)
-        menu.popup(event.globalPos())
-        event.accept()
+        if self.context_menu:
+            self.context_menu.popup(event.globalPos())
+            event.accept()
 
     def setHtml(self, html, baseUrl=QUrl()):
         """
@@ -198,23 +359,60 @@ class WebView(QWebEngineView):
         https://bugreports.qt.io/browse/QTBUG-52999
         """
         if WEBENGINE:
-            self.setEnabled(False)
+            if OLD_PYQT:
+                self.setEnabled(False)
             super(WebView, self).setHtml(html, baseUrl)
-            self.setEnabled(True)
+            if OLD_PYQT:
+                self.setEnabled(True)
         else:
             super(WebView, self).setHtml(html, baseUrl)
+
+        # This is required to catch an error with PyQt 5.9, for which
+        # it seems this functionality is not working.
+        # Fixes spyder-ide/spyder#16703
+        try:
+            # The event filter needs to be installed every time html is set
+            # because the proxy changes with new content.
+            self.focusProxy().installEventFilter(self)
+        except AttributeError:
+            pass
+
+    def load(self, url):
+        """
+        Load url.
+
+        This is reimplemented to install our event filter after the
+        url is loaded.
+        """
+        super().load(url)
+        self.focusProxy().installEventFilter(self)
+
+    def eventFilter(self, widget, event):
+        """
+        Handle events that affect the view.
+
+        All events (e.g. focus in/out) reach the focus proxy, not this
+        widget itself. That's why this event filter is necessary.
+        """
+        if self.focusProxy() is widget:
+            if event.type() == QEvent.FocusIn:
+                self.sig_focus_in_event.emit()
+            elif event.type() == QEvent.FocusOut:
+                self.sig_focus_out_event.emit()
+        return super().eventFilter(widget, event)
 
 
 class WebBrowser(QWidget):
     """
-    Web browser widget
+    Web browser widget.
     """
-    def __init__(self, parent=None, options_button=None):
+    def __init__(self, parent=None, options_button=None, handle_links=True):
         QWidget.__init__(self, parent)
 
         self.home_url = None
 
-        self.webview = WebView(self)
+        self.webview = WebView(self, handle_links=handle_links)
+        self.webview.setup()
         self.webview.loadFinished.connect(self.load_finished)
         self.webview.titleChanged.connect(self.setWindowTitle)
         self.webview.urlChanged.connect(self.url_changed)
@@ -226,12 +424,18 @@ class WebBrowser(QWidget):
         zoom_out_button = action2button(self.webview.zoom_out_action)
         zoom_in_button = action2button(self.webview.zoom_in_action)
 
-        pageact2btn = lambda prop: action2button(self.webview.pageAction(prop),
-                                                 parent=self.webview)
-        refresh_button = pageact2btn(QWebEnginePage.Reload)
-        stop_button = pageact2btn(QWebEnginePage.Stop)
-        previous_button = pageact2btn(QWebEnginePage.Back)
-        next_button = pageact2btn(QWebEnginePage.Forward)
+        def pageact2btn(prop, icon=None):
+            return action2button(
+                self.webview.pageAction(prop), parent=self.webview, icon=icon)
+
+        refresh_button = pageact2btn(
+            QWebEnginePage.Reload, icon=ima.icon('refresh'))
+        stop_button = pageact2btn(
+            QWebEnginePage.Stop, icon=ima.icon('stop'))
+        previous_button = pageact2btn(
+            QWebEnginePage.Back, icon=ima.icon('previous'))
+        next_button = pageact2btn(
+            QWebEnginePage.Forward, icon=ima.icon('next'))
 
         stop_button.setEnabled(False)
         self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))
@@ -337,33 +541,64 @@ class WebBrowser(QWidget):
 
 class FrameWebView(QFrame):
     """
-    Framed QWebEngineView for UI consistency in Spyder.
+    Framed WebView for UI consistency in Spyder.
     """
     linkClicked = Signal(QUrl)
 
-    def __init__(self, parent):
-        QFrame.__init__(self, parent)
+    def __init__(self, parent, handle_links=True):
+        super().__init__(parent)
 
-        self._webview = WebView(self)
+        self._webview = WebView(
+            self,
+            handle_links=handle_links,
+            class_parent=parent
+        )
+        self._webview.sig_focus_in_event.connect(
+            lambda: self._apply_stylesheet(focus=True))
+        self._webview.sig_focus_out_event.connect(
+            lambda: self._apply_stylesheet(focus=False))
 
         layout = QHBoxLayout()
         layout.addWidget(self._webview)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+        self._apply_stylesheet()
 
-        self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
-
-        if WEBENGINE:
-            self._webview.page().linkClicked.connect(self.linkClicked)
-        else:
-            self._webview.linkClicked.connect(self.linkClicked)
+        if handle_links:
+            if WEBENGINE:
+                self._webview.page().linkClicked.connect(self.linkClicked)
+            else:
+                self._webview.linkClicked.connect(self.linkClicked)
 
     def __getattr__(self, name):
-        return getattr(self._webview, name)
+        if name == '_webview':
+            return super().__getattr__(name)
+
+        if hasattr(self._webview, name):
+            return getattr(self._webview, name)
+        else:
+            return super().__getattr__(name)
 
     @property
     def web_widget(self):
         return self._webview
+
+    def _apply_stylesheet(self, focus=False):
+        """Apply stylesheet according to the current focus."""
+        if focus:
+            border_color = QStylePalette.COLOR_ACCENT_3
+        else:
+            border_color = QStylePalette.COLOR_BACKGROUND_4
+
+        css = qstylizer.style.StyleSheet()
+        css.QFrame.setValues(
+            border=f'1px solid {border_color}',
+            margin='0px 1px 0px 1px',
+            padding='0px 0px 1px 0px',
+            borderRadius='3px'
+        )
+
+        self.setStyleSheet(css.toString())
 
 
 def test():

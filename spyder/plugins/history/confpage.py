@@ -11,7 +11,7 @@ from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.api.preferences import PluginConfigPage
 
 
@@ -24,22 +24,12 @@ class HistoryConfigPage(PluginConfigPage):
 
     def setup_page(self):
         """Setup config page widgets and options."""
-        settings_group = QGroupBox(_("Settings"))
-        hist_spin = self.create_spinbox(
-                            _("History depth: "), _(" entries"),
-                            'max_entries', min_=10, max_=10000, step=10,
-                            tip=_("Set maximum line count"))
-
-        sourcecode_group = QGroupBox(_("Source code"))
+        sourcecode_group = QGroupBox(_("Display"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
         linenumbers_mode_box = self.create_checkbox(_("Show line numbers"),
                                                     'line_numbers')
         go_to_eof_box = self.create_checkbox(
                         _("Scroll automatically to last entry"), 'go_to_eof')
-
-        settings_layout = QVBoxLayout()
-        settings_layout.addWidget(hist_spin)
-        settings_group.setLayout(settings_layout)
 
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
@@ -48,7 +38,6 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(settings_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)

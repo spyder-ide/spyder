@@ -11,81 +11,12 @@ Editor Switcher manager.
 # Standard library imports
 import os.path as osp
 
-# Third party imports
-from qtpy.QtGui import QIcon
-
 # Local imports
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
+from spyder.config.manager import CONF
+from spyder.utils.icon_manager import ima
 from spyder.utils.switcher import shorten_paths, get_file_icon
-
-
-def get_symbol_list(outlineexplorer_data_list):
-    """
-    Get the list of symbols present in the outline explorer data list.
-
-    Returns a list with line number, definition name, fold and token.
-    """
-    symbol_list = []
-    for oedata in outlineexplorer_data_list:
-        if oedata.is_class_or_function():
-            line_number = oedata.get_block_number()
-            if line_number is not None:
-                symbol_list.append((
-                    line_number + 1,
-                    oedata.def_name,
-                    oedata.fold_level,
-                    oedata.get_token()))
-    return sorted(symbol_list)
-
-
-def get_python_symbol_icons(symbols):
-    """Return a list of icons for symbols of a python file."""
-    class_icon = ima.icon('class')
-    method_icon = ima.icon('method')
-    function_icon = ima.icon('function')
-    private_icon = ima.icon('private1')
-    super_private_icon = ima.icon('private2')
-
-    # line - 1, name, fold level
-    fold_levels = sorted(list(set([s[2] for s in symbols])))
-    parents = [None]*len(symbols)
-    icons = [None]*len(symbols)
-    indexes = []
-
-    parent = None
-    for level in fold_levels:
-        for index, item in enumerate(symbols):
-            line, name, fold_level, token = item
-            if index in indexes:
-                continue
-
-            if fold_level == level:
-                indexes.append(index)
-                parent = item
-            else:
-                parents[index] = parent
-
-    for index, item in enumerate(symbols):
-        parent = parents[index]
-
-        if item[-1] == 'def':
-            icons[index] = function_icon
-        elif item[-1] == 'class':
-            icons[index] = class_icon
-        else:
-            icons[index] = QIcon()
-
-        if parent is not None:
-            if parent[-1] == 'class':
-                if item[-1] == 'def' and item[1].startswith('__'):
-                    icons[index] = super_private_icon
-                elif item[-1] == 'def' and item[1].startswith('_'):
-                    icons[index] = private_icon
-                else:
-                    icons[index] = method_icon
-
-    return icons
+from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 
 
 class EditorSwitcherManager(object):
@@ -183,7 +114,7 @@ class EditorSwitcherManager(object):
         title = osp.basename(path)
         lines = data.editor.get_line_count()
         icon = get_file_icon(path)
-        line_template_title = "{title} [{lines} {text}]"
+        line_template_title = u"{title} [{lines} {text}]"
         title = line_template_title.format(title=title, lines=lines,
                                            text=_("lines"))
         description = _('Go to line')
@@ -197,29 +128,51 @@ class EditorSwitcherManager(object):
     def create_symbol_switcher(self):
         """Populate switcher with symbol info."""
         editor = self._editor()
+        language = editor.language
+        editor.update_whitespace_count(0, 0)
         self._current_line = editor.get_cursor_line_number()
         self._switcher.clear()
         self._switcher.set_placeholder_text(_('Select symbol'))
-        oedata_list = editor.outlineexplorer_data_list()
+        oe_symbols = editor.oe_proxy.info or []
+        display_variables = CONF.get('outline_explorer', 'display_variables')
 
-        symbols_list = get_symbol_list(oedata_list)
-        icons = get_python_symbol_icons(symbols_list)
-        for idx, symbol in enumerate(symbols_list):
-            title = symbol[1]
-            fold_level = symbol[2]
+        idx = 0
+        total_symbols = len(oe_symbols)
+        oe_symbols = sorted(
+            oe_symbols, key=lambda x: x['location']['range']['start']['line'])
+        for symbol in oe_symbols:
+            symbol_name = symbol['name']
+            symbol_kind = symbol['kind']
+            if language.lower() == 'python':
+                if symbol_kind == SymbolKind.MODULE:
+                    total_symbols -= 1
+                    continue
+                if (symbol_kind == SymbolKind.VARIABLE and
+                        not display_variables):
+                    total_symbols -= 1
+                    continue
+                if symbol_kind == SymbolKind.FIELD and not display_variables:
+                    total_symbols -= 1
+                    continue
+
+            symbol_range = symbol['location']['range']
+            symbol_start = symbol_range['start']['line']
+
+            fold_level = editor.leading_whitespaces[symbol_start]
+
             space = ' ' * fold_level
-            formated_title = '{space}{title}'.format(title=title,
+            formated_title = '{space}{title}'.format(title=symbol_name,
                                                      space=space)
-            line_number = symbol[0]
-            icon = icons[idx]
-            data = {'title': title,
-                    'line_number': line_number + 1}
-            last_item = idx + 1 == len(symbols_list)
+            icon = ima.icon(SYMBOL_KIND_ICON.get(symbol_kind, 'no_match'))
+            data = {'title': symbol_name,
+                    'line_number': symbol_start + 1}
+            last_item = idx + 1 == total_symbols
             self._switcher.add_item(title=formated_title,
                                     icon=icon,
                                     section=self._section,
                                     data=data,
                                     last_item=last_item)
+            idx += 1
         # Needed to update fold spaces for items titles
         self._switcher.setup()
 

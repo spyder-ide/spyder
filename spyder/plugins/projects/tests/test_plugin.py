@@ -15,18 +15,20 @@ import os
 import shutil
 import os.path as osp
 import sys
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock, MagicMock
 
 # Third party imports
 import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.app.cli_options import get_options
+from spyder.config.base import running_in_ci
+from spyder.config.manager import CONF
 import spyder.plugins.base
 from spyder.plugins.projects.plugin import Projects, QMessageBox
+from spyder.plugins.preferences.tests.conftest import MainWindowMock
+from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.py3compat import to_text_string
 
 
@@ -34,44 +36,61 @@ from spyder.py3compat import to_text_string
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
-def projects(qtbot, mocker):
+def projects(qtbot, mocker, request, tmpdir):
     """Projects plugin fixture."""
+    use_cli_project = request.node.get_closest_marker('use_cli_project')
 
-    class EditorMock(object):
+    class EditorMock(MagicMock):
         def get_open_filenames(self):
             # Patch this with mocker to return a different value.
             # See test_set_project_filenames_in_close_project.
             return []
 
-        def __getattr__(self, attr):
-            return Mock()
-
-    class MainWindowMock(object):
-        editor = EditorMock()
+    class MainWindowProjectsMock(MainWindowMock):
+        def __init__(self, parent):
+            # This avoids using the cli options passed to pytest
+            sys_argv = [sys.argv[0]]
+            self._cli_options = get_options(sys_argv)[0]
+            super().__init__(parent)
 
         def __getattr__(self, attr):
             if attr == 'ipyconsole':
                 return None
-            else:
-                return Mock()
+            try:
+                super().__getattr__(attr)
+            except AttributeError:
+                return MagicMock()
+
+        def get_initial_working_directory(self):
+            return str(tmpdir)
+
+    # Main window mock
+    main_window = MainWindowProjectsMock(None)
+    if use_cli_project:
+        tmpdir.mkdir('cli_project_dir')
+
+        # This allows us to test relative paths passed on the command line
+        main_window._cli_options.project = 'cli_project_dir'
 
     # Create plugin
-    projects = Projects(parent=None)
-    projects._setup()
+    projects = Projects(configuration=CONF)
+    projects.initialize()
+
+    projects.editor = EditorMock()
+
+    projects.sig_switch_to_plugin_requested.connect(
+        lambda x, y: projects.change_visibility(True))
+
+    # This can only be done at this point
+    projects._main = main_window
 
     # Patching necessary to test visible_if_project_open
     projects.shortcut = None
     mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
                         'install_tab_event_filter')
-    mocker.patch.object(projects, '_toggle_view_action')
-    projects._create_dockwidget()
-
-    # This can only be done at this point
-    projects.main = MainWindowMock()
-
-    qtbot.addWidget(projects)
-    projects.show()
-    return projects
+    yield projects
+    projects.get_container().close()
+    projects.on_close()
 
 
 @pytest.fixture
@@ -87,10 +106,9 @@ def create_projects(projects, mocker):
         projects.open_project(path=path)
 
         # Mock the opening of files in the Editor while the project is open.
-        mocker.patch.object(
-            projects.main.editor, 'get_open_filenames', return_value=files)
-
+        projects.editor.get_open_filenames = lambda *args, **kwargs: files
         return projects
+
     return _create_projects
 
 
@@ -136,43 +154,53 @@ def test_close_project_sets_visible_config(projects, tmpdir, value):
     """Test that when project is closed, the config option
     visible_if_project_open is set to the correct value."""
     # Set config to opposite value so that we can check that it's set correctly
-    projects.set_option('visible_if_project_open', not value)
-
+    projects.set_conf('visible_if_project_open', not value)
     projects.open_project(path=to_text_string(tmpdir))
     if value:
         projects.show_explorer()
     else:
-        projects.dockwidget.close()
+        projects.get_widget().hide()
     projects.close_project()
-    assert projects.get_option('visible_if_project_open') == value
+    assert projects.get_conf('visible_if_project_open') == value
 
 
 @pytest.mark.parametrize('value', [True, False])
-def test_closing_plugin_sets_visible_config(projects, tmpdir, value):
-    """Test that closing_plugin() sets config option visible_if_project_open
+def test_on_close_sets_visible_config(projects, tmpdir, value):
+    """Test that on_close() sets config option visible_if_project_open
     if a project is open."""
-    projects.set_option('visible_if_project_open', not value)
-    projects.closing_plugin()
+    projects.set_conf('visible_if_project_open', not value)
+    projects.on_close()
 
     # No project is open so config option should remain unchanged
-    assert projects.get_option('visible_if_project_open') == (not value)
+    assert projects.get_conf('visible_if_project_open') == (not value)
 
     projects.open_project(path=to_text_string(tmpdir))
     if value:
         projects.show_explorer()
     else:
-        projects.dockwidget.close()
+        projects.get_widget().hide()
     projects.close_project()
-    assert projects.get_option('visible_if_project_open') == value
+    assert projects.get_conf('visible_if_project_open') == value
 
 
 @pytest.mark.parametrize('value', [True, False])
 def test_open_project_uses_visible_config(projects, tmpdir, value):
     """Test that when a project is opened, the project explorer is only opened
     if the config option visible_if_project_open is set."""
-    projects.set_option('visible_if_project_open', value)
+    projects.set_conf('visible_if_project_open', value)
     projects.open_project(path=to_text_string(tmpdir))
-    assert projects.dockwidget.isVisible() == value
+    assert projects.get_widget().isVisible() == value
+
+
+@pytest.mark.parametrize('value', [False, True])
+def test_switch_to_plugin(projects, tmpdir, value):
+    """Test that switch_to_plugin always shows the plugin if a project is
+    opened, regardless of the config option visible_if_project_open.
+    Regression test for spyder-ide/spyder#12491."""
+    projects.set_conf('visible_if_project_open', value)
+    projects.open_project(path=to_text_string(tmpdir))
+    projects.switch_to_plugin()
+    assert projects.get_widget().isVisible()
 
 
 def test_set_get_project_filenames_when_closing_no_files(create_projects,
@@ -281,16 +309,18 @@ def test_recent_projects_menu_action(projects, tmpdir):
     projects.open_project(path=path0)
     projects.open_project(path=path1)
     projects.open_project(path=path2)
-    assert (len(projects.recent_projects_actions) ==
-            recent_projects_len + 3 + 2)
+    actions = list(projects.get_widget().get_actions().keys())
+    assert path0 in actions
+    assert path1 in actions
+    assert path2 in actions
     assert projects.get_active_project().root_path == path2
 
     # Trigger project1 in the list of Recent Projects actions.
-    projects.recent_projects_actions[1].trigger()
+    projects.get_widget().get_actions()[path1].trigger()
     assert projects.get_active_project().root_path == path1
 
     # Trigger project0 in the list of Recent Projects actions.
-    projects.recent_projects_actions[2].trigger()
+    projects.get_widget().get_actions()[path0].trigger()
     assert projects.get_active_project().root_path == path0
 
 
@@ -301,7 +331,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
 
     Regression test for spyder-ide/spyder#8455.
     """
-    qtbot.addWidget(projects.explorer)
+    qtbot.addWidget(projects.get_widget())
     projects.show_explorer()
 
     ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
@@ -321,18 +351,20 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
         # Check that the root path of the project explorer tree widget is
         # set correctly.
         assert projects.get_active_project_path() == ppath
-        assert projects.explorer.treewidget.root_path == osp.dirname(ppath)
-        assert (projects.explorer.treewidget.rootIndex().data() ==
+        assert projects.get_widget().treewidget.root_path == osp.dirname(ppath)
+        assert (projects.get_widget().treewidget.rootIndex().data() ==
                 osp.basename(osp.dirname(ppath)))
 
         # Check that the first visible item in the project explorer
         # tree widget is the folder of the project.
-        topleft_index = (projects.explorer.treewidget.indexAt(
-            projects.explorer.treewidget.rect().topLeft()))
+        topleft_index = (projects.get_widget().treewidget.indexAt(
+            projects.get_widget().treewidget.rect().topLeft()))
         assert topleft_index.data() == osp.basename(ppath)
 
 
 @flaky(max_runs=5)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
+@pytest.mark.skipif(not running_in_ci(), reason="Hangs locally sometimes")
 def test_filesystem_notifications(qtbot, projects, tmpdir):
     """
     Test that filesystem notifications are emitted when creating,
@@ -422,6 +454,65 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
 
         modified_file, is_dir = blocker.args
         assert modified_file in to_text_string(file3)
+
+
+def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
+    """
+    Test that loaded and closed signals are emitted when switching
+    projects.
+    """
+    dir_object1 = tmpdir.mkdir('project1')
+    path1 = to_text_string(dir_object1)
+    path2 = to_text_string(tmpdir.mkdir('project2'))
+
+    mocker.patch.object(ProjectDialog, "exec_", return_value=True)
+
+    # Needed to actually create the files
+    opened_files = []
+    for file in ['file1', 'file2', 'file3']:
+        file_object = dir_object1.join(file)
+        file_object.write(file)
+        opened_files.append(to_text_string(file_object))
+
+    # Create the projects plugin.
+    projects = create_projects(path1, opened_files)
+    projects._project_types = {}
+    # Switch to another project.
+    with qtbot.waitSignals(
+            [projects.sig_project_loaded, projects.sig_project_closed]):
+        projects.open_project(path=path2)
+
+
+@pytest.mark.use_cli_project
+def test_project_cli(projects):
+    """Test that we can open a project from the command line."""
+    # Simulate opening a project when the main window is visible
+    projects.on_mainwindow_visible()
+
+    # Verify that we created the expected project
+    active_project = projects.get_active_project_path()
+    assert osp.split(active_project)[-1] == 'cli_project_dir'
+
+    # Close project
+    projects.close_project()
+
+
+def test_reopen_project(projects, tmpdir):
+    """Test that we can reopen a project from the last session."""
+    # Create project
+    last_project = tmpdir.mkdir('last_project_dir')
+    last_project.mkdir('.spyproject')
+    projects.set_conf('current_project_path', str(last_project))
+
+    # Simulate opening a project when the main window is visible
+    projects.on_mainwindow_visible()
+
+    # Verify that we created the expected project
+    active_project = projects.get_active_project_path()
+    assert osp.split(active_project)[-1] == 'last_project_dir'
+
+    # Close project
+    projects.close_project()
 
 
 if __name__ == "__main__":

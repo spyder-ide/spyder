@@ -21,14 +21,14 @@ Notes:
 # Default json config for the lsp
 # =============================================================================
 PYTHON_CONFIG = {
-    'cmd': 'pyls',
+    'cmd': 'pylsp',
     'args': '--host {host} --port {port} --tcp',
     'host': '127.0.0.1',
     'port': 2087,
     'external': False,
     'stdio': False,
     'configurations': {
-        'pyls': {
+        'pylsp': {
             'configurationSources': [
                 "pycodestyle", "pyflakes"],
             'plugins': {
@@ -43,6 +43,17 @@ PYTHON_CONFIG = {
                 },
                 'pyflakes': {
                     'enabled': True
+                },
+                'autopep8': {
+                    'enabled': True
+                },
+                'pylsp_black': {
+                    'enabled': False
+                },
+                'black': {
+                    'line_length': 79,
+                    'preview': False,
+                    'cache_config': False,
                 },
                 'yapf': {
                     'enabled': False
@@ -64,9 +75,16 @@ PYTHON_CONFIG = {
                 'rope_completion': {
                     'enabled': False
                 },
+                'jedi': {
+                    'environment': None,
+                    'extra_paths': None,
+                    'env_vars': None,
+                },
                 'jedi_completion': {
                     'enabled': True,
-                    'include_params': True
+                    'include_params': False,
+                    'include_class_objects': False,
+                    'fuzzy': False
                 },
                 'jedi_definition': {
                     'enabled': True,
@@ -86,7 +104,8 @@ PYTHON_CONFIG = {
                 },
                 'jedi_symbols': {
                     'enabled': True,
-                    'all_scopes': True
+                    'all_scopes': True,
+                    'include_import_symbols': False
                 },
                 'mccabe': {
                     'enabled': False,
@@ -99,6 +118,16 @@ PYTHON_CONFIG = {
                 'pylint': {
                     'enabled': False,
                     'args': []
+                },
+                'flake8': {
+                    'enabled': False,
+                },
+                'pyls_spyder': {
+                    'enable_block_comments': True,
+                    'group_cells': True
+                },
+                'pyls_flake8': {
+                    'enabled': False,
                 }
             },
 

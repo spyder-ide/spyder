@@ -5,5 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder Working Directory plugin.
+spyder.plugins.workingdirectory
+===============================
+
+Spyder Working Directory Plugin.
 """

@@ -17,20 +17,16 @@ import string
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextOption
-from spyder_kernels.utils.nsview import value_to_display
+from spyder_kernels.utils.lazymodules import numpy as np
+from spyder_kernels.utils.nsview import (get_size, get_human_readable_type,
+                                         value_to_display)
 
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import TEXT_TYPES, to_text_string
 
-# Attribute models constants
-try:
-    import numpy as np
-except ImportError:
-    _NUMPY_INSTALLED = False
-else:
-    _NUMPY_INSTALLED = True
 
+# Attribute models constants
 SMALL_COL_WIDTH = 120
 MEDIUM_COL_WIDTH = 200
 
@@ -116,7 +112,7 @@ def tio_summary(tree_item):
             return _("{} of {} item").format(type(tio).__name__, n_items)
         else:
             return _("{} of {} items").format(type(tio).__name__, n_items)
-    elif _NUMPY_INSTALLED and isinstance(tio, np.ndarray):
+    elif isinstance(tio, np.ndarray):
         return _("array of {}, shape: {}").format(tio.dtype, tio.shape)
     elif callable(tio) or inspect.ismodule(tio):
         return ""
@@ -269,7 +265,7 @@ ATTR_MODEL_STR = AttributeModel(
 
 
 ATTR_MODEL_REPR = AttributeModel(
-    'repr (*)',
+    'repr',
     doc=_("The string representation of the "
           "object using the repr() function."),
     data_fn=lambda tree_item: repr(tree_item.obj),
@@ -289,16 +285,15 @@ ATTR_MODEL_TYPE = AttributeModel(
 ATTR_MODEL_CLASS = AttributeModel(
     'Type',
     doc="The name of the class of the object via obj.__class__.__name__",
-    data_fn=lambda tree_item: type(tree_item.obj).__name__,
+    data_fn=lambda tree_item: get_human_readable_type(tree_item.obj),
     col_visible=True,
     width=MEDIUM_COL_WIDTH)
 
 
 ATTR_MODEL_LENGTH = AttributeModel(
     'Size',
-    doc=_("The length of the object using the len() function"),
-    # data_fn     = tio_length,
-    data_fn=safe_data_fn(len),
+    doc=_("The length or shape of the object"),
+    data_fn=lambda tree_item: to_text_string(get_size(tree_item.obj)),
     col_visible=True,
     alignment=ALIGN_RIGHT,
     width=SMALL_COL_WIDTH)
@@ -470,7 +465,7 @@ DEFAULT_ATTR_DETAILS = (
     ATTR_MODEL_GET_DOC,
     ATTR_MODEL_GET_SOURCE,
     ATTR_MODEL_GET_FILE,
-    ATTR_MODEL_REPR,
+    # ATTR_MODEL_REPR, # not used, too expensive for large objects/collections
     # ATTR_MODEL_DOC_STRING, # not used, too similar to ATTR_MODEL_GET_DOC
     # ATTR_MODEL_GET_MODULE, # not used, already in table
     # ATTR_MODEL_GET_SOURCE_FILE,  # not used, already in table

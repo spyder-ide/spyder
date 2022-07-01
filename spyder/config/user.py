@@ -69,7 +69,7 @@ class DefaultsConfig(cp.ConfigParser, object):
             fp.write('[{}]\n'.format(cp.DEFAULTSECT))
             for (key, value) in self._defaults.items():
                 value_plus_end_of_line = str(value).replace('\n', '\n\t')
-                fp.write('{} = {}\n'.format((key, value_plus_end_of_line)))
+                fp.write('{} = {}\n'.format(key, value_plus_end_of_line))
 
             fp.write('\n')
 
@@ -182,7 +182,8 @@ class UserConfig(DefaultsConfig):
     DEFAULT_SECTION_NAME = 'main'
 
     def __init__(self, name, path, defaults=None, load=True, version=None,
-                 backup=False, raw_mode=False, remove_obsolete=False):
+                 backup=False, raw_mode=False, remove_obsolete=False,
+                 external_plugin=False):
         """UserConfig class, based on ConfigParser."""
         super(UserConfig, self).__init__(name=name, path=path)
 
@@ -191,8 +192,9 @@ class UserConfig(DefaultsConfig):
         self._backup = backup
         self._raw = 1 if raw_mode else 0
         self._remove_obsolete = remove_obsolete
-        self._module_source_path = get_module_source_path('spyder')
+        self._external_plugin = external_plugin
 
+        self._module_source_path = get_module_source_path('spyder')
         self._defaults_folder = 'defaults'
         self._backup_folder = 'backups'
         self._backup_suffix = '.bak'
@@ -329,7 +331,6 @@ class UserConfig(DefaultsConfig):
             else:
                 # Python 3
                 self.read(fpath, encoding='utf-8')
-
         except cp.MissingSectionHeaderError:
             error_text = 'Warning: File contains no section headers.'
             print(error_text)  # spyder: test-skip
@@ -399,7 +400,7 @@ class UserConfig(DefaultsConfig):
         `old_version` can be used for checking compatibility whereas `version`
         relates to adding the version to the file name.
 
-        To be overriden if versions changed backup location.
+        To be overridden if versions changed backup location.
         """
         fpath = self.get_config_fpath()
         path = osp.join(osp.dirname(fpath), self._backup_folder)
@@ -415,7 +416,7 @@ class UserConfig(DefaultsConfig):
         """
         Get defaults location based on version.
 
-        To be overriden if versions changed defaults location.
+        To be overridden if versions changed defaults location.
         """
         version = old_version if old_version else self._version
         defaults_path = osp.join(osp.dirname(self.get_config_fpath()),
@@ -434,7 +435,7 @@ class UserConfig(DefaultsConfig):
         """
         Apply any patch to configuration values on version changes.
 
-        To be overriden if patches to configuration values are needed.
+        To be overridden if patches to configuration values are needed.
         """
         pass
 
@@ -465,6 +466,10 @@ class UserConfig(DefaultsConfig):
         for section in self.sections():
             secdict = {}
             for option, value in self.items(section, raw=self._raw):
+                try:
+                    value = ast.literal_eval(value)
+                except (SyntaxError, ValueError):
+                    pass
                 secdict[option] = value
             self.defaults.append((section, secdict))
 
@@ -632,12 +637,21 @@ class SpyderUserConfig(UserConfig):
         Return the last configuration file used if found.
         """
         fpath = self.get_config_fpath()
-        previous_paths = [
-            # >= 51.0.0
-            fpath,
-            # < 51.0.0
-            os.path.join(get_conf_path(), 'spyder.ini'),
-        ]
+
+        # We don't need to add the contents of the old spyder.ini to
+        # the configuration of external plugins. This was the cause
+        # of  part two (the shortcut conflicts) of issue
+        # spyder-ide/spyder#11132
+        if self._external_plugin:
+            previous_paths = [fpath]
+        else:
+            previous_paths = [
+                # >= 51.0.0
+                fpath,
+                # < 51.0.0
+                os.path.join(get_conf_path(), 'spyder.ini'),
+            ]
+
         for fpath in previous_paths:
             if osp.isfile(fpath):
                 break
@@ -652,7 +666,7 @@ class SpyderUserConfig(UserConfig):
 
         If no version is provided, it returns the current file path.
         """
-        if version is None:
+        if version is None or self._external_plugin:
             fpath = self.get_config_fpath()
         elif check_version(version, '51.0.0', '<'):
             fpath = osp.join(get_conf_path(), 'spyder.ini')
@@ -710,6 +724,8 @@ class SpyderUserConfig(UserConfig):
         """
         self._update_defaults(self.defaults, old_version)
 
+        if self._external_plugin:
+            return
         if old_version and check_version(old_version, '44.1.0', '<'):
             run_lines = to_text_string(self.get('ipython_console',
                                                 'startup/run_lines'))
@@ -731,7 +747,8 @@ class MultiUserConfig(object):
     DEFAULT_FILE_NAME = 'spyder'
 
     def __init__(self, name_map, path, defaults=None, load=True, version=None,
-                 backup=False, raw_mode=False, remove_obsolete=False):
+                 backup=False, raw_mode=False, remove_obsolete=False,
+                 external_plugin=False):
         """Multi user config class based on UserConfig class."""
         self._name_map = self._check_name_map(name_map)
         self._path = path
@@ -741,6 +758,7 @@ class MultiUserConfig(object):
         self._backup = backup
         self._raw_mode = 1 if raw_mode else 0
         self._remove_obsolete = remove_obsolete
+        self._external_plugin = external_plugin
 
         self._configs_map = {}
         self._config_defaults_map = self._get_defaults_for_name_map(defaults,
@@ -753,6 +771,7 @@ class MultiUserConfig(object):
             'backup': backup,
             'raw_mode': raw_mode,
             'remove_obsolete': False,  # This will be handled later on if True
+            'external_plugin': external_plugin
         }
 
         for name in name_map:
@@ -798,7 +817,11 @@ class MultiUserConfig(object):
                     if sec_opt not in sections_options:
                         sections_options.append(sec_opt)
                     else:
-                        raise ValueError('Different files are holding the same section/option: "{}/{}"!'.format(section, option))
+                        error_msg = (
+                            'Different files are holding the same '
+                            'section/option: "{}/{}"!'.format(section, option)
+                        )
+                        raise ValueError(error_msg)
         return name_map
 
     @staticmethod
@@ -907,13 +930,25 @@ class MultiUserConfig(object):
         """Return the UserConfig class to use."""
         return SpyderUserConfig
 
+    def sections(self):
+        """Return all sections of the configuration file."""
+        sections = set()
+        for _, config in self._configs_map.items():
+            for section in config.sections():
+                sections.add(section)
+
+        return list(sorted(sections))
+
     def items(self, section):
         """Return all the items option/values for the given section."""
         config = self._get_config(section, None)
         if config is None:
             config = self._configs_map[self.DEFAULT_FILE_NAME]
 
-        return config.items(section=section)
+        if config.has_section(section):
+            return config.items(section=section)
+        else:
+            return None
 
     def options(self, section):
         """Return all the options for the given section."""
@@ -971,7 +1006,7 @@ class MultiUserConfig(object):
 
     def cleanup(self):
         """Remove .ini files associated to configurations."""
-        for config in self._configs_map:
+        for _, config in self._configs_map.items():
             os.remove(config.get_config_fpath())
 
 

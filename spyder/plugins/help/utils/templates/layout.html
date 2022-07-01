@@ -20,6 +20,9 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {% if sphinx_version_2 %}
+    <link rel="stylesheet" href="file:///{{base_css_path}}/base.css" type="text/css" />
+    {% endif %}
     <link rel="stylesheet" href="file:///{{css_path}}/default.css" type="text/css" />
     <link rel="stylesheet" href="file:///{{css_path}}/pygments.css" type="text/css" />
     <script type="text/javascript" src="file:///{{jquery_path}}/jquery.js"></script>

@@ -11,10 +11,7 @@ Tests for EditorStack keyboard shortcuts.
 # Standard library imports
 import os
 import sys
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
@@ -22,9 +19,10 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 # Local imports
+from spyder.config.base import running_in_ci
+from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
 from spyder.plugins.editor.widgets.editor import EditorStack
-from spyder.config.gui import get_shortcut
-from spyder.plugins.editor.widgets.codeeditor import GoToLineDialog
+from spyder.config.manager import CONF
 
 
 # ---- Qt Test Fixtures
@@ -50,32 +48,33 @@ def editor_bot(qtbot):
 # ---- Tests
 def test_default_keybinding_values():
     """
-    Assert that the default Spyder keybindings for the keyboard shorcuts
+    Assert that the default Spyder keybindings for the keyboard shortcuts
     are as expected. This is required because we do not use the keybindings
     saved in Spyder's config to simulate the user keyboard action, due to
     the fact that it is complicated to convert and pass reliably a sequence
     of key strings to qtbot.keyClicks.
     """
     # Assert default keybindings.
-    assert get_shortcut('editor', 'start of document') == 'Ctrl+Home'
-    assert get_shortcut('editor', 'end of document') == 'Ctrl+End'
-    assert get_shortcut('editor', 'delete') == 'Del'
-    assert get_shortcut('editor', 'undo') == 'Ctrl+Z'
-    assert get_shortcut('editor', 'redo') == 'Ctrl+Shift+Z'
-    assert get_shortcut('editor', 'copy') == 'Ctrl+C'
-    assert get_shortcut('editor', 'paste') == 'Ctrl+V'
-    assert get_shortcut('editor', 'cut') == 'Ctrl+X'
-    assert get_shortcut('editor', 'select all') == 'Ctrl+A'
-    assert get_shortcut('editor', 'delete line') == 'Ctrl+D'
-    assert get_shortcut('editor', 'transform to lowercase') == 'Ctrl+U'
-    assert get_shortcut('editor', 'transform to uppercase') == 'Ctrl+Shift+U'
-    assert get_shortcut('editor', 'go to line') == 'Ctrl+L'
-    assert get_shortcut('editor', 'next word') == 'Ctrl+Right'
-    assert get_shortcut('editor', 'previous word') == 'Ctrl+Left'
+    assert CONF.get_shortcut('editor', 'start of document') == 'Ctrl+Home'
+    assert CONF.get_shortcut('editor', 'end of document') == 'Ctrl+End'
+    assert CONF.get_shortcut('editor', 'delete') == 'Del'
+    assert CONF.get_shortcut('editor', 'undo') == 'Ctrl+Z'
+    assert CONF.get_shortcut('editor', 'redo') == 'Ctrl+Shift+Z'
+    assert CONF.get_shortcut('editor', 'copy') == 'Ctrl+C'
+    assert CONF.get_shortcut('editor', 'paste') == 'Ctrl+V'
+    assert CONF.get_shortcut('editor', 'cut') == 'Ctrl+X'
+    assert CONF.get_shortcut('editor', 'select all') == 'Ctrl+A'
+    assert CONF.get_shortcut('editor', 'delete line') == 'Ctrl+D'
+    assert CONF.get_shortcut('editor', 'transform to lowercase') == 'Ctrl+U'
+    assert CONF.get_shortcut('editor',
+                             'transform to uppercase') == 'Ctrl+Shift+U'
+    assert CONF.get_shortcut('editor', 'go to line') == 'Ctrl+L'
+    assert CONF.get_shortcut('editor', 'next word') == 'Ctrl+Right'
+    assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_start_and_end_of_document_shortcuts(editor_bot):
     """
@@ -98,7 +97,7 @@ def test_start_and_end_of_document_shortcuts(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_del_undo_redo_shortcuts(editor_bot):
     """
@@ -129,7 +128,7 @@ def test_del_undo_redo_shortcuts(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_copy_cut_paste_shortcuts(editor_bot):
     """
@@ -163,7 +162,7 @@ def test_copy_cut_paste_shortcuts(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 def test_select_all_shortcut(editor_bot):
     """
@@ -179,7 +178,7 @@ def test_select_all_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_delete_line_shortcut(editor_bot):
@@ -197,7 +196,7 @@ def test_delete_line_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_go_to_line_shortcut(editor_bot, mocker):
@@ -217,7 +216,7 @@ def test_go_to_line_shortcut(editor_bot, mocker):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_transform_to_lowercase_shortcut(editor_bot):
@@ -235,12 +234,12 @@ def test_transform_to_lowercase_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_transform_to_uppercase_shortcut(editor_bot):
     """
-    Test that the transform to uppercase shorcuts is working as expected with
+    Test that the transform to uppercase shortcuts is working as expected with
     the default Spyder keybindings.
     """
     editorstack, qtbot = editor_bot
@@ -254,7 +253,7 @@ def test_transform_to_uppercase_shortcut(editor_bot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
 def test_next_and_previous_word_shortcuts(editor_bot):

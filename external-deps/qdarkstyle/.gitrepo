@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/ColinDuquesnoy/QDarkStyleSheet.git
+	branch = develop
+	commit = 43abefb2b555e55e18628d6e70e6d4c4e643dbfa
+	parent = 520d09910e2358d29bc932b96bcdd4ab2c702333
+	method = merge
+	cmdver = 0.4.3

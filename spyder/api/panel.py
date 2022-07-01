@@ -18,9 +18,9 @@ Original file:
 
 # Standard library imports
 from math import ceil
+import logging
 
 # Third party imports
-import logging
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 from qtpy.QtCore import Qt, QRect
@@ -116,7 +116,14 @@ class Panel(QWidget, EditorExtension):
             self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
-        """Fills the panel background using QPalette."""
+        """
+        Fill the panel background using QPalette.
+
+        Notes
+        -----
+        Please remember to extend this method in the child class to
+        paint the panel's desired information.
+        """
         if self.isVisible() and self.position != self.Position.FLOATING:
             # fill background
             self._background_brush = QBrush(QColor(
@@ -125,6 +132,28 @@ class Panel(QWidget, EditorExtension):
                 self.palette().windowText().color()))
             painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
+        else:
+            logger.debug(f'paintEvent method must be defined in {self}')
+
+    def sizeHint(self):
+        """
+        Return the widget size hint, overriding the Qt method.
+
+        Notes
+        -----
+        * This size hint will define the QSize of the panel, i.e. it is
+          where its width and height are defined.
+        * If the size of your panel depends on displayed text, please
+          use the LineNumberArea one as reference on how to implement
+          this method.
+        * If the size is not dependent on displayed text, please use
+          the debugger panel as reference.
+        * If your panel is in a floating position, please use the
+          IndentationGuide one as reference.
+        """
+        if self.position != self.Position.FLOATING:
+            raise NotImplementedError(
+                f'sizeHint method must be implemented in {self}')
 
     def setVisible(self, visible):
         """
@@ -140,9 +169,9 @@ class Panel(QWidget, EditorExtension):
             self.editor.panels.refresh()
 
     def geometry(self):
-        """Return geometry dimentions for floating Panels.
+        """Return geometry dimensions for floating Panels.
 
-        Note: If None is returned It'll use editor contentsRect dimentions.
+        Note: If None is returned It'll use editor contentsRect dimensions.
 
         returns: x0, y0, height width.
         """

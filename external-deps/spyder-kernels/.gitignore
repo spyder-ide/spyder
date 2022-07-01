@@ -1,0 +1,36 @@
+# Compiled python files
+*.py[ocd]
+
+# gedit files
+*~
+
+# Notepad++ files
+nppBackup/
+
+# Pytest dirs/files
+.pytest_cache/
+
+# git .orig files
+*.orig
+
+# Sphinx doc build dir
+_build/
+
+# Pickle results from tests
+*.pickle
+
+# Special dirs and files
+build/
+dist/
+bin/
+*.egg-info/
+Thumbs.db
+.DS_Store/
+spyder_crash.log
+.DS_Store
+.spyproject
+.idea/
+.cache
+*.tmp
+*.temp
+*.bak

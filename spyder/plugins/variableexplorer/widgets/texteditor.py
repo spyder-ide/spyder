@@ -10,6 +10,7 @@ Text editor dialog
 
 # Standard library imports
 from __future__ import print_function
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
@@ -21,14 +22,14 @@ from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_binary_string,
                               to_text_string)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 
-class TextEditor(QDialog):
+class TextEditor(BaseDialog):
     """Array Editor Dialog"""
-    def __init__(self, text, title='', font=None, parent=None,
-                 readonly=False, size=(400, 300)):
-        QDialog.__init__(self, parent)
+    def __init__(self, text, title='', font=None, parent=None, readonly=False):
+        super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -78,7 +79,12 @@ class TextEditor(QDialog):
         self.layout.addLayout(btn_layout)
 
         # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        if sys.platform == 'darwin':
+            # See spyder-ide/spyder#12825
+            self.setWindowFlags(Qt.Tool)
+        else:
+            # Make the dialog act as a window
+            self.setWindowFlags(Qt.Window)
 
         self.setWindowIcon(ima.icon('edit'))
         if title:
@@ -92,7 +98,6 @@ class TextEditor(QDialog):
         self.setWindowTitle(_("Text editor") + \
                             u"%s" % (u" - " + unicode_title
                                      if unicode_title else u""))
-        self.resize(size[0], size[1])
 
     @Slot()
     def text_changed(self):
@@ -120,7 +125,6 @@ class TextEditor(QDialog):
             return True
         except:
             return False
-
 
 #==============================================================================
 # Tests

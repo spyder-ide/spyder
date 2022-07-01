@@ -21,14 +21,15 @@ import sys
 import time
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtGui import QColor, QPixmap, QIcon
-from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
+from qtpy.QtGui import QColor, QIcon
+from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
-from spyder.config.base import _, get_image_path
-from spyder.py3compat import to_text_string
+from spyder.app.utils import create_splash_screen
+from spyder.config.base import _, running_in_mac_app
+from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication
 from spyder.config.manager import CONF
 
@@ -52,7 +53,7 @@ def _is_pid_running_on_windows(pid):
                                stderr=subprocess.STDOUT,
                                startupinfo=startupinfo)
     stdoutdata, stderrdata = process.communicate()
-    stdoutdata = to_text_string(stdoutdata)
+    stdoutdata = to_unicode(stdoutdata)
     process.kill()
     check = pid in stdoutdata
 
@@ -84,21 +85,17 @@ class Restarter(QWidget):
     """Widget in charge of displaying the splash information screen and the
        error messages.
     """
+
     def __init__(self):
         super(Restarter, self).__init__()
         self.ellipsis = ['', '.', '..', '...', '..', '.']
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = QSplashScreen(QPixmap(get_image_path('splash.svg'),
-                                    'svg'))
+        self.splash = create_splash_screen()
 
         # Widget setup
         self.setVisible(False)
-
-        font = self.splash.font()
-        font.setPixelSize(10)
-        self.splash.setFont(font)
         self.splash.show()
 
         self.timer_ellipsis.timeout.connect(self.animate_ellipsis)
@@ -113,7 +110,7 @@ class Restarter(QWidget):
     def animate_ellipsis(self):
         """Animate dots at the end of the splash screen message."""
         ellipsis = self.ellipsis.pop(0)
-        text = ' '*len(ellipsis) + self.splash_text + ellipsis
+        text = ' ' * len(ellipsis) + self.splash_text + ellipsis
         self.ellipsis.append(ellipsis)
         self._show_message(text)
 
@@ -123,13 +120,19 @@ class Restarter(QWidget):
         self._show_message(text)
         self.timer_ellipsis.start(500)
 
+        # Wait 1.2 seconds so we can give feedback to users that a
+        # restart is happening.
+        for __ in range(40):
+            time.sleep(0.03)
+            QApplication.processEvents()
+
     def launch_error_message(self, error_type, error=None):
         """Launch a message box with a predefined error message.
 
         Parameters
         ----------
         error_type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
-            Possible error codes when restarting/reseting spyder.
+            Possible error codes when restarting/resetting spyder.
         error : Exception
             Actual Python exception error caught.
         """
@@ -157,19 +160,21 @@ class Restarter(QWidget):
 
 def main():
     #==========================================================================
-    # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+    # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
     # be set before creating the application.
     #==========================================================================
+    env = os.environ.copy()
+
     if CONF.get('main', 'high_dpi_custom_scale_factor'):
         factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
         f = list(filter(None, factors.split(';')))
         if len(f) == 1:
-            os.environ['QT_SCALE_FACTOR'] = f[0]
+            env['QT_SCALE_FACTOR'] = f[0]
         else:
-            os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+            env['QT_SCREEN_SCALE_FACTORS'] = factors
     else:
-        os.environ['QT_SCALE_FACTOR'] = ''
-        os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
+        env['QT_SCALE_FACTOR'] = ''
+        env['QT_SCREEN_SCALE_FACTORS'] = ''
 
     # Splash screen
     # -------------------------------------------------------------------------
@@ -177,23 +182,18 @@ def main():
     app = qapplication()
     restarter = Restarter()
 
-    if PYQT5:
-        APP_ICON = QIcon(get_image_path("spyder.svg"))
-    else:
-        APP_ICON = QIcon(get_image_path("spyder.png"))
+    APP_ICON = QIcon(get_image_path("spyder"))
     app.setWindowIcon(APP_ICON)
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables
-    # Note: Variables defined in app/spyder.py 'restart()' method
-    spyder_args = os.environ.pop('SPYDER_ARGS', None)
-    pid = os.environ.pop('SPYDER_PID', None)
-    is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
-    reset = os.environ.pop('SPYDER_RESET', None)
+    spyder_args = env.pop('SPYDER_ARGS', None)
+    pid = env.pop('SPYDER_PID', None)
+    is_bootstrap = env.pop('SPYDER_IS_BOOTSTRAP', None)
+    reset = env.pop('SPYDER_RESET', 'False')
 
     # Get the spyder base folder based on this file
-    this_folder = osp.split(osp.dirname(osp.abspath(__file__)))[0]
-    spyder_folder = osp.split(this_folder)[0]
+    spyder_dir = osp.dirname(osp.dirname(osp.dirname(osp.abspath(__file__))))
 
     if not any([spyder_args, pid, is_bootstrap, reset]):
         error = "This script can only be called from within a Spyder instance"
@@ -206,6 +206,14 @@ def main():
     args = ast.literal_eval(spyder_args)
     reset = ast.literal_eval(reset)
 
+    # SPYDER_DEBUG takes presedence over SPYDER_ARGS
+    if '--debug' in args:
+        args.remove('--debug')
+    for level in ['minimal', 'verbose']:
+        arg = f'--debug-info={level}'
+        if arg in args:
+            args.remove(arg)
+
     # Enforce the --new-instance flag when running spyder
     if '--new-instance' not in args:
         if is_bootstrap and '--' not in args:
@@ -213,27 +221,23 @@ def main():
         else:
             args.append('--new-instance')
 
-    # Create the arguments needed for reseting
+    # Create the arguments needed for resetting
     if '--' in args:
         args_reset = ['--', '--reset']
     else:
         args_reset = ['--reset']
 
-    # Arrange arguments to be passed to the restarter and reset subprocess
-    args = ' '.join(args)
-    args_reset = ' '.join(args_reset)
-
-    # Get python excutable running this script
-    python = sys.executable
-
-    # Build the command
-    if is_bootstrap:
-        spyder = osp.join(spyder_folder, 'bootstrap.py')
+    # Build the base command
+    if running_in_mac_app(sys.executable):
+        exe = env['EXECUTABLEPATH']
+        command = [f'"{exe}"']
     else:
-        spyderdir = osp.join(spyder_folder, 'spyder')
-        spyder = osp.join(spyderdir, 'app', 'start.py')
+        if is_bootstrap:
+            script = osp.join(spyder_dir, 'bootstrap.py')
+        else:
+            script = osp.join(spyder_dir, 'spyder', 'app', 'start.py')
 
-    command = '"{0}" "{1}" {2}'.format(python, spyder, args)
+        command = [f'"{sys.executable}"', f'"{script}"']
 
     # Adjust the command and/or arguments to subprocess depending on the OS
     shell = not IS_WINDOWS
@@ -242,7 +246,7 @@ def main():
     # previous one has closed. We wait for a fixed and "reasonable" amount of
     # time and check, otherwise an error is launched
     wait_time = 90 if IS_WINDOWS else 30  # Seconds
-    for counter in range(int(wait_time/SLEEP_TIME)):
+    for counter in range(int(wait_time / SLEEP_TIME)):
         if not is_pid_running(pid):
             break
         time.sleep(SLEEP_TIME)  # Throttling control
@@ -251,16 +255,14 @@ def main():
         # The old spyder instance took too long to close and restart aborts
         restarter.launch_error_message(error_type=CLOSE_ERROR)
 
-    env = os.environ.copy()
-
     # Reset Spyder (if required)
     # -------------------------------------------------------------------------
     if reset:
         restarter.set_splash_message(_('Resetting Spyder to defaults'))
-        command_reset = '"{0}" "{1}" {2}'.format(python, spyder, args_reset)
 
         try:
-            p = subprocess.Popen(command_reset, shell=shell, env=env)
+            p = subprocess.Popen(' '.join(command + args_reset),
+                                 shell=shell, env=env)
         except Exception as error:
             restarter.launch_error_message(error_type=RESET_ERROR, error=error)
         else:
@@ -271,7 +273,7 @@ def main():
         # reset subprocess has closed. We wait for a fixed and "reasonable"
         # amount of time and check, otherwise an error is launched.
         wait_time = 20  # Seconds
-        for counter in range(int(wait_time/SLEEP_TIME)):
+        for counter in range(int(wait_time / SLEEP_TIME)):
             if not is_pid_running(pid_reset):
                 break
             time.sleep(SLEEP_TIME)  # Throttling control
@@ -290,7 +292,7 @@ def main():
     # -------------------------------------------------------------------------
     restarter.set_splash_message(_('Restarting'))
     try:
-        subprocess.Popen(command, shell=shell, env=env)
+        subprocess.Popen(' '.join(command + args), shell=shell, env=env)
     except Exception as error:
         restarter.launch_error_message(error_type=RESTART_ERROR, error=error)
 

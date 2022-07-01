@@ -59,7 +59,10 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
     failed = False
     while True:
         try:
-            i = tunnel.expect([ssh_newkey, '[Pp]assword:'], timeout=.1)
+            i = tunnel.expect(
+                [ssh_newkey, '[Pp]assword:', '[Pp]assphrase'],
+                timeout=.1
+            )
             if i == 0:
                 host = server.split('@')[-1]
                 question = _("The authenticity of host <b>%s</b> can't be "

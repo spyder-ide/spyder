@@ -6,9 +6,9 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
+"""
+spyder.plugins.breakpoints
+==========================
 
-# =============================================================================
-# The following statement is required to register this 3rd party plugin:
-# =============================================================================
-
-from .plugin import Breakpoints as PLUGIN_CLASS
+Breakpoints Plugin.
+"""

@@ -14,29 +14,31 @@ from flaky import flaky
 import pytest
 
 # Local imports
-from spyder.utils.programs import (check_version, find_program,
-                                   get_application_icon,
+from spyder.config.base import running_in_ci
+from spyder.utils.programs import (_clean_win_application_path, check_version,
+                                   find_program, get_application_icon,
                                    get_installed_applications, get_temp_dir,
                                    is_module_installed, is_python_interpreter,
                                    is_python_interpreter_valid_name,
                                    open_files_with_application,
                                    parse_linux_desktop_entry,
-                                   run_python_script_in_terminal, shell_split)
+                                   run_python_script_in_terminal, shell_split,
+                                   get_package_version, get_module_version)
 
 if os.name == 'nt':
-    python_dir = os.environ['PYTHON'] if os.environ.get('CI', None) else ''
+    python_dir = 'C:\\Miniconda\\'
     VALID_INTERPRETER = os.path.join(python_dir, 'python.exe')
     VALID_W_INTERPRETER = os.path.join(python_dir, 'pythonw.exe')
     INVALID_INTERPRETER = os.path.join(python_dir, 'Scripts', 'ipython.exe')
 else:
     if sys.platform.startswith('linux'):
-        home_dir = os.environ['HOME']
+        home_dir = '/usr/share/miniconda/'
     else:
-        # Parent Miniconda dir in macOS Azure VMs
-        home_dir = os.path.join('/usr', 'local')
-    VALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'python')
-    VALID_W_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'pythonw')
-    INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
+        home_dir = '/usr/local/miniconda/'
+
+    VALID_INTERPRETER = os.path.join(home_dir, 'bin', 'python')
+    VALID_W_INTERPRETER = os.path.join(home_dir, 'bin', 'pythonw')
+    INVALID_INTERPRETER = os.path.join(home_dir, 'bin', 'ipython')
 
 
 # =============================================================================
@@ -69,8 +71,7 @@ def scriptpath_with_blanks(tmpdir):
 # =============================================================================
 # ---- Tests
 # =============================================================================
-@pytest.mark.skipif((sys.platform.startswith('linux') or
-                     os.environ.get('CI', None) is None),
+@pytest.mark.skipif(sys.platform.startswith('linux') or not running_in_ci(),
                     reason='It only runs in CI services and '
                            'Linux does not have pythonw executables.')
 def test_is_valid_w_interpreter():
@@ -78,19 +79,17 @@ def test_is_valid_w_interpreter():
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(
-    os.environ.get('CI', None) is None,
-    reason='fails sometimes locally')
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_run_python_script_in_terminal(scriptpath, qtbot):
     """
     Test running a Python script in an external terminal when specifying
-    explicitely the working directory.
+    explicitly the working directory.
     """
     # Run the script
     outfilepath = osp.join(scriptpath.dirname, 'out.txt')
     run_python_script_in_terminal(
         scriptpath.strpath, scriptpath.dirname, '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=10000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
@@ -98,21 +97,23 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.order(1)
 @pytest.mark.skipif(
-    os.environ.get('CI', None) is None,
-    reason='fails sometimes locally')
+    not running_in_ci() or os.name == 'nt',
+    reason='Only on CI and not on windows!',
+)
 def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
                                                   qtbot):
     """
     Test running a Python script in an external terminal when specifying
-    explicitely the working directory.
+    explicitly the working directory.
     """
     # Run the script
     outfilepath = osp.join(scriptpath_with_blanks.dirname, 'out.txt')
     run_python_script_in_terminal(
         scriptpath_with_blanks.strpath, scriptpath_with_blanks.dirname,
         '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=10000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
@@ -120,9 +121,11 @@ def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
 
 
 @flaky(max_runs=3)
+@pytest.mark.order(1)
 @pytest.mark.skipif(
-    os.environ.get('CI', None) is None,
-    reason='fails sometimes locally')
+    not running_in_ci() or os.name == 'nt',
+    reason='Only on CI and not on windows!',
+)
 def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
     """
     Test running a Python script in an external terminal without specifying
@@ -135,38 +138,43 @@ def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
         outfilepath = osp.join(os.getcwd(), 'out.txt')
 
     run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=10000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
     assert res == 'done'
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason='It only runs in CI services.')
+@pytest.mark.order(1)
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_is_valid_interpreter():
     assert is_python_interpreter(VALID_INTERPRETER)
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason='It only runs in CI services.')
+@pytest.mark.order(1)
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_is_invalid_interpreter():
     assert not is_python_interpreter(INVALID_INTERPRETER)
 
 
+@pytest.mark.order(1)
+@pytest.mark.skipif(not running_in_ci(), reason='Only on CI!')
 def test_is_valid_interpreter_name():
     names = ['python', 'pythonw', 'python2.7', 'python3.5', 'python.exe', 'pythonw.exe']
     assert all([is_python_interpreter_valid_name(n) for n in names])
+
 
 def test_find_program():
     """Test if can find the program."""
     assert find_program('git')
 
+
 def test_shell_split():
-    """Test if the text can be split using shell-like sintax."""
+    """Test if the text can be split using shell-like syntax."""
     assert shell_split('-q -o -a') == ['-q', '-o', '-a']
     assert shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a') == \
            ['-q', 'd:\\Python de xxxx\\t.txt', '-o', '-a']
+
 
 def test_check_version():
     """Test the compare function for versions."""
@@ -174,21 +182,22 @@ def test_check_version():
     assert check_version('3.0.0rc1', '3.0.0', '<')
     assert check_version('1.0', '1.0b2', '>')
 
+
 def test_is_module_installed():
     """Test if a module with the proper version is installed"""
     assert is_module_installed('qtconsole', '>=4.5')
     assert not is_module_installed('IPython', '>=1.0;<3.0')
     assert is_module_installed('jedi', '>=0.7.0')
+    assert not is_module_installed('foo')
+    assert not is_module_installed('foo1', '>=1.2.0')
 
 
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
-                    reason="Fails on Windows/Azure")
 def test_is_module_installed_with_custom_interpreter():
     """Test if a module with the proper version is installed"""
     current = sys.executable
     assert is_module_installed('qtconsole', '>=4.5', interpreter=current)
     assert not is_module_installed('IPython', '>=1.0;<3.0', interpreter=current)
-    assert is_module_installed('jedi', '>=0.7.0', interpreter=current)
+    assert is_module_installed('cloudpickle', '>=0.5.0', interpreter=current)
 
 
 def test_get_temp_dir_ensure_dir_exists():
@@ -203,6 +212,15 @@ def test_get_temp_dir_ensure_dir_exists():
 
     assert os.path.exists(another_call)
     assert another_call == temp_dir
+
+
+def test_clean_win_application_path(qtbot):
+    data = (
+        ('"c:\\some thing\\foo.exe"', 'c:/some thing/foo.exe'),
+        ("c:\\some' thing\\foo.exe", "c:/some' thing/foo.exe"),
+    )
+    for path, expected_output in data:
+        assert _clean_win_application_path(path) == expected_output
 
 
 def test_get_installed_apps_and_icons(qtbot):
@@ -265,6 +283,18 @@ Icon=/blah/blah.xpm
     # Test raises
     with pytest.raises(ValueError):
         return_codes = open_files_with_application('not-valid.ext', fnames)
+
+
+def test_get_package_version():
+    # Primarily a test of pkg_resources/setuptools being installed properly
+    assert get_package_version('IPython')
+    assert get_package_version('python_lsp_black')
+
+
+def test_get_module_version():
+    # intervaltree should not have a __version__ attribute, so test that the
+    # fallback mechanism to get_package_version is working
+    assert get_module_version('intervaltree')
 
 
 if __name__ == '__main__':

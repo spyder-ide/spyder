@@ -6,14 +6,15 @@
 
 """Editor config page."""
 
-from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout, QWidget)
 
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
-import spyder.utils.icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
@@ -21,7 +22,14 @@ GOOGLEDOC = "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_goo
 DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
-class EditorConfigPage(PluginConfigPage):
+class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
+    def __init__(self, plugin, parent):
+        PluginConfigPage.__init__(self, plugin, parent)
+        SpyderConfigurationObserver.__init__(self)
+        self.removetrail_box = None
+        self.add_newline_box = None
+        self.remove_trail_newline_box = None
+
     def get_name(self):
         return _("Editor")
 
@@ -38,6 +46,7 @@ class EditorConfigPage(PluginConfigPage):
                 'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show indent guides"),
                                      'indent_guides')
+        showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         currentline_box = newcb(_("Highlight current line"),
@@ -47,19 +56,6 @@ class EditorConfigPage(PluginConfigPage):
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         scroll_past_end_box = newcb(_("Scroll past the end"),
                                     'scroll_past_end')
-
-        edgeline_box = newcb(_("Show vertical lines at"), 'edge_line')
-        edgeline_edit = self.create_lineedit(
-            "",
-            'edge_line_columns',
-            tip=("Enter values separated by commas"),
-            alignment=Qt.Horizontal,
-            regex="[0-9]+(,[0-9]+)*")
-        edgeline_edit_label = QLabel(_("characters"))
-        edgeline_box.toggled.connect(edgeline_edit.setEnabled)
-        edgeline_box.toggled.connect(edgeline_edit_label.setEnabled)
-        edgeline_edit.setEnabled(self.get_option('edge_line'))
-        edgeline_edit_label.setEnabled(self.get_option('edge_line'))
 
         occurrence_box = newcb(_("Highlight occurrences after"),
                                'occurrence_highlighting')
@@ -75,12 +71,9 @@ class EditorConfigPage(PluginConfigPage):
                 self.get_option('occurrence_highlighting'))
 
         display_g_layout = QGridLayout()
-        display_g_layout.addWidget(edgeline_box, 0, 0)
-        display_g_layout.addWidget(edgeline_edit.textbox, 0, 1)
-        display_g_layout.addWidget(edgeline_edit_label, 0, 2)
-        display_g_layout.addWidget(occurrence_box, 1, 0)
-        display_g_layout.addWidget(occurrence_spin.spinbox, 1, 1)
-        display_g_layout.addWidget(occurrence_spin.slabel, 1, 2)
+        display_g_layout.addWidget(occurrence_box, 0, 0)
+        display_g_layout.addWidget(occurrence_spin.spinbox, 0, 1)
+        display_g_layout.addWidget(occurrence_spin.slabel, 0, 2)
 
         display_h_layout = QHBoxLayout()
         display_h_layout.addLayout(display_g_layout)
@@ -90,6 +83,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(showtabbar_box)
         display_layout.addWidget(showclassfuncdropdown_box)
         display_layout.addWidget(showindentguides_box)
+        display_layout.addWidget(showcodefolding_box)
         display_layout.addWidget(linenumbers_box)
         display_layout.addWidget(blanks_box)
         display_layout.addWidget(currentline_box)
@@ -132,9 +126,18 @@ class EditorConfigPage(PluginConfigPage):
             _("Intelligent backspace"),
             'intelligent_backspace',
             default=True)
-        removetrail_box = newcb(
+        self.removetrail_box = newcb(
             _("Automatically remove trailing spaces when saving files"),
             'always_remove_trailing_spaces',
+            default=False)
+        self.add_newline_box = newcb(
+            _("Insert a newline at the end if one does not exist when saving "
+              "a file"),
+            'add_newline',
+            default=False)
+        self.remove_trail_newline_box = newcb(
+            _("Trim all newlines after the final one when saving a file"),
+            'always_remove_trailing_newlines',
             default=False)
 
         indent_chars_box = self.create_combobox(
@@ -153,6 +156,13 @@ class EditorConfigPage(PluginConfigPage):
             _("spaces"),
             'tab_stop_width_spaces',
             default=4, min_=1, max_=8, step=1)
+
+        format_on_save = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            False
+        )
+        self.on_format_save_state(format_on_save)
 
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
@@ -183,7 +193,9 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(close_quotes_box)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
-        sourcecode_layout.addWidget(removetrail_box)
+        sourcecode_layout.addWidget(self.removetrail_box)
+        sourcecode_layout.addWidget(self.add_newline_box)
+        sourcecode_layout.addWidget(self.remove_trail_newline_box)
         sourcecode_layout.addWidget(strip_mode_box)
         sourcecode_layout.addLayout(indent_tab_layout)
 
@@ -243,9 +255,10 @@ class EditorConfigPage(PluginConfigPage):
         docstring_label.setWordWrap(True)
 
         docstring_combo_choices = ((_("Numpy"), 'Numpydoc'),
-                                   (_("Google"), 'Googledoc'),)
+                                   (_("Google"), 'Googledoc'),
+                                   (_("Sphinx"), 'Sphinxdoc'),)
         docstring_combo = self.create_combobox(
-            "Type:",
+            _("Type:"),
             docstring_combo_choices,
             'docstring_type')
 
@@ -282,18 +295,21 @@ class EditorConfigPage(PluginConfigPage):
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
                               'check_eol_chars', default=True)
-        convert_eol_on_save_box = newcb(_("On Save: convert EOL characters"
-                                          " to"),
-                                        'convert_eol_on_save', default=False)
-        eol_combo_choices = ((_("LF (UNIX)"), 'LF'),
-                             (_("CRLF (Windows)"), 'CRLF'),
-                             (_("CR (Mac)"), 'CR'),
-                             )
-        convert_eol_on_save_combo = self.create_combobox("",
-                                                         eol_combo_choices,
-                                                         ('convert_eol_on_'
-                                                          'save_to'),
-                                                         )
+        convert_eol_on_save_box = newcb(
+            _("Convert end-of-line characters to the following on save:"),
+            'convert_eol_on_save',
+            default=False
+        )
+        eol_combo_choices = (
+            (_("LF (Unix)"), 'LF'),
+            (_("CRLF (Windows)"), 'CRLF'),
+            (_("CR (macOS)"), 'CR'),
+        )
+        convert_eol_on_save_combo = self.create_combobox(
+            "",
+            eol_combo_choices,
+            'convert_eol_on_save_to',
+        )
         convert_eol_on_save_box.toggled.connect(
                 convert_eol_on_save_combo.setEnabled)
         convert_eol_on_save_combo.setEnabled(
@@ -310,15 +326,48 @@ class EditorConfigPage(PluginConfigPage):
         eol_group.setLayout(eol_layout)
 
         # --- Tabs ---
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(display_widget), _("Display"))
-        tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        tabs.addTab(self.create_tab(run_widget), _('Run code'))
-        tabs.addTab(self.create_tab(template_btn, autosave_group,
-                                    docstring_group, annotations_group,
-                                    eol_group),
-                    _("Advanced settings"))
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(display_widget), _("Display"))
+        self.tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
+        self.tabs.addTab(self.create_tab(run_widget), _('Run code'))
+        self.tabs.addTab(self.create_tab(template_btn, autosave_group,
+                                         docstring_group, annotations_group,
+                                         eol_group),
+                         _("Advanced settings"))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
+        section='completions'
+    )
+    def on_format_save_state(self, value):
+        """
+        Change options following the `format_on_save` completion option.
+
+        Parameters
+        ----------
+        value : bool
+            If the completion `format_on_save` option is enabled or disabled.
+
+        Returns
+        -------
+        None.
+
+        """
+        options = [
+            self.removetrail_box,
+            self.add_newline_box,
+            self.remove_trail_newline_box]
+        for option in options:
+            if option:
+                if value:
+                    option.setToolTip(
+                        _("This option is disabled since the "
+                          "<i>Autoformat files on save</i> option is active.")
+                    )
+                else:
+                    option.setToolTip("")
+                option.setDisabled(value)

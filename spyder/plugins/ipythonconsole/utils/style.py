@@ -74,8 +74,8 @@ def create_qss_style(color_scheme):
                                    in_prompt_number_font_weight,
                                    out_prompt_color, out_prompt_color,
                                    out_prompt_number_font_weight,
-                                   inverted_background_color,
-                                   inverted_font_color)
+                                   inverted_font_color,
+                                   inverted_background_color)
 
     return (sheet_formatted, dark_color(font_color))
 

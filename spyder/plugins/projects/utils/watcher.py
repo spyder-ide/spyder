@@ -13,13 +13,41 @@ import logging
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import QMessageBox
 
+import watchdog
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # Local imports
 from spyder.config.base import _
+from spyder.py3compat import to_text_string
 
 logger = logging.getLogger(__name__)
+
+
+class BaseThreadWrapper(watchdog.utils.BaseThread):
+    """
+    Wrapper around watchdog BaseThread class.
+    This is necessary for issue spyder-ide/spyder#11370
+    """
+    queue = None
+
+    def __init__(self):
+        super(BaseThreadWrapper, self).__init__()
+        self._original_run = self.run
+        self.run = self.run_wrapper
+
+    def run_wrapper(self):
+        try:
+            self._original_run()
+        except OSError as e:
+            logger.exception('Watchdog thread exited with error %s',
+                             e.strerror)
+            self.queue.put(e)
+
+
+# Monkeypatching BaseThread to prevent the error reported in
+# spyder-ide/spyder#11370
+watchdog.utils.BaseThread = BaseThreadWrapper
 
 
 class WorkspaceEventHandler(QObject, FileSystemEventHandler):
@@ -36,8 +64,8 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
     sig_file_modified = Signal(str, bool)
 
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
-        super(FileSystemEventHandler, self).__init__()
+        QObject.__init__(self, parent)
+        FileSystemEventHandler.__init__(self)
 
     def fmt_is_dir(self, is_dir):
         return 'directory' if is_dir else 'file'
@@ -79,9 +107,10 @@ class WorkspaceWatcher(QObject):
     It provides methods to start and stop watching folders.
     """
 
+    observer = None
+
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
-        self.observer = None
+        super().__init__(parent)
         self.event_handler = WorkspaceEventHandler(self)
 
     def connect_signals(self, project):
@@ -97,9 +126,14 @@ class WorkspaceWatcher(QObject):
             self.observer = Observer()
             self.observer.schedule(
                 self.event_handler, workspace_folder, recursive=True)
-            self.observer.start()
+            try:
+                self.observer.start()
+            except OSError:
+                # This error happens frequently on Linux
+                logger.debug("Watcher could not be started.")
         except OSError as e:
-            if u'inotify' in e:
+            self.observer = None
+            if u'inotify' in to_text_string(e):
                 QMessageBox.warning(
                     self.parent(),
                     "Spyder",
@@ -120,12 +154,18 @@ class WorkspaceWatcher(QObject):
                       "<br><br>"
                       "After doing that, you need to close and start Spyder "
                       "again so those changes can take effect."))
-                self.observer = None
             else:
                 raise e
 
     def stop(self):
         if self.observer is not None:
-            self.observer.stop()
-            self.observer.join()
-            del self.observer
+            # This is required to avoid showing an error when closing
+            # projects.
+            # Fixes spyder-ide/spyder#14107
+            try:
+                self.observer.stop()
+                self.observer.join()
+                del self.observer
+                self.observer = None
+            except RuntimeError:
+                pass

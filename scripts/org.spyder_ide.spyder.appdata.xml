@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.spyder_ide.spyder</id>
+
+  <name>Spyder</name>
+  <summary>The Scientific Python Development Environment</summary>
+
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </recommends>
+
+  <description>
+    <p>
+      Spyder is a powerful scientific environment written in Python, for Python, and designed by and for
+      scientists, engineers and data analysts.
+      It features a unique combination of the advanced editing, analysis, debugging and profiling
+      functionality of a comprehensive development tool with the data exploration, interactive execution,
+      deep inspection and beautiful visualization capabilities of an analysis package.
+    </p>
+    <p>
+      Furthermore, Spyder offers built-in integration with many popular scientific libraries, including NumPy,
+      SciPy, Pandas, IPython, QtConsole, Matplotlib, SymPy, and more, and can be extended further with full
+      plugin support. Spyder can also be used as a PyQt5 extension library, allowing you to build upon its
+      functionality and embed its components, such as the interactive console, in your own software.
+    </p>
+  </description>
+
+  <developer_name>The Spyder Project Contributors</developer_name>
+
+  <launchable type="desktop-id">spyder.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+</component>

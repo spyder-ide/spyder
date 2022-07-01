@@ -236,6 +236,63 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
 
     """
     '''),
+        ('Sphinxdoc',
+         '''async def foo():
+    raise
+    raise ValueError
+    raise TypeError("test")
+    yield value
+    ''',
+         '''async def foo():
+    """\n    \n    :raises ValueError: DESCRIPTION
+    :raises TypeError: DESCRIPTION
+    :yield: DESCRIPTION
+    :rtype: TYPE
+
+    """
+    raise
+    raise ValueError
+    raise TypeError("test")
+    yield value
+    '''
+         ),
+        ('Sphinxdoc',
+         '''  def foo():
+      ''',
+         '''  def foo():
+      """\n      \n      :return: DESCRIPTION
+      :rtype: TYPE
+
+      """
+      ''',
+         ),
+        ('Sphinxdoc',
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    ''',
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    """\n    \n    :param arg: DESCRIPTION
+    :type arg: TYPE
+    :param arg0: DESCRIPTION
+    :type arg0: TYPE
+    :param arg1: DESCRIPTION
+    :type arg1: int
+    :param arg2: DESCRIPTION
+    :type arg2: List[Tuple[str, float]]
+    :param arg3: DESCRIPTION, defaults to '-> (float, int):'
+    :type arg3: TYPE, optional
+    :param arg4: DESCRIPTION, defaults to ':float, int['
+    :type arg4: TYPE, optional
+    :param arg5: DESCRIPTION, defaults to '""'
+    :type arg5: str, optional
+    :return: DESCRIPTION
+    :rtype: (List[Tuple[str, float]], str, float)
+
+    """
+    ''')
     ])
 def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
                                       text, expected, use_shortcut):
@@ -530,5 +587,81 @@ def test_editor_docstring_with_body_googledoc(qtbot, editor_auto_docstring,
     writer = editor.writer_docstring
 
     writer.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def test(self) -> Annotated[str, int("2")]:
+      ''',
+         '''  def test(self) -> Annotated[str, int("2")]:
+      """\n      \n
+      Returns
+      -------
+      Annotated[str, int("2")]
+          DESCRIPTION.
+
+      """
+      ''',)
+    ])
+def test_docstring_annotated_call(editor_auto_docstring, text, expected):
+    """
+    Test auto docstring with annotated function call.
+
+    This is a regression tests for issue spyder-ide/spyder#14520
+    """
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+
+    editor.writer_docstring.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def test(v:
+           int):
+      ''',
+         '''  def test(v:
+           int):
+      """\n      \n
+      Parameters
+      ----------
+      v : int
+          DESCRIPTION.
+
+      Returns
+      -------
+      None.
+
+      """
+      ''',)
+    ])
+def test_docstring_line_break(editor_auto_docstring, text, expected):
+    """
+    Test auto docstring with function call with line breaks.
+
+    This is a regression tests for issue spyder-ide/spyder#14521
+    """
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+
+    editor.writer_docstring.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected

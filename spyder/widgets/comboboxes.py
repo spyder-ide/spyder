@@ -18,7 +18,7 @@ import os
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal
+from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
                             QSizePolicy, QToolTip)
@@ -26,6 +26,7 @@ from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.helperwidgets import IconLineEdit
 
 
@@ -33,13 +34,23 @@ class BaseComboBox(QComboBox):
     """Editable combo box base class"""
     valid = Signal(bool, bool)
     sig_tab_pressed = Signal(bool)
-    sig_double_tab_pressed = Signal(bool)
+
+    sig_resized = Signal(QSize, QSize)
+    """
+    This signal is emitted to inform the widget has been resized.
+
+    Parameters
+    ----------
+    size: QSize
+        The new size of the widget.
+    old_size: QSize
+        The previous size of the widget.
+    """
 
     def __init__(self, parent):
         QComboBox.__init__(self, parent)
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
-        self.numpress = 0
         self.selected_text = self.currentText()
 
     # --- Qt overrides
@@ -48,11 +59,14 @@ class BaseComboBox(QComboBox):
 
         Filter tab keys and process double tab keys.
         """
+
+        # Type check: Prevent error in PySide where 'event' may be of type
+        # QtGui.QPainter (for whatever reason).
+        if not isinstance(event, QEvent):
+            return True
+
         if (event.type() == QEvent.KeyPress) and (event.key() == Qt.Key_Tab):
             self.sig_tab_pressed.emit(True)
-            self.numpress += 1
-            if self.numpress == 1:
-                self.presstimer = QTimer.singleShot(400, self.handle_keypress)
             return True
         return QComboBox.event(self, event)
 
@@ -71,13 +85,14 @@ class BaseComboBox(QComboBox):
         else:
             QComboBox.keyPressEvent(self, event)
 
-    # --- own methods
-    def handle_keypress(self):
-        """When hitting tab, it handles if single or double tab"""
-        if self.numpress == 2:
-            self.sig_double_tab_pressed.emit(True)
-        self.numpress = 0
+    def resizeEvent(self, event):
+        """
+        Emit a resize signal for widgets that need to adapt its size.
+        """
+        super().resizeEvent(event)
+        self.sig_resized.emit(event.size(), event.oldSize())
 
+    # --- Own methods
     def is_valid(self, qstr):
         """
         Return True if string is valid
@@ -133,8 +148,9 @@ class BaseComboBox(QComboBox):
 
 class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
+
     def __init__(self, parent, items=None, tip=None,
-                 adjust_to_minimum=True):
+                 adjust_to_minimum=True, id_=None):
         BaseComboBox.__init__(self, parent)
         if hasattr(self.lineEdit(), 'setClearButtonEnabled'):  # only Qt >= 5.2
             self.lineEdit().setClearButtonEnabled(True)
@@ -145,6 +161,8 @@ class PatternComboBox(BaseComboBox):
             self.addItems(items)
         if tip is not None:
             self.setToolTip(tip)
+        if id_ is not None:
+            self.ID = id_
 
 
 class EditableComboBox(BaseComboBox):
@@ -194,7 +212,7 @@ class PathComboBox(EditableComboBox):
     """
     open_dir = Signal(str)
 
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         EditableComboBox.__init__(self, parent)
 
         # Replace the default lineedit by a custom one with icon display
@@ -213,8 +231,10 @@ class PathComboBox(EditableComboBox):
         # Signals
         self.highlighted.connect(self.add_tooltip_to_highlighted_item)
         self.sig_tab_pressed.connect(self.tab_complete)
-        self.sig_double_tab_pressed.connect(self.double_tab_complete)
         self.valid.connect(lineedit.update_status)
+
+        if id_ is not None:
+            self.ID = id_
 
     # --- Qt overrides
     def focusInEvent(self, event):
@@ -243,14 +263,13 @@ class PathComboBox(EditableComboBox):
         text = to_text_string(self.currentText())
         opts = glob.glob(text + "*")
         opts = sorted([opt for opt in opts if osp.isdir(opt)])
-        self.setCompleter(QCompleter(opts, self))
-        return opts
 
-    def double_tab_complete(self):
-        """If several options available a double tab displays options."""
-        opts = self._complete_options()
-        if len(opts) > 1:
-            self.completer().complete()
+        completer = QCompleter(opts, self)
+        qss = str(APP_STYLESHEET)
+        completer.popup().setStyleSheet(qss)
+        self.setCompleter(completer)
+
+        return opts
 
     def tab_complete(self):
         """
@@ -260,6 +279,8 @@ class PathComboBox(EditableComboBox):
         if len(opts) == 1:
             self.set_current_text(opts[0] + os.sep)
             self.hide_completer()
+        else:
+            self.completer().complete()
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
@@ -296,9 +317,14 @@ class UrlComboBox(PathComboBox):
     """
     QComboBox handling urls
     """
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
+        line_edit = QLineEdit(self)
+        self.setLineEdit(line_edit)
         self.editTextChanged.disconnect(self.validate)
+
+        if id_ is not None:
+            self.ID = id_
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
@@ -327,10 +353,40 @@ class FileComboBox(PathComboBox):
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
     def is_valid(self, qstr=None):
-        """Return True if string is valid"""
+        """Return True if string is valid."""
         if qstr is None:
             qstr = self.currentText()
-        return osp.isfile(to_text_string(qstr))
+        valid = (osp.isfile(to_text_string(qstr)) or
+                 osp.isdir(to_text_string(qstr)))
+        return valid
+
+    def tab_complete(self):
+        """
+        If there is a single option available one tab completes the option.
+        """
+        opts = self._complete_options()
+        if len(opts) == 1:
+            text = opts[0]
+            if osp.isdir(text):
+                text = text + os.sep
+            self.set_current_text(text)
+            self.hide_completer()
+        else:
+            self.completer().complete()
+
+    def _complete_options(self):
+        """Find available completion options."""
+        text = to_text_string(self.currentText())
+        opts = glob.glob(text + "*")
+        opts = sorted([opt for opt in opts
+                       if osp.isdir(opt) or osp.isfile(opt)])
+
+        completer = QCompleter(opts, self)
+        qss = str(APP_STYLESHEET)
+        completer.popup().setStyleSheet(qss)
+        self.setCompleter(completer)
+
+        return opts
 
 
 def is_module_or_package(path):
@@ -345,8 +401,10 @@ class PythonModulesComboBox(PathComboBox):
     QComboBox handling Python modules or packages path
     (i.e. .py, .pyw files *and* directories containing __init__.py)
     """
-    def __init__(self, parent, adjust_to_contents=False):
+    def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
+        if id_ is not None:
+            self.ID = id_
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""

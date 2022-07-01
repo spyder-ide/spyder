@@ -107,9 +107,6 @@ class TreeItem(object):
             return 0
 
     def pretty_print(self, indent=0):
-        if 0:
-            logger.debug(indent * "    " + str(self))
-        else:
-            logger.debug(indent * "    " + str(self))
+        logger.debug((indent * "    ") + str(self))
         for child_item in self.child_items:
             child_item.pretty_print(indent + 1)

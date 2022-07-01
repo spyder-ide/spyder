@@ -25,6 +25,7 @@ import sys
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
 PY36_OR_MORE = sys.version_info[0] >= 3 and sys.version_info[1] >= 6
+PY38_OR_MORE = sys.version_info[0] >= 3 and sys.version_info[1] >= 8
 
 #==============================================================================
 # Data types
@@ -37,7 +38,7 @@ else:
     # Python 3
     TEXT_TYPES = (str,)
     INT_TYPES = (int,)
-NUMERIC_TYPES = tuple(list(INT_TYPES) + [float, complex])
+NUMERIC_TYPES = tuple(list(INT_TYPES) + [float])
 
 
 #==============================================================================

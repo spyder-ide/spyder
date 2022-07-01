@@ -24,6 +24,7 @@ from qtpy.QtCore import QEventLoop
 from spyder.py3compat import TimeoutError
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
                                              getsignaturefromtext)
+from spyder_kernels.comms.commbase import CommError
 
 
 class HelpWidget(RichJupyterWidget):
@@ -131,25 +132,23 @@ class HelpWidget(RichJupyterWidget):
         """Return True if object is defined"""
         try:
             return self.call_kernel(
-                interrupt=True, blocking=True
+                blocking=True
                 ).is_defined(objtxt, force_import=force_import)
-        except (TimeoutError, UnpicklingError):
+        except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).get_doc(objtxt)
-        except (TimeoutError, UnpicklingError):
+            return self.call_kernel(blocking=True).get_doc(objtxt)
+        except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
     def get_source(self, objtxt):
         """Get object source"""
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).get_source(objtxt)
-        except (TimeoutError, UnpicklingError):
+            return self.call_kernel(blocking=True).get_source(objtxt)
+        except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
     #---- Private methods (overrode by us) ---------------------------------

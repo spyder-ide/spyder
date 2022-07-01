@@ -19,8 +19,9 @@ import numpy as np
 import pytest
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
-        ObjectExplorer)
+    ObjectExplorer)
 from spyder.py3compat import PY2
 
 # =============================================================================
@@ -55,11 +56,9 @@ def test_objectexplorer(objectexplorer):
             raise AttributeError
 
     foobar = Foobar()
-    editor = objectexplorer(foobar,
-                            name='foobar',
-                            show_callable_attributes=False,
-                            show_special_attributes=False)
+
     # Editor was created
+    editor = objectexplorer(foobar, name='foobar')
     assert editor
 
     # Check header data and default hidden sections
@@ -106,27 +105,71 @@ def test_objectexplorer(objectexplorer):
     assert model.columnCount() == 11
 
 
-@pytest.mark.skipif(PY2, reason="Number of rows is different in PY2")
-def test_objectexplorer_types(objectexplorer):
-    """Test to validate proper handling of multiple data types."""
-    test = {'str': 'kjkj kj k j j kj k jkj',
-            'list': [1, 3, 4, 'kjkj', None],
-            'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
-            'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
-            'float': 1.2233,
-            'array': np.random.rand(10, 10),
-            'date': datetime.date(1945, 5, 8),
-            'datetime': datetime.datetime(1945, 5, 8)}
-    editor = objectexplorer(test,
-                            expanded=True,
-                            show_callable_attributes=True,
-                            show_special_attributes=True)
+@pytest.mark.parametrize('params', [
+    # variable to show, rowCount for different Python 3 versions
+    ('kjkj kj k j j kj k jkj', [71, 80]),
+    ([1, 3, 4, 'kjkj', None], [45, 47]),
+    ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 56]),
+    (1.2233, [57, 59]),
+    (np.random.rand(10, 10), [166, 162]),
+    (datetime.date(1945, 5, 8), [43, 47])
+])
+def test_objectexplorer_collection_types(objectexplorer, params):
+    """Test to validate proper handling of collection data types."""
+    test, row_count = params
+    CONF.set('variable_explorer', 'show_special_attributes', True)
+
     # Editor was created
+    editor = objectexplorer(test, name='variable')
     assert editor
 
-    # Check number of rows
+    # Check number of rows and row content
     model = editor.obj_tree.model()
-    assert model.rowCount() == 48
+
+    # The row for the variable
+    assert model.rowCount() == 1
+
+    # Root row with children
+    # Since rowCount for python 3 and 2 varies on differents systems,
+    # we use a range of values
+    expected_output_range = list(range(min(row_count), max(row_count) + 1))
+    assert model.rowCount(model.index(0, 0)) in expected_output_range
+    assert model.columnCount() == 11
+
+
+@pytest.mark.parametrize('params', [
+            # show_callable_, show_special_, rowCount for python 3 and 2
+            (True, True, [34, 26], ),
+            (False, False, [8, 8], )
+        ])
+def test_objectexplorer_types(objectexplorer, params):
+    """Test to validate proper handling of data types inside an object."""
+    class Foobar(object):
+        def __init__(self):
+            self.text = "toto"
+            self.list = [1, 3, 4, 'kjkj', None]
+            self.set = {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
+            self.dict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
+            self.float = 1.2233,
+            self.array = np.random.rand(10, 10),
+            self.date = datetime.date(1945, 5, 8),
+            self.datetime = datetime.datetime(1945, 5, 8)
+    foo = Foobar()
+
+    show_callable, show_special, row_count = params
+    CONF.set('variable_explorer', 'show_callable_attributes', show_callable)
+    CONF.set('variable_explorer', 'show_special_attributes', show_special)
+
+    # Editor was created
+    editor = objectexplorer(foo, name='foo')
+    assert editor
+
+    # Check number of rows and row content
+    model = editor.obj_tree.model()
+    # The row for the object
+    assert model.rowCount() == 1
+    # Rows from the object attributes
+    assert model.rowCount(model.index(0, 0)) in row_count
     assert model.columnCount() == 11
 
 

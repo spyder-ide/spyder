@@ -30,14 +30,15 @@ from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
+SHOW_EXT = ['.py', '.ipynb', '.dat', '.pdf', '.png', '.svg', '.md', '.yml',
+            '.yaml']
 
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
 
 # Name filters for file/project explorers (excluding files without extension)
-NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
-               ['*' + _ext for _ext in USEFUL_EXT if _ext]
+NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+NAME_FILTERS += ['*' + _ext for _ext in USEFUL_EXT if _ext not in NAME_FILTERS]
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
@@ -62,15 +63,12 @@ DEFAULTS = [
               'opengl': 'software',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
-              'tear_off_menus': False,
               'mac_open_file': False,
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
               'high_dpi_custom_scale_factors': '1.5',
-              'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
-              'animated_docks': True,
               'prompt_on_exit': False,
               'panes_locked': True,
               'window/size': (1260, 740),
@@ -78,28 +76,39 @@ DEFAULTS = [
               'window/is_maximized': True,
               'window/is_fullscreen': False,
               'window/prefs_dialog_size': (1050, 530),
-              'show_status_bar': True,
-              'memory_usage/enable': True,
-              'memory_usage/timeout': 2000,
-              'cpu_usage/enable': False,
-              'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
               'show_internal_errors': True,
               'check_updates_on_startup': True,
-              'toolbars_visible': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
-              'report_error/remember_me': False,
               'report_error/remember_token': False,
+              'show_dpi_message': True,
+              }),
+            ('toolbar',
+             {
+              'enable': True,
+              'toolbars_visible': True,
+              'last_visible_toolbars': [],
+             }),
+            ('statusbar',
+             {
+              'show_status_bar': True,
+              'memory_usage/enable': True,
+              'memory_usage/timeout': 2000,
+              'cpu_usage/enable': False,
+              'cpu_usage/timeout': 2000,
+              'clock/enable': False,
+              'clock/timeout': 1000,
               }),
             ('quick_layouts',
              {
               'place_holder': '',
-              'names': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
-              'order': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
-              'active': ['Matlab layout', 'Rstudio layout', 'Vertical split', 'Horizontal split'],
+              'names': [],
+              'order': [],
+              'active': [],
+              'ui_names': []
               }),
             ('internal_console',
              {
@@ -125,7 +134,6 @@ DEFAULTS = [
              {
               'show_banner': True,
               'completion_type': 0,
-              'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': False,
               'show_reset_namespace_warning': True,
@@ -152,7 +160,12 @@ DEFAULTS = [
               # This is True because there are libraries like Pyomo
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.
-              'hide_cmd_windows': True
+              'hide_cmd_windows': True,
+              'pdb_prevent_closing': True,
+              'pdb_ignore_lib': False,
+              'pdb_execute_events': True,
+              'pdb_use_exclamation_mark': True,
+              'pdb_stop_first_line': True
               }),
             ('variable_explorer',
              {
@@ -161,9 +174,10 @@ DEFAULTS = [
                                           # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
-              'exclude_uppercase': True,
+              'exclude_uppercase': False,
               'exclude_capitalized': False,
-              'exclude_unsupported': True,
+              'exclude_unsupported': False,
+              'exclude_callables_and_modules': True,
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
@@ -192,6 +206,8 @@ DEFAULTS = [
               'edge_line': True,
               'edge_line_columns': '79',
               'indent_guides': False,
+              'code_folding': True,
+              'show_code_folding_warning': True,
               'scroll_past_end': False,
               'toolbox_panel': True,
               'close_parentheses': True,
@@ -208,7 +224,6 @@ DEFAULTS = [
               'automatic_completions': True,
               'automatic_completions_after_chars': 3,
               'automatic_completions_after_ms': 300,
-              'completions_wait_for_ms': 200,
               'completions_hint': True,
               'completions_hint_after_ms': 500,
               'underline_errors': False,
@@ -217,6 +232,8 @@ DEFAULTS = [
               'occurrence_highlighting': True,
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
+              'add_newline': False,
+              'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
               'max_recent_files': 20,
@@ -232,7 +249,6 @@ DEFAULTS = [
             ('historylog',
              {
               'enable': True,
-              'max_entries': 100,
               'wrap': True,
               'go_to_eof': True,
               'line_numbers': False,
@@ -246,11 +262,16 @@ DEFAULTS = [
               'connect/ipython_console': False,
               'math': True,
               'automatic_import': True,
+              'plain_mode': False,
+              'rich_mode': True,
+              'show_source': False,
+              'locked': False,
               }),
             ('onlinehelp',
              {
               'enable': True,
               'zoom_factor': .8,
+              'handle_links': False,
               'max_history_entries': 20,
               }),
             ('outline_explorer',
@@ -261,23 +282,32 @@ DEFAULTS = [
               'group_cells': True,
               'sort_files_alphabetically': False,
               'show_comments': True,
+              'follow_cursor': True,
+              'display_variables': False
               }),
             ('project_explorer',
              {
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True,
-              'visible_if_project_open': True
+              'max_recent_projects': 10,
+              'visible_if_project_open': True,
+              'date_column': False,
+              'single_click_to_open': False,
+              'show_hidden': True,
+              'size_column': False,
+              'type_column': False,
+              'date_column': False
               }),
             ('explorer',
              {
               'enable': True,
-              'wrap': True,
               'name_filters': NAME_FILTERS,
-              'show_hidden': True,
-              'show_all': True,
-              'show_icontext': False,
+              'show_hidden': False,
               'single_click_to_open': False,
+              'size_column': False,
+              'type_column': False,
+              'date_column': True
               }),
             ('find_in_files',
              {
@@ -288,13 +318,25 @@ DEFAULTS = [
               'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
-              'more_options': True,
+              'more_options': False,
               'case_sensitive': False,
+              'exclude_case_sensitive': False,
+              'max_results': 1000,
               }),
             ('breakpoints',
              {
               'enable': True,
               }),
+            ('completions',
+             {
+               'enable': True,
+               'kite_call_to_action': False,
+               'enable_code_snippets': True,
+               'completions_wait_for_ms': 200,
+               'enabled_providers': {},
+               'provider_configuration': {},
+               'request_priorities': {}
+             }),
             ('profiler',
              {
               'enable': True,
@@ -302,6 +344,9 @@ DEFAULTS = [
             ('pylint',
              {
               'enable': True,
+              'history_filenames': [],
+              'max_entries': 30,
+              'project_dir': None,
               }),
             ('workingdir',
              {
@@ -310,8 +355,14 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              'startup/use_project_or_home_directory': True,
               'startup/use_fixed_directory': False,
               }),
+            ('tours',
+             {
+              'enable': True,
+              'show_tour_message': True,
+             }),
             ('shortcuts',
              {
               # ---- Global ----
@@ -320,12 +371,10 @@ DEFAULTS = [
               '_/lock unlock panes': "Shift+Ctrl+F5",
               '_/use next layout': "Shift+Alt+PgDown",
               '_/use previous layout': "Shift+Alt+PgUp",
-              '_/preferences': "Ctrl+Alt+Shift+P",
               '_/maximize pane': "Ctrl+Alt+Shift+M",
               '_/fullscreen mode': "F11",
               '_/save current layout': "Shift+Alt+S",
               '_/layout preferences': "Shift+Alt+P",
-              '_/show toolbars': "Alt+Shift+T",
               '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
@@ -353,6 +402,8 @@ DEFAULTS = [
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
               '_/switch to plots': "Ctrl+Shift+G",
+              '_/switch to pylint': "Ctrl+Shift+C",
+              '_/switch to profiler': "Ctrl+Shift+R",
               # -- In widgets/findreplace.py
               'find_replace/find text': "Ctrl+F",
               'find_replace/find next': "F3",
@@ -362,10 +413,10 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
-                                       "Shift+Alt+Up",
-              'editor/copy line': "Ctrl+Alt+Down" if WIN else \
-                                  "Shift+Alt+Down",
+              'editor/duplicate line up': (
+                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
+              'editor/duplicate line down': (
+                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -406,6 +457,8 @@ DEFAULTS = [
               'editor/breakpoint': 'F12',
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
+              'editor/run to line': 'Shift+F9',
+              'editor/run from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -419,8 +472,8 @@ DEFAULTS = [
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
-              'editor/previous cursor position': "Ctrl+Alt+Left",
-              'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/previous cursor position': "Alt+Left",
+              'editor/next cursor position': "Alt+Right",
               'editor/previous warning': "Ctrl+Alt+Shift+,",
               'editor/next warning': "Ctrl+Alt+Shift+.",
               'editor/zoom in 1': "Ctrl++",
@@ -439,6 +492,8 @@ DEFAULTS = [
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
+              'editor/autoformatting': "Ctrl+Alt+I",
+              'editor/show in external file explorer': '',
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -453,6 +508,11 @@ DEFAULTS = [
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
               'ipython_console/restart kernel': "Ctrl+.",
+              'ipython_console/inspect current object': "Ctrl+I",
+              'ipython_console/clear shell': "Ctrl+L",
+              'ipython_console/clear line': "Shift+Escape",
+              'ipython_console/enter array inline': "Ctrl+Alt+M",
+              'ipython_console/enter array table': "Ctrl+M",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
@@ -460,61 +520,26 @@ DEFAULTS = [
               'variable_explorer/copy': 'Ctrl+C',
               # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
+              'variable_explorer/refresh': 'Ctrl+R',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
+              'plots/save': 'Ctrl+S',
+              'plots/save all': 'Ctrl+Alt+S',
+              'plots/close': 'Ctrl+W',
+              'plots/close all': 'Ctrl+Shift+W',
+              'plots/zoom in': "Ctrl++",
+              'plots/zoom out': "Ctrl+-",
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
               'explorer/copy absolute path': 'Ctrl+Alt+C',
               'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
+              # ---- In plugins/findinfiles/plugin ----
+              'find_in_files/find in files': 'Alt+Shift+F',
               }),
             ('appearance', APPEARANCE),
-            ('lsp-server',
-             {
-              # This option is not used with the LSP server config
-              # It is used to disable hover hints in the editor
-              'enable_hover_hints': True,
-              'code_completion': True,
-              'code_snippets': True,
-              'jedi_definition': True,
-              'jedi_definition/follow_imports': True,
-              'jedi_signature_help': True,
-              'preload_modules': PRELOAD_MDOULES,
-              'pyflakes': True,
-              'mccabe': False,
-              'pycodestyle': False,
-              'pycodestyle/filename': '',
-              'pycodestyle/exclude': '',
-              'pycodestyle/select': '',
-              'pycodestyle/ignore': '',
-              'pycodestyle/max_line_length': 79,
-              'pydocstyle': False,
-              'pydocstyle/convention': 'numpy',
-              'pydocstyle/select': '',
-              'pydocstyle/ignore': '',
-              'pydocstyle/match': '(?!test_).*\\.py',
-              'pydocstyle/match_dir': '[^\\.].*',
-              'advanced/enabled': False,
-              'advanced/module': 'pyls',
-              'advanced/host': '127.0.0.1',
-              'advanced/port': 2087,
-              'advanced/external': False,
-              'advanced/stdio': False
-             }),
-            ('fallback-completions',
-             {
-              'enable': True,
-             }),
-            ('kite',
-             {
-              'enable': True,
-              'call_to_action': True,
-              # Enable the installation dialog
-              'show_installation_dialog': True,
-              'show_onboarding': True,
-             }),
             ]
 
 
@@ -531,7 +556,6 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
-            'last_visible_toolbars',
             'spyder_pythonpath',
             'window/position',
             'window/prefs_dialog_size',
@@ -539,8 +563,8 @@ NAME_MAP = {
             'window/state',
             ]
          ),
-        ('appearance', [
-            'windows_style',
+        ('toolbar', [
+            'last_visible_toolbars',
             ]
          ),
         ('editor', [
@@ -558,6 +582,8 @@ NAME_MAP = {
         ('find_in_files', [
             'path_history'
             'search_text',
+            'exclude_index',
+            'search_in_index',
             ]
          ),
         ('main_interpreter', [
@@ -579,6 +605,7 @@ NAME_MAP = {
             'current_project_path',
             'expanded_state',
             'recent_projects',
+            'max_recent_projects',
             'scrollbar_position',
           ]
          ),
@@ -595,6 +622,10 @@ NAME_MAP = {
             'startup/fixed_directory',
           ]
          ),
+        ('pylint', [
+          'history_filenames',
+          ]
+         ),
     ]
 }
 
@@ -609,4 +640,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '53.1.0'
+CONF_VERSION = '70.4.0'

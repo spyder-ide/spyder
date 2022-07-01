@@ -1,0 +1,10 @@
+#
+# MANIFEST.in
+#
+# Manifest template for creating the PyLudic source distribution.
+
+include MANIFEST.in
+include setup.py
+include *.rst
+include qdarkstyle/*
+include qdarkstyle/example/ui/*.ui

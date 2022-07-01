@@ -3,195 +3,208 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-
-"""Find in Files Plugin"""
-
-# pylint: disable=C0103
-# pylint: disable=R0903
-# pylint: disable=R0911
-# pylint: disable=R0201
-
-# Standard library imports
-import sys
+"""
+Find in Files Plugin.
+"""
 
 # Third party imports
-from qtpy.QtCore import Signal, Qt
-from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QApplication, QVBoxLayout
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.plugins import SpyderPluginWidget
-from spyder.config.base import _
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
+from spyder.api.translations import get_translation
+from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
-from spyder.plugins.findinfiles.widgets import FindInFilesWidget
+
+# Localization
+_ = get_translation('spyder')
 
 
-class FindInFiles(SpyderPluginWidget):
-    """Find in files DockWidget."""
+# --- Constants
+# ----------------------------------------------------------------------------
+class FindInFilesActions:
+    FindInFiles = 'find in files'
 
-    CONF_SECTION = 'find_in_files'
+
+# --- Plugin
+# ----------------------------------------------------------------------------
+class FindInFiles(SpyderDockablePlugin):
+    """
+    Find in files DockWidget.
+    """
+    NAME = 'find_in_files'
+    REQUIRES = []
+    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.MainMenu]
+    TABIFY = [Plugins.VariableExplorer]
+    WIDGET_CLASS = FindInFilesWidget
+    CONF_SECTION = NAME
     CONF_FILE = False
-    toggle_visibility = Signal(bool)
+    RAISE_AND_FOCUS = True
 
-    def __init__(self, parent=None):
-        """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+    # --- SpyderDocakblePlugin API
+    # ------------------------------------------------------------------------
+    @staticmethod
+    def get_name():
+        return _("Find")
 
-        supported_encodings = self.get_option('supported_encodings')
-        self.search_text_samples = self.get_option('search_text_samples')
-        search_text = self.get_option('search_text')
-        search_text = [txt for txt in search_text \
-                       if txt not in self.search_text_samples]
-        search_text += self.search_text_samples
-        search_text_regexp = self.get_option('search_text_regexp')
-        exclude = self.get_option('exclude')
-        exclude_idx = self.get_option('exclude_idx', None)
-        exclude_regexp = self.get_option('exclude_regexp')
-        more_options = self.get_option('more_options')
-        case_sensitive = self.get_option('case_sensitive')
-        path_history = self.get_option('path_history', [])
-        search_in_index = self.get_option('search_in_index', default=0)
+    def get_description(self):
+        return _("Search for strings of text in files.")
 
-        self.findinfiles = FindInFilesWidget(
-                                   self,
-                                   search_text, search_text_regexp,
-                                   exclude, exclude_idx, exclude_regexp,
-                                   supported_encodings,
-                                   more_options,
-                                   case_sensitive, path_history,
-                                   search_in_index,
-                                   options_button=self.options_button,
-                                   text_color=ima.MAIN_FG_COLOR)
+    def get_icon(self):
+        return self.create_icon('findf')
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.findinfiles)
-        self.setLayout(layout)
+    def on_initialize(self):
+        self.create_action(
+            FindInFilesActions.FindInFiles,
+            text=_("Find in files"),
+            tip=_("Search text in multiple files"),
+            triggered=self.find,
+            register_shortcut=True,
+            context=Qt.WindowShortcut
+        )
+        self.refresh_search_directory()
 
-        self.toggle_visibility.connect(self.toggle)
-        
-    def toggle(self, state):
-        """Toggle widget visibility"""
-        if self.dockwidget:
-            self.dockwidget.setVisible(state)
-    
-    def refreshdir(self):
-        """Refresh search directory"""
-        self.findinfiles.find_options.set_directory(
-            getcwd_or_home())
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        widget.sig_edit_goto_requested.connect(
+            lambda filename, lineno, search_text, colno, colend: editor.load(
+                filename, lineno, start_column=colno, end_column=colend))
+        editor.sig_file_opened_closed_or_updated.connect(
+            self.set_current_opened_file)
+
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(self.set_project_path)
+        projects.sig_project_closed.connect(self.unset_project_path)
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        findinfiles_action = self.get_action(FindInFilesActions.FindInFiles)
+
+        mainmenu.add_item_to_application_menu(
+            findinfiles_action,
+            menu_id=ApplicationMenus.Search,
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        widget.sig_edit_goto_requested.disconnect()
+        editor.sig_file_opened_closed_or_updated.disconnect(
+            self.set_current_opened_file)
+
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardon_plugin_teardown(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self.set_project_path)
+        projects.sig_project_closed.disconnect(self.unset_project_path)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        mainmenu.remove_item_from_application_menu(
+            FindInFilesActions.FindInFiles,
+            menu_id=ApplicationMenus.Search,
+        )
+
+    def on_close(self, cancelable=False):
+        self.get_widget()._update_options()
+        if self.get_widget().running:
+            self.get_widget()._stop_and_reset_thread(ignore_results=True)
+        return True
+
+    # --- Public API
+    # ------------------------------------------------------------------------
+    def refresh_search_directory(self):
+        """
+        Refresh search directory.
+        """
+        self.get_widget().set_directory(getcwd_or_home())
+
+    def set_current_opened_file(self, path, _language):
+        """
+        Set path of current opened file in editor.
+
+        Parameters
+        ----------
+        path: str
+            Path of editor file.
+        """
+        self.get_widget().set_file_path(path)
 
     def set_project_path(self, path):
-        """Refresh current project path"""
-        self.findinfiles.find_options.set_project_path(path)
+        """
+        Set and refresh current project path.
 
-    def set_current_opened_file(self, path):
-        """Get path of current opened file in editor"""
-        self.findinfiles.find_options.set_file_path(path)
+        Parameters
+        ----------
+        path: str
+            Opened project path.
+        """
+        self.get_widget().set_project_path(path)
+
+    def set_max_results(self, value=None):
+        """
+        Set maximum amount of results to add to the result browser.
+
+        Parameters
+        ----------
+        value: int, optional
+            Number of results. If None an input dialog will be used.
+            Default is None.
+        """
+        self.get_widget().set_max_results(value)
 
     def unset_project_path(self):
-        """Refresh current project path"""
-        self.findinfiles.find_options.disable_project_search()
+        """
+        Unset current project path.
+        """
+        self.get_widget().disable_project_search()
 
-    def findinfiles_callback(self):
-        """Find in files callback"""
-        widget = QApplication.focusWidget()
+    def find(self):
+        """
+        Search text in multiple files.
+
+        Notes
+        -----
+        Find in files using the currently selected text of the focused widget.
+        """
+        focus_widget = QApplication.focusWidget()
         text = ''
         try:
-            if widget.has_selected_text():
-                text = widget.get_selected_text()
+            if focus_widget.has_selected_text():
+                text = focus_widget.get_selected_text()
         except AttributeError:
             # This is not a text widget deriving from TextEditBaseWidget
             pass
-        self.findinfiles.set_search_text(text)
+
+        self.switch_to_plugin()
+        widget = self.get_widget()
+
         if text:
-            self.findinfiles.find()
+            widget.set_search_text(text)
 
-    #------ SpyderPluginMixin API ---------------------------------------------
-    def switch_to_plugin(self):
-        """
-        Switch to plugin.
-
-        This method is called when pressing the plugin shortcut.
-        """
-        if self.dockwidget:
-            super(FindInFiles, self).switch_to_plugin()
-        self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
-
-    #------ SpyderPluginWidget API --------------------------------------------
-    def get_plugin_title(self):
-        """Return widget title"""
-        return _("Find")
-    
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.findinfiles.find_options.search_text
-    
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return self.findinfiles.result_browser.get_menu_actions()
-    
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.add_dockwidget()
-        self.findinfiles.result_browser.sig_edit_goto.connect(
-                                                         self.main.editor.load)
-        self.findinfiles.find_options.redirect_stdio.connect(
-                                        self.main.redirect_internalshell_stdio)
-        self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
-        self.main.projects.sig_project_loaded.connect(self.set_project_path)
-        self.main.projects.sig_project_closed.connect(self.unset_project_path)
-        self.main.editor.open_file_update.connect(self.set_current_opened_file)
-
-        findinfiles_action = create_action(
-                                   self, _("&Find in files"),
-                                   icon=ima.icon('findf'),
-                                   triggered=self.switch_to_plugin,
-                                   shortcut=QKeySequence(self.shortcut),
-                                   context=Qt.WidgetShortcut,
-                                   tip=_("Search text in multiple files"))
-
-        self.main.search_menu_actions += [MENU_SEPARATOR, findinfiles_action]
-        self.main.search_toolbar_actions += [MENU_SEPARATOR,
-                                             findinfiles_action]
-        self.refreshdir()
-
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        self.findinfiles.closing_widget()  # stop search thread and clean-up
-        options = self.findinfiles.find_options.get_options(to_save=True)
-        if options is not None:
-            (search_text, text_re,
-             exclude, exclude_idx, exclude_re,
-             more_options, case_sensitive,
-             path_history, search_in_index) = options
-            hist_limit = 15
-            search_text = search_text[:hist_limit]
-            exclude = exclude[:hist_limit]
-            path_history = path_history[-hist_limit:]
-            self.set_option('search_text', search_text)
-            self.set_option('search_text_regexp', text_re)
-            self.set_option('exclude', exclude)
-            self.set_option('exclude_idx', exclude_idx)
-            self.set_option('exclude_regexp', exclude_re)
-            self.set_option('more_options', more_options)
-            self.set_option('case_sensitive', case_sensitive)
-            self.set_option('path_history', path_history)
-            self.set_option('search_in_index', search_in_index)
-        return True
-
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.tabify(self.main.variableexplorer)
+        widget.find()
 
 
 def test():
+    import sys
+
+    from spyder.config.manager import CONF
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
-    widget = FindInFiles()
+    widget = FindInFiles(None, CONF)
     widget.show()
     sys.exit(app.exec_())
 

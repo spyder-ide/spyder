@@ -80,65 +80,57 @@ class PanelsManager(Manager):
         logger.debug('panel %s installed' % panel.name)
         return panel
 
-    def remove(self, name_or_klass):
+    def remove(self, name_or_class):
         """
         Removes the specified panel.
 
-        :param name_or_klass: Name or class of the panel to remove.
+        :param name_or_class: Name or class of the panel to remove.
         :return: The removed panel
         """
-        logger.debug('removing panel %s' % name_or_klass)
-        panel = self.get(name_or_klass)
+        logger.debug('Removing panel %s' % name_or_class)
+        panel = self.get(name_or_class)
         panel.on_uninstall()
         panel.hide()
         panel.setParent(None)
         return self._panels[panel.position].pop(panel.name, None)
 
     def clear(self):
-        """Removes all panel from the CodeEditor."""
-        for i in range(4):
+        """Removes all panels from the CodeEditor."""
+        for i in range(5):
             while len(self._panels[i]):
                 key = sorted(list(self._panels[i].keys()))[0]
                 panel = self.remove(key)
                 panel.setParent(None)
 
-    def get(self, name_or_klass):
+    def get(self, name_or_class):
         """
         Gets a specific panel instance.
 
         :param name_or_klass: Name or class of the panel to retrieve.
         :return: The specified panel instance.
         """
-        if not is_text_string(name_or_klass):
-            name_or_klass = name_or_klass.__name__
-        for zone in range(4):
+        if not is_text_string(name_or_class):
+            name_or_class = name_or_class.__name__
+        for zone in range(5):
             try:
-                panel = self._panels[zone][name_or_klass]
+                panel = self._panels[zone][name_or_class]
             except KeyError:
                 pass
             else:
                 return panel
-        raise KeyError(name_or_klass)
-
-    def keys(self):
-        """Returns the list of installed panel names."""
-        return self._modes.keys()
-
-    def values(self):
-        """Returns the list of installed panels."""
-        return self._modes.values()
+        raise KeyError(name_or_class)
 
     def __iter__(self):
         lst = []
-        for zone, zone_dict in self._panels.items():
-            for name, panel in zone_dict.items():
+        for __, zone_dict in self._panels.items():
+            for __, panel in zone_dict.items():
                 lst.append(panel)
         return iter(lst)
 
     def __len__(self):
         lst = []
-        for zone, zone_dict in self._panels.items():
-            for name, panel in zone_dict.items():
+        for __, zone_dict in self._panels.items():
+            for __, panel in zone_dict.items():
                 lst.append(panel)
         return len(lst)
 
@@ -154,7 +146,6 @@ class PanelsManager(Manager):
 
     def refresh(self):
         """Refreshes the editor panels (resize and update margins)."""
-        logger.debug('Refresh panels')
         self.resize()
         self._update(self.editor.contentsRect(), 0,
                      force_update_margins=True)
@@ -233,6 +224,8 @@ class PanelsManager(Manager):
         """Updates panels."""
         if not self:
             return
+        line, col = self.editor.get_cursor_line_column()
+        oline, ocol = self._cached_cursor_pos
         for zones_id, zone in self._panels.items():
             if zones_id == Panel.Position.TOP or \
                zones_id == Panel.Position.BOTTOM:
@@ -241,11 +234,9 @@ class PanelsManager(Manager):
             for panel in panels:
                 if panel.scrollable and delta_y:
                     panel.scroll(0, delta_y)
-                line, col = self.editor.get_cursor_line_column()
-                oline, ocol = self._cached_cursor_pos
                 if line != oline or col != ocol or panel.scrollable:
                     panel.update(0, rect.y(), panel.width(), rect.height())
-                self._cached_cursor_pos = self.editor.get_cursor_line_column()
+        self._cached_cursor_pos = line, col
         if (rect.contains(self.editor.viewport().rect()) or
                 force_update_margins):
             self._update_viewport_margins()
@@ -273,8 +264,10 @@ class PanelsManager(Manager):
             if panel.isVisible():
                 height = panel.sizeHint().height()
                 bottom += height
-        self._margin_sizes = (top, left, right, bottom)
-        self.editor.setViewportMargins(left, top, right, bottom)
+        new_size = (top, left, right, bottom)
+        if new_size != self._margin_sizes:
+            self._margin_sizes = new_size
+            self.editor.setViewportMargins(left, top, right, bottom)
 
     def margin_size(self, position=Panel.Position.LEFT):
         """

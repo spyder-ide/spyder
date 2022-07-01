@@ -1,0 +1,31 @@
+[FORMAT]
+
+max-line-length = 120
+
+[MESSAGES CONTROL]
+
+enable =
+    useless-suppression
+
+disable =
+    duplicate-code,
+    invalid-name,
+    fixme,
+    missing-docstring,
+    protected-access,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-instance-attributes,
+    import-error,
+    consider-using-f-string,
+    logging-fstring-interpolation
+
+[REPORTS]
+
+reports = no
+
+[TYPECHECK]
+
+generated-members =
+    pylsp_*
+    cache_clear

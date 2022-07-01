@@ -10,32 +10,32 @@
 # Standard library imports
 import copy
 import datetime
+import functools
+import operator
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QDateTime, Qt, Signal, Slot
+from qtpy.QtCore import QDateTime, Qt, Signal
 from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
                             QItemDelegate, QLineEdit, QMessageBox, QTableView)
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd, PIL)
+from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
+                                         is_known_type)
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder_kernels.utils.nsview import (
-    array, DataFrame, Index, display_to_value, FakeObject,
-    Image, is_editable_type, is_known_type, MaskedArray, ndarray, Series)
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
+from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
+from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
+    DataFrameEditor)
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.plugins.variableexplorer.widgets.objectexplorer.attribute_model \
-    import safe_tio_call
 
-if ndarray is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.arrayeditor import (
-            ArrayEditor)
 
-if DataFrame is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-            DataFrameEditor)
+LARGE_COLLECTION = 1e5
+LARGE_ARRAY = 5e6
 
 try:
     from numpy import void
@@ -45,7 +45,9 @@ except:
 
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
-    sig_free_memory = Signal()
+    sig_free_memory_requested = Signal()
+    sig_editor_creation_started = Signal()
+    sig_editor_shown = Signal()
 
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -62,28 +64,40 @@ class CollectionsDelegate(QItemDelegate):
     def show_warning(self, index):
         """
         Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
+        a big variable associated to a Tablemodel index.
 
         This avoids getting the variables' value to know its
         size and type, using instead those already computed by
         the TableModel.
 
         The problem is when a variable is too big, it can take a
-        lot of time just to get its value
+        lot of time just to get its value.
         """
-        try:
-            val_size = index.model().sizes[index.row()]
-            val_type = index.model().types[index.row()]
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
+        val_type = index.sibling(index.row(), 1).data()
+        val_size = index.sibling(index.row(), 2).data()
+
+        if val_type in ['list', 'set', 'tuple', 'dict']:
+            if int(val_size) > LARGE_COLLECTION:
+                return True
+        elif (val_type in ['DataFrame', 'Series'] or 'Array' in val_type or
+                'Index' in val_type):
+            # Avoid errors for user declared types that contain words like
+            # the ones we're looking for above
+            try:
+                # From https://blender.stackexchange.com/a/131849
+                shape = [int(s) for s in val_size.strip("()").split(",") if s]
+                size = functools.reduce(operator.mul, shape)
+                if size > LARGE_ARRAY:
+                    return True
+            except Exception:
+                pass
+
+        return False
 
     def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
+        val_type = index.sibling(index.row(), 1).data()
+        self.sig_editor_creation_started.emit()
         if index.column() < 3:
             return None
         if self.show_warning(index):
@@ -93,18 +107,55 @@ class CollectionsDelegate(QItemDelegate):
                   "Do you want to continue anyway?"),
                 QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
+                self.sig_editor_shown.emit()
                 return None
         try:
             value = self.get_value(index)
             if value is None:
                 return None
+        except ImportError as msg:
+            self.sig_editor_shown.emit()
+            module = str(msg).split("'")[1]
+            if module in ['pandas', 'numpy']:
+                if module == 'numpy':
+                    val_type = 'array'
+                else:
+                    val_type = 'dataframe, series'
+                message = _("Spyder is unable to show the {val_type} or object"
+                            " you're trying to view because <tt>{module}</tt>"
+                            " is not installed. ")
+                if running_in_mac_app():
+                    message += _("Please consider using the full version of "
+                                 "the Spyder MacOS application.<br>")
+                else:
+                    message += _("Please install this package in your Spyder "
+                                 "environment.<br>")
+                QMessageBox.critical(
+                    self.parent(), _("Error"),
+                    message.format(val_type=val_type, module=module))
+                return
+            else:
+                if running_in_mac_app() or is_pynsist():
+                    message = _("Spyder is unable to show the variable you're"
+                                " trying to view because the module "
+                                "<tt>{module}</tt> is not supported in the "
+                                "Spyder Lite application.<br>")
+                else:
+                    message = _("Spyder is unable to show the variable you're"
+                                " trying to view because the module "
+                                "<tt>{module}</tt> is not found in your "
+                                "Spyder environment. Please install this "
+                                "package in this environment.<br>")
+                QMessageBox.critical(self.parent(), _("Error"),
+                                     message.format(module=module))
+                return
         except Exception as msg:
             QMessageBox.critical(
                 self.parent(), _("Error"),
                 _("Spyder was unable to retrieve the value of "
                   "this variable from the console.<br><br>"
                   "The error message was:<br>"
-                  "<i>%s</i>") % to_text_string(msg))
+                  "%s") % to_text_string(msg))
             return
 
         key = index.model().get_key(index)
@@ -116,8 +167,7 @@ class CollectionsDelegate(QItemDelegate):
             # https://github.com/spyder-ide/spyder/issues/10603
             return None
         elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
-            from spyder.plugins.variableexplorer.widgets.collectionseditor \
-                import CollectionsEditor
+            from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -125,8 +175,10 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for a Numpy array
-        elif (isinstance(value, (ndarray, MaskedArray)) and
-                ndarray is not FakeObject and not object_explorer):
+        elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
+                np.ndarray is not FakeObject and not object_explorer):
+            # We need to leave this import here for tests to pass.
+            from .arrayeditor import ArrayEditor
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -134,39 +186,54 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for an images
-        elif (isinstance(value, Image) and ndarray is not FakeObject and
-                Image is not FakeObject and not object_explorer):
-            arr = array(value)
+        elif (isinstance(value, PIL.Image.Image) and
+                np.ndarray is not FakeObject and
+                PIL.Image is not FakeObject and
+                not object_explorer):
+            # Sometimes the ArrayEditor import above is not seen (don't know
+            # why), so we need to reimport it here.
+            # Fixes spyder-ide/spyder#16731
+            from .arrayeditor import ArrayEditor
+            arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
-            conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
+            conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
         # DataFrameEditor for a pandas dataframe, series or index
-        elif (isinstance(value, (DataFrame, Index, Series))
-                and DataFrame is not FakeObject and not object_explorer):
+        elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
+                and pd.DataFrame is not FakeObject and not object_explorer):
+            # We need to leave this import here for tests to pass.
+            from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
-            editor.dataModel.set_format(index.model().dataframe_format)
-            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
         # QDateEdit and QDateTimeEdit for a dates or datetime respectively
         elif isinstance(value, datetime.date) and not object_explorer:
             if readonly:
+                self.sig_editor_shown.emit()
                 return None
             else:
                 if isinstance(value, datetime.datetime):
                     editor = QDateTimeEdit(value, parent=parent)
+                    # Needed to handle NaT values
+                    # See spyder-ide/spyder#8329
+                    try:
+                        value.time()
+                    except ValueError:
+                        self.sig_editor_shown.emit()
+                        return None
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40 and not object_explorer:
@@ -181,6 +248,7 @@ class CollectionsDelegate(QItemDelegate):
         # QLineEdit for an individual value (int, float, short string, etc)
         elif is_editable_type(value) and not object_explorer:
             if readonly:
+                self.sig_editor_shown.emit()
                 return None
             else:
                 editor = QLineEdit(parent=parent)
@@ -191,29 +259,17 @@ class CollectionsDelegate(QItemDelegate):
                 # evaluation. So the object on which this method is trying to
                 # act doesn't exist anymore.
                 # editor.returnPressed.connect(self.commitAndCloseEditor)
+                self.sig_editor_shown.emit()
                 return editor
         # ObjectExplorer for an arbitrary Python object
         else:
-            show_callable_attributes = index.model().show_callable_attributes
-            show_special_attributes = index.model().show_special_attributes
-            dataframe_format = index.model().dataframe_format
-
-            if show_callable_attributes is None:
-                show_callable_attributes = False
-            if show_special_attributes is None:
-                show_special_attributes = False
-
             from spyder.plugins.variableexplorer.widgets.objectexplorer \
                 import ObjectExplorer
             editor = ObjectExplorer(
                 value,
                 name=key,
                 parent=parent,
-                show_callable_attributes=show_callable_attributes,
-                show_special_attributes=show_special_attributes,
-                dataframe_format=dataframe_format,
                 readonly=readonly)
-            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
@@ -225,23 +281,8 @@ class CollectionsDelegate(QItemDelegate):
                      lambda eid=id(editor): self.editor_accepted(eid))
         editor.rejected.connect(
                      lambda eid=id(editor): self.editor_rejected(eid))
+        self.sig_editor_shown.emit()
         editor.show()
-
-    @Slot(str, object)
-    def change_option(self, option_name, new_value):
-        """
-        Change configuration option.
-
-        This function is called when a `sig_option_changed` signal is received.
-        At the moment, this signal can only come from a DataFrameEditor
-        or an ObjectExplorer.
-        """
-        if option_name == 'dataframe_format':
-            self.parent().set_dataframe_format(new_value)
-        elif option_name == 'show_callable_attributes':
-            self.parent().toggle_show_callable_attributes(new_value)
-        elif option_name == 'show_special_attributes':
-            self.parent().toggle_show_special_attributes(new_value)
 
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]
@@ -270,7 +311,7 @@ class CollectionsDelegate(QItemDelegate):
     def free_memory(self):
         """Free memory after closing an editor."""
         try:
-            self.sig_free_memory.emit()
+            self.sig_free_memory_requested.emit()
         except RuntimeError:
             pass
 
@@ -323,7 +364,6 @@ class CollectionsDelegate(QItemDelegate):
                                          self.get_value(index),
                                          ignore_errors=False)
             except Exception as msg:
-                raise
                 QMessageBox.critical(editor, _("Edit item"),
                                      _("<b>Unable to assign data to item.</b>"
                                        "<br><br>Error message:<br>%s"
@@ -392,34 +432,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
         if index.isValid():
             index.model().set_value(index, value)
 
-    def show_warning(self, index):
-        """
-        Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
-
-        This avoids getting the variables' value to know its
-        size and type, using instead those already computed by
-        the TableModel.
-
-        The problem is when a variable is too big, it can take a
-        lot of time just to get its value
-        """
-        try:
-            tree_item = index.model().treeItem(index)
-            val_size = safe_tio_call(len, tree_item)
-            val_type = type(tree_item.obj).__name__
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
-
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
-        if index.column() < 3:
-            return None
         if self.show_warning(index):
             answer = QMessageBox.warning(
                 self.parent(), _("Warning"),
@@ -452,8 +466,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
 
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)):
-            from spyder.plugins.variableexplorer.widgets.collectionseditor \
-                import CollectionsEditor
+            from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -461,8 +474,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for a Numpy array
-        elif (isinstance(value, (ndarray, MaskedArray)) and
-                ndarray is not FakeObject):
+        elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
+                np.ndarray is not FakeObject):
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -470,25 +483,23 @@ class ToggleColumnDelegate(CollectionsDelegate):
                                             key=key, readonly=readonly))
             return None
         # ArrayEditor for an images
-        elif (isinstance(value, Image) and ndarray is not FakeObject and
-                Image is not FakeObject):
-            arr = array(value)
+        elif (isinstance(value, PIL.Image.Image) and
+                np.ndarray is not FakeObject and PIL.Image is not FakeObject):
+            arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
-            conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
+            conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
         # DataFrameEditor for a pandas dataframe, series or index
-        elif (isinstance(value, (DataFrame, Index, Series))
-                and DataFrame is not FakeObject):
+        elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
+                and pd.DataFrame is not FakeObject):
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
-            editor.dataModel.set_format(index.model().dataframe_format)
-            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None

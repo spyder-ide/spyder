@@ -23,8 +23,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import get_std_icon
+from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 
 # Valid finder chars. To be improved
@@ -37,7 +36,7 @@ class HelperToolButton(QToolButton):
     """
     def __init__(self):
         QToolButton.__init__(self)
-        self.setIcon(get_std_icon('MessageBoxInformation'))
+        self.setIcon(ima.get_std_icon('MessageBoxInformation'))
         style = """
             QToolButton {
               padding:0px;
@@ -68,7 +67,8 @@ class MessageCheckBox(QMessageBox):
     def __init__(self, *args, **kwargs):
         super(MessageCheckBox, self).__init__(*args, **kwargs)
 
-        self._checkbox = QCheckBox()
+        self.setWindowModality(Qt.NonModal)
+        self._checkbox = QCheckBox(self)
 
         # Set layout to include checkbox
         size = 9
@@ -110,12 +110,13 @@ class HTMLDelegate(QStyledItemDelegate):
 
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
+
     def __init__(self, parent, margin=0):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
 
     def _prepare_text_document(self, option, index):
-        # This logic must be shared between paint and sizeHint for consitency
+        # This logic must be shared between paint and sizeHint for consistency
         options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
 
@@ -129,9 +130,14 @@ class HTMLDelegate(QStyledItemDelegate):
 
         style = (QApplication.style() if options.widget is None
                  else options.widget.style())
-
         options.text = ""
-        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
+
+        # Note: We need to pass the options widget as an argument of
+        # drawCrontol to make sure the delegate is painted with a style
+        # consistent with the widget in which it is used.
+        # See spyder-ide/spyder#10677.
+        style.drawControl(QStyle.CE_ItemViewItem, options, painter,
+                          options.widget)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
 
@@ -153,7 +159,14 @@ class HTMLDelegate(QStyledItemDelegate):
                     painter.translate(textRect.topLeft() + QPoint(2, 4))
         else:
             painter.translate(textRect.topLeft() + QPoint(0, -3))
-        doc.documentLayout().draw(painter, ctx)
+
+        # Type check: Prevent error in PySide where using
+        # doc.documentLayout().draw() may fail because doc.documentLayout()
+        # returns an object of type QtGui.QStandardItem (for whatever reason).
+        docLayout = doc.documentLayout()
+        if type(docLayout) is QAbstractTextDocumentLayout:
+            docLayout.draw(painter, ctx)
+
         painter.restore()
 
     def sizeHint(self, option, index):
@@ -288,7 +301,7 @@ class IconLineEdit(QLineEdit):
             self._application_style = application_style
             self._refresh()
 
-        # Small hack to gurantee correct padding on Spyder start
+        # Small hack to guarantee correct padding on Spyder start
         if self._paint_count < 5:
             self._paint_count += 1
             self._refresh()

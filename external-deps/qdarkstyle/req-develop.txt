@@ -1,0 +1,27 @@
+# See tox.ini file to know how to use them via command line
+# It is recommended for developers install all others requirements also
+
+# Main packages to make sure they are there
+setuptools
+pip
+wheel
+virtualenv
+pipdeptree
+
+# Automation
+tox
+pre-commit
+
+# Fixers
+autopep8
+docformatter
+eradicate
+isort
+
+# Project requirements
+qtsass
+watchdog
+
+# Spell checkers
+# Name for use is scpell
+scspell3k

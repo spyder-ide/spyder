@@ -12,10 +12,7 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
-from __future__ import print_function
-
 import codecs
-import getpass
 import locale
 import os
 import os.path as osp
@@ -23,13 +20,13 @@ import re
 import shutil
 import sys
 import tempfile
+import uuid
 import warnings
 
 # Local imports
 from spyder import __version__
-from spyder.utils import encoding
 from spyder.py3compat import is_unicode, PY3, to_text_string, is_text_string
-
+from spyder.utils import encoding
 
 #==============================================================================
 # Only for development
@@ -41,19 +38,36 @@ DEV = os.environ.get('SPYDER_DEV')
 # Manually override whether the dev configuration directory is used.
 USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
 
-# Make Spyder use a temp clean configuration directory for testing purposes
-# SPYDER_SAFE_MODE can be set using the --safe-mode option of bootstrap.py
-SAFE_MODE = os.environ.get('SPYDER_SAFE_MODE')
+# Get a random id for the safe-mode config dir
+CLEAN_DIR_ID = str(uuid.uuid4()).split('-')[-1]
+
+
+def get_safe_mode():
+    """
+    Make Spyder use a temp clean configuration directory for testing
+    purposes SPYDER_SAFE_MODE can be set using the --safe-mode option.
+    """
+    return bool(os.environ.get('SPYDER_SAFE_MODE'))
 
 
 def running_under_pytest():
     """
-    Return True if currently running under py.test.
+    Return True if currently running under pytest.
 
     This function is used to do some adjustment for testing. The environment
     variable SPYDER_PYTEST is defined in conftest.py.
     """
     return bool(os.environ.get('SPYDER_PYTEST'))
+
+
+def running_in_ci():
+    """Return True if currently running under CI."""
+    return bool(os.environ.get('CI'))
+
+
+def running_in_ci_with_conda():
+    """Return True if currently running under CI with conda packages."""
+    return running_in_ci() and bool(os.environ.get('USE_CONDA'))
 
 
 def is_stable_version(version):
@@ -184,23 +198,39 @@ def get_clean_conf_dir():
     """
     Return the path to a temp clean configuration dir, for tests and safe mode.
     """
-    if sys.platform.startswith("win"):
-        current_user = ''
-    else:
-        current_user = '-' + str(getpass.getuser())
-
-    conf_dir = osp.join(str(tempfile.gettempdir()),
-                        'pytest-spyder{0!s}'.format(current_user),
-                        get_conf_subfolder())
+    conf_dir = osp.join(
+        tempfile.gettempdir(),
+        'spyder-clean-conf-dirs',
+        CLEAN_DIR_ID,
+    )
     return conf_dir
+
+
+def get_custom_conf_dir():
+    """
+    Use a custom configuration directory, passed through our command
+    line options or by setting the env var below.
+    """
+    custom_dir = os.environ.get('SPYDER_CONFDIR')
+    if custom_dir:
+        custom_dir = osp.abspath(custom_dir)
+
+        # Set env var to not lose its value in future calls when the cwd
+        # is changed by Spyder.
+        os.environ['SPYDER_CONFDIR'] = custom_dir
+        return custom_dir
 
 
 def get_conf_path(filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
-    if running_under_pytest() or SAFE_MODE:
+    if running_under_pytest() or get_safe_mode():
         # Use clean config dir if running tests or the user requests it.
         conf_dir = get_clean_conf_dir()
+    elif get_custom_conf_dir():
+        # Use a custom directory if the user decided to do it through
+        # our command line options.
+        conf_dir = get_custom_conf_dir()
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
         # on Linux, as it was requested on spyder-ide/spyder#2629.
@@ -217,7 +247,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest() or SAFE_MODE:
+        if running_under_pytest() or get_safe_mode() or get_custom_conf_dir():
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
@@ -248,11 +278,15 @@ def get_conf_paths():
             '{}/etc/spyder'.format(CONDA_PREFIX),
         )
 
+    SEARCH_PATH += (
+        '{}/etc/spyder'.format(sys.prefix),
+    )
+
     if running_under_pytest():
         search_paths = []
         tmpfolder = str(tempfile.gettempdir())
         for i in range(3):
-            path = os.path.join(tmpfolder, 'site-config-'+str(i))
+            path = os.path.join(tmpfolder, 'site-config-' + str(i))
             if not os.path.isdir(path):
                 os.makedirs(path)
             search_paths.append(path)
@@ -313,30 +347,14 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
-#==============================================================================
-# Image path list
-#==============================================================================
-IMG_PATH = []
-def add_image_path(path):
-    if not osp.isdir(path):
-        return
-    global IMG_PATH
-    IMG_PATH.append(path)
-    for dirpath, dirnames, _filenames in os.walk(path):
-        for dirname in dirnames:
-            IMG_PATH.append(osp.join(dirpath, dirname))
-
-add_image_path(get_module_data_path('spyder', relpath='images'))
-
-def get_image_path(name, default="not_found.png"):
-    """Return image absolute path"""
-    for img_path in IMG_PATH:
-        full_path = osp.join(img_path, name)
-        if osp.isfile(full_path):
-            return osp.abspath(full_path)
-    if default is not None:
-        img_path = osp.join(get_module_path('spyder'), 'images')
-        return osp.abspath(osp.join(img_path, default))
+def is_pynsist():
+    """Return True if this is a pynsist installation of Spyder."""
+    base_path = osp.abspath(osp.dirname(__file__))
+    pkgs_path = osp.abspath(
+        osp.join(base_path, '..', '..', '..', 'pkgs'))
+    if os.environ.get('PYTHONPATH') is not None:
+        return pkgs_path in os.environ.get('PYTHONPATH')
+    return False
 
 
 #==============================================================================
@@ -347,19 +365,22 @@ DEFAULT_LANGUAGE = 'en'
 
 # This needs to be updated every time a new language is added to spyder, and is
 # used by the Preferences configuration to populate the Language QComboBox
-LANGUAGE_CODES = {'en': u'English',
-                  'fr': u'Français',
-                  'es': u'Español',
-                  'hu': u'Magyar',
-                  'pt_BR': u'Português',
-                  'ru': u'Русский',
-                  'zh_CN': u'简体中文',
-                  'ja': u'日本語',
-                  'de': u'Deutsch'
-                  }
+LANGUAGE_CODES = {
+    'en': u'English',
+    'fr': u'Français',
+    'es': u'Español',
+    'hu': u'Magyar',
+    'pt_BR': u'Português',
+    'ru': u'Русский',
+    'zh_CN': u'简体中文',
+    'ja': u'日本語',
+    'de': u'Deutsch',
+    'pl': u'Polski'
+}
 
-# Disabled languages (because their translations are outdated)
-DISABLED_LANGUAGES = []
+# Disabled languages because their translations are outdated or incomplete
+DISABLED_LANGUAGES = ['hu', 'pl']
+
 
 def get_available_translations():
     """
@@ -375,15 +396,16 @@ def get_available_translations():
     langs = [DEFAULT_LANGUAGE] + langs
 
     # Remove disabled languages
-    langs = list( set(langs) - set(DISABLED_LANGUAGES) )
+    langs = list(set(langs) - set(DISABLED_LANGUAGES))
 
     # Check that there is a language code available in case a new translation
     # is added, to ensure LANGUAGE_CODES is updated.
     for lang in langs:
         if lang not in LANGUAGE_CODES:
-            error = ('Update LANGUAGE_CODES (inside config/base.py) if a new '
-                     'translation has been added to Spyder')
-            print(error)  # spyder: test-skip
+            if DEV:
+                error = ('Update LANGUAGE_CODES (inside config/base.py) if a '
+                         'new translation has been added to Spyder')
+                print(error)  # spyder: test-skip
             return ['en']
     return langs
 
@@ -420,8 +442,8 @@ def get_interface_language():
             if locale_language == lang:
                 language = locale_language
                 break
-            elif locale_language.startswith(lang) or \
-              lang.startswith(locale_language):
+            elif (locale_language.startswith(lang) or
+                    lang.startswith(locale_language)):
                 language = lang
                 break
 
@@ -493,6 +515,7 @@ def get_translation(modname, dirname=None):
     try:
         _trans = gettext.translation(modname, locale_path, codeset="utf-8")
         lgettext = _trans.lgettext
+
         def translate_gettext(x):
             if not PY3 and is_unicode(x):
                 x = x.encode("utf-8")
@@ -505,6 +528,7 @@ def get_translation(modname, dirname=None):
     except Exception:
         return translate_dumb
 
+
 # Translation callback
 _ = get_translation("spyder")
 
@@ -514,41 +538,68 @@ _ = get_translation("spyder")
 #==============================================================================
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
-CHECK_ALL = False #XXX: If True, this should take too much to compute...
+CHECK_ALL = False  # XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
-                  'sctypeNA', 'typeNA', 'False_', 'True_',]
-
-# To be able to get and set variables between Python 2 and 3
-PICKLE_PROTOCOL = 2
+                  'sctypeNA', 'typeNA', 'False_', 'True_']
 
 
 #==============================================================================
 # Mac application utilities
 #==============================================================================
-if PY3:
-    MAC_APP_NAME = 'Spyder.app'
-else:
-    MAC_APP_NAME = 'Spyder-Py2.app'
-
-
-def running_in_mac_app():
+def running_in_mac_app(pyexec=None):
     """
-    Check if Spyder is running inside an app on macOS.
+    Check if Python executable is located inside a standalone Mac app.
 
-    Check if the app is a stand-alone app.
-    This means this file is located inside 'Spyder.app' and not in the
-    python path.
-    This is important for example for the single_instance option.
+    If no executable is provided, the default will check `sys.executable`, i.e.
+    whether Spyder is running from a standalone Mac app.
+
+    This is important for example for the single_instance option and the
+    interpreter status in the statusbar.
     """
-    if sys.platform == "darwin":
-        if MAC_APP_NAME not in __file__:
-            return False
+    if pyexec is None:
+        pyexec = sys.executable
+
+    bpath = get_mac_app_bundle_path()
+
+    if bpath and pyexec == osp.join(bpath, 'Contents/MacOS/python'):
         return True
     else:
         return False
+
+
+def get_mac_app_bundle_path():
+    """
+    Return the full path to the macOS app bundle. Otherwise return None.
+
+    EXECUTABLEPATH environment variable only exists if Spyder is a macOS app
+    bundle. In which case it will always end with
+    "/<app name>.app/Conents/MacOS/Spyder".
+    """
+    app_exe_path = os.environ.get('EXECUTABLEPATH', None)
+    if sys.platform == "darwin" and app_exe_path:
+        return osp.dirname(osp.dirname(osp.dirname(osp.abspath(app_exe_path))))
+    else:
+        return None
+
+
+# =============================================================================
+# Micromamba
+# =============================================================================
+def get_spyder_umamba_path():
+    """Return the path to the Micromamba executable bundled with Spyder."""
+    if running_in_mac_app():
+        path = osp.join(osp.dirname(osp.dirname(__file__)),
+                        'bin', 'micromamba')
+    elif is_pynsist():
+        path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
+                                    'bin', 'micromamba.exe'))
+    else:
+        path = None
+
+    return path
 
 
 #==============================================================================

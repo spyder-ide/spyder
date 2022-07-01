@@ -38,8 +38,8 @@ class AutosaveErrorDialog(QDialog):
         Constructor.
 
         Args:
-            action (str): what Spyder was trying to do when error occured
-            error (Exception): the error that occured
+            action (str): what Spyder was trying to do when error occurred
+            error (Exception): the error that occurred
         """
         logger.error(action, exc_info=error)
 

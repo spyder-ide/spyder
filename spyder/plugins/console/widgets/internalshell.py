@@ -26,22 +26,21 @@ from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
 
 # Local imports
 from spyder import get_versions
+from spyder.api.translations import get_translation
 from spyder.plugins.console.utils.interpreter import Interpreter
 from spyder.py3compat import (builtins, to_binary_string,
                               to_text_string)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.misc import get_error_match, getcwd_or_home
 from spyder.utils.qthelpers import create_action
 from spyder.plugins.console.widgets.shell import PythonShellWidget
 from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
-# TODO: remove the CONF object and make it work anyway
-# In fact, this 'CONF' object has nothing to do in package spyder/widgets
-# which should not contain anything directly related to Spyder's main app
-from spyder.config.base import _, get_conf_path, get_debug_level
-from spyder.config.manager import CONF
+from spyder.config.base import get_conf_path, get_debug_level
 
 
+# Localization
+_ = get_translation('spyder')
 builtins.oedit = oedit
 
 
@@ -99,6 +98,10 @@ class WidgetProxy(QObject):
 
     def __init__(self, input_condition):
         QObject.__init__(self)
+
+        # External editor
+        self._gotoline = None
+        self._path = None
         self.input_data = None
         self.input_condition = input_condition
 
@@ -129,35 +132,39 @@ class WidgetProxy(QObject):
 class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
 
-    status = Signal(str)
-    refresh = Signal()
-    go_to_error = Signal(str)
-    focus_changed = Signal()
+    # --- Signals
 
-    def __init__(self, parent=None, namespace=None, commands=[], message=None,
-                 max_line_count=300, font=None, exitfunc=None, profile=False,
+    # This signal is emitted when the buffer is flushed
+    sig_refreshed = Signal()
+
+    # Request to show a status message on the main window
+    sig_show_status_requested = Signal(str)
+
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = Signal(str)
+
+    # TODO: I think this is not being used now?
+    sig_focus_changed = Signal()
+
+    def __init__(self, parent=None, commands=[], message=None,
+                 max_line_count=300, exitfunc=None, profile=False,
                  multithreaded=True):
-        PythonShellWidget.__init__(self, parent,
-                                   get_conf_path('history_internal.py'),
-                                   profile=profile)
+        super().__init__(parent, get_conf_path('history_internal.py'),
+                         profile=profile)
 
         self.multithreaded = multithreaded
         self.setMaximumBlockCount(max_line_count)
-
-        if font is not None:
-            self.set_font(font)
 
         # Allow raw_input support:
         self.input_loop = None
         self.input_mode = False
 
         # KeyboardInterrupt support
-        self.interrupted = False # used only for not-multithreaded mode
+        self.interrupted = False  # used only for not-multithreaded mode
         self.sig_keyboard_interrupt.connect(self.keyboard_interrupt)
 
         # Code completion / calltips
-        getcfg = lambda option: CONF.get('internal_console', option)
-
         # keyboard events management
         self.eventqueue = []
 
@@ -166,23 +173,24 @@ class InternalShell(PythonShellWidget):
         self.commands = commands
         self.message = message
         self.interpreter = None
-        self.start_interpreter(namespace)
 
         # Clear status bar
-        self.status.emit('')
+        self.sig_show_status_requested.emit('')
 
         # Embedded shell -- requires the monitor (which installs the
         # 'open_in_spyder' function in builtins)
         if hasattr(builtins, 'open_in_spyder'):
-            self.go_to_error.connect(self.open_with_external_spyder)
+            self.sig_go_to_error_requested.connect(
+                self.open_with_external_spyder)
 
     #------ Interpreter
     def start_interpreter(self, namespace):
-        """Start Python interpreter"""
+        """Start Python interpreter."""
         self.clear()
 
         if self.interpreter is not None:
             self.interpreter.closing()
+
         self.interpreter = Interpreter(namespace, self.exitfunc,
                                        SysOutput, WidgetProxy,
                                        get_debug_level())
@@ -192,6 +200,7 @@ class InternalShell(PythonShellWidget):
         self.interpreter.widget_proxy.sig_new_prompt.connect(self.new_prompt)
         self.interpreter.widget_proxy.sig_edit.connect(self.edit_script)
         self.interpreter.widget_proxy.sig_wait_input.connect(self.wait_input)
+
         if self.multithreaded:
             self.interpreter.start()
 
@@ -205,7 +214,7 @@ class InternalShell(PythonShellWidget):
 
         # First prompt
         self.new_prompt(self.interpreter.p1)
-        self.refresh.emit()
+        self.sig_refreshed.emit()
 
         return self.interpreter
 
@@ -243,7 +252,7 @@ class InternalShell(PythonShellWidget):
         self.new_prompt(prompt)
         self.setFocus()
         self.input_mode = True
-        self.input_loop = QEventLoop()
+        self.input_loop = QEventLoop(None)
         self.input_loop.exec_()
         self.input_loop = None
 
@@ -295,20 +304,30 @@ class InternalShell(PythonShellWidget):
             fname, lnb = match.groups()
             builtins.open_in_spyder(fname, int(lnb))
 
-    def external_editor(self, filename, goto=-1):
-        """Edit in an external editor
-        Recommended: SciTE (e.g. to go to line where an error did occur)"""
-        editor_path = CONF.get('internal_console', 'external_editor/path')
-        goto_option = CONF.get('internal_console', 'external_editor/gotoline')
-        try:
-            args = [filename]
-            if goto > 0 and goto_option:
-                args.append('%s%d'.format(goto_option, goto))
-            programs.run_program(editor_path, args)
-        except OSError:
-            self.write_error("External editor was not found:"
-                             " %s\n" % editor_path)
+    def set_external_editor(self, path, gotoline):
+        """Set external editor path and gotoline option."""
+        self._path = path
+        self._gotoline = gotoline
 
+    def external_editor(self, filename, goto=-1):
+        """
+        Edit in an external editor.
+
+        Recommended: SciTE (e.g. to go to line where an error did occur).
+        """
+        editor_path = self._path
+        goto_option = self._gotoline
+
+        if os.path.isfile(editor_path):
+            try:
+                args = [filename]
+                if goto > 0 and goto_option:
+                    args.append('%s%d'.format(goto_option, goto))
+
+                programs.run_program(editor_path, args)
+            except OSError:
+                self.write_error("External editor was not found:"
+                                 " %s\n" % editor_path)
 
     #------ I/O
     def flush(self, error=False, prompt=False):
@@ -411,7 +430,7 @@ class InternalShell(PythonShellWidget):
                 self.interpreter.stdin_write.write(
                                                 to_binary_string(cmd + '\n'))
                 self.interpreter.run_line()
-                self.refresh.emit()
+                self.sig_refreshed.emit()
             else:
                 self.write(_('In order to use commands like "raw_input" '
                              'or "input" run Spyder with the multithread '

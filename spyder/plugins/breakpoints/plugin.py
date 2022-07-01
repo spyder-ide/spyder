@@ -6,92 +6,204 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-
-"""Breakpoint Plugin."""
-
-
-# pylint: disable=C0103
-# pylint: disable=R0903
-# pylint: disable=R0911
-# pylint: disable=R0201
+"""
+Breakpoint Plugin.
+"""
 
 # Standard library imports
 import os.path as osp
 
 # Third party imports
-from qtpy.QtWidgets import QVBoxLayout
+from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.config.base import _
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
-from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
+from spyder.api.translations import get_translation
+from spyder.plugins.breakpoints.widgets.main_widget import BreakpointWidget
+from spyder.plugins.mainmenu.api import ApplicationMenus
 
-from .widgets.breakpointsgui import BreakpointWidget
+# Localization
+_ = get_translation('spyder')
 
 
-class Breakpoints(SpyderPluginWidget):
-    """Breakpoint list"""
-    CONF_SECTION = 'breakpoints'
+# --- Constants
+# ----------------------------------------------------------------------------
+class BreakpointsActions:
+    ListBreakpoints = 'list_breakpoints_action'
+
+
+# --- Plugin
+# ----------------------------------------------------------------------------
+class Breakpoints(SpyderDockablePlugin):
+    """
+    Breakpoint list Plugin.
+    """
+    NAME = 'breakpoints'
+    REQUIRES = [Plugins.Editor]
+    OPTIONAL = [Plugins.MainMenu]
+    TABIFY = [Plugins.Help]
+    WIDGET_CLASS = BreakpointWidget
+    CONF_SECTION = NAME
     CONF_FILE = False
 
-    def __init__(self, parent=None):
-        """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_clear_all_breakpoints_requested = Signal()
+    """
+    This signal is emitted to send a request to clear all assigned
+    breakpoints.
+    """
 
-        self.breakpoints = BreakpointWidget(self,
-                                            options_button=self.options_button)
+    sig_clear_breakpoint_requested = Signal(str, int)
+    """
+    This signal is emitted to send a request to clear a single breakpoint.
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.breakpoints)
-        self.setLayout(layout)
+    Parameters
+    ----------
+    filename: str
+        The path to filename containing the breakpoint.
+    line_number: int
+        The line number of the breakpoint.
+    """
 
-        self.breakpoints.set_data()
+    sig_edit_goto_requested = Signal(str, int, str)
+    """
+    Send a request to open a file in the editor at a given row and word.
 
-        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
-        self.icon = ima.icon('breakpoints', icon_path=path)
+    Parameters
+    ----------
+    filename: str
+        The path to the filename containing the breakpoint.
+    line_number: int
+        The line number of the breakpoint.
+    word: str
+        Text `word` to select on given `line_number`.
+    """
 
-    #------ SpyderPluginWidget API --------------------------------------------
-    def get_plugin_title(self):
-        """Return widget title"""
+    sig_conditional_breakpoint_requested = Signal()
+    """
+    Send a request to set/edit a condition on a single selected breakpoint.
+    """
+
+    # --- SpyderDockablePlugin API
+    # ------------------------------------------------------------------------
+    @staticmethod
+    def get_name():
         return _("Breakpoints")
 
-    def get_plugin_icon(self):
-        """Return widget icon"""
-        return self.icon
+    def get_description(self):
+        return _("Manage code breakpoints in a unified pane.")
 
-    def get_focus_widget(self):
+    def get_icon(self):
+        return self.create_icon('breakpoints')
+
+    def on_initialize(self):
+        widget = self.get_widget()
+
+        widget.sig_clear_all_breakpoints_requested.connect(
+            self.sig_clear_all_breakpoints_requested)
+        widget.sig_clear_breakpoint_requested.connect(
+            self.sig_clear_breakpoint_requested)
+        widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
+        widget.sig_conditional_breakpoint_requested.connect(
+            self.sig_conditional_breakpoint_requested)
+
+        self.create_action(
+            BreakpointsActions.ListBreakpoints,
+            _("List breakpoints"),
+            triggered=lambda: self.switch_to_plugin(),
+            icon=self.get_icon(),
+        )
+
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        list_action = self.get_action(BreakpointsActions.ListBreakpoints)
+
+        # TODO: change name of this signal on editor
+        editor.breakpoints_saved.connect(self.set_data)
+        widget.sig_clear_all_breakpoints_requested.connect(
+            editor.clear_all_breakpoints)
+        widget.sig_clear_breakpoint_requested.connect(editor.clear_breakpoint)
+        widget.sig_edit_goto_requested.connect(editor.load)
+        widget.sig_conditional_breakpoint_requested.connect(
+            editor.set_or_edit_conditional_breakpoint)
+
+        # TODO: Fix location once the sections are defined
+        editor.pythonfile_dependent_actions += [list_action]
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        list_action = self.get_action(BreakpointsActions.ListBreakpoints)
+        mainmenu.add_item_to_application_menu(
+            list_action, menu_id=ApplicationMenus.Debug)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+        list_action = self.get_action(BreakpointsActions.ListBreakpoints)
+
+        editor.breakpoints_saved.disconnect(self.set_data)
+        widget.sig_clear_all_breakpoints_requested.disconnect(
+            editor.clear_all_breakpoints)
+        widget.sig_clear_breakpoint_requested.disconnect(
+            editor.clear_breakpoint)
+        widget.sig_edit_goto_requested.disconnect(editor.load)
+        widget.sig_conditional_breakpoint_requested.disconnect(
+            editor.set_or_edit_conditional_breakpoint)
+
+        editor.pythonfile_dependent_actions.remove(list_action)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            BreakpointsActions.ListBreakpoints, menu_id=ApplicationMenus.Debug)
+
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def _load_data(self):
         """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        Load breakpoint data from configuration file.
         """
-        return self.breakpoints.dictwidget
+        breakpoints_dict = self.get_conf(
+            'breakpoints',
+            default={},
+            section='run',
+        )
+        for filename in list(breakpoints_dict.keys()):
+            if not osp.isfile(filename):
+                breakpoints_dict.pop(filename)
+                continue
+            # Make sure we don't have the same file under different names
+            new_filename = osp.normcase(filename)
+            if new_filename != filename:
+                bp = breakpoints_dict.pop(filename)
+                if new_filename in breakpoints_dict:
+                    breakpoints_dict[new_filename].extend(bp)
+                else:
+                    breakpoints_dict[new_filename] = bp
 
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.tabify(self.main.help)
+        return breakpoints_dict
 
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.breakpoints.edit_goto.connect(self.main.editor.load)
-        #self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.breakpoints.clear_all_breakpoints.connect(
-                                        self.main.editor.clear_all_breakpoints)
-        self.breakpoints.clear_breakpoint.connect(
-            self.main.editor.clear_breakpoint)
-        self.main.editor.breakpoints_saved.connect(self.breakpoints.set_data)
-        self.breakpoints.set_or_edit_conditional_breakpoint.connect(
-                           self.main.editor.set_or_edit_conditional_breakpoint)
+    # --- Public API
+    # ------------------------------------------------------------------------
+    def set_data(self, data=None):
+        """
+        Set breakpoint data on widget.
 
-        self.add_dockwidget()
+        Parameters
+        ----------
+        data: dict, optional
+            Breakpoint data to use. If None, data from the configuration
+            will be loaded. Default is None.
+        """
+        if data is None:
+            data = self._load_data()
 
-        list_action = create_action(self, _("List breakpoints"),
-                                    triggered=self.show, icon=self.icon)
-        list_action.setEnabled(True)
-        pos = self.main.debug_menu_actions.index('list_breakpoints')
-        self.main.debug_menu_actions.insert(pos, list_action)
-        self.main.editor.pythonfile_dependent_actions += [list_action]
-
-    def show(self):
-        """Show the breakpoints dockwidget"""
-        self.switch_to_plugin()
+        self.get_widget().set_data(data)

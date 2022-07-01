@@ -21,12 +21,14 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
                             QVBoxLayout)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _, get_home_dir
-from spyder.config.manager import CONF
 
 
-class KernelConnectionDialog(QDialog):
+class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
     """Dialog to connect to existing kernels (either local or remote)."""
+
+    CONF_SECTION = 'existing-kernel'
 
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
@@ -37,8 +39,8 @@ class KernelConnectionDialog(QDialog):
             "<tt>kernel-1234.json</tt>) of the existing kernel, and enter "
             "the SSH information if connecting to a remote machine. "
             "To learn more about starting external kernels and connecting "
-            "to them, see <a href=\"https://docs.spyder-ide.org/"
-            "ipythonconsole.html#connect-to-an-external-kernel\">"
+            "to them, see <a href=\"https://docs.spyder-ide.org/5/panes/"
+            "ipythonconsole.html#using-external-kernels\">"
             "our documentation</a>.</p>"))
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
@@ -164,7 +166,7 @@ class KernelConnectionDialog(QDialog):
 
     def load_connection_settings(self):
         """Load the user's previously-saved kernel connection settings."""
-        existing_kernel = CONF.get("existing-kernel", "settings", {})
+        existing_kernel = self.get_conf("settings", {})
 
         connection_file_path = existing_kernel.get("json_file_path", "")
         is_remote = existing_kernel.get("is_remote", False)
@@ -216,7 +218,7 @@ class KernelConnectionDialog(QDialog):
             "is_ssh_keyfile": is_ssh_key,
             "ssh_key_file_path": self.kf.text()
         }
-        CONF.set("existing-kernel", "settings", connection_settings)
+        self.set_conf("settings", connection_settings)
 
         try:
             import keyring

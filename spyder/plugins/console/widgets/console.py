@@ -13,24 +13,16 @@ from qtpy.QtCore import Signal
 from qtpy.QtGui import QColor, QFont, QTextCharFormat, QTextCursor
 from qtpy.QtWidgets import QApplication
 
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.console.utils.ansihandler import ANSIEscapeCodeHandler
+from spyder.utils.palette import QStylePalette, SpyderPalette
 
 
-if is_dark_interface():
-    MAIN_BG_COLOR = '#19232D'
-    MAIN_DEFAULT_FG_COLOR = '#ffffff'
-    MAIN_ERROR_FG_COLOR = '#FF0000'
-    MAIN_TB_FG_COLOR = '#2980b9'
-    MAIN_PROMPT_FG_COLOR = '#00AA00'
-else:
-    MAIN_BG_COLOR = 'white'
-    MAIN_DEFAULT_FG_COLOR = '#000000'
-    MAIN_ERROR_FG_COLOR = '#FF0000'
-    MAIN_TB_FG_COLOR = '#0000FF'
-    MAIN_PROMPT_FG_COLOR = '#00AA00'
-
+MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
+MAIN_DEFAULT_FG_COLOR = QStylePalette.COLOR_TEXT_1
+MAIN_ERROR_FG_COLOR = SpyderPalette.COLOR_ERROR_1
+MAIN_TB_FG_COLOR = QStylePalette.COLOR_ACCENT_3
+MAIN_PROMPT_FG_COLOR = SpyderPalette.COLOR_SUCCESS_1
 
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
@@ -147,17 +139,18 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile(r'\x01?\x1b\[(.*?)m\x02?')
-    exception_occurred = Signal(str, bool)
+
+    # --- Signals
+    # This signal emits an error text, which corresponds to a Python
+    # traceback.
+    sig_exception_occurred = Signal(dict)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
-        # We use an object name to set the right background
-        # color when changing interface theme. This seems to
-        # be a Qt bug.
-        # Fixes spyder-ide/spyder#8072.
+        # To adjust some things for the internal console
         self.setObjectName('console')
 
         self.setMaximumBlockCount(300)
@@ -245,20 +238,34 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 break
             text = text[index+1:]
             self.clear()
+
         if error:
             is_traceback = False
-            for text in text.splitlines(True):
-                if (text.startswith('  File')
-                        and not text.startswith('  File "<')):
+            is_warning = False
+            for line in text.splitlines(True):
+                if (line.startswith('  File')
+                        and not line.startswith('  File "<')):
                     is_traceback = True
+                    is_warning = False
                     # Show error links in blue underlined text
                     cursor.insertText('  ', self.default_style.format)
-                    cursor.insertText(text[2:],
+                    cursor.insertText(line[2:],
                                       self.traceback_link_style.format)
                 else:
+                    # Detect if line is a warning.
+                    if (re.findall('[A-Z].*Warning', line) != [] or
+                            'warnings.warn' in line or
+                            'WARNING' in line):
+                        is_warning = True
+
                     # Show error/warning messages in red
-                    cursor.insertText(text, self.error_style.format)
-                self.exception_occurred.emit(text, is_traceback)
+                    cursor.insertText(line, self.error_style.format)
+
+                # Don't report warnings as internal errors
+                if not is_warning:
+                    self.sig_exception_occurred.emit(
+                        dict(text=line, is_traceback=is_traceback)
+                    )
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)

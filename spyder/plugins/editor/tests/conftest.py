@@ -9,14 +9,13 @@
 """Fixtures for the Editor plugin tests."""
 
 import os.path as osp
-try:
-    from unittest.mock import MagicMock, Mock
-except ImportError:
-    from mock import MagicMock, Mock  # Python 2
+from unittest.mock import MagicMock, Mock
+
+from spyder.api.plugins import Plugins
+from spyder.utils.qthelpers import qapplication
 
 # This is needed to avoid an error because QtAwesome
 # needs a QApplication to work correctly.
-from spyder.utils.qthelpers import qapplication
 app = qapplication()
 
 from qtpy.QtWidgets import QMainWindow
@@ -44,15 +43,17 @@ def editor_plugin(qtbot, monkeypatch):
         def __getattr__(self, attr):
             if attr.endswith('actions'):
                 return []
-            elif attr == 'projects':
-                projects = Mock()
-                projects.get_active_project.return_value = None
-                return projects
             else:
                 return Mock()
 
         def get_spyder_pythonpath(*args):
             return []
+
+        def get_plugin(self, plugin_name, error=True):
+            if plugin_name in [Plugins.IPythonConsole, Plugins.Projects]:
+                return None
+            else:
+                return Mock()
 
     window = MainMock()
     editor = Editor(window)
@@ -74,11 +75,12 @@ def python_files(tmpdir_factory):
     tmpdir = osp.normcase(tmpdir.strpath)
 
     filenames = [osp.join(tmpdir, f) for f in
-                 ('file1.py', 'file2.py', 'file3.py', 'file4.py')]
+                 ('file1.py', 'file2.py', 'file3.py', 'file4.py',
+                  'untitled4.py')]
     for filename in filenames:
-        with open(filename, 'w') as f:
+        with open(filename, 'w', newline='') as f:
             f.write("# -*- coding: utf-8 -*-\n"
-                    "print(Hello World!)\n")
+                    "print('Hello World!')\n")
 
     return filenames, tmpdir
 
@@ -96,13 +98,28 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
                                expected_current_filename):
         editor = editor_plugin
         expected_filenames, tmpdir = python_files
+
         if expected_current_filename is None:
             expected_current_filename = expected_filenames[0]
         expected_current_filename = osp.join(tmpdir, expected_current_filename)
+
         options_dict = {
+            # For tests
             'filenames': expected_filenames,
             'max_recent_files': 20,
-            }
+            # To make tests pass
+            'indent_chars': '*    *',
+            'show_tab_bar': True,
+            'code_folding': True,
+            'edge_line': True,
+            'indent_guides': False,
+            'scroll_past_end': False,
+            'line_numbers': True,
+            'occurrence_highlighting/timeout': 1500,
+            'tab_stop_width_spaces': 4,
+            'show_class_func_dropdown': False,
+        }
+
         if last_focused_filename is not None:
             splitsettings = [(False,
                               osp.join(tmpdir, last_focused_filename),

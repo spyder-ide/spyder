@@ -8,22 +8,64 @@
 Kernel spec for Spyder kernels
 """
 
+# Standard library imports
+import logging
 import os
 import os.path as osp
+import sys
 
+# Third party imports
 from jupyter_client.kernelspec import KernelSpec
 
-from spyder.config.base import SAFE_MODE, running_under_pytest
-from spyder.config.manager import CONF
-from spyder.utils.encoding import to_unicode_from_fs
+# Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.config.base import (get_safe_mode, is_pynsist, running_in_mac_app,
+                                running_under_pytest)
+from spyder.utils.conda import (add_quotes, get_conda_activation_script,
+                                get_conda_env_path, is_conda_env)
+from spyder.utils.environ import clean_env
+from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter
-from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
-from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
-                               get_python_executable)
+
+# Constants
+HERE = os.path.abspath(os.path.dirname(__file__))
+logger = logging.getLogger(__name__)
 
 
-class SpyderKernelSpec(KernelSpec):
+def is_different_interpreter(pyexec):
+    """Check that pyexec is a different interpreter from sys.executable."""
+    executable_validation = osp.basename(pyexec).startswith('python')
+    directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
+    return directory_validation and executable_validation
+
+
+def get_activation_script(quote=False):
+    """
+    Return path for bash/batch conda activation script to run spyder-kernels.
+
+    If `quote` is True, then quotes are added if spaces are found in the path.
+    """
+    scripts_folder_path = os.path.join(os.path.dirname(HERE), 'scripts')
+    if os.name == 'nt':
+        script = 'conda-activate.bat'
+    else:
+        script = 'conda-activate.sh'
+
+    script_path = os.path.join(scripts_folder_path, script)
+
+    if quote:
+        script_path = add_quotes(script_path)
+
+    return script_path
+
+
+HERE = osp.dirname(os.path.realpath(__file__))
+
+
+class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     """Kernel spec for Spyder kernels"""
+
+    CONF_SECTION = 'ipython_console'
 
     def __init__(self, is_cython=False, is_pylab=False,
                  is_sympy=False, **kwargs):
@@ -32,96 +74,104 @@ class SpyderKernelSpec(KernelSpec):
         self.is_pylab = is_pylab
         self.is_sympy = is_sympy
 
-        self.display_name = 'Python 2 (Spyder)' if PY2 else 'Python 3 (Spyder)'
-        self.language = 'python2' if PY2 else 'python3'
+        self.display_name = 'Python 3 (Spyder)'
+        self.language = 'python3'
         self.resource_dir = ''
 
     @property
     def argv(self):
         """Command to start kernels"""
         # Python interpreter used to start kernels
-        if CONF.get('main_interpreter', 'default'):
+        if self.get_conf('default', section='main_interpreter'):
             pyexec = get_python_executable()
         else:
-            # Avoid IPython adding the virtualenv on which Spyder is running
-            # to the kernel sys.path
-            os.environ.pop('VIRTUAL_ENV', None)
-            pyexec = CONF.get('main_interpreter', 'executable')
+            pyexec = self.get_conf('executable', section='main_interpreter')
             if not is_python_interpreter(pyexec):
                 pyexec = get_python_executable()
-                CONF.set('main_interpreter', 'executable', '')
-                CONF.set('main_interpreter', 'default', True)
-                CONF.set('main_interpreter', 'custom', False)
+                self.set_conf('executable', '', section='main_interpreter')
+                self.set_conf('default', True, section='main_interpreter')
+                self.set_conf('custom', False, section='main_interpreter')
 
-        # Fixes spyder-ide/spyder#3427.
-        if os.name == 'nt':
-            dir_pyexec = osp.dirname(pyexec)
-            pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
-            if osp.isfile(pyexec_w):
-                pyexec = pyexec_w
+        # Part of spyder-ide/spyder#11819
+        is_different = is_different_interpreter(pyexec)
 
         # Command used to start kernels
-        kernel_cmd = [
-            pyexec,
-            '-m',
-            'spyder_kernels.console',
-            '-f',
-            '{connection_file}'
-        ]
+        if is_different and is_conda_env(pyexec=pyexec):
+            # If this is a conda environment we need to call an intermediate
+            # activation script to correctly activate the spyder-kernel
+
+            # If changes are needed on this section make sure you also update
+            # the activation scripts at spyder/plugins/ipythonconsole/scripts/
+            kernel_cmd = [
+                get_activation_script(),  # This is bundled with Spyder
+                get_conda_activation_script(),
+                get_conda_env_path(pyexec),  # Might be external
+                pyexec,
+                '{connection_file}',
+            ]
+        else:
+            kernel_cmd = [
+                pyexec,
+                '-m',
+                'spyder_kernels.console',
+                '-f',
+                '{connection_file}'
+            ]
+        logger.info('Kernel command: {}'.format(kernel_cmd))
 
         return kernel_cmd
 
     @property
     def env(self):
         """Env vars for kernels"""
-        # Add our PYTHONPATH to the kernel
-        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
+        default_interpreter = self.get_conf(
+            'default', section='main_interpreter')
+        env_vars = os.environ.copy()
 
-        default_interpreter = CONF.get('main_interpreter', 'default')
-        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=False)
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
 
-        # Environment variables that we need to pass to our sitecustomize
-        umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
+        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
+        env_vars.pop('PYTHONPATH', None)
 
-        if PY2:
-            original_list = umr_namelist[:]
-            for umr_n in umr_namelist:
-                try:
-                    umr_n.encode('utf-8')
-                except UnicodeDecodeError:
-                    umr_namelist.remove(umr_n)
-            if original_list != umr_namelist:
-                CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
+        # List of paths declared by the user, plus project's path, to
+        # add to PYTHONPATH
+        pathlist = self.get_conf(
+            'spyder_pythonpath', default=[], section='main')
+        pypath = os.pathsep.join(pathlist)
 
-        env_vars = {
+        # List of modules to exclude from our UMR
+        umr_namelist = self.get_conf(
+            'umr/namelist', section='main_interpreter')
+
+        # Environment variables that we need to pass to the kernel
+        env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
-            'SPY_UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
-            'SPY_UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
+            'SPY_UMR_ENABLED': self.get_conf(
+                'umr/enabled', section='main_interpreter'),
+            'SPY_UMR_VERBOSE': self.get_conf(
+                'umr/verbose', section='main_interpreter'),
             'SPY_UMR_NAMELIST': ','.join(umr_namelist),
-            'SPY_RUN_LINES_O': CONF.get('ipython_console', 'startup/run_lines'),
-            'SPY_PYLAB_O': CONF.get('ipython_console', 'pylab'),
-            'SPY_BACKEND_O': CONF.get('ipython_console', 'pylab/backend'),
-            'SPY_AUTOLOAD_PYLAB_O': CONF.get('ipython_console',
-                                             'pylab/autoload'),
-            'SPY_FORMAT_O': CONF.get('ipython_console',
-                                     'pylab/inline/figure_format'),
-            'SPY_BBOX_INCHES_O': CONF.get('ipython_console',
-                                          'pylab/inline/bbox_inches'),
-            'SPY_RESOLUTION_O': CONF.get('ipython_console',
-                                         'pylab/inline/resolution'),
-            'SPY_WIDTH_O': CONF.get('ipython_console', 'pylab/inline/width'),
-            'SPY_HEIGHT_O': CONF.get('ipython_console', 'pylab/inline/height'),
-            'SPY_USE_FILE_O': CONF.get('ipython_console',
-                                       'startup/use_run_file'),
-            'SPY_RUN_FILE_O': CONF.get('ipython_console', 'startup/run_file'),
-            'SPY_AUTOCALL_O': CONF.get('ipython_console', 'autocall'),
-            'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
-            'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
-            'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-            'SPY_TESTING': running_under_pytest() or SAFE_MODE,
-            'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows')
-        }
+            'SPY_RUN_LINES_O': self.get_conf('startup/run_lines'),
+            'SPY_PYLAB_O': self.get_conf('pylab'),
+            'SPY_BACKEND_O': self.get_conf('pylab/backend'),
+            'SPY_AUTOLOAD_PYLAB_O': self.get_conf('pylab/autoload'),
+            'SPY_FORMAT_O': self.get_conf('pylab/inline/figure_format'),
+            'SPY_BBOX_INCHES_O': self.get_conf('pylab/inline/bbox_inches'),
+            'SPY_RESOLUTION_O': self.get_conf('pylab/inline/resolution'),
+            'SPY_WIDTH_O': self.get_conf('pylab/inline/width'),
+            'SPY_HEIGHT_O': self.get_conf('pylab/inline/height'),
+            'SPY_USE_FILE_O': self.get_conf('startup/use_run_file'),
+            'SPY_RUN_FILE_O': self.get_conf('startup/run_file'),
+            'SPY_AUTOCALL_O': self.get_conf('autocall'),
+            'SPY_GREEDY_O': self.get_conf('greedy_completer'),
+            'SPY_JEDI_O': self.get_conf('jedi_completer'),
+            'SPY_SYMPY_O': self.get_conf('symbolic_math'),
+            'SPY_TESTING': running_under_pytest() or get_safe_mode(),
+            'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
+            'SPY_PYTHONPATH': pypath
+        })
 
         if self.is_pylab is True:
             env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
@@ -136,30 +186,22 @@ class SpyderKernelSpec(KernelSpec):
             env_vars['SPY_SYMPY_O'] = False
             env_vars['SPY_RUN_CYTHON'] = True
 
-        # Add our PYTHONPATH to env_vars
-        env_vars.update(pypath)
+        # App considerations
+        if (running_in_mac_app() or is_pynsist()):
+            if default_interpreter:
+                # See spyder-ide/spyder#16927
+                # See spyder-ide/spyder#16828
+                # See spyder-ide/spyder#17552
+                env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
+            else:
+                env_vars.pop('PYTHONHOME', None)
+
+        # Remove this variable because it prevents starting kernels for
+        # external interpreters when present.
+        # Fixes spyder-ide/spyder#13252
+        env_vars.pop('PYTHONEXECUTABLE', None)
 
         # Making all env_vars strings
-        for key,var in iteritems(env_vars):
-            if PY2:
-                # Try to convert vars first to utf-8.
-                try:
-                    unicode_var = to_text_string(var)
-                except UnicodeDecodeError:
-                    # If that fails, try to use the file system
-                    # encoding because one of our vars is our
-                    # PYTHONPATH, and that contains file system
-                    # directories
-                    try:
-                        unicode_var = to_unicode_from_fs(var)
-                    except:
-                        # If that also fails, make the var empty
-                        # to be able to start Spyder.
-                        # See https://stackoverflow.com/q/44506900/438386
-                        # for details.
-                        unicode_var = ''
-                env_vars[key] = to_binary_string(unicode_var,
-                                                 encoding='utf-8')
-            else:
-                env_vars[key] = to_text_string(var)
-        return env_vars
+        clean_env_vars = clean_env(env_vars)
+
+        return clean_env_vars

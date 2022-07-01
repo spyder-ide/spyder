@@ -11,12 +11,9 @@ Tests for the widgets used in the Plots plugin.
 """
 
 # Standard library imports
-from __future__ import division
 import os.path as osp
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+import datetime
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
@@ -30,7 +27,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import (FigureBrowser,
                                                         FigureThumbnail)
-from spyder.py3compat import to_text_string
+from spyder.plugins.plots.widgets.figurebrowser import get_unique_figname
 
 
 # =============================================================================
@@ -41,8 +38,12 @@ def figbrowser(qtbot):
     """An empty figure browser widget fixture."""
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
-    figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False,
-                     auto_fit_plotting=False)
+    options = {
+        'mute_inline_plotting': True,
+        'show_plot_outline': False,
+        'auto_fit_plotting': False,
+    }
+    figbrowser.setup(options)
     qtbot.addWidget(figbrowser)
     figbrowser.show()
     figbrowser.setMinimumSize(700, 500)
@@ -76,7 +77,7 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
     fext = '.svg' if fmt == 'image/svg+xml' else '.png'
     figs = []
     for i in range(nfig):
-        figname = osp.join(to_text_string(tmpdir), 'mplfig' + str(i) + fext)
+        figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
         figs.append(create_figure(figname))
         figbrowser._handle_new_figure(figs[-1], fmt)
 
@@ -98,6 +99,7 @@ def png_to_qimage(png):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+@pytest.mark.order(1)
 @pytest.mark.parametrize("fmt, fext",
                          [('image/png', '.png'), ('image/svg+xml', '.svg')])
 def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
@@ -110,7 +112,7 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
     assert figbrowser.figviewer.figcanvas.fig is None
 
     for i in range(3):
-        figname = osp.join(to_text_string(tmpdir), 'mplfig' + str(i) + fext)
+        figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
         fig = create_figure(figname)
         figbrowser._handle_new_figure(fig, fmt)
         assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
@@ -132,7 +134,7 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     expected_qpix.loadFromData(fig, fmt.upper())
 
     # Save the figure to disk with the figure browser.
-    saved_figname = osp.join(to_text_string(tmpdir), 'spyfig' + fext)
+    saved_figname = osp.join(str(tmpdir), 'spyfig' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(saved_figname, fext))
 
@@ -162,7 +164,7 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
     # Save all figures.
     mocker.patch(
         'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=to_text_string(tmpdir.mkdir('all_saved_figures')))
+        return_value=str(tmpdir.mkdir('all_saved_figures')))
     fignames = figbrowser.save_all_figures()
     assert len(fignames) == len(figs)
     for fig, figname in zip(figs, fignames):
@@ -173,6 +175,33 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
 
         assert osp.exists(figname)
         assert expected_qpix.toImage() == saved_qpix.toImage()
+
+
+def test_get_unique_figname(tmpdir):
+    """
+    Test that the unique fig names work when saving only one and when
+    saving multiple figures.
+    """
+    fext = '.png'
+    # Saving only one figure
+    figname_root = ('Figure ' +
+                    datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+    figname = get_unique_figname(tmpdir, figname_root, fext)
+    expected = osp.join(tmpdir, '{}{}'.format(figname_root, fext))
+    assert figname == expected
+
+    # Saving multiple figures
+    figname_root = ('Figure ' +
+                    datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+    for i in range(5):
+        figname = get_unique_figname(tmpdir, figname_root, fext,
+                                     start_at_zero=True)
+        # Create empty file with figname
+        with open(figname, 'w') as _:
+            pass
+
+        expected = osp.join(tmpdir, '{} ({}){}'.format(figname_root, i, fext))
+        assert figname == expected
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
@@ -215,7 +244,7 @@ def test_close_all_figures(figbrowser, tmpdir, fmt):
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
-def test_close_one_thumbnail(figbrowser, tmpdir, fmt):
+def test_close_one_thumbnail(qtbot, figbrowser, tmpdir, fmt):
     """
     Test the thumbnail is removed from the GUI.
     """
@@ -226,6 +255,9 @@ def test_close_one_thumbnail(figbrowser, tmpdir, fmt):
     # Remove the first figure
     figures = figbrowser.thumbnails_sb.findChildren(FigureThumbnail)
     figbrowser.thumbnails_sb.remove_thumbnail(figures[0])
+
+    # Removed thumbnails are unparented with a timer to prevent segfaults
+    qtbot.wait(200)
 
     assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 1
 
@@ -278,6 +310,34 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
     assert vsb.value() == expected
 
 
+def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
+    """
+    Test that the ThumbnailScrollBar is scrolled to the newest plot after
+    it is added to it.
+
+    Test that covers spyder-ide/spyder#10914.
+    """
+    figbrowser.setFixedSize(500, 500)
+
+    nfig = 8
+    for i in range(8):
+        newfig = create_figure(
+            osp.join(str(tmpdir), 'new_mplfig{}.png'.format(i)))
+        figbrowser._handle_new_figure(newfig, 'image/png')
+        qtbot.wait(500)
+
+    # Assert that the scrollbar range was updated correctly and that it's
+    # value was set to its maximum.
+    height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
+    scene = figbrowser.thumbnails_sb.scene
+    spacing = scene.verticalSpacing()
+    height = scene.itemAt(0).sizeHint().height()
+
+    expected = (spacing * (nfig - 1)) + (height * nfig) - height_view
+    vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
+    assert vsb.value() == expected
+
+
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
 def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
     """
@@ -300,12 +360,12 @@ def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
     fext = '.svg' if fmt == 'image/svg+xml' else '.png'
 
-    # Save the second thumbnail of the scrollbar.
-    figname = osp.join(to_text_string(tmpdir), 'figname' + fext)
+    # Select and save the second thumbnail of the scrollbar.
+    figname = osp.join(str(tmpdir), 'figname' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(figname, fext))
-    qtbot.mouseClick(
-        figbrowser.thumbnails_sb._thumbnails[1].savefig_btn, Qt.LeftButton)
+    figbrowser.thumbnails_sb.set_current_index(1)
+    figbrowser.save_figure()
 
     expected_qpix = QPixmap()
     expected_qpix.loadFromData(figs[1], fmt.upper())
@@ -323,9 +383,9 @@ def test_close_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     """
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
-    # Close the second thumbnail of the scrollbar.
-    qtbot.mouseClick(
-        figbrowser.thumbnails_sb._thumbnails[1].delfig_btn, Qt.LeftButton)
+    # Select and close the second thumbnail of the scrollbar.
+    figbrowser.thumbnails_sb.set_current_index(1)
+    figbrowser.close_figure()
     del figs[1]
 
     assert len(figbrowser.thumbnails_sb._thumbnails) == len(figs)
@@ -383,7 +443,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     qpix.loadFromData(fig, fmt.upper())
     fwidth, fheight = qpix.width(), qpix.height()
 
-    assert figbrowser.zoom_disp.value() == 100
+    assert figbrowser.zoom_disp_value == 100
     assert figcanvas.width() == fwidth
     assert figcanvas.height() == fheight
 
@@ -398,7 +458,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         scaling_factor += zoom_step
         scale = scaling_step**scaling_factor
 
-        assert (figbrowser.zoom_disp.value() ==
+        assert (figbrowser.zoom_disp_value ==
                 np.round(int(fwidth * scale) / fwidth * 100))
         assert figcanvas.width() == int(fwidth * scale)
         assert figcanvas.height() == int(fheight * scale)
@@ -439,7 +499,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
 
     assert figcanvas.width() == new_width
     assert figcanvas.height() == new_height
-    assert (figbrowser.zoom_disp.value() ==
+    assert (figbrowser.zoom_disp_value ==
             round(figcanvas.width() / fwidth * 100))
 
 

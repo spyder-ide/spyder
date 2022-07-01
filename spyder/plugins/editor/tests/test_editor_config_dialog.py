@@ -6,20 +6,18 @@
 # ----------------------------------------------------------------------------
 """Tests for plugin config dialog."""
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Test library imports
 import pytest
+from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.plugins.editor.plugin import Editor
-from spyder.preferences.tests.conftest import config_dialog
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock:
+class MainWindowMock(QMainWindow):
     register_shortcut = Mock()
     file_menu_actions = []
     file_toolbar_actions = []
@@ -31,12 +29,15 @@ class MainWindowMock:
     debug_toolbar_actions = []
     source_menu_actions = []
     source_toolbar_actions = []
-    statusBar = Mock()
+    search_menu_actions = []
+    statusbar = Mock()
     all_actions_defined = Mock()
     sig_pythonpath_changed = Mock()
     new_instance = Mock()
     plugin_focus_changed = Mock()
     fallback_completions = Mock()
+    ipyconsole = Mock()
+    mainmenu = Mock()
 
 
 @pytest.mark.parametrize(

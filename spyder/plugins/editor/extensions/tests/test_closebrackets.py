@@ -35,6 +35,26 @@ def editor_close_brackets():
 # =============================================================================
 # ---- Tests
 # =============================================================================
+def test_bracket_closing_new_line(qtbot, editor_close_brackets):
+    """
+    Test bracket completion with existing brackets in a new line.
+
+    For spyder-ide/spyder#11217
+    """
+    editor = editor_close_brackets
+    editor.textCursor().insertText('foo(\nbar)')
+
+    # Move from 'foo(\nbar)|' to 'foo(\nbar|)'
+    editor.move_cursor(-1)
+
+    qtbot.keyClicks(editor, '()')
+    assert editor.toPlainText() == 'foo(\nbar())'
+    assert editor.textCursor().columnNumber() == 5
+    qtbot.keyClicks(editor, ')')
+    assert editor.toPlainText() == 'foo(\nbar())'
+    assert editor.textCursor().columnNumber() == 6
+
+
 @pytest.mark.parametrize(
     'text, expected_text, cursor_column',
     [

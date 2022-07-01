@@ -11,7 +11,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-from spyder.preferences.tests.conftest import config_dialog
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
 @pytest.mark.parametrize(

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Environment variable utilities
+Environment variable utilities.
 """
 
 # Standard library imports
@@ -16,9 +16,10 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-        CollectionsEditor)
+from spyder.widgets.collectionseditor import CollectionsEditor
+from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
+from spyder.utils.icon_manager import ima
+from spyder.utils.encoding import to_unicode_from_fs
 
 
 def envdict2listdict(envdict):
@@ -38,6 +39,39 @@ def listdict2envdict(listdict):
     return listdict
 
 
+def clean_env(env_vars):
+    """
+    Remove non-ascii entries from a dictionary of environments variables.
+
+    The values will be converted to strings or bytes (on Python 2). If an
+    exception is raised, an empty string will be used.
+    """
+    new_env_vars = env_vars.copy()
+    for key, var in iteritems(env_vars):
+        if PY2:
+            # Try to convert vars first to utf-8.
+            try:
+                unicode_var = to_text_string(var)
+            except UnicodeDecodeError:
+                # If that fails, try to use the file system
+                # encoding because one of our vars is our
+                # PYTHONPATH, and that contains file system
+                # directories
+                try:
+                    unicode_var = to_unicode_from_fs(var)
+                except Exception:
+                    # If that also fails, make the var empty
+                    # to be able to start Spyder.
+                    # See https://stackoverflow.com/q/44506900/438386
+                    # for details.
+                    unicode_var = ''
+            new_env_vars[key] = to_binary_string(unicode_var, encoding='utf-8')
+        else:
+            new_env_vars[key] = to_text_string(var)
+
+    return new_env_vars
+
+
 class RemoteEnvDialog(CollectionsEditor):
     """Remote process environment variables dialog."""
 
@@ -47,7 +81,6 @@ class RemoteEnvDialog(CollectionsEditor):
             self.setup(
                 envdict2listdict(environ),
                 title=_("Environment variables"),
-                width=700,
                 readonly=True,
                 icon=ima.icon('environ')
             )
@@ -115,7 +148,7 @@ try:
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)
             self.setup(get_user_env(),
-                       title=r"HKEY_CURRENT_USER\Environment", width=600)
+                       title=r"HKEY_CURRENT_USER\Environment")
             if parent is None:
                 parent = self
             QMessageBox.warning(parent, _("Warning"),

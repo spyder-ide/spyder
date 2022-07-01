@@ -8,25 +8,49 @@
 Source code text utilities
 """
 
+# Standard library imports
 import re
 import os
 import sys
 
-# Local imports
-from spyder.py3compat import PY2
+# Third-part imports
+from pylsp._utils import get_eol_chars as _get_eol_chars
 
-if PY2:
-    from itertools import izip as zip
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 
 
 def get_eol_chars(text):
-    """Get text EOL characters"""
-    for eol_chars, _os_name in EOL_CHARS:
-        if text.find(eol_chars) > -1:
-            return eol_chars
+    """
+    Get text end-of-line (eol) characters.
+
+    If no eol chars are found, return ones based on the operating
+    system.
+
+    Parameters
+    ----------
+    text: str
+        Text to get its eol chars from
+
+    Returns
+    -------
+    eol: str or None
+        Eol found in ``text``.
+    """
+    eol_chars = _get_eol_chars(text)
+
+    if not eol_chars:
+        if os.name == 'nt':
+            eol_chars = "\r\n"
+        elif sys.platform.startswith('linux'):
+            eol_chars = "\n"
+        elif sys.platform == 'darwin':
+            eol_chars = "\r"
+        else:
+            eol_chars = "\n"
+
+    return eol_chars
 
 
 def get_os_name_from_eol_chars(eol_chars):

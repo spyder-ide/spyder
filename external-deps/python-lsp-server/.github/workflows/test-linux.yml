@@ -1,0 +1,49 @@
+name: Linux tests
+
+on:
+  push:
+    branches:
+      - develop
+
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    name: Linux Py${{ matrix.PYTHON_VERSION }}
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      OS: 'linux'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+    strategy:
+      fail-fast: false
+      matrix:
+        PYTHON_VERSION: ['3.9', '3.8', '3.7']
+    timeout-minutes: 10
+    steps:
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('setup.py') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.PYTHON_VERSION }}
+          architecture: 'x64'
+      - name: Create Jedi environment for testing
+        if: matrix.PYTHON_VERSION != '2.7'
+        run: |
+          python3 -m venv /tmp/pyenv
+          /tmp/pyenv/bin/python -m pip install loghub
+      - run: python -m pip install --upgrade pip setuptools
+      - run: pip install -e .[all,test]
+      - name: Show test environment
+        run: pip list
+      - run: pytest -v test/
+      # Enable this if SSH debugging is required
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: ${{ failure() }}

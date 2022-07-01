@@ -10,17 +10,15 @@ Tests for EditorStack save methods.
 
 # Standard library imports
 import os.path as osp
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
 
 # Local imports
+from spyder.plugins.editor.panels import DebuggerPanel
 from spyder.plugins.editor.widgets import editor
-from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 
 # ---- Helpers
@@ -312,8 +310,10 @@ def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     assert editorstack.get_current_filename() == 'secondtab.py'
 
     # Add an outline explorer to the editor stack and refresh it.
-    editorstack.set_outlineexplorer(OutlineExplorerWidget())
+    editorstack.set_outlineexplorer(OutlineExplorerWidget(None, None, None))
     qtbot.addWidget(editorstack.outlineexplorer)
+    for finfo in editorstack.data:
+        editorstack.outlineexplorer.register_editor(finfo.editor.oe_proxy)
     editorstack.refresh()
 
     # No save name.
@@ -379,6 +379,77 @@ def test_save_all(editor_bot, mocker):
     editor_stack.save.assert_any_call(2, save_new_files=True)
     with pytest.raises(AssertionError):
         editor_stack.save.assert_any_call(3, save_new_files=True)
+
+
+@pytest.mark.show_save_dialog
+def test_save_as_lsp_calls(editor_bot, mocker, tmpdir):
+    """
+    Test that EditorStack.save_as() sends the expected LSP requests.
+
+    Regression test for spyder-ide/spyder#13085.
+    """
+    editorstack, qtbot = editor_bot
+
+    # Set and assert the initial state.
+    editorstack.tabs.setCurrentIndex(1)
+    assert editorstack.get_current_filename() == 'secondtab.py'
+    editor = editorstack.get_current_editor()
+    mocker.patch.object(editor, 'notify_close')
+    mocker.patch.object(editor, 'document_did_open')
+
+    # Save file with a different name.
+    new_filename = osp.join(tmpdir.strpath, 'foo.py')
+    mocker.patch.object(editorstack, 'select_savename',
+                        return_value=new_filename)
+    assert not osp.exists(new_filename)
+    assert editorstack.save_as() is True
+    assert editorstack.get_filenames() == ['foo.py', new_filename, __file__]
+    assert osp.exists(new_filename)
+
+    # Assert we sent notify_close and document_did_open
+    assert editor.notify_close.call_count == 1
+    assert editor.document_did_open.call_count == 1
+
+
+@pytest.mark.show_save_dialog
+def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
+    """
+    Test EditorStack.save_as() when changing the file type.
+
+    Regression test for spyder-ide/spyder#13085.
+    """
+    editorstack, qtbot = editor_bot
+
+    # Set and assert the initial state.
+    editorstack.tabs.setCurrentIndex(1)
+    assert editorstack.get_current_filename() == 'secondtab.py'
+    editor = editorstack.get_current_editor()
+    mocker.patch.object(editor, 'notify_close')
+    editorstack.sig_open_file = Mock()
+
+    # Save file with a different extension.
+    new_filename = osp.join(tmpdir.strpath, 'foo.R')
+    mocker.patch.object(editorstack, 'select_savename',
+                        return_value=new_filename)
+    assert not osp.exists(new_filename)
+    assert editorstack.save_as() is True
+    assert editorstack.get_filenames() == ['foo.py', new_filename, __file__]
+    assert osp.exists(new_filename)
+
+    # Assert the new language was assigned correctly
+    assert editor.language == 'R'
+
+    # Assert highlighting is working as expected.
+    # This is the lexer name assigned by Pygments
+    assert editor.highlighter_class._lexer.name == 'S'
+
+    # Assert we sent notify_close and emitted sig_open_file
+    assert editor.notify_close.call_count == 1
+    assert editorstack.sig_open_file.emit.called == 1
+
+    # Test the debugger panel is hidden
+    debugger_panel = editor.panels.get(DebuggerPanel)
+    assert not debugger_panel.isVisible()
 
 
 if __name__ == "__main__":

@@ -14,23 +14,23 @@ import os
 import sys
 
 # Third party imports
-import qdarkstyle
-from qtpy.QtCore import Qt, Slot
+from qtpy.QtCore import QByteArray, Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
-from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
-                            QMenu, QMessageBox, QShortcut, QToolButton)
+from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
+                            QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
+from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import configparser, is_text_string
-from spyder.utils import icon_manager as ima
+from spyder.py3compat import configparser, is_text_string, qbytearray_to_str
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
     toggle_actions, set_menu_icons)
-from spyder.widgets.dock import SpyderDockWidget
+from spyder.utils.stylesheet import APP_STYLESHEET
+from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 
 
 class BasePluginMixin(object):
@@ -58,15 +58,22 @@ class BasePluginMixin(object):
         """Register plugin configuration."""
         CONF.register_plugin(self)
 
-    def _set_option(self, option, value, section=None):
+    def _set_option(self, option, value, section=None,
+                    recursive_notification=True):
         """Set option in spyder.ini"""
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, str(option), value)
+        CONF.set(section, str(option), value,
+                 recursive_notification=recursive_notification)
 
     def _get_option(self, option, default=NoDefault, section=None):
         """Get option from spyder.ini."""
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default)
+
+    def _remove_option(self, option, section=None):
+        """Remove option from spyder.ini."""
+        section = self.CONF_SECTION if section is None else section
+        CONF.remove_option(section, option)
 
     def _show_status_message(self, message, timeout=0):
         """Show message in main window's status bar."""
@@ -126,15 +133,27 @@ class PluginWindow(QMainWindow):
         self.plugin = plugin
 
         # Setting interface theme
-        if is_dark_interface():
-            self.setStyleSheet(qdarkstyle.load_stylesheet_from_environment())
+        self.setStyleSheet(str(APP_STYLESHEET))
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
+        self.plugin.set_ancestor(self.plugin.main)
         self.plugin.dockwidget.setWidget(self.plugin)
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
+
+        # Save window geometry to restore it when undocking the plugin
+        # again.
+        geometry = self.saveGeometry()
+        self.plugin.set_option('window_geometry', qbytearray_to_str(geometry))
+
+        # Close window
         QMainWindow.closeEvent(self, event)
+
+        # Qt might want to do something with this soon,
+        # So it should not be deleted by python yet.
+        # Fixes spyder-ide/spyder#10704
+        self.plugin.__unsafe__window = self
         self.plugin._undocked_window = None
 
 
@@ -142,10 +161,6 @@ class BasePluginWidgetMixin(object):
     """
     Implementation of the basic functionality for Spyder plugin widgets.
     """
-
-    _ALLOWED_AREAS = Qt.AllDockWidgetAreas
-    _LOCATION = Qt.LeftDockWidgetArea
-    _FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
 
     def __init__(self, parent=None):
         super(BasePluginWidgetMixin, self).__init__()
@@ -161,31 +176,15 @@ class BasePluginWidgetMixin(object):
         self._default_margins = None
         self._isvisible = False
 
+        self.shortcut = None
+
         # Options buttons
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
-
         # Options menu
         self._options_menu = QMenu(self)
-
-        # NOTE: Don't use the default option of CONF.get to assign a
-        # None shortcut to plugins that don't have one. That will mess
-        # the creation of our Keyboard Shortcuts prefs page
-        try:
-            self.shortcut = CONF.get('shortcuts', '_/switch to %s' %
-                                     self.CONF_SECTION)
-        except configparser.NoOptionError:
-            pass
 
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
@@ -199,6 +198,14 @@ class BasePluginWidgetMixin(object):
             icon=ima.icon('dock'),
             tip=_("Dock the pane"),
             triggered=self._close_window)
+
+        self._lock_unlock_action = create_action(
+            self,
+            text=_("Unlock position"),
+            tip=_("Unlock to move pane to another position"),
+            icon=ima.icon('drag_dock_widget'),
+            triggered=self._lock_unlock_position,
+        )
 
         self._undock_action = create_action(
             self,
@@ -257,19 +264,34 @@ class BasePluginWidgetMixin(object):
 
         # Set properties
         dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(self._ALLOWED_AREAS)
-        dock.setFeatures(self._FEATURES)
+        dock.setAllowedAreas(dock.ALLOWED_AREAS)
+        dock.setFeatures(dock.FEATURES)
         dock.setWidget(self)
         self._update_margins()
         dock.visibilityChanged.connect(self._visibility_changed)
         dock.topLevelChanged.connect(self._on_top_level_changed)
         dock.sig_plugin_closed.connect(self._plugin_closed)
+        dock.sig_title_bar_shown.connect(self._on_title_bar_shown)
         self.dockwidget = dock
-        if self.shortcut is not None:
+
+        # NOTE: Don't use the default option of CONF.get to assign a
+        # None shortcut to plugins that don't have one. That will mess
+        # the creation of our Keyboard Shortcuts prefs page
+        try:
+            context = '_'
+            name = 'switch to {}'.format(self.CONF_SECTION)
+            self.shortcut = CONF.get_shortcut(context, name,
+                                              plugin_name=self.CONF_SECTION)
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            pass
+
+        if self.shortcut is not None and self.main is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
-                            self.switch_to_plugin)
-            self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
-        return (dock, self._LOCATION)
+                           self.switch_to_plugin)
+            self.register_shortcut(sc, "_", "Switch to {}".format(
+                self.CONF_SECTION))
+
+        return (dock, dock.LOCATION)
 
     def _switch_to_plugin(self):
         """Switch to plugin."""
@@ -283,8 +305,9 @@ class BasePluginWidgetMixin(object):
 
     @Slot()
     def _plugin_closed(self):
-        """DockWidget was closed"""
-        self._toggle_view_action.setChecked(False)
+        """DockWidget was closed."""
+        if self._toggle_view_action:
+            self._toggle_view_action.setChecked(False)
 
     def _get_font(self, rich_text=False):
         """Return plugin font."""
@@ -327,6 +350,11 @@ class BasePluginWidgetMixin(object):
     def _close_window(self):
         """Close QMainWindow instance that contains this plugin."""
         if self._undocked_window is not None:
+            # Save window geometry to restore it when undocking the plugin
+            # again.
+            geometry = self._undocked_window.saveGeometry()
+            self.set_option('window_geometry', qbytearray_to_str(geometry))
+
             self._undocked_window.close()
             self._undocked_window = None
 
@@ -343,12 +371,24 @@ class BasePluginWidgetMixin(object):
         icon = self.get_plugin_icon()
         if is_text_string(icon):
             icon = self.get_icon(icon)
+
         window.setWindowIcon(icon)
         window.setWindowTitle(self.get_plugin_title())
         window.setCentralWidget(self)
         window.resize(self.size())
-        self.refresh_plugin()
 
+        # Restore window geometry
+        geometry = self.get_option('window_geometry', default='')
+        if geometry:
+            try:
+                window.restoreGeometry(
+                    QByteArray().fromHex(str(geometry).encode('utf-8'))
+                )
+            except Exception:
+                pass
+
+        self.refresh_plugin()
+        self.set_ancestor(window)
         self.dockwidget.setFloating(False)
         self.dockwidget.setVisible(False)
 
@@ -385,6 +425,7 @@ class BasePluginWidgetMixin(object):
         # Decide what additional actions to show
         if self._undocked_window is None:
             additional_actions = [MENU_SEPARATOR,
+                                  self._lock_unlock_action,
                                   self._undock_action,
                                   self._close_plugin_action]
         else:
@@ -406,8 +447,10 @@ class BasePluginWidgetMixin(object):
         self._create_toggle_view_action()
 
         # Create Options menu
-        self._plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                            self._undock_action]
+        self._plugin_actions = (
+            self.get_plugin_actions() +
+            [MENU_SEPARATOR, self._lock_unlock_action, self._undock_action]
+        )
         add_actions(self._options_menu, self._plugin_actions)
         self.options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._refresh_actions)
@@ -425,8 +468,12 @@ class BasePluginWidgetMixin(object):
     def _register_shortcut(self, qaction_or_qshortcut, context, name,
                            add_shortcut_to_tip=False):
         """Register a shortcut associated to a QAction or QShortcut."""
-        self.main.register_shortcut(qaction_or_qshortcut, context,
-                                    name, add_shortcut_to_tip)
+        self.main.register_shortcut(
+            qaction_or_qshortcut,
+            context,
+            name,
+            add_shortcut_to_tip,
+            self.CONF_SECTION)
 
     def _get_color_scheme(self):
         """Get the current color scheme."""
@@ -444,3 +491,26 @@ class BasePluginWidgetMixin(object):
     def _tabify(self, core_plugin):
         """Tabify plugin next to a core plugin."""
         self.main.tabify_plugins(core_plugin, self)
+
+    def _lock_unlock_position(self):
+        """Show/hide title bar to move/lock position."""
+        if isinstance(self.dockwidget.titleBarWidget(), DockTitleBar):
+            self.dockwidget.remove_title_bar()
+        else:
+            self.dockwidget.set_title_bar()
+
+    @Slot(bool)
+    def _on_title_bar_shown(self, visible):
+        """Actions to perform when the title bar is shown/hidden."""
+        if visible:
+            self._lock_unlock_action.setText(_('Lock position'))
+            self._lock_unlock_action.setIcon(ima.icon('lock_open'))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self._lock_unlock_action, method_name)
+                method(_("Lock pane to the current position"))
+        else:
+            self._lock_unlock_action.setText(_('Unlock position'))
+            self._lock_unlock_action.setIcon(ima.icon('drag_dock_widget'))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self._lock_unlock_action, method_name)
+                method(_("Unlock to move pane to another position"))

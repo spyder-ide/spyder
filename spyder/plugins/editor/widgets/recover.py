@@ -15,63 +15,11 @@ import time
 # Third party imports
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
-                            QMessageBox, QPushButton, QTableWidget,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QHBoxLayout, QLabel, QMessageBox, QPushButton,
+                            QTableWidget, QVBoxLayout, QWidget)
 # Local imports
 from spyder.config.base import _, running_under_pytest
-
-
-def gather_file_data(name):
-    """
-    Gather data about a given file.
-
-    Returns a dict with fields 'name', 'mtime' and 'size', containing the
-    relevant data for the file. If the file does not exists, then the dict
-    contains only the field `name`.
-    """
-    res = {'name': name}
-    try:
-        res['mtime'] = osp.getmtime(name)
-        res['size'] = osp.getsize(name)
-    except OSError:
-        pass
-    return res
-
-
-def file_data_to_str(data):
-    """
-    Convert file data to a string for display.
-
-    This function takes the file data produced by gather_file_data().
-    """
-    if not data:
-        return _('<i>File name not recorded</i>')
-    res = data['name']
-    try:
-        mtime_as_str = time.strftime('%Y-%m-%d %H:%M:%S',
-                                     time.localtime(data['mtime']))
-        res += '<br><i>{}</i>: {}'.format(_('Last modified'), mtime_as_str)
-        res += u'<br><i>{}</i>: {} {}'.format(
-                _('Size'), data['size'], _('bytes'))
-    except KeyError:
-        res += '<br>' + _('<i>File no longer exists</i>')
-    return res
-
-
-def recovery_data_key_function(item):
-    """
-    Convert item in `RecoveryDialog.data` to tuple so that it can be sorted.
-
-    Sorting the tuples returned by this function will sort first by name of
-    the original file, then by name of the autosave file. All items without an
-    original file name will be at the end.
-    """
-    orig_dict, autosave_dict = item
-    if orig_dict:
-        return (0, orig_dict['name'], autosave_dict['name'])
-    else:
-        return (1, 0, autosave_dict['name'])
 
 
 class RecoveryDialog(QDialog):
@@ -99,6 +47,46 @@ class RecoveryDialog(QDialog):
         self.add_table()
         self.add_cancel_button()
         self.setWindowTitle(_('Recover from autosave'))
+        self.setFixedSize(670, 400)
+        self.setWindowFlags(
+            Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint |
+            Qt.WindowStaysOnTopHint)
+
+        # This is needed because of an error in MacOS.
+        # See https://bugreports.qt.io/browse/QTBUG-49576
+        if parent and hasattr(parent, 'splash'):
+            self.splash = parent.splash
+            self.splash.hide()
+        else:
+            self.splash = None
+
+    def accept(self):
+        """Reimplement Qt method."""
+        if self.splash is not None:
+            self.splash.show()
+        super(RecoveryDialog, self).accept()
+
+    def reject(self):
+        """Reimplement Qt method."""
+        if self.splash is not None:
+            self.splash.show()
+        super(RecoveryDialog, self).reject()
+
+    def gather_file_data(self, name):
+        """
+        Gather data about a given file.
+
+        Returns a dict with fields 'name', 'mtime' and 'size', containing the
+        relevant data for the file. If the file does not exists, then the dict
+        contains only the field `name`.
+        """
+        res = {'name': name}
+        try:
+            res['mtime'] = osp.getmtime(name)
+            res['size'] = osp.getsize(name)
+        except OSError:
+            pass
+        return res
 
     def gather_data(self, autosave_mapping):
         """
@@ -112,15 +100,29 @@ class RecoveryDialog(QDialog):
         self.data = []
         for orig, autosave in autosave_mapping:
             if orig:
-                orig_dict = gather_file_data(orig)
+                orig_dict = self.gather_file_data(orig)
             else:
                 orig_dict = None
-            autosave_dict = gather_file_data(autosave)
+            autosave_dict = self.gather_file_data(autosave)
             if 'mtime' not in autosave_dict:  # autosave file does not exist
                 continue
             self.data.append((orig_dict, autosave_dict))
-        self.data.sort(key=recovery_data_key_function)
+        self.data.sort(key=self.recovery_data_key_function)
         self.num_enabled = len(self.data)
+
+    def recovery_data_key_function(self, item):
+        """
+        Convert item in `RecoveryDialog.data` to tuple so that it can be sorted.
+
+        Sorting the tuples returned by this function will sort first by name of
+        the original file, then by name of the autosave file. All items without an
+        original file name will be at the end.
+        """
+        orig_dict, autosave_dict = item
+        if orig_dict:
+            return (0, orig_dict['name'], autosave_dict['name'])
+        else:
+            return (1, 0, autosave_dict['name'])
 
     def add_label(self):
         """Add label with explanation at top of dialog window."""
@@ -147,8 +149,8 @@ class RecoveryDialog(QDialog):
         table.setHorizontalHeaderLabels(labels)
         table.verticalHeader().hide()
 
-        table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         table.setSelectionMode(QTableWidget.NoSelection)
 
         # Show horizontal grid lines
@@ -156,8 +158,8 @@ class RecoveryDialog(QDialog):
         table.setStyleSheet('::item { border-bottom: 1px solid gray }')
 
         for idx, (original, autosave) in enumerate(self.data):
-            self.add_label_to_table(idx, 0, file_data_to_str(original))
-            self.add_label_to_table(idx, 1, file_data_to_str(autosave))
+            self.add_label_to_table(idx, 0, self.file_data_to_str(original))
+            self.add_label_to_table(idx, 1, self.file_data_to_str(autosave))
 
             widget = QWidget()
             layout = QHBoxLayout()
@@ -166,14 +168,14 @@ class RecoveryDialog(QDialog):
                         'replacing the original if it exists.')
             button = QPushButton(_('Restore'))
             button.setToolTip(tooltip)
-            button.clicked.connect(
+            button.clicked[bool].connect(
                     lambda checked, my_idx=idx: self.restore(my_idx))
             layout.addWidget(button)
 
             tooltip = _('Delete the autosave file.')
             button = QPushButton(_('Discard'))
             button.setToolTip(tooltip)
-            button.clicked.connect(
+            button.clicked[bool].connect(
                     lambda checked, my_idx=idx: self.discard(my_idx))
             layout.addWidget(button)
 
@@ -182,7 +184,7 @@ class RecoveryDialog(QDialog):
                         'or delete it manually.')
             button = QPushButton(_('Open'))
             button.setToolTip(tooltip)
-            button.clicked.connect(
+            button.clicked[bool].connect(
                     lambda checked, my_idx=idx: self.open_files(my_idx))
             layout.addWidget(button)
 
@@ -192,19 +194,39 @@ class RecoveryDialog(QDialog):
         table.resizeRowsToContents()
         table.resizeColumnsToContents()
 
-        # Need to add the "+ 2" because otherwise the table scrolls a tiny
-        # amount; no idea why
-        width = table.horizontalHeader().length() + 2
-        height = (table.verticalHeader().length()
-                  + table.horizontalHeader().height() + 2)
-        table.setFixedSize(width, height)
         self.layout.addWidget(table)
+
+    def file_data_to_str(self, data):
+        """
+        Convert file data to a string for display.
+
+        This function takes the file data produced by gather_file_data().
+        """
+        if not data:
+            return _('<i>File name not recorded</i>')
+        res = data['name']
+        try:
+            mtime_as_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                        time.localtime(data['mtime']))
+            res += '<br><i>{}</i>: {}'.format(_('Last modified'), mtime_as_str)
+            res += u'<br><i>{}</i>: {} {}'.format(
+                    _('Size'), data['size'], _('bytes'))
+        except KeyError:
+            res += '<br>' + _('<i>File no longer exists</i>')
+        return res
 
     def add_cancel_button(self):
         """Add a cancel button at the bottom of the dialog window."""
         button_box = QDialogButtonBox(QDialogButtonBox.Cancel, self)
         button_box.rejected.connect(self.reject)
         self.layout.addWidget(button_box)
+
+    def center(self):
+        """Center the dialog."""
+        screen = QApplication.desktop().screenGeometry(0)
+        x = int(screen.center().x() - self.width() / 2)
+        y = int(screen.center().y() - self.height() / 2)
+        self.move(x, y)
 
     def restore(self, idx):
         orig, autosave = self.data[idx]
@@ -265,6 +287,7 @@ class RecoveryDialog(QDialog):
     def exec_if_nonempty(self):
         """Execute dialog window if there is data to show."""
         if self.data:
+            self.center()
             return self.exec_()
         else:
             return QDialog.Accepted

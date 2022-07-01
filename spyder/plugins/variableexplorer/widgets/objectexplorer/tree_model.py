@@ -15,21 +15,22 @@
 # Standard library imports
 import logging
 from difflib import SequenceMatcher
-from collections import OrderedDict
 
 # Third-party imports
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
-from qtpy.QtGui import QFont, QBrush, QColor
+from qtpy.QtGui import QBrush, QColor
+from spyder_kernels.utils.nsview import is_editable_type
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import get_font
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
     TreeItem)
 from spyder.py3compat import to_unichr
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,9 @@ class TreeModel(QAbstractItemModel):
                  obj,
                  obj_name='',
                  attr_cols=None,
-                 parent=None):
+                 parent=None,
+                 regular_font=None,
+                 special_attribute_font=None):
         """
         Constructor
 
@@ -67,9 +70,12 @@ class TreeModel(QAbstractItemModel):
         super(TreeModel, self).__init__(parent)
         self._attr_cols = attr_cols
 
-        self.regular_font = QFont()  # Font for members (non-functions)
+        # Font for members (non-functions)
+        self.regular_font = regular_font if regular_font else get_font()
         # Font for __special_attributes__
-        self.special_attribute_font = QFont()
+        self.special_attribute_font = (special_attribute_font
+                                       if special_attribute_font
+                                       else get_font())
         self.special_attribute_font.setItalic(False)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))
@@ -140,9 +146,6 @@ class TreeModel(QAbstractItemModel):
                 attr = self._attr_cols[col].data_fn(tree_item)
                 # Replace carriage returns and line feeds with unicode glyphs
                 # so that all table rows fit on one line.
-                # return attr.replace('\n',
-                #                     unichr(0x240A)).replace('\r',
-                #                     unichr(0x240D))
                 return (attr.replace('\r\n', to_unichr(0x21B5))
                             .replace('\n', to_unichr(0x21B5))
                             .replace('\r', to_unichr(0x21B5)))
@@ -279,41 +282,8 @@ class TreeModel(QAbstractItemModel):
         """
         obj_children = []
         path_strings = []
+        tree_items = []
 
-        if isinstance(obj, (list, tuple)):
-            obj_children = sorted(enumerate(obj))
-            path_strings = ['{}[{}]'.format(obj_path,
-                            item[0]) if obj_path else item[0]
-                            for item in obj_children]
-        elif isinstance(obj, (set, frozenset)):
-            obj_children = [('pop()', elem) for elem in obj]
-            path_strings = ['{0}.pop()'.format(obj_path,
-                            item[0]) if obj_path else item[0]
-                            for item in obj_children]
-        elif hasattr(obj, 'items'):  # dictionaries and the likes.
-            try:
-                obj_children = list(obj.items())
-            except Exception as ex:
-                # Can happen if the items method expects an argument,
-                # for instance the types.DictType.items
-                # method expects a dictionary.
-                logger.warn("No items expanded. "
-                            "Objects items() call failed: {}".format(ex))
-                obj_children = []
-
-            # Sort keys, except when the object is an OrderedDict.
-            if not isinstance(obj, OrderedDict):
-                try:
-                    obj_children = sorted(obj.items())
-                except Exception as ex:
-                    logger.debug("Unable to sort "
-                                 "dictionary keys: {}".format(ex))
-
-            path_strings = ['{}[{!r}]'.format(obj_path,
-                            item[0]) if obj_path else item[0]
-                            for item in obj_children]
-
-        assert len(obj_children) == len(path_strings), "sanity check"
         is_attr_list = [False] * len(obj_children)
 
         # Object attributes
@@ -330,7 +300,7 @@ class TreeModel(QAbstractItemModel):
                 # Attribute could not be get
                 pass
         assert len(obj_children) == len(path_strings), "sanity check"
-        tree_items = []
+
         for item, path_str, is_attr in zip(obj_children, path_strings,
                                            is_attr_list):
             name, child_obj = item
@@ -531,7 +501,6 @@ class TreeProxyModel(QSortFilterProxyModel):
     def __init__(self,
                  show_callable_attributes=True,
                  show_special_attributes=True,
-                 dataframe_format=None,
                  parent=None):
         """
         Constructor
@@ -542,14 +511,12 @@ class TreeProxyModel(QSortFilterProxyModel):
         :param show_special_attributes: if True the objects special attributes,
             i.e. methods with a name that starts and ends with two underscores,
             will be displayed (in italics). If False they are hidden.
-        :param dataframe_format: the dataframe format from config.
         :param parent: the parent widget
         """
         super(TreeProxyModel, self).__init__(parent)
 
         self._show_callables = show_callable_attributes
         self._show_special_attributes = show_special_attributes
-        self.dataframe_format = dataframe_format
 
     def get_key(self, proxy_index):
         """Get item handler for the given index."""

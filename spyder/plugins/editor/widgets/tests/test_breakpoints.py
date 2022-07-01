@@ -8,10 +8,7 @@
 Tests for breakpoints.
 """
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
@@ -30,7 +27,7 @@ def reset_emits(editor):
     "Reset signal mocks."
     if version_info > (4, ):
         editor.sig_flags_changed.reset_mock()
-    editor.sig_breakpoints_changed.reset_mock()
+    editor.sig_breakpoints_changed_called = False
 
 
 def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
@@ -49,11 +46,11 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
     if emits:
         if version_info > (4, ):
             editor.sig_flags_changed.emit.assert_called_with()
-        editor.sig_breakpoints_changed.emit.assert_called_with()
+        assert editor.sig_breakpoints_changed_called
     else:
         if version_info > (4, ):
             editor.sig_flags_changed.emit.assert_not_called()
-        editor.sig_breakpoints_changed.emit.assert_not_called()
+        assert not editor.sig_breakpoints_changed_called
 
 
 # --- Fixtures
@@ -72,7 +69,12 @@ def code_editor_bot(qtbot):
         editor.sig_flags_changed = Mock()
     else:
         editor.get_linenumberarea_width = Mock(return_value=1)
-    editor.sig_breakpoints_changed = Mock()
+
+    def mark_called():
+        editor.sig_breakpoints_changed_called = True
+
+    editor.sig_breakpoints_changed_called = False
+    editor.sig_breakpoints_changed.connect(mark_called)
     text = ('def f1(a, b):\n'
             '"Double quote string."\n'
             '\n'  # Blank line.
@@ -102,7 +104,7 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     assert block  # Block exists.
     if version_info > (4, ):
         editor.sig_flags_changed.emit.assert_not_called()
-    editor.sig_breakpoints_changed.emit.assert_not_called()
+    assert not editor.sig_breakpoints_changed_called
 
     # Reset language.
     editor.set_language('Python')
@@ -166,7 +168,7 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     # Confirm scrollflag, and breakpoints not called.
     if version_info > (4, ):
         editor.sig_flags_changed.emit.assert_not_called()
-    editor.sig_breakpoints_changed.emit.assert_not_called()
+    assert not editor.sig_breakpoints_changed_called
 
     # Call as if 'OK' button pressed.
     reset_emits(editor)
@@ -227,7 +229,7 @@ def test_clear_breakpoints(code_editor_bot):
     editor.debugger.clear_breakpoints()
     assert editor.debugger.get_breakpoints() == []
     # Even though there is a 'del data' that would pop the item from the
-    # list, the __del__ funcion isn't called.
+    # list, the __del__ function isn't called.
     assert len(list(editor.blockuserdata_list())) == 2
     for data in editor.blockuserdata_list():
         assert not data.breakpoint
@@ -255,10 +257,10 @@ def test_update_breakpoints(code_editor_bot):
     """Test CodeEditor.update_breakpoints."""
     editor, qtbot = code_editor_bot
     reset_emits(editor)
-    editor.sig_breakpoints_changed.emit.assert_not_called()
+    assert not editor.sig_breakpoints_changed_called
     # update_breakpoints is the slot for the blockCountChanged signal.
     editor.textCursor().insertBlock()
-    editor.sig_breakpoints_changed.emit.assert_called_with()
+    assert editor.sig_breakpoints_changed_called
 
 
 if __name__ == "__main__":

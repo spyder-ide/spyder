@@ -14,7 +14,7 @@ import logging
 # Third-party imports
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QActionGroup,
-                            QTableWidget, QTreeView, QTreeWidget)
+                            QHeaderView, QTableWidget, QTreeView, QTreeWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -154,27 +154,21 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     A QTreeView where right clicking on the header allows the user to
     show/hide columns.
     """
-    sig_option_changed = Signal(str, object)
 
-    def __init__(self, dataframe_format=None, readonly=False):
+    def __init__(self, readonly=False):
         QTreeView.__init__(self)
         self.readonly = readonly
-        self.dataframe_format = dataframe_format
         from spyder.plugins.variableexplorer.widgets.collectionsdelegate \
             import ToggleColumnDelegate
         self.setItemDelegate(ToggleColumnDelegate(self))
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
+        self.expanded.connect(self.resize_columns_to_contents)
+        self.collapsed.connect(self.resize_columns_to_contents)
 
-    @Slot(str)
-    def set_dataframe_format(self, new_format):
-        """
-        Set format to use in DataframeEditor.
-
-        Args:
-            new_format (string): e.g. "%.3f"
-        """
-        self.sig_option_changed.emit('dataframe_format', new_format)
-        self.model().dataframe_format = new_format
+    @Slot()
+    def resize_columns_to_contents(self):
+        """Resize all the columns to its contents."""
+        self._horizontal_header().resizeSections(QHeaderView.ResizeToContents)
 
     def _horizontal_header(self):
         """

@@ -36,10 +36,10 @@ class CloseBracketsExtension(EditorExtension):
         if char in self.BRACKETS_CHAR and self.enabled:
             self.editor.completion_widget.hide()
             self._autoinsert_brackets(char)
-            self.editor.document_did_change()
             event.accept()
 
-    def unmatched_brackets_in_line(self, text, closing_brackets_type=None):
+    def unmatched_brackets_in_line(self, text, closing_brackets_type=None,
+                                   autoinsert=False):
         """
         Checks if there is an unmatched brackets in the 'text'.
 
@@ -64,7 +64,10 @@ class CloseBracketsExtension(EditorExtension):
             if char in closing_brackets:
                 match = self.editor.find_brace_match(line_pos+pos, char,
                                                      forward=False)
-                if (match is None) or (match < line_pos):
+                # Only validate match existence for autoinsert.
+                # Having the missing bracket in a previous line is possible.
+                # See spyder-ide/spyder#11217
+                if (match is None) or (match < line_pos and not autoinsert):
                     return True
         return False
 
@@ -72,8 +75,6 @@ class CloseBracketsExtension(EditorExtension):
         """Control automatic insertation of brackets in various situations."""
         pair = self.BRACKETS_PAIR[char]
 
-        line_text = self.editor.get_text('sol', 'eol')
-        line_to_cursor = self.editor.get_text('sol', 'cursor')
         cursor = self.editor.textCursor()
         trailing_text = self.editor.get_text('cursor', 'eol').strip()
 
@@ -101,7 +102,7 @@ class CloseBracketsExtension(EditorExtension):
             if (self.editor.next_char() == char and
                     not self.editor.textCursor().atBlockEnd() and
                     not self.unmatched_brackets_in_line(
-                        cursor.block().text(), char)):
+                        cursor.block().text(), char, autoinsert=True)):
                 # Overwrite an existing brackets if all in line are matched
                 cursor.movePosition(QTextCursor.NextCharacter,
                                     QTextCursor.KeepAnchor, 1)

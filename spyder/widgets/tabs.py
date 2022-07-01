@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import os
 import os.path as osp
 import sys
 
@@ -23,12 +24,13 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 
 class EditTabNamePopup(QLineEdit):
@@ -80,7 +82,6 @@ class EditTabNamePopup(QLineEdit):
                  event.key() == Qt.Key_Escape)):
             # Exits editing
             self.hide()
-            self.setFocus(False)
             return True
 
         # Event is not interessant, raise to parent
@@ -90,7 +91,7 @@ class EditTabNamePopup(QLineEdit):
         """Activate the edit tab."""
 
         # Sets focus, shows cursor
-        self.setFocus(True)
+        self.setFocus()
 
         # Updates tab index
         self.tab_index = index
@@ -127,22 +128,19 @@ class EditTabNamePopup(QLineEdit):
             # We are editing a valid tab, update name
             tab_text = to_text_string(self.text())
             self.main.setTabText(self.tab_index, tab_text)
-            self.main.sig_change_name.emit(tab_text)
+            self.main.sig_name_changed.emit(tab_text)
 
 
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
-    sig_change_name = Signal(str)
+    sig_name_changed = Signal(str)
 
     def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
                  split_index=0):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.setObjectName('pane-tabbar')
 
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -247,16 +245,10 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         self.setUsesScrollButtons(True)
-
-        # To style tabs on Mac
-        if sys.platform == 'darwin':
-            self.setObjectName('plugin-tab')
+        self.tabBar().setObjectName('pane-tabbar')
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
-
-        self.setStyleSheet("QTabWidget::tab-bar {"
-                           "alignment: left;}")
 
         if menu is None:
             self.menu = QMenu(self)
@@ -265,20 +257,20 @@ class BaseTabs(QTabWidget):
         else:
             self.menu = menu
 
+        self.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
+
         # Corner widgets
         if corner_widgets is None:
             corner_widgets = {}
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
 
-        self.browse_button = create_toolbutton(self,
-                                          icon=ima.icon('browse_tab'),
-                                          tip=_("Browse tabs"))
-        self.browse_button.setStyleSheet(
-            ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{margin: 1px; padding: 3px;}"))
+        self.browse_button = create_toolbutton(
+            self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
+        self.browse_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
         self.browse_tabs_menu = QMenu(self)
+        self.browse_tabs_menu.setObjectName('checkbox-padding')
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(self.browse_button.InstantPopup)
         self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
@@ -336,6 +328,13 @@ class BaseTabs(QTabWidget):
         for corner, widgets in list(self.corner_widgets.items()):
             cwidget = QWidget()
             cwidget.hide()
+
+            # This removes some white dots in our tabs (not all but most).
+            # See spyder-ide/spyder#15081
+            cwidget.setObjectName('corner-widget')
+            cwidget.setStyleSheet(
+                "QWidget#corner-widget {border-radius: '0px'}")
+
             prev_widget = self.cornerWidget(corner)
             if prev_widget:
                 prev_widget.close()
@@ -354,16 +353,28 @@ class BaseTabs(QTabWidget):
         self.set_corner_widgets({corner:
                                  self.corner_widgets.get(corner, [])+widgets})
 
+    def get_offset_pos(self, event):
+        """
+        Add offset to position event to capture the mouse cursor
+        inside a tab.
+        """
+        # This is necessary because event.pos() is the position in this
+        # widget, not in the tabBar. see spyder-ide/spyder#12617
+        tb = self.tabBar()
+        point = tb.mapFromGlobal(event.globalPos())
+        return tb.tabAt(point)
+
     def contextMenuEvent(self, event):
         """Override Qt method"""
-        self.setCurrentIndex(self.tabBar().tabAt(event.pos()))
+        index = self.get_offset_pos(event)
+        self.setCurrentIndex(index)
         if self.menu:
             self.menu.popup(event.globalPos())
 
     def mousePressEvent(self, event):
         """Override Qt method"""
         if event.button() == Qt.MidButton:
-            index = self.tabBar().tabAt(event.pos())
+            index = self.get_offset_pos(event)
             if index >= 0:
                 self.sig_close_tab.emit(index)
                 event.accept()
@@ -421,7 +432,7 @@ class BaseTabs(QTabWidget):
 
 
 class Tabs(BaseTabs):
-    """BaseTabs widget with movable tabs and tab navigation shortcuts"""
+    """BaseTabs widget with movable tabs and tab navigation shortcuts."""
     # Signals
     move_data = Signal(int, int)
     move_tab_finished = Signal()
@@ -442,14 +453,29 @@ class Tabs(BaseTabs):
                                           self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
-        config_shortcut(lambda: self.tab_navigate(1), context='editor',
-                        name='go to next file', parent=parent)
-        config_shortcut(lambda: self.tab_navigate(-1), context='editor',
-                        name='go to previous file', parent=parent)
-        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
-                        context='editor', name='close file 1', parent=parent)
-        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
-                        context='editor', name='close file 2', parent=parent)
+        CONF.config_shortcut(
+            lambda: self.tab_navigate(1),
+            context='editor',
+            name='go to next file',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.tab_navigate(-1),
+            context='editor',
+            name='go to previous file',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.sig_close_tab.emit(self.currentIndex()),
+            context='editor',
+            name='close file 1',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.sig_close_tab.emit(self.currentIndex()),
+            context='editor',
+            name='close file 2',
+            parent=parent)
 
     @Slot(int, int)
     def move_tab(self, index_from, index_to):

@@ -73,8 +73,12 @@ class QWaitingSpinner(QWidget):
 
         self.setWindowModality(modality)
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.show()
 
     def paintEvent(self, QPaintEvent):
+        if not self._isSpinning:
+            return
+
         self.updatePosition()
         painter = QPainter(self)
         painter.fillRect(self.rect(), Qt.transparent)
@@ -112,7 +116,6 @@ class QWaitingSpinner(QWidget):
     def start(self):
         self.updatePosition()
         self._isSpinning = True
-        self.show()
 
         if self.parentWidget and self._disableParentWhenSpinning:
             self.parentWidget().setEnabled(False)
@@ -121,9 +124,13 @@ class QWaitingSpinner(QWidget):
             self._timer.start()
             self._currentCounter = 0
 
+        self.show()
+
     def stop(self):
+        if not self._isSpinning:
+            # No need to repaint everything if it is already stopped
+            return
         self._isSpinning = False
-        self.hide()
 
         if self.parentWidget() and self._disableParentWhenSpinning:
             self.parentWidget().setEnabled(True)
@@ -131,6 +138,9 @@ class QWaitingSpinner(QWidget):
         if self._timer.isActive():
             self._timer.stop()
             self._currentCounter = 0
+
+        self.show()
+        self.repaint()
 
     def setNumberOfLines(self, lines):
         self._numberOfLines = lines

@@ -1,0 +1,5 @@
+docs/* linguist-documentation
+qdarkstyle/style_rc.py linguist-generated
+qdarkstyle/style.qrc linguist-generated
+qdarkstyle/style.qss linguist-generated
+qdarkstyle/rc/* linguist-generated

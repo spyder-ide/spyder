@@ -9,10 +9,7 @@ Tests for bookmarks.
 """
 
 # Stdlib imports
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
@@ -125,7 +122,7 @@ def test_clear_bookmarks(code_editor_bookmarks):
     editor.clear_bookmarks()
     assert editor.get_bookmarks() == {}
     # Even though there is a 'del data' that would pop the item from the
-    # list, the __del__ funcion isn't called.
+    # list, the __del__ function isn't called.
     assert len(list(editor.blockuserdata_list())) == 3
     for data in editor.blockuserdata_list():
         assert not data.bookmarks
@@ -212,7 +209,7 @@ def test_load_bookmark(editor_plugin_open_files):
     edtr.stdkey_backspace()
     editor.load_bookmark(2)
 
-    assert edtr.get_cursor_line_column() == (1, 18)
+    assert edtr.get_cursor_line_column() == (1, 20)
 
     # Check if loading bookmark switches file correctly
     editor.save_bookmark(2)

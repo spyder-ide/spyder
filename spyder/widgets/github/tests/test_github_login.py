@@ -22,7 +22,7 @@ from spyder.widgets.github.gh_login import DlgGitHubLogin
 @pytest.fixture
 def github_dialog(qtbot):
     """Set up error report dialog."""
-    widget = DlgGitHubLogin(None, None, None, None)
+    widget = DlgGitHubLogin(None, None)
     qtbot.addWidget(widget)
     return widget
 
@@ -37,29 +37,7 @@ def test_dialog(github_dialog, qtbot):
     # Assert Sign in button is disabled at first
     assert not dlg.bt_sign_in.isEnabled()
 
-    # Introduce Username
-    qtbot.keyClicks(dlg.le_user, 'user')
-
-    # Assert Sign in button is still disabled
-    assert not dlg.bt_sign_in.isEnabled()
-
-    # Introduce now password
-    qtbot.keyClicks(dlg.le_password, 'password')
-
-    # Assert Sign in button is enabled
-    assert dlg.bt_sign_in.isEnabled()
-
-    # Remove user and password
-    dlg.le_user.selectAll()
-    dlg.le_user.cut()
-    dlg.le_password.selectAll()
-    dlg.le_user.cut()
-
-    # Assert Sign in is disabled
-    assert not dlg.bt_sign_in.isEnabled()
-
-    # Change tab and add token
-    dlg.tabs.setCurrentIndex(1)
+    # Add token
     qtbot.keyClicks(dlg.le_token, 'token')
 
     # Assert Sign in button is enabled
