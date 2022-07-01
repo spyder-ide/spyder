@@ -37,11 +37,6 @@ from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 LARGE_COLLECTION = 1e5
 LARGE_ARRAY = 5e6
 
-try:
-    from numpy import void
-except:
-    void = FakeObject
-
 
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
@@ -161,11 +156,13 @@ class CollectionsDelegate(QItemDelegate):
         key = index.model().get_key(index)
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
-        # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, void):
-            # We can't edit that as this could be anything, and it might crash
-            # https://github.com/spyder-ide/spyder/issues/10603
+
+        # We can't edit Numpy void objects because they could be anything, so
+        # this might cause a crash.
+        # Fixes spyder-ide/spyder#10603
+        if isinstance(value, np.void):
             return None
+        # CollectionsEditor for a list, tuple, dict, etc.
         elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
