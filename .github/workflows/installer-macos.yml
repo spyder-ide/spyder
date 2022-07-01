@@ -8,6 +8,8 @@ name: Create macOS App Bundle and DMG
 
 jobs:
   matrix_prep:
+    permissions:
+      contents: none
     name: Determine Build Matrix
     runs-on: macos-10.15
     outputs:
