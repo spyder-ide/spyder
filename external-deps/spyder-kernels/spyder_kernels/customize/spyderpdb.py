@@ -100,6 +100,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         # has no effect in previous versions.
         self.report_skipped = False
 
+        self.executing = False
+
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
         """Print pdb warning for exclamation mark."""
@@ -642,6 +644,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         Here we switch ! and non !
         """
+        self.executing = True
         if not self.pdb_use_exclamation_mark:
             return line
         if not line:
@@ -658,6 +661,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         Note: The PDB commands “up”, “down” and “jump” change the current frame.
         """
+        self.executing = False
         self.publish_pdb_state()
         return super(SpyderPdb, self).postcmd(stop, line)
 

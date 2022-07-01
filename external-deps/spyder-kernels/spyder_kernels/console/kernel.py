@@ -636,17 +636,21 @@ class SpyderKernel(IPythonKernel):
         both locals() and globals() for current frame when debugging
         """
         ns = {}
-        if self._running_namespace is None:
+        if self.shell.is_debugging() and not self.shell.pdb_session.executing:
+            # Stopped at a pdb prompt
             ns.update(self.shell.user_ns)
+            ns.update(self.shell._pdb_locals)
         else:
-            # This is true when a file is executing.
-            running_globals, running_locals = self._running_namespace
-            ns.update(running_globals)
-            if running_locals is not None:
-                ns.update(running_locals)
+            # Give access to the running namespace if there is one
+            if self._running_namespace is None:
+                ns.update(self.shell.user_ns)
+            else:
+                # This is true when a file is executing.
+                running_globals, running_locals = self._running_namespace
+                ns.update(running_globals)
+                if running_locals is not None:
+                    ns.update(running_locals)
 
-        # Add debugging locals
-        ns.update(self.shell._pdb_locals)
         # Add magics to ns so we can show help about them on the Help
         # plugin
         if with_magics:

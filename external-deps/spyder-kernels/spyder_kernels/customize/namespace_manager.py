@@ -29,6 +29,7 @@ class NamespaceManager(object):
         self.current_namespace = current_namespace
         self._previous_filename = None
         self._previous_main = None
+        self._previous_running_namespace = None
         self._reset_main = False
         self._file_code = file_code
         ipython_shell = get_ipython()
@@ -61,6 +62,8 @@ class NamespaceManager(object):
                 self._reset_main = True
 
         # Save current namespace for access by variable explorer
+        self._previous_running_namespace = (
+            ipython_shell.kernel._running_namespace)
         ipython_shell.kernel._running_namespace = (
             self.ns_globals, self.ns_locals)
 
@@ -86,7 +89,8 @@ class NamespaceManager(object):
         Reset the namespace.
         """
         ipython_shell = get_ipython()
-        ipython_shell.kernel._running_namespace = None
+        ipython_shell.kernel._running_namespace = (
+            self._previous_running_namespace)
         if self._previous_filename:
             self.ns_globals['__file__'] = self._previous_filename
         elif '__file__' in self.ns_globals:
