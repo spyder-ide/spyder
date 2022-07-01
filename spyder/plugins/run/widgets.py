@@ -105,13 +105,13 @@ class BaseRunConfigDialog(QDialog):
         self.bbox = QDialogButtonBox(stdbtns)
         if not self.disable_run_btn:
             run_btn = self.bbox.addButton(
-                _("Run"), QDialogButtonBox.AcceptRole)
+                _("Run"), QDialogButtonBox.ActionRole)
             run_btn.clicked.connect(self.run_btn_clicked)
         reset_deafults_btn = self.bbox.addButton(
             _('Reset'), QDialogButtonBox.ResetRole)
         reset_deafults_btn.clicked.connect(self.reset_btn_clicked)
         self.bbox.accepted.connect(self.accept)
-        self.bbox.accepted.connect(self.ok_btn_clicked)
+        # self.bbox.accepted.connect(self.ok_btn_clicked)
         self.bbox.rejected.connect(self.reject)
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
@@ -626,11 +626,11 @@ class RunDialog(BaseRunConfigDialog):
 
     def run_btn_clicked(self):
         self.status |= RunDialogStatus.Run
-
-    def ok_btn_clicked(self):
-        self.status |= RunDialogStatus.Save
+        self.accept()
 
     def accept(self) -> None:
+        self.status |= RunDialogStatus.Save
+
         widget_conf = self.current_widget.get_configuration()
 
         path = None

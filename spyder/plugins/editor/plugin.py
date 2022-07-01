@@ -65,7 +65,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     WorkingDirOpts, WorkingDirSource, RunExecutionParameters,
-    ExtendedRunExecutionParameters)
+    ExtendedRunExecutionParameters, SupportedExtensionContexts,
+    ExtendedContext)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 
@@ -240,10 +241,25 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             statusbar.add_status_widget(self.cursorpos_status)
             statusbar.add_status_widget(self.vcs_status)
 
+
+        self.supported_run_extensions = [
+            {
+                'input_extension': 'py',
+                'contexts': [
+                    {'context': {'name': 'File'}, 'is_super': True},
+                    {'context': {'name': 'Selection'}, 'is_super': False},
+                    {'context': {'name': 'Cell'}, 'is_super': False}
+                ]
+            }
+        ]
+
         run = self.main.get_plugin(Plugins.Run, error=False)
         if run:
             self.sig_editor_focus_changed_uuid.connect(
                 run.switch_focused_run_configuration)
+
+            run.register_run_configuration_provider(
+                self.NAME, self.supported_run_extensions)
 
             run.create_run_button(RunContext.Cell,
                                   _("Run cell"),
@@ -2956,6 +2972,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         extension = config['extension']
         contexts = config['contexts']
 
+        ext_contexts = []
+        for context in contexts:
+            is_super = RunContext[context['name']] == RunContext.File
+            ext_contexts.append(
+                ExtendedContext(context=context, is_super=is_super))
+
+        supported_extension = SupportedExtensionContexts(
+            input_extension=extension, contexts=ext_contexts)
+        self.supported_run_extensions.append(supported_extension)
+
+        run = self.main.get_plugin(Plugins.Run)
+        run.register_run_configuration_provider(
+            self.NAME, [supported_extension])
+
         actual_contexts = set({})
         ext_origins = self.run_configurations_per_origin.get(extension, {})
 
@@ -2987,6 +3017,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         origin = config['origin']
         extension = config['extension']
         contexts = config['contexts']
+
+        unsupported_extension = SupportedExtensionContexts(
+            input_extension=extension, contexts=contexts)
+
+        run = self.main.get_plugin(Plugins.Run)
+        run.deregister_run_configuration_provider(
+            self.NAME, [unsupported_extension])
 
         to_remove = []
         ext_origins = self.run_configurations_per_origin[extension]

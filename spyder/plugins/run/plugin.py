@@ -26,8 +26,9 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import get_translation
 from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.api import (
-    RunContext, RunResultFormat, RunInputExtension, RunConfigurationProvider,
-    SupportedRunConfiguration, RunExecutor, SupportedExecutionRunConfiguration,
+    RunContext, RunResultFormat, RunConfigurationProvider,
+    SupportedExtensionContexts, RunExecutor,
+    SupportedExecutionRunConfiguration,
     RunResultViewer, OutputFormat, RunConfigurationMetadata, RunActions,
     RunConfiguration, ExtendedRunExecutionParameters,
     StoredRunConfigurationExecutor, StoredRunExecutorParameters)
@@ -223,6 +224,44 @@ class Run(SpyderPluginV2):
 
     # --- Public API
     # ------------------------------------------------------------------------
+    def register_run_configuration_provider(
+            self, provider_name: str,
+            supported_extensions_contexts: List[SupportedExtensionContexts]):
+        """
+        Register the extensions and contexts that a
+        `RunConfigurationProvider` supports.
+
+        Parameters
+        ----------
+        provider_name: str
+            The identifier of the :class:`RunConfigurationProvider` instance
+            that is registering the set of supported contexts per extension.
+        supported_extensions_contexts: List[SupportedExtensionContexts]
+            A list containing the supported contexts per file extension.
+        """
+        self.get_container().register_run_configuration_provider(
+            provider_name, supported_extensions_contexts)
+
+    def deregister_run_configuration_provider(
+            self, provider_name: str,
+            unsupported_extensions_contexts: List[SupportedExtensionContexts]):
+        """
+        Deregister the extensions and contexts that a
+        `RunConfigurationProvider` no longer supports.
+
+        Parameters
+        ----------
+        provider_name: str
+            The identifier of the :class:`RunConfigurationProvider` instance
+            that is registering the set of formerly supported contexts
+            per extension.
+        unsupported_extensions_contexts: List[SupportedExtensionContexts]
+            A list containing the formerly supported contexts per
+            file extension.
+        """
+        self.get_container().deregister_run_configuration_provider(
+            provider_name, unsupported_extensions_contexts)
+
     def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,
             metadata: RunConfigurationMetadata):
@@ -276,7 +315,7 @@ class Run(SpyderPluginV2):
             A :class:`SpyderPluginV2` instance that implements the
             :class:`RunExecutor` interface and will register execution
             input type information.
-        configuration: List[SupportedRunConfiguration]
+        configuration: List[SupportedExecutionRunConfiguration]
             A list of input configurations that the provider is able to
             process. Each configuration specifies the input extension
             identifier, the available execution context and the output formats
@@ -300,7 +339,7 @@ class Run(SpyderPluginV2):
             A :class:`SpyderPluginV2` instance that implements the
             :class:`RunConfigurationProvider` interface and will deregister
             execution input type information.
-        configuration: List[SuportedRunConfiguration]
+        configuration: List[SupportedExecutionRunConfiguration]
             A list of input configurations that the provider is able to
             process. Each configuration specifies the input extension
             identifier, the available execution context and the output formats

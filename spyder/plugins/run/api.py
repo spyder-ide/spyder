@@ -56,7 +56,6 @@ class RunContextType(dict):
 
 RunContext = RunContextType('context')
 RunResultFormat = RunContextType('result display format')
-RunInputExtension = set({})
 
 RunResultFormat.NoDisplay = 'no_display'
 
@@ -81,8 +80,7 @@ class RunConfigurationMetadata(TypedDict):
     # registering with the run plugin. The context can be compared against the
     # values of `RunContext`. e.g., `info['context'] == RunContext.File`
     context: Context
-    # File extension or identifier of the input context. It must belong to the
-    # `RunInputExtension` set.
+    # File extension or identifier of the input context.
     input_extension: str
 
 
@@ -136,8 +134,7 @@ class RunResult(TypedDict):
     # interpretation of the output type.
     run_output: Union[Any, RunResultError]
 
-    # File extension or identifier of the input context. It must belong to the
-    # `RunInputExtension` set.
+    # File extension or identifier of the input context.
     input_extension: str
 
     # Original run input metadata.
@@ -173,18 +170,27 @@ class OutputFormat(TypedDict):
     identifier: NotRequired[Optional[str]]
 
 
-class SupportedRunConfiguration(TypedDict):
-    """Run configuration entry schema."""
+class ExtendedContext(TypedDict):
+    """Extended context information schema."""
+    # The specified context information.
+    context: Context
+    # True if entities identified with the given context can be registered as
+    # run configurations via `register_run_configuration_metadata`. False if
+    # the specified context is a subordinate of another one.
+    is_super: bool
 
-    # File extension or identifier of the input context. It must belong to the
-    # `RunInputExtension` set.
+
+class SupportedExtensionContexts(TypedDict):
+    """Supported file extension and contexts schema."""
+
+    # File extension or identifier of the input context.
     input_extension: str
 
     # The supported contexts for the given input extension.
     # e.g., file, selection, cell, others.
     # The context can be compared against the values of `RunContext`. e.g.,
     # `info['context'] == RunContext.File`
-    contexts: List[Context]
+    contexts: List[ExtendedContext]
 
 
 class WorkingDirSource:
@@ -252,7 +258,7 @@ class StoredRunConfigurationExecutor(TypedDict):
     first_execution: bool
 
 
-class RunConfigurationProvider:
+class RunConfigurationProvider(QObject):
     """
     Interface used to retrieve inputs to run on a code executor.
 
@@ -568,8 +574,7 @@ RunExecutorConfigurationGroupCreator = Union[
 class SupportedExecutionRunConfiguration(TypedDict):
     """Run execution configuration metadata."""
 
-    # File extension or identifier of the input context. It must belong to the
-    # `RunInputExtension` set.
+    # File extension or identifier of the input context.
     input_extension: str
 
     # The context for the given input extension.

@@ -26,12 +26,13 @@ from spyder.plugins.run.models import (
     RunExecutorParameters, RunExecutorListModel, RunConfigurationListModel)
 from spyder.plugins.run.api import (
     RunActions, StoredRunExecutorParameters,
-    RunContext, RunExecutor, RunResultFormat, RunInputExtension,
+    RunContext, RunExecutor, RunResultFormat,
     RunConfigurationProvider,
     SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
     RunConfigurationMetadata, StoredRunConfigurationExecutor,
     ExtendedRunExecutionParameters, RunExecutionParameters,
-    WorkingDirOpts, WorkingDirSource, RunConfiguration)
+    WorkingDirOpts, WorkingDirSource, RunConfiguration,
+    SupportedExtensionContexts, ExtendedContext)
 
 # Localization
 _ = get_translation('spyder')
@@ -98,6 +99,9 @@ class RunContainer(PluginMainContainer):
             Tuple[str, str], Tuple[QAction, Callable]] = {}
         self.run_executor_actions: Dict[
             Tuple[str, str], Tuple[QAction, Callable]] = {}
+
+        self.supported_extension_contexts: Dict[str, Set[Tuple[str, str]]] = {}
+        self.super_contexts: Set[str] = set({})
 
         self.last_executed_file: Optional[str] = None
         self.last_executed_per_context: Set[Tuple[str, str]] = set()
@@ -176,15 +180,58 @@ class RunContainer(PluginMainContainer):
         display_dialog = exec_params['display_dialog']
         display_dialog = display_dialog or first_execution
 
-        status, conf = self.edit_run_configurations(
+        self.edit_run_configurations(
             display_dialog=display_dialog,
             selected_executor=selected_executor)
+
+
+    def edit_run_configurations(self, display_dialog=True,
+                                disable_run_btn=False,
+                                selected_executor=None):
+        self.dialog = RunDialog(self, self.metadata_model, self.executor_model,
+                                self.parameter_model,
+                                disable_run_btn=disable_run_btn)
+        self.dialog.setup()
+        self.dialog.finished.connect(self.process_run_dialog_result)
+
+        if selected_executor is not None:
+            self.dialog.select_executor(selected_executor)
+
+        if display_dialog:
+            self.dialog.open()
+        else:
+            self.dialog.run_btn_clicked()
+            self.dialog.accept()
+
+    def process_run_dialog_result(self, result):
+        status = self.dialog.status
 
         if status == RunDialogStatus.Close:
             return
 
         (uuid, executor_name,
-         ext_params, __) = conf
+         ext_params, open_dialog) = self.dialog.get_configuration()
+
+        if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
+            exec_uuid = ext_params['uuid']
+            if exec_uuid is not None:
+
+                info = self.metadata_model.get_metadata_context_extension(uuid)
+                context, ext =  info
+                context_name = context['name']
+                context_id = getattr(RunContext, context_name)
+                all_exec_params = self.get_executor_configuration_parameters(
+                    executor_name, ext, context_id)
+                exec_params = all_exec_params['params']
+                exec_params[exec_uuid] = ext_params
+                self.set_executor_configuration_parameters(
+                    executor_name, ext, context_id, all_exec_params)
+
+            last_used_conf = StoredRunConfigurationExecutor(
+                executor=executor_name, selected=ext_params['uuid'],
+                display_dialog=open_dialog, first_execution=False)
+
+            self.set_last_used_execution_params(uuid, last_used_conf)
 
         if (status & RunDialogStatus.Run) == RunDialogStatus.Run:
             provider = self.run_metadata_provider[uuid]
@@ -208,53 +255,6 @@ class RunContainer(PluginMainContainer):
 
             executor.exec_run_configuration(run_conf, ext_params)
 
-    def edit_run_configurations(self, display_dialog=True,
-                                disable_run_btn=False,
-                                selected_executor=None):
-        dialog = RunDialog(self, self.metadata_model, self.executor_model,
-                           self.parameter_model,
-                           disable_run_btn=disable_run_btn)
-        dialog.setup()
-
-        if selected_executor is not None:
-            dialog.select_executor(selected_executor)
-
-        if display_dialog:
-            dialog.exec_()
-        else:
-            dialog.run_btn_clicked()
-            dialog.accept()
-
-        status = dialog.status
-        if status == RunDialogStatus.Close:
-            return status, tuple()
-
-        (uuid, executor_name,
-         ext_params, open_dialog) = dialog.get_configuration()
-
-        if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
-            exec_uuid = ext_params['uuid']
-            if exec_uuid is not None:
-
-                info = self.metadata_model.get_metadata_context_extension(uuid)
-                context, ext =  info
-                context_name = context['name']
-                context_id = getattr(RunContext, context_name)
-                all_exec_params = self.get_executor_configuration_parameters(
-                    executor_name, ext, context_id)
-                exec_params = all_exec_params['params']
-                exec_params[exec_uuid] = ext_params
-                self.set_executor_configuration_parameters(
-                    executor_name, ext, context_id, all_exec_params)
-
-            last_used_conf = StoredRunConfigurationExecutor(
-                executor=executor_name, selected=ext_params['uuid'],
-                display_dialog=open_dialog, first_execution=False)
-
-            self.set_last_used_execution_params(uuid, last_used_conf)
-
-        return status, (uuid, executor_name, ext_params, open_dialog)
-
     def re_run_file(self):
         self.run_file(self.last_executed_file, selected_executor=None)
 
@@ -271,32 +271,7 @@ class RunContainer(PluginMainContainer):
 
             input_provider = self.run_metadata_provider[uuid]
             input_provider.focus_run_configuration(uuid)
-
-            for context, act in self.context_actions:
-                status = (self.current_input_extension,
-                          context) in self.executor_model
-                action, __ = self.context_actions[(context, act)]
-                action.setEnabled(status)
-
-            for context, act in self.re_run_actions:
-                status = (self.current_input_extension,
-                          context) in self.executor_model
-
-                last_run_exists = (
-                    (uuid, context) in self.last_executed_per_context)
-
-                action, __ = self.re_run_actions[(context, act)]
-                action.setEnabled(status and last_run_exists)
-
-            for context_name, executor_name in self.run_executor_actions:
-                status = self.executor_model.executor_supports_configuration(
-                    executor_name,
-                    (self.current_input_extension, context_name))
-
-                action, __ = self.run_executor_actions[
-                    (context_name, executor_name)]
-                action.setEnabled(status)
-
+            self.set_actions_status()
         elif uuid is None:
             self.run_action.setEnabled(False)
 
@@ -312,6 +287,46 @@ class RunContainer(PluginMainContainer):
                 action, __ = self.run_executor_actions[
                     (context_name, executor_name)]
                 action.setEnabled(False)
+
+    def set_actions_status(self):
+        if self.current_input_provider is None:
+            return
+
+        if self.currently_selected_configuration is None:
+            return
+
+        input_provider_ext_ctxs = self.supported_extension_contexts[
+            self.current_input_provider]
+
+        for context, act in self.context_actions:
+            key = (self.current_input_extension, context)
+            status = key in self.executor_model
+            status = status and key in input_provider_ext_ctxs
+            action, __ = self.context_actions[(context, act)]
+            action.setEnabled(status)
+
+        for context, act in self.re_run_actions:
+            key = (self.current_input_extension, context)
+            status = key in self.executor_model
+            status = status and key in input_provider_ext_ctxs
+
+            last_run_exists = (
+                (self.currently_selected_configuration,
+                 context) in self.last_executed_per_context)
+
+            action, __ = self.re_run_actions[(context, act)]
+            action.setEnabled(status and last_run_exists)
+
+        for context_name, executor_name in self.run_executor_actions:
+            status = self.executor_model.executor_supports_configuration(
+                executor_name,
+                (self.current_input_extension, context_name))
+            key = (self.current_input_extension, context_name)
+            status = status and key in input_provider_ext_ctxs
+
+            action, __ = self.run_executor_actions[
+                (context_name, executor_name)]
+            action.setEnabled(status)
 
     def set_current_working_dir(self, path: str):
         self.current_working_dir = path
@@ -470,7 +485,7 @@ class RunContainer(PluginMainContainer):
         action_name = f'run {context_name} in {executor_name}'
 
         func = lambda: None
-        if context_name == RunContext.File:
+        if context_name in self.super_contexts:
             func = functools.partial(self.run_file,
                                      selected_executor=executor_name)
         else:
@@ -493,6 +508,81 @@ class RunContainer(PluginMainContainer):
                                          shortcut_context)
         return action
 
+    def register_run_configuration_provider(
+            self, provider_name: str,
+            supported_extensions_contexts: List[SupportedExtensionContexts]):
+        """
+        Register the supported extensions and contexts that a
+        `RunConfigurationProvider` supports.
+
+        Parameters
+        ----------
+        provider_name: str
+            The identifier of the :class:`RunConfigurationProvider` instance
+            that is registering the set of supported contexts per extension.
+        supported_extensions_contexts: List[SupportedExtensionContexts]
+            A list containing the supported contexts per file extension
+            supported.
+        """
+        provider_extensions_contexts = self.supported_extension_contexts.get(
+            provider_name, set({}))
+
+        for supported_extension_contexts in supported_extensions_contexts:
+            ext = supported_extension_contexts['input_extension']
+            for ext_context in supported_extension_contexts['contexts']:
+                context = ext_context['context']
+                is_super = ext_context['is_super']
+                context_name = context['name']
+                context_identifier = context.get('identifier', None)
+                if context_identifier is None:
+                    context_identifier = camel_case_to_snake_case(context_name)
+                    context['identifier'] = context_identifier
+                setattr(RunContext, context_name, context_identifier)
+                provider_extensions_contexts |= {(ext, context_identifier)}
+                if is_super:
+                    self.super_contexts |= {context_identifier}
+
+        self.supported_extension_contexts[
+            provider_name] = provider_extensions_contexts
+
+        self.set_actions_status()
+
+    def deregister_run_configuration_provider(
+            self, provider_name: str,
+            unsupported_extensions_contexts: List[SupportedExtensionContexts]):
+        """
+        Deregister the extensions and contexts that a
+        `RunConfigurationProvider` no longer supports.
+
+        Parameters
+        ----------
+        provider_name: str
+            The identifier of the :class:`RunConfigurationProvider` instance
+            that is registering the set of formerly supported contexts
+            per extension.
+        unsupported_extensions_contexts: List[SupportedExtensionContexts]
+            A list containing the formerly supported contexts per
+            file extension.
+        """
+        provider_extensions_contexts = self.supported_extension_contexts.get(
+            provider_name, set({}))
+
+        for unsupported_extension_contexts in unsupported_extensions_contexts:
+            ext = unsupported_extension_contexts['input_extension']
+            for ext_context in unsupported_extension_contexts['contexts']:
+                context = ext_context['context']
+                context_name = context['name']
+                context_id = getattr(RunContext, context_name)
+                provider_extensions_contexts -= {(ext, context_id)}
+
+        if provider_extensions_contexts:
+            self.supported_extension_contexts[
+                provider_name] = provider_extensions_contexts
+        else:
+            self.supported_extension_contexts.pop(provider_name, set({}))
+
+        self.set_actions_status()
+
     def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,
             metadata: RunConfigurationMetadata):
@@ -510,8 +600,6 @@ class RunContainer(PluginMainContainer):
             produce.
         """
         ext = metadata['input_extension']
-        if ext not in RunInputExtension:
-            RunInputExtension.add(ext)
         context = metadata['context']
         context_name = context['name']
         context_identifier = context.get('identifier', None)
@@ -598,6 +686,7 @@ class RunContainer(PluginMainContainer):
 
         self.executor_use_count[executor_id] = executor_count
         self.executor_model.set_executor_name(executor_id, executor_name)
+        self.set_actions_status()
 
     def deregister_executor_configuration(
             self, executor: RunExecutor,
@@ -630,6 +719,8 @@ class RunContainer(PluginMainContainer):
 
         if self.executor_use_count[executor_id] <= 0:
             self.run_executors.pop(executor_id)
+
+        self.set_actions_status()
 
     def register_viewer_configuration(
             self, viewer: RunResultViewer, formats: List[OutputFormat]):
