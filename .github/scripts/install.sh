@@ -13,8 +13,9 @@ fi
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
-    # Install main dependencies
-    mamba install python=$PYTHON_VERSION --file requirements/conda.txt -c conda-forge -q -y
+    # Install Python and main dependencies
+    mamba install python=$PYTHON_VERSION -q -y
+    mamba env update --file requirements/main.yml
 
     # Install test ones
     mamba install python=$PYTHON_VERSION --file requirements/tests.txt -c conda-forge -q -y

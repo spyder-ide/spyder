@@ -18,7 +18,7 @@ from spyder.dependencies import DESCRIPTIONS, OPTIONAL
 HERE = os.path.abspath(os.path.dirname(__file__))
 ROOT_PATH = os.path.dirname(os.path.dirname(HERE))
 ENV_FPATH = os.path.join(ROOT_PATH, 'binder', 'environment.yml')
-REQ_FPATH = os.path.join(ROOT_PATH, 'requirements', 'conda.txt')
+REQ_FPATH = os.path.join(ROOT_PATH, 'requirements', 'main.yml')
 REQ_TEST_FPATH = os.path.join(ROOT_PATH, 'requirements', 'tests.txt')
 SETUP_FPATH = os.path.join(ROOT_PATH, 'setup.py')
 
@@ -192,11 +192,11 @@ def parse_setup_extra_requires(fpath):
 
 def test_dependencies_for_binder_in_sync():
     """
-    Binder environment yaml should be the sum of conda.txt and tests.txt
+    Binder environment yaml should be the sum of main.yml and tests.txt
     requirements.
     """
     spyder_env = parse_environment_yaml(ENV_FPATH)
-    spyder_reqs = parse_requirements(REQ_FPATH)
+    spyder_reqs = parse_environment_yaml(REQ_FPATH)
     test_reqs = parse_requirements(REQ_TEST_FPATH)
 
     # xvfb is only available on linux (which binder runs on)
@@ -213,10 +213,10 @@ def test_dependencies_for_binder_in_sync():
 
 def test_dependencies_for_spyder_dialog_in_sync():
     """
-    Spyder dependencies dialog should share deps with conda.txt.
+    Spyder dependencies dialog should share deps with main.yml.
     """
     spyder_deps = parse_spyder_dependencies()
-    spyder_reqs = parse_requirements(REQ_FPATH)
+    spyder_reqs = parse_environment_yaml(REQ_FPATH)
 
     if 'pyqt' in spyder_reqs:
         spyder_reqs.pop('pyqt')
@@ -228,10 +228,10 @@ def test_dependencies_for_spyder_dialog_in_sync():
 
 def test_dependencies_for_spyder_setup_install_requires_in_sync():
     """
-    Spyder setup.py should share deps with conda.txt.
+    Spyder setup.py should share deps with main.yml.
     """
     spyder_setup = parse_setup_install_requires(SETUP_FPATH)
-    spyder_reqs = parse_requirements(REQ_FPATH)
+    spyder_reqs = parse_environment_yaml(REQ_FPATH)
 
     assert spyder_setup == spyder_reqs
 
