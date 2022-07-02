@@ -24,8 +24,8 @@ from traitlets.config.loader import LazyConfigValue
 
 # Local imports
 from spyder_kernels.py3compat import (
-    TEXT_TYPES, to_text_string, PY3, input, TimeoutError)
-from spyder_kernels.comms.frontendcomm import FrontendComm, CommError
+    TEXT_TYPES, to_text_string, PY3)
+from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
@@ -96,7 +96,6 @@ class SpyderKernel(IPythonKernel):
         self.namespace_view_settings = {}
         self._mpl_backend_error = None
         self._running_namespace = None
-        self._pdb_input_line = None
         self.faulthandler_handle = None
 
     # -- Public API -----------------------------------------------------------
@@ -337,10 +336,10 @@ class SpyderKernel(IPythonKernel):
 
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
-        if self.shell.pdb_session:
-            self.shell.pdb_session._disable_next_stack_entry = (
-                not echo_stack_entry)
-        self._pdb_input_line = line
+        debugger = self.shell.pdb_session
+        if debugger:
+            debugger._disable_next_stack_entry = not echo_stack_entry
+            debugger._cmd_input_line = line
         if self.eventloop:
             # Interrupting the eventloop is only implemented when a message is
             # received on the shell channel, but this message is queued and
@@ -349,47 +348,6 @@ class SpyderKernel(IPythonKernel):
             # and request a dummy message to be sent on the shell channel to
             # stop the eventloop. This will call back `_interrupt_eventloop`.
             self.frontend_call().request_interrupt_eventloop()
-
-    def cmd_input(self, prompt=''):
-        """
-        Special input function for commands.
-        Runs the eventloop while debugging.
-        """
-        # Only works if the comm is open and this is a pdb prompt.
-        if not self.frontend_comm.is_open() or not self.shell.is_debugging():
-            return input(prompt)
-
-        # Flush output before making the request.
-        sys.stderr.flush()
-        sys.stdout.flush()
-
-        # Send the input request.
-        self._pdb_input_line = None
-        self.frontend_call().pdb_input(prompt)
-
-        # Allow GUI event loop to update
-        if PY3:
-            is_main_thread = (
-                threading.current_thread() is threading.main_thread())
-        else:
-            is_main_thread = isinstance(
-                threading.current_thread(), threading._MainThread)
-
-        # Get input by running eventloop
-        if is_main_thread and self.eventloop:
-            while self._pdb_input_line is None:
-                eventloop = self.eventloop
-                if eventloop:
-                    eventloop(self)
-                else:
-                    break
-
-        # Get input by blocking
-        if self._pdb_input_line is None:
-            self.frontend_comm.wait_until(
-                lambda: self._pdb_input_line is not None)
-
-        return self._pdb_input_line
 
     def _interrupt_eventloop(self):
         """Interrupts the eventloop."""
@@ -636,7 +594,7 @@ class SpyderKernel(IPythonKernel):
         both locals() and globals() for current frame when debugging
         """
         ns = {}
-        if self.shell.is_debugging() and not self.shell.pdb_session.executing:
+        if self.shell.is_debugging() and self.shell.pdb_session.prompt_waiting:
             # Stopped at a pdb prompt
             ns.update(self.shell.user_ns)
             ns.update(self.shell._pdb_locals)
