@@ -3935,7 +3935,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-# @flaky(max_runs=3)
+@flaky(max_runs=3)
 def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     """
     Test that the running namespace can be accessed recursively
