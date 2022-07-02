@@ -269,6 +269,7 @@ extras_require = {
         'pytest-mock',
         'pytest-order',
         'pytest-qt',
+        'pytest-timeout',
         'pyyaml',
         'scipy',
         'sympy',
