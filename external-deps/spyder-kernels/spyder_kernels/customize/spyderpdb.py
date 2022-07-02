@@ -11,7 +11,6 @@ import ast
 import bdb
 import builtins
 import logging
-import os
 import sys
 import traceback
 from collections import namedtuple
@@ -92,6 +91,9 @@ class SpyderPdb(ipyPdb):
         # Don't report hidden frames for IPython 7.24+. This attribute
         # has no effect in previous versions.
         self.report_skipped = False
+
+        # Keep track of remote filename
+        self.remote_filename = None
 
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
@@ -713,6 +715,8 @@ class SpyderPdb(ipyPdb):
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
+        if fname == self.mainpyfile and self.remote_filename is not None:
+            fname = self.remote_filename
         lineno = frame.f_lineno
 
         if self._previous_step == (fname, lineno):
@@ -792,11 +796,8 @@ class SpyderPdb(ipyPdb):
         debugger.use_rawinput = self.use_rawinput
         debugger.prompt = "(%s) " % self.prompt.strip()
 
-        filename = debugger.canonic(filename)
-        debugger._wait_for_mainpyfile = True
-        debugger.mainpyfile = filename
+        debugger.set_remote_filename(filename)
         debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-        debugger._user_requested_quit = False
 
         # Enter recursive debugger
         sys.call_tracing(debugger.run, (code, globals, locals))
@@ -811,14 +812,16 @@ class SpyderPdb(ipyPdb):
         # but the parent debugger (self) is not aware of this.
         self._previous_step = None
 
+    def set_remote_filename(self, filename):
+        """Set remote filename to signal Spyder on mainpyfile."""
+        self.remote_filename = filename
+        self.mainpyfile = self.canonic(filename)
+        self._wait_for_mainpyfile = True
+
 
 def get_new_debugger(filename, continue_if_has_breakpoints):
     """Get a new debugger."""
     debugger = SpyderPdb()
-
-    filename = debugger.canonic(filename)
-    debugger._wait_for_mainpyfile = True
-    debugger.mainpyfile = filename
+    debugger.set_remote_filename(filename)
     debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-    debugger._user_requested_quit = False
     return debugger

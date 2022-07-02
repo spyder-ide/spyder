@@ -117,9 +117,15 @@ def capture_last_Expr(code_ast, out_varname):
     return code_ast, capture_last_expression
 
 
-def normalise_filename(filename):
-    """Normalise path for window."""
-    # Recursive
-    if os.name == 'nt':
-        return filename.replace('\\', '/')
-    return filename
+def canonic(filename):
+    """
+    Return canonical form of filename.
+
+    This is a copy of bdb.canonic, so that the debugger will process 
+    filenames in the same way
+    """
+    if filename == "<" + filename[1:-1] + ">":
+        return filename
+    canonic = os.path.abspath(filename)
+    canonic = os.path.normcase(canonic)
+    return canonic
