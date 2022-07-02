@@ -3966,14 +3966,12 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     # Run file inside a debugger
     with qtbot.waitSignal(shell.executed):
         shell.execute(
-            "debugfile(" +
-            repr(str(file1)) +
-            ")")
+            "debugfile(" + repr(str(file1)) + ")"
+        )
 
     shell.execute(
-        "runfile(" +
-        repr(str(file2)) +
-        ")")
+        "runfile(" + repr(str(file2)) + ")"
+    )
 
 
     # Check nothing is in the variableexplorer
@@ -4007,7 +4005,7 @@ def test_debug_namespace(main_window, qtbot, tmpdir):
     """
     Test that the running namespace is correctly sent when debugging
 
-    regression test for https://github.com/spyder-ide/spyder-kernels/issues/394
+    Regression test for spyder-ide/spyder-kernels#394.
     """
     code1 = (
         'file1_global_ns = True\n'
@@ -4038,7 +4036,8 @@ def test_debug_namespace(main_window, qtbot, tmpdir):
             repr(str(file2)) +
             ", wdir=" +
             repr(str(tmpdir)) +
-            ")")
+            ")"
+        )
 
     # Check nothing is in the variableexplorer
     nsb = main_window.variableexplorer.current_widget()
