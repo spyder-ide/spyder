@@ -156,8 +156,15 @@ class CollectionsDelegate(QItemDelegate):
         key = index.model().get_key(index)
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
+
+        # We can't edit Numpy void objects because they could be anything, so
+        # this might cause a crash.
+        # Fixes spyder-ide/spyder#10603
+        if isinstance(value, np.void):
+            self.sig_editor_shown.emit()
+            return None
         # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
+        elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
@@ -201,6 +208,7 @@ class CollectionsDelegate(QItemDelegate):
             from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
+                self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
