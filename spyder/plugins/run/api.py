@@ -13,6 +13,7 @@ import sys
 import functools
 from enum import IntEnum
 from datetime import datetime
+import logging
 from typing import Any, Callable, Set, List, Union, Optional, Dict
 
 # PEP 589 and 544 are available from Python 3.8 onwards
@@ -27,6 +28,8 @@ from typing_extensions import NotRequired
 # Qt imports
 from qtpy.QtCore import QObject
 from qtpy.QtWidgets import QWidget
+
+logger = logging.getLogger(__name__)
 
 
 class RunParameterFlags(IntEnum):
@@ -460,6 +463,10 @@ class RunExecutor(QObject):
         extension = metadata['input_extension']
         context = RunContext[context['name']]
         query = (extension, context)
+
+        logger.info('Running extension %s with context %s on executor %s',
+                    extension, context, self)
+
         all_query = ('__extension', '__context')
         if query in self._exec_methods:
             method = self._exec_methods[query]

@@ -7,6 +7,7 @@
 """Spyder Run API tests."""
 
 # Standard library imports
+import copy
 from types import MethodType
 from uuid import uuid4
 from datetime import datetime
@@ -19,7 +20,7 @@ from unittest.mock import Mock, MagicMock
 import pytest
 
 # Qt imports
-from qtpy.QtCore import QObject, Signal
+from qtpy.QtCore import QObject, Signal, Qt
 from qtpy.QtWidgets import (
     QAction, QWidget, QCheckBox, QLineEdit, QVBoxLayout, QHBoxLayout,
     QLabel)
@@ -314,15 +315,17 @@ def ExampleRunExecutorFactory(parent, info, executor_name):
 
 
 @pytest.fixture
-def run_mock(qtbot):
+def run_mock(qtbot, tmpdir):
+    temp_dir = str(tmpdir.mkdir('run'))
     mock_main_window = MockedMainWindow()
     run = Run(mock_main_window, None)
     run.on_initialize()
-    return run, mock_main_window
+    run.switch_working_dir(temp_dir)
+    return run, mock_main_window, temp_dir
 
 
 def test_run_plugin(qtbot, run_mock):
-    run, main_window = run_mock
+    run, main_window, temp_cwd = run_mock
 
     # Create mock run configuration providers
     provider_1_conf = [
@@ -458,22 +461,88 @@ def test_run_plugin(qtbot, run_mock):
             total_prov_1_conf, total_prov_2_conf):
         if reg:
             expected_configurations.append(
-                f'{ext}_{context.lower()}_{provider_name}_example')
+                (ext, context,
+                 f'{ext}_{context.lower()}_{provider_name}_example'))
+
+    executors_per_conf = {}
+    executor_1_conf_id = zip(repeat(executor_1.NAME, len(executor_1_conf)),
+                             executor_1_conf)
+    executor_2_conf_id = zip(repeat(executor_2.NAME, len(executor_2_conf)),
+                             executor_2_conf)
+    executor_conf_iter = chain(executor_1_conf_id, executor_2_conf_id)
+    for (exec_name, (ext, context, prio,
+                     default_conf, req_cwd, handler, _)) in executor_conf_iter:
+        conf_executors = executors_per_conf.get((ext, context), [])
+        conf_executors.insert(
+            prio, (exec_name, default_conf, req_cwd, handler))
+        executors_per_conf[(ext, context)] = conf_executors
 
     dialog = container.dialog
     with qtbot.waitSignal(dialog.finished, timeout=200000):
         conf_combo = dialog.configuration_combo
+        exec_combo = dialog.executor_combo
+        wdir_group = dialog.wdir_group
 
         # Ensure that there are 5 registered run configurations
         assert conf_combo.count() == 5
 
         # Ensure that the combobox contain all available configurations
-        for i, label in enumerate(expected_configurations):
+        for i, (_, _, label) in enumerate(expected_configurations):
             combo_label = conf_combo.itemText(i)
             assert label == combo_label
 
         # Ensure that the currently selected configuration corresponds to the
         # currently selected one.
-        assert conf_combo.currentText() == expected_configurations[0]
+        assert conf_combo.currentText() == expected_configurations[0][-1]
 
-        dialog.accept()
+        # Ensure that the executor settings are being loaded correctly per
+        # run configuration
+        for i, (ext, context, _) in enumerate(expected_configurations):
+            conf_combo.setCurrentIndex(i)
+            available_executors = executors_per_conf[(ext, context)]
+            # Assert that the order and the executor configurations are loaded
+            # according to the priority order.
+            for (j, (executor_name,
+                     default_conf,
+                     req_cwd, _)) in enumerate(available_executors):
+                exec_combo.setCurrentIndex(j)
+                current_exec_name = exec_combo.currentText()
+                conf_widget = dialog.current_widget
+                current_conf = conf_widget.get_configuration()
+
+                # Ensure that the selected executor corresponds to the one
+                # defined by the priority order
+                assert current_exec_name == executor_name
+
+                # Ensure that the working directory options are enabled or
+                # disabled according to the executor settings.
+                assert not (wdir_group.isEnabled() ^ req_cwd)
+
+                # Ensure that the executor configuration group widget contains
+                # the default options declared.
+                assert current_conf == default_conf
+
+        # Select the first configuration again
+        conf_combo.setCurrentIndex(0)
+
+        # Change some default options
+        conf_widget = dialog.current_widget
+        cwd_radio = dialog.cwd_radio
+        conf_widget.widgets['opt2'].setText('Test')
+        cwd_radio.setChecked(True)
+
+        # Execute the configuration
+        buttons = dialog.bbox.buttons()
+        run_btn = buttons[2]
+        with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
+            qtbot.mouseClick(run_btn, Qt.LeftButton)
+
+    # Verify the selected executor output
+    test_executor_name, handler_name, run_input, exec_conf = sig.args[0]
+    ext, context, name = expected_configurations[0]
+    available_executors = executors_per_conf[(ext, context)]
+    executor_name, default_conf, _, handler = available_executors[0]
+    # print(executor_name, default_conf, handler)
+    assert test_executor_name == executor_name
+
+
