@@ -17,8 +17,8 @@ if [ "$USE_CONDA" = "true" ]; then
     mamba install python=$PYTHON_VERSION -q -y
     mamba env update --file requirements/main.yml
 
-    # Install test ones
-    mamba install python=$PYTHON_VERSION --file requirements/tests.txt -c conda-forge -q -y
+    # Install test dependencies
+    mamba env update --file requirements/tests.yml
 
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y

@@ -49,9 +49,9 @@ dependencies:
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
-# the contents of this requirements/tests.txt to this file.yml.
+# the contents of this requirements/tests.yml to this file.yml.
 # Please *DO NOT* make changes directly just to here - make changes
-# to requirements/tests.txt, and copy it here.
+# to requirements/tests.yml, and copy it here.
 - coverage
 - cython
 - flaky

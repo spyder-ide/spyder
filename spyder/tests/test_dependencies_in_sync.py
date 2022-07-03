@@ -19,33 +19,8 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 ROOT_PATH = os.path.dirname(os.path.dirname(HERE))
 ENV_FPATH = os.path.join(ROOT_PATH, 'binder', 'environment.yml')
 REQ_FPATH = os.path.join(ROOT_PATH, 'requirements', 'main.yml')
-REQ_TEST_FPATH = os.path.join(ROOT_PATH, 'requirements', 'tests.txt')
+REQ_TEST_FPATH = os.path.join(ROOT_PATH, 'requirements', 'tests.yml')
 SETUP_FPATH = os.path.join(ROOT_PATH, 'setup.py')
-
-
-def parse_requirements(fpath):
-    """
-    Parse a requirements file and return a dict of deps and versions.
-    """
-    with open(fpath, 'r') as fh:
-        data = fh.read()
-
-    lines = data.split('\n')
-    lines = [line.strip() for line in lines if line and line[0] != '#']
-
-    deps = {}
-    for line in lines:
-        parts = line.split(' ')
-        if len(parts) > 1:
-            ver = parts[-1]
-            if ver[0] == '=':
-                ver = '=' + ver
-
-            deps[parts[0].lower()] = ver
-        else:
-            deps[parts[0].lower()] = None
-
-    return deps
 
 
 def parse_environment_yaml(fpath):
@@ -192,12 +167,12 @@ def parse_setup_extra_requires(fpath):
 
 def test_dependencies_for_binder_in_sync():
     """
-    Binder environment yaml should be the sum of main.yml and tests.txt
+    Binder environment yaml should be the sum of main.yml and tests.yml
     requirements.
     """
     spyder_env = parse_environment_yaml(ENV_FPATH)
     spyder_reqs = parse_environment_yaml(REQ_FPATH)
-    test_reqs = parse_requirements(REQ_TEST_FPATH)
+    test_reqs = parse_environment_yaml(REQ_TEST_FPATH)
 
     # xvfb is only available on linux (which binder runs on)
     if 'pytest-xvfb' in spyder_env:
@@ -238,9 +213,9 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
 
 def test_dependencies_for_spyder_setup_extras_requires_in_sync():
     """
-    Spyder setup.py extra_requires should share deps with tests.txt.
+    Spyder setup.py extra_requires should share deps with tests.yml.
     """
     spyder_extras_setup = parse_setup_extra_requires(SETUP_FPATH)
-    spyder_test_reqs = parse_requirements(REQ_TEST_FPATH)
+    spyder_test_reqs = parse_environment_yaml(REQ_TEST_FPATH)
 
     assert spyder_extras_setup == spyder_test_reqs

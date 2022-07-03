@@ -87,7 +87,7 @@ $ python bootstrap.py --debug
 To install our test dependencies under Anaconda:
 
 ```bash
-$ conda install -c conda-forge --file requirements/tests.txt
+$ conda env update --file requirements/tests.yml
 ```
 
 If using `pip` (for experts only), run the following from the directory where your git clone is stored:
