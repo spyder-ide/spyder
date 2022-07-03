@@ -203,7 +203,7 @@ def test_dependencies_for_spyder_dialog_in_sync():
     full_reqs.update(mac_reqs)
     full_reqs.update(linux_reqs)
 
-    # PyQt packages are not declared in our dependencies dialog
+    # These packages are not declared in our dependencies dialog
     for dep in ['pyqt', 'pyqtwebengine', 'python.app']:
         full_reqs.pop(dep)
 

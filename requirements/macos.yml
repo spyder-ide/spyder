@@ -2,5 +2,5 @@
 channels:
   - conda-forge
 dependencies:
-  - applaunchservices >=0.1.7
+  - applaunchservices >=0.3.0
   - python.app
