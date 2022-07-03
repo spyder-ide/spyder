@@ -1,5 +1,9 @@
 on:
   pull_request:
+    paths:
+      - '!installers/Windows/**'
+      - '!.github/workflows/installer-win.yml'
+
   release:
     types:
       - created
