@@ -17,6 +17,15 @@ if [ "$USE_CONDA" = "true" ]; then
     mamba install python=$PYTHON_VERSION -q -y
     mamba env update --file requirements/main.yml
 
+    # Install dependencies per operating system
+    if [ "$OS" = "win" ]; then
+        mamba env update --file requirements/windows.yml
+    elif [ "$OS" = "macos" ]; then
+        mamba env update --file requirements/macos.yml
+    else
+        mamba env update --file requirements/linux.yml
+    fi
+
     # Install test dependencies
     mamba env update --file requirements/tests.yml
 

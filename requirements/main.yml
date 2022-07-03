@@ -1,11 +1,10 @@
-# We can not refer to an environment.yml file from another
 channels:
   - conda-forge
 dependencies:
+# We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
 # the contents of this file to binder/environment.yml. If you
 # make changes here, please copy them over there too.
-  - applaunchservices >=0.1.7
   - atomicwrites >=1.2.0
   - chardet >=2.0.0
   - cloudpickle >=0.5.0
@@ -19,7 +18,6 @@ dependencies:
   - keyring >=17.0.0
   - nbconvert >=4.0
   - numpydoc >=0.6.0
-  - paramiko >=2.4.0  # [win]
   - parso >=0.7.0,<0.9.0
   - pexpect >=4.4.0
   - pickleshare >=0.4
@@ -31,7 +29,6 @@ dependencies:
   - pyqtwebengine <5.16
   - python-lsp-black >=1.2.0
   - python-lsp-server >=1.4.1,<1.5.0
-  - pyxdg >=0.26  # [linux]
   - pyzmq >=22.1.0
   - qdarkstyle >=3.0.2,<3.1.0
   - qstylizer >=0.1.10
