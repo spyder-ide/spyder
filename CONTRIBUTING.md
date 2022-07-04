@@ -41,17 +41,18 @@ $ git remote add upstream https://github.com/spyder-ide/spyder.git
 
 ### Creating an environment and installing dependencies
 
-If you use a Conda-based distribution (Anaconda, etc), you can create an environment and install the necessary dependencies as follows:
+If you use Anaconda or Conda-forge, you can create an environment and install the necessary dependencies as follows:
 
 ```bash
-$ conda create -n spyder-dev -c conda-forge --file requirements/conda.txt
+$ conda create -n spyder-dev -c conda-forge python=3.9
 $ conda activate spyder-dev
+$ conda env update --file requirements/main.yml
 ```
 
-If you are running on macOS, you will also need to install `python.app`, so after activating the environment, run
+After doing that, you need to install Spyder's specific dependencies per operating system. For instance, if you're working on macOS you need to run
 
 ```bash
-$ conda install -c conda-forge python.app
+$ conda env update --file requirements/macos.yml
 ```
 
 You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
@@ -86,7 +87,7 @@ $ python bootstrap.py --debug
 To install our test dependencies under Anaconda:
 
 ```bash
-$ conda install -c conda-forge --file requirements/tests.txt
+$ conda env update --file requirements/tests.yml
 ```
 
 If using `pip` (for experts only), run the following from the directory where your git clone is stored:

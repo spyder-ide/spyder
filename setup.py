@@ -202,7 +202,7 @@ setup_args = dict(
 
 
 install_requires = [
-    'applaunchservices>=0.1.7;platform_system=="Darwin"',
+    'applaunchservices>=0.3.0;platform_system=="Darwin"',
     'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
