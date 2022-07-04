@@ -19,7 +19,10 @@ jobs:
       matrix:
         build_type: ['Lite', 'Full']
     env:
-      ASSETS_URL: 'https://github.com/spyder-ide/windows-installer-assets/releases/download/0.0.7/assets.zip'
+      # The following line can be used to specify from where to download the installer assets.
+      # For example, if you want to download from an specific repo branch
+      # ASSETS_URL: https://github.com/<github user>/windows-installer-assets/zipball/<branch name>
+      ASSETS_URL: https://github.com/jsbautista/windows-installer-assets/zipball/installer_changes
       UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree QDarkStyle PyNaCl' || 'pip python-slugify Rtree PyNaCl' }}
       SKIP_PACKAGES: 'bcrypt slugify'
       ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle nacl' || 'blib2to3 _black_version blackd rtree nacl' }}
