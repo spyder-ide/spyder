@@ -1207,7 +1207,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             pass
 
     def rename_client_tab(self, client, given_name):
-        """Rename client's tab."""
+        """Rename a client's tab."""
         index = self.get_client_index_from_id(id(client))
 
         if given_name is not None:

@@ -489,6 +489,23 @@ class IPythonConsole(SpyderDockablePlugin):
         """Return the shellwidget of the current client"""
         return self.get_widget().get_current_shellwidget()
 
+    def rename_client_tab(self, client, given_name):
+        """
+        Rename a client's tab.
+
+        Parameters
+        ----------
+        client: spyder.plugins.ipythonconsole.widgets.client.ClientWidget
+            Client to rename.
+        given_name: str
+            New name to be given to the client's tab.
+
+        Returns
+        -------
+        None.
+        """
+        self.get_widget().rename_client_tab(client, given_name)
+
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None):
         """
