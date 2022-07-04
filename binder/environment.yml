@@ -1,12 +1,12 @@
 channels:
-- conda-forge # Used by jupyter-desktop-server
+- conda-forge
 dependencies:
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
-# the contents of this requirements/conda.txt to this file.yml.
+# the contents of requirements/main.yml and requirements/linux.yml
+# to this file.
 # Please *DO NOT* make changes directly just to here - make changes
-# to requirements/conda.txt, and copy it here.
-- applaunchservices >=0.1.7
+# to requirements/main.yml, and copy it here.
 - atomicwrites >=1.2.0
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
@@ -20,7 +20,6 @@ dependencies:
 - keyring >=17.0.0
 - nbconvert >=4.0
 - numpydoc >=0.6.0
-- paramiko >=2.4.0
 - parso >=0.7.0,<0.9.0
 - pexpect >=4.4.0
 - pickleshare >=0.4
@@ -49,9 +48,9 @@ dependencies:
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
-# the contents of this requirements/tests.txt to this file.yml.
+# the contents of this requirements/tests.yml to this file.yml.
 # Please *DO NOT* make changes directly just to here - make changes
-# to requirements/tests.txt, and copy it here.
+# to requirements/tests.yml, and copy it here.
 - coverage
 - cython
 - flaky

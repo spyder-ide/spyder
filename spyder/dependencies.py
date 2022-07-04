@@ -29,7 +29,7 @@ PLUGIN = 'spyder plugins'
 # Versions
 # =============================================================================
 # Hard dependencies
-APPLAUNCHSERVICES_REQVER = '>=0.1.7'
+APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
