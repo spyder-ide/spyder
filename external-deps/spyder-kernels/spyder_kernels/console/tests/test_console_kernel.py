@@ -817,6 +817,7 @@ def test_do_complete(kernel):
     # test pdb
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.prompt_waiting = True
     pdb_obj.completenames = lambda *ignore: ['baba']
     kernel.shell.pdb_session = pdb_obj
     match = kernel.do_complete('ba', 2)
@@ -875,6 +876,7 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -901,6 +903,7 @@ def test_comprehensions_with_locals_in_pdb_2(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -927,6 +930,7 @@ def test_namespaces_in_pdb(kernel):
     kernel.shell.user_ns["test"] = 0
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1002,6 +1006,7 @@ def test_functions_with_locals_in_pdb_2(kernel):
     baba = 1
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1039,6 +1044,7 @@ def test_locals_globals_in_pdb(kernel):
     a = 1
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 

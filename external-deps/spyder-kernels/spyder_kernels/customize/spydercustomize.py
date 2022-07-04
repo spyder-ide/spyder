@@ -14,7 +14,6 @@
 import ast
 import bdb
 import builtins
-import cmd
 import io
 import logging
 import os
@@ -275,13 +274,7 @@ os.get_terminal_size = _patched_get_terminal_size
 # =============================================================================
 # Pdb adjustments
 # =============================================================================
-def cmd_input(prompt=''):
-    return get_ipython().kernel.cmd_input(prompt)
-
-
 pdb.Pdb = SpyderPdb
-cmd.input = cmd_input
-
 
 # =============================================================================
 # User module reloader
