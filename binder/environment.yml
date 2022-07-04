@@ -1,9 +1,10 @@
 channels:
-- conda-forge # Used by jupyter-desktop-server
+- conda-forge
 dependencies:
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
-# the contents of this requirements/main.yml to this file.yml.
+# the contents of requirements/main.yml and requirements/linux.yml
+# to this file.
 # Please *DO NOT* make changes directly just to here - make changes
 # to requirements/main.yml, and copy it here.
 - atomicwrites >=1.2.0
