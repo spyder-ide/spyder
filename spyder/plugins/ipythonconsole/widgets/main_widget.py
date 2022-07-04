@@ -442,7 +442,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             text=_("Connect to an existing kernel"),
             tip=_("Open a new IPython console connected to an existing "
                   "kernel"),
-            triggered=self.create_client_for_kernel,
+            triggered=self._create_client_for_kernel,
         )
         self.rename_tab_action = self.create_action(
             IPythonConsoleWidgetActions.RenameTab,
@@ -1075,155 +1075,16 @@ class IPythonConsoleWidget(PluginMainWidget):
         except RuntimeError:
             pass
 
-    def _create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                  password):
-        # Verifying if the connection file exists
-        try:
-            cf_path = osp.dirname(connection_file)
-            cf_filename = osp.basename(connection_file)
-            # To change a possible empty string to None
-            cf_path = cf_path if cf_path else None
-            connection_file = find_connection_file(filename=cf_filename,
-                                                   path=cf_path)
-            if os.path.splitext(connection_file)[1] != ".json":
-                # There might be a file with the same id in the path.
-                connection_file = find_connection_file(
-                    filename=cf_filename + ".json", path=cf_path)
-        except (IOError, UnboundLocalError):
-            QMessageBox.critical(self, _('IPython'),
-                                 _("Unable to connect to "
-                                   "<b>%s</b>") % connection_file)
+    @Slot()
+    def _create_client_for_kernel(self):
+        """Create a client connected to an existing kernel"""
+        connect_output = KernelConnectionDialog.get_connection_parameters(self)
+        (connection_file, hostname, sshkey, password, ok) = connect_output
+        if not ok:
             return
-
-        # Getting the master id that corresponds to the client
-        # (i.e. the i in i/A)
-        master_id = None
-        given_name = None
-        is_external_kernel = True
-        known_spyder_kernel = False
-        slave_ord = ord('A') - 1
-        kernel_manager = None
-        stderr_obj = None
-        stdout_obj = None
-        fault_obj = None
-
-        for cl in self.clients:
-            if connection_file in cl.connection_file:
-                if cl.get_kernel() is not None:
-                    kernel_manager = cl.get_kernel()
-                connection_file = cl.connection_file
-                if master_id is None:
-                    master_id = cl.id_['int_id']
-                    is_external_kernel = cl.shellwidget.is_external_kernel
-                    known_spyder_kernel = cl.shellwidget.is_spyder_kernel
-                    if cl.stderr_obj:
-                        stderr_obj = cl.stderr_obj.copy()
-                    if cl.stdout_obj:
-                        stdout_obj = cl.stdout_obj.copy()
-                    if cl.fault_obj:
-                        fault_obj = cl.fault_obj.copy()
-                given_name = cl.given_name
-                new_slave_ord = ord(cl.id_['str_id'])
-                if new_slave_ord > slave_ord:
-                    slave_ord = new_slave_ord
-
-        # If we couldn't find a client with the same connection file,
-        # it means this is a new master client
-        if master_id is None:
-            self.master_clients += 1
-            master_id = str(self.master_clients)
-
-        # Set full client name
-        client_id = dict(int_id=master_id,
-                         str_id=chr(slave_ord + 1))
-
-        # Creating the client
-        show_elapsed_time = self.get_conf('show_elapsed_time')
-        reset_warning = self.get_conf('show_reset_namespace_warning')
-        ask_before_restart = self.get_conf('ask_before_restart')
-        client = ClientWidget(self,
-                              id_=client_id,
-                              given_name=given_name,
-                              history_filename=get_conf_path('history.py'),
-                              config_options=self.config_options(),
-                              additional_options=self.additional_options(),
-                              interpreter_versions=self.interpreter_versions(),
-                              connection_file=connection_file,
-                              context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
-                              hostname=hostname,
-                              is_external_kernel=is_external_kernel,
-                              is_spyder_kernel=known_spyder_kernel,
-                              show_elapsed_time=show_elapsed_time,
-                              reset_warning=reset_warning,
-                              ask_before_restart=ask_before_restart,
-                              css_path=self.css_path,
-                              handlers=self.registered_spyder_kernel_handlers,
-                              stderr_obj=stderr_obj,
-                              stdout_obj=stdout_obj,
-                              fault_obj=fault_obj)
-
-        # Create kernel client
-        kernel_client = QtKernelClient(connection_file=connection_file)
-
-        # This is needed for issue spyder-ide/spyder#9304.
-        try:
-            kernel_client.load_connection_file()
-        except Exception as e:
-            QMessageBox.critical(self, _('Connection error'),
-                                 _("An error occurred while trying to load "
-                                   "the kernel connection file. The error "
-                                   "was:\n\n") + str(e))
-            return
-
-        if hostname is not None:
-            try:
-                connection_info = dict(
-                    ip=kernel_client.ip,
-                    shell_port=kernel_client.shell_port,
-                    iopub_port=kernel_client.iopub_port,
-                    stdin_port=kernel_client.stdin_port,
-                    hb_port=kernel_client.hb_port)
-                newports = self.tunnel_to_kernel(connection_info, hostname,
-                                                 sshkey, password)
-                (kernel_client.shell_port,
-                 kernel_client.iopub_port,
-                 kernel_client.stdin_port,
-                 kernel_client.hb_port) = newports
-                # Save parameters to connect comm later
-                kernel_client.ssh_parameters = (hostname, sshkey, password)
-            except Exception as e:
-                QMessageBox.critical(self, _('Connection error'),
-                                     _("Could not open ssh tunnel. The "
-                                       "error was:\n\n") + str(e))
-                return
-
-        # Assign kernel manager and client to shellwidget
-        kernel_client.start_channels()
-        shellwidget = client.shellwidget
-        shellwidget.set_kernel_client_and_manager(
-            kernel_client, kernel_manager)
-        shellwidget.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
-
-        if not known_spyder_kernel:
-            shellwidget.sig_is_spykernel.connect(
-                self.connect_external_spyder_kernel)
-            shellwidget.check_spyder_kernel()
-
-        self.sig_shellwidget_created.emit(shellwidget)
-        kernel_client.stopped_channels.connect(
-            lambda: self.sig_shellwidget_deleted.emit(shellwidget))
-
-        # Set elapsed time, if possible
-        if not is_external_kernel:
-            self.set_client_elapsed_time(client)
-
-        # Adding a new tab for the client
-        self.add_tab(client, name=client.get_name())
-
-        # Register client
-        self.register_client(client)
+        else:
+            self.create_client_for_kernel(connection_file, hostname, sshkey,
+                                          password)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -1633,6 +1494,157 @@ class IPythonConsoleWidget(PluginMainWidget):
             return
         self.register_client(client, give_focus=give_focus)
 
+    def create_client_for_kernel(self, connection_file, hostname, sshkey,
+                                 password):
+        """Create a client connected to an existing kernel."""
+        # Verifying if the connection file exists
+        try:
+            cf_path = osp.dirname(connection_file)
+            cf_filename = osp.basename(connection_file)
+            # To change a possible empty string to None
+            cf_path = cf_path if cf_path else None
+            connection_file = find_connection_file(filename=cf_filename,
+                                                   path=cf_path)
+            if os.path.splitext(connection_file)[1] != ".json":
+                # There might be a file with the same id in the path.
+                connection_file = find_connection_file(
+                    filename=cf_filename + ".json", path=cf_path)
+        except (IOError, UnboundLocalError):
+            QMessageBox.critical(self, _('IPython'),
+                                 _("Unable to connect to "
+                                   "<b>%s</b>") % connection_file)
+            return
+
+        # Getting the master id that corresponds to the client
+        # (i.e. the i in i/A)
+        master_id = None
+        given_name = None
+        is_external_kernel = True
+        known_spyder_kernel = False
+        slave_ord = ord('A') - 1
+        kernel_manager = None
+        stderr_obj = None
+        stdout_obj = None
+        fault_obj = None
+
+        for cl in self.clients:
+            if connection_file in cl.connection_file:
+                if cl.get_kernel() is not None:
+                    kernel_manager = cl.get_kernel()
+                connection_file = cl.connection_file
+                if master_id is None:
+                    master_id = cl.id_['int_id']
+                    is_external_kernel = cl.shellwidget.is_external_kernel
+                    known_spyder_kernel = cl.shellwidget.is_spyder_kernel
+                    if cl.stderr_obj:
+                        stderr_obj = cl.stderr_obj.copy()
+                    if cl.stdout_obj:
+                        stdout_obj = cl.stdout_obj.copy()
+                    if cl.fault_obj:
+                        fault_obj = cl.fault_obj.copy()
+                given_name = cl.given_name
+                new_slave_ord = ord(cl.id_['str_id'])
+                if new_slave_ord > slave_ord:
+                    slave_ord = new_slave_ord
+
+        # If we couldn't find a client with the same connection file,
+        # it means this is a new master client
+        if master_id is None:
+            self.master_clients += 1
+            master_id = str(self.master_clients)
+
+        # Set full client name
+        client_id = dict(int_id=master_id,
+                         str_id=chr(slave_ord + 1))
+
+        # Creating the client
+        show_elapsed_time = self.get_conf('show_elapsed_time')
+        reset_warning = self.get_conf('show_reset_namespace_warning')
+        ask_before_restart = self.get_conf('ask_before_restart')
+        client = ClientWidget(self,
+                              id_=client_id,
+                              given_name=given_name,
+                              history_filename=get_conf_path('history.py'),
+                              config_options=self.config_options(),
+                              additional_options=self.additional_options(),
+                              interpreter_versions=self.interpreter_versions(),
+                              connection_file=connection_file,
+                              context_menu_actions=self.context_menu_actions,
+                              time_label=self.time_label,
+                              hostname=hostname,
+                              is_external_kernel=is_external_kernel,
+                              is_spyder_kernel=known_spyder_kernel,
+                              show_elapsed_time=show_elapsed_time,
+                              reset_warning=reset_warning,
+                              ask_before_restart=ask_before_restart,
+                              css_path=self.css_path,
+                              handlers=self.registered_spyder_kernel_handlers,
+                              stderr_obj=stderr_obj,
+                              stdout_obj=stdout_obj,
+                              fault_obj=fault_obj)
+
+        # Create kernel client
+        kernel_client = QtKernelClient(connection_file=connection_file)
+
+        # This is needed for issue spyder-ide/spyder#9304.
+        try:
+            kernel_client.load_connection_file()
+        except Exception as e:
+            QMessageBox.critical(self, _('Connection error'),
+                                 _("An error occurred while trying to load "
+                                   "the kernel connection file. The error "
+                                   "was:\n\n") + str(e))
+            return
+
+        if hostname is not None:
+            try:
+                connection_info = dict(
+                    ip=kernel_client.ip,
+                    shell_port=kernel_client.shell_port,
+                    iopub_port=kernel_client.iopub_port,
+                    stdin_port=kernel_client.stdin_port,
+                    hb_port=kernel_client.hb_port)
+                newports = self.tunnel_to_kernel(connection_info, hostname,
+                                                 sshkey, password)
+                (kernel_client.shell_port,
+                 kernel_client.iopub_port,
+                 kernel_client.stdin_port,
+                 kernel_client.hb_port) = newports
+                # Save parameters to connect comm later
+                kernel_client.ssh_parameters = (hostname, sshkey, password)
+            except Exception as e:
+                QMessageBox.critical(self, _('Connection error'),
+                                     _("Could not open ssh tunnel. The "
+                                       "error was:\n\n") + str(e))
+                return
+
+        # Assign kernel manager and client to shellwidget
+        kernel_client.start_channels()
+        shellwidget = client.shellwidget
+        shellwidget.set_kernel_client_and_manager(
+            kernel_client, kernel_manager)
+        shellwidget.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
+
+        if not known_spyder_kernel:
+            shellwidget.sig_is_spykernel.connect(
+                self.connect_external_spyder_kernel)
+            shellwidget.check_spyder_kernel()
+
+        self.sig_shellwidget_created.emit(shellwidget)
+        kernel_client.stopped_channels.connect(
+            lambda: self.sig_shellwidget_deleted.emit(shellwidget))
+
+        # Set elapsed time, if possible
+        if not is_external_kernel:
+            self.set_client_elapsed_time(client)
+
+        # Adding a new tab for the client
+        self.add_tab(client, name=client.get_name())
+
+        # Register client
+        self.register_client(client)
+
     def create_pylab_client(self):
         """Force creation of Pylab client"""
         self.create_new_client(is_pylab=True, given_name="Pylab")
@@ -1644,17 +1656,6 @@ class IPythonConsoleWidget(PluginMainWidget):
     def create_cython_client(self):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
-
-    @Slot()
-    def create_client_for_kernel(self):
-        """Create a client connected to an existing kernel"""
-        connect_output = KernelConnectionDialog.get_connection_parameters(self)
-        (connection_file, hostname, sshkey, password, ok) = connect_output
-        if not ok:
-            return
-        else:
-            self._create_client_for_kernel(connection_file, hostname, sshkey,
-                                           password)
 
     def get_new_kernel(self, is_cython=False, is_pylab=False,
                        is_sympy=False, std_dir=None, cache=True):
