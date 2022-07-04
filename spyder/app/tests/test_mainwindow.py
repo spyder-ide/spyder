@@ -3936,6 +3936,136 @@ def test_running_namespace(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_running_namespace_refresh(main_window, qtbot, tmpdir):
+    """
+    Test that the running namespace can be accessed recursively
+    """
+    code_i = (
+        'import time\n'
+        'for i in range(10):\n'
+        '    time.sleep(.1)\n')
+    code_j = (
+        'import time\n'
+        'for j in range(10):\n'
+        '    time.sleep(.1)\n')
+
+    # write code
+    file1 = tmpdir.join('file1.py')
+    file1.write(code_i)
+    file2 = tmpdir.join('file2.py')
+    file2.write(code_j)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Run file inside a debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "debugfile(" + repr(str(file1)) + ")"
+        )
+
+    shell.execute(
+        "runfile(" + repr(str(file2)) + ")"
+    )
+
+
+    # Check nothing is in the variableexplorer
+    nsb = main_window.variableexplorer.current_widget()
+    assert len(nsb.editor.source_model._data) == 0
+
+    # Wait a bit, refresh, and make sure we captured an in-between value
+    qtbot.wait(300)
+    nsb.refresh_table()
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
+    assert 0 < int(nsb.editor.source_model._data['j']['view']) < 9
+
+    # Wait until continue and stop on the breakpoint
+    qtbot.waitUntil(lambda: "IPdb [2]:" in shell._control.toPlainText())
+
+    # Verify that we are still on debugging
+    assert shell.is_waiting_pdb_input()
+
+    # continue
+    shell.execute("c")
+    qtbot.wait(300)
+    nsb.refresh_table()
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 2)
+    assert nsb.editor.source_model._data['j']['view'] == '9'
+    assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_debug_namespace(main_window, qtbot, tmpdir):
+    """
+    Test that the running namespace is correctly sent when debugging
+
+    Regression test for spyder-ide/spyder-kernels#394.
+    """
+    code1 = (
+        'file1_global_ns = True\n'
+        'def f(file1_local_ns = True):\n'
+        '    return\n')
+    code2 = (
+        'from file1 import f\n'
+        'file2_global_ns = True\n'
+        'f()\n')
+
+    # write code
+    file1 = tmpdir.join('file1.py')
+    file1.write(code1)
+    file2 = tmpdir.join('file2.py')
+    file2.write(code2)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "debugfile(" +
+            repr(str(file2)) +
+            ", wdir=" +
+            repr(str(tmpdir)) +
+            ")"
+        )
+
+    # Check nothing is in the variableexplorer
+    nsb = main_window.variableexplorer.current_widget()
+    assert len(nsb.editor.source_model._data) == 0
+
+    # advance in file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("n")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("n")
+
+    # check namespace
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
+    assert 'file2_global_ns' in nsb.editor.source_model._data
+
+    # go to file 1
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("s")
+
+    # check namespace
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 2)
+    assert 'file2_global_ns' not in nsb.editor.source_model._data
+    assert 'file1_global_ns' in nsb.editor.source_model._data
+    assert 'file1_local_ns' in nsb.editor.source_model._data
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_post_mortem(main_window, qtbot, tmpdir):
     """Test post mortem works"""
     # Check we can use custom complete for pdb
