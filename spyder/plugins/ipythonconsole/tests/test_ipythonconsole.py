@@ -41,7 +41,7 @@ import sympy
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.base import (
-    get_home_dir, running_in_ci, running_in_ci_with_conda)
+    running_in_ci, running_in_ci_with_conda)
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
@@ -218,9 +218,6 @@ def ipyconsole(qtbot, request, tmpdir):
                               is_sympy=is_sympy,
                               is_cython=is_cython)
     window.setCentralWidget(console.get_widget())
-
-    # Return working directory from the plugin
-    console._get_working_directory = lambda: get_home_dir()
 
     # Set exclamation mark to True
     configuration.set('ipython_console', 'pdb_use_exclamation_mark', True)
@@ -2287,7 +2284,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
 
     # Simulate a specific directory
     cwd_dir = str(tmpdir.mkdir('ipyconsole_cwd_test'))
-    ipyconsole._get_working_directory = lambda: cwd_dir
+    ipyconsole.get_widget().current_working_directory = cwd_dir
 
     # Get cwd of new client and assert is the expected one
     assert get_cwd_of_new_client() == cwd_dir

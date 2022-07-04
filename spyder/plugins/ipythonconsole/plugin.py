@@ -13,7 +13,7 @@ import os
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -329,6 +329,12 @@ class IPythonConsole(SpyderDockablePlugin):
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
 
+    @on_plugin_available(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_available(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.connect(
+            self._save_working_directory)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Register conf page
@@ -370,6 +376,12 @@ class IPythonConsole(SpyderDockablePlugin):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_teardown(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.disconnect(
+            self._save_working_directory)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -425,11 +437,10 @@ class IPythonConsole(SpyderDockablePlugin):
                     except Exception:
                         pass
 
-    def _get_working_directory(self):
-        """Get current working directory from its plugin."""
-        workdir = self.get_plugin(Plugins.WorkingDirectory)
-        if workdir:
-            return workdir.get_workdir()
+    @Slot(str)
+    def _save_working_directory(self, new_dir):
+        """Save current working directory on the main widget."""
+        self.get_widget().current_working_directory = new_dir
 
     # ---- Public API
     # -------------------------------------------------------------------------

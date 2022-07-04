@@ -32,7 +32,8 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import get_conf_path, running_under_pytest
+from spyder.config.base import (
+    get_conf_path, get_home_dir, running_under_pytest)
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
@@ -392,7 +393,11 @@ class IPythonConsoleWidget(PluginMainWidget):
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
+        # To cache kernel properties
         self._cached_kernel_properties = None
+
+        # Initial value for the current working directory
+        self._current_working_directory = get_home_dir()
 
     def on_close(self):
         self.mainwindow_close = True
@@ -2367,6 +2372,18 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
     # ---- For working directory and path management
+    @property
+    def current_working_directory(self):
+        """
+        Current working directory, as reported by the Working Directory plugin.
+        """
+        return self._current_working_directory
+
+    @current_working_directory.setter
+    def current_working_directory(self, new_value):
+        """Set current working directory"""
+        self._current_working_directory = new_value
+
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""
         shellwidget = self.get_current_shellwidget()
@@ -2380,10 +2397,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         """
         if osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
-
-    def get_working_directory(self):
-        """Get current working directory."""
-        return self.get_plugin()._get_working_directory()
 
     def update_working_directory(self):
         """Update working directory to console cwd."""
