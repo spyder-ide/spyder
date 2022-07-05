@@ -1290,8 +1290,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     # Test with a generic kernel
     km, kc = start_new_kernel()
 
-    main_window.ipyconsole.get_widget()._create_client_for_kernel(
-        kc.connection_file, None, None, None)
+    main_window.ipyconsole.create_client_for_kernel(kc.connection_file)
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -1308,8 +1307,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
 
     # Test with a kernel from Spyder
     spykm, spykc = start_new_kernel(spykernel=True)
-    main_window.ipyconsole.get_widget()._create_client_for_kernel(
-        spykc.connection_file, None, None, None)
+    main_window.ipyconsole.create_client_for_kernel(spykc.connection_file)
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -4204,6 +4202,136 @@ def test_running_namespace(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_running_namespace_refresh(main_window, qtbot, tmpdir):
+    """
+    Test that the running namespace can be accessed recursively
+    """
+    code_i = (
+        'import time\n'
+        'for i in range(10):\n'
+        '    time.sleep(.1)\n')
+    code_j = (
+        'import time\n'
+        'for j in range(10):\n'
+        '    time.sleep(.1)\n')
+
+    # write code
+    file1 = tmpdir.join('file1.py')
+    file1.write(code_i)
+    file2 = tmpdir.join('file2.py')
+    file2.write(code_j)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Run file inside a debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "debugfile(" + repr(str(file1)) + ")"
+        )
+
+    shell.execute(
+        "runfile(" + repr(str(file2)) + ")"
+    )
+
+
+    # Check nothing is in the variableexplorer
+    nsb = main_window.variableexplorer.current_widget()
+    assert len(nsb.editor.source_model._data) == 0
+
+    # Wait a bit, refresh, and make sure we captured an in-between value
+    qtbot.wait(300)
+    nsb.refresh_table()
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
+    assert 0 < int(nsb.editor.source_model._data['j']['view']) < 9
+
+    # Wait until continue and stop on the breakpoint
+    qtbot.waitUntil(lambda: "IPdb [2]:" in shell._control.toPlainText())
+
+    # Verify that we are still on debugging
+    assert shell.is_waiting_pdb_input()
+
+    # continue
+    shell.execute("c")
+    qtbot.wait(300)
+    nsb.refresh_table()
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 2)
+    assert nsb.editor.source_model._data['j']['view'] == '9'
+    assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_debug_namespace(main_window, qtbot, tmpdir):
+    """
+    Test that the running namespace is correctly sent when debugging
+
+    Regression test for spyder-ide/spyder-kernels#394.
+    """
+    code1 = (
+        'file1_global_ns = True\n'
+        'def f(file1_local_ns = True):\n'
+        '    return\n')
+    code2 = (
+        'from file1 import f\n'
+        'file2_global_ns = True\n'
+        'f()\n')
+
+    # write code
+    file1 = tmpdir.join('file1.py')
+    file1.write(code1)
+    file2 = tmpdir.join('file2.py')
+    file2.write(code2)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "debugfile(" +
+            repr(str(file2)) +
+            ", wdir=" +
+            repr(str(tmpdir)) +
+            ")"
+        )
+
+    # Check nothing is in the variableexplorer
+    nsb = main_window.variableexplorer.current_widget()
+    assert len(nsb.editor.source_model._data) == 0
+
+    # advance in file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("n")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("n")
+
+    # check namespace
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
+    assert 'file2_global_ns' in nsb.editor.source_model._data
+
+    # go to file 1
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("s")
+
+    # check namespace
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 2)
+    assert 'file2_global_ns' not in nsb.editor.source_model._data
+    assert 'file1_global_ns' in nsb.editor.source_model._data
+    assert 'file1_local_ns' in nsb.editor.source_model._data
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_post_mortem(main_window, qtbot, tmpdir):
     """Test post mortem works"""
     # Check we can use custom complete for pdb
@@ -5351,6 +5479,98 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
         import pprint
         pprint.pprint(frames_browser.frames)
     assert len(frames_browser.frames) == expected_number_threads
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_frames_explorer(main_window, qtbot):
+    """Test frames explorer"""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    from spyder.plugins.framesexplorer.widgets.main_widget import (
+        FramesExplorerWidgetActions)
+
+    frames_explorer = main_window.framesexplorer.get_widget()
+    frames_browser = frames_explorer.current_widget().results_browser
+    postmortem_debug_action = frames_explorer.get_action(
+        FramesExplorerWidgetActions.PostMortemDebug)
+
+    assert not postmortem_debug_action.isEnabled()
+
+    # create exception
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "ZeroDivisionError"
+    assert postmortem_debug_action.isEnabled()
+
+    # Test post mortem
+    with qtbot.waitSignal(shell.executed):
+        frames_explorer.postmortem()
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    # Test that executing a statement doesn't change the frames browser
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 1')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('w')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    # Test that quitting resets the explorer
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+    assert frames_browser.frames is None
+    assert not postmortem_debug_action.isEnabled()
+
+    # Test that quitting resets the explorer
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    # Restart Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.ipyclient.restart_kernel()
+
+    assert frames_browser.frames is None
+    assert not postmortem_debug_action.isEnabled()
+
+    if os.name == 'nt':
+        # Do not test kernel crashes on window
+        return
+
+    # Test that quitting resets the explorer
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+
+    assert len(frames_browser.frames) == 1
+    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert not postmortem_debug_action.isEnabled()
+
+    # Crash Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.execute("import ctypes; ctypes.string_at(0)")
+
+    assert frames_browser.frames is None
+    assert not postmortem_debug_action.isEnabled()
 
 
 if __name__ == "__main__":

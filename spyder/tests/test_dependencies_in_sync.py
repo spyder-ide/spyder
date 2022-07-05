@@ -6,7 +6,7 @@
 
 # Standard library imports
 from ast import literal_eval
-import os
+import os.path as osp
 
 # Third party imports
 import yaml
@@ -15,37 +15,15 @@ import yaml
 from spyder.dependencies import DESCRIPTIONS, OPTIONAL
 
 # Constants
-HERE = os.path.abspath(os.path.dirname(__file__))
-ROOT_PATH = os.path.dirname(os.path.dirname(HERE))
-ENV_FPATH = os.path.join(ROOT_PATH, 'binder', 'environment.yml')
-REQ_FPATH = os.path.join(ROOT_PATH, 'requirements', 'conda.txt')
-REQ_TEST_FPATH = os.path.join(ROOT_PATH, 'requirements', 'tests.txt')
-SETUP_FPATH = os.path.join(ROOT_PATH, 'setup.py')
-
-
-def parse_requirements(fpath):
-    """
-    Parse a requirements file and return a dict of deps and versions.
-    """
-    with open(fpath, 'r') as fh:
-        data = fh.read()
-
-    lines = data.split('\n')
-    lines = [line.strip() for line in lines if line and line[0] != '#']
-
-    deps = {}
-    for line in lines:
-        parts = line.split(' ')
-        if len(parts) > 1:
-            ver = parts[-1]
-            if ver[0] == '=':
-                ver = '=' + ver
-
-            deps[parts[0].lower()] = ver
-        else:
-            deps[parts[0].lower()] = None
-
-    return deps
+HERE = osp.abspath(osp.dirname(__file__))
+ROOT_PATH = osp.dirname(osp.dirname(HERE))
+ENV_FPATH = osp.join(ROOT_PATH, 'binder', 'environment.yml')
+REQ_FPATH = osp.join(ROOT_PATH, 'requirements', 'main.yml')
+REQ_WINDOWS_FPATH = osp.join(ROOT_PATH, 'requirements', 'windows.yml')
+REQ_MAC_FPATH = osp.join(ROOT_PATH, 'requirements', 'macos.yml')
+REQ_LINUX_FPATH = osp.join(ROOT_PATH, 'requirements', 'linux.yml')
+REQ_TEST_FPATH = osp.join(ROOT_PATH, 'requirements', 'tests.yml')
+SETUP_FPATH = osp.join(ROOT_PATH, 'setup.py')
 
 
 def parse_environment_yaml(fpath):
@@ -192,55 +170,73 @@ def parse_setup_extra_requires(fpath):
 
 def test_dependencies_for_binder_in_sync():
     """
-    Binder environment yaml should be the sum of conda.txt and tests.txt
+    Binder environment yaml should be the sum of main.yml and tests.yml
     requirements.
     """
     spyder_env = parse_environment_yaml(ENV_FPATH)
-    spyder_reqs = parse_requirements(REQ_FPATH)
-    test_reqs = parse_requirements(REQ_TEST_FPATH)
-
-    # xvfb is only available on linux (which binder runs on)
-    if 'pytest-xvfb' in spyder_env:
-        spyder_env.pop('pytest-xvfb')
+    main_reqs = parse_environment_yaml(REQ_FPATH)
+    test_reqs = parse_environment_yaml(REQ_TEST_FPATH)
+    linux_reqs = parse_environment_yaml(REQ_LINUX_FPATH)
 
     # Check that the requirement files match the environment yaml file
     full_reqs = {}
+    full_reqs.update(main_reqs)
+    full_reqs.update(linux_reqs)
     full_reqs.update(test_reqs)
-    full_reqs.update(spyder_reqs)
 
     assert spyder_env == full_reqs
 
 
 def test_dependencies_for_spyder_dialog_in_sync():
     """
-    Spyder dependencies dialog should share deps with conda.txt.
+    Spyder dependencies dialog should share deps with main.yml.
     """
     spyder_deps = parse_spyder_dependencies()
-    spyder_reqs = parse_requirements(REQ_FPATH)
+    main_reqs = parse_environment_yaml(REQ_FPATH)
+    windows_reqs = parse_environment_yaml(REQ_WINDOWS_FPATH)
+    mac_reqs = parse_environment_yaml(REQ_MAC_FPATH)
+    linux_reqs = parse_environment_yaml(REQ_LINUX_FPATH)
 
-    if 'pyqt' in spyder_reqs:
-        spyder_reqs.pop('pyqt')
-    if 'pyqtwebengine' in spyder_reqs:
-        spyder_reqs.pop('pyqtwebengine')
+    full_reqs = {}
+    full_reqs.update(main_reqs)
+    full_reqs.update(windows_reqs)
+    full_reqs.update(mac_reqs)
+    full_reqs.update(linux_reqs)
 
-    assert spyder_deps == spyder_reqs
+    # These packages are not declared in our dependencies dialog
+    for dep in ['pyqt', 'pyqtwebengine', 'python.app']:
+        full_reqs.pop(dep)
+
+    assert spyder_deps == full_reqs
 
 
 def test_dependencies_for_spyder_setup_install_requires_in_sync():
     """
-    Spyder setup.py should share deps with conda.txt.
+    Spyder setup.py should share deps with main.yml.
     """
     spyder_setup = parse_setup_install_requires(SETUP_FPATH)
-    spyder_reqs = parse_requirements(REQ_FPATH)
+    main_reqs = parse_environment_yaml(REQ_FPATH)
+    windows_reqs = parse_environment_yaml(REQ_WINDOWS_FPATH)
+    mac_reqs = parse_environment_yaml(REQ_MAC_FPATH)
+    linux_reqs = parse_environment_yaml(REQ_LINUX_FPATH)
 
-    assert spyder_setup == spyder_reqs
+    full_reqs = {}
+    full_reqs.update(main_reqs)
+    full_reqs.update(windows_reqs)
+    full_reqs.update(mac_reqs)
+    full_reqs.update(linux_reqs)
+
+    # We don't declare python.app as a dependency in other places
+    full_reqs.pop('python.app')
+
+    assert spyder_setup == full_reqs
 
 
 def test_dependencies_for_spyder_setup_extras_requires_in_sync():
     """
-    Spyder setup.py extra_requires should share deps with tests.txt.
+    Spyder setup.py extra_requires should share deps with tests.yml.
     """
     spyder_extras_setup = parse_setup_extra_requires(SETUP_FPATH)
-    spyder_test_reqs = parse_requirements(REQ_TEST_FPATH)
+    spyder_test_reqs = parse_environment_yaml(REQ_TEST_FPATH)
 
     assert spyder_extras_setup == spyder_test_reqs

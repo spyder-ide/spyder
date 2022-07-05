@@ -11,9 +11,9 @@ import ast
 import bdb
 import builtins
 import logging
-import os
 import sys
 import traceback
+import threading
 from collections import namedtuple
 
 from IPython.core.autocall import ZMQExitAutocall
@@ -93,6 +93,16 @@ class SpyderPdb(ipyPdb):
         # has no effect in previous versions.
         self.report_skipped = False
 
+
+        # Keep track of remote filename
+        self.remote_filename = None
+
+        # State of the prompt
+        self.prompt_waiting = False
+
+        # Line received from the frontend
+        self._cmd_input_line = None
+
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
         """Print pdb warning for exclamation mark."""
@@ -104,10 +114,6 @@ class SpyderPdb(ipyPdb):
     def default(self, line):
         """
         Default way of running pdb statment.
-
-        The only difference with Pdb.default is that if line contains multiple
-        statments, the code will be compiled with 'exec'. It will not print the
-        result but will run without failing.
         """
         execute_events = self.pdb_execute_events
         if line[:1] == '!':
@@ -612,6 +618,71 @@ class SpyderPdb(ipyPdb):
                       "For copying text while debugging, use Ctrl+Shift+C",
                       file=self.stdout)
 
+
+    def cmdloop(self, intro=None):
+        """
+        Repeatedly issue a prompt, accept input, parse an initial prefix
+        off the received input, and dispatch to action methods, passing them
+        the remainder of the line as argument.
+        """
+        self.preloop()
+        if intro is not None:
+            self.intro = intro
+        if self.intro:
+            self.stdout.write(str(self.intro)+"\n")
+        stop = None
+        while not stop:
+            if self.cmdqueue:
+                line = self.cmdqueue.pop(0)
+            else:
+                try:
+                    self.prompt_waiting = True
+                    line = self.cmd_input(self.prompt)
+                except EOFError:
+                    line = 'EOF'
+            self.prompt_waiting = False
+            line = self.precmd(line)
+            stop = self.onecmd(line)
+            stop = self.postcmd(stop, line)
+        self.postloop()
+
+    def cmd_input(self, prompt=''):
+        """
+        Get input from frontend. Blocks until return
+        """
+        kernel = get_ipython().kernel
+        # Only works if the comm is open
+        if not kernel.frontend_comm.is_open():
+            return input(prompt)
+
+        # Flush output before making the request.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
+        # Send the input request.
+        self._cmd_input_line = None
+        kernel.frontend_call().pdb_input(prompt)
+
+        # Allow GUI event loop to update
+        is_main_thread = (
+            threading.current_thread() is threading.main_thread())
+
+        # Get input by running eventloop
+        if is_main_thread and kernel.eventloop:
+            while self._cmd_input_line is None:
+                eventloop = kernel.eventloop
+                if eventloop:
+                    eventloop(kernel)
+                else:
+                    break
+
+        # Get input by blocking
+        if self._cmd_input_line is None:
+            kernel.frontend_comm.wait_until(
+                lambda: self._cmd_input_line is not None)
+
+        return self._cmd_input_line
+
     def precmd(self, line):
         """
         Hook method executed just before the command line is
@@ -713,6 +784,8 @@ class SpyderPdb(ipyPdb):
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
+        if fname == self.mainpyfile and self.remote_filename is not None:
+            fname = self.remote_filename
         lineno = frame.f_lineno
 
         if self._previous_step == (fname, lineno):
@@ -792,11 +865,8 @@ class SpyderPdb(ipyPdb):
         debugger.use_rawinput = self.use_rawinput
         debugger.prompt = "(%s) " % self.prompt.strip()
 
-        filename = debugger.canonic(filename)
-        debugger._wait_for_mainpyfile = True
-        debugger.mainpyfile = filename
+        debugger.set_remote_filename(filename)
         debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-        debugger._user_requested_quit = False
 
         # Enter recursive debugger
         sys.call_tracing(debugger.run, (code, globals, locals))
@@ -811,14 +881,16 @@ class SpyderPdb(ipyPdb):
         # but the parent debugger (self) is not aware of this.
         self._previous_step = None
 
+    def set_remote_filename(self, filename):
+        """Set remote filename to signal Spyder on mainpyfile."""
+        self.remote_filename = filename
+        self.mainpyfile = self.canonic(filename)
+        self._wait_for_mainpyfile = True
+
 
 def get_new_debugger(filename, continue_if_has_breakpoints):
     """Get a new debugger."""
     debugger = SpyderPdb()
-
-    filename = debugger.canonic(filename)
-    debugger._wait_for_mainpyfile = True
-    debugger.mainpyfile = filename
+    debugger.set_remote_filename(filename)
     debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-    debugger._user_requested_quit = False
     return debugger

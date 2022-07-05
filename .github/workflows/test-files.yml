@@ -9,11 +9,13 @@ on:
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
-      - 'requirements/*.txt'
+      - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
   pull_request:
     branches:
@@ -23,11 +25,13 @@ on:
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
-      - 'requirements/*.txt'
+      - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
 jobs:
   build:
