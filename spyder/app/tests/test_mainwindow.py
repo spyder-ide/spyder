@@ -3556,8 +3556,11 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
     # ---- Run file ----
+    run_action = main_window.run.get_action('run')
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_F5)
+        qtbot.mouseClick(run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
@@ -3580,7 +3583,7 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
 
     # ---- Run file again ----
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_F5)
+        qtbot.mouseClick(run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
