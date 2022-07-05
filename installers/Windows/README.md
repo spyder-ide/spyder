@@ -70,7 +70,7 @@ pip install yarg
 
 Before running the `installer.py` script, you must set first some environment variables. The list below shows all the variables that must be created:
 - URL to download assets that the installer needs and that will be put on the assets directory when building the installer.
-	 - `ASSETS_URL=https://github.com/spyder-ide/windows-installer-assets/releases/download/0.0.7/assets.zip`
+	 - `ASSETS_URL=https://github.com/spyder-ide/windows-installer-assets/releases/latest/download/assets.zip`
 
     Note: *This link points to the repository where the assets/extra files used by the installer construction process can be found and are being managed.*
 - Packages to remove from the requirements for example pip or external direct dependencies (e.g. python-lsp-server or spyder-kernels).

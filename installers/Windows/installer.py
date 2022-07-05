@@ -41,7 +41,7 @@ import yarg
 ASSETS_URL = os.environ.get(
     'ASSETS_URL',
     'https://github.com/spyder-ide/windows-installer-assets/'
-    'releases/download/0.0.1/assets.zip')
+    'releases/latest/download/assets.zip')
 
 # Packages to remove from the requirements for example pip or
 # external direct dependencies (python-lsp-server spyder-kernels)
