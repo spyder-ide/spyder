@@ -201,7 +201,6 @@ class RunContainer(PluginMainContainer):
             self.dialog.open()
         else:
             self.dialog.run_btn_clicked()
-            self.dialog.accept()
 
     def process_run_dialog_result(self, result):
         status = self.dialog.status

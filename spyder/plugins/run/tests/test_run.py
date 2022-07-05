@@ -30,7 +30,8 @@ from spyder.plugins.run.api import (
     RunExecutor, RunConfigurationProvider, RunConfigurationMetadata, Context,
     RunConfiguration, SupportedExtensionContexts,
     RunExecutorConfigurationGroup, ExtendedRunExecutionParameters,
-    PossibleRunResult, RunContext, ExtendedContext, RunActions, run_execute)
+    PossibleRunResult, RunContext, ExtendedContext, RunActions, run_execute,
+    WorkingDirSource)
 from spyder.plugins.run.plugin import Run
 
 logger = logging.getLogger(__name__)
@@ -119,7 +120,11 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
             self, context: str,
             action_name: Optional[str] = None,
             re_run: bool = False) -> Optional[RunConfiguration]:
-        metadata = self.run_configurations[self.current_uuid]
+        metadata = copy.deepcopy(self.run_configurations[self.current_uuid])
+        inverse_run_ctx = {RunContext[k]: k for k in RunContext}
+        metadata['context'] = Context(name=inverse_run_ctx[context],
+                                      identifier=context)
+
         name = metadata['name']
         source = metadata['source']
         path = metadata['path']
@@ -409,7 +414,7 @@ def test_run_plugin(qtbot, run_mock):
                 'opt1': True,
                 'opt2': False,
                 'opt3': False
-            }, True, 'ext', True
+            }, True, 'context', True
         ),
         (
             'ext3', 'RegisteredContext', 0, {
@@ -447,8 +452,8 @@ def test_run_plugin(qtbot, run_mock):
     assert not act.isEnabled()
 
     # Spawn the configuration dialog
-    act = run.get_action(RunActions.Run)
-    act.trigger()
+    run_act = run.get_action(RunActions.Run)
+    run_act.trigger()
 
     expected_configurations = []
     total_prov_1_conf = zip(
@@ -542,7 +547,84 @@ def test_run_plugin(qtbot, run_mock):
     ext, context, name = expected_configurations[0]
     available_executors = executors_per_conf[(ext, context)]
     executor_name, default_conf, _, handler = available_executors[0]
-    # print(executor_name, default_conf, handler)
+    conf_copy = copy.deepcopy(default_conf)
+
+    conf_copy['opt2'] = 'Test'
+    actual_run_input = run_input['run_input']
+    metadata = run_input['metadata']
+
+    name = metadata['name']
+    source = metadata['source']
+    path = metadata['path']
+    context = metadata['context']
+    run_conf_uuid = metadata['uuid']
+    ext = metadata['input_extension']
+
+    contents = actual_run_input['contents']
+    assert contents == (f'File: {name} | Location: {path} | Source: {source} '
+                        f'| Context: {context["name"]} | Ext: {ext}')
+
     assert test_executor_name == executor_name
+    assert handler == 'both'
 
+    # Ensure that the executor run configuration is transient
+    assert exec_conf['uuid'] is None
+    assert exec_conf['name'] is None
 
+    # Check that the configuration parameters are the ones defined by the
+    # dialog
+    params = exec_conf['params']
+    working_dir = params['working_dir']
+    assert params['executor_params'] == conf_copy
+    assert working_dir['source'] == WorkingDirSource.CurrentDirectory
+    assert working_dir['path'] == temp_cwd
+
+    # Assert that the run_exec dispatcher works for the specific combination
+    assert handler_name == f'{ext}_{context["identifier"]}'
+
+    # Assert that the run configuration gets registered without executor params
+    stored_run_params = run.get_last_used_executor_parameters(run_conf_uuid)
+    assert stored_run_params['executor'] == test_executor_name
+    assert stored_run_params['selected'] is None
+    assert not stored_run_params['display_dialog']
+    assert not stored_run_params['first_execution']
+
+    # The configuration gets run again
+    with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
+        run_act.trigger()
+
+    # Assert that the transient run executor parameters reverted to the
+    # default ones
+    _, _, _, exec_conf = sig.args[0]
+    params = exec_conf['params']
+    working_dir = params['working_dir']
+    assert working_dir['source'] == WorkingDirSource.ConfigurationDirectory
+    assert working_dir['path'] == ''
+    assert params['executor_params'] == default_conf
+
+    # Focus into another configuration
+    exec_provider_2.switch_focus('ext3', 'AnotherSuperContext')
+
+    # Re-run last configuration
+    re_run_act = run.get_action(RunActions.ReRun)
+
+    with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
+        re_run_act.trigger()
+
+    # Assert that the previously ran configuration is the same as the current
+    # one
+    _, _, run_input, _ = sig.args[0]
+    re_run_metadata = run_input['metadata']
+    assert re_run_metadata == metadata
+
+    # Run a subordinate context on the same executor
+    subordinate_act = exec_provider_1.actions['SubordinateContext1']
+    with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
+        subordinate_act.trigger()
+
+    subord_executor_name, handler_name, run_input, exec_conf = sig.args[0]
+    available_executors = executors_per_conf[('ext1', 'SubordinateContext1')]
+    executor_name, default_conf, _, handler = available_executors[1]
+
+    assert subord_executor_name == executor_name
+    assert handler_name == 'ext_ext1'
