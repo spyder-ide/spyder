@@ -551,7 +551,7 @@ def test_cython_client(ipyconsole, qtbot):
 def test_tab_rename_for_slaves(ipyconsole, qtbot):
     """Test slave clients are renamed correctly."""
     cf = ipyconsole.get_current_client().connection_file
-    ipyconsole.get_widget()._create_client_for_kernel(cf, None, None, None)
+    ipyconsole.create_client_for_kernel(cf)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     # Rename slave
@@ -1214,7 +1214,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     connection_file = osp.basename(client.connection_file)
     id_ = connection_file.split('kernel-')[-1].split('.json')[0]
 
-    ipyconsole.get_widget()._create_client_for_kernel(id_, None, None, None)
+    ipyconsole.create_client_for_kernel(id_)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     new_client = ipyconsole.get_clients()[1]
@@ -1233,7 +1233,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     connection_file = to_text_string(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
-    ipyconsole.get_widget()._create_client_for_kernel(connection_file, None, None, None)
+    ipyconsole.create_client_for_kernel(connection_file)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     assert len(ipyconsole.get_clients()) == 2
@@ -1248,8 +1248,7 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     shell = ipyconsole.get_current_shellwidget()
     client = ipyconsole.get_current_client()
 
-    ipyconsole.get_widget()._create_client_for_kernel(
-        client.connection_file, None, None, None)
+    ipyconsole.create_client_for_kernel(client.connection_file)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     new_client = ipyconsole.get_clients()[1]
@@ -1331,8 +1330,7 @@ def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
     client = ipyconsole.get_current_client()
 
     # New client with the same kernel
-    ipyconsole.get_widget()._create_client_for_kernel(
-        client.connection_file, None, None, None)
+    ipyconsole.create_client_for_kernel(client.connection_file)
     assert len(ipyconsole.get_widget().get_related_clients(client)) == 1
     other_client = ipyconsole.get_widget().get_related_clients(client)[0]
     assert client.stderr_obj.filename == other_client.stderr_obj.filename
@@ -1353,8 +1351,7 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     client = ipyconsole.get_current_client()
 
     # New client with the same kernel
-    ipyconsole.get_widget()._create_client_for_kernel(
-        client.connection_file, None, None, None)
+    ipyconsole.create_client_for_kernel(client.connection_file)
 
     assert len(ipyconsole.get_widget().get_related_clients(client)) == 1
     other_client = ipyconsole.get_widget().get_related_clients(client)[0]
