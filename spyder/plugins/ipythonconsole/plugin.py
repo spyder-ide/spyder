@@ -13,7 +13,7 @@ import os
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -329,6 +329,12 @@ class IPythonConsole(SpyderDockablePlugin):
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
 
+    @on_plugin_available(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_available(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.connect(
+            self._set_working_directory)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Register conf page
@@ -370,6 +376,12 @@ class IPythonConsole(SpyderDockablePlugin):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_teardown(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.disconnect(
+            self._set_working_directory)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -425,11 +437,10 @@ class IPythonConsole(SpyderDockablePlugin):
                     except Exception:
                         pass
 
-    def _get_working_directory(self):
-        """Get current working directory from its plugin."""
-        workdir = self.get_plugin(Plugins.WorkingDirectory)
-        if workdir:
-            return workdir.get_workdir()
+    @Slot(str)
+    def _set_working_directory(self, new_dir):
+        """Set current working directory on the main widget."""
+        self.get_widget().set_working_directory(new_dir)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -452,7 +463,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().register_spyder_kernel_call_handler(
             handler_id, handler)
@@ -470,7 +480,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().unregister_spyder_kernel_call_handler(handler_id)
 
@@ -490,6 +499,23 @@ class IPythonConsole(SpyderDockablePlugin):
     def get_current_shellwidget(self):
         """Return the shellwidget of the current client"""
         return self.get_widget().get_current_shellwidget()
+
+    def rename_client_tab(self, client, given_name):
+        """
+        Rename a client's tab.
+
+        Parameters
+        ----------
+        client: spyder.plugins.ipythonconsole.widgets.client.ClientWidget
+            Client to rename.
+        given_name: str
+            New name to be given to the client's tab.
+
+        Returns
+        -------
+        None.
+        """
+        self.get_widget().rename_client_tab(client, given_name)
 
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None):
@@ -519,7 +545,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().create_new_client(
             give_focus=give_focus,
@@ -543,9 +568,35 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().create_client_for_file(filename, is_cython=is_cython)
+
+    def create_client_for_kernel(self, connection_file, hostname=None,
+                                 sshkey=None, password=None):
+        """
+        Create a client connected to an existing kernel.
+
+        Parameters
+        ----------
+        connection_file: str
+            Json file that has the kernel's connection info.
+        hostname: str, optional
+            Name or IP address of the remote machine where the kernel was
+            started. When this is provided, it's also necessary to pass either
+            the ``sshkey`` or ``password`` arguments.
+        sshkey: str, optional
+            SSH key file to connect to the remote machine where the kernel is
+            running.
+        password: str, optional
+            Password to authenticate to the remote machine where the kernel is
+            running.
+
+        Returns
+        -------
+        None.
+        """
+        self.get_widget().create_client_for_kernel(
+            connection_file, hostname, sshkey, password)
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file name."""
@@ -599,7 +650,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().run_script(
             filename,
@@ -639,7 +689,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().run_cell(
             code, cell_name, filename, run_cell_copy, focus_to_editor,
@@ -669,7 +718,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy,
                                      focus_to_editor)
@@ -692,7 +740,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().execute_code(
             lines,
@@ -734,7 +781,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().pdb_execute_command(command)
 
@@ -745,7 +791,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().print_debug_file_msg()
 
@@ -762,7 +807,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().set_current_client_working_directory(directory)
 
@@ -779,7 +823,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().set_working_directory(dirname)
 
@@ -804,7 +847,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().update_path(path_dict, new_path_dict)
 
@@ -828,7 +870,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().restart_kernel()
 
