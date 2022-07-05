@@ -178,4 +178,5 @@ class TextDecorationsManager(Manager, QObject):
         return sorted(
             [v for key in self._decorations
              for v in self._decorations[key]],
-            key=order_function)
+            key=order_function
+        )
