@@ -38,7 +38,8 @@ logger = logging.getLogger(__name__)
 
 
 class MockedMainWindow(QWidget, MagicMock):
-    pass
+    def get_plugin(self, name):
+        return MagicMock()
 
 
 class ExampleConfigurationProvider(RunConfigurationProvider):
@@ -101,6 +102,18 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
                                         add_to_menu=False)
 
             self.actions[context_name] = act
+
+    def on_run_teardown(self, run):
+        run.deregister_run_configuration_provider(
+            self.provider_name, self.supported_extensions)
+
+        for uuid in self.run_configurations:
+            # metadata = self.run_configurations[uuid]
+            run.deregister_run_configuration_metadata(uuid)
+
+        for context_name in list(self.actions):
+            run.destroy_run_button(getattr(RunContext, context_name))
+            self.actions.pop(context_name)
 
     def get_run_configuration(self, uuid: str) -> RunConfiguration:
         metadata = self.run_configurations[uuid]
@@ -294,6 +307,11 @@ class ExampleRunExecutorWrapper(RunExecutor):
             )
             self.actions[context_id] = act
 
+    def on_run_teardown(self, run):
+        run.deregister_executor_configuration(self, self.executor_configuration)
+        for context_id in list(self.actions):
+            run.destroy_run_in_executor_button(context_id, self.NAME)
+            self.actions.pop(context_id)
 
 class MetaExampleRunExecutor(type(ExampleRunExecutorWrapper)):
     def __new__(cls, clsname, bases, attrs):
@@ -628,3 +646,134 @@ def test_run_plugin(qtbot, run_mock):
 
     assert subord_executor_name == executor_name
     assert handler_name == 'ext_ext1'
+
+    actual_run_input = run_input['run_input']
+    metadata = run_input['metadata']
+
+    name = metadata['name']
+    source = metadata['source']
+    path = metadata['path']
+    context = metadata['context']
+    run_conf_uuid = metadata['uuid']
+    ext = metadata['input_extension']
+
+    contents = actual_run_input['contents']
+    action = actual_run_input['action']
+    re_run = actual_run_input['re_run']
+    assert contents == (f'File: {name} | Location: {path} | Source: {source} '
+                        f'| Context: {context["name"]} | Ext: {ext} '
+                        f'| Action: {action} | Re-run: {re_run}')
+
+    params = exec_conf['params']
+    working_dir = params['working_dir']
+    assert params['executor_params'] == default_conf
+    assert working_dir['source'] == WorkingDirSource.ConfigurationDirectory
+    assert working_dir['path'] == ''
+
+    # Run a subordinate context on a different executor
+    subordinate_act = exec_provider_2.actions['SubordinateContext2']
+    with qtbot.waitSignal(executor_2.sig_run_invocation) as sig:
+        subordinate_act.trigger()
+
+    subord_executor_name, handler_name, run_input, exec_conf = sig.args[0]
+    available_executors = executors_per_conf[('ext1', 'SubordinateContext2')]
+    executor_name, default_conf, _, handler = available_executors[0]
+
+    assert subord_executor_name == executor_name
+    assert handler_name == 'context_subordinate_context2'
+
+    actual_run_input = run_input['run_input']
+    metadata = run_input['metadata']
+
+    name = metadata['name']
+    source = metadata['source']
+    path = metadata['path']
+    context = metadata['context']
+    run_conf_uuid = metadata['uuid']
+    ext = metadata['input_extension']
+
+    contents = actual_run_input['contents']
+    action = actual_run_input['action']
+    re_run = actual_run_input['re_run']
+    assert contents == (f'File: {name} | Location: {path} | Source: {source} '
+                        f'| Context: {context["name"]} | Ext: {ext} '
+                        f'| Action: {action} | Re-run: {re_run}')
+
+    params = exec_conf['params']
+    working_dir = params['working_dir']
+    assert params['executor_params'] == default_conf
+    assert working_dir['source'] == WorkingDirSource.ConfigurationDirectory
+    assert working_dir['path'] == ''
+
+    # Invoke another executor using one of the dedicated actions
+    executor_act = executor_2.actions[RunContext.SubordinateContext1]
+    with qtbot.waitSignal(executor_2.sig_run_invocation) as sig:
+        subordinate_act.trigger()
+
+    used_executor_name, handler_name, run_input, exec_conf = sig.args[0]
+    available_executors = executors_per_conf[('ext1', 'SubordinateContext1')]
+    executor_name, default_conf, _, handler = available_executors[0]
+
+    assert used_executor_name == executor_name
+
+    # Switch to other run configuration and register a set of custom run
+    # executor parameters
+    exec_provider_2.switch_focus('ext3', 'AnotherSuperContext')
+
+    # Spawn the configuration dialog
+    run_act = run.get_action(RunActions.Run)
+    run_act.trigger()
+
+    dialog = container.dialog
+    with qtbot.waitSignal(dialog.finished, timeout=200000):
+        conf_combo = dialog.configuration_combo
+        exec_combo = dialog.executor_combo
+        store_params_cb = dialog.store_params_cb
+        store_params_text = dialog.store_params_text
+
+        # Modify some options
+        conf_widget = dialog.current_widget
+        conf_widget.widgets['name_1'].setChecked(True)
+        conf_widget.widgets['name_2'].setChecked(False)
+
+        # Make sure that the custom configuration is stored
+        store_params_cb.setChecked(True)
+        store_params_text.setText('CustomParams')
+
+        # Execute the configuration
+        buttons = dialog.bbox.buttons()
+        run_btn = buttons[2]
+        with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
+            qtbot.mouseClick(run_btn, Qt.LeftButton)
+
+    executor_name, _, run_input, exec_conf = sig.args[0]
+
+    # Ensure that the configuration got saved
+    saved_params = run.get_executor_configuration_parameters(
+        executor_name, 'ext3', RunContext.AnotherSuperContext)
+    executor_params = saved_params['params']
+    assert len(executor_params) == 1
+
+    # Check that the configuration passed to the executor is the same that was
+    # saved.
+    exec_conf_uuid = exec_conf['uuid']
+    current_saved_params = executor_params[exec_conf_uuid]
+    current_saved_params['params']['working_dir']['path'] = ''
+    assert current_saved_params == exec_conf
+    assert current_saved_params['name'] == 'CustomParams'
+
+    # Check that the run configuration points to the latest saved parameters
+    metadata = run_input['metadata']
+    run_conf_uuid = metadata['uuid']
+    stored_run_params = run.get_last_used_executor_parameters(run_conf_uuid)
+    assert stored_run_params['executor'] == executor_name
+    assert stored_run_params['selected'] == exec_conf_uuid
+    assert not stored_run_params['display_dialog']
+    assert not stored_run_params['first_execution']
+
+    # Test teardown functions
+    executor_1.on_run_teardown(run)
+    executor_2.on_run_teardown(run)
+
+    exec_provider_1.on_run_teardown(run)
+    exec_provider_2.on_run_teardown(run)

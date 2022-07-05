@@ -580,8 +580,6 @@ class RunContainer(PluginMainContainer):
         else:
             self.supported_extension_contexts.pop(provider_name, set({}))
 
-        self.set_actions_status()
-
     def register_run_configuration_metadata(
             self, provider: RunConfigurationProvider,
             metadata: RunConfigurationMetadata):
