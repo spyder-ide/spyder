@@ -2,7 +2,7 @@
 on:
   pull_request:
     paths:
-      - 'requirements/*.txt'
+      - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'

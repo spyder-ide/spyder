@@ -1,6 +1,11 @@
 on:
   pull_request:
     paths:
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
       - '!installers/Windows/**'
       - '!.github/workflows/installer-win.yml'
 
