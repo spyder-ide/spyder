@@ -333,7 +333,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_working_directory_available(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.connect(
-            self._save_working_directory)
+            self._set_working_directory)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -381,7 +381,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_working_directory_teardown(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.disconnect(
-            self._save_working_directory)
+            self._set_working_directory)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -438,9 +438,9 @@ class IPythonConsole(SpyderDockablePlugin):
                         pass
 
     @Slot(str)
-    def _save_working_directory(self, new_dir):
-        """Save current working directory on the main widget."""
-        self.get_widget().current_working_directory = new_dir
+    def _set_working_directory(self, new_dir):
+        """Set current working directory on the main widget."""
+        self.get_widget().set_working_directory(new_dir)
 
     # ---- Public API
     # -------------------------------------------------------------------------

@@ -386,7 +386,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 if project_path is not None:
                     cwd_path = project_path
             elif self.get_conf('console/use_cwd', section='workingdir'):
-                cwd_path = self.container.current_working_directory
+                cwd_path = self.container.get_working_directory()
             elif self.get_conf(
                 'console/use_fixed_directory',
                 section='workingdir'

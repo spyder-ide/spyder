@@ -1860,7 +1860,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Connect to working directory
         shellwidget.sig_working_directory_changed.connect(
-            self.set_working_directory)
+            self.working_directory_changed)
 
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
@@ -2372,17 +2372,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
     # ---- For working directory and path management
-    @property
-    def current_working_directory(self):
+    def set_working_directory(self, new_dir):
         """
-        Current working directory, as reported by the Working Directory plugin.
+        Set current working directory when changed by the Working Directory
+        plugin.
         """
-        return self._current_working_directory
+        self._current_working_directory = new_dir
 
-    @current_working_directory.setter
-    def current_working_directory(self, new_value):
-        """Set current working directory"""
-        self._current_working_directory = new_value
+    def get_working_directory(self):
+        """Get current working directory."""
+        return self._current_working_directory
 
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""
@@ -2390,10 +2389,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         if shellwidget is not None:
             shellwidget.set_cwd(directory)
 
-    def set_working_directory(self, dirname):
+    def working_directory_changed(self, dirname):
         """
-        Set current working directory in the workingdirectory and explorer
-        plugins.
+        Notify that the working directory was changed in the current console
+        to other plugins.
         """
         if osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)

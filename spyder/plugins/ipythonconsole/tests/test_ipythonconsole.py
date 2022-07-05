@@ -2281,7 +2281,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
 
     # Simulate a specific directory
     cwd_dir = str(tmpdir.mkdir('ipyconsole_cwd_test'))
-    ipyconsole.get_widget().current_working_directory = cwd_dir
+    ipyconsole.get_widget().set_working_directory(cwd_dir)
 
     # Get cwd of new client and assert is the expected one
     assert get_cwd_of_new_client() == cwd_dir
