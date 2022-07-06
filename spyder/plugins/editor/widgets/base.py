@@ -52,7 +52,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.has_cell_separators = False
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.extra_selections_dict = {}
         self._restore_selection_pos = None
 
         # Trailing newlines/spaces trimming
@@ -168,7 +167,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Returns:
             list of sourcecode.api.TextDecoration.
         """
-        return self.extra_selections_dict.get(key, [])
+        return self.decorations.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
         """Set extra selections for a key.
@@ -191,7 +190,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             selection.draw_order = draw_order
             selection.kind = key
 
-        self.extra_selections_dict[key] = extra_selections
         self.decorations.add_key(key, extra_selections)
         self.update()
 
@@ -202,7 +200,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             key (str) name of the extra selections group.
         """
         self.decorations.remove_key(key)
-        self.extra_selections_dict[key] = []
         self.update()
 
     def get_visible_block_numbers(self):

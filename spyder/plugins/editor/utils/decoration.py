@@ -109,6 +109,10 @@ class TextDecorationsManager(Manager, QObject):
         except KeyError:
             pass
 
+    def get(self, key, default=None):
+        """Get a key from decorations."""
+        return self._decorations.get(key, default)
+
     def clear(self):
         """Removes all text decoration from the editor."""
         self._decorations = {"misc": []}
