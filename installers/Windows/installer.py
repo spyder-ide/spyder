@@ -370,10 +370,16 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
                 os.path.join(work_dir, "micromamba.exe"))
 
             print("Copying NSIS plugins into discoverable path")
-            shutil.copy(
-                "installers/Windows/assets/nsist/plugins/x86-unicode/"
-                "WinShell.dll",
-                "C:/Program Files (x86)/NSIS/Plugins/x86-unicode/WinShell.dll")
+            contents = os.listdir(
+                "installers/Windows/assets/nsist/plugins/x86-unicode/")
+            for element in contents:
+                shutil.copy(
+                    os.path.join(
+                        "installers/Windows/assets/nsist/plugins/x86-unicode/",
+                        element),
+                    os.path.join(
+                        "C:/Program Files (x86)/NSIS/Plugins/x86-unicode/",
+                        element))
 
             if template:
                 print("Copying template into discoverable path for Pynsist")
