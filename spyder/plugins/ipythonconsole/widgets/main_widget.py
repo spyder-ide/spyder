@@ -48,6 +48,7 @@ from spyder.utils.palette import QStylePalette
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
+from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
 
 
 # Localization
@@ -57,17 +58,17 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_MIN_VERSION = '2.2.0'
-SPYDER_KERNELS_MAX_VERSION = '2.3.0'
+SPYDER_KERNELS_MIN_VERSION = '2.3.0'
+SPYDER_KERNELS_MAX_VERSION = '2.4.0'
 SPYDER_KERNELS_VERSION = (
     f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
 SPYDER_KERNELS_VERSION_MSG = _(
     '>= {0} and < {1}').format(
         SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
 SPYDER_KERNELS_CONDA = (
-    f'conda install spyder-kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
+    f'conda install spyder&#45;kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
 SPYDER_KERNELS_PIP = (
-    f'pip install spyder-kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
+    f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 
 class IPythonConsoleWidgetActions:
@@ -162,11 +163,6 @@ class IPythonConsoleWidget(PluginMainWidget):
     This signal will request to change the focus to the plugin.
     """
 
-    sig_editor_focus_requested = Signal()
-    """
-    This signal will request to change the focus to the editor if available.
-    """
-
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
@@ -183,6 +179,16 @@ class IPythonConsoleWidget(PluginMainWidget):
     processevents: bool
         True if the code editor need to process qt events when loading the
         requested file.
+    """
+
+    sig_edit_new = Signal(str)
+    """
+    This signal will request to create a new file in a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
     """
 
     sig_pdb_state_changed = Signal(bool, dict)
@@ -286,16 +292,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, name=None, plugin=None, parent=None,
-                 configuration=None):
-        super().__init__(name, plugin, parent, configuration=configuration)
+    def __init__(self, name=None, plugin=None, parent=None):
+        super().__init__(name, plugin, parent)
 
         self.menu_actions = None
         self.master_clients = 0
         self.clients = []
         self.filenames = []
         self.mainwindow_close = False
-        self.projects_available = False
         self.active_project_path = None
         self.create_new_client_if_empty = True
         self.css_path = self.get_conf('css_path', section='appearance')
@@ -303,6 +307,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.interrupt_action = None
         self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
+
+        # Disable infowidget if requested by the user
+        self.enable_infowidget = True
+        if plugin:
+            cli_options = plugin.get_command_line_options()
+            if cli_options.no_web_widgets:
+                self.enable_infowidget = False
 
         # Attrs for testing
         self._testing = bool(os.environ.get('IPYCONSOLE_TESTING'))
@@ -344,13 +355,17 @@ class IPythonConsoleWidget(PluginMainWidget):
             layout.addWidget(self.tabwidget)
 
         # Info widget
-        self.infowidget = FrameWebView(self)
-        if WEBENGINE:
-            self.infowidget.page().setBackgroundColor(QColor(MAIN_BG_COLOR))
+        if self.enable_infowidget:
+            self.infowidget = FrameWebView(self)
+            if WEBENGINE:
+                self.infowidget.page().setBackgroundColor(
+                    QColor(MAIN_BG_COLOR))
+            else:
+                self.infowidget.setStyleSheet(
+                    "background:{}".format(MAIN_BG_COLOR))
+            layout.addWidget(self.infowidget)
         else:
-            self.infowidget.setStyleSheet(
-                "background:{}".format(MAIN_BG_COLOR))
-        layout.addWidget(self.infowidget)
+            self.infowidget = None
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
@@ -377,6 +392,16 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Needed to start Spyder in Windows with Python 3.8
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
+
+        # To cache kernel properties
+        self._cached_kernel_properties = None
+
+        # Initial value for the current working directory
+        self._current_working_directory = get_home_dir()
+
+    def on_close(self):
+        self.mainwindow_close = True
+        self.close_clients()
 
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
@@ -422,7 +447,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             text=_("Connect to an existing kernel"),
             tip=_("Open a new IPython console connected to an existing "
                   "kernel"),
-            triggered=self.create_client_for_kernel,
+            triggered=self._create_client_for_kernel,
         )
         self.rename_tab_action = self.create_action(
             IPythonConsoleWidgetActions.RenameTab,
@@ -786,15 +811,22 @@ class IPythonConsoleWidget(PluginMainWidget):
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend'])
-    def change_possible_restart_conf(self, option, value):
-        """Apply options that possibly require a kernel restart."""
+        'pylab', 'pylab/backend', 'pylab/autoload',
+        'pylab/inline/figure_format', 'pylab/inline/resolution',
+        'pylab/inline/width', 'pylab/inline/height',
+        'pylab/inline/bbox_inches'])
+    def change_possible_restart_and_mpl_conf(self, option, value):
+        """
+        Apply options that possibly require a kernel restart or related to
+        Matplotlib inline backend options.
+        """
         # Check that we are not triggering validations in the initial
         # notification sent when Spyder is starting or when another option
         # already required a restart and the restart dialog was shown
-        if option in self.initial_conf_options:
-            self.initial_conf_options.remove(option)
-            return
+        if not self._testing:
+            if option in self.initial_conf_options:
+                self.initial_conf_options.remove(option)
+                return
 
         restart_needed = False
         restart_options = []
@@ -818,20 +850,46 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         inline_backend = 0
         pylab_restart = False
-        client_backend_not_inline = [False] * len(self.clients)
+        clients_backend_require_restart = [False] * len(self.clients)
         current_client = self.get_current_client()
-        current_client_backend_not_inline = False
+        current_client_backend_require_restart = False
         if pylab_o and pylab_backend_n == option and current_client:
             pylab_backend_o = self.get_conf(pylab_backend_n)
-            client_backend_not_inline = [
-                client.shellwidget.get_matplotlib_backend() != inline_backend
-                for client in self.clients]
-            current_client_backend_not_inline = (
-                current_client.shellwidget.get_matplotlib_backend()
-                != inline_backend)
-            pylab_restart = (
-                any(client_backend_not_inline) and
-                pylab_backend_o != inline_backend)
+
+            # Check if clients require a restart due to a change in
+            # interactive backend.
+            clients_backend_require_restart = []
+            for client in self.clients:
+                interactive_backend = (
+                    client.shellwidget.get_mpl_interactive_backend())
+
+                if (
+                    # No restart is needed if the new backend is inline
+                    pylab_backend_o != inline_backend and
+                    # There was an error getting the interactive backend in
+                    # the kernel, so we can't proceed.
+                    interactive_backend is not None and
+                    # There has to be an interactive backend (i.e. different
+                    # from inline) set in the kernel before. Else, a restart
+                    # is not necessary.
+                    interactive_backend != inline_backend and
+                    # The interactive backend to switch to has to be different
+                    # from the current one
+                    interactive_backend != pylab_backend_o
+                ):
+                    clients_backend_require_restart.append(True)
+
+                    # Detect if current client requires restart
+                    if id(client) == id(current_client):
+                        current_client_backend_require_restart = True
+
+                        # For testing
+                        if self._testing:
+                            os.environ['BACKEND_REQUIRE_RESTART'] = 'true'
+                else:
+                    clients_backend_require_restart.append(False)
+
+            pylab_restart = any(clients_backend_require_restart)
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
             self.initial_conf_options = self.get_conf_options()
@@ -848,8 +906,11 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Apply settings
         options = {option: value}
         for idx, client in enumerate(self.clients):
-            restart = ((pylab_restart and client_backend_not_inline[idx]) or
-                       restart_needed)
+            restart = (
+                (pylab_restart and clients_backend_require_restart[idx]) or
+                restart_needed
+            )
+
             if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
@@ -868,7 +929,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.restart_kernel()
                 client.ask_before_restart = current_ask_before_restart
 
-        if (((pylab_restart and current_client_backend_not_inline)
+        if (((pylab_restart and current_client_backend_require_restart)
              or restart_needed) and restart_current and current_client):
             current_client_ask_before_restart = (
                 current_client.ask_before_restart)
@@ -1014,147 +1075,21 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.sig_shellwidget_created.emit(client.shellwidget)
 
     def _shellwidget_deleted(self, client):
-        self.sig_shellwidget_deleted.emit(client.shellwidget)
-
-    def _create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                  password):
-        # Verifying if the connection file exists
         try:
-            cf_path = osp.dirname(connection_file)
-            cf_filename = osp.basename(connection_file)
-            # To change a possible empty string to None
-            cf_path = cf_path if cf_path else None
-            connection_file = find_connection_file(filename=cf_filename,
-                                                   path=cf_path)
-            if os.path.splitext(connection_file)[1] != ".json":
-                # There might be a file with the same id in the path.
-                connection_file = find_connection_file(
-                    filename=cf_filename + ".json", path=cf_path)
-        except (IOError, UnboundLocalError):
-            QMessageBox.critical(self, _('IPython'),
-                                 _("Unable to connect to "
-                                   "<b>%s</b>") % connection_file)
+            self.sig_shellwidget_deleted.emit(client.shellwidget)
+        except RuntimeError:
+            pass
+
+    @Slot()
+    def _create_client_for_kernel(self):
+        """Create a client connected to an existing kernel"""
+        connect_output = KernelConnectionDialog.get_connection_parameters(self)
+        (connection_file, hostname, sshkey, password, ok) = connect_output
+        if not ok:
             return
-
-        # Getting the master id that corresponds to the client
-        # (i.e. the i in i/A)
-        master_id = None
-        given_name = None
-        is_external_kernel = True
-        known_spyder_kernel = False
-        slave_ord = ord('A') - 1
-        kernel_manager = None
-
-        for cl in self.clients:
-            if connection_file in cl.connection_file:
-                if cl.get_kernel() is not None:
-                    kernel_manager = cl.get_kernel()
-                connection_file = cl.connection_file
-                if master_id is None:
-                    master_id = cl.id_['int_id']
-                    is_external_kernel = cl.shellwidget.is_external_kernel
-                    known_spyder_kernel = cl.shellwidget.is_spyder_kernel
-                given_name = cl.given_name
-                new_slave_ord = ord(cl.id_['str_id'])
-                if new_slave_ord > slave_ord:
-                    slave_ord = new_slave_ord
-
-        # If we couldn't find a client with the same connection file,
-        # it means this is a new master client
-        if master_id is None:
-            self.master_clients += 1
-            master_id = str(self.master_clients)
-
-        # Set full client name
-        client_id = dict(int_id=master_id,
-                         str_id=chr(slave_ord + 1))
-
-        # Creating the client
-        show_elapsed_time = self.get_conf('show_elapsed_time')
-        reset_warning = self.get_conf('show_reset_namespace_warning')
-        ask_before_restart = self.get_conf('ask_before_restart')
-        client = ClientWidget(self,
-                              id_=client_id,
-                              given_name=given_name,
-                              history_filename=get_conf_path('history.py'),
-                              config_options=self.config_options(),
-                              additional_options=self.additional_options(),
-                              interpreter_versions=self.interpreter_versions(),
-                              connection_file=connection_file,
-                              context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
-                              hostname=hostname,
-                              is_external_kernel=is_external_kernel,
-                              is_spyder_kernel=known_spyder_kernel,
-                              show_elapsed_time=show_elapsed_time,
-                              reset_warning=reset_warning,
-                              ask_before_restart=ask_before_restart,
-                              css_path=self.css_path,
-                              configuration=self.CONFIGURATION,
-                              handlers=self.registered_spyder_kernel_handlers,
-                              std_dir=self._test_dir)
-
-        # Create kernel client
-        kernel_client = QtKernelClient(connection_file=connection_file)
-
-        # This is needed for issue spyder-ide/spyder#9304.
-        try:
-            kernel_client.load_connection_file()
-        except Exception as e:
-            QMessageBox.critical(self, _('Connection error'),
-                                 _("An error occurred while trying to load "
-                                   "the kernel connection file. The error "
-                                   "was:\n\n") + str(e))
-            return
-
-        if hostname is not None:
-            try:
-                connection_info = dict(
-                    ip=kernel_client.ip,
-                    shell_port=kernel_client.shell_port,
-                    iopub_port=kernel_client.iopub_port,
-                    stdin_port=kernel_client.stdin_port,
-                    hb_port=kernel_client.hb_port)
-                newports = self.tunnel_to_kernel(connection_info, hostname,
-                                                 sshkey, password)
-                (kernel_client.shell_port,
-                 kernel_client.iopub_port,
-                 kernel_client.stdin_port,
-                 kernel_client.hb_port) = newports
-                # Save parameters to connect comm later
-                kernel_client.ssh_parameters = (hostname, sshkey, password)
-            except Exception as e:
-                QMessageBox.critical(self, _('Connection error'),
-                                     _("Could not open ssh tunnel. The "
-                                       "error was:\n\n") + str(e))
-                return
-
-        # Assign kernel manager and client to shellwidget
-        kernel_client.start_channels()
-        shellwidget = client.shellwidget
-        shellwidget.set_kernel_client_and_manager(
-            kernel_client, kernel_manager)
-        shellwidget.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
-
-        if not known_spyder_kernel:
-            shellwidget.sig_is_spykernel.connect(
-                self.connect_external_spyder_kernel)
-            shellwidget.check_spyder_kernel()
-
-        self.sig_shellwidget_created.emit(shellwidget)
-        kernel_client.stopped_channels.connect(
-            lambda: self.sig_shellwidget_deleted.emit(shellwidget))
-
-        # Set elapsed time, if possible
-        if not is_external_kernel:
-            self.set_client_elapsed_time(client)
-
-        # Adding a new tab for the client
-        self.add_tab(client, name=client.get_name())
-
-        # Register client
-        self.register_client(client)
+        else:
+            self.create_client_for_kernel(connection_file, hostname, sshkey,
+                                          password)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -1165,7 +1100,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self._font = font
         self._rich_font = rich_font
 
-        if self.infowidget:
+        if self.enable_infowidget:
             self.infowidget.set_font(rich_font)
 
         for client in self.clients:
@@ -1189,14 +1124,16 @@ class IPythonConsoleWidget(PluginMainWidget):
             client = self.tabwidget.currentWidget()
 
             # Decide what to show for each client
-            if client.info_page != client.blank_page:
+            if (client.info_page != client.blank_page and
+                    self.enable_infowidget):
                 # Show info_page if it has content
                 client.set_info_page()
                 client.shellwidget.hide()
                 client.layout.addWidget(self.infowidget)
                 self.infowidget.show()
             else:
-                self.infowidget.hide()
+                if self.enable_infowidget:
+                    self.infowidget.hide()
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
@@ -1275,7 +1212,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             pass
 
     def rename_client_tab(self, client, given_name):
-        """Rename client's tab."""
+        """Rename a client's tab."""
         index = self.get_client_index_from_id(id(client))
 
         if given_name is not None:
@@ -1318,6 +1255,8 @@ class IPythonConsoleWidget(PluginMainWidget):
     @Slot(object, object)
     def edit_file(self, filename, line):
         """Handle %edit magic petitions."""
+        if not osp.isfile(filename):
+            self.sig_edit_new.emit(filename)
         if encoding.is_text_file(filename):
             # The default line number sent by ipykernel is always the last
             # one, but we prefer to use the first.
@@ -1469,12 +1408,21 @@ class IPythonConsoleWidget(PluginMainWidget):
     @Slot(bool, bool)
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None):
+                          is_pylab=False, is_sympy=False, given_name=None,
+                          cache=True):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
                          str_id='A')
-        cf = self._new_connection_file()
+        std_dir = self._test_dir if self._test_dir else None
+        cf, km, kc, stderr_obj, stdout_obj = self.get_new_kernel(
+            is_cython, is_pylab, is_sympy, std_dir=std_dir, cache=cache)
+
+        if cf is not None:
+            fault_obj = StdFile(cf, '.fault', std_dir)
+        else:
+            fault_obj = None
+
         show_elapsed_time = self.get_conf('show_elapsed_time')
         reset_warning = self.get_conf('show_reset_namespace_warning')
         ask_before_restart = self.get_conf('ask_before_restart')
@@ -1496,9 +1444,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                               ask_before_restart=ask_before_restart,
                               ask_before_closing=ask_before_closing,
                               css_path=self.css_path,
-                              configuration=self.CONFIGURATION,
                               handlers=self.registered_spyder_kernel_handlers,
-                              std_dir=self._test_dir)
+                              stderr_obj=stderr_obj,
+                              stdout_obj=stdout_obj,
+                              fault_obj=fault_obj)
 
         self.add_tab(
             client, name=client.get_name(), filename=filename,
@@ -1519,16 +1468,25 @@ class IPythonConsoleWidget(PluginMainWidget):
                 version=SPYDER_KERNELS_VERSION)
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
-                    _("Your Python environment or installation doesn't have "
-                      "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed ({0}). "
+                    _("The Python environment or installation whose "
+                      "interpreter is located at"
+                      "<pre>"
+                      "    <tt>{0}</tt>"
+                      "</pre>"
+                      "doesn't have the <tt>spyder-kernels</tt> module or the "
+                      "right version of it installed ({1}). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
-                      "You can install it by running in a system terminal:"
-                      "<br><br>"
-                      "<tt>{1}</tt>"
-                      "<br><br>or<br><br>"
-                      "<tt>{2}</tt>").format(
+                      "You can install it by activating your environment (if "
+                      "necessary) and then running in a system terminal:"
+                      "<pre>"
+                      "    <tt>{2}</tt>"
+                      "</pre>"
+                      "or"
+                      "<pre>"
+                      "    <tt>{3}</tt>"
+                      "</pre>").format(
+                          pyexec,
                           SPYDER_KERNELS_VERSION_MSG,
                           SPYDER_KERNELS_CONDA,
                           SPYDER_KERNELS_PIP
@@ -1536,11 +1494,161 @@ class IPythonConsoleWidget(PluginMainWidget):
                 )
                 return
 
-        self.connect_client_to_kernel(client, is_cython=is_cython,
-                                      is_pylab=is_pylab, is_sympy=is_sympy)
+        self.connect_client_to_kernel(client, km, kc)
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client, give_focus=give_focus)
+
+    def create_client_for_kernel(self, connection_file, hostname, sshkey,
+                                 password):
+        """Create a client connected to an existing kernel."""
+        # Verifying if the connection file exists
+        try:
+            cf_path = osp.dirname(connection_file)
+            cf_filename = osp.basename(connection_file)
+            # To change a possible empty string to None
+            cf_path = cf_path if cf_path else None
+            connection_file = find_connection_file(filename=cf_filename,
+                                                   path=cf_path)
+            if os.path.splitext(connection_file)[1] != ".json":
+                # There might be a file with the same id in the path.
+                connection_file = find_connection_file(
+                    filename=cf_filename + ".json", path=cf_path)
+        except (IOError, UnboundLocalError):
+            QMessageBox.critical(self, _('IPython'),
+                                 _("Unable to connect to "
+                                   "<b>%s</b>") % connection_file)
+            return
+
+        # Getting the master id that corresponds to the client
+        # (i.e. the i in i/A)
+        master_id = None
+        given_name = None
+        is_external_kernel = True
+        known_spyder_kernel = False
+        slave_ord = ord('A') - 1
+        kernel_manager = None
+        stderr_obj = None
+        stdout_obj = None
+        fault_obj = None
+
+        for cl in self.clients:
+            if connection_file in cl.connection_file:
+                if cl.get_kernel() is not None:
+                    kernel_manager = cl.get_kernel()
+                connection_file = cl.connection_file
+                if master_id is None:
+                    master_id = cl.id_['int_id']
+                    is_external_kernel = cl.shellwidget.is_external_kernel
+                    known_spyder_kernel = cl.shellwidget.is_spyder_kernel
+                    if cl.stderr_obj:
+                        stderr_obj = cl.stderr_obj.copy()
+                    if cl.stdout_obj:
+                        stdout_obj = cl.stdout_obj.copy()
+                    if cl.fault_obj:
+                        fault_obj = cl.fault_obj.copy()
+                given_name = cl.given_name
+                new_slave_ord = ord(cl.id_['str_id'])
+                if new_slave_ord > slave_ord:
+                    slave_ord = new_slave_ord
+
+        # If we couldn't find a client with the same connection file,
+        # it means this is a new master client
+        if master_id is None:
+            self.master_clients += 1
+            master_id = str(self.master_clients)
+
+        # Set full client name
+        client_id = dict(int_id=master_id,
+                         str_id=chr(slave_ord + 1))
+
+        # Creating the client
+        show_elapsed_time = self.get_conf('show_elapsed_time')
+        reset_warning = self.get_conf('show_reset_namespace_warning')
+        ask_before_restart = self.get_conf('ask_before_restart')
+        client = ClientWidget(self,
+                              id_=client_id,
+                              given_name=given_name,
+                              history_filename=get_conf_path('history.py'),
+                              config_options=self.config_options(),
+                              additional_options=self.additional_options(),
+                              interpreter_versions=self.interpreter_versions(),
+                              connection_file=connection_file,
+                              context_menu_actions=self.context_menu_actions,
+                              time_label=self.time_label,
+                              hostname=hostname,
+                              is_external_kernel=is_external_kernel,
+                              is_spyder_kernel=known_spyder_kernel,
+                              show_elapsed_time=show_elapsed_time,
+                              reset_warning=reset_warning,
+                              ask_before_restart=ask_before_restart,
+                              css_path=self.css_path,
+                              handlers=self.registered_spyder_kernel_handlers,
+                              stderr_obj=stderr_obj,
+                              stdout_obj=stdout_obj,
+                              fault_obj=fault_obj)
+
+        # Create kernel client
+        kernel_client = QtKernelClient(connection_file=connection_file)
+
+        # This is needed for issue spyder-ide/spyder#9304.
+        try:
+            kernel_client.load_connection_file()
+        except Exception as e:
+            QMessageBox.critical(self, _('Connection error'),
+                                 _("An error occurred while trying to load "
+                                   "the kernel connection file. The error "
+                                   "was:\n\n") + str(e))
+            return
+
+        if hostname is not None:
+            try:
+                connection_info = dict(
+                    ip=kernel_client.ip,
+                    shell_port=kernel_client.shell_port,
+                    iopub_port=kernel_client.iopub_port,
+                    stdin_port=kernel_client.stdin_port,
+                    hb_port=kernel_client.hb_port)
+                newports = self.tunnel_to_kernel(connection_info, hostname,
+                                                 sshkey, password)
+                (kernel_client.shell_port,
+                 kernel_client.iopub_port,
+                 kernel_client.stdin_port,
+                 kernel_client.hb_port) = newports
+                # Save parameters to connect comm later
+                kernel_client.ssh_parameters = (hostname, sshkey, password)
+            except Exception as e:
+                QMessageBox.critical(self, _('Connection error'),
+                                     _("Could not open ssh tunnel. The "
+                                       "error was:\n\n") + str(e))
+                return
+
+        # Assign kernel manager and client to shellwidget
+        kernel_client.start_channels()
+        shellwidget = client.shellwidget
+        shellwidget.set_kernel_client_and_manager(
+            kernel_client, kernel_manager)
+        shellwidget.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
+
+        if not known_spyder_kernel:
+            shellwidget.sig_is_spykernel.connect(
+                self.connect_external_spyder_kernel)
+            shellwidget.check_spyder_kernel()
+
+        self.sig_shellwidget_created.emit(shellwidget)
+        kernel_client.stopped_channels.connect(
+            lambda: self.sig_shellwidget_deleted.emit(shellwidget))
+
+        # Set elapsed time, if possible
+        if not is_external_kernel:
+            self.set_client_elapsed_time(client)
+
+        # Adding a new tab for the client
+        self.add_tab(client, name=client.get_name())
+
+        # Register client
+        self.register_client(client)
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
@@ -1554,34 +1662,96 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
 
-    @Slot()
-    def create_client_for_kernel(self):
-        """Create a client connected to an existing kernel"""
-        connect_output = KernelConnectionDialog.get_connection_parameters(self)
-        (connection_file, hostname, sshkey, password, ok) = connect_output
-        if not ok:
-            return
-        else:
-            self._create_client_for_kernel(connection_file, hostname, sshkey,
-                                           password)
+    def get_new_kernel(self, is_cython=False, is_pylab=False,
+                       is_sympy=False, std_dir=None, cache=True):
+        """Get a new kernel, and cache one for next time."""
+        # Cache another kernel for next time.
+        kernel_spec = self.create_kernel_spec(
+            is_cython=is_cython,
+            is_pylab=is_pylab,
+            is_sympy=is_sympy
+        )
 
-    def connect_client_to_kernel(self, client, is_cython=False,
-                                 is_pylab=False, is_sympy=False):
-        """Connect a client to its kernel."""
-        connection_file = client.connection_file
-        stderr_handle = (
-            None if self._test_no_stderr else client.stderr_obj.handle)
-        stdout_handle = (
-            None if self._test_no_stderr else client.stdout_obj.handle)
+        new_kernel = self.create_new_kernel(kernel_spec, std_dir)
+
+        if new_kernel[2] is None or not cache:
+            # error or remove/don't use cache if requested
+            self.close_cached_kernel()
+            return new_kernel
+
+        # Check cached kernel has the same configuration as is being asked
+        cached_kernel = None
+        if self._cached_kernel_properties is not None:
+            (cached_spec,
+             cached_env,
+             cached_argv,
+             cached_dir,
+             cached_kernel) = self._cached_kernel_properties
+            # Call interrupt_mode so the dict will be the same
+            kernel_spec.interrupt_mode
+            cached_spec.interrupt_mode
+            valid = (std_dir == cached_dir
+                     and cached_spec.__dict__ == kernel_spec.__dict__
+                     and kernel_spec.argv == cached_argv
+                     and kernel_spec.env == cached_env)
+            if not valid:
+                # Close the kernel
+                self.close_cached_kernel()
+                cached_kernel = None
+
+        # Cache the new kernel
+        self._cached_kernel_properties = (
+            kernel_spec,
+            kernel_spec.env,
+            kernel_spec.argv,
+            std_dir,
+            new_kernel)
+
+        if cached_kernel is None:
+            return self.create_new_kernel(kernel_spec, std_dir)
+
+        return cached_kernel
+
+    def close_cached_kernel(self):
+        """Close the cached kernel."""
+        if self._cached_kernel_properties is None:
+            return
+        cached_kernel = self._cached_kernel_properties[-1]
+        _, kernel_manager, _, stderr_obj, stdout_obj = cached_kernel
+        kernel_manager.stop_restarter()
+        kernel_manager.shutdown_kernel(now=True)
+        self._cached_kernel_properties = None
+        if stderr_obj:
+            stderr_obj.remove()
+        if stdout_obj:
+            stdout_obj.remove()
+
+    def create_new_kernel(self, kernel_spec, std_dir=None):
+        """Create a new kernel."""
+        connection_file = self._new_connection_file()
+        if connection_file is None:
+            return None, None, None, None, None
+
+        stderr_obj = None
+        stderr_handle = None
+        stdout_obj = None
+        stdout_handle = None
+        if not self._test_no_stderr:
+            stderr_obj = StdFile(connection_file, '.stderr', std_dir)
+            stderr_handle = stderr_obj.handle
+            stdout_obj = StdFile(connection_file, '.stdout', std_dir)
+            stdout_handle = stdout_obj.handle
+
         km, kc = self.create_kernel_manager_and_kernel_client(
             connection_file,
             stderr_handle,
             stdout_handle,
-            is_cython=is_cython,
-            is_pylab=is_pylab,
-            is_sympy=is_sympy,
+            kernel_spec,
         )
+        return connection_file, km, kc, stderr_obj, stdout_obj
 
+    def connect_client_to_kernel(self, client, km, kc):
+        """Connect a client to its kernel."""
         # An error occurred if this is True
         if isinstance(km, str) and kc is None:
             client.shellwidget.kernel_manager = None
@@ -1591,8 +1761,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # This avoids a recurrent, spurious NameError when running our
         # tests in our CIs
         if not self._testing:
-            kc.started_channels.connect(
-                lambda c=client: self._shellwidget_started(c))
             kc.stopped_channels.connect(
                 lambda c=client: self._shellwidget_deleted(c))
 
@@ -1603,6 +1771,25 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
+
+        # _shellwidget_started() – which emits sig_shellwidget_created() – must
+        # be called *after* set_kernel_client_and_manager() has been called.
+        # This is required so that plugins can rely on a initialized shell
+        # widget in their implementation of
+        # ShellConnectMainWidget.create_new_widget() (e.g. if they need to
+        # communicate with the kernel using the shell widget kernel client).
+        #
+        # NOTE kc.started_channels() signal must not be used to emit
+        # sig_shellwidget_created(): kc.start_channels()
+        # (QtKernelClientMixin.start_channels() from qtconsole module) emits the
+        # started_channels() signal. Slots connected to this signal are called
+        # directly from within start_channels() [1], i.e. before the shell
+        # widget’s initialization by set_kernel_client_and_manager().
+        #
+        # [1] Assuming no threads are involved, i.e. the signal-slot connection
+        # type is Qt.DirectConnection.
+        self._shellwidget_started(client)
+
 
     @Slot(str)
     def create_client_from_path(self, path):
@@ -1660,31 +1847,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
-        # Set shell cwd according to preferences
-        cwd_path = ''
-        if self.get_conf(
-                'console/use_project_or_home_directory', section='workingdir'):
-            cwd_path = get_home_dir()
-            if (self.projects_available and
-                    self.active_project_path is not None):
-                cwd_path = self.active_project_path
-        elif self.get_conf(
-                'startup/use_fixed_directory', section='workingdir'):
-            cwd_path = self.get_conf(
-                'startup/fixed_directory',
-                default=get_home_dir(),
-                section='workingdir')
-        elif self.get_conf(
-                'console/use_fixed_directory', section='workingdir'):
-            cwd_path = self.get_conf(
-                'console/fixed_directory', section='workingdir')
-
-        if osp.isdir(cwd_path) and self._plugin.main is not None:
-            shellwidget.set_cwd(cwd_path)
-            if give_focus:
-                # Syncronice cwd with explorer and cwd widget
-                shellwidget.update_cwd()
-
         # Connect client to history log
         self.sig_history_requested.emit(client.history_filename)
         client.sig_append_to_history_requested.connect(
@@ -1698,7 +1860,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Connect to working directory
         shellwidget.sig_working_directory_changed.connect(
-            self.set_working_directory)
+            self.working_directory_changed)
 
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
@@ -1796,6 +1958,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             open_clients.remove(client)
         # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()
+        # Close cached kernel
+        self.close_cached_kernel()
         return True
 
     def get_client_index_from_id(self, client_id):
@@ -1835,7 +1999,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         for i in range(len(self.clients)):
             client = self.clients[-1]
             self.close_client(client=client, ask_recursive=False)
-        self.create_new_client(give_focus=False)
+        self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
 
     def current_client_inspect_object(self):
@@ -1934,21 +2098,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Create a kernel spec for our own kernels"""
         return SpyderKernelSpec(is_cython=is_cython,
                                 is_pylab=is_pylab,
-                                is_sympy=is_sympy,
-                                configuration=self.CONFIGURATION)
+                                is_sympy=is_sympy)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_handle,
                                                 stdout_handle,
-                                                is_cython=False,
-                                                is_pylab=False,
-                                                is_sympy=False):
+                                                kernel_spec):
         """Create kernel manager and client."""
-        # Kernel spec
-        kernel_spec = self.create_kernel_spec(is_cython=is_cython,
-                                              is_pylab=is_pylab,
-                                              is_sympy=is_sympy)
-
         # Kernel manager
         try:
             kernel_manager = SpyderKernelManager(
@@ -2115,7 +2271,13 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.execute_code(line, set_focus=not focus_to_editor)
             except AttributeError:
                 pass
-            self.sig_switch_to_plugin_requested.emit()
+
+            # This is necessary to prevent raising the console if the editor
+            # and console are tabified next to each other and the 'Maintain
+            # focus in the editor' option is activated.
+            # Fixes spyder-ide/spyder#17028
+            if not focus_to_editor:
+                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
@@ -2210,15 +2372,27 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
     # ---- For working directory and path management
+    def set_working_directory(self, new_dir):
+        """
+        Set current working directory when changed by the Working Directory
+        plugin.
+        """
+        self._current_working_directory = new_dir
+
+    def get_working_directory(self):
+        """Get current working directory."""
+        return self._current_working_directory
+
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
             shellwidget.set_cwd(directory)
 
-    def set_working_directory(self, dirname):
-        """Set current working directory.
-        In the workingdirectory and explorer plugins.
+    def working_directory_changed(self, dirname):
+        """
+        Notify that the working directory was changed in the current console
+        to other plugins.
         """
         if osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
@@ -2236,6 +2410,10 @@ class IPythonConsoleWidget(PluginMainWidget):
             if shell is not None:
                 shell.update_syspath(path_dict, new_path_dict)
 
+    def get_active_project_path(self):
+        """Get the active project path."""
+        return self.active_project_path
+
     def update_active_project_path(self, active_project_path):
         """
         Update the active project path attribute used to set the current
@@ -2249,7 +2427,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         Returns
         -------
         None.
-
         """
         self.active_project_path = active_project_path
 

@@ -238,7 +238,8 @@ def getargs(obj):
         func_obj = getattr(obj, '__init__')
     else:
         return []
-    if not hasattr(func_obj, 'func_code'):
+
+    if not hasattr(func_obj, '__code__'):
         # Builtin: try to extract info from doc
         args = getargsfromdoc(func_obj)
         if args is not None:
@@ -246,24 +247,29 @@ def getargs(obj):
         else:
             # Example: PyQt5
             return getargsfromdoc(obj)
-    args, _, _ = inspect.getargs(func_obj.func_code)
+
+    args, _, _ = inspect.getargs(func_obj.__code__)
     if not args:
         return getargsfromdoc(obj)
-    
+
     # Supporting tuple arguments in def statement:
     for i_arg, arg in enumerate(args):
         if isinstance(arg, list):
             args[i_arg] = "(%s)" % ", ".join(arg)
-            
+
     defaults = get_func_defaults(func_obj)
     if defaults is not None:
         for index, default in enumerate(defaults):
-            args[index+len(args)-len(defaults)] += '='+repr(default)
+            args[index + len(args) - len(defaults)] += '=' + repr(default)
+
     if inspect.isclass(obj) or inspect.ismethod(obj):
         if len(args) == 1:
             return None
-        if 'self' in args:
-            args.remove('self')
+
+    # Remove 'self' from args
+    if 'self' in args:
+        args.remove('self')
+
     return args
 
 
@@ -315,7 +321,7 @@ def isdefined(obj, force_import=False, namespace=None):
     for attr in attr_list:
         try:
             attr_not_found = not hasattr(eval(base, namespace), attr)
-        except (SyntaxError, AttributeError):
+        except (AttributeError, SyntaxError, TypeError):
             return False
         if attr_not_found:
             if force_import:

@@ -12,8 +12,7 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import (
-    _, DEV, is_pynsist, running_in_ci, running_under_pytest)
+from spyder.config.base import _, is_pynsist, running_in_ci
 from spyder.utils import programs
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -30,7 +29,7 @@ PLUGIN = 'spyder plugins'
 # Versions
 # =============================================================================
 # Hard dependencies
-APPLAUNCHSERVICES_REQVER = '>=0.1.7'
+APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
@@ -39,7 +38,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=7.6.0"
+IPYTHON_REQVER = ">=7.31.1;<8.0.0"
 JEDI_REQVER = '>=0.17.2;<0.19.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
@@ -52,21 +51,21 @@ PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
-PYLINT_REQVER = '>=2.5.0'
-PYLSP_REQVER = '>=1.3.1;<1.4.0'
-PYLSP_BLACK_REQVER = '>=1.0.0'
+PYLINT_REQVER = '>=2.5.0;<3.0'
+PYLSP_REQVER = '>=1.4.1;<1.5.0'
+PYLSP_BLACK_REQVER = '>=1.2.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
-PYZMQ_REQVER = '>=17'
-QDARKSTYLE_REQVER = '=3.0.2'
+PYZMQ_REQVER = '>=22.1.0'
+QDARKSTYLE_REQVER = '>=3.0.2;<3.1.0'
 QSTYLIZER_REQVER = '>=0.1.10'
 QTAWESOME_REQVER = '>=1.0.2'
-QTCONSOLE_REQVER = '>=5.2.1;<5.3.0'
-QTPY_REQVER = '>=1.5.0'
+QTCONSOLE_REQVER = '>=5.3.0;<5.4.0'
+QTPY_REQVER = '>=2.1.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.2.0;<2.3.0'
+SPYDER_KERNELS_REQVER = '>=2.3.1;<2.4.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
@@ -76,7 +75,7 @@ WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
 
 # Optional dependencies
 CYTHON_REQVER = '>=0.21'
-MATPLOTLIB_REQVER = '>=2.0.0'
+MATPLOTLIB_REQVER = '>=3.0.0'
 NUMPY_REQVER = '>=1.7'
 PANDAS_REQVER = '>=1.1.1'
 SCIPY_REQVER = '>=0.17.0'
@@ -367,9 +366,14 @@ def add(modname, package_name, features, required_version,
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
+        # Avoid showing an unnecessary error when running our tests.
+        if running_in_ci() and 'spyder_boilerplate' in modname:
+            continue
+
         if dependency.modname == modname:
             raise ValueError(
                 f"Dependency has already been registered: {modname}")
+
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
                                 installed_version, kind)]
@@ -427,14 +431,6 @@ def missing_dependencies():
     """Return the status of missing dependencies (if any)"""
     missing_deps = []
     for dependency in DEPENDENCIES:
-        # Skip checking dependencies for which we have subrepos
-        if (DEV or running_under_pytest()) and not running_in_ci():
-            repo_path = osp.normpath(osp.join(HERE, '..'))
-            subrepos_path = osp.join(repo_path, 'external-deps')
-            subrepos = os.listdir(subrepos_path)
-            if dependency.package_name in subrepos:
-                continue
-
         if dependency.kind != OPTIONAL and not dependency.check():
             missing_deps.append(dependency)
 

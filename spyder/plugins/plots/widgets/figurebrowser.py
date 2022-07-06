@@ -499,7 +499,12 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
 
     def get_scaling(self):
         """Get the current scaling of the figure in percent."""
-        return round(self.figcanvas.width() / self.figcanvas.fwidth * 100)
+        width = self.figcanvas.width()
+        fwidth = self.figcanvas.fwidth
+        if fwidth != 0:
+            return round(width / fwidth * 100)
+        else:
+            return 100
 
     def reset_original_image(self):
         """Reset the image to its original size."""
@@ -854,11 +859,14 @@ class ThumbnailScrollBar(QFrame):
 
     def set_current_thumbnail(self, thumbnail):
         """Set the currently selected thumbnail."""
+        if self.current_thumbnail == thumbnail:
+            return
+        if self.current_thumbnail is not None:
+            self.current_thumbnail.highlight_canvas(False)
         self.current_thumbnail = thumbnail
         self.figure_viewer.load_figure(
             thumbnail.canvas.fig, thumbnail.canvas.fmt)
-        for thumbnail in self._thumbnails:
-            thumbnail.highlight_canvas(thumbnail == self.current_thumbnail)
+        self.current_thumbnail.highlight_canvas(True)
 
     def go_previous_thumbnail(self):
         """Select the thumbnail previous to the currently selected one."""
@@ -1004,13 +1012,14 @@ class FigureThumbnail(QWidget):
         """
         fwidth = self.canvas.fwidth
         fheight = self.canvas.fheight
-        if fwidth / fheight > 1:
-            canvas_width = max_canvas_size
-            canvas_height = canvas_width / fwidth * fheight
-        else:
-            canvas_height = max_canvas_size
-            canvas_width = canvas_height / fheight * fwidth
-        self.canvas.setFixedSize(int(canvas_width), int(canvas_height))
+        if fheight != 0:
+            if fwidth / fheight > 1:
+                canvas_width = max_canvas_size
+                canvas_height = canvas_width / fwidth * fheight
+            else:
+                canvas_height = max_canvas_size
+                canvas_width = canvas_height / fheight * fwidth
+            self.canvas.setFixedSize(int(canvas_width), int(canvas_height))
         self.layout().setColumnMinimumWidth(0, max_canvas_size)
 
     def eventFilter(self, widget, event):

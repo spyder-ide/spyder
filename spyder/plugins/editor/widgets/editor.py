@@ -16,7 +16,6 @@ import logging
 import os
 import os.path as osp
 import sys
-import functools
 import unicodedata
 
 # Third party imports
@@ -24,7 +23,7 @@ import qstylizer.style
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
                          Signal, Slot)
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
                             QSplitter, QVBoxLayout, QWidget, QListWidget,
@@ -480,6 +479,18 @@ class EditorStack(QWidget):
             name='Run selection',
             parent=self)
 
+        run_to_line = CONF.config_shortcut(
+            self.run_to_line,
+            context='Editor',
+            name='Run to line',
+            parent=self)
+
+        run_from_line = CONF.config_shortcut(
+            self.run_from_line,
+            context='Editor',
+            name='Run from line',
+            parent=self)
+
         new_file = CONF.config_shortcut(
             lambda: self.sig_new_file[()].emit(),
             context='Editor',
@@ -644,11 +655,11 @@ class EditorStack(QWidget):
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
-                tabshift, run_selection, new_file, open_file, save_file,
-                save_all, save_as, close_all, prev_edit_pos, prev_cursor,
-                next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, debug_cell,
-                run_cell_and_advance,
+                tabshift, run_selection, run_to_line, run_from_line, new_file,
+                open_file, save_file, save_all, save_as, close_all,
+                prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
+                zoom_out, zoom_reset, close_file_1, close_file_2, run_cell,
+                debug_cell, run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -812,6 +823,9 @@ class EditorStack(QWidget):
                 lambda: self.get_current_editor(),
                 lambda: self,
                 section=self.get_plugin_title())
+
+        if isinstance(initial_text, bool):
+            initial_text = ''
 
         self.switcher_dlg.set_search_text(initial_text)
         self.switcher_dlg.setup()
@@ -1453,6 +1467,7 @@ class EditorStack(QWidget):
                 actions += [MENU_SEPARATOR, plugin._dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
+                            plugin._lock_unlock_action,
                             plugin._undock_action,
                             plugin._close_plugin_action]
 
@@ -1502,7 +1517,13 @@ class EditorStack(QWidget):
             # Try finding without calling the slow realpath
             return data_filenames.index(filename)
         except ValueError:
-            filename = fixpath(filename)
+            # See note about OSError on set_current_filename
+            # Fixes spyder-ide/spyder#17685
+            try:
+                filename = fixpath(filename)
+            except OSError:
+                return None
+
             for index, editor_filename in enumerate(data_filenames):
                 if filename == fixpath(editor_filename):
                     return index
@@ -1510,13 +1531,17 @@ class EditorStack(QWidget):
 
     def set_current_filename(self, filename, focus=True):
         """Set current filename and return the associated editor instance."""
-        # This is necessary to catch an error on Windows for files in a
-        # directory junction pointing to a symlink whose target is on a
-        # network drive that is unavailable at startup.
+        # FileNotFoundError: This is necessary to catch an error on Windows
+        # for files in a directory junction pointing to a symlink whose target
+        # is on a network drive that is unavailable at startup.
         # Fixes spyder-ide/spyder#15714
+        # OSError: This is necessary to catch an error on Windows when Spyder
+        # was closed with a file in a shared folder on a different computer on
+        # the network, and is started again when that folder is not available.
+        # Fixes spyder-ide/spyder#17685
         try:
             index = self.has_filename(filename)
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             index = None
 
         if index is not None:
@@ -1640,6 +1665,7 @@ class EditorStack(QWidget):
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
+            self.update_fname_label()
             return False
         self.__modify_stack_title()
         return is_ok
@@ -1854,12 +1880,18 @@ class EditorStack(QWidget):
                 return self.save_as(index=index)
             # The file doesn't need to be saved
             return True
-        if self.always_remove_trailing_spaces:
+
+        # The following options (`always_remove_trailing_spaces`,
+        # `remove_trailing_newlines` and `add_newline`) also depend on the
+        # `format_on_save` value.
+        # See spyder-ide/spyder#17716
+        if self.always_remove_trailing_spaces and not self.format_on_save:
             self.remove_trailing_spaces(index)
-        if self.remove_trailing_newlines:
+        if self.remove_trailing_newlines and not self.format_on_save:
             self.trim_trailing_newlines(index)
-        if self.add_newline:
+        if self.add_newline and not self.format_on_save:
             self.add_newline_to_file(index)
+
         if self.convert_eol_on_save:
             # hack to account for the fact that the config file saves
             # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
@@ -1869,12 +1901,28 @@ class EditorStack(QWidget):
 
         try:
             if self.format_on_save and finfo.editor.formatting_enabled:
-                # Autoformat document and then save
+                # Wait for document autoformat and then save
+
+                # Waiting for the autoformat to complete is needed
+                # when the file is going to be closed after saving.
+                # See spyder-ide/spyder#17836
+                format_eventloop = finfo.editor.format_eventloop
+                format_timer = finfo.editor.format_timer
+                format_timer.setSingleShot(True)
+                format_timer.timeout.connect(format_eventloop.quit)
+
                 finfo.editor.sig_stop_operation_in_progress.connect(
-                    functools.partial(self._save_file, finfo, index))
+                    lambda: self._save_file(finfo))
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    format_timer.stop)
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    format_eventloop.quit)
+
+                format_timer.start(10000)
                 finfo.editor.format_document()
+                format_eventloop.exec_()
             else:
-                self._save_file(finfo, index)
+                self._save_file(finfo)
             return True
         except EnvironmentError as error:
             self.msgbox = QMessageBox(
@@ -1888,7 +1936,8 @@ class EditorStack(QWidget):
             self.msgbox.exec_()
             return False
 
-    def _save_file(self, finfo, index):
+    def _save_file(self, finfo):
+        index = self.data.index(finfo)
         self._write_to_file(finfo, finfo.filename)
         file_hash = self.compute_hash(finfo)
         self.autosave.file_hashes[finfo.filename] = file_hash
@@ -1908,7 +1957,7 @@ class EditorStack(QWidget):
 
         finfo.editor.document().setModified(False)
         self.modification_changed(index=index)
-        self.analyze_script(index)
+        self.analyze_script(index=index)
 
         finfo.editor.notify_save()
 
@@ -2444,11 +2493,13 @@ class EditorStack(QWidget):
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
         editor.sig_run_selection.connect(self.run_selection)
+        editor.sig_run_to_line.connect(self.run_to_line)
+        editor.sig_run_from_line.connect(self.run_from_line)
         editor.sig_run_cell.connect(self.run_cell)
         editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
-        editor.sig_new_file.connect(self.sig_new_file.emit)
+        editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
             lambda: self.update_code_analysis_actions.emit())
@@ -2527,6 +2578,8 @@ class EditorStack(QWidget):
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         editor.sig_eol_chars_changed.connect(
             lambda eol_chars: self.refresh_eol_chars(eol_chars))
+        editor.sig_next_cursor.connect(self.sig_next_cursor)
+        editor.sig_prev_cursor.connect(self.sig_prev_cursor)
 
         self.find_widget.set_editor(editor)
 
@@ -2642,22 +2695,29 @@ class EditorStack(QWidget):
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
-        """Sets the EOL character(s) based on the operating system.
+        """
+        Sets the EOL character(s) based on the operating system.
 
         If `osname` is None, then the default line endings for the current
-        operating system (`os.name` value) will be used.
+        operating system will be used.
 
-        `osname` can be one of:
-            ('posix', 'nt', 'java')
+        `osname` can be one of: 'posix', 'nt', 'mac'.
         """
         if osname is None:
-            osname = os.name
+            if os.name == 'nt':
+                osname = 'nt'
+            elif sys.platform == 'darwin':
+                osname = 'mac'
+            else:
+                osname = 'posix'
+
         if index is None:
             index = self.get_stack_index()
+
         finfo = self.data[index]
         eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
         logger.debug(f"Set OS eol chars {eol_chars} for file {finfo.filename}")
-        finfo.editor.set_eol_chars(eol_chars)
+        finfo.editor.set_eol_chars(eol_chars=eol_chars)
         finfo.editor.document().setModified(True)
 
     def remove_trailing_spaces(self, index=None):
@@ -2698,6 +2758,39 @@ class EditorStack(QWidget):
         finfo.editor.format_document_or_range()
 
     #  ------ Run
+    def _run_lines_cursor(self, direction):
+        """ Select and run all lines from cursor in given direction"""
+        editor = self.get_current_editor()
+
+        # Move cursor to start of line then move to beginning or end of
+        # document with KeepAnchor
+        cursor = editor.textCursor()
+        cursor.movePosition(QTextCursor.StartOfLine)
+
+        if direction == 'up':
+            cursor.movePosition(QTextCursor.Start, QTextCursor.KeepAnchor)
+        elif direction == 'down':
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+
+        code_text = editor.get_selection_as_executable_code(cursor)
+        if code_text:
+            self.exec_in_extconsole.emit(code_text.rstrip(),
+                                         self.focus_to_editor)
+
+    def run_to_line(self):
+        """
+        Run all lines from the beginning up to, but not including, current
+        line.
+        """
+        self._run_lines_cursor(direction='up')
+
+    def run_from_line(self):
+        """
+        Run all lines from and including the current line to the end of
+        the document.
+        """
+        self._run_lines_cursor(direction='down')
+
     def run_selection(self):
         """
         Run selected text or current line in console.
@@ -2943,21 +3036,21 @@ class EditorSplitter(QSplitter):
             focus_widget.setFocus()
 
     def editorstack_closed(self):
-        logger.debug("method 'editorstack_closed':")
-        logger.debug("    self  : %r" % self)
         try:
+            logger.debug("method 'editorstack_closed':")
+            logger.debug("    self  : %r" % self)
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
+            if close_splitter:
+                # editorstack just closed was the last widget in this QSplitter
+                self.close()
+                return
+            self.__give_focus_to_remaining_editor()
         except (RuntimeError, AttributeError):
             # editorsplitter has been destroyed (happens when closing a
             # EditorMainWindow instance)
             return
-        if close_splitter:
-            # editorstack just closed was the last widget in this QSplitter
-            self.close()
-            return
-        self.__give_focus_to_remaining_editor()
 
     def editorsplitter_closed(self):
         logger.debug("method 'editorsplitter_closed':")
@@ -3207,8 +3300,11 @@ class EditorWidget(QSplitter):
 
 
 class EditorMainWindow(QMainWindow):
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
-        QMainWindow.__init__(self)
+    def __init__(
+            self, plugin, menu_actions, toolbar_list, menu_list, parent=None):
+        # Parent needs to be `None` if the the created widget is meant to be
+        # independent. See spyder-ide/spyder#17803
+        QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin
@@ -3340,6 +3436,7 @@ class EditorPluginExample(QSplitter):
         self._undock_action = None
         self._close_plugin_action = None
         self._undocked_window = None
+        self._lock_unlock_action = None
         menu_actions = []
 
         self.editorstacks = []

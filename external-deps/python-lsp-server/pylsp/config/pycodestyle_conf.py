@@ -16,6 +16,7 @@ OPTIONS = [
     ('hang-closing', 'plugins.pycodestyle.hangClosing', bool),
     ('ignore', 'plugins.pycodestyle.ignore', list),
     ('max-line-length', 'plugins.pycodestyle.maxLineLength', int),
+    ('indent-size', 'plugins.pycodestyle.indentSize', int),
     ('select', 'plugins.pycodestyle.select', list),
     ('aggressive', 'plugins.pycodestyle.aggressive', int),
 ]

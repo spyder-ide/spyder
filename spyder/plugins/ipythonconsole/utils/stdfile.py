@@ -5,21 +5,42 @@
 # Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
+
 """
 Class to control a file where stanbdard output can be written.
 """
+
 # Standard library imports.
 import codecs
 import os
+import os.path as osp
 
 # Local imports
 from spyder.py3compat import to_text_string
 from spyder.utils.encoding import get_coding
+from spyder.utils.programs import get_temp_dir
 
 
-class StdFile():
-    def __init__(self, filename):
-        self.filename = filename
+def std_filename(connection_file, extension, std_dir=None):
+    """Filename to save kernel output."""
+    json_file = osp.basename(connection_file)
+    file = json_file.split('.json')[0] + extension
+    if std_dir is not None:
+        file = osp.join(std_dir, file)
+    else:
+        try:
+            file = osp.join(get_temp_dir(), file)
+        except (IOError, OSError):
+            file = None
+    return file
+
+
+class StdFile:
+    def __init__(self, connection_file, extension=None, std_dir=None):
+        if extension is None:
+            self.filename = connection_file
+        else:
+            self.filename = std_filename(connection_file, extension, std_dir)
         self._mtime = 0
         self._cursor = 0
         self._handle = None
@@ -90,3 +111,7 @@ class StdFile():
             ret_text = text[self._cursor:]
             self._cursor = len(text)
             return ret_text
+
+    def copy(self):
+        """Return a copy."""
+        return StdFile(self.filename)

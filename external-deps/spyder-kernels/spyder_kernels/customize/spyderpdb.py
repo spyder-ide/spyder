@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2009- Spyder Kernels Contributors
 #
@@ -9,9 +10,9 @@
 import ast
 import bdb
 import logging
-import os
 import sys
 import traceback
+import threading
 from collections import namedtuple
 
 from IPython.core.autocall import ZMQExitAutocall
@@ -19,8 +20,9 @@ from IPython.core.debugger import Pdb as ipyPdb
 from IPython.core.getipython import get_ipython
 
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
-from spyder_kernels.customize.utils import path_is_library
-from spyder_kernels.py3compat import TimeoutError, PY2, _print, isidentifier
+from spyder_kernels.customize.utils import path_is_library, capture_last_Expr
+from spyder_kernels.py3compat import (
+    TimeoutError, PY2, _print, isidentifier, PY3, input)
 
 if not PY2:
     from IPython.core.inputtransformer2 import TransformerManager
@@ -32,18 +34,6 @@ else:
 
 
 logger = logging.getLogger(__name__)
-
-
-def uses_comprehension(code):
-    """Check if given code uses comprehensions."""
-    comprehension_statements = (
-        ast.ListComp,
-        ast.SetComp,
-        ast.GeneratorExp,
-        ast.DictComp
-    )
-    nodes = ast.walk(ast.parse(code))
-    return any(isinstance(node, comprehension_statements) for node in nodes)
 
 
 class DebugWrapper(object):
@@ -104,9 +94,22 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         self._pdb_breaking = False
         self._frontend_notified = False
 
+        # content of tuple: (filename, line number)
+        self._previous_step = None
+
         # Don't report hidden frames for IPython 7.24+. This attribute
         # has no effect in previous versions.
         self.report_skipped = False
+
+
+        # Keep track of remote filename
+        self.remote_filename = None
+
+        # State of the prompt
+        self.prompt_waiting = False
+
+        # Line received from the frontend
+        self._cmd_input_line = None
 
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
@@ -119,10 +122,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     def default(self, line):
         """
         Default way of running pdb statment.
-
-        The only difference with Pdb.default is that if line contains multiple
-        statments, the code will be compiled with 'exec'. It will not print the
-        result but will run without failing.
         """
         execute_events = self.pdb_execute_events
         if line[:1] == '!':
@@ -177,11 +176,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                         self.print_exclamation_warning()
         try:
             line = TransformerManager().transform_cell(line)
-            try:
-                code = compile(line + '\n', '<stdin>', 'single')
-            except SyntaxError:
-                # support multiline statments
-                code = compile(line + '\n', '<stdin>', 'exec')
             save_stdout = sys.stdout
             save_stdin = sys.stdin
             save_displayhook = sys.displayhook
@@ -192,36 +186,89 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 if execute_events:
                      get_ipython().events.trigger('pre_execute')
 
-                 # Mitigates a CPython bug (https://bugs.python.org/issue41918)
-                 # that prevents running comprehensions with the frame locals
-                 # in Pdb.
-                 # See https://bugs.python.org/issue21161 and
-                 # spyder-ide/spyder#13909.
-                if uses_comprehension(line):
-                    # There are three potential problems with this approach:
-                    # 1. If the code access a globals variable that is
-                    #    masked by a locals variable, it will get the locals
-                    #    one.
-                    # 2. Any edit to that variable will be lost.
-                    # 3. The globals will appear to contain all the locals
-                    #    variables.
-                    # 4. Any new locals variable will be saved to globals
-                    #    instead
-                    fake_globals = globals.copy()
-                    fake_globals.update(locals)
-                    locals_keys = locals.keys()
-                    # Don't pass locals, solves spyder-ide/spyder#16790
-                    exec(code, fake_globals)
-                    # Avoid mixing locals and globals
-                    for key in locals_keys:
-                        locals[key] = fake_globals.pop(key, None)
-                    globals.update(fake_globals)
-                else:
-                    exec(code, globals, locals)
+                code_ast = ast.parse(line)
 
+                if line.rstrip()[-1] == ";":
+                    # Supress output with ;
+                    capture_last_expression = False
+                else:
+                    code_ast, capture_last_expression = capture_last_Expr(
+                        code_ast, "_spyderpdb_out")
+
+                if locals is not globals:
+                    # Mitigates a behaviour of CPython that makes it difficult
+                    # to work with exec and the local namespace
+                    # See:
+                    #  - https://bugs.python.org/issue41918
+                    #  - https://bugs.python.org/issue46153
+                    #  - https://bugs.python.org/issue21161
+                    #  - spyder-ide/spyder#13909
+                    #  - spyder-ide/spyder-kernels#345
+                    #
+                    # The idea here is that the best way to emulate being in a
+                    # function is to actually execute the code in a function.
+                    # A function called `_spyderpdb_code` is created and
+                    # called. It will first load the locals, execute the code,
+                    # and then update the locals.
+                    #
+                    # One limitation of this approach is that locals() is only
+                    # a copy of the curframe locals. This means that closures
+                    # for example are early binding instead of late binding.
+
+                    # Create a function
+                    indent = "    "
+                    code = ["def _spyderpdb_code():"]
+
+                    # Load the locals
+                    globals["_spyderpdb_builtins_locals"] = builtins.locals
+
+                    # Save builtins locals in case it is shadowed
+                    globals["_spyderpdb_locals"] = locals
+
+                    # Load locals if they have a valid name
+                    # In comprehensions, locals could contain ".0" for example
+                    code += [indent + "{k} = _spyderpdb_locals['{k}']".format(
+                        k=k) for k in locals if isidentifier(k)]
+
+
+                    # Update the locals
+                    code += [indent + "_spyderpdb_locals.update("
+                             "_spyderpdb_builtins_locals())"]
+
+                    # Run the function
+                    code += ["_spyderpdb_code()"]
+
+                    # Cleanup
+                    code += [
+                        "del _spyderpdb_code",
+                        "del _spyderpdb_locals",
+                        "del _spyderpdb_builtins_locals"
+                    ]
+
+                    # Parse the function
+                    fun_ast = ast.parse('\n'.join(code) + '\n')
+
+                    # Inject code_ast in the function before the locals update
+                    fun_ast.body[0].body = (
+                        fun_ast.body[0].body[:-1]  # The locals
+                        + code_ast.body  # Code to run
+                        + fun_ast.body[0].body[-1:]  # Locals update
+                    )
+                    code_ast = fun_ast
+
+                exec(compile(code_ast, "<stdin>", "exec"), globals)
+
+                if capture_last_expression:
+                    out = globals.pop("_spyderpdb_out", None)
+                    if out is not None:
+                        sys.stdout.flush()
+                        sys.stderr.flush()
+                        frontend_request(blocking=False).show_pdb_output(
+                            repr(out))
+
+            finally:
                 if execute_events:
                      get_ipython().events.trigger('post_execute')
-            finally:
                 sys.stdout = save_stdout
                 sys.stdin = save_stdin
                 sys.displayhook = save_displayhook
@@ -313,7 +360,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         Take a number as argument as an (optional) number of context line to
         print"""
         super(SpyderPdb, self).do_where(arg)
-        frontend_request().do_where()
+        frontend_request(blocking=False).do_where()
 
     do_w = do_where
 
@@ -506,10 +553,16 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         return result
 
     # --- Methods overriden by us for Spyder integration
+    def postloop(self):
+        # postloop() is called when the debugger’s input prompt exists. Reset
+        # _previous_step so that publish_pdb_state() actually notifies Spyder
+        # about a changed frame the next the input prompt is entered again.
+        self._previous_step = None
+
     def preloop(self):
         """Ask Spyder for breakpoints before the first prompt is created."""
         try:
-            pdb_settings = frontend_request().get_pdb_settings()
+            pdb_settings = frontend_request(blocking=True).get_pdb_settings()
             self.pdb_ignore_lib = pdb_settings['pdb_ignore_lib']
             self.pdb_execute_events = pdb_settings['pdb_execute_events']
             self.pdb_use_exclamation_mark = pdb_settings[
@@ -518,7 +571,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             if self.starting:
                 self.set_spyder_breakpoints(pdb_settings['breakpoints'])
             if self.send_initial_notification:
-                self.notify_spyder()
+                self.publish_pdb_state()
         except (CommError, TimeoutError):
             logger.debug("Could not get breakpoints from the frontend.")
         super(SpyderPdb, self).preloop()
@@ -589,6 +642,75 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                        "For copying text while debugging, use Ctrl+Shift+C",
                        file=self.stdout)
 
+
+    def cmdloop(self, intro=None):
+        """
+        Repeatedly issue a prompt, accept input, parse an initial prefix
+        off the received input, and dispatch to action methods, passing them
+        the remainder of the line as argument.
+        """
+        self.preloop()
+        if intro is not None:
+            self.intro = intro
+        if self.intro:
+            self.stdout.write(str(self.intro)+"\n")
+        stop = None
+        while not stop:
+            if self.cmdqueue:
+                line = self.cmdqueue.pop(0)
+            else:
+                try:
+                    self.prompt_waiting = True
+                    line = self.cmd_input(self.prompt)
+                except EOFError:
+                    line = 'EOF'
+            self.prompt_waiting = False
+            line = self.precmd(line)
+            stop = self.onecmd(line)
+            stop = self.postcmd(stop, line)
+        self.postloop()
+
+    def cmd_input(self, prompt=''):
+        """
+        Get input from frontend. Blocks until return
+        """
+        kernel = get_ipython().kernel
+        # Only works if the comm is open
+        if not kernel.frontend_comm.is_open():
+            return input(prompt)
+
+        # Flush output before making the request.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
+        # Send the input request.
+        self._cmd_input_line = None
+        kernel.frontend_call().pdb_input(prompt)
+
+        # Allow GUI event loop to update
+        if PY3:
+            is_main_thread = (
+                threading.current_thread() is threading.main_thread())
+        else:
+            is_main_thread = isinstance(
+                threading.current_thread(), threading._MainThread)
+
+        # Get input by running eventloop
+        if is_main_thread and kernel.eventloop:
+            while self._cmd_input_line is None:
+                eventloop = kernel.eventloop
+                if eventloop:
+                    eventloop(kernel)
+                else:
+                    break
+
+        # Get input by blocking
+        if self._cmd_input_line is None:
+            kernel.frontend_comm.wait_until(
+                lambda: self._cmd_input_line is not None)
+
+        return self._cmd_input_line
+
     def precmd(self, line):
         """
         Hook method executed just before the command line is
@@ -608,9 +730,11 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
     def postcmd(self, stop, line):
         """
-        Notify spyder on any pdb command.
+        Notify spyder about (possibly) changed frame
+
+        Note: The PDB commands “up”, “down” and “jump” change the current frame.
         """
-        self.notify_spyder(self.curframe)
+        self.publish_pdb_state()
         return super(SpyderPdb, self).postcmd(stop, line)
 
     if PY2:
@@ -707,15 +831,17 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     logger.debug(
                         "Could not send a Pdb continue call to the frontend.")
 
-    def notify_spyder(self, frame=None):
-        """Send kernel state to the frontend."""
-        if frame is None:
-            frame = self.curframe
+    def publish_pdb_state(self):
+        """
+        Send debugger state (frame position) to the frontend.
 
+        The state is only sent if it has changed since the last update.
+        """
+
+        frame = self.curframe
         if frame is None:
+            self._previous_step = None
             return
-
-        kernel = get_ipython().kernel
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -724,18 +850,22 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 fname = unicode(fname, "utf-8")
             except TypeError:
                 pass
+        if fname == self.mainpyfile and self.remote_filename is not None:
+            fname = self.remote_filename
         lineno = frame.f_lineno
+
+        if self._previous_step == (fname, lineno):
+            return
 
         # Set step of the current frame (if any)
         step = {}
+        self._previous_step = None
         if isinstance(fname, basestring) and isinstance(lineno, int):
             step = dict(fname=fname, lineno=lineno)
+            self._previous_step = (fname, lineno)
 
-        # Publish Pdb state so we can update the Variable Explorer
-        # and the Editor on the Spyder side
-        kernel._pdb_step = step
         try:
-            kernel.publish_pdb_state()
+            frontend_request(blocking=False).pdb_state(dict(step=step))
         except (CommError, TimeoutError):
             logger.debug("Could not send Pdb state to the frontend.")
 
@@ -766,43 +896,47 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         with DebugWrapper(self):
             super(SpyderPdb, self).runcall(*args, **kwds)
 
-
-def enter_debugger(filename, continue_if_has_breakpoints, code_format):
-    """Enter debugger. Code format should be a format that accept filename."""
-    shell = get_ipython()
-    recursive = shell.is_debugging()
-    if recursive:
-        parent_debugger = shell.pdb_session
+    def enter_recursive_debugger(self, code, filename,
+                                 continue_if_has_breakpoints):
+        """
+        Enter debugger recursively.
+        """
         sys.settrace(None)
-        globals = parent_debugger.curframe.f_globals
-        locals = parent_debugger.curframe_locals
+        globals = self.curframe.f_globals
+        locals = self.curframe_locals
         # Create child debugger
         debugger = SpyderPdb(
-            completekey=parent_debugger.completekey,
-            stdin=parent_debugger.stdin, stdout=parent_debugger.stdout)
-        debugger.use_rawinput = parent_debugger.use_rawinput
-        debugger.prompt = "(%s) " % parent_debugger.prompt.strip()
-    else:
-        debugger = SpyderPdb()
+            completekey=self.completekey,
+            stdin=self.stdin, stdout=self.stdout)
+        debugger.use_rawinput = self.use_rawinput
+        debugger.prompt = "(%s) " % self.prompt.strip()
 
-    filename = debugger.canonic(filename)
-    debugger._wait_for_mainpyfile = True
-    debugger.mainpyfile = filename
-    debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-    debugger._user_requested_quit = False
+        debugger.set_remote_filename(filename)
+        debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
 
-    if os.name == 'nt':
-        filename = filename.replace('\\', '/')
-
-    code = code_format.format(repr(filename))
-
-    if recursive:
         # Enter recursive debugger
         sys.call_tracing(debugger.run, (code, globals, locals))
         # Reset parent debugger
-        sys.settrace(parent_debugger.trace_dispatch)
-        parent_debugger.lastcmd = debugger.lastcmd
-        shell.pdb_session = parent_debugger
-    else:
-        # The breakpoint might not be in the cell
-        debugger.run(code)
+        sys.settrace(self.trace_dispatch)
+        self.lastcmd = debugger.lastcmd
+        get_ipython().pdb_session = self
+
+        # Reset _previous_step so that publish_pdb_state() called from within
+        # postcmd() notifies Spyder about a changed debugger position. The reset
+        # is required because the recursive debugger might change the position,
+        # but the parent debugger (self) is not aware of this.
+        self._previous_step = None
+
+    def set_remote_filename(self, filename):
+        """Set remote filename to signal Spyder on mainpyfile."""
+        self.remote_filename = filename
+        self.mainpyfile = self.canonic(filename)
+        self._wait_for_mainpyfile = True
+
+
+def get_new_debugger(filename, continue_if_has_breakpoints):
+    """Get a new debugger."""
+    debugger = SpyderPdb()
+    debugger.set_remote_filename(filename)
+    debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
+    return debugger

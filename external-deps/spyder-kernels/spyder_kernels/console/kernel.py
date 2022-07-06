@@ -12,6 +12,7 @@ Spyder kernel for Jupyter.
 
 # Standard library imports
 from distutils.version import LooseVersion
+import logging
 import os
 import sys
 import threading
@@ -22,9 +23,9 @@ from ipykernel.ipkernel import IPythonKernel
 from traitlets.config.loader import LazyConfigValue
 
 # Local imports
-from spyder_kernels.py3compat import TEXT_TYPES, to_text_string
+from spyder_kernels.py3compat import (
+    TEXT_TYPES, to_text_string, PY3)
 from spyder_kernels.comms.frontendcomm import FrontendComm
-from spyder_kernels.py3compat import PY3, input
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
@@ -33,6 +34,10 @@ from spyder_kernels.console.shell import SpyderShell
 
 if PY3:
     import faulthandler
+
+
+logger = logging.getLogger(__name__)
+
 
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)
@@ -78,6 +83,7 @@ class SpyderKernel(IPythonKernel):
             'update_syspath': self.update_syspath,
             'is_special_kernel_valid': self.is_special_kernel_valid,
             'get_matplotlib_backend': self.get_matplotlib_backend,
+            'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
             'pdb_input_reply': self.pdb_input_reply,
             '_interrupt_eventloop': self._interrupt_eventloop,
             'enable_faulthandler': self.enable_faulthandler,
@@ -88,10 +94,8 @@ class SpyderKernel(IPythonKernel):
                 call_id, handlers[call_id])
 
         self.namespace_view_settings = {}
-        self._pdb_step = None
         self._mpl_backend_error = None
         self._running_namespace = None
-        self._pdb_input_line = None
         self.faulthandler_handle = None
 
     # -- Public API -----------------------------------------------------------
@@ -301,14 +305,6 @@ class SpyderKernel(IPythonKernel):
             return self.shell.pdb_session.do_complete(code, cursor_pos)
         return self._do_complete(code, cursor_pos)
 
-    def publish_pdb_state(self):
-        """Publish Pdb state."""
-        if self.shell.pdb_session:
-            state = dict(namespace_view = self.get_namespace_view(),
-                         var_properties = self.get_var_properties(),
-                         step = self._pdb_step)
-            self.frontend_call(blocking=False).pdb_state(state)
-
     def set_spyder_breakpoints(self, breakpoints):
         """
         Handle a message from the frontend
@@ -340,10 +336,10 @@ class SpyderKernel(IPythonKernel):
 
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
-        if self.shell.pdb_session:
-            self.shell.pdb_session._disable_next_stack_entry = (
-                not echo_stack_entry)
-        self._pdb_input_line = line
+        debugger = self.shell.pdb_session
+        if debugger:
+            debugger._disable_next_stack_entry = not echo_stack_entry
+            debugger._cmd_input_line = line
         if self.eventloop:
             # Interrupting the eventloop is only implemented when a message is
             # received on the shell channel, but this message is queued and
@@ -352,47 +348,6 @@ class SpyderKernel(IPythonKernel):
             # and request a dummy message to be sent on the shell channel to
             # stop the eventloop. This will call back `_interrupt_eventloop`.
             self.frontend_call().request_interrupt_eventloop()
-
-    def cmd_input(self, prompt=''):
-        """
-        Special input function for commands.
-        Runs the eventloop while debugging.
-        """
-        # Only works if the comm is open and this is a pdb prompt.
-        if not self.frontend_comm.is_open() or not self.shell.is_debugging():
-            return input(prompt)
-
-        # Flush output before making the request.
-        sys.stderr.flush()
-        sys.stdout.flush()
-
-        # Send the input request.
-        self._pdb_input_line = None
-        self.frontend_call().pdb_input(prompt)
-
-        # Allow GUI event loop to update
-        if PY3:
-            is_main_thread = (
-                threading.current_thread() is threading.main_thread())
-        else:
-            is_main_thread = isinstance(
-                threading.current_thread(), threading._MainThread)
-
-        # Get input by running eventloop
-        if is_main_thread and self.eventloop:
-            while self._pdb_input_line is None:
-                eventloop = self.eventloop
-                if eventloop:
-                    eventloop(self)
-                else:
-                    break
-
-        # Get input by blocking
-        if self._pdb_input_line is None:
-            self.frontend_comm.wait_until(
-                lambda: self._pdb_input_line is not None)
-
-        return self._pdb_input_line
 
     def _interrupt_eventloop(self):
         """Interrupts the eventloop."""
@@ -434,6 +389,60 @@ class SpyderKernel(IPythonKernel):
         try:
             import matplotlib
             return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend()]
+        except Exception:
+            return None
+
+    def get_mpl_interactive_backend(self):
+        """
+        Get current Matplotlib interactive backend.
+
+        This is different from the current backend because, for instance, the
+        user can set first the Qt5 backend, then the Inline one. In that case,
+        the current backend is Inline, but the current interactive one is Qt5,
+        and this backend can't be changed without a kernel restart.
+        """
+        # Mapping from frameworks to backend names.
+        mapping = {
+            'qt': 'QtAgg',  # For Matplotlib 3.5+
+            'qt5': 'Qt5Agg',
+            'tk': 'TkAgg',
+            'macosx': 'MacOSX'
+        }
+
+        try:
+            # --- Get interactive framework
+            framework = None
+
+            # This is necessary because _get_running_interactive_framework
+            # can't detect Tk in a Jupyter kernel.
+            if hasattr(self, 'app_wrapper'):
+                if hasattr(self.app_wrapper, 'app'):
+                    import tkinter
+                    if isinstance(self.app_wrapper.app, tkinter.Tk):
+                        framework = 'tk'
+
+            if framework is None:
+                try:
+                    # This is necessary for Matplotlib 3.3.0+
+                    from matplotlib import cbook
+                    framework = cbook._get_running_interactive_framework()
+                except AttributeError:
+                    # For older versions
+                    from matplotlib import backends
+                    framework = backends._get_running_interactive_framework()
+
+            # --- Return backend according to framework
+            if framework is None:
+                # Since no interactive backend has been set yet, this is
+                # equivalent to having the inline one.
+                return 0
+            elif framework in mapping:
+                return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+            else:
+                # This covers the case of other backends (e.g. Wx or Gtk)
+                # which users can set interactively with the %matplotlib
+                # magic but not through our Preferences.
+                return -1
         except Exception:
             return None
 
@@ -568,11 +577,12 @@ class SpyderKernel(IPythonKernel):
                 sys.path.remove(path)
 
         # Add new paths
-        # We do this in reverse order as we use `sys.path.insert(1, path)`.
-        # This ensures the end result has the correct path order.
-        for path, active in reversed(new_path_dict.items()):
-            if active:
-                sys.path.insert(1, path)
+        pypath = [path for path, active in new_path_dict.items() if active]
+        if pypath:
+            sys.path.extend(pypath)
+            os.environ.update({'PYTHONPATH': os.pathsep.join(pypath)})
+        else:
+            os.environ.pop('PYTHONPATH', None)
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
@@ -584,17 +594,21 @@ class SpyderKernel(IPythonKernel):
         both locals() and globals() for current frame when debugging
         """
         ns = {}
-        if self._running_namespace is None:
+        if self.shell.is_debugging() and self.shell.pdb_session.prompt_waiting:
+            # Stopped at a pdb prompt
             ns.update(self.shell.user_ns)
+            ns.update(self.shell._pdb_locals)
         else:
-            # This is true when a file is executing.
-            running_globals, running_locals = self._running_namespace
-            ns.update(running_globals)
-            if running_locals is not None:
-                ns.update(running_locals)
+            # Give access to the running namespace if there is one
+            if self._running_namespace is None:
+                ns.update(self.shell.user_ns)
+            else:
+                # This is true when a file is executing.
+                running_globals, running_locals = self._running_namespace
+                ns.update(running_globals)
+                if running_locals is not None:
+                    ns.update(running_locals)
 
-        # Add debugging locals
-        ns.update(self.shell._pdb_locals)
         # Add magics to ns so we can show help about them on the Help
         # plugin
         if with_magics:
@@ -702,7 +716,12 @@ class SpyderKernel(IPythonKernel):
         """
         import traceback
         from IPython.core.getipython import get_ipython
-        import matplotlib
+
+        # Don't proceed further if there's any error while importing Matplotlib
+        try:
+            import matplotlib
+        except Exception:
+            return
 
         generic_error = (
             "\n" + "="*73 + "\n"
@@ -740,6 +759,15 @@ class SpyderKernel(IPythonKernel):
             # This covers other RuntimeError's
             else:
                 error = generic_error.format(traceback.format_exc())
+        except ImportError as err:
+            additional_info = (
+                "This is most likely caused by missing packages in the Python "
+                "environment\n"
+                "or installation whose interpreter is located at:\n\n"
+                "    {0}"
+            ).format(sys.executable)
+
+            error = generic_error.format(err) + '\n\n' + additional_info
         except Exception:
             error = generic_error.format(traceback.format_exc())
 

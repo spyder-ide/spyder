@@ -78,9 +78,9 @@ def python_files(tmpdir_factory):
                  ('file1.py', 'file2.py', 'file3.py', 'file4.py',
                   'untitled4.py')]
     for filename in filenames:
-        with open(filename, 'w') as f:
+        with open(filename, 'w', newline='') as f:
             f.write("# -*- coding: utf-8 -*-\n"
-                    "print(Hello World!)\n")
+                    "print('Hello World!')\n")
 
     return filenames, tmpdir
 

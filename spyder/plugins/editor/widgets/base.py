@@ -44,6 +44,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     focus_changed = Signal()
     sig_insert_completion = Signal(str)
     sig_eol_chars_changed = Signal(str)
+    sig_prev_cursor = Signal()
+    sig_next_cursor = Signal()
 
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
@@ -108,6 +110,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         def reset_current_cell():
             self.current_cell = None
+            self.highlight_current_cell()
 
         self.textChanged.connect(reset_current_cell)
 
@@ -255,7 +258,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self._current_cell_cursor = None
             return
         cursor, whole_file_selected = self.select_current_cell()
-        if self._current_cell_cursor == cursor:
+
+        def same_selection(c1, c2):
+            if c1 is None or c2 is None:
+                return False
+            return (
+                c1.selectionStart() == c2.selectionStart() and
+                c1.selectionEnd() == c2.selectionEnd()
+            )
+
+        if same_selection(self._current_cell_cursor, cursor):
             # Already correct
             return
         self._current_cell_cursor = cursor
@@ -728,8 +740,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.insertText(text)
         cursor.endEditBlock()
 
-        self.document_did_change()
-
     def duplicate_line_down(self):
         """
         Copy current line or selected text and paste the duplicated text
@@ -819,8 +829,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setTextCursor(cursor)
         self.__restore_selection(start_pos, end_pos)
 
-        self.document_did_change()
-
     def move_line_up(self):
         """Move up current line or selected text"""
         self.__move_line_or_selection(after_current_line=False)
@@ -868,7 +876,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.removeSelectedText()
         cursor.endEditBlock()
         self.ensureCursorVisible()
-        self.document_did_change()
 
     def set_selection(self, start, end):
         cursor = self.textCursor()
@@ -966,7 +973,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.insert_text(text)
         else:
             self.sig_insert_completion.emit(text)
-            self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
@@ -1036,6 +1042,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     # ----Qt Events
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
+
+        # mouse buttons for forward and backward navigation
+        if event.button() == Qt.XButton1:
+            self.sig_prev_cursor.emit()
+        elif event.button() == Qt.XButton2:
+            self.sig_next_cursor.emit()
+
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
             self.setFocus()

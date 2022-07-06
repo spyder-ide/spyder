@@ -30,7 +30,7 @@ from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
     toggle_actions, set_menu_icons)
 from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.widgets.dock import SpyderDockWidget
+from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 
 
 class BasePluginMixin(object):
@@ -199,6 +199,14 @@ class BasePluginWidgetMixin(object):
             tip=_("Dock the pane"),
             triggered=self._close_window)
 
+        self._lock_unlock_action = create_action(
+            self,
+            text=_("Unlock position"),
+            tip=_("Unlock to move pane to another position"),
+            icon=ima.icon('drag_dock_widget'),
+            triggered=self._lock_unlock_position,
+        )
+
         self._undock_action = create_action(
             self,
             _("Undock"),
@@ -263,6 +271,7 @@ class BasePluginWidgetMixin(object):
         dock.visibilityChanged.connect(self._visibility_changed)
         dock.topLevelChanged.connect(self._on_top_level_changed)
         dock.sig_plugin_closed.connect(self._plugin_closed)
+        dock.sig_title_bar_shown.connect(self._on_title_bar_shown)
         self.dockwidget = dock
 
         # NOTE: Don't use the default option of CONF.get to assign a
@@ -416,6 +425,7 @@ class BasePluginWidgetMixin(object):
         # Decide what additional actions to show
         if self._undocked_window is None:
             additional_actions = [MENU_SEPARATOR,
+                                  self._lock_unlock_action,
                                   self._undock_action,
                                   self._close_plugin_action]
         else:
@@ -437,8 +447,10 @@ class BasePluginWidgetMixin(object):
         self._create_toggle_view_action()
 
         # Create Options menu
-        self._plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
-                                                            self._undock_action]
+        self._plugin_actions = (
+            self.get_plugin_actions() +
+            [MENU_SEPARATOR, self._lock_unlock_action, self._undock_action]
+        )
         add_actions(self._options_menu, self._plugin_actions)
         self.options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._refresh_actions)
@@ -479,3 +491,26 @@ class BasePluginWidgetMixin(object):
     def _tabify(self, core_plugin):
         """Tabify plugin next to a core plugin."""
         self.main.tabify_plugins(core_plugin, self)
+
+    def _lock_unlock_position(self):
+        """Show/hide title bar to move/lock position."""
+        if isinstance(self.dockwidget.titleBarWidget(), DockTitleBar):
+            self.dockwidget.remove_title_bar()
+        else:
+            self.dockwidget.set_title_bar()
+
+    @Slot(bool)
+    def _on_title_bar_shown(self, visible):
+        """Actions to perform when the title bar is shown/hidden."""
+        if visible:
+            self._lock_unlock_action.setText(_('Lock position'))
+            self._lock_unlock_action.setIcon(ima.icon('lock_open'))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self._lock_unlock_action, method_name)
+                method(_("Lock pane to the current position"))
+        else:
+            self._lock_unlock_action.setText(_('Unlock position'))
+            self._lock_unlock_action.setIcon(ima.icon('drag_dock_widget'))
+            for method_name in ['setToolTip', 'setStatusTip']:
+                method = getattr(self._lock_unlock_action, method_name)
+                method(_("Unlock to move pane to another position"))

@@ -22,6 +22,7 @@ jobs:
       fail-fast: false 
       matrix:
         PYTHON_VERSION: ['2.7', '3.7', '3.8', '3.9']
+    timeout-minutes: 20
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1
@@ -38,7 +39,10 @@ jobs:
            python-version: ${{ matrix.PYTHON_VERSION }} 
       - name: Install package and dependencies
         shell: bash -l {0}
-        run: pip install -e .[test]
+        run: |
+          pip install -e .[test]
+          # Zict 2.1.0 is not compatible with Python 3
+          pip install zict==2.0.0
       - name: Show environment information
         shell: bash -l {0}
         run: |

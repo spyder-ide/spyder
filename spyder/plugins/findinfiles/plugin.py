@@ -43,6 +43,7 @@ class FindInFiles(SpyderDockablePlugin):
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
     CONF_FILE = False
+    RAISE_AND_FOCUS = True
 
     # --- SpyderDocakblePlugin API
     # ------------------------------------------------------------------------
@@ -118,7 +119,8 @@ class FindInFiles(SpyderDockablePlugin):
 
     def on_close(self, cancelable=False):
         self.get_widget()._update_options()
-        self.get_widget()._stop_and_reset_thread(ignore_results=True)
+        if self.get_widget().running:
+            self.get_widget()._stop_and_reset_thread(ignore_results=True)
         return True
 
     # --- Public API

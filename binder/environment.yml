@@ -1,69 +1,69 @@
 channels:
-- conda-forge # Used by jupyter-desktop-server
+- conda-forge
 dependencies:
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
-# the contents of this requirements/conda.txt to this file.yml.
+# the contents of requirements/main.yml and requirements/linux.yml
+# to this file.
 # Please *DO NOT* make changes directly just to here - make changes
-# to requirements/conda.txt, and copy it here.
-- applaunchservices >=0.1.7
+# to requirements/main.yml, and copy it here.
 - atomicwrites >=1.2.0
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
 - cookiecutter >=1.6.0
 - diff-match-patch >=20181111
 - intervaltree >=3.0.2
-- ipython >=7.6.0
+- ipython >=7.31.1,<8.0.0
 - jedi >=0.17.2,<0.19.0
 - jellyfish >=0.7
 - jsonschema >=3.2.0
 - keyring >=17.0.0
 - nbconvert >=4.0
 - numpydoc >=0.6.0
-- paramiko >=2.4.0
 - parso >=0.7.0,<0.9.0
 - pexpect >=4.4.0
 - pickleshare >=0.4
 - psutil >=5.3
 - pygments >=2.0
-- pylint >=2.5.0
+- pylint >=2.5.0,<3.0
 - pyls-spyder >=0.4.0
-- pyqt <5.13
-- python-lsp-black >=1.0.0
-- python-lsp-server >=1.3.1,<1.4.0
+- pyqt <5.16
+- pyqtwebengine <5.16
+- python-lsp-black >=1.2.0
+- python-lsp-server >=1.4.1,<1.5.0
 - pyxdg >=0.26
-- pyzmq >=17
-- qdarkstyle =3.0.2
+- pyzmq >=22.1.0
+- qdarkstyle >=3.0.2,<3.1.0
 - qstylizer >=0.1.10
 - qtawesome >=1.0.2
-- qtconsole >=5.2.1,<5.3.0
-- qtpy >=1.5.0
+- qtconsole >=5.3.0,<5.4.0
+- qtpy >=2.1.0
 - rtree >=0.9.7
 - setuptools >=49.6.0
 - sphinx >=0.6.6
-- spyder-kernels >=2.2.0,<2.3.0
+- spyder-kernels >=2.3.1,<2.4.0
 - textdistance >=4.2.0
 - three-merge >=0.1.1
 - watchdog >=0.10.3
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
-# the contents of this requirements/tests.txt to this file.yml.
+# the contents of this requirements/tests.yml to this file.yml.
 # Please *DO NOT* make changes directly just to here - make changes
-# to requirements/tests.txt, and copy it here.
+# to requirements/tests.yml, and copy it here.
 - coverage
 - cython
 - flaky
 - matplotlib
 - pandas
 - pillow
-- pytest <6.0
+- pytest <7.0
 - pytest-cov
 - pytest-lazy-fixture
 - pytest-mock
 - pytest-order
 - pytest-qt
-- pytest-xvfb
+- pytest-timeout
 - pyyaml
 - scipy
 - sympy

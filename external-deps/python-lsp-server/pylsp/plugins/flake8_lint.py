@@ -43,6 +43,7 @@ def pylsp_lint(workspace, document):
         'hang-closing': settings.get('hangClosing'),
         'ignore': ignores or None,
         'max-line-length': settings.get('maxLineLength'),
+        'indent-size': settings.get('indentSize'),
         'select': settings.get('select'),
     }
 

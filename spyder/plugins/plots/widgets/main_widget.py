@@ -240,28 +240,32 @@ class PlotsWidget(ShellConnectMainWidget):
             value = figviewer.figcanvas.fig is not None
 
         for __, action in self.get_actions().items():
-            if action and action not in [self.mute_action,
-                                         self.outline_action,
-                                         self.fit_action,
-                                         self.undock_action,
-                                         self.close_action,
-                                         self.dock_action,
-                                         self.toggle_view_action]:
-                action.setEnabled(value)
+            try:
+                if action and action not in [self.mute_action,
+                                             self.outline_action,
+                                             self.fit_action,
+                                             self.undock_action,
+                                             self.close_action,
+                                             self.dock_action,
+                                             self.toggle_view_action,
+                                             self.lock_unlock_action]:
+                    action.setEnabled(value)
 
-                # IMPORTANT: Since we are defining the main actions in here
-                # and the context is WidgetWithChildrenShortcut we need to
-                # assign the same actions to the children widgets in order
-                # for shortcuts to work
-                if figviewer:
-                    figviewer_actions = figviewer.actions()
-                    thumbnails_sb_actions = thumbnails_sb.actions()
+                    # IMPORTANT: Since we are defining the main actions in here
+                    # and the context is WidgetWithChildrenShortcut we need to
+                    # assign the same actions to the children widgets in order
+                    # for shortcuts to work
+                    if figviewer:
+                        figviewer_actions = figviewer.actions()
+                        thumbnails_sb_actions = thumbnails_sb.actions()
 
-                    if action not in figviewer_actions:
-                        figviewer.addAction(action)
+                        if action not in figviewer_actions:
+                            figviewer.addAction(action)
 
-                    if action not in thumbnails_sb_actions:
-                        thumbnails_sb.addAction(action)
+                        if action not in thumbnails_sb_actions:
+                            thumbnails_sb.addAction(action)
+            except (RuntimeError, AttributeError):
+                pass
 
         self.zoom_disp.setEnabled(value)
 

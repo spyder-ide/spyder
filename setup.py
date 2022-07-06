@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 6):
-    error = "ERROR: Spyder requires Python version 3.6 and above."
+if v[0] >= 3 and v[:2] < (3, 7):
+    error = "ERROR: Spyder requires Python version 3.7 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -50,6 +50,8 @@ if v[0] >= 3 and v[:2] < (3, 6):
 # =============================================================================
 NAME = 'spyder'
 LIBNAME = 'spyder'
+WINDOWS_INSTALLER_NAME = os.environ.get('EXE_NAME')
+
 from spyder import __version__, __website_url__  #analysis:ignore
 
 
@@ -178,14 +180,13 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -201,14 +202,14 @@ setup_args = dict(
 
 
 install_requires = [
-    'applaunchservices>=0.1.7;platform_system=="Darwin"',
+    'applaunchservices>=0.3.0;platform_system=="Darwin"',
     'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
-    'ipython>=7.6.0',
+    'ipython>=7.31.1,<8.0.0',
     'jedi>=0.17.2,<0.19.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
@@ -222,30 +223,38 @@ install_requires = [
     'pickleshare>=0.4',
     'psutil>=5.3',
     'pygments>=2.0',
-    'pylint>=2.5.0',
-    'python-lsp-black>=1.0.0',
+    'pylint>=2.5.0,<3.0',
+    'python-lsp-black>=1.2.0',
     'pyls-spyder>=0.4.0',
-    'pyqt5<5.13',
-    'pyqtwebengine<5.13',
-    'python-lsp-server[all]>=1.3.1,<1.4.0',
+    'pyqt5<5.16',
+    'pyqtwebengine<5.16',
+    'python-lsp-server[all]>=1.4.1,<1.5.0',
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pyzmq>=17',
-    'qdarkstyle==3.0.2',
+    'pyzmq>=22.1.0',
+    'qdarkstyle>=3.0.2,<3.1.0',
     'qstylizer>=0.1.10',
     'qtawesome>=1.0.2',
-    'qtconsole>=5.2.1,<5.3.0',
-    'qtpy>=1.5.0',
+    'qtconsole>=5.3.0,<5.4.0',
+    'qtpy>=2.1.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=2.2.0,<2.3.0',
+    'spyder-kernels>=2.3.1,<2.4.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
 ]
 
+# Loosen constraints to ensure dev versions still work
+if 'dev' in __version__:
+    reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
+    install_requires = [req for req in install_requires
+                        if req.split(">")[0] not in reqs_to_loosen]
+    install_requires.append('python-lsp-server[all]>=1.4.1,<1.6.0')
+    install_requires.append('qtconsole>=5.3.0,<5.5.0')
+    install_requires.append('spyder-kernels>=2.3.1,<2.5.0')
+
 extras_require = {
-    'test:platform_system == "Linux"': ['pytest-xvfb'],
     'test:platform_system == "Windows"': ['pywin32'],
     'test': [
         'coverage',
@@ -254,12 +263,13 @@ extras_require = {
         'matplotlib',
         'pandas',
         'pillow',
-        'pytest<6.0',
+        'pytest<7.0',
         'pytest-cov',
         'pytest-lazy-fixture',
         'pytest-mock',
         'pytest-order',
         'pytest-qt',
+        'pytest-timeout',
         'pyyaml',
         'scipy',
         'sympy',
@@ -303,8 +313,6 @@ spyder_completions_entry_points = [
      'FallbackProvider'),
     ('snippets = spyder.plugins.completion.providers.snippets.provider:'
      'SnippetsProvider'),
-    ('kite = spyder.plugins.completion.providers.kite.provider:'
-     'KiteProvider'),
     ('lsp = spyder.plugins.completion.providers.languageserver.provider:'
      'LanguageServerProvider'),
 ]

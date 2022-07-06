@@ -11,7 +11,6 @@ from __future__ import division
 
 # Standard library imports
 import string
-import sys
 from unittest.mock import Mock
 
 # Third party imports
@@ -22,20 +21,30 @@ from qtpy.QtCore import Qt, QPoint, QModelIndex
 # Local imports
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
-from spyder.py3compat import PY2
 from spyder.widgets.collectionseditor import ROWS_TO_LOAD
 from spyder.widgets.tests.test_collectioneditor import data, data_table
 
 
-@flaky(max_runs=5)
-@pytest.mark.skipif(
-    sys.platform.startswith('linux') and PY2,
-    reason="Sometimes fails on Linux and Python 2"
-)
-def test_automatic_column_width(qtbot):
+# =============================================================================
+# ---- Fixtures
+# =============================================================================
+@pytest.fixture
+def namespacebrowser(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
     browser.setup()
+    browser.resize(640, 480)
+    browser.show()
+    qtbot.addWidget(browser)
+    return browser
+
+
+# =============================================================================
+# ---- Tests
+# =============================================================================
+@flaky(max_runs=5)
+def test_automatic_column_width(namespacebrowser):
+    browser = namespacebrowser
 
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
     browser.set_data({'a_variable':
@@ -53,15 +62,12 @@ def test_automatic_column_width(qtbot):
     assert browser.editor.columnWidth(0) == 100  # Automatic col width is off
 
 
-def test_sort_by_column(qtbot):
+def test_sort_by_column(namespacebrowser, qtbot):
     """
     Test that clicking the header view the namespacebrowser is sorted.
     Regression test for spyder-ide/spyder#9835 .
     """
-    browser = NamespaceBrowser(None)
-    qtbot.addWidget(browser)
-    browser.set_shellwidget(Mock())
-    browser.setup()
+    browser = namespacebrowser
 
     browser.set_data(
         {'a_variable':
@@ -98,17 +104,14 @@ def test_sort_by_column(qtbot):
                                        ['2', '1']]
 
 
-def test_keys_sorted_and_sort_with_large_rows(qtbot):
+def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
     """
     Test that keys are sorted and sorting works as expected when
     there's a large number of rows.
 
     This is a regression test for issue spyder-ide/spyder#10702
     """
-    browser = NamespaceBrowser(None)
-    qtbot.addWidget(browser)
-    browser.set_shellwidget(Mock())
-    browser.setup()
+    browser = namespacebrowser
 
     # Create variables.
     variables = {}
@@ -148,14 +151,12 @@ def test_keys_sorted_and_sort_with_large_rows(qtbot):
     assert data(model, 0, 0) == 'i'
 
 
-def test_filtering_with_large_rows(qtbot):
+def test_filtering_with_large_rows(namespacebrowser, qtbot):
     """
     Test that filtering works when there's a large number of rows.
     """
-    browser = NamespaceBrowser(None)
-    qtbot.addWidget(browser)
-    browser.set_shellwidget(Mock())
-    browser.setup()
+    browser = namespacebrowser
+
     text_finder = NamespacesBrowserFinder(
         browser.editor,
         callback=browser .editor.set_regex,

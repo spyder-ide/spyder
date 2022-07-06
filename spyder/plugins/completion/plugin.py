@@ -69,7 +69,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
-    REQUIRES = [Plugins.Preferences]
+    REQUIRES = [Plugins.Preferences, Plugins.MainInterpreter]
     OPTIONAL = [Plugins.Application, Plugins.StatusBar, Plugins.MainMenu]
 
     CONF_FILE = False
@@ -123,7 +123,7 @@ class CompletionPlugin(SpyderPluginV2):
         New PythonPath settings.
     """
 
-    sig_main_interpreter_changed = Signal()
+    sig_interpreter_changed = Signal()
     """
     This signal is used to report changes on the main Python interpreter.
     """
@@ -234,6 +234,12 @@ class CompletionPlugin(SpyderPluginV2):
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
             try:
+                # This absolutely ensures that the Kite provider won't be
+                # loaded. For instance, it can happen when you have an older
+                # Spyder version installed, but you're running it with
+                # bootstrap.
+                if 'kite' in entry_point.name:
+                    continue
                 logger.debug(f'Loading entry point: {entry_point}')
                 Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
@@ -262,9 +268,11 @@ class CompletionPlugin(SpyderPluginV2):
                  'linting requests sent to multiple providers.')
 
     def get_icon(self):
-        return self.create_icon('lspserver')
+        return self.create_icon('completions')
 
     def on_initialize(self):
+        self.sig_interpreter_changed.connect(self.update_completion_status)
+
         if self.main:
             self.main.sig_pythonpath_changed.connect(
                 self.sig_pythonpath_changed)
@@ -285,12 +293,25 @@ class CompletionPlugin(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
+    @on_plugin_available(plugin=Plugins.MainInterpreter)
+    def on_maininterpreter_available(self):
+        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
+        mi_container = maininterpreter.get_container()
+
+        # connect signals
+        self.completion_status.sig_open_preferences_requested.connect(
+            mi_container.sig_open_preferences_requested)
+
+        mi_container.sig_interpreter_changed.connect(
+            self.sig_interpreter_changed)
+
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
         container = self.get_container()
         self.statusbar = self.get_plugin(Plugins.StatusBar)
         for sb in container.all_statusbar_widgets():
             self.statusbar.add_status_widget(sb)
+        self.statusbar.add_status_widget(self.completion_status)
 
     @on_plugin_available(plugin=Plugins.Application)
     def on_application_available(self):
@@ -314,6 +335,14 @@ class CompletionPlugin(SpyderPluginV2):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.MainInterpreter)
+    def on_maininterpreter_teardown(self):
+        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
+        mi_container = maininterpreter.get_container()
+
+        mi_container.sig_interpreter_changed.disconnect(
+            self.sig_interpreter_changed)
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
@@ -386,11 +415,6 @@ class CompletionPlugin(SpyderPluginV2):
         provider tabs.
         """
         providers_to_update = set({})
-        options = [
-            x[1] if isinstance(x, tuple) and
-            len(x) == 2 and x[0] is None or 'editor'
-            else x for x in options
-        ]
         for option in options:
             if option == 'completions_wait_for_ms':
                 self.wait_for_ms = self.get_conf(
@@ -456,8 +480,12 @@ class CompletionPlugin(SpyderPluginV2):
             provider.STATUS_BAR_CLASSES, provider_name)
         if plugin_loaded:
             for id_ in widgets_ids:
-                currrent_widget = container.statusbar_widgets[id_]
-                self.statusbar.add_status_widget(currrent_widget)
+                current_widget = container.statusbar_widgets[id_]
+                # Validation to check for status bar registration before trying
+                # to add a widget.
+                # See spyder-ide/spyder#16997
+                if id_ not in self.statusbar.get_status_widgets():
+                    self.statusbar.add_status_widget(current_widget)
 
     def unregister_statusbar(self, provider_name):
         """
@@ -468,11 +496,44 @@ class CompletionPlugin(SpyderPluginV2):
         provider_name: str
             Name of the provider that is going to delete statusbar widgets.
         """
+        container = self.get_container()
         provider_keys = self.get_container().get_provider_statusbar_keys(
             provider_name)
         for id_ in provider_keys:
-            self.get_container().remove_statusbar_widget(id_)
-            self.statusbar.remove_status_widget(id_)
+            # Validation to check for status bar registration before trying
+            # to remove a widget.
+            # See spyder-ide/spyder#16997
+            if id_ in container.statusbar_widgets:
+                self.get_container().remove_statusbar_widget(id_)
+                self.statusbar.remove_status_widget(id_)
+
+    @property
+    def completion_status(self):
+        return self.get_container().completion_status
+
+    @Slot()
+    def update_completion_status(self):
+        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
+        mi_status = maininterpreter.get_container().interpreter_status
+
+        value = mi_status.value
+        tool_tip = mi_status._interpreter
+
+        if '(' in value:
+            value, _ = value.split('(')
+
+        if ':' in value:
+            kind, name = value.split(':')
+        else:
+            kind, name = value, ''
+        kind = kind.strip()
+        name = name.strip()
+
+        new_value = f'Completions: {kind}'
+        if name:
+            new_value += f'({name})'
+
+        self.completion_status.update_status(new_value, tool_tip)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):
@@ -749,6 +810,8 @@ class CompletionPlugin(SpyderPluginV2):
         container = self.get_container()
 
         provider_instance.sig_provider_ready.connect(self.provider_available)
+        provider_instance.sig_stop_completions.connect(
+            self.sig_stop_completions)
         provider_instance.sig_response_ready.connect(self.receive_response)
         provider_instance.sig_exception_occurred.connect(
             self.sig_exception_occurred)
@@ -765,7 +828,7 @@ class CompletionPlugin(SpyderPluginV2):
 
         self.sig_pythonpath_changed.connect(
             provider_instance.python_path_update)
-        self.sig_main_interpreter_changed.connect(
+        self.sig_interpreter_changed.connect(
             provider_instance.main_interpreter_changed)
 
     def _instantiate_and_register_provider(
@@ -802,11 +865,11 @@ class CompletionPlugin(SpyderPluginV2):
             server_status = self.language_status[language]
             server_status[provider_name] = False
 
-    def start_all_providers(self):
+    def start_all_providers(self, force=False):
         """Start all detected completion providers."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.STOPPED:
+            if provider_info['status'] == self.STOPPED or force:
                 provider_enabled = self.get_conf(
                     ('enabled_providers', provider_name), True)
                 if provider_enabled:

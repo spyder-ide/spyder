@@ -47,8 +47,13 @@ PYTHON_CONFIG = {
                 'autopep8': {
                     'enabled': True
                 },
-                'black': {
+                'pylsp_black': {
                     'enabled': False
+                },
+                'black': {
+                    'line_length': 79,
+                    'preview': False,
+                    'cache_config': False,
                 },
                 'yapf': {
                     'enabled': False
@@ -115,11 +120,14 @@ PYTHON_CONFIG = {
                     'args': []
                 },
                 'flake8': {
-                     'enabled': False,
+                    'enabled': False,
                 },
                 'pyls_spyder': {
                     'enable_block_comments': True,
                     'group_cells': True
+                },
+                'pyls_flake8': {
+                    'enabled': False,
                 }
             },
 

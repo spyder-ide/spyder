@@ -4,8 +4,9 @@
 # Licensed under the terms of the MIT License
 # (see spyder_kernels/__init__.py for details)
 
-import sys
 import linecache
+import os.path
+import sys
 
 from IPython.core.getipython import get_ipython
 
@@ -21,15 +22,19 @@ class NamespaceManager(object):
     """
 
     def __init__(self, filename, namespace=None, current_namespace=False,
-                 file_code=None):
+                 file_code=None, stack_depth=1):
         self.filename = filename
         self.ns_globals = namespace
         self.ns_locals = None
         self.current_namespace = current_namespace
         self._previous_filename = None
         self._previous_main = None
+        self._previous_running_namespace = None
         self._reset_main = False
         self._file_code = file_code
+        ipython_shell = get_ipython()
+        self.context_globals = ipython_shell.get_global_scope(stack_depth + 1)
+        self.context_locals = ipython_shell.get_local_scope(stack_depth + 1)
 
     def __enter__(self):
         """
@@ -39,10 +44,8 @@ class NamespaceManager(object):
         ipython_shell = get_ipython()
         if self.ns_globals is None:
             if self.current_namespace:
-                # stack_depth = parent of calling function
-                stack_depth = 2
-                self.ns_globals = ipython_shell.get_global_scope(stack_depth)
-                self.ns_locals = ipython_shell.get_local_scope(stack_depth)
+                self.ns_globals = self.context_globals
+                self.ns_locals = self.context_locals
                 if '__file__' in self.ns_globals:
                     self._previous_filename = self.ns_globals['__file__']
                 self.ns_globals['__file__'] = self.filename
@@ -59,6 +62,8 @@ class NamespaceManager(object):
                 self._reset_main = True
 
         # Save current namespace for access by variable explorer
+        self._previous_running_namespace = (
+            ipython_shell.kernel._running_namespace)
         ipython_shell.kernel._running_namespace = (
             self.ns_globals, self.ns_locals)
 
@@ -84,24 +89,21 @@ class NamespaceManager(object):
         Reset the namespace.
         """
         ipython_shell = get_ipython()
-        ipython_shell.kernel._running_namespace = None
+        ipython_shell.kernel._running_namespace = (
+            self._previous_running_namespace)
         if self._previous_filename:
             self.ns_globals['__file__'] = self._previous_filename
         elif '__file__' in self.ns_globals:
             self.ns_globals.pop('__file__')
 
         if not self.current_namespace:
-            # stack_depth = parent of calling function
-            stack_depth = 2
-            ns_globals = ipython_shell.get_global_scope(stack_depth)
-            ns_locals = ipython_shell.get_local_scope(stack_depth)
-            ns_globals.update(self.ns_globals)
-            if ns_locals and self.ns_locals:
-                ns_locals.update(self.ns_locals)
+            self.context_globals.update(self.ns_globals)
+            if self.context_locals and self.ns_locals:
+                self.context_locals.update(self.ns_locals)
 
         if self._previous_main:
             sys.modules['__main__'] = self._previous_main
         elif '__main__' in sys.modules and self._reset_main:
             del sys.modules['__main__']
-        if self.filename in linecache.cache:
+        if self.filename in linecache.cache and os.path.exists(self.filename):
             linecache.cache.pop(self.filename)

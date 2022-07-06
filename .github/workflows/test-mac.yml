@@ -9,11 +9,13 @@ on:
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
-      - 'requirements/*.txt'
+      - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
   pull_request:
     branches:
@@ -23,16 +25,18 @@ on:
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
-      - 'requirements/*.txt'
+      - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
 jobs:
   build:
-    name: Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
-    runs-on: macos-latest
+    name: Mac - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
+    runs-on: macos-10.15
     env:
       CI: 'true'
       CODECOV_TOKEN: "56731c25-9b1f-4340-8b58-35739bfbc52d"
@@ -44,8 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['conda']
-        PYTHON_VERSION: ['3.7']
+        PYTHON_VERSION: ['3.9']
         TEST_TYPE: ['fast', 'slow']
+    timeout-minutes: 120
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
@@ -108,7 +113,16 @@ jobs:
       - name: Run tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
-        run: python runtests.py || python runtests.py || python runtests.py || python runtests.py || python runtests.py
+        run: |
+          touch log.txt  # This is necessary to run the script below
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh
       # Enable this if SSH debugging is required
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3

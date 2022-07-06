@@ -187,8 +187,7 @@ class ToolTipWidget(QLabel):
             if os.name == 'nt':
                 padding = -7
             else:
-                padding = -4.5
-
+                padding = -4
             point.setY(adjusted_point.y() - tip_height - padding)
 
         if horizontal == 'Left':
@@ -501,9 +500,9 @@ class CallTipWidget(QLabel):
             if os.name == 'nt':
                 padding = -7
             else:
-                padding = -4.5
-
+                padding = -4
             point.setY(adjusted_point.y() - tip_height - padding)
+
         if horizontal == 'Left':
             point.setX(adjusted_point.x() - tip_width - padding)
 

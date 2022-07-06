@@ -20,6 +20,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
+from spyder.config.base import DEV
 from spyder.plugins.console.widgets.main_widget import (
     ConsoleWidget, ConsoleWidgetActions)
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
@@ -42,6 +43,7 @@ class Console(SpyderDockablePlugin):
     CONF_FILE = False
     TABIFY = [Plugins.IPythonConsole, Plugins.History]
     CAN_BE_DISABLED = False
+    RAISE_AND_FOCUS = True
 
     # --- Signals
     # ------------------------------------------------------------------------
@@ -128,7 +130,6 @@ class Console(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
-        widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
             ConsoleWidgetActions.Quit,
@@ -144,6 +145,12 @@ class Console(SpyderDockablePlugin):
 
     def on_mainwindow_visible(self):
         self.set_exit_function(self.main.closing)
+
+        # Hide this plugin when not in development so that people don't
+        # use it instead of the IPython console
+        if DEV is None:
+            self.toggle_view_action.setChecked(False)
+            self.dockwidget.hide()
 
     # --- API
     # ------------------------------------------------------------------------
@@ -186,7 +193,7 @@ class Console(SpyderDockablePlugin):
         return self.get_widget().get_sys_path()
 
     @Slot(dict)
-    def handle_exception(self, error_data):
+    def handle_exception(self, error_data, sender=None):
         """
         Handle any exception that occurs during Spyder usage.
 
@@ -214,9 +221,11 @@ class Console(SpyderDockablePlugin):
         The `label` and `steps` keys allow customizing the content of the
         error dialog.
         """
+        if sender is None:
+            sender = self.sender()
         self.get_widget().handle_exception(
             error_data,
-            sender=self.sender()
+            sender=sender
         )
 
     def quit(self):
@@ -251,7 +260,6 @@ class Console(SpyderDockablePlugin):
         Stdin and stdout are now redirected through the internal console.
         """
         widget = self.get_widget()
-        widget.set_conf('namespace', namespace)
         widget.start_interpreter(namespace)
 
     def set_namespace_item(self, name, value):

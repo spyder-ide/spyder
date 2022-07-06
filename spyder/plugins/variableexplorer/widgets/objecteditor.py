@@ -98,7 +98,7 @@ def create_dialog(obj, obj_name):
     return dialog, end_func
 
 
-def oedit(obj, modal=True, namespace=None):
+def oedit(obj, modal=True, namespace=None, app=None):
     """Edit the object 'obj' in a GUI-based editor and return the edited copy
     (if Cancel is pressed, return None)
 
@@ -110,10 +110,6 @@ def oedit(obj, modal=True, namespace=None):
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
     """
-    # Local import
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-
     if modal:
         obj_name = ''
     else:
@@ -137,7 +133,7 @@ def oedit(obj, modal=True, namespace=None):
     else:
         keeper.create_dialog(dialog, obj_name, end_func)
         import os
-        if os.name == 'nt':
+        if os.name == 'nt' and app:
             app.exec_()
 
 
@@ -146,6 +142,10 @@ def oedit(obj, modal=True, namespace=None):
 #==============================================================================
 def test():
     """Run object editor test"""
+    # Local import
+    from spyder.utils.qthelpers import qapplication
+    app = qapplication()  # analysis:ignore
+
     data = np.random.randint(1, 256, size=(100, 100)).astype('uint8')
     image = PIL.Image.fromarray(data)
     example = {'str': 'kjkj kj k j j kj k jkj',
@@ -164,10 +164,10 @@ def test():
             self.text = "toto"
     foobar = Foobar()
 
-    print(oedit(foobar))  # spyder: test-skip
-    print(oedit(example))  # spyder: test-skip
-    print(oedit(np.random.rand(10, 10)))  # spyder: test-skip
-    print(oedit(oedit.__doc__))  # spyder: test-skip
+    print(oedit(foobar, app=app))  # spyder: test-skip
+    print(oedit(example, app=app))  # spyder: test-skip
+    print(oedit(np.random.rand(10, 10), app=app))  # spyder: test-skip
+    print(oedit(oedit.__doc__, app=app))  # spyder: test-skip
     print(example)  # spyder: test-skip
 
 

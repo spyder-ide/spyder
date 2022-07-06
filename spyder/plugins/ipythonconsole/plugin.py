@@ -13,7 +13,7 @@ import os
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -41,13 +41,15 @@ class IPythonConsole(SpyderDockablePlugin):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
+                Plugins.Projects, Plugins.WorkingDirectory]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = IPythonConsoleConfigPage
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    RAISE_AND_FOCUS = True
 
     # Signals
     sig_append_to_history_requested = Signal(str, str)
@@ -79,11 +81,6 @@ class IPythonConsole(SpyderDockablePlugin):
     This signal is emitted when the plugin focus changes.
     """
 
-    sig_editor_focus_requested = Signal()
-    """
-    This signal will request to change the focus to the editor if available.
-    """
-
     sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
     """
     This signal will request to open a file in a given row and column
@@ -100,6 +97,16 @@ class IPythonConsole(SpyderDockablePlugin):
     processevents: bool
         True if the code editor need to process qt events when loading the
         requested file.
+    """
+
+    sig_edit_new = Signal(str)
+    """
+    This signal will request to create a new file in a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
     """
 
     sig_pdb_state_changed = Signal(bool, dict)
@@ -219,12 +226,11 @@ class IPythonConsole(SpyderDockablePlugin):
             self.sig_append_to_history_requested)
         widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
-        widget.sig_editor_focus_requested.connect(
-            self.sig_editor_focus_requested)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_edit_goto_requested[str, int, str, bool].connect(
             self.sig_edit_goto_requested[str, int, str, bool])
+        widget.sig_edit_new.connect(self.sig_edit_new)
         widget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
@@ -305,6 +311,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested.connect(editor.load)
         self.sig_edit_goto_requested[str, int, str, bool].connect(
             self._load_file_in_editor)
+        self.sig_edit_new.connect(editor.new)
         editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         editor.run_in_current_ipyclient.connect(self.run_script)
         editor.run_cell_in_ipyclient.connect(self.run_cell)
@@ -316,16 +323,17 @@ class IPythonConsole(SpyderDockablePlugin):
         editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
-        # Connect Console focus request with Editor
-        self.sig_editor_focus_requested.connect(self._switch_to_editor)
-
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-        widget = self.get_widget()
-        widget.projects_available = True
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
+
+    @on_plugin_available(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_available(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.connect(
+            self._set_working_directory)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -350,6 +358,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested.disconnect(editor.load)
         self.sig_edit_goto_requested[str, int, str, bool].disconnect(
             self._load_file_in_editor)
+        self.sig_edit_new.disconnect(editor.new)
         editor.breakpoints_saved.disconnect(self.set_spyder_breakpoints)
         editor.run_in_current_ipyclient.disconnect(self.run_script)
         editor.run_cell_in_ipyclient.disconnect(self.run_cell)
@@ -362,16 +371,17 @@ class IPythonConsole(SpyderDockablePlugin):
         editor.sig_file_debug_message_requested.disconnect(
             self.print_debug_file_msg)
 
-        # Connect Console focus request with Editor
-        self.sig_editor_focus_requested.disconnect(self._switch_to_editor)
-
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
-        widget = self.get_widget()
-        widget.projects_available = False
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_teardown(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.disconnect(
+            self._set_working_directory)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -386,6 +396,11 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)
+
+        # Raise plugin the first time Spyder starts
+        if self.get_conf('show_first_time', default=True):
+            self.dockwidget.raise_()
+            self.set_conf('show_first_time', False)
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -410,7 +425,8 @@ class IPythonConsole(SpyderDockablePlugin):
         Remove std files left by previous Spyder instances.
 
         This is only required on Windows because we can't
-        clean up std files while Spyder is running on it.
+        clean up std files while Spyder is running on that
+        platform.
         """
         if os.name == 'nt':
             tmpdir = get_temp_dir()
@@ -420,6 +436,11 @@ class IPythonConsole(SpyderDockablePlugin):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
+
+    @Slot(str)
+    def _set_working_directory(self, new_dir):
+        """Set current working directory on the main widget."""
+        self.get_widget().set_working_directory(new_dir)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -442,7 +463,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().register_spyder_kernel_call_handler(
             handler_id, handler)
@@ -460,7 +480,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().unregister_spyder_kernel_call_handler(handler_id)
 
@@ -480,6 +499,23 @@ class IPythonConsole(SpyderDockablePlugin):
     def get_current_shellwidget(self):
         """Return the shellwidget of the current client"""
         return self.get_widget().get_current_shellwidget()
+
+    def rename_client_tab(self, client, given_name):
+        """
+        Rename a client's tab.
+
+        Parameters
+        ----------
+        client: spyder.plugins.ipythonconsole.widgets.client.ClientWidget
+            Client to rename.
+        given_name: str
+            New name to be given to the client's tab.
+
+        Returns
+        -------
+        None.
+        """
+        self.get_widget().rename_client_tab(client, given_name)
 
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None):
@@ -509,7 +545,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().create_new_client(
             give_focus=give_focus,
@@ -533,9 +568,35 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().create_client_for_file(filename, is_cython=is_cython)
+
+    def create_client_for_kernel(self, connection_file, hostname=None,
+                                 sshkey=None, password=None):
+        """
+        Create a client connected to an existing kernel.
+
+        Parameters
+        ----------
+        connection_file: str
+            Json file that has the kernel's connection info.
+        hostname: str, optional
+            Name or IP address of the remote machine where the kernel was
+            started. When this is provided, it's also necessary to pass either
+            the ``sshkey`` or ``password`` arguments.
+        sshkey: str, optional
+            SSH key file to connect to the remote machine where the kernel is
+            running.
+        password: str, optional
+            Password to authenticate to the remote machine where the kernel is
+            running.
+
+        Returns
+        -------
+        None.
+        """
+        self.get_widget().create_client_for_kernel(
+            connection_file, hostname, sshkey, password)
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file name."""
@@ -589,7 +650,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().run_script(
             filename,
@@ -629,7 +689,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().run_cell(
             code, cell_name, filename, run_cell_copy, focus_to_editor,
@@ -659,7 +718,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy,
                                      focus_to_editor)
@@ -682,7 +740,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().execute_code(
             lines,
@@ -694,11 +751,11 @@ class IPythonConsole(SpyderDockablePlugin):
         Execute lines in IPython console and eventually set focus
         to the Editor.
         """
-        console = self
-        console.switch_to_plugin()
-        console.execute_code(lines)
+        self.execute_code(lines)
         if focus_to_editor and self.get_plugin(Plugins.Editor):
             self._switch_to_editor()
+        else:
+            self.switch_to_plugin()
 
     def stop_debugging(self):
         """Stop debugging in the current console."""
@@ -724,7 +781,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().pdb_execute_command(command)
 
@@ -735,7 +791,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().print_debug_file_msg()
 
@@ -752,7 +807,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().set_current_client_working_directory(directory)
 
@@ -769,7 +823,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().set_working_directory(dirname)
 
@@ -794,7 +847,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().update_path(path_dict, new_path_dict)
 
@@ -818,7 +870,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Returns
         -------
         None.
-
         """
         self.get_widget().restart_kernel()
 

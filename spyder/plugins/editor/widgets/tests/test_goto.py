@@ -16,7 +16,6 @@ from qtpy.QtWidgets import QMessageBox
 import pytest
 
 # Local imports
-from spyder.config.base import running_in_ci
 from spyder.utils.vcs import get_git_remotes
 
 # Constants
@@ -29,7 +28,6 @@ TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = 'conftest.py'
 
 
-@pytest.mark.skipif(running_in_ci(), reason='Fails on CI!')
 @pytest.mark.parametrize('params', [
             # Parameter, expected output 1, full file path, expected output 2
             # ----------------------------------------------------------------
@@ -97,8 +95,8 @@ def test_goto_uri(qtbot, codeeditor, mocker, params):
     code_editor.moveCursor(QTextCursor.Start)
     x, y = code_editor.get_coordinates('cursor')
 
-    # The `+ 23` is to put the mouse on top of the word
-    point = code_editor.calculate_real_position(QPoint(x + 23, y))
+    # The `+ 30` is to put the mouse on top of the word
+    point = code_editor.calculate_real_position(QPoint(x + 30, y))
 
     # Move cursor to end of line
     code_editor.moveCursor(QTextCursor.End)

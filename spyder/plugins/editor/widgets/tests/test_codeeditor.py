@@ -9,6 +9,7 @@ import os.path as osp
 import sys
 
 # Third party imports
+from qtpy import QT_VERSION
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QTextEdit
@@ -420,16 +421,16 @@ def test_editor_delete_selection(codeeditor, qtbot):
     assert editor.textCursor().columnNumber() == expected_column
 
 
+@pytest.mark.skipif(QT_VERSION.startswith('5.15'),
+                    reason='Fixed on Qt 5.15')
 def test_qtbug35861(qtbot):
     """This test will detect if upstream QTBUG-35861 is fixed.
-
     If that happens, then the workarounds for spyder-ide/spyder#12663
     can be removed. Such a fix would probably only happen in the most
     recent Qt version however...
-
     See also https://bugreports.qt.io/browse/QTBUG-35861
     """
-    widget = QTextEdit()
+    widget = QTextEdit(None)
     qtbot.addWidget(widget)
     widget.show()
 
@@ -574,6 +575,52 @@ def test_paste_text(codeeditor, text, line_ending_char):
     editor.paste()
     for line_no, txt in enumerate(text.splitlines()):
         assert editor.get_text_line(line_no) == txt
+
+
+def test_cell_highlight(codeeditor, qtbot):
+    """Test cells are properly highlighted."""
+    editor = codeeditor
+    text = ('\n\n\n#%%\n\n\n')
+    editor.set_text(text)
+    # Set cursor to start of file
+    cursor = editor.textCursor()
+    cursor.setPosition(0)
+    editor.setTextCursor(cursor)
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 3
+
+    # Set cursor to start second cell
+    cursor = editor.textCursor()
+    cursor.setPosition(6)
+    editor.setTextCursor(cursor)
+    assert editor.current_cell[0].selectionStart() == 3
+    assert editor.current_cell[0].selectionEnd() == 9
+
+    # Delete cell
+    qtbot.keyPress(editor, Qt.Key_Backspace)
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
+
+    # Create cell
+    qtbot.keyPress(editor, "%")
+    assert editor.current_cell[0].selectionStart() == 3
+    assert editor.current_cell[0].selectionEnd() == 9
+
+    # Test delete
+    cursor = editor.textCursor()
+    cursor.setPosition(5)
+    editor.setTextCursor(cursor)
+    qtbot.keyPress(editor, Qt.Key_Delete)
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
+
+    # Test undo
+    editor.undo()
+    assert editor.current_cell[0].selectionStart() == 3
+    assert editor.current_cell[0].selectionEnd() == 9
+    editor.redo()
+    assert editor.current_cell[0].selectionStart() == 0
+    assert editor.current_cell[0].selectionEnd() == 8
 
 
 if __name__ == '__main__':

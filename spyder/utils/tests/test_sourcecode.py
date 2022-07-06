@@ -6,6 +6,7 @@
 """Tests for sourcecode.py"""
 
 import os
+import sys
 
 import pytest
 
@@ -88,6 +89,7 @@ def test_shortest_path():
         shortest_path = os.path.join(*['c:','','documents','test','test.py'])
     assert sourcecode.shortest_path(files_path_list) == shortest_path
 
+
 def test_disambiguate_fname():
     files_path_list = []
     if not os.name == 'nt':
@@ -104,6 +106,23 @@ def test_disambiguate_fname():
     title1 = 'test.py - ' + os.path.join(*['projects','test'])
     assert sourcecode.disambiguate_fname(files_path_list, fname0) == title0
     assert sourcecode.disambiguate_fname(files_path_list, fname1) == title1
+
+
+def test_get_eol_chars():
+    eol_chars = sourcecode.get_eol_chars('foo\r\n')
+    assert eol_chars == '\r\n'
+
+
+def test_get_eol_chars_no_eol():
+    eol_chars = sourcecode.get_eol_chars('foo')
+
+    if os.name == 'nt':
+        assert eol_chars == "\r\n"
+    elif sys.platform.startswith('linux'):
+        assert eol_chars == "\n"
+    elif sys.platform == 'darwin':
+        assert eol_chars == "\r"
+
 
 if __name__ == '__main__':
     pytest.main()

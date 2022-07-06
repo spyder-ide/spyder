@@ -48,30 +48,17 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 valid_custom_list.append(path)
         self.set_option('custom_interpreters_list', valid_custom_list)
 
-        # Python executable selection (initializing default values as well)
-        executable = self.get_option('executable', get_python_executable())
-        if self.get_option('default'):
+        # add custom_interpreter to executable selection
+        executable = self.get_option('executable')
+
+        # check if the executable is valid - use Spyder's if not
+        if self.get_option('default') or not osp.isfile(executable):
             executable = get_python_executable()
+        elif not self.get_option('custom_interpreter'):
+            self.set_option('custom_interpreter', ' ')
 
-        if not osp.isfile(executable):
-            # This is absolutely necessary, in case the Python interpreter
-            # executable has been moved since last Spyder execution (following
-            # a Python distribution upgrade for example)
-            self.set_option('executable', get_python_executable())
-        elif executable.endswith('pythonw.exe'):
-            # That should not be necessary because this case is already taken
-            # care of by the `get_python_executable` function but, this was
-            # implemented too late, so we have to fix it here too, in case
-            # the Python executable has already been set with pythonw.exe:
-            self.set_option('executable',
-                            executable.replace("pythonw.exe", "python.exe"))
-
-        if not self.get_option('default'):
-            if not self.get_option('custom_interpreter'):
-                self.set_option('custom_interpreter', ' ')
-
-            plugin._add_to_custom_interpreters(executable)
-            self.validate_custom_interpreters_list()
+        plugin._add_to_custom_interpreters(executable)
+        self.validate_custom_interpreters_list()
 
     def initialize(self):
         super().initialize()
@@ -136,7 +123,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 "This option will enable the User Module Reloader (UMR) "
                 "in Python/IPython consoles. UMR forces Python to "
                 "reload deeply modules during import when running a "
-                "Python script using the Spyder's builtin function "
+                "Python file using the Spyder's builtin function "
                 "<b>runfile</b>."
                 "<br><br><b>1.</b> UMR may require to restart the "
                 "console in which it will be called "

@@ -38,13 +38,21 @@ Finally, set the upstream remote to the official Spyder repo with:
 $ git remote add upstream https://github.com/spyder-ide/spyder.git
 ```
 
-### Creating a conda environment or virtualenv
 
-If you use Anaconda you can create a conda environment with the following commands:
+### Creating an environment and installing dependencies
+
+If you use Anaconda or Conda-forge, you can create an environment and install the necessary dependencies as follows:
 
 ```bash
-$ conda create -n spyder-dev python=3
+$ conda create -n spyder-dev -c conda-forge python=3.9
 $ conda activate spyder-dev
+$ conda env update --file requirements/main.yml
+```
+
+After doing that, you need to install Spyder's specific dependencies per operating system. For instance, if you're working on macOS you need to run
+
+```bash
+$ conda env update --file requirements/macos.yml
 ```
 
 You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
@@ -52,38 +60,18 @@ You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
 ```bash
 $ mkvirtualenv spyder-dev
 $ workon spyder-dev
+(spyder-dev) $ pip install -e .
 ```
 
-
-### Installing dependencies
-
-After you have created your development environment, you need to install Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
-
-```bash
-$ conda install -c conda-forge --file requirements/conda.txt
-```
-
-This installs all Spyder's dependencies into the environment.
-If you are running on macOS, you will also need to install `python.app`.
-
-```bash
-$ conda install python.app
-```
-
-If using `pip` and `virtualenv` (not recommended), you need to `cd` to the directory where your git clone is stored and run:
-
-```bash
-$ pip install -e .
-```
 
 ### Running Spyder
 
-To start Spyder directly from your clone, i.e. without installing it into your environment, you need to run (from the directory you cloned it to e.g. `spyder`):
+To run Spyder from your clone in its development mode, with extra checks and options (pass `--help` to see them), launch it via the `bootstrap.py` script in the repo root directory:
 
 ```bash
 $ python bootstrap.py
 ```
-Note that if you are running on macOS, you will need to call `pythonw` instead of `python`.
+Note that if you are running on macOS 10.15 or earlier, you will need to call `pythonw` instead of `python`.
 
 To start Spyder in debug mode, useful for tracking down an issue, you can run:
 
@@ -99,7 +87,7 @@ $ python bootstrap.py --debug
 To install our test dependencies under Anaconda:
 
 ```bash
-$ conda install -c conda-forge --file requirements/tests.txt
+$ conda env update --file requirements/tests.yml
 ```
 
 If using `pip` (for experts only), run the following from the directory where your git clone is stored:
@@ -206,36 +194,58 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
 where `<branch>` needs to be `2.x` if your `fix_in_spyder` branch was done against Spyder's `5.x` branch; and `master`, if you did it against our `master` branch here.
 
 
-## Making contributions that depend on pull requests in python-lsp-server
+## Making contributions that depend on pull requests in python-lsp-server or qtconsole
 
-As with spyder-kernels, Spyder is tightly integrated with the [python-lsp-server](https://github.com/python-lsp/python-lsp-server) to provide code completion, linting and folding on its editor.
+As with spyder-kernels, Spyder is tightly integrated with the [python-lsp-server](https://github.com/python-lsp/python-lsp-server) to provide code completion, linting and folding on its editor; and [qtconsole](https://github.com/jupyter/qtconsole) for its IPython console.
 
-Due to that, a clone of that project is placed in the `external-deps` directory, which is managed with the `git subrepo` project. If you want to make a pull request in python-lsp-server that affects functionality in Spyder, please read carefully the instructions in the previous section because they are very similar for this case. A summary of those instructions applied to this project is the following:
+Due to that, a clone of those projects is placed in the `external-deps` directory, which is managed with the `git subrepo` project. If you want to make a pull request in python-lsp-server or qtconsole that affects functionality in Spyder, please read carefully the instructions in the previous section because they are very similar for those cases. A summary of those instructions applied to these projects is the following:
 
-* First you need to create a pull request in python-lsp-server with the changes you want to make there. Let's assume the branch from which that pull request is created is called `fix_in_pyls`.
+* First you need to create a pull request in python-lsp-server or qtconsole with the changes you want to make there. Let's assume the branch from which that pull request is created is called `fix_in_external_dep`.
 
 * Then you need to create a branch in Spyder (let's call it `fix_in_spyder`) with the fixes that require that pull request and update the python-lsp-server subrepo. For that you need to execute the following commands:
 
     ```
     $ git checkout -b fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_pylsp -f
+    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_external_dep -f
     ```
 
-    and then commit the changes you need to make in Spyder.
+    in case the fix is in python-lsp-server, or
 
-* If you need to add more commits to `fix_in_pylsp`, you need to update `fix_in_spyder` with these commands:
+    ```
+    $ git checkout -b fix_in_spyder
+    $ git subrepo clone https://github.com/myuser/qtconsole.git external-deps/qtconsole -b fix_in_external_dep -f
+    ```
+
+    if the fix is in qtconsole. And then commit the changes you need to make in Spyder.
+
+* If you need to add more commits to `fix_in_external_dep`, you need to update `fix_in_spyder` with these commands:
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_pylsp -f
+    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_external_dep -f
     $ git push origin fix_in_spyder
     ```
 
-* After `fix_in_pylsp` is merged, you need to update the python-lsp-server subrepo in your `fix_in_spyder` branch with
+    or
+
+    ```
+    $ git checkout fix_in_spyder
+    $ git subrepo clone https://github.com/myuser/qtconsole.git external-deps/qtconsole -b fix_in_external_dep -f
+    $ git push origin fix_in_spyder
+    ```
+
+* After `fix_in_external_dep` is merged, you need to update the python-lsp-server or qtconsole subrepos in your `fix_in_spyder` branch with
 
     ```
     $ git checkout fix_in_spyder
     $ git subrepo clone https://github.com/python-lsp/python-lsp-server.git external-deps/python-lsp-server -b develop -f
+    ```
+
+    or
+
+    ```
+    $ git checkout fix_in_spyder
+    $ git subrepo clone https://github.com/jupyter/qtconsole.git external-deps/qtconsole -b master -f
     ```
 
 

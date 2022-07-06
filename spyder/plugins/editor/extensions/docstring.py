@@ -388,7 +388,7 @@ class DocstringWriterExtension(object):
         arg_types = func_info.arg_type_list
         arg_values = func_info.arg_value_list
 
-        if len(arg_names) > 0 and arg_names[0] == 'self':
+        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
             del arg_names[0]
             del arg_types[0]
             del arg_values[0]
@@ -471,7 +471,7 @@ class DocstringWriterExtension(object):
         arg_types = func_info.arg_type_list
         arg_values = func_info.arg_value_list
 
-        if len(arg_names) > 0 and arg_names[0] == 'self':
+        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
             del arg_names[0]
             del arg_types[0]
             del arg_values[0]
@@ -553,7 +553,7 @@ class DocstringWriterExtension(object):
         arg_types = func_info.arg_type_list
         arg_values = func_info.arg_value_list
 
-        if len(arg_names) > 0 and arg_names[0] == 'self':
+        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
             del arg_names[0]
             del arg_types[0]
             del arg_values[0]

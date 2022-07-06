@@ -9,18 +9,20 @@
 Testing utilities to be used with pytest.
 """
 
+# Standard library imports
+import sys
 import types
-
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QMainWindow
+from qtpy.QtWidgets import QWidget, QMainWindow
 import pytest
 
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+from spyder.app.cli_options import get_options
 from spyder.config.manager import CONF
 from spyder.plugins.preferences.plugin import Preferences
 from spyder.utils.icon_manager import ima
@@ -29,8 +31,8 @@ from spyder.utils.icon_manager import ima
 class MainWindowMock(QMainWindow):
     register_shortcut = Mock()
 
-    def __init__(self):
-        super().__init__(None)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []
@@ -39,7 +41,10 @@ class MainWindowMock(QMainWindow):
         self._APPLICATION_TOOLBARS = MagicMock()
 
         self.console = Mock()
-        self.sig_main_interpreter_changed = Mock()
+
+        # To provide command line options for plugins that need them
+        sys_argv = [sys.argv[0]]  # Avoid options passed to pytest
+        self._cli_options = get_options(sys_argv)[0]
 
         PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
@@ -71,12 +76,13 @@ class MainWindowMock(QMainWindow):
         pass
 
 
-class ConfigDialogTester:
-    def __init__(self, params):
-        main_class, general_config_plugins, plugins = params
-        self._main = main_class() if main_class else None
+class ConfigDialogTester(QWidget):
+    def __init__(self, parent, main_class,
+                 general_config_plugins, plugins):
+        super().__init__(parent)
+        self._main = main_class(self) if main_class else None
         if self._main is None:
-            self._main = MainWindowMock()
+            self._main = MainWindowMock(self)
 
         def set_prefs_size(self, size):
             pass
@@ -102,6 +108,7 @@ class ConfigDialogTester:
         setattr(self._main, 'set_prefs_size',
                 types.MethodType(set_prefs_size, self._main))
 
+        PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self._main.register_plugin)
         PLUGIN_REGISTRY.register_plugin(self._main, Preferences)
 
@@ -126,25 +133,33 @@ def global_config_dialog(qtbot):
 
     These options are the ones not tied to a specific plugin.
     """
-    preferences = Preferences(MainWindowMock(), CONF)
-    preferences.open_dialog(None)
+    mainwindow = MainWindowMock(None)
+    qtbot.addWidget(mainwindow)
 
+    preferences = Preferences(mainwindow, CONF)
+    preferences.open_dialog(None)
     container = preferences.get_container()
     dlg = container.dialog
-    qtbot.addWidget(dlg)
-    dlg.show()
-    return dlg
+
+    yield dlg
+
+    dlg.close()
 
 
 @pytest.fixture
 def config_dialog(qtbot, request, mocker):
     mocker.patch.object(ima, 'icon', lambda x, *_: QIcon())
-    main_ref = ConfigDialogTester(request.param)
+    main_class, general_config_plugins, plugins = request.param
+
+    main_ref = ConfigDialogTester(
+        None, main_class, general_config_plugins, plugins)
+    qtbot.addWidget(main_ref)
+
     preferences = main_ref._main.get_plugin(Plugins.Preferences)
     preferences.open_dialog(None)
-
     container = preferences.get_container()
     dlg = container.dialog
-    qtbot.addWidget(dlg)
-    dlg.show()
-    return dlg
+
+    yield dlg
+
+    dlg.close()

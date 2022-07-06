@@ -6,10 +6,11 @@
 
 """Editor config page."""
 
-from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout, QWidget)
 
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
@@ -21,7 +22,14 @@ GOOGLEDOC = "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_goo
 DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
-class EditorConfigPage(PluginConfigPage):
+class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
+    def __init__(self, plugin, parent):
+        PluginConfigPage.__init__(self, plugin, parent)
+        SpyderConfigurationObserver.__init__(self)
+        self.removetrail_box = None
+        self.add_newline_box = None
+        self.remove_trail_newline_box = None
+
     def get_name(self):
         return _("Editor")
 
@@ -118,16 +126,16 @@ class EditorConfigPage(PluginConfigPage):
             _("Intelligent backspace"),
             'intelligent_backspace',
             default=True)
-        removetrail_box = newcb(
+        self.removetrail_box = newcb(
             _("Automatically remove trailing spaces when saving files"),
             'always_remove_trailing_spaces',
             default=False)
-        add_newline_box = newcb(
+        self.add_newline_box = newcb(
             _("Insert a newline at the end if one does not exist when saving "
               "a file"),
             'add_newline',
             default=False)
-        remove_trail_newline_box = newcb(
+        self.remove_trail_newline_box = newcb(
             _("Trim all newlines after the final one when saving a file"),
             'always_remove_trailing_newlines',
             default=False)
@@ -148,6 +156,13 @@ class EditorConfigPage(PluginConfigPage):
             _("spaces"),
             'tab_stop_width_spaces',
             default=4, min_=1, max_=8, step=1)
+
+        format_on_save = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            False
+        )
+        self.on_format_save_state(format_on_save)
 
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
@@ -178,9 +193,9 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(close_quotes_box)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
-        sourcecode_layout.addWidget(removetrail_box)
-        sourcecode_layout.addWidget(add_newline_box)
-        sourcecode_layout.addWidget(remove_trail_newline_box)
+        sourcecode_layout.addWidget(self.removetrail_box)
+        sourcecode_layout.addWidget(self.add_newline_box)
+        sourcecode_layout.addWidget(self.remove_trail_newline_box)
         sourcecode_layout.addWidget(strip_mode_box)
         sourcecode_layout.addLayout(indent_tab_layout)
 
@@ -280,18 +295,21 @@ class EditorConfigPage(PluginConfigPage):
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
                               'check_eol_chars', default=True)
-        convert_eol_on_save_box = newcb(_("On Save: convert EOL characters"
-                                          " to"),
-                                        'convert_eol_on_save', default=False)
-        eol_combo_choices = ((_("LF (UNIX)"), 'LF'),
-                             (_("CRLF (Windows)"), 'CRLF'),
-                             (_("CR (Mac)"), 'CR'),
-                             )
-        convert_eol_on_save_combo = self.create_combobox("",
-                                                         eol_combo_choices,
-                                                         ('convert_eol_on_'
-                                                          'save_to'),
-                                                         )
+        convert_eol_on_save_box = newcb(
+            _("Convert end-of-line characters to the following on save:"),
+            'convert_eol_on_save',
+            default=False
+        )
+        eol_combo_choices = (
+            (_("LF (Unix)"), 'LF'),
+            (_("CRLF (Windows)"), 'CRLF'),
+            (_("CR (macOS)"), 'CR'),
+        )
+        convert_eol_on_save_combo = self.create_combobox(
+            "",
+            eol_combo_choices,
+            'convert_eol_on_save_to',
+        )
         convert_eol_on_save_box.toggled.connect(
                 convert_eol_on_save_combo.setEnabled)
         convert_eol_on_save_combo.setEnabled(
@@ -320,3 +338,36 @@ class EditorConfigPage(PluginConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
+        section='completions'
+    )
+    def on_format_save_state(self, value):
+        """
+        Change options following the `format_on_save` completion option.
+
+        Parameters
+        ----------
+        value : bool
+            If the completion `format_on_save` option is enabled or disabled.
+
+        Returns
+        -------
+        None.
+
+        """
+        options = [
+            self.removetrail_box,
+            self.add_newline_box,
+            self.remove_trail_newline_box]
+        for option in options:
+            if option:
+                if value:
+                    option.setToolTip(
+                        _("This option is disabled since the "
+                          "<i>Autoformat files on save</i> option is active.")
+                    )
+                else:
+                    option.setToolTip("")
+                option.setDisabled(value)

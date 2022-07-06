@@ -51,7 +51,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.opened_files_status = {}
         self.thread_started = False
         self.enable_code_snippets = enable_code_snippets
-        self.thread = QThread()
+        self.thread = QThread(None)
         self.moveToThread(self.thread)
         self.thread.started.connect(self.started)
         self.sig_perform_request.connect(self.perform_request)

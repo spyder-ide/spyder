@@ -9,11 +9,13 @@ on:
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
-      - 'requirements/*.txt'
+      - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
   pull_request:
     branches:
@@ -23,15 +25,17 @@ on:
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
-      - 'requirements/*.txt'
+      - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
 
 jobs:
   build:
-    name: Py${{ matrix.PYTHON_VERSION }}
+    name: Linux - Py${{ matrix.PYTHON_VERSION }}
     runs-on: ubuntu-latest
     env:
       CI: 'true'
@@ -41,7 +45,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.7']
+        PYTHON_VERSION: ['3.7', '3.9']
+    timeout-minutes: 30
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
@@ -67,7 +72,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update --fix-missing
-          sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0 xterm --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache conda
         uses: actions/cache@v2
         env:

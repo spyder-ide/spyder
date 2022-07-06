@@ -58,8 +58,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                        get_run_configuration,
-                                        RunConfigDialog, RunConfigOneDialog)
+                                        get_run_configuration, RunConfigDialog,
+                                        RunConfiguration, RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 
 
@@ -224,9 +224,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         layout.addWidget(self.dock_toolbar)
 
         self.last_edit_cursor_pos = None
-        self.cursor_pos_history = []
-        self.cursor_pos_index = None
-        self.__ignore_cursor_position = True
+        self.cursor_undo_history = []
+        self.cursor_redo_history = []
+        self.__ignore_cursor_history = True
 
         # Completions setup
         self.completion_capabilities = {}
@@ -287,14 +287,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.edit_filetypes = None
         self.edit_filters = None
 
-        self.__ignore_cursor_position = False
+        self.__ignore_cursor_history = False
         current_editor = self.get_current_editor()
         if current_editor is not None:
             filename = self.get_current_filename()
-            position = current_editor.get_position('cursor')
-            line, column = current_editor.get_cursor_line_column()
-            self.add_cursor_position_to_history(filename, position, line,
-                                                column)
+            cursor = current_editor.textCursor()
+            self.add_cursor_to_history(filename, cursor)
         self.update_cursorpos_actions()
         self.set_path()
 
@@ -701,6 +699,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", add_shortcut_to_tip=True)
 
+        run_to_line_action = create_action(self, _("Run &to current line"),
+                                           tip=_("Run to current line"),
+                                           triggered=self.run_to_line,
+                                           context=Qt.WidgetShortcut)
+        self.register_shortcut(run_to_line_action, context="Editor",
+                               name="Run to line", add_shortcut_to_tip=True)
+
+        run_from_line_action = create_action(self, _("Run &from current line"),
+                                             tip=_("Run from current line"),
+                                             triggered=self.run_from_line,
+                                             context=Qt.WidgetShortcut)
+        self.register_shortcut(run_from_line_action, context="Editor",
+                               name="Run from line", add_shortcut_to_tip=True)
+
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
@@ -862,20 +874,27 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="transform to lowercase")
         # ----------------------------------------------------------------------
 
-        self.win_eol_action = create_action(self,
-                           _("Carriage return and line feed (Windows)"),
-                           toggled=lambda checked: self.toggle_eol_chars('nt', checked))
-        self.linux_eol_action = create_action(self,
-                           _("Line feed (UNIX)"),
-                           toggled=lambda checked: self.toggle_eol_chars('posix', checked))
-        self.mac_eol_action = create_action(self,
-                           _("Carriage return (Mac)"),
-                           toggled=lambda checked: self.toggle_eol_chars('mac', checked))
+        self.win_eol_action = create_action(
+            self,
+            _("CRLF (Windows)"),
+            toggled=lambda checked: self.toggle_eol_chars('nt', checked)
+        )
+        self.linux_eol_action = create_action(
+            self,
+            _("LF (Unix)"),
+            toggled=lambda checked: self.toggle_eol_chars('posix', checked)
+        )
+        self.mac_eol_action = create_action(
+            self,
+            _("CR (macOS)"),
+            toggled=lambda checked: self.toggle_eol_chars('mac', checked)
+        )
         eol_action_group = QActionGroup(self)
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
         eol_menu = QMenu(_("Convert end-of-line characters"), self)
+        eol_menu.setObjectName('checkbox-padding')
         add_actions(eol_menu, eol_actions)
 
         trailingspaces_action = create_action(
@@ -1101,7 +1120,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run_menu_actions = [run_action, run_cell_action,
                             run_cell_advance_action,
                             re_run_last_cell_action, MENU_SEPARATOR,
-                            run_selected_action, re_run_action,
+                            run_selected_action, run_to_line_action,
+                            run_from_line_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
@@ -1279,11 +1299,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         named_options = dict(zip(option_names, options))
         for name, action in self.checkable_actions.items():
             if name in named_options:
-                section = 'completions'
                 if name == 'underline_errors':
                     section = 'editor'
+                    opt = 'underline_errors'
+                else:
+                    section = 'completions'
+                    opt = named_options[name]
 
-                opt = named_options[name]
                 state = self.get_option(opt, section=section)
 
                 # Avoid triggering the action when this action changes state
@@ -1318,8 +1340,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 kite_call_to_action = finfo.editor.kite_call_to_action
-                comp_widget.setParent(ancestor)
-                kite_call_to_action.setParent(ancestor)
+
+                # This is necessary to catch an error when the plugin is
+                # undocked and docked back, and (probably) a completion is
+                # in progress.
+                # Fixes spyder-ide/spyder#17486
+                try:
+                    comp_widget.setParent(ancestor)
+                    kite_call_to_action.setParent(ancestor)
+                except RuntimeError:
+                    pass
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
@@ -1778,7 +1808,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             text = message[:1].upper() + message[1:]
             icon = ima.icon('error') if error else ima.icon('warning')
             slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.warning_menu.addAction(action)
 
     def update_todo_menu(self):
@@ -1790,7 +1821,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for text, line0 in results:
             icon = ima.icon('todo')
             slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
-            action = create_action(self, text=text, icon=icon, triggered=slot)
+            action = create_action(self, text=text, icon=icon)
+            action.triggered[bool].connect(slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
 
@@ -2101,6 +2133,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         (So that the end position is start_column + end_column)
         Alternatively, the first match of word is used as a position.
         """
+        cursor_history_state = self.__ignore_cursor_history
+        self.__ignore_cursor_history = True
         # Switch to editor before trying to load a file
         try:
             self.switch_to_plugin()
@@ -2173,6 +2207,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
             else:
+                self.__ignore_cursor_history = cursor_history_state
                 return
 
         focus_widget = QApplication.focusWidget()
@@ -2252,10 +2287,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 if ipyconsole:
                     current_sw = ipyconsole.get_current_shellwidget()
                     current_sw.sig_prompt_ready.connect(
-                        current_editor.sig_debug_stop[()].emit)
+                        current_editor.sig_debug_stop[()])
                     current_pdb_state = ipyconsole.get_pdb_state()
                     pdb_last_step = ipyconsole.get_pdb_last_step()
                     self.update_pdb_state(current_pdb_state, pdb_last_step)
+
+        self.__ignore_cursor_history = cursor_history_state
+        self.add_cursor_to_history()
 
     @Slot()
     def print_file(self):
@@ -2492,35 +2530,37 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def go_to_next_todo(self):
         self.switch_to_plugin()
         editor = self.get_current_editor()
-        position = editor.go_to_next_todo()
+        editor.go_to_next_todo()
         filename = self.get_current_filename()
-        line, column = editor.get_cursor_line_column()
-        self.add_cursor_position_to_history(filename, position, line, column)
+        cursor = editor.textCursor()
+        self.add_cursor_to_history(filename, cursor)
 
     @Slot()
     def go_to_next_warning(self):
         self.switch_to_plugin()
         editor = self.get_current_editor()
-        position = editor.go_to_next_warning()
+        editor.go_to_next_warning()
         filename = self.get_current_filename()
-        line, column = editor.get_cursor_line_column()
-        self.add_cursor_position_to_history(filename, position, line, column)
+        cursor = editor.textCursor()
+        self.add_cursor_to_history(filename, cursor)
 
     @Slot()
     def go_to_previous_warning(self):
         self.switch_to_plugin()
         editor = self.get_current_editor()
-        position = editor.go_to_previous_warning()
+        editor.go_to_previous_warning()
         filename = self.get_current_filename()
-        line, column = editor.get_cursor_line_column()
-        self.add_cursor_position_to_history(filename, position, line, column)
+        cursor = editor.textCursor()
+        self.add_cursor_to_history(filename, cursor)
 
     def toggle_eol_chars(self, os_name, checked):
         if checked:
             editor = self.get_current_editor()
             if self.__set_eol_chars:
                 self.switch_to_plugin()
-                editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
+                editor.set_eol_chars(
+                    eol_chars=sourcecode.get_eol_chars_from_os_name(os_name)
+                )
 
     @Slot()
     def remove_trailing_spaces(self):
@@ -2543,44 +2583,46 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     #------ Cursor position history management
     def update_cursorpos_actions(self):
         self.previous_edit_cursor_action.setEnabled(
-                                        self.last_edit_cursor_pos is not None)
+            self.last_edit_cursor_pos is not None)
         self.previous_cursor_action.setEnabled(
-               self.cursor_pos_index is not None and self.cursor_pos_index > 0)
-        self.next_cursor_action.setEnabled(self.cursor_pos_index is not None \
-                    and self.cursor_pos_index < len(self.cursor_pos_history)-1)
+            len(self.cursor_undo_history) > 0)
+        self.next_cursor_action.setEnabled(
+            len(self.cursor_redo_history) > 0)
 
-    def add_cursor_position_to_history(self, filename, position, line, column,
-                                       fc=False):
-        if self.__ignore_cursor_position:
+    def add_cursor_to_history(self, filename=None, cursor=None):
+        if self.__ignore_cursor_history:
             return
-        for index, (fname, pos, c_line, c_col) in enumerate(
-                self.cursor_pos_history):
+        if filename is None:
+            filename = self.get_current_filename()
+        if cursor is None:
+            editor = self._get_editor(filename)
+            if editor is None:
+                return
+            cursor = editor.textCursor()
+
+        replace_last_entry = False
+        if len(self.cursor_undo_history) > 0:
+            fname, hist_cursor = self.cursor_undo_history[-1]
             if fname == filename:
-                if pos == position or pos == 0 or line == c_line:
-                    if fc:
-                        self.cursor_pos_history[index] = (filename, position,
-                                                          line, column)
-                        self.cursor_pos_index = index
-                        self.update_cursorpos_actions()
-                        return
-                    else:
-                        if self.cursor_pos_index >= index:
-                            self.cursor_pos_index -= 1
-                        self.cursor_pos_history.pop(index)
-                        break
-        if self.cursor_pos_index is not None:
-            self.cursor_pos_history = \
-                        self.cursor_pos_history[:self.cursor_pos_index+1]
-        self.cursor_pos_history.append((filename, position, line, column))
-        self.cursor_pos_index = len(self.cursor_pos_history)-1
+                if cursor.blockNumber() == hist_cursor.blockNumber():
+                    # Only one cursor per line
+                    replace_last_entry = True
+
+        if replace_last_entry:
+            self.cursor_undo_history.pop()
+        else:
+            # Drop redo stack as we moved
+            self.cursor_redo_history = []
+
+        self.cursor_undo_history.append((filename, cursor))
         self.update_cursorpos_actions()
 
     def text_changed_at(self, filename, position):
         self.last_edit_cursor_pos = (to_text_string(filename), position)
 
     def current_file_changed(self, filename, position, line, column):
-        self.add_cursor_position_to_history(to_text_string(filename), position,
-                                            line, column, fc=True)
+        cursor = self.get_current_editor().textCursor()
+        self.add_cursor_to_history(to_text_string(filename), cursor)
 
         # Hide any open tooltips
         current_stack = self.get_current_editorstack()
@@ -2598,22 +2640,25 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """Handles the change of the cursor inside the current editor."""
         code_editor = self.get_current_editor()
         filename = code_editor.filename
-        position = code_editor.get_position('cursor')
-        line, column = code_editor.get_cursor_line_column()
-        self.add_cursor_position_to_history(
-            to_text_string(filename), position, line, column, fc=True)
+        cursor = code_editor.textCursor()
+        self.add_cursor_to_history(
+            to_text_string(filename), cursor)
 
     def remove_file_cursor_history(self, id, filename):
         """Remove the cursor history of a file if the file is closed."""
         new_history = []
-        for i, (cur_filename, pos, line, column) in enumerate(
-                self.cursor_pos_history):
-            if cur_filename == filename:
-                if i < self.cursor_pos_index:
-                    self.cursor_pos_index = self.cursor_pos_index - 1
-            else:
-                new_history.append((cur_filename, pos, line, column))
-        self.cursor_pos_history = new_history
+        for i, (cur_filename, cursor) in enumerate(
+                self.cursor_undo_history):
+            if cur_filename != filename:
+                new_history.append((cur_filename, cursor))
+        self.cursor_undo_history = new_history
+
+        new_redo_history = []
+        for i, (cur_filename, cursor) in enumerate(
+                self.cursor_redo_history):
+            if cur_filename != filename:
+                new_redo_history.append((cur_filename, cursor))
+        self.cursor_redo_history = new_redo_history
 
     @Slot()
     def go_to_last_edit_location(self):
@@ -2628,52 +2673,100 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 if position < editor.document().characterCount():
                     editor.set_cursor_position(position)
 
+    def _pop_next_cursor_diff(self, history, current_filename, current_cursor):
+        """Get the next cursor from history that is different from current."""
+        while history:
+            filename, cursor = history.pop()
+            if (filename != current_filename or
+                    cursor.position() != current_cursor.position()):
+                return filename, cursor
+        return None, None
+
+    def _history_steps(self, number_steps,
+                       backwards_history, forwards_history,
+                       current_filename, current_cursor):
+        """
+        Move number_steps in the forwards_history, filling backwards_history.
+        """
+        for i in range(number_steps):
+            if len(forwards_history) > 0:
+                # Put the current cursor in history
+                backwards_history.append(
+                    (current_filename, current_cursor))
+                # Extract the next different cursor
+                current_filename, current_cursor = (
+                    self._pop_next_cursor_diff(
+                        forwards_history,
+                        current_filename, current_cursor))
+        if current_cursor is None:
+            # Went too far, back up once
+            current_filename, current_cursor = (
+                backwards_history.pop())
+        return current_filename, current_cursor
+
+
     def __move_cursor_position(self, index_move):
         """
         Move the cursor position forward or backward in the cursor
         position history by the specified index increment.
         """
-        if self.cursor_pos_index is None:
-            return
-        filename, _position, _line, _column = (
-            self.cursor_pos_history[self.cursor_pos_index])
-        cur_line, cur_col = self.get_current_editor().get_cursor_line_column()
-        self.cursor_pos_history[self.cursor_pos_index] = (
-            filename, self.get_current_editor().get_position('cursor'),
-            cur_line, cur_col)
-        self.__ignore_cursor_position = True
-        old_index = self.cursor_pos_index
-        self.cursor_pos_index = min(len(self.cursor_pos_history) - 1,
-                                    max(0, self.cursor_pos_index + index_move))
-        filename, position, line, col = (
-            self.cursor_pos_history[self.cursor_pos_index])
-        filenames = self.get_current_editorstack().get_filenames()
-        if not osp.isfile(filename) and filename not in filenames:
-            self.cursor_pos_history.pop(self.cursor_pos_index)
-            if self.cursor_pos_index <= old_index:
-                old_index -= 1
-            self.cursor_pos_index = old_index
+        self.__ignore_cursor_history = True
+        # Remove last position as it will be replaced by the current position
+        if self.cursor_undo_history:
+            self.cursor_undo_history.pop()
+
+        # Update last position on the line
+        current_filename = self.get_current_filename()
+        current_cursor = self.get_current_editor().textCursor()
+
+        if index_move < 0:
+            # Undo
+            current_filename, current_cursor = self._history_steps(
+                -index_move,
+                self.cursor_redo_history,
+                self.cursor_undo_history,
+                current_filename, current_cursor)
+
         else:
-            self.load(filename)
+            # Redo
+            current_filename, current_cursor = self._history_steps(
+                index_move,
+                self.cursor_undo_history,
+                self.cursor_redo_history,
+                current_filename, current_cursor)
+
+        # Place current cursor in history
+        self.cursor_undo_history.append(
+            (current_filename, current_cursor))
+        filenames = self.get_current_editorstack().get_filenames()
+        if (not osp.isfile(current_filename)
+                and current_filename not in filenames):
+            self.cursor_undo_history.pop()
+        else:
+            self.load(current_filename)
             editor = self.get_current_editor()
-            if position < editor.document().characterCount():
-                editor.set_cursor_position(position)
-        self.__ignore_cursor_position = False
+            editor.setTextCursor(current_cursor)
+            editor.ensureCursorVisible()
+        self.__ignore_cursor_history = False
         self.update_cursorpos_actions()
 
     @Slot()
     def go_to_previous_cursor_position(self):
+        self.__ignore_cursor_history = True
         self.switch_to_plugin()
         self.__move_cursor_position(-1)
 
     @Slot()
     def go_to_next_cursor_position(self):
+        self.__ignore_cursor_history = True
         self.switch_to_plugin()
         self.__move_cursor_position(1)
 
     @Slot()
     def go_to_line(self, line=None):
         """Open 'go to line' dialog"""
+        if isinstance(line, bool):
+            line = None
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.go_to_line(line)
@@ -2863,6 +2956,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 return
             runconf = dialog.get_configuration()
 
+        if runconf.default:
+            # use global run preferences settings
+            runconf = RunConfiguration()
+
         args = runconf.get_arguments()
         python_args = runconf.get_python_arguments()
         interact = runconf.interact
@@ -2935,6 +3032,18 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection()
+
+    @Slot()
+    def run_to_line(self):
+        """Run all lines from beginning up to current line"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_to_line()
+
+    @Slot()
+    def run_from_line(self):
+        """Run all lines from current line to end"""
+        editorstack = self.get_current_editorstack()
+        editorstack.run_from_line()
 
     @Slot()
     def run_cell(self):
@@ -3019,12 +3128,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         if self.editorstacks is not None:
-            # Get option names from the tuples sent by Preferences
-            options = list({option[1] for option in options})
-
             # --- syntax highlight and text rendering settings
-            color_scheme_n = 'color_scheme_name'
-            color_scheme_o = self.get_color_scheme()
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
             currentcell_n = 'highlight_current_cell'
@@ -3037,8 +3141,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             focus_to_editor_o = self.get_option(focus_to_editor_n)
 
             for editorstack in self.editorstacks:
-                if color_scheme_n in options:
-                    editorstack.set_color_scheme(color_scheme_o)
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(
                                                                 currentline_o)
@@ -3273,6 +3375,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for editorstack in self.editorstacks:
                 editorstack.set_underline_errors_enabled(value)
 
+    @on_conf_change(option='selected', section='appearance')
+    def set_color_scheme(self, value):
+        if self.editorstacks is not None:
+            logger.debug(f"Set color scheme to {value}")
+            for editorstack in self.editorstacks:
+                editorstack.set_color_scheme(value)
+
     # --- Open files
     def get_open_filenames(self):
         """Get the list of open files in the current stack"""
@@ -3366,6 +3475,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                         self.editorwindows_to_be_created.append(
                             layout_settings)
                 self.set_last_focused_editorstack(self, self.editorstacks[0])
+
+            # This is necessary to update the statusbar widgets after files
+            # have been loaded.
+            editorstack = self.get_current_editorstack()
+            if editorstack:
+                self.get_current_editorstack().refresh()
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
