@@ -80,12 +80,12 @@ def pylsp_folding_range(config, workspace, document):
 
 
 @hookspec(firstresult=True)
-def pylsp_format_document(config, workspace, document):
+def pylsp_format_document(config, workspace, document, options):
     pass
 
 
 @hookspec(firstresult=True)
-def pylsp_format_range(config, workspace, document, range):
+def pylsp_format_range(config, workspace, document, range, options):
     pass
 
 

@@ -1,7 +1,101 @@
+# Copyright 2017-2020 Palantir Technologies, Inc.
+# Copyright 2021- Python Language Server Contributors.
+
 [build-system]
-requires = ["setuptools>=44", "wheel", "setuptools_scm[toml]>=3.4.3"]
+requires = ["setuptools>=61.2.0", "wheel", "setuptools_scm[toml]>=3.4.3"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-lsp-server"
+authors = [{name = "Python Language Server Contributors"}]
+description = "Python Language Server for the Language Server Protocol"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.7"
+dependencies = [
+    "jedi>=0.17.2,<0.19.0",
+    "python-lsp-jsonrpc>=1.0.0",
+    "pluggy>=1.0.0",
+    "ujson>=3.0.0",
+    "setuptools>=39.0.0",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/python-lsp/python-lsp-server"
+
+[project.optional-dependencies]
+all = [
+    "autopep8>=1.6.0,<1.7.0",
+    "flake8>=4.0.0,<4.1.0",
+    "mccabe>=0.6.0,<0.7.0",
+    "pycodestyle>=2.8.0,<2.9.0",
+    "pydocstyle>=2.0.0",
+    "pyflakes>=2.4.0,<2.5.0",
+    "pylint>=2.5.0",
+    "rope>=0.10.5",
+    "yapf",
+    "whatthepatch"
+]
+autopep8 = ["autopep8>=1.6.0,<1.7.0"]
+flake8 = ["flake8>=4.0.0,<4.1.0"]
+mccabe = ["mccabe>=0.6.0,<0.7.0"]
+pycodestyle = ["pycodestyle>=2.8.0,<2.9.0"]
+pydocstyle = ["pydocstyle>=2.0.0"]
+pyflakes = ["pyflakes>=2.4.0,<2.5.0"]
+pylint = ["pylint>=2.5.0"]
+rope = ["rope>0.10.5"]
+yapf = ["yapf", "whatthepatch>=1.0.2,<2.0.0"]
+websockets = ["websockets>=10.3"]
+test = [
+    "pylint>=2.5.0",
+    "pytest",
+    "pytest-cov",
+    "coverage",
+    "numpy<1.23",
+    "pandas",
+    "matplotlib",
+    "pyqt5",
+    "flaky",
+]
+
+[project.entry-points.pylsp]
+autopep8 = "pylsp.plugins.autopep8_format"
+folding = "pylsp.plugins.folding"
+flake8 = "pylsp.plugins.flake8_lint"
+jedi_completion = "pylsp.plugins.jedi_completion"
+jedi_definition = "pylsp.plugins.definition"
+jedi_hover = "pylsp.plugins.hover"
+jedi_highlight = "pylsp.plugins.highlight"
+jedi_references = "pylsp.plugins.references"
+jedi_rename = "pylsp.plugins.jedi_rename"
+jedi_signature_help = "pylsp.plugins.signature"
+jedi_symbols = "pylsp.plugins.symbols"
+mccabe = "pylsp.plugins.mccabe_lint"
+preload = "pylsp.plugins.preload_imports"
+pycodestyle = "pylsp.plugins.pycodestyle_lint"
+pydocstyle = "pylsp.plugins.pydocstyle_lint"
+pyflakes = "pylsp.plugins.pyflakes_lint"
+pylint = "pylsp.plugins.pylint_lint"
+rope_completion = "pylsp.plugins.rope_completion"
+rope_rename = "pylsp.plugins.rope_rename"
+yapf = "pylsp.plugins.yapf_format"
+
+[project.scripts]
+pylsp = "pylsp.__main__:main"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = ["contrib", "docs", "test", "test.*", "test.plugins", "test.plugins.*"]
+namespaces = false
 
 [tool.setuptools_scm]
 write_to = "pylsp/_version.py"
 write_to_template = "__version__ = \"{version}\"\n"  # VERSION_INFO is populated in __main__
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "--cov-report html --cov-report term --junitxml=pytest.xml --cov pylsp --cov test"
