@@ -1,6 +1,18 @@
 # Based on https://github.com/tlambert03/napari/blob/master/.github/workflows/make_bundle.yml
 on:
   pull_request:
+    paths:
+      - 'installers/Windows/**'
+      - '.github/workflows/installer-win.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!**.md'
+      - '!installers/macOS/**'
+      - '!.github/workflows/installer-macos.yml'
+
   release:
     types:
       - created
@@ -15,7 +27,6 @@ jobs:
       matrix:
         build_type: ['Lite', 'Full']
     env:
-      ASSETS_URL: 'https://github.com/spyder-ide/windows-installer-assets/releases/download/0.0.7/assets.zip'
       UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree QDarkStyle PyNaCl' || 'pip python-slugify Rtree PyNaCl' }}
       SKIP_PACKAGES: 'bcrypt slugify'
       ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle nacl' || 'blib2to3 _black_version blackd rtree nacl' }}

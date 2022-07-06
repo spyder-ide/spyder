@@ -58,11 +58,12 @@ logger.setLevel('INFO')
 
 def get_python_lsp_version():
     """Get current version to pass it to setuptools-scm."""
-    req_file = DEVPATH / 'requirements' / 'conda.txt'
+    req_file = DEVPATH / 'requirements' / 'main.yml'
     with open(req_file, 'r', encoding='utf-8') as f:
         for line in f:
             if 'python-lsp-server' not in line:
                 continue
+            line = line.split('-')[-1]
             specifiers = Requirement(line).specifier
             break
         else:

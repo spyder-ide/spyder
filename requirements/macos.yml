@@ -1,0 +1,6 @@
+# macOS specific dependencies
+channels:
+  - conda-forge
+dependencies:
+  - applaunchservices >=0.3.0
+  - python.app

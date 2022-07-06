@@ -65,12 +65,23 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         # History
         self._pdb_history_input_number = 0  # Input number for current session
         self._saved_pdb_history_input_number = []  # for recursive debugging
-        self._pdb_history_file = PdbHistory()
-        self._pdb_history = [
-            line[-1] for line in self._pdb_history_file.get_tail(
-                self.PDB_HIST_MAX, include_latest=True)]
+
+        # Catch any exception that prevents to create or access the history
+        # file to avoid errors.
+        # Fixes spyder-ide/spyder#18531
+        try:
+            self._pdb_history_file = PdbHistory()
+            self._pdb_history = [
+                line[-1] for line in self._pdb_history_file.get_tail(
+                    self.PDB_HIST_MAX, include_latest=True)
+            ]
+        except Exception:
+            self._pdb_history_file = None
+            self._pdb_history = []
+
         self._pdb_history_edits = {}  # Temporary history edits
         self._pdb_history_index = len(self._pdb_history)
+
         # super init
         super(DebuggingHistoryWidget, self).__init__(*args, **kwargs)
 
@@ -78,12 +89,14 @@ class DebuggingHistoryWidget(RichJupyterWidget):
     def new_history_session(self):
         """Start a new history session."""
         self._pdb_history_input_number = 0
-        self._pdb_history_file.new_session()
+        if self._pdb_history_file is not None:
+            self._pdb_history_file.new_session()
 
     def end_history_session(self):
         """End an history session."""
         self._pdb_history_input_number = 0
-        self._pdb_history_file.end_session()
+        if self._pdb_history_file is not None:
+            self._pdb_history_file.end_session()
 
     def add_to_pdb_history(self, line):
         """Add command to history"""
@@ -103,7 +116,8 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         cmd = line.split(" ")[0]
         args = line.split(" ")[1:]
         is_pdb_cmd = (
-                cmd.strip() and cmd[0] != '!' and "do_" + cmd in dir(pdb.Pdb))
+            cmd.strip() and cmd[0] != '!' and "do_" + cmd in dir(pdb.Pdb)
+        )
         if self.is_pdb_using_exclamantion_mark():
             is_pdb_cmd = is_pdb_cmd or (
                 cmd.strip() and cmd[0] == '!'
@@ -112,7 +126,8 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         if cmd and (not is_pdb_cmd or len(args) > 0):
             self._pdb_history.append(line)
             self._pdb_history_index = len(self._pdb_history)
-            self._pdb_history_file.store_inputs(line_num, line)
+            if self._pdb_history_file is not None:
+                self._pdb_history_file.store_inputs(line_num, line)
 
     # --- Private API (overrode by us) --------------------------------
     @property
@@ -202,14 +217,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         """
         Close the save thread and database file.
         """
-        try:
-            self._pdb_history_file.save_thread.stop()
-        except AttributeError:
-            pass
-        try:
-            self._pdb_history_file.db.close()
-        except AttributeError:
-            pass
+        if self._pdb_history_file is not None:
+            try:
+                self._pdb_history_file.save_thread.stop()
+            except AttributeError:
+                pass
+
+            try:
+                self._pdb_history_file.db.close()
+            except AttributeError:
+                pass
 
     # --- Comm API --------------------------------------------------
 

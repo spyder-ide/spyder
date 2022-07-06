@@ -123,7 +123,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             register_shortcut=True
         )
 
-        self.capture_frames_action = self.create_action(
+        capture_frames_action = self.create_action(
             FramesExplorerWidgetActions.Refresh,
             text=_("Capture frames now"),
             icon=self.create_icon('refresh'),
@@ -131,7 +131,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             register_shortcut=True,
         )
 
-        self.postmortem_debug_action = self.create_action(
+        postmortem_debug_action = self.create_action(
             FramesExplorerWidgetActions.PostMortemDebug,
             text=_("Post-mortem debug"),
             icon=self.create_icon('debug'),
@@ -161,8 +161,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [search_action, self.capture_frames_action,
-                     self.postmortem_debug_action]:
+        for item in [search_action, capture_frames_action,
+                     postmortem_debug_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -172,7 +172,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         # ---- Context menu to show when there are frames present
         self.context_menu = self.create_menu(
             FramesExplorerWidgetMenus.PopulatedContextMenu)
-        for item in [self.view_locals_action, self.capture_frames_action]:
+        for item in [self.view_locals_action, capture_frames_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
@@ -182,7 +182,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         # ---- Context menu when the frames explorer is empty
         self.empty_context_menu = self.create_menu(
             FramesExplorerWidgetMenus.EmptyContextMenu)
-        for item in [self.capture_frames_action]:
+        for item in [capture_frames_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.empty_context_menu,
@@ -195,14 +195,23 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         search_action = self.get_action(FramesExplorerWidgetActions.Search)
         postmortem_debug_action = self.get_action(
             FramesExplorerWidgetActions.PostMortemDebug)
+        refresh_action = self.get_action(
+            FramesExplorerWidgetActions.Refresh)
+
         if widget is None:
             search = False
             post_mortem = False
+            is_debugging = False
         else:
             search = widget.finder_is_visible()
             post_mortem = widget.post_mortem
+            is_debugging = widget.pdb_curindex is not None
+
         search_action.setChecked(search)
         postmortem_debug_action.setEnabled(post_mortem)
+        refresh_action.setEnabled(not is_debugging)
+        self.context_menu.setEnabled(not is_debugging)
+
 
     # ---- ShellConnectMainWidget API
     # ------------------------------------------------------------------------
@@ -223,7 +232,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         widget.sig_show_namespace.connect(
             lambda namespace: self.sig_show_namespace.emit(
                 namespace, shellwidget))
-        shellwidget.executed.connect(widget.clear_if_needed)
+        shellwidget.sig_prompt_ready.connect(widget.clear_if_needed)
+        shellwidget.sig_pdb_prompt_ready.connect(widget.clear_if_needed)
 
         shellwidget.spyder_kernel_comm.register_call_handler(
             "show_traceback", widget.set_from_exception)
@@ -252,7 +262,14 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         shellwidget = widget.shellwidget
 
         widget.sig_show_namespace.disconnect()
-        shellwidget.executed.disconnect(widget.clear_if_needed)
+
+        try:
+            shellwidget.sig_prompt_ready.disconnect(widget.clear_if_needed)
+        except TypeError:
+            # disconnect was called elsewhere without argument
+            pass
+
+        shellwidget.sig_pdb_prompt_ready.disconnect(widget.clear_if_needed)
 
         shellwidget.spyder_kernel_comm.register_call_handler(
             "show_traceback", None)
@@ -289,6 +306,9 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         """Refresh frames table"""
         widget = self.current_widget()
         if widget is None:
+            return
+        if widget.pdb_curindex is not None:
+            # Disabled while debugging as the pdb stack is already shown
             return
         widget.shellwidget.call_kernel(
             interrupt=True, callback=widget.set_from_capture_frames
