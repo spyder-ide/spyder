@@ -84,7 +84,7 @@ def make_app_bundle(dist_dir, make_lite=False):
             'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
                                        'CFBundleTypeName': 'Text File',
                                        'CFBundleTypeRole': 'Editor'}],
-            'CFBundleIdentifier': 'org.spyder-ide',
+            'CFBundleIdentifier': 'org.spyder-ide.Spyder',
             'CFBundleShortVersionString': SPYVER,
             'NSRequiresAquaSystemAppearance': False,  # Darkmode support
             'LSEnvironment': {'SPY_COMMIT': SPYCOM, 'SPY_BRANCH': SPYBRA}
