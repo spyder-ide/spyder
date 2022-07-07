@@ -74,6 +74,7 @@ class Shortcuts(SpyderPluginV2):
 
     def on_initialize(self):
         self._shortcut_data = []
+        self._shortcut_sequences = set({})
         self.create_action(
             ShortcutActions.ShortcutSummaryAction,
             text=_("Shortcuts Summary"),
@@ -176,6 +177,10 @@ class Shortcuts(SpyderPluginV2):
                 shortcut_sequence = ''
 
             if shortcut_sequence:
+                if shortcut_sequence in self._shortcut_sequences:
+                    continue
+
+                self._shortcut_sequences |= {shortcut_sequence}
                 keyseq = QKeySequence(shortcut_sequence)
             else:
                 # Needed to remove old sequences that were cleared.
