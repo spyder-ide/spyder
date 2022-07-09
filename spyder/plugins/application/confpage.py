@@ -224,7 +224,7 @@ class ApplicationConfigPage(PluginConfigPage):
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" and not running_in_mac_app():
             interface_tab = self.create_tab(screen_resolution_group,
                                             interface_group, macOS_group)
         else:
