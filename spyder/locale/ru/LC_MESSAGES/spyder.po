@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-07-01 10:40-0500\n"
-"PO-Revision-Date: 2022-07-10 10:22\n"
+"PO-Revision-Date: 2022-07-10 11:21\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -6807,7 +6807,7 @@ msgstr "Развернуть раздел"
 
 #: spyder/widgets/pathmanager.py:79
 msgid "The paths listed below will be passed to IPython consoles and the language server as additional locations to search for Python modules.<br><br>Any paths in your system <tt>PYTHONPATH</tt> environment variable can be imported here if you'd like to use them."
-msgstr ""
+msgstr "Перечисленные ниже пути будут переданы в консоль IPython и в сервер языков в качестве дополнительного места для поиска модулей Python.<br><br>Любые пути в вашей системной переменной окружения <tt>PYTHONPATH</tt> могут быть импортированы сюда, если вы хотите их использовать."
 
 #: spyder/widgets/pathmanager.py:123
 msgid "Move to top"
@@ -6839,7 +6839,7 @@ msgstr "Импорт"
 
 #: spyder/widgets/pathmanager.py:170
 msgid "Import from PYTHONPATH environment variable"
-msgstr ""
+msgstr "Импорт из переменной окружения PYTHONPATH"
 
 #: spyder/widgets/pathmanager.py:174 spyder/widgets/pathmanager.py:275
 msgid "Export"
@@ -6847,7 +6847,7 @@ msgstr "Экспорт"
 
 #: spyder/widgets/pathmanager.py:177
 msgid "Export to PYTHONPATH environment variable"
-msgstr ""
+msgstr "Экспорт в переменную окружения PYTHONPATH"
 
 #: spyder/widgets/pathmanager.py:226 spyder/widgets/pathmanager.py:261
 msgid "PYTHONPATH"
@@ -6855,11 +6855,11 @@ msgstr "PYTHONPATH"
 
 #: spyder/widgets/pathmanager.py:262
 msgid "Your <tt>PYTHONPATH</tt> environment variable is empty, so there is nothing to import."
-msgstr ""
+msgstr "Ваша переменная окружения <tt>PYTHONPATH</tt> пуста, поэтому импортировать нечего."
 
 #: spyder/widgets/pathmanager.py:276
 msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to clear the contents of PYTHONPATH before adding Spyder's path list?"
-msgstr ""
+msgstr "Это действие экспортирует список путей Spyder в переменную окружения <b>PYTHONPATH</b> для текущего пользователя, что позволит позволяет запускать модули Python за пределами Spyder без необходимости настраивать sys.path. <br><br>Вы хотите очистить содержимое PYTHONPATH перед добавлением списка путей Spyder?"
 
 #: spyder/widgets/pathmanager.py:394
 msgid "This directory is already included in the list.<br> Do you want to move it to the top of it?"
