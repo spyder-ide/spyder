@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-07-01 10:40-0500\n"
-"PO-Revision-Date: 2022-07-06 21:16\n"
+"PO-Revision-Date: 2022-07-10 10:22\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -5135,11 +5135,11 @@ msgstr "Создать новый проект"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:192
 msgid "This directory already exists!"
-msgstr ""
+msgstr "Каталог назначения уже существует!"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:199
 msgid "This directory is already a Spyder project!"
-msgstr ""
+msgstr "Этот каталог уже является проектом Spyder!"
 
 #: spyder/plugins/projects/widgets/projectexplorer.py:286 spyder/plugins/projects/widgets/projectexplorer.py:304
 msgid "Project explorer"
@@ -5615,7 +5615,7 @@ msgstr ""
 
 #: spyder/plugins/tours/tours.py:198
 msgid "The Code Analysis helps you improve the quality of your programs by detecting style issues, bad practices and potential bugs."
-msgstr ""
+msgstr "Анализ кода помогает улучшить качество ваших программ, обнаруживая проблемы стиля, плохие практики и потенциальные баги."
 
 #: spyder/plugins/tours/tours.py:205
 msgid "The end"
@@ -6259,7 +6259,7 @@ msgstr ""
 
 #: spyder/plugins/workingdirectory/confpage.py:37
 msgid "At startup, the working directory is:"
-msgstr ""
+msgstr "При запуске рабочим каталогом будет:"
 
 #: spyder/plugins/workingdirectory/confpage.py:41 spyder/plugins/workingdirectory/confpage.py:80
 msgid "The project (if open) or user home directory"
@@ -6275,7 +6275,7 @@ msgstr "При запуске текущий рабочий каталог бу�
 
 #: spyder/plugins/workingdirectory/confpage.py:73
 msgid "New consoles"
-msgstr ""
+msgstr "Новые консоли"
 
 #: spyder/plugins/workingdirectory/confpage.py:75
 msgid "The working directory for new IPython consoles is:"
@@ -6659,7 +6659,7 @@ msgstr ""
 
 #: spyder/widgets/dock.py:143
 msgid "Lock pane"
-msgstr ""
+msgstr "Закрепить панель"
 
 #: spyder/widgets/findreplace.py:51
 msgid "No matches"
@@ -6835,7 +6835,7 @@ msgstr "Удалить путь"
 
 #: spyder/widgets/pathmanager.py:167
 msgid "Import"
-msgstr ""
+msgstr "Импорт"
 
 #: spyder/widgets/pathmanager.py:170
 msgid "Import from PYTHONPATH environment variable"
@@ -6843,7 +6843,7 @@ msgstr ""
 
 #: spyder/widgets/pathmanager.py:174 spyder/widgets/pathmanager.py:275
 msgid "Export"
-msgstr ""
+msgstr "Экспорт"
 
 #: spyder/widgets/pathmanager.py:177
 msgid "Export to PYTHONPATH environment variable"
@@ -6851,7 +6851,7 @@ msgstr ""
 
 #: spyder/widgets/pathmanager.py:226 spyder/widgets/pathmanager.py:261
 msgid "PYTHONPATH"
-msgstr ""
+msgstr "PYTHONPATH"
 
 #: spyder/widgets/pathmanager.py:262
 msgid "Your <tt>PYTHONPATH</tt> environment variable is empty, so there is nothing to import."
@@ -6911,7 +6911,7 @@ msgstr "Спрятать будущие ошибки в этой сессии"
 
 #: spyder/widgets/reporterror.py:215
 msgid "Include IPython console environment"
-msgstr ""
+msgstr "Включить окружение консоли IPython"
 
 #: spyder/widgets/reporterror.py:219
 msgid "Submit to Github"
