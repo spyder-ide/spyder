@@ -792,6 +792,7 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
 def test_get_help_ipython_console_special_characters(
         main_window, qtbot, tmpdir):
@@ -1037,6 +1038,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on windows!')
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
@@ -1206,6 +1208,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_dedicated_consoles")
 def test_shell_execution(main_window, qtbot, tmpdir):
     """Test that bash/batch files can be executed."""
     ext = 'sh'
@@ -1285,6 +1288,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Fails frequently on Linux")
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -1475,6 +1479,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     (os.name == 'nt' or sys.platform == 'darwin' or
      parse_version(ipy_release.version) == parse_version('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # Wait until the window is fully up
@@ -1703,6 +1708,7 @@ def test_set_new_breakpoints(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -1921,6 +1927,7 @@ def test_run_code(main_window, qtbot, tmpdir):
 @pytest.mark.parametrize('main_window',
                          [{'spy_config': ('editor', 'run_cell_copy', True)}],
                          indirect=True)
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_cell_copy(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -3517,6 +3524,7 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
     Test renaming a variable.
@@ -3596,6 +3604,7 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_varexp_remove(main_window, qtbot, tmpdir):
     """
     Test removing a variable.
@@ -3694,6 +3703,7 @@ def test_varexp_refresh(main_window, qtbot):
 @pytest.mark.parametrize('main_window',
                          [{'spy_config': ('editor', 'run_cell_copy', False)}],
                          indirect=True)
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     """
     Test if runcell works with an unnamed cell at the top of the file
@@ -3741,6 +3751,7 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Fails on linux")
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_pdb(main_window, qtbot):
     """Test the runcell command in pdb."""
     # Write code with a cell to a file
@@ -3802,6 +3813,7 @@ def test_runcell_pdb(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize("debug", [False, True])
 @pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_cache(main_window, qtbot, debug):
     """Test the runcell command cache."""
     # Write code with a cell to a file
@@ -4057,6 +4069,7 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="Fails sometimes on macOS")
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_after_restart(main_window, qtbot):
     """Test runcell after a kernel restart."""
     # Write code to a file
@@ -4352,6 +4365,7 @@ def test_post_mortem(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     """Test that we can run an unsaved file with multiprocessing."""
     # Wait until the window is fully up
@@ -5116,6 +5130,7 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_print_multiprocessing(main_window, qtbot, tmpdir):
     """Test print commands from multiprocessing."""
     # Write code with a cell to a file
@@ -5166,6 +5181,7 @@ if __name__ == "__main__":
 @pytest.mark.skipif(
     os.name == 'nt',
     reason="ctypes.string_at(0) doesn't segfaults on Windows")
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_print_faulthandler(main_window, qtbot, tmpdir):
     """Test printing segfault info from kernel crashes."""
     # Write code with a cell to a file
@@ -5318,6 +5334,7 @@ def test_history_from_ipyconsole(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_debug_unsaved_function(main_window, qtbot):
     """
     Test that a breakpoint in an unsaved file is reached.
@@ -5371,6 +5388,7 @@ def test_debug_unsaved_function(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.close_main_window
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_out_runfile_runcell(main_window, qtbot):
     """
     Test that runcell and runfile return values if last statment
@@ -5417,6 +5435,7 @@ def test_out_runfile_runcell(main_window, qtbot):
     reason="Does not work on Mac and Windows")
 @flaky(max_runs=3)
 @pytest.mark.parametrize("thread", [False, True])
+@pytest.mark.order(after="test_debug_unsaved_function")
 def test_print_frames(main_window, qtbot, tmpdir, thread):
     """Test that frames are displayed as expected."""
     # Write code with a cell to a file
