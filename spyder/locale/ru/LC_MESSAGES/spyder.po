@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-07-01 10:40-0500\n"
-"PO-Revision-Date: 2022-07-10 11:21\n"
+"PO-Revision-Date: 2022-07-11 20:32\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -687,7 +687,7 @@ msgstr "Нормальное"
 
 #: spyder/plugins/application/confpage.py:188
 msgid "Enable auto high DPI scaling"
-msgstr "Включить автомасштабирование для высоких DPI"
+msgstr "Включить автоматическое масштабирование для высоких DPI"
 
 #: spyder/plugins/application/confpage.py:191
 msgid "Set this for high DPI displays"
@@ -2038,7 +2038,7 @@ msgstr "Стиль docstring"
 
 #: spyder/plugins/editor/confpage.py:249
 msgid "Here you can select the type of docstrings ({} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function/method/class declaration."
-msgstr ""
+msgstr "Здесь вы можете выбрать типы docstrings ({} or {}), которые вы хотите, чтобы редактор автоматически представлял при нажатии <tt>{}</tt> после объявления функции/метода/класса."
 
 #: spyder/plugins/editor/confpage.py:257
 msgid "Numpy"
@@ -4553,7 +4553,7 @@ msgstr "Главные меню"
 
 #: spyder/plugins/mainmenu/plugin.py:52
 msgid "Provide main application menu management."
-msgstr ""
+msgstr "Предоставить меню управления основного приложения."
 
 #: spyder/plugins/mainmenu/plugin.py:72
 msgid "C&onsoles"
@@ -4569,7 +4569,7 @@ msgstr "Онлайн справка"
 
 #: spyder/plugins/onlinehelp/plugin.py:53
 msgid "Browse and search the currently installed modules interactively."
-msgstr ""
+msgstr "Просмотреть и поискать в интерактивном режиме установленные модули."
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:802
 msgid "There was an error while retrieving documentation for the object you requested: Object could not be found"
@@ -4753,7 +4753,7 @@ msgstr "Графики"
 
 #: spyder/plugins/plots/plugin.py:40
 msgid "Display, explore and save console generated plots."
-msgstr ""
+msgstr "Отображать, изучать и сохранить график созданный консолью."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:492
 msgid "The image is broken, please try to generate it again"
@@ -5039,7 +5039,7 @@ msgstr "Проекты"
 
 #: spyder/plugins/projects/plugin.py:147
 msgid "Create Spyder projects and manage their files."
-msgstr ""
+msgstr "Создать Spyder проект и управлять их файлами."
 
 #: spyder/plugins/projects/plugin.py:309
 msgid "New Project..."
@@ -5809,7 +5809,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:126
 msgid "Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "Пожалуйста, установите этот пакет в вашем окружении Spyder.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:134
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not supported in the Spyder Lite application.<br>"
@@ -6263,7 +6263,7 @@ msgstr "При запуске рабочим каталогом будет:"
 
 #: spyder/plugins/workingdirectory/confpage.py:41 spyder/plugins/workingdirectory/confpage.py:80
 msgid "The project (if open) or user home directory"
-msgstr ""
+msgstr "Проект (если открыт) или домашний каталог пользователя"
 
 #: spyder/plugins/workingdirectory/confpage.py:43
 msgid "The startup working dir will be root of the current project if one is open, otherwise the user home directory"
