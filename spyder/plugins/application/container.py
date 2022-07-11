@@ -21,13 +21,15 @@ from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
-from spyder import __docs_url__, __forum_url__, __trouble_url__
+from spyder import __docs_url__, __forum_url__, __trouble_url__, __version__
 from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.utils.installers import InstallerMissingDependencies
 from spyder.config.utils import is_anaconda
-from spyder.config.base import get_conf_path, get_debug_level
+from spyder.config.base import (get_conf_path, get_debug_level, is_pynsist,
+                                running_in_mac_app)
+from spyder.plugins.application.widgets.status import ApplicationUpdateStatus
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
@@ -99,6 +101,13 @@ class ApplicationContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
+
+        self.application_update_status = ApplicationUpdateStatus(parent=self)
+        self.application_update_status.sig_check_for_updates_requested.connect(
+            self.check_updates
+        )
+        self.application_update_status.set_no_status()
+
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
 
@@ -235,6 +244,7 @@ class ApplicationContainer(PluginMainContainer):
 
     # ---- Updates
     # -------------------------------------------------------------------------
+
     def _check_updates_ready(self):
         """Show results of the Spyder update checking process."""
 
@@ -278,11 +288,16 @@ class ApplicationContainer(PluginMainContainer):
             box.exec_()
             check_updates = box.is_checked()
         else:
+
             if update_available:
-                header = _("<b>Spyder {} is available!</b><br><br>").format(
-                    latest_release)
+                self.application_update_status.set_status_pending(
+                    latest_release=latest_release)
+
+                header = _("<b>Spyder {} is available!</b> "
+                           "<i>(you have {})</i><br><br>").format(
+                    latest_release, __version__)
                 footer = _(
-                    "For more information visit our "
+                    "For more information, visit our "
                     "<a href=\"{}\">installation guide</a>."
                 ).format(url_i)
                 if is_anaconda():
@@ -296,15 +311,25 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda update anaconda</code><br>"
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
-                else:
+                elif is_pynsist() or running_in_mac_app():
+                    box.setStandardButtons(QMessageBox.Yes |
+                                           QMessageBox.No)
                     content = _(
-                        "Click <a href=\"{}\">this link</a> to "
-                        "download it.<br><br>"
-                    ).format(url_r)
+                        "Would you like to automatically download and "
+                        "install it?<br><br>"
+                    )
+
                 msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
-                box.show()
+                box.exec_()
+
+                if box.result() == QMessageBox.Yes:
+                    self.application_update_status.start_installation(
+                        latest_release=latest_release)
+                elif(box.result() == QMessageBox.No):
+                    self.application_update_status.set_status_pending(
+                        latest_release=latest_release)
                 check_updates = box.is_checked()
             elif feedback:
                 msg = _("Spyder is up to date.")
@@ -312,7 +337,9 @@ class ApplicationContainer(PluginMainContainer):
                 box.set_check_visible(False)
                 box.exec_()
                 check_updates = box.is_checked()
-
+                self.application_update_status.set_no_status()
+            else:
+                self.application_update_status.set_no_status()
         # Update checkbox based on user interaction
         self.set_conf(option, check_updates)
 
@@ -327,6 +354,7 @@ class ApplicationContainer(PluginMainContainer):
         """Check for spyder updates on github releases using a QThread."""
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
+        self.application_update_status.set_status_checking()
 
         if self.thread_updates is not None:
             self.thread_updates.quit()
