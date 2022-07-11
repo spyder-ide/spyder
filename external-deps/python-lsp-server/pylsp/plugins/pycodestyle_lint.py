@@ -75,14 +75,17 @@ class PyCodeStyleDiagnosticReport(pycodestyle.BaseReport):
                 'character': 100 if line_number > len(self.lines) else len(self.lines[line_number - 1])
             },
         }
-        self.diagnostics.append({
+        diagnostic = {
             'source': 'pycodestyle',
             'range': err_range,
             'message': text,
             'code': code,
             # Are style errors really ever errors?
             'severity': _get_severity(code)
-        })
+        }
+        if code.startswith('W6'):
+            diagnostic['tags'] = [lsp.DiagnosticTag.Deprecated]
+        self.diagnostics.append(diagnostic)
 
 
 def _get_severity(code):

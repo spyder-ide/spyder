@@ -13,6 +13,13 @@ from pylsp import hookimpl, lsp
 
 log = logging.getLogger(__name__)
 FIX_IGNORES_RE = re.compile(r'([^a-zA-Z0-9_,]*;.*(\W+||$))')
+UNNECESSITY_CODES = {
+    'F401',  # `module` imported but unused
+    'F504',  # % format unused named arguments
+    'F522',  # .format(...) unused named arguments
+    'F523',  # .format(...) unused positional arguments
+    'F841'   # local variable `name` is assigned to but never used
+}
 
 
 @hookimpl
@@ -31,8 +38,20 @@ def pylsp_lint(workspace, document):
     per_file_ignores = settings.get("perFileIgnores")
 
     if per_file_ignores:
+        prev_file_pat = None
         for path in per_file_ignores:
-            file_pat, errors = path.split(":")
+            try:
+                file_pat, errors = path.split(":")
+                prev_file_pat = file_pat
+            except ValueError:
+                # It's legal to just specify another error type for the same
+                # file pattern:
+                if prev_file_pat is None:
+                    log.warning(
+                        "skipping a Per-file-ignore with no file pattern")
+                    continue
+                file_pat = prev_file_pat
+                errors = path
             if PurePath(document.path).match(file_pat):
                 ignores.extend(errors.split(","))
 
@@ -161,24 +180,28 @@ def parse_stdout(document, stdout):
         character = int(character) - 1
         # show also the code in message
         msg = code + ' ' + msg
-        diagnostics.append(
-            {
-                'source': 'flake8',
-                'code': code,
-                'range': {
-                    'start': {
-                        'line': line,
-                        'character': character
-                    },
-                    'end': {
-                        'line': line,
-                        # no way to determine the column
-                        'character': len(document.lines[line])
-                    }
+        severity = lsp.DiagnosticSeverity.Warning
+        if code == "E999" or code[0] == "F":
+            severity = lsp.DiagnosticSeverity.Error
+        diagnostic = {
+            'source': 'flake8',
+            'code': code,
+            'range': {
+                'start': {
+                    'line': line,
+                    'character': character
                 },
-                'message': msg,
-                'severity': lsp.DiagnosticSeverity.Warning,
-            }
-        )
+                'end': {
+                    'line': line,
+                    # no way to determine the column
+                    'character': len(document.lines[line])
+                }
+            },
+            'message': msg,
+            'severity': severity,
+        }
+        if code in UNNECESSITY_CODES:
+            diagnostic['tags'] = [lsp.DiagnosticTag.Unnecessary]
+        diagnostics.append(diagnostic)
 
     return diagnostics
