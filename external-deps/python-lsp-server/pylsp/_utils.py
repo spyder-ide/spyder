@@ -14,6 +14,7 @@ import jedi
 JEDI_VERSION = jedi.__version__
 
 # Eol chars accepted by the LSP protocol
+# the ordering affects performance
 EOL_CHARS = ['\r\n', '\r', '\n']
 EOL_REGEX = re.compile(f'({"|".join(EOL_CHARS)})')
 

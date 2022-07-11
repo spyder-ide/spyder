@@ -13,7 +13,7 @@ except Exception:  # pylint: disable=broad-except
     import json
 
 from .python_lsp import (PythonLSPServer, start_io_lang_server,
-                         start_tcp_lang_server)
+                         start_tcp_lang_server, start_ws_lang_server)
 from ._version import __version__
 
 LOG_FORMAT = "%(asctime)s {0} - %(levelname)s - %(name)s - %(message)s".format(
@@ -26,6 +26,10 @@ def add_arguments(parser):
     parser.add_argument(
         "--tcp", action="store_true",
         help="Use TCP server instead of stdio"
+    )
+    parser.add_argument(
+        "--ws", action="store_true",
+        help="Use Web Sockets server instead of stdio"
     )
     parser.add_argument(
         "--host", default="127.0.0.1",
@@ -72,6 +76,9 @@ def main():
     if args.tcp:
         start_tcp_lang_server(args.host, args.port, args.check_parent_process,
                               PythonLSPServer)
+    elif args.ws:
+        start_ws_lang_server(args.port, args.check_parent_process,
+                             PythonLSPServer)
     else:
         stdin, stdout = _binary_stdio()
         start_io_lang_server(stdin, stdout, args.check_parent_process,
