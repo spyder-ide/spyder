@@ -3750,8 +3750,8 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform.startswith('linux'),
-                    reason="Fails on linux")
+@pytest.mark.skipif(sys.platform.startswith('linux') and os.name == 'nt',
+                    reason="Fails on linux and timeouts on Windows")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_pdb(main_window, qtbot):
     """Test the runcell command in pdb."""
