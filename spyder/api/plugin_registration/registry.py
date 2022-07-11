@@ -459,8 +459,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             True if the teardown notification to other plugins should be sent
             when deleting the plugin, False otherwise.
         check_can_delete: bool
-            True if the plugin should validate if can be closed in the moment,
-            False otherwise.
+            True if the plugin should validate if it can be closed when this
+            method is called, False otherwise.
 
         Returns
         -------
