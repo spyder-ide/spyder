@@ -228,7 +228,7 @@ install_requires = [
     'pyls-spyder>=0.4.0',
     'pyqt5<5.16',
     'pyqtwebengine<5.16',
-    'python-lsp-server[all]>=1.4.1,<1.5.0',
+    'python-lsp-server[all]>=1.5.0,<1.6.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=22.1.0',
     'qdarkstyle>=3.0.2,<3.1.0',
@@ -250,7 +250,7 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.4.1,<1.6.0')
+    install_requires.append('python-lsp-server[all]>=1.5.0,<1.7.0')
     install_requires.append('qtconsole>=5.3.0,<5.5.0')
     install_requires.append('spyder-kernels>=2.3.1,<2.5.0')
 

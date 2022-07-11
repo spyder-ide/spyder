@@ -65,10 +65,6 @@ else
 
 fi
 
-# Install whatthepatch for PyLSP 1.5.
-# NOTE: This won't be necessary when that version is released
-pip install whatthepatch
-
 # Install subrepos from source
 python -bb -X dev -W error install_dev_repos.py --not-editable --no-install spyder
 
