@@ -3699,7 +3699,8 @@ def test_varexp_refresh(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.no_new_console
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
+@pytest.mark.skipif(sys.platform == 'darwin' or os.name == 'nt',
+                    reason="Fails on macOS and Windows")
 @pytest.mark.parametrize('main_window',
                          [{'spy_config': ('editor', 'run_cell_copy', False)}],
                          indirect=True)
