@@ -42,6 +42,7 @@ _ = get_translation('spyder')
 
 # Constants
 VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
+
 # Max time before giving up when making a blocking call to the kernel
 CALL_KERNEL_TIMEOUT = 30
 
