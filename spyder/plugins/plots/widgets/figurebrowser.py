@@ -203,7 +203,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             elif option == 'mute_inline_plotting':
                 self.mute_inline_plotting = value
                 if self.shellwidget:
-                    self.shellwidget.mute_inline_plotting = value
+                    self.shellwidget.set_mute_inline_plotting(value)
 
             elif option == 'show_plot_outline':
                 self.show_fig_outline_in_viewer(value)
@@ -241,7 +241,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""
         self.shellwidget = shellwidget
-        self.shellwidget.mute_inline_plotting = self.mute_inline_plotting
+        self.shellwidget.set_mute_inline_plotting(self.mute_inline_plotting)
         shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
 
     def _handle_new_figure(self, fig, fmt):
