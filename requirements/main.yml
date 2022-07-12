@@ -28,7 +28,7 @@ dependencies:
   - pyqt <5.16
   - pyqtwebengine <5.16
   - python-lsp-black >=1.2.0
-  - python-lsp-server >=1.4.1,<1.5.0
+  - python-lsp-server >=1.5.0,<1.6.0
   - pyzmq >=22.1.0
   - qdarkstyle >=3.0.2,<3.1.0
   - qstylizer >=0.1.10

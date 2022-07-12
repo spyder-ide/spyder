@@ -8,5 +8,4 @@ from setuptools import setup, find_packages
 if __name__ == "__main__":
     setup(
         name="python-lsp-server",  # to allow GitHub dependency tracking work
-        packages=find_packages(exclude=["contrib", "docs", "test", "test.*"]),  # https://github.com/pypa/setuptools/issues/2688
     )

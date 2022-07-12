@@ -12,7 +12,7 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _, is_pynsist, running_in_ci
+from spyder.config.base import _, is_pynsist, running_in_ci, running_in_mac_app
 from spyder.utils import programs
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -52,7 +52,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=2.5.0;<3.0'
-PYLSP_REQVER = '>=1.4.1;<1.5.0'
+PYLSP_REQVER = '>=1.5.0;<1.6.0'
 PYLSP_BLACK_REQVER = '>=1.2.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
@@ -94,7 +94,7 @@ DESCRIPTIONS = [
      'package_name': "applaunchservices",
      'features': _("Notify macOS that Spyder can open Python files"),
      'required_version': APPLAUNCHSERVICES_REQVER,
-     'display': sys.platform == "darwin"},
+     'display': sys.platform == "darwin" and not running_in_mac_app()},
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),

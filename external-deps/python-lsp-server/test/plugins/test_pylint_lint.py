@@ -51,6 +51,7 @@ def test_pylint(config, workspace):
 
         assert unused_import['range']['start'] == {'line': 0, 'character': 0}
         assert unused_import['severity'] == lsp.DiagnosticSeverity.Warning
+        assert unused_import['tags'] == [lsp.DiagnosticTag.Unnecessary]
 
         if IS_PY3:
             # test running pylint in stdin
@@ -79,6 +80,7 @@ def test_syntax_error_pylint_py3(config, workspace):
         # Pylint doesn't give column numbers for invalid syntax.
         assert diag['range']['start'] == {'line': 0, 'character': 12}
         assert diag['severity'] == lsp.DiagnosticSeverity.Error
+        assert 'tags' not in diag
 
         # test running pylint in stdin
         config.plugin_settings('pylint')['executable'] = 'pylint'
