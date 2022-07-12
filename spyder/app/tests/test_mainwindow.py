@@ -4070,8 +4070,8 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Fails sometimes on macOS")
+@pytest.mark.skipif(sys.platform == 'darwin' or os.name == 'nt',
+                    reason="Fails sometimes on macOS and Windows")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_after_restart(main_window, qtbot):
     """Test runcell after a kernel restart."""
