@@ -3813,7 +3813,9 @@ def test_runcell_pdb(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("debug", [False, True])
-@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
+@pytest.mark.skipif(PY37 or os.name == 'nt',
+                    reason="Segfaults too much on Python 3.7 and timeouts "
+                           "on Windows")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_cache(main_window, qtbot, debug):
     """Test the runcell command cache."""
