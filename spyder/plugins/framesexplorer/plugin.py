@@ -75,6 +75,8 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
         self.get_widget().sig_show_namespace.disconnect(
             self.show_namespace_in_variable_explorer)
 
+    # ---- Public API
+    # ------------------------------------------------------------------------
     def show_namespace_in_variable_explorer(self, namespace, shellwidget):
         """
         Find the right variable explorer widget and show the namespace.
