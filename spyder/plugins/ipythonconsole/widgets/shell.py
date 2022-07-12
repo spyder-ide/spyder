@@ -11,6 +11,7 @@ Shell Widget for the IPython Console
 # Standard library imports
 import os
 import os.path as osp
+import time
 import uuid
 from textwrap import dedent
 from threading import Lock
