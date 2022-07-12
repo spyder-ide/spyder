@@ -11,18 +11,15 @@ Shell Widget for the IPython Console
 # Standard library imports
 import os
 import os.path as osp
-import time
 import uuid
 from textwrap import dedent
 from threading import Lock
-from pickle import PicklingError, UnpicklingError
 
 # Third party imports
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
-from spyder_kernels.comms.commbase import CommError
 
 # Local imports
 from spyder.config.base import (
@@ -38,17 +35,15 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
-    PageControlWidget)
+    NamepaceBrowserWidget, PageControlWidget)
 
 
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
 
-# Max time before giving up when making a blocking call to the kernel
-CALL_KERNEL_TIMEOUT = 30
 
-
-class ShellWidget(HelpWidget, DebuggingWidget, FigureBrowserWidget):
+class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
+                  FigureBrowserWidget):
     """
     Shell widget for the IPython Console
 
@@ -1016,56 +1011,3 @@ the sympy module (e.g. plot)
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusOutEvent(event)
-
-    # --- value access --------------------------------------------------------
-    def get_value(self, name):
-        """Ask kernel for a value"""
-        reason_big = _("The variable is too big to be retrieved")
-        reason_not_picklable = _("The variable is not picklable")
-        reason_dead = _("The kernel is dead")
-        reason_other = _("An error occured, see the console.")
-        reason_comm = _("The comm channel is not working.")
-        msg = _("%s.<br><br>"
-                "Note: Please don't report this problem on Github, "
-                "there's nothing to do about it.")
-        try:
-            return self.call_kernel(
-                blocking=True,
-                display_error=True,
-                timeout=CALL_KERNEL_TIMEOUT).get_value(name)
-        except TimeoutError:
-            raise ValueError(msg % reason_big)
-        except (PicklingError, UnpicklingError, TypeError):
-            raise ValueError(msg % reason_not_picklable)
-        except RuntimeError:
-            raise ValueError(msg % reason_dead)
-        except KeyError:
-            raise
-        except CommError:
-            raise ValueError(msg % reason_comm)
-        except Exception:
-            raise ValueError(msg % reason_other)
-
-    def set_value(self, name, value):
-        """Set value for a variable"""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False,
-            display_error=True,
-            ).set_value(name, value)
-
-    def remove_value(self, name):
-        """Remove a variable"""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False,
-            display_error=True,
-            ).remove_value(name)
-
-    def copy_value(self, orig_name, new_name):
-        """Copy a variable"""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False,
-            display_error=True,
-            ).copy_value(orig_name, new_name)
