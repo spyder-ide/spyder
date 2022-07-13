@@ -1,5 +1,30 @@
 # History of changes
 
+## Version 2.3.2 (2022-07-06)
+
+### Issues Closed
+
+* [Issue 394](https://github.com/spyder-ide/spyder-kernels/issues/394) - The variable explorer is broken while debugging ([PR 395](https://github.com/spyder-ide/spyder-kernels/pull/395) by [@impact27](https://github.com/impact27))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 399](https://github.com/spyder-ide/spyder-kernels/pull/399) - PR: Increase minimal required version of jupyter_client to 7.3.4, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 398](https://github.com/spyder-ide/spyder-kernels/pull/398) - PR: Fix module namespace, by [@impact27](https://github.com/impact27)
+* [PR 395](https://github.com/spyder-ide/spyder-kernels/pull/395) - PR: Fix running namespace and improve eventloop integration while debugging, by [@impact27](https://github.com/impact27) ([394](https://github.com/spyder-ide/spyder-kernels/issues/394))
+* [PR 389](https://github.com/spyder-ide/spyder-kernels/pull/389) - PR: Fix debug filename path for remote debugging, by [@impact27](https://github.com/impact27) ([18330](https://github.com/spyder-ide/spyder/issues/18330))
+* [PR 388](https://github.com/spyder-ide/spyder-kernels/pull/388) - PR: Fix getting args from functions or methods, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 386](https://github.com/spyder-ide/spyder-kernels/pull/386) - PR: Fix flaky test, by [@impact27](https://github.com/impact27)
+* [PR 381](https://github.com/spyder-ide/spyder-kernels/pull/381) - PR: Eliminate unnecessary updates of the Variable Explorer while debugging, by [@rear1019](https://github.com/rear1019)
+* [PR 378](https://github.com/spyder-ide/spyder-kernels/pull/378) - PR: Append paths that come from Spyder's Python path manager to the end of `sys.path`, by [@mrclary](https://github.com/mrclary)
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
 ## Version 2.3.1 (2022-05-21)
 
 ### Pull Requests Merged
