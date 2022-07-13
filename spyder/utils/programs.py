@@ -747,11 +747,12 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
     """
 
     # Quote fname in case it has spaces (all platforms)
-    fname = f'"{fname}"'
+    # fname = f'"{fname}"'
     wdir = None if not wdir else wdir  # Cannot be empty string
     args = shell_split(args)
     script_args = shell_split(script_args)
     p_args = args + [fname] + script_args
+    p_args = [f'"{x}"' for x in p_args]
 
     if os.name == 'nt':
         if wdir is not None:
