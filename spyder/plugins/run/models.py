@@ -320,9 +320,13 @@ class RunExecutorNamesListModel(QAbstractListModel):
             executors_available = self.executor_model.executors_per_input[
                 input_conf]
             for executor in executors_available:
-                input_set = self.executor_configurations.get(executor, set({}))
-                input_set |= {input_conf}
-                self.executor_configurations[executor] = input_set
+                exec_input_conf = self.executor_model[(input_conf, executor)]
+                ConfigWidget = exec_input_conf.get(
+                    'configuration_widget', None)
+                if ConfigWidget is not None:
+                    input_set = self.executor_configurations.get(executor, set({}))
+                    input_set |= {input_conf}
+                    self.executor_configurations[executor] = input_set
 
         self.executor_indexed_list: Dict[int, str] = dict(
             enumerate(self.executor_configurations))
