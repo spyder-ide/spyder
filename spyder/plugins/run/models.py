@@ -411,7 +411,8 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         self.inverse_index = {v: k for k, v in self.params_index.items()}
         self.endResetModel()
 
-    def get_current_view(self) -> ExtendedRunExecutionParameters:
+    def get_current_view(self) -> Dict[
+            Tuple[str, str, str], ExtendedRunExecutionParameters]:
         return self.executor_conf_params
 
     def get_tuple_index(self, index: int) -> Tuple[str, str, str]:

@@ -366,6 +366,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         self.status |= RunDialogStatus.Save
 
     def accept(self) -> None:
+        self.status |= RunDialogStatus.Save
         widget_conf = self.current_widget.get_configuration()
 
         path = None
@@ -432,8 +433,8 @@ class RunDialog(BaseRunConfigDialog):
         executor_layout.addWidget(self.parameters_combo)
         executor_layout.addWidget(self.stack)
 
-        executor_group = QGroupBox(_("Executor parameters"))
-        executor_group.setLayout(executor_layout)
+        self.executor_group = QGroupBox(_("Executor parameters"))
+        self.executor_group.setLayout(executor_layout)
 
         # --- Working directory ---
         self.wdir_group = QGroupBox(_("Working directory settings"))
@@ -479,7 +480,7 @@ class RunDialog(BaseRunConfigDialog):
 
         layout = self.add_widgets(combo_label, self.configuration_combo,
                                   executor_label, self.executor_combo,
-                                  10, executor_group, self.firstrun_cb)
+                                  10, self.executor_group, self.firstrun_cb)
 
         self.executor_combo.currentIndexChanged.connect(
             self.display_executor_configuration)
@@ -511,6 +512,7 @@ class RunDialog(BaseRunConfigDialog):
         self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
+        self.layout().setSizeConstraint(QLayout.SetFixedSize)
 
     def select_directory(self):
         """Select directory"""
@@ -581,6 +583,11 @@ class RunDialog(BaseRunConfigDialog):
 
         ConfigWidget = (executor_info['configuration_widget'] or
                         RunExecutorConfigurationGroup)
+
+        if executor_info['configuration_widget'] is None:
+            self.executor_group.setVisible(False)
+        else:
+            self.executor_group.setVisible(True)
 
         metadata = self.run_conf_model.get_selected_metadata()
         context = metadata['context']

@@ -7,6 +7,7 @@
 """Run configuration page."""
 
 # Standard library imports
+import functools
 from copy import deepcopy
 from typing import Dict, List, Set, Tuple
 from uuid import uuid4
@@ -65,8 +66,7 @@ class RunParametersTableView(QTableView):
     def selection(self, index):
         self.update()
         self.isActiveWindow()
-        self._parent.delete_configuration_btn.setEnabled(True)
-        self._parent.clone_configuration_btn.setEnabled(True)
+        self._parent.set_clone_delete_btn_status()
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
@@ -94,23 +94,28 @@ class RunParametersTableView(QTableView):
             model: ExecutorRunParametersTableModel = self.model()
             (extension, context, params) = model[index]
 
-        dialog = ExecutionParametersDialog(
+        self.dialog = ExecutionParametersDialog(
             self, executor_params, extensions, contexts, params,
             extension, context)
 
-        dialog.setup()
+        self.dialog.setup()
+        self.dialog.finished.connect(
+            functools.partial(self.process_run_dialog_result,
+                              new=new, clone=clone, params=params))
 
         if not clone:
-            dialog.exec_()
+            self.dialog.open()
         else:
-            dialog.ok_btn_clicked()
-            dialog.accept()
+            self.dialog.accept()
 
-        status = dialog.status
+    def process_run_dialog_result(self, result, new=False,
+                                  clone=False, params=None):
+        status = self.dialog.status
         if status == RunDialogStatus.Close:
             return
 
-        extension, context, new_executor_params = dialog.get_configuration()
+        (extension, context,
+         new_executor_params) = self.dialog.get_configuration()
 
         if not new and clone:
             new_executor_params["uuid"] = str(uuid4())
@@ -250,6 +255,16 @@ class RunConfigPage(PluginConfigPage):
 
         self.table_model.set_parameters(executor_conf_params)
         self.previous_executor_index = index
+        self.set_clone_delete_btn_status()
+
+    def set_clone_delete_btn_status(self):
+        status = self.table_model.rowCount() != 0
+        try:
+            self.delete_configuration_btn.setEnabled(status)
+            self.clone_configuration_btn.setEnabled(status)
+        except AttributeError:
+            # Buttons might not exist yet
+            pass
 
     def get_executor_configurations(self) -> Dict[
             str, SupportedExecutionRunConfiguration]:
@@ -291,9 +306,10 @@ class RunConfigPage(PluginConfigPage):
         index = self.params_table.currentIndex().row()
         conf_index = self.table_model.get_tuple_index(index)
         executor_params = self.all_executor_model[executor_name]
-        executor_params.pop(conf_index)
+        executor_params.pop(conf_index, None)
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
+        self.set_clone_delete_btn_status()
 
     def reset_to_default(self):
         self.all_executor_model = deepcopy(self.default_executor_conf_params)
@@ -303,6 +319,7 @@ class RunConfigPage(PluginConfigPage):
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
         self.set_modified(False)
+        self.set_clone_delete_btn_status()
 
     def apply_settings(self):
         prev_executor_info = self.table_model.get_current_view()
