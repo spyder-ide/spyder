@@ -5174,7 +5174,7 @@ if __name__ == "__main__":
     # Click the run button
     run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         qtbot.mouseClick(run_button, Qt.LeftButton)
     qtbot.wait(1000)
 
