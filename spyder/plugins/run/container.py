@@ -117,8 +117,12 @@ class RunContainer(PluginMainContainer):
         def anonymous_execution_run():
             input_provider = self.run_metadata_provider[
                 self.currently_selected_configuration]
-            run_conf = input_provider.get_run_configuration_per_context(
-                context, action_name, re_run=re_run)
+            if context in self.super_contexts:
+                run_conf = input_provider.get_run_configuration(
+                    self.currently_selected_configuration)
+            else:
+                run_conf = input_provider.get_run_configuration_per_context(
+                    context, action_name, re_run=re_run)
 
             if run_conf is None:
                 return
