@@ -5218,6 +5218,9 @@ crash_func()
 
     CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
 
+    main_window.editor.update_run_focus_file()
+    qtbot.wait(2000)
+
     # Click the run button
     run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
