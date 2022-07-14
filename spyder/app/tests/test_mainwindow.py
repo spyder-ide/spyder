@@ -5346,7 +5346,6 @@ def test_history_from_ipyconsole(main_window, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.order(after="test_debug_unsaved_function")
 def test_debug_unsaved_function(main_window, qtbot):
     """
     Test that a breakpoint in an unsaved file is reached.
@@ -5380,6 +5379,9 @@ def test_debug_unsaved_function(main_window, qtbot):
         first_execution=False)
 
     CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+
+    main_window.editor.update_run_focus_file()
+    qtbot.wait(2000)
 
     # Set breakpoint
     code_editor.debugger.toogle_breakpoint(line_number=2)
