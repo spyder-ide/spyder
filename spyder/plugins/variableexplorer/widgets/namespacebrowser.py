@@ -181,15 +181,15 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.filename = str(filename)
             if os.name == "nt":
                 self.filename = remove_backslashes(self.filename)
-            ext = osp.splitext(self.filename)[1].lower()
+            extension = osp.splitext(self.filename)[1].lower()
 
-            if ext not in iofunctions.load_funcs:
+            if extension not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
                 answer = QMessageBox.question(self, title,
                             _("<b>Unsupported file extension '%s'</b><br><br>"
                               "Would you like to import it anyway "
                               "(by selecting a known file format)?"
-                              ) % ext, buttons)
+                              ) % extension, buttons)
                 if answer == QMessageBox.Cancel:
                     return
                 formats = list(iofunctions.load_extensions.keys())
@@ -197,11 +197,11 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                                                 _('Open file as:'),
                                                 formats, 0, False)
                 if ok:
-                    ext = iofunctions.load_extensions[str(item)]
+                    extension = iofunctions.load_extensions[str(item)]
                 else:
                     return
 
-            load_func = iofunctions.load_funcs[ext]
+            load_func = iofunctions.load_funcs[extension]
                 
             # 'import_wizard' (self.setup_io)
             if isinstance(load_func, str):
@@ -220,7 +220,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                error_message = self.shellwidget.load_data(self.filename, ext)
+                error_message = self.shellwidget.load_data(self.filename, extension)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
@@ -245,8 +245,10 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         filename = self.filename
         if filename is None:
             filename = getcwd_or_home()
-        ext = osp.splitext(filename)[1].lower()
-        if not ext:
+        extension = osp.splitext(filename)[1].lower()
+        if not extension:
+            # Needed to prevent trying to save a data file without extension
+            # See spyder-ide/spyder#7196
             filename = filename + '.spydata'
         filename, _selfilter = getsavefilename(self, _("Save data"),
                                                filename,
