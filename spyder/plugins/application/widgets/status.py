@@ -38,6 +38,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.installation_thread = parent
         super().__init__(parent)
 
+        
         # Installation dialog
         self.installer = UpdateInstallerDialog(
             self,
@@ -46,6 +47,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.installation_thread.sig_installation_status.connect(
             self.set_value)
         self.sig_clicked.connect(self.show_installation_dialog)
+        
 
     def set_value(self, value):
         """Return update installation state."""
@@ -56,12 +58,27 @@ class ApplicationUpdateStatus(StatusBarWidget):
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again")
-        elif value is None:
-            value = self.DEFAULT_STATUS
+        elif value == "Downloading installer":
+            self.tootltip = ("Update installation will continue in the "
+                             "background.\n"
+                             "Click here to show the download "
+                             "dialog again")
+        elif value == "Checking for updates":
+            self.tootltip= ("Update installation will continue in the "
+                             "background.")
+
+        else:
+            
+            self.setVisible(False)
+            value =self.DEFAULT_STATUS
             self.tooltip = self.BASE_TOOLTIP
-        self.update_tooltip()
+            
+        self.update_tooltip()        
         value = "Update: {0}".format(value)
-        super(ApplicationUpdateStatus, self).set_value(value)
+        super().set_value(value)#super(ApplicationUpdateStatus, self).set_value(value)
+        
+
+        #self.setVisible(False)
 
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""

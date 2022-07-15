@@ -276,7 +276,9 @@ class ApplicationContainer(PluginMainContainer):
                 raise UpdateInstallationCancelledException()
             else:
                 self.sig_download_progress.emit(progress, total_size)
+
     def _cancell_thread_install_update(self):
+        self._change_update_installation_status(status=CANCELLED)
         self.thread_install_update.join()
     
     def _check_updates_ready(self):
@@ -302,20 +304,22 @@ class ApplicationContainer(PluginMainContainer):
         url_i = 'https://docs.spyder-ide.org/installation.html'      
 
         def _download_install():            
-            with TemporaryDirectory(prefix = "Spyder-") as tmpdir:
+            with TemporaryDirectory(prefix = "Spyder-") as tmpdir:                
+                self._change_update_installation_status(status=DOWNLOADING_INSTALLER)
                 destination = os.path.join(tmpdir,'updateSpyder.exe')
                 download =urlretrieve(url_r,
                 destination,
                 reporthook=self._progress_reporter)
-                self._change_update_installation_status(status="Installing")
+                self._change_update_installation_status(status=INSTALLING)
                 install = subprocess.Popen(destination, shell=True)
                 install.communicate()
+            self._change_update_installation_status(status=FINISHED)
             self.application_update_status.setVisible(False)
         def _thread_launcher(option):
             if option.text() in ('&Yes'):
                 self.cancelled=False
-                """call a function in a simple thread, to prevent blocking"""
                 self.application_update_status.setVisible(True)
+                """call a function in a simple thread, to prevent blocking"""                
                 self.thread_install_update = threading.Thread(target = _download_install)                
                 self.thread_install_update.start()
         # Define the custom QMessageBox
