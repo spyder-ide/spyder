@@ -2039,7 +2039,7 @@ class CodeEditor(TextEditBaseWidget):
                 # before sending that request here.
                 self._timer_sync_symbols_and_folding.timeout.disconnect(
                     self.sync_symbols_and_folding)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 pass
 
             params = {
