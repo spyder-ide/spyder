@@ -79,6 +79,7 @@ jobs:
         working-directory: ${{ github.workspace }}/spyder
         run: |
           curl -Ls https://micro.mamba.pm/api/micromamba/osx-64/latest | tar -xvj bin/micromamba
+          install_name_tool -change @rpath/libc++.1.dylib /usr/lib/libc++.1.dylib bin/micromamba
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Create Keychain
