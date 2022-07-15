@@ -27,7 +27,7 @@ jobs:
     steps:
     - id: set-matrix
       run: |
-        if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
+        if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
             build_type=$(echo "['Full', 'Lite']")
         else
             build_type=$(echo "['Full']")
@@ -69,7 +69,7 @@ jobs:
           ${pythonLocation}/bin/python -m pip install -U pip setuptools
           ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
       - name: Install Subrepos
-        if: ${{github.event_name == 'pull_request'}}
+        if: ${{github.event_name == 'release'}}
         run: ${pythonLocation}/bin/python -bb -X dev -W error ${GITHUB_WORKSPACE}/install_dev_repos.py --not-editable --no-install spyder
       - name: Show Build Environment
         run: |
@@ -83,10 +83,10 @@ jobs:
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Create Keychain
-        if: ${{github.event_name == 'release'}}
+        if: ${{github.event_name == 'pull_request'}}
         run: ./certkeychain.sh "${MACOS_CERTIFICATE}" "${MACOS_CERTIFICATE_PWD}"
       - name: Code Sign Application
-        if: ${{github.event_name == 'release'}}
+        if: ${{github.event_name == 'pull_request'}}
         run: |
           pil=$(${pythonLocation} -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
           rm -v ${DISTDIR}/Spyder.app/Contents/Frameworks/liblzma.5.dylib
@@ -97,10 +97,10 @@ jobs:
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Sign Disk Image
-        if: ${{github.event_name == 'release'}}
+        if: ${{github.event_name == 'pull_request'}}
         run: ./codesign.sh "${DISTDIR}/${DMGNAME}"
       - name: Notarize Disk Image
-        if: ${{github.event_name == 'release'}}
+        if: ${{github.event_name == 'pull_request'}}
         run: ./notarize.sh -i 30 -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
