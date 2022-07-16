@@ -61,8 +61,8 @@ def block_safe(block):
     all the old blocks will continue to report block.isValid() == True
     but will raise a Segmentation Fault on almost all methods.
 
-    One way to check is that the userData is reset to None or 
-    QTextBlockUserData. So if a block is known to have setUserData to 
+    One way to check is that the userData is reset to None or
+    QTextBlockUserData. So if a block is known to have setUserData to
     BlockUserData, this fact can be used to check the block.
     """
     return block.isValid() and isinstance(block.userData(), BlockUserData)
