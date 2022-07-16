@@ -39,7 +39,7 @@ REQUIREMENTS = [
     'cloudpickle',
     'ipykernel>=6.9.2,<7',
     'ipython>=7.31.1,<8',
-    'jupyter-client>=7.3.1,<8',
+    'jupyter-client>=7.3.4,<8',
     'packaging',
     'pyzmq>=22.1.0',
     'wurlitzer>=1.0.3;platform_system!="Windows"',

@@ -18,6 +18,9 @@ import traceback
 # Third-party imports
 from ipykernel.zmqshell import ZMQInteractiveShell
 
+# Local imports
+from spyder_kernels.utils.mpl import automatic_backend
+
 
 class SpyderShell(ZMQInteractiveShell):
     """Spyder shell."""
@@ -39,7 +42,18 @@ class SpyderShell(ZMQInteractiveShell):
             stb = ['']
         super(SpyderShell, self)._showtraceback(etype, evalue, stb)
 
-    # ---- For Pdb namespace integration
+    def enable_matplotlib(self, gui=None):
+        """Enable matplotlib."""
+        if gui is None or gui.lower() == "auto":
+            gui = automatic_backend()
+        gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
+        try:
+            self.kernel.frontend_call(blocking=False).update_matplotlib_gui(gui)
+        except Exception:
+            pass
+        return gui, backend
+
+    # --- For Pdb namespace integration
     def get_local_scope(self, stack_depth):
         """Get local scope at given frame depth."""
         frame = sys._getframe(stack_depth + 1)

@@ -415,11 +415,9 @@ def test_cwd_in_sys_path():
     cmd = "from spyder_kernels.console import start; start.main()"
 
     with setup_kernel(cmd) as client:
-        msg_id = client.execute("import sys; sys_path = sys.path",
-                                user_expressions={'output':'sys_path'})
-        reply = client.get_shell_msg(timeout=TIMEOUT)
-        while 'user_expressions' not in reply['content']:
-            reply = client.get_shell_msg(timeout=TIMEOUT)
+        reply = client.execute_interactive(
+            "import sys; sys_path = sys.path",
+            user_expressions={'output':'sys_path'}, timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -440,8 +438,7 @@ def test_multiprocessing(tmpdir):
 
     with setup_kernel(cmd) as client:
         # Remove all variables
-        client.execute("%reset -f")
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("%reset -f", timeout=TIMEOUT)
 
         # Write multiprocessing code to a file
         code = """
@@ -458,8 +455,8 @@ if __name__ == '__main__':
         p.write(code)
 
         # Run code
-        client.execute("runfile(r'{}')".format(str(p)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive(
+            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
         client.inspect('result')
@@ -480,8 +477,7 @@ def test_multiprocessing_2(tmpdir):
 
     with setup_kernel(cmd) as client:
         # Remove all variables
-        client.execute("%reset -f")
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("%reset -f", timeout=TIMEOUT)
 
         # Write multiprocessing code to a file
         code = """
@@ -503,8 +499,8 @@ if __name__ == '__main__':
         p.write(code)
 
         # Run code
-        client.execute("runfile(r'{}')".format(str(p)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive(
+            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
         client.inspect('result')
@@ -526,8 +522,7 @@ def test_dask_multiprocessing(tmpdir):
 
     with setup_kernel(cmd) as client:
         # Remove all variables
-        client.execute("%reset -f")
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("%reset -f")
 
         # Write multiprocessing code to a file
         # Runs two times to verify that in the second case it doesn't break
@@ -543,11 +538,11 @@ if __name__=='__main__':
         p.write(code)
 
         # Run code two times
-        client.execute("runfile(r'{}')".format(str(p)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive(
+            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
 
-        client.execute("runfile(r'{}')".format(str(p)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive(
+            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
 
         # Verify that the `x` variable is defined
         client.inspect('x')
@@ -568,8 +563,7 @@ def test_runfile(tmpdir):
 
     with setup_kernel(cmd) as client:
         # Remove all variables
-        client.execute("%reset -f")
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("%reset -f", timeout=TIMEOUT)
 
         # Write defined variable code to a file
         code = "result = 'hello world'; error # make an error"
@@ -587,9 +581,8 @@ def test_runfile(tmpdir):
         u.write(code)
 
         # Run code file `d` to define `result` even after an error
-        client.execute("runfile(r'{}', current_namespace=False)"
-                       .format(str(d)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("runfile(r'{}', current_namespace=False)"
+                                  .format(str(d)), timeout=TIMEOUT)
 
         # Verify that `result` is defined in the current namespace
         client.inspect('result')
@@ -600,9 +593,8 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` without current namespace
-        client.execute("runfile(r'{}', current_namespace=False)"
-                       .format(str(u)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("runfile(r'{}', current_namespace=False)"
+                                  .format(str(u)), timeout=TIMEOUT)
 
         # Verify that the variable `result2` is defined
         client.inspect('result2')
@@ -613,9 +605,8 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` with current namespace
-        client.execute("runfile(r'{}', current_namespace=True)"
-                       .format(str(u)))
-        msg = client.get_shell_msg(timeout=TIMEOUT)
+        msg = client.execute_interactive("runfile(r'{}', current_namespace=True)"
+                                        .format(str(u)), timeout=TIMEOUT)
         content = msg['content']
 
         # Verify that the variable `result3` is defined
@@ -644,30 +635,27 @@ def test_np_threshold(kernel):
     with setup_kernel(cmd) as client:
 
         # Set Numpy threshold, suppress and formatter
-        client.execute("""
+        client.execute_interactive("""
 import numpy as np;
 np.set_printoptions(
     threshold=np.inf,
     suppress=True,
     formatter={'float_kind':'{:0.2f}'.format})
-    """)
-        client.get_shell_msg(timeout=TIMEOUT)
+    """, timeout=TIMEOUT)
 
         # Create a big Numpy array and an array to check decimal format
-        client.execute("""
+        client.execute_interactive("""
 x = np.random.rand(75000,5);
 a = np.array([123412341234.123412341234])
-""")
-        client.get_shell_msg(timeout=TIMEOUT)
+""", timeout=TIMEOUT)
 
         # Assert that NumPy threshold, suppress and formatter
         # are the same as the ones set by the user
-        client.execute("""
+        client.execute_interactive("""
 t = np.get_printoptions()['threshold'];
 s = np.get_printoptions()['suppress'];
 f = np.get_printoptions()['formatter']
-""")
-        client.get_shell_msg(timeout=TIMEOUT)
+""", timeout=TIMEOUT)
 
         # Check correct decimal format
         client.inspect('a')
@@ -724,8 +712,7 @@ def test_turtle_launch(tmpdir):
 
     with setup_kernel(cmd) as client:
         # Remove all variables
-        client.execute("%reset -f")
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("%reset -f", timeout=TIMEOUT)
 
         # Write turtle code to a file
         code = """
@@ -749,8 +736,8 @@ turtle.bye()
         p.write(code)
 
         # Run code
-        client.execute("runfile(r'{}')".format(str(p)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive(
+            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
 
         # Verify that the `tess` variable is defined
         client.inspect('tess')
@@ -767,8 +754,8 @@ turtle.bye()
         p.write(code)
 
         # Run code again
-        client.execute("runfile(r'{}')".format(str(p)))
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive(
+            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
 
         # Verify that the `a` variable is defined
         client.inspect('a')
@@ -788,10 +775,8 @@ def test_matplotlib_inline(kernel):
     with setup_kernel(cmd) as client:
         # Get current backend
         code = "import matplotlib; backend = matplotlib.get_backend()"
-        client.execute(code, user_expressions={'output': 'backend'})
-        reply = client.get_shell_msg(timeout=TIMEOUT)
-        while 'user_expressions' not in reply['content']:
-            reply = client.get_shell_msg(timeout=TIMEOUT)
+        reply = client.execute_interactive(
+            code, user_expressions={'output': 'backend'}, timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -1086,8 +1071,8 @@ def test_locals_globals_in_pdb(kernel):
     not bool(os.environ.get('USE_CONDA')),
     reason="Doesn't work with pip packages")
 @pytest.mark.skipif(
-    sys.version_info[:2] < (3, 8),
-    reason="Too flaky in Python 3.7 and doesn't work in older versions")
+    sys.version_info[:2] < (3, 9),
+    reason="Too flaky in Python 3.7/8 and doesn't work in older versions")
 def test_get_interactive_backend(backend):
     """
     Test that we correctly get the interactive backend set in the kernel.
@@ -1097,17 +1082,15 @@ def test_get_interactive_backend(backend):
     with setup_kernel(cmd) as client:
         # Set backend
         if backend is not None:
-            client.execute("%matplotlib {}".format(backend))
-            client.get_shell_msg(timeout=TIMEOUT)
-            client.execute("import time; time.sleep(.1)")
-            client.get_shell_msg(timeout=TIMEOUT)
+            client.execute_interactive(
+                "%matplotlib {}".format(backend), timeout=TIMEOUT)
+            client.execute_interactive(
+                "import time; time.sleep(.1)", timeout=TIMEOUT)
 
         # Get backend
         code = "backend = get_ipython().kernel.get_mpl_interactive_backend()"
-        client.execute(code, user_expressions={'output': 'backend'})
-        reply = client.get_shell_msg(timeout=TIMEOUT)
-        while 'user_expressions' not in reply['content']:
-            reply = client.get_shell_msg(timeout=TIMEOUT)
+        reply = client.execute_interactive(
+            code, user_expressions={'output': 'backend'}, timeout=TIMEOUT)
 
         # Get value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -1129,8 +1112,7 @@ def test_global_message(tmpdir):
 
     with setup_kernel(cmd) as client:
         # Remove all variables
-        client.execute("%reset -f")
-        client.get_shell_msg(timeout=TIMEOUT)
+        client.execute_interactive("%reset -f", timeout=TIMEOUT)
 
         # Write code with a global to a file
         code = (
@@ -1143,23 +1125,27 @@ def test_global_message(tmpdir):
 
         p = tmpdir.join("test.py")
         p.write(code)
+        global found
+        found = False
+
+        def check_found(msg):
+            if "text" in msg["content"]:
+                if ("WARNING: This file contains a global statement"  in
+                        msg["content"]["text"]):
+                    global found
+                    found = True
 
         # Run code in current namespace
-        client.execute("runfile(r'{}', current_namespace=True)".format(
-            str(p)))
-        msg = client.get_iopub_msg(timeout=TIMEOUT)
-        while "text" not in msg["content"]:
-            msg = client.get_iopub_msg(timeout=TIMEOUT)
-        assert "WARNING: This file contains a global statement" not in (
-            msg["content"]["text"])
+        client.execute_interactive("runfile(r'{}', current_namespace=True)".format(
+            str(p)), timeout=TIMEOUT, output_hook=check_found)
+        assert not found
 
         # Run code in empty namespace
-        client.execute("runfile(r'{}')".format(str(p)))
-        msg = client.get_iopub_msg(timeout=TIMEOUT)
-        while "text" not in msg["content"]:
-            msg = client.get_iopub_msg(timeout=TIMEOUT)
-        assert "WARNING: This file contains a global statement" in (
-            msg["content"]["text"])
+        client.execute_interactive(
+            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT,
+            output_hook=check_found)
+
+        assert found
 
 
 if __name__ == "__main__":
