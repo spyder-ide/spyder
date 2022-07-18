@@ -16,10 +16,7 @@ from qtpy.QtCore import Slot
 
 # Local imports
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _, running_under_pytest
-#from spyder.plugins.application.container import INSTALLING
-#from spyder.plugins.application.container import (
-#    ApplicationContainer)
+from spyder.config.base import _
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog)
 from spyder.utils.icon_manager import ima
@@ -53,22 +50,15 @@ class ApplicationUpdateStatus(StatusBarWidget):
         """Return update installation state."""
 
 
-        if value == "Installing":
+        if value == "Downloading installer" or value == "Installing" :
+            self.setVisible(True)
             self.tooltip = _("Update installation will continue in the "
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again")
-        elif value == "Downloading installer":
-            self.tootltip = ("Update installation will continue in the "
-                             "background.\n"
-                             "Click here to show the download "
-                             "dialog again")
-        elif value == "Checking for updates":
-            self.tootltip= ("Update installation will continue in the "
-                             "background.")
-
-        else:
-            
+        elif value == "Checking for updates" :
+            self.tooltip = self.BASE_TOOLTIP
+        else:            
             self.setVisible(False)
             value =self.DEFAULT_STATUS
             self.tooltip = self.BASE_TOOLTIP
@@ -90,7 +80,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     @Slot()
     def show_installation_dialog(self):
         """Show installation dialog."""
-        self.installer.show()
+        if (not self.tooltip==self.BASE_TOOLTIP):
+            self.installer.show()
 
    
 

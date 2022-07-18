@@ -11,17 +11,14 @@ import sys
 
 # Third-party imports
 from qtpy.QtCore import QEvent, QObject, Qt, Signal
-from qtpy.QtGui import QPixmap
-from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
+from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
                             QWidget)
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import DialogStyle
 
 INSTALLING = _("Installing")
 FINISHED = _("Installation finished")
@@ -83,25 +80,7 @@ class UpdateInstallation(QWidget):
         action_layout.addWidget(self.install_info)
         action_layout.addSpacing(10)
         action_layout.addLayout(button_layout)
-        action_layout.addStretch()
-
-        # Right side
-        #copilot_image_source = get_image_path('kite_copilot')
-
-        #copilot_image = QPixmap(copilot_image_source)
-        #copilot_label = QLabel()
-        screen = QApplication.primaryScreen()
-        device_pixel_ratio = screen.devicePixelRatio()
-        #if device_pixel_ratio > 1:
-            #copilot_image.setDevicePixelRatio(device_pixel_ratio)
-            #copilot_label.setPixmap(copilot_image)
-        #else:
-        #    image_height = int(copilot_image.height() * 0.4)
-        #    image_width = int(copilot_image.width() * 0.4)
-        #    copilot_label.setPixmap(
-        #        copilot_image.scaled(image_width, image_height,
-        #                             Qt.KeepAspectRatio,
-        #                             Qt.SmoothTransformation))
+        action_layout.addStretch()       
 
         # Layout
         general_layout = QHBoxLayout()
@@ -109,12 +88,6 @@ class UpdateInstallation(QWidget):
         #general_layout.addWidget(copilot_label)
 
         self.setLayout(general_layout)
-
-        # Signals
-        #self._progress_filter.sig_hover_enter.connect(
-        #    lambda: self.cancel_button.show())
-        #self._progress_filter.sig_hover_leave.connect(
-        #    lambda: self.cancel_button.hide())
 
     def update_installation_status(self, status):
         """Update installation status (downloading, installing, finished)."""
@@ -156,8 +129,6 @@ class UpdateInstallerDialog(QDialog):
         self._installation_thread.sig_installation_status.connect(
             self.finished_installation)    
 
-        
-        #self._installation_thread.sig_error_msg.connect(self._handle_error_msg)
 
         self._installation_widget.ok_button.clicked.connect(
             self.close_installer)
@@ -167,17 +138,7 @@ class UpdateInstallerDialog(QDialog):
         # Show integration widget
         self.setup()
 
-    def _handle_error_msg(self, msg):
-        """Handle error message with an error dialog."""
-        '''QMessageBox.critical(
-            self._parent,
-            _('Kite installation error'),
-            _("<b>An error ocurred while installing Kite!</b><br><br>"
-              "Please try to "
-              "<a href=\"{kite_url}\">install it manually</a> or "
-              "<a href=\"{kite_contact}\">contact Kite</a> for help")
-            .format(kite_url=KITE_SPYDER_URL, kite_contact=KITE_CONTACT_URL))'''
-        self.accept()
+
 
     def setup(self,installation=False):
         """Setup visibility of widgets."""
