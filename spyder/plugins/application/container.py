@@ -78,13 +78,12 @@ class ApplicationActions:
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
-# Installation process statuses
+# Update Installation process statuses
 NO_STATUS = _("No status")
-DOWNLOADING_SCRIPT = _("Downloading script installer")
 DOWNLOADING_INSTALLER = _("Downloading installer")
 INSTALLING = _("Installing")
 FINISHED = _("Installation finished")
-ERRORED = _("Installation errored")
+CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled")
 
 class ApplicationContainer(PluginMainContainer):
@@ -282,6 +281,7 @@ class ApplicationContainer(PluginMainContainer):
         self.thread_install_update.join()
     
     def _check_updates_ready(self):
+        
         """Show results of the Spyder update checking process."""
 
         # `feedback` = False is used on startup, so only positive feedback is
@@ -290,6 +290,7 @@ class ApplicationContainer(PluginMainContainer):
         feedback = self.give_updates_feedback
         
         # Get results from worker
+        
         update_available = self.worker_updates.update_available
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
@@ -304,8 +305,7 @@ class ApplicationContainer(PluginMainContainer):
         url_i = 'https://docs.spyder-ide.org/installation.html'      
 
         def _download_install():            
-            with TemporaryDirectory(prefix = "Spyder-") as tmpdir:                
-                self._change_update_installation_status(status=DOWNLOADING_INSTALLER)
+            with TemporaryDirectory(prefix = "Spyder-") as tmpdir:
                 destination = os.path.join(tmpdir,'updateSpyder.exe')
                 download =urlretrieve(url_r,
                 destination,
@@ -314,14 +314,15 @@ class ApplicationContainer(PluginMainContainer):
                 install = subprocess.Popen(destination, shell=True)
                 install.communicate()
             self._change_update_installation_status(status=FINISHED)
-            self.application_update_status.setVisible(False)
         def _thread_launcher(option):
             if option.text() in ('&Yes'):
                 self.cancelled=False
-                self.application_update_status.setVisible(True)
+                self._change_update_installation_status(status=DOWNLOADING_INSTALLER)
                 """call a function in a simple thread, to prevent blocking"""                
                 self.thread_install_update = threading.Thread(target = _download_install)                
                 self.thread_install_update.start()
+            else:
+                self.application_update_status.setVisible(False)
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
                               parent=self)
@@ -401,7 +402,7 @@ class ApplicationContainer(PluginMainContainer):
         """Check for spyder updates on github releases using a QThread."""
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
-
+        self._change_update_installation_status(status=CHECKING)
         if self.thread_updates is not None:
             self.thread_updates.quit()
             self.thread_updates.wait()
