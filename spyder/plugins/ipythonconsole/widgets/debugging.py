@@ -687,7 +687,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         """Call the callback with the result of is_complete."""
         # Add a continuation prompt if not complete
         if self.is_waiting_pdb_input():
-            # As the work is done on this side, check syncronously.
+            # As the work is done on this side, check synchronously.
             complete, indent = self._is_pdb_complete(source)
             callback(complete, indent)
         else:

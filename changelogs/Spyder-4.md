@@ -1365,7 +1365,7 @@ In this release 32 issues were closed.
 * [PR 11159](https://github.com/spyder-ide/spyder/pull/11159) - PR: Don't register keyring as a dependency on Linux and Python 2
 * [PR 11141](https://github.com/spyder-ide/spyder/pull/11141) - PR: Fix simple typo in docstring ([11140](https://github.com/spyder-ide/spyder/issues/11140))
 * [PR 11114](https://github.com/spyder-ide/spyder/pull/11114) - PR: Handle CompletionWidget position when undocking editor ([11076](https://github.com/spyder-ide/spyder/issues/11076))
-* [PR 11104](https://github.com/spyder-ide/spyder/pull/11104) - PR: Handle enconding error when copying dataframes in Python 2 ([4833](https://github.com/spyder-ide/spyder/issues/4833))
+* [PR 11104](https://github.com/spyder-ide/spyder/pull/11104) - PR: Handle encoding error when copying dataframes in Python 2 ([4833](https://github.com/spyder-ide/spyder/issues/4833))
 * [PR 11102](https://github.com/spyder-ide/spyder/pull/11102) - PR: Set time limit to calculate columns size hint for Dataframe Editor ([11060](https://github.com/spyder-ide/spyder/issues/11060))
 * [PR 11100](https://github.com/spyder-ide/spyder/pull/11100) - PR: Copy index and headers of dataframe ([11096](https://github.com/spyder-ide/spyder/issues/11096))
 * [PR 11091](https://github.com/spyder-ide/spyder/pull/11091) - PR: Workaround to avoid a glitch when duplicating current line or text selection
