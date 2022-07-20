@@ -51,6 +51,24 @@ def drift_color(base_color, factor=110):
             return base_color.lighter(factor + 10)
 
 
+def is_block_safe(block):
+    """
+    Check if the block is safe to work with.
+
+    A BlockUserData must have been set on the block while it was known to be
+    safe.
+
+    If an editor is cleared by editor.clear() or editor.set_text() for example,
+    all old blocks will continue to report block.isValid() == True, but will
+    raise a segmentation fault on almost all methods.
+
+    One way to check if a block is valid is that the userData is reset to None
+    or QTextBlockUserData. So if a block is known to have setUserData to
+    BlockUserData, this fact can be used to check the block.
+    """
+    return block.isValid() and isinstance(block.userData(), BlockUserData)
+
+
 class BlockUserData(QTextBlockUserData):
     def __init__(self, editor, color=None, selection_start=None,
                  selection_end=None):
@@ -66,15 +84,6 @@ class BlockUserData(QTextBlockUserData):
         self.import_statement = None
         self.selection_start = selection_start
         self.selection_end = selection_end
-
-        # Add a reference to the user data in the editor as the block won't.
-        # The list should /not/ be used to list BlockUserData as the blocks
-        # they refer to might not exist anymore.
-        # This prevents a segmentation fault.
-        if editor is None:
-            # Won't be destroyed
-            self.refloop = self
-            return
 
     def _selection(self):
         """
