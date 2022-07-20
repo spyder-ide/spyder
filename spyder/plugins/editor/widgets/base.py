@@ -54,7 +54,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.has_cell_separators = False
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.extra_selections_dict = {}
         self._restore_selection_pos = None
 
         # Trailing newlines/spaces trimming
@@ -171,7 +170,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Returns:
             list of sourcecode.api.TextDecoration.
         """
-        return self.extra_selections_dict.get(key, [])
+        return self.decorations.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
         """Set extra selections for a key.
@@ -194,20 +193,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             selection.draw_order = draw_order
             selection.kind = key
 
-        self.clear_extra_selections(key)
-        self.extra_selections_dict[key] = extra_selections
-
-    def update_extra_selections(self):
-        """Add extra selections to DecorationsManager.
-
-        TODO: This method could be remove it and decorations could be
-        added/removed in set_extra_selections/clear_extra_selections.
-        """
-        extra_selections = []
-
-        for key, extra in list(self.extra_selections_dict.items()):
-            extra_selections.extend(extra)
-        self.decorations.add(extra_selections)
+        self.decorations.add_key(key, extra_selections)
+        self.update()
 
     def clear_extra_selections(self, key):
         """Remove decorations added through set_extra_selections.
@@ -215,9 +202,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Args:
             key (str) name of the extra selections group.
         """
-        for decoration in self.extra_selections_dict.get(key, []):
-            self.decorations.remove(decoration)
-        self.extra_selections_dict[key] = []
+        self.decorations.remove_key(key)
         self.update()
 
     def get_visible_block_numbers(self):
@@ -259,7 +244,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         selection.format.setBackground(self.currentline_color)
         selection.cursor.clearSelection()
         self.set_extra_selections('current_line', [selection])
-        self.update_extra_selections()
 
     def unhighlight_current_line(self):
         """Unhighlight current line"""
@@ -296,7 +280,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.clear_extra_selections('current_cell')
         else:
             self.set_extra_selections('current_cell', [selection])
-            self.update_extra_selections()
 
     def unhighlight_current_cell(self):
         """Unhighlight current cell"""
@@ -431,7 +414,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                           QTextCursor.KeepAnchor)
             extra_selections.append(selection)
         self.set_extra_selections('brace_matching', extra_selections)
-        self.update_extra_selections()
 
     def cursor_position_changed(self):
         """Handle brace matching."""
