@@ -51,7 +51,7 @@ def drift_color(base_color, factor=110):
             return base_color.lighter(factor + 10)
 
 
-def block_safe(block):
+def is_block_safe(block):
     """
     Check if the block is safe to work with.
 
