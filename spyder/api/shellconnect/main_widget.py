@@ -76,6 +76,13 @@ class ShellConnectMainWidget(PluginMainWidget):
     def get_focus_widget(self):
         return self.current_widget()
 
+    def get_widget_for_shellwidget(self, shellwidget):
+        """return widget corresponding to shellwidget."""
+        shellwidget_id = id(shellwidget)
+        if shellwidget_id in self._shellwidgets:
+            return self._shellwidgets[shellwidget_id]
+        return None
+
     # ---- Public API
     # ------------------------------------------------------------------------
     def add_shellwidget(self, shellwidget):
@@ -111,13 +118,13 @@ class ShellConnectMainWidget(PluginMainWidget):
         """
         Set widget associated with shellwidget as the current widget.
         """
-        shellwidget_id = id(shellwidget)
         old_widget = self.current_widget()
-        if shellwidget_id in self._shellwidgets:
-            widget = self._shellwidgets[shellwidget_id]
-            self._stack.setCurrentWidget(widget)
-            self.switch_widget(widget, old_widget)
-            self.update_actions()
+        widget = self.get_widget_for_shellwidget(shellwidget)
+        if widget is None:
+            return
+        self._stack.setCurrentWidget(widget)
+        self.switch_widget(widget, old_widget)
+        self.update_actions()
 
     def create_new_widget(self, shellwidget):
         """Create a widget to communicate with shellwidget."""

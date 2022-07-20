@@ -426,6 +426,15 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.set_shellwidget(shellwidget)
         nsb.setup()
         self._set_actions_and_menus(nsb)
+
+        # To update the Variable Explorer after execution
+        shellwidget.executed.connect(
+            nsb.refresh_namespacebrowser)
+        shellwidget.sig_kernel_started.connect(
+            nsb.on_kernel_started)
+        shellwidget.sig_kernel_reset.connect(
+            nsb.on_kernel_started)
+
         return nsb
 
     def close_widget(self, nsb):
@@ -438,6 +447,12 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             self.start_spinner)
         nsb.sig_stop_spinner_requested.disconnect(
             self.stop_spinner)
+        nsb.shellwidget.executed.disconnect(
+            nsb.refresh_namespacebrowser)
+        nsb.shellwidget.sig_kernel_started.disconnect(
+            nsb.on_kernel_started)
+        nsb.shellwidget.sig_kernel_reset.disconnect(
+            nsb.on_kernel_started)
         nsb.close()
 
     def import_data(self, filenames=None):

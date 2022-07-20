@@ -11,6 +11,7 @@ Shell Widget for the IPython Console
 # Standard library imports
 import os
 import os.path as osp
+import time
 import uuid
 from textwrap import dedent
 from threading import Lock
@@ -69,7 +70,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     new_client = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
-    sig_kernel_restarted = Signal()
+    # Kernel died and restarted (not user requested)
+    sig_kernel_died_restarted = Signal()
     sig_prompt_ready = Signal()
     sig_remote_execute = Signal()
 
@@ -81,6 +83,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # Class array of shutdown threads
     shutdown_thread_list = []
+
+    # To save values and messages returned by the kernel
+    _kernel_is_starting = True
+
+    # Kernel started or restarted
+    sig_kernel_started = Signal()
+    sig_kernel_reset = Signal()
 
     @classmethod
     def prune_shutdown_thread_list(cls):
@@ -297,7 +306,22 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self._reading:
             return
         else:
-            self.silent_exec_method(code)
+            self._silent_exec_callback(code, self.check_spyder_kernel_callback)
+
+    def check_spyder_kernel_callback(self, reply):
+        """
+        Handle data returned by silent executions of kernel methods
+
+        This is based on the _handle_exec_callback of RichJupyterWidget.
+        Therefore this is licensed BSD.
+        """
+        # Process kernel reply
+        data = reply.get('data')
+        if data is not None and 'text/plain' in data:
+            is_spyder_kernel = data['text/plain']
+            if 'SpyderKernel' in is_spyder_kernel:
+                self.is_spyder_kernel = True
+                self.sig_is_spykernel.emit(self)
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
@@ -587,10 +611,7 @@ the sympy module (e.g. plot)
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
 
-                # This doesn't need to interrupt the kernel because
-                # "%reset -f" is being executed before it.
-                # Fixes spyder-ide/spyder#12689
-                self.refresh_namespacebrowser(interrupt=False)
+                self.sig_kernel_reset.emit()
 
                 if self.is_spyder_kernel:
                     self.call_kernel().close_all_mpl_figures()
@@ -671,72 +692,6 @@ the sympy module (e.g. plot)
                 self.kernel_client.execute(to_text_string(code), silent=True)
         except AttributeError:
             pass
-
-    def silent_exec_method(self, code):
-        """Silently execute a kernel method and save its reply
-
-        The methods passed here **don't** involve getting the value
-        of a variable but instead replies that can be handled by
-        ast.literal_eval.
-
-        To get a value see `get_value`
-
-        Parameters
-        ----------
-        code : string
-            Code that contains the kernel method as part of its
-            string
-
-        See Also
-        --------
-        handle_exec_method : Method that deals with the reply
-
-        Note
-        ----
-        This is based on the _silent_exec_callback method of
-        RichJupyterWidget. Therefore this is licensed BSD
-        """
-        # Generate uuid, which would be used as an indication of whether or
-        # not the unique request originated from here
-        local_uuid = to_text_string(uuid.uuid1())
-        code = to_text_string(code)
-        if self.kernel_client is None:
-            return
-
-        msg_id = self.kernel_client.execute(
-            '', silent=True,
-            user_expressions={local_uuid: code})
-        self._kernel_methods[local_uuid] = code
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(
-            msg_id,
-            'silent_exec_method',
-            False)
-
-    def handle_exec_method(self, msg):
-        """
-        Handle data returned by silent executions of kernel methods
-
-        This is based on the _handle_exec_callback of RichJupyterWidget.
-        Therefore this is licensed BSD.
-        """
-        user_exp = msg['content'].get('user_expressions')
-        if not user_exp:
-            return
-        for expression in user_exp:
-            if expression in self._kernel_methods:
-                # Process kernel reply
-                method = self._kernel_methods[expression]
-                reply = user_exp[expression]
-                data = reply.get('data')
-                if 'getattr' in method:
-                    if data is not None and 'text/plain' in data:
-                        is_spyder_kernel = data['text/plain']
-                        if 'SpyderKernel' in is_spyder_kernel:
-                            self.is_spyder_kernel = True
-                            self.sig_is_spykernel.emit(self)
-
-                # Remove method after being processed
-                self._kernel_methods.pop(expression)
 
     def set_backend_for_mayavi(self, command):
         """
@@ -921,7 +876,46 @@ the sympy module (e.g. plot)
         super().cut()
         self._save_clipboard_indentation()
 
-    # ---- Private methods (overrode by us) -----------------------------------
+    # ---- Private API (overrode by us) ---------------------------------------
+    def _handle_execute_reply(self, msg):
+        """
+        Reimplemented to handle communications between Spyder
+        and the kernel
+        """
+        # Notify that kernel has started
+        exec_count = msg['content'].get('execution_count', '')
+        if exec_count == 0 and self._kernel_is_starting:
+            self.sig_kernel_started.emit()
+            self.ipyclient.t0 = time.monotonic()
+            self._kernel_is_starting = False
+
+        super()._handle_execute_reply(msg)
+
+    def _handle_status(self, msg):
+        """
+        Reimplemented to refresh the namespacebrowser after kernel
+        restarts
+        """
+        state = msg['content'].get('execution_state', '')
+        msg_type = msg['parent_header'].get('msg_type', '')
+        if state == 'starting':
+            # This is needed to show the time a kernel
+            # has been alive in each console.
+            self.ipyclient.t0 = time.monotonic()
+            self.ipyclient.timer.timeout.connect(self.ipyclient.show_time)
+            self.ipyclient.timer.start(1000)
+
+            # This handles restarts when the kernel dies
+            # unexpectedly
+            if not self._kernel_is_starting:
+                self._kernel_is_starting = True
+        elif state == 'idle' and msg_type == 'shutdown_request':
+            # This handles restarts asked by the user
+            self.ipyclient.t0 = time.monotonic()
+            self.sig_kernel_started.emit()
+        else:
+            super()._handle_status(msg)
+
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
@@ -953,7 +947,7 @@ the sympy module (e.g. plot)
 
     def _handle_kernel_restarted(self, *args, **kwargs):
         super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
-        self.sig_kernel_restarted.emit()
+        self.sig_kernel_died_restarted.emit()
 
     @observe('syntax_style')
     def _syntax_style_changed(self, changed=None):

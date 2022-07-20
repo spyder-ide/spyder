@@ -476,10 +476,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To update history after execution
         self.shellwidget.executed.connect(self.update_history)
 
-        # To update the Variable Explorer after execution
-        self.shellwidget.executed.connect(
-            self.shellwidget.refresh_namespacebrowser)
-
         # To enable the stop button when executing a process
         self.shellwidget.executing.connect(
             self.sig_execution_state_changed)
@@ -491,7 +487,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted_message.connect(
             self.kernel_restarted_message)
-        self.shellwidget.sig_kernel_restarted.connect(
+        self.shellwidget.sig_kernel_died_restarted.connect(
             self._finalise_restart)
 
         # To correctly change Matplotlib backend interactively
