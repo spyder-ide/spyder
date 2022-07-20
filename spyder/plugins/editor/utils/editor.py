@@ -55,14 +55,15 @@ def block_safe(block):
     """
     Check if the block is safe to work with.
 
-    A BlockUserData must have been set on the block while it was known safe.
+    A BlockUserData must have been set on the block while it was known to be
+    safe.
 
     If an editor is cleared by editor.clear() or editor.set_text() for example,
-    all the old blocks will continue to report block.isValid() == True
-    but will raise a Segmentation Fault on almost all methods.
+    all old blocks will continue to report block.isValid() == True, but will
+    raise a segmentation fault on almost all methods.
 
-    One way to check is that the userData is reset to None or
-    QTextBlockUserData. So if a block is known to have setUserData to
+    One way to check if a block is valid is that the userData is reset to None
+    or QTextBlockUserData. So if a block is known to have setUserData to
     BlockUserData, this fact can be used to check the block.
     """
     return block.isValid() and isinstance(block.userData(), BlockUserData)

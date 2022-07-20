@@ -2584,6 +2584,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Add user data to check block validity
                 block.setUserData(BlockUserData(self))
             self.occurrences.append(block)
+
             selection = self.get_selection(cursor)
             if len(selection.cursor.selectedText()) > 0:
                 extra_selections.append(selection)
@@ -2627,11 +2628,13 @@ class CodeEditor(TextEditBaseWidget):
             selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
             selection.cursor.setPosition(pos1)
+
             block = selection.cursor.block()
             if not block.userData():
                 # Add user data to check block validity
                 block.setUserData(BlockUserData(self))
             self.found_results.append(block)
+
             selection.cursor.setPosition(pos2, QTextCursor.KeepAnchor)
             extra_selections.append(selection)
         self.set_extra_selections('find', extra_selections)
