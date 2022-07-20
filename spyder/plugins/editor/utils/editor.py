@@ -85,15 +85,6 @@ class BlockUserData(QTextBlockUserData):
         self.selection_start = selection_start
         self.selection_end = selection_end
 
-        # Add a reference to the user data in the editor as the block won't.
-        # The list should /not/ be used to list BlockUserData as the blocks
-        # they refer to might not exist anymore.
-        # This prevents a segmentation fault.
-        if editor is None:
-            # Won't be destroyed
-            self.refloop = self
-            return
-
     def _selection(self):
         """
         Function to compute the selection.
