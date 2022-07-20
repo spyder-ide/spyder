@@ -20,6 +20,7 @@ from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 # Local imports
 from spyder.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
+from spyder.plugins.editor.utils.editor import is_block_safe
 
 
 REFRESH_RATE = 1000
@@ -221,7 +222,7 @@ class ScrollFlagArea(Panel):
             if editor.verticalScrollBar().maximum() == 0:
                 # No scroll
                 for block in dict_flag_lists[flag_type]:
-                    if not block.isValid():
+                    if not is_block_safe(block):
                         continue
                     geometry = editor.blockBoundingGeometry(block)
                     rect_y = ceil(
@@ -233,7 +234,7 @@ class ScrollFlagArea(Panel):
             elif last_line == 0:
                 # Only one line
                 for block in dict_flag_lists[flag_type]:
-                    if not block.isValid():
+                    if not is_block_safe(block):
                         continue
                     rect_y = ceil(first_y_pos)
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
@@ -243,7 +244,7 @@ class ScrollFlagArea(Panel):
                     # If the file is too long, do not freeze the editor
                     next_line = 0
                     for block in dict_flag_lists[flag_type]:
-                        if not block.isValid():
+                        if not is_block_safe(block):
                             continue
                         block_line = block.firstLineNumber()
                         # block_line = -1 if invalid
