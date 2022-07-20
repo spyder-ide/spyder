@@ -308,6 +308,11 @@ DEFAULTS = [
             'max_entries': 30,
             'project_dir': None,
         }),
+    ('pythonpath_manager',
+        {
+            'paths': {},
+            'prepend': False,
+        }),
     ('quick_layouts',
         {
             'place_holder': '',
@@ -605,6 +610,7 @@ NAME_MAP = {
                 'max_recent_projects',
                 'scrollbar_position',
             ]),
+        ('pythonpath_manager', []),  # Empty list means use all options
         ('quick_layouts', []),  # Empty list means use all options
         ('run',
             [
