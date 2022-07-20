@@ -486,7 +486,7 @@ class FindReplace(QWidget):
             return found
 
     @Slot()
-    def replace_find(self, focus_replace_text=False, replace_all=False):
+    def replace_find(self, focus_replace_text=False):
         """Replace and find."""
         if self.editor is None:
             return
@@ -507,56 +507,26 @@ class FindReplace(QWidget):
                 # Do nothing with an invalid regexp
                 return
 
-        first = True
+        # First found
+        seltxt = to_text_string(self.editor.get_selected_text())
+        cmptxt1 = search_text if case else search_text.lower()
+        cmptxt2 = seltxt if case else seltxt.lower()
+        do_replace = True
+        if re_pattern is None:
+            has_selected = self.editor.has_selected_text()
+            if not has_selected or cmptxt1 != cmptxt2:
+                if not self.find(changed=False, forward=True,
+                                 rehighlight=False):
+                    do_replace = False
+        else:
+            if len(re_pattern.findall(cmptxt2)) <= 0:
+                if not self.find(changed=False, forward=True,
+                                 rehighlight=False):
+                    do_replace = False
         cursor = None
-        while True:
-            if first:
-                # First found
-                seltxt = to_text_string(self.editor.get_selected_text())
-                cmptxt1 = search_text if case else search_text.lower()
-                cmptxt2 = seltxt if case else seltxt.lower()
-                if re_pattern is None:
-                    has_selected = self.editor.has_selected_text()
-                    if has_selected and cmptxt1 == cmptxt2:
-                        # Text was already found, do nothing
-                        pass
-                    else:
-                        if not self.find(changed=False, forward=True,
-                                         rehighlight=False):
-                            break
-                else:
-                    if len(re_pattern.findall(cmptxt2)) > 0:
-                        pass
-                    else:
-                        if not self.find(changed=False, forward=True,
-                                         rehighlight=False):
-                            break
-                first = False
-                wrapped = False
-                position = self.editor.get_position('cursor')
-                position0 = position
-                cursor = self.editor.textCursor()
-                cursor.beginEditBlock()
-            else:
-                position1 = self.editor.get_position('cursor')
-                if is_position_inf(position1,
-                                   position0 + len(replace_text) -
-                                   len(search_text) + 1):
-                    # Identify wrapping even when the replace string
-                    # includes part of the search string
-                    wrapped = True
-
-                if wrapped:
-                    if (position1 == position
-                            or is_position_sup(position1, position)):
-                        # Avoid infinite loop: replace string includes
-                        # part of the search string
-                        break
-
-                if position1 == position0:
-                    # Avoid infinite loop: single found occurrence
-                    break
-                position0 = position1
+        if do_replace:
+            cursor = self.editor.textCursor()
+            cursor.beginEditBlock()
 
             if re_pattern is None:
                 cursor.removeSelectedText()
@@ -580,11 +550,7 @@ class FindReplace(QWidget):
                                    QTextCursor.MoveAnchor)
                 cursor.setPosition(found_cursor.selectionEnd(),
                                    QTextCursor.KeepAnchor)
-            else:
-                break
 
-            if not replace_all:
-                break
 
         if cursor is not None:
             cursor.endEditBlock()
@@ -598,9 +564,37 @@ class FindReplace(QWidget):
             self.editor.document_did_change()
 
     @Slot()
-    def replace_find_all(self, focus_replace_text=False):
+    def replace_find_all(self):
         """Replace and find all matching occurrences"""
-        self.replace_find(focus_replace_text, replace_all=True)
+        if self.editor is None:
+            return
+        replace_text = to_text_string(self.replace_text.currentText())
+        search_text = to_text_string(self.search_text.currentText())
+        re_pattern = None
+        case = self.case_button.isChecked()
+        re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
+        re_enabled = self.re_button.isChecked()
+        # Check regexp before proceeding
+        if re_enabled:
+            try:
+                re_pattern = re.compile(search_text, flags=re_flags)
+                # Check if replace_text can be substituted in re_pattern
+                # Fixes spyder-ide/spyder#7177.
+                re_pattern.sub(replace_text, '')
+            except re.error:
+                # Do nothing with an invalid regexp
+                return
+        else:
+            re_pattern = re.compile(re.escape(search_text), flags=re_flags)
+
+        cursor = self.editor._select_text("sof", "eof")
+        text = self.editor.toPlainText()
+        cursor.beginEditBlock()
+        cursor.removeSelectedText()
+        cursor.insertText(re_pattern.sub(replace_text, text))
+        cursor.endEditBlock()
+
+        self.editor.setFocus()
 
     @Slot()
     def replace_find_selection(self, focus_replace_text=False):
