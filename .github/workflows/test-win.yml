@@ -113,7 +113,16 @@ jobs:
       - name: Run tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
-        run: python runtests.py || python runtests.py || python runtests.py || python runtests.py || python runtests.py
+        run: |
+          touch log.txt  # This is necessary to run the script below
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh
       - name: Coverage
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
