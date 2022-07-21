@@ -1323,7 +1323,6 @@ class CodeEditor(TextEditBaseWidget):
             # after some time.
             self.clear_extra_selections('code_analysis_underline')
             self._process_code_analysis(underline=True)
-            self.update_extra_selections()
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
