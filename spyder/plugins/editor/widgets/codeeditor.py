@@ -161,6 +161,9 @@ class CodeEditor(TextEditBaseWidget):
         6500: 1800
     }
 
+    # Timeout (in milliseconds) to send pending requests to LSP server
+    LSP_REQUESTS_TIMEOUT = 150
+
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
 
@@ -476,7 +479,7 @@ class CodeEditor(TextEditBaseWidget):
         self._pending_server_requests = []
         self._server_requests_timer = QTimer(self)
         self._server_requests_timer.setSingleShot(True)
-        self._server_requests_timer.setInterval(100)
+        self._server_requests_timer.setInterval(self.LSP_REQUESTS_TIMEOUT)
         self._server_requests_timer.timeout.connect(
             self.process_server_requests)
 
