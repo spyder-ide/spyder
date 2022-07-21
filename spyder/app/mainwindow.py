@@ -128,8 +128,6 @@ class MainWindow(QMainWindow):
         QMainWindow.AllowTabbedDocks | QMainWindow.AllowNestedDocks |
         QMainWindow.AnimatedDocks
     )
-    SPYDER_PATH = get_conf_path('path')
-    SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     DEFAULT_LAYOUTS = 4
     INITIAL_CWD = getcwd_or_home()
 
@@ -1662,37 +1660,6 @@ class MainWindow(QMainWindow):
 
     # --- Path Manager
     # ------------------------------------------------------------------------
-    def load_python_path(self):
-        """Load path stored in Spyder configuration folder."""
-        if osp.isfile(self.SPYDER_PATH):
-            with open(self.SPYDER_PATH, 'r', encoding='utf-8') as f:
-                path = f.read().splitlines()
-            self.path = tuple(name for name in path if osp.isdir(name))
-
-        if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
-            with open(self.SPYDER_NOT_ACTIVE_PATH, 'r',
-                      encoding='utf-8') as f:
-                not_active_path = f.read().splitlines()
-            self.not_active_path = tuple(name for name in not_active_path
-                                         if osp.isdir(name))
-
-    def save_python_path(self, new_path_dict):
-        """
-        Save path in Spyder configuration folder.
-
-        `new_path_dict` is an OrderedDict that has the new paths as keys and
-        the state as values. The state is `True` for active and `False` for
-        inactive.
-        """
-        path = [p for p in new_path_dict]
-        not_active_path = [p for p in new_path_dict if not new_path_dict[p]]
-        try:
-            encoding.writelines(path, self.SPYDER_PATH)
-            encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
-        except EnvironmentError as e:
-            logger.error(str(e))
-        CONF.set('main', 'spyder_pythonpath', self.get_spyder_pythonpath())
-
     def get_spyder_pythonpath(self):
         """
         Return Spyder PYTHONPATH, including project paths, as ordered
@@ -1761,16 +1728,6 @@ class MainWindow(QMainWindow):
             self._path_manager.activateWindow()
             self._path_manager.raise_()
             self._path_manager.setFocus()
-
-    def pythonpath_changed(self):
-        """Project's PYTHONPATH contribution has changed."""
-        projects = self.get_plugin(Plugins.Projects, error=False)
-
-        self.project_path = ()
-        if projects:
-            self.project_path = tuple(projects.get_pythonpath())
-        path_dict = self.get_spyder_pythonpath()
-        self.update_python_path(path_dict)
 
     #---- Preferences
     def apply_settings(self):
