@@ -760,7 +760,7 @@ class MainWindow(QMainWindow):
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
         logger.info("Updating PYTHONPATH")
-        path_dict = self.get_spyder_pythonpath_dict()
+        path_dict = self.get_spyder_pythonpath()
         self.update_python_path(path_dict)
 
         logger.info("Applying theme configuration...")
@@ -1693,7 +1693,7 @@ class MainWindow(QMainWindow):
             logger.error(str(e))
         CONF.set('main', 'spyder_pythonpath', self.get_spyder_pythonpath())
 
-    def get_spyder_pythonpath_dict(self):
+    def get_spyder_pythonpath(self):
         """
         Return Spyder PYTHONPATH.
 
@@ -1718,14 +1718,14 @@ class MainWindow(QMainWindow):
         """
         Return Spyder PYTHONPATH.
         """
-        path_dict = self.get_spyder_pythonpath_dict()
+        path_dict = self.get_spyder_pythonpath()
         path = [k for k, v in path_dict.items() if v]
         return path
 
     def update_python_path(self, new_path_dict):
         """Update python path on Spyder interpreter and kernels."""
         # Load previous path
-        path_dict = self.get_spyder_pythonpath_dict()
+        path_dict = self.get_spyder_pythonpath()
 
         # Save path
         if path_dict != new_path_dict:
@@ -1733,7 +1733,7 @@ class MainWindow(QMainWindow):
             self.save_python_path(new_path_dict)
 
         # Load new path
-        new_path_dict_p = self.get_spyder_pythonpath_dict()  # Includes project
+        new_path_dict_p = self.get_spyder_pythonpath()  # Includes project
 
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
@@ -1773,7 +1773,7 @@ class MainWindow(QMainWindow):
         self.project_path = ()
         if projects:
             self.project_path = tuple(projects.get_pythonpath())
-        path_dict = self.get_spyder_pythonpath_dict()
+        path_dict = self.get_spyder_pythonpath()
         self.update_python_path(path_dict)
 
     #---- Preferences
