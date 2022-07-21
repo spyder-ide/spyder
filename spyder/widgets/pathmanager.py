@@ -33,15 +33,14 @@ class PathManager(QDialog):
     redirect_stdio = Signal(bool)
     sig_path_changed = Signal(object)
 
-    def __init__(self, parent, path=None, read_only_path=None,
-                 not_active_path=None, sync=True):
+    def __init__(self, parent, paths=None, read_only_paths=None, sync=True):
         """Path manager dialog."""
         super(PathManager, self).__init__(parent)
-        assert isinstance(path, (tuple, type(None)))
+        assert isinstance(paths, (OrderedDict, type(None)))
 
-        self.path = path or ()
-        self.read_only_path = read_only_path or ()
-        self.not_active_path = not_active_path or ()
+        self.paths = paths or OrderedDict()
+        self.read_only_paths = read_only_paths or ()
+        self.not_active_path = (k for k, v in self.paths.items() if not v)
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
 
@@ -185,7 +184,7 @@ class PathManager(QDialog):
         item = QListWidgetItem(path)
         item.setIcon(ima.icon('DirClosedIcon'))
 
-        if path in self.read_only_path:
+        if path in self.read_only_paths:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
             item.setCheckState(Qt.Checked)
         elif path in self.not_active_path:
@@ -200,14 +199,14 @@ class PathManager(QDialog):
     @property
     def editable_bottom_row(self):
         """Maximum bottom row count that is editable."""
-        read_only_count = len(self.read_only_path)
+        read_only_count = len(self.read_only_paths)
         max_row = self.listwidget.count() - read_only_count - 1
         return max_row
 
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
-        for path in self.path + self.read_only_path:
+        for path in tuple(self.paths) + self.read_only_paths:
             item = self._create_item(path)
             self.listwidget.addItem(item)
         self.listwidget.setCurrentRow(0)
@@ -323,7 +322,7 @@ class PathManager(QDialog):
         for row in range(self.listwidget.count()):
             item = self.listwidget.item(row)
             path = item.text()
-            if path in self.read_only_path and not read_only:
+            if path in self.read_only_paths and not read_only:
                 continue
             odict[path] = item.checkState() == Qt.Checked
         return odict
@@ -350,7 +349,7 @@ class PathManager(QDialog):
             widget.setEnabled(False)
 
         self.remove_button.setEnabled(self.listwidget.count()
-                                      - len(self.read_only_path))
+                                      - len(self.read_only_paths))
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
         # Ok button only enabled if actual changes occur
@@ -492,7 +491,7 @@ def test():
     dlg = PathManager(
         None,
         path=tuple(sys.path[4:-2]),
-        read_only_path=tuple(sys.path[-2:]),
+        read_only_paths=tuple(sys.path[-2:]),
     )
 
     def callback(path_dict):
