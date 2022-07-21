@@ -481,7 +481,7 @@ class CodeEditor(TextEditBaseWidget):
         self._server_requests_timer.setSingleShot(True)
         self._server_requests_timer.setInterval(self.LSP_REQUESTS_TIMEOUT)
         self._server_requests_timer.timeout.connect(
-            self.process_server_requests)
+            self._process_server_requests)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -614,14 +614,32 @@ class CodeEditor(TextEditBaseWidget):
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
-    def process_server_requests(self):
+    def _process_server_requests(self):
         """Process server requests."""
         # Check if document needs to be updated:
         if self._document_server_needs_update:
             self.document_did_change()
             self._document_server_needs_update = False
-        for method, params, requires_response in self._pending_server_requests:
+
+        # Completion types
+        doc_completion = CompletionRequestTypes.DOCUMENT_COMPLETION
+        completion_resolve = CompletionRequestTypes.COMPLETION_RESOLVE
+
+        # Send completion requests first to the server to get faster
+        # completions
+        completion_requests = [
+            req for req in self._pending_server_requests
+            if (req[0] == doc_completion or req[0] == completion_resolve)
+        ]
+        for method, params, requires_response in completion_requests:
             self.emit_request(method, params, requires_response)
+
+        # Send the other requests
+        for method, params, requires_response in self._pending_server_requests:
+            if method != doc_completion and method != completion_resolve:
+                self.emit_request(method, params, requires_response)
+
+        # Clear pending requests
         self._pending_server_requests = []
 
     # --- Hover/Hints
