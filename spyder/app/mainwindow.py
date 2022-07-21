@@ -1714,7 +1714,7 @@ class MainWindow(QMainWindow):
 
         return path_dict
 
-    def get_spyder_pythonpath(self):
+    def get_spyder_active_pythonpath(self):
         """
         Return Spyder PYTHONPATH.
         """

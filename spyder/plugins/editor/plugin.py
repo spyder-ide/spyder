@@ -1783,7 +1783,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def set_path(self):
         for finfo in self.editorstacks[0].data:
-            finfo.path = self.main.get_spyder_pythonpath()
+            finfo.path = self.main.get_spyder_active_pythonpath()
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -2073,7 +2073,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # See: spyder-ide/spyder#12596
         finfo = self.editorstacks[0].new(fname, enc, text, default_content,
                                          empty=True)
-        finfo.path = self.main.get_spyder_pythonpath()
+        finfo.path = self.main.get_spyder_active_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts(current_editor)
@@ -2265,7 +2265,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 finfo = self.editorstacks[0].load(
                     filename, set_current=False, add_where=add_where,
                     processevents=processevents)
-                finfo.path = self.main.get_spyder_pythonpath()
+                finfo.path = self.main.get_spyder_active_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
