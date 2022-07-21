@@ -50,13 +50,13 @@ class CompletionConfigPage(PluginConfigPage):
         completions_after_characters = self.create_spinbox(
             _("Show automatic completions after characters entered:"), None,
             'automatic_completions_after_chars', min_=1, step=1,
-            tip=_("Default is 3"), section='editor')
+            tip=_("Default is 1"), section='editor')
         code_snippets_box = newcb(
             _("Enable code snippets"), 'enable_code_snippets')
         completions_after_idle = self.create_spinbox(
             _("Show automatic completions after keyboard idle (ms):"), None,
-            'automatic_completions_after_ms', min_=0, max_=10000, step=10,
-            tip=_("Default is 300 milliseconds"), section='editor')
+            'automatic_completions_after_ms', min_=50, max_=2000, step=10,
+            tip=_("Default is 50 milliseconds"), section='editor')
         completions_hint_after_idle = self.create_spinbox(
             _("Show completion details after keyboard idle (ms):"), None,
             'completions_hint_after_ms', min_=0, max_=10000, step=10,
