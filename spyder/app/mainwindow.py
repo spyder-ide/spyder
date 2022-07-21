@@ -1695,34 +1695,31 @@ class MainWindow(QMainWindow):
 
     def get_spyder_pythonpath(self):
         """
-        Return Spyder PYTHONPATH.
+        Return Spyder PYTHONPATH, including project paths, as ordered
+        dictionary.
 
-        The returned ordered dictionary has the paths as keys and the state
-        as values. The state is `True` for active and `False` for inactive.
-
-        Example:
-            OrderedDict([('/some/path, True), ('/some/other/path, False)])
+        The returned dictionary has the paths as keys and the state as values.
+        The state is `True` for active and `False` for inactive.
         """
-        self.load_python_path()
+        path_dict = OrderedDict(CONF.get('pythonpath_manager', 'paths'))
 
-        path_dict = OrderedDict()
-        for path in self.path:
-            path_dict[path] = path not in self.not_active_path
-
-        for path in self.project_path:
-            path_dict[path] = True
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        if projects:
+            for path in tuple(projects.get_pythonpath()):
+                path_dict[path] = True
 
         return path_dict
 
     def get_spyder_active_pythonpath(self):
         """
-        Return Spyder PYTHONPATH.
+        Return Spyder PYTHONPATH, including project paths, as list of active
+        paths.
         """
         path_dict = self.get_spyder_pythonpath()
         path = [k for k, v in path_dict.items() if v]
         return path
 
-    def update_python_path(self, new_path_dict):
+    def update_python_path(self, new_path_dict=None):
         """Update python path on Spyder interpreter and kernels."""
         # Load previous path
         path_dict = self.get_spyder_pythonpath()
