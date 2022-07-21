@@ -46,7 +46,7 @@ def get_passed_tests():
         # informative messages.
         test_re = re.compile(r'(spyder.*) (SKIPPED|PASSED|XFAIL) ')
         tests = []
-	for line in logfile:
+        for line in logfile:
             match = test_re.match(line)
             if match:
                 tests.append(match.group(1))
