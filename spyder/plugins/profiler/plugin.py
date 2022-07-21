@@ -158,7 +158,7 @@ class Profiler(SpyderDockablePlugin):
             Path to file to analyze.
         """
         # TODO: how to get access to this in a better way?
-        pythonpath = self.main.get_spyder_pythonpath()
+        pythonpath = self.main.get_spyder_active_pythonpath()
 
         wdir, args = None, []
         runconf = get_run_configuration(filename)
