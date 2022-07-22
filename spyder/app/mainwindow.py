@@ -1669,13 +1669,19 @@ class MainWindow(QMainWindow):
         The state is `True` for active and `False` for inactive.
         """
         path_dict = OrderedDict(CONF.get('pythonpath_manager', 'paths'))
-
-        projects = self.get_plugin(Plugins.Projects, error=False)
-        if projects:
-            for path in tuple(projects.get_pythonpath()):
-                path_dict[path] = True
+        for path in self.get_project_paths():
+            path_dict[path] = True
 
         return path_dict
+
+    def get_project_paths(self):
+        """Return project paths as tuple"""
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        proj_paths = ()
+        if projects:
+            proj_paths = tuple(projects.get_pythonpath())
+
+        return proj_paths
 
     def get_spyder_active_pythonpath(self):
         """
@@ -1711,13 +1717,10 @@ class MainWindow(QMainWindow):
 
         if self._path_manager is None:
             from spyder.widgets.pathmanager import PathManager
-            projects = self.get_plugin(Plugins.Projects, error=False)
-            read_only_paths = ()
-            if projects:
-                read_only_paths = tuple(projects.get_pythonpath())
 
-            paths = self.get_spyder_pythonpath()
-            dialog = PathManager(self, paths, read_only_paths, sync=True)
+            paths = OrderedDict(CONF.get('pythonpath_manager', 'paths'))
+            proj_paths = self.get_project_paths()
+            dialog = PathManager(self, paths=paths, read_only_paths=proj_paths)
             self._path_manager = dialog
             dialog.sig_path_changed.connect(self.update_python_path)
             dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
