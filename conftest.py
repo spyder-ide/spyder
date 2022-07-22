@@ -42,8 +42,7 @@ def get_passed_tests():
         with open('pytest_log.txt') as f:
             logfile = f.readlines()
 
-        # All lines that start with 'spyder' are tests. The rest are
-        # informative messages.
+        # Detect all tests that passed before.
         test_re = re.compile(r'(spyder.*) (SKIPPED|PASSED|XFAIL) ')
         tests = []
         for line in logfile:
