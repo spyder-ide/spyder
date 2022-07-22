@@ -1230,12 +1230,16 @@ class CodeEditor(TextEditBaseWidget):
         """Schedule a document update."""
         self._document_server_needs_update = True
 
-        # If auto completions are on, start the timer to request completions
+        # If auto-completions are on, start the timer to request completions
         # here. That way we can ensure an almost instant response when the user
         # stops typing.
+        # Note: We only ask for auto-completions if there was some text
+        # generated as part of the keyPressEvent.
+        # Fixes spyder-ide/spyder#11021
         if (
             self.automatic_completions
             and not self._server_requests_timer.isActive()
+            and self._last_key_pressed_text
         ):
             self._timer_autocomplete.start(
                 self.automatic_completions_after_ms)
@@ -4628,8 +4632,8 @@ class CodeEditor(TextEditBaseWidget):
         event.ignore()
         self.sig_key_pressed.emit(event)
 
-        key = event.key()
-        text = to_text_string(event.text())
+        self._last_pressed_key = key = event.key()
+        self._last_key_pressed_text = text = to_text_string(event.text())
         has_selection = self.has_selected_text()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
@@ -4812,9 +4816,6 @@ class CodeEditor(TextEditBaseWidget):
             event.accept()
         elif not event.isAccepted():
             self._handle_keypress_event(event)
-
-        self._last_key_pressed_text = text
-        self._last_pressed_key = key
 
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent.

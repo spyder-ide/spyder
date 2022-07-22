@@ -13,8 +13,7 @@ import sys
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QFocusEvent
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
-                            QListWidgetItem, QToolTip)
+from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
 from spyder.utils.icon_manager import ima
@@ -217,7 +216,6 @@ class CompletionWidget(QListWidget):
 
     def set_item_display(self, item_widget, item_info, height, width):
         """Set item text & icons using the info available."""
-        item_provider = item_info['provider']
         item_type = self.ITEM_TYPE_MAP.get(item_info['kind'], 'no_match')
         item_label = item_info['label']
         icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
@@ -316,10 +314,12 @@ class CompletionWidget(QListWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         altgr = event.modifiers() and (key == Qt.Key_AltGr)
+
         # Needed to properly handle Neo2 and other keyboard layouts
         # See spyder-ide/spyder#11293
         neo2_level4 = (key == 0)  # AltGr (ISO_Level5_Shift) in Neo2 on Linux
         modifier = shift or ctrl or alt or altgr or neo2_level4
+
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
             # otherwise timing issues
@@ -329,6 +329,10 @@ class CompletionWidget(QListWidget):
 
             if self.is_up_to_date(item=item):
                 self.item_selected(item=item)
+
+                # This is necessary so that completions are not triggered twice
+                # after introducing one of them, when auto-completions are on
+                self.textedit._last_key_pressed_text = ''
             else:
                 self.hide()
                 self.textedit.keyPressEvent(event)
