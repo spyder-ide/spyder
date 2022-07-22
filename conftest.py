@@ -67,14 +67,15 @@ def pytest_collection_modifyitems(config, items):
     skip_passed = pytest.mark.skip(reason="Test passed in previous runs")
 
     for item in items:
-        if item.nodeid in passed_tests:
-            item.add_marker(skip_passed)
-        elif slow_option:
+        if slow_option:
             if "slow" not in item.keywords:
                 item.add_marker(skip_fast)
         else:
             if "slow" in item.keywords:
                 item.add_marker(skip_slow)
+
+        if item.nodeid in passed_tests:
+            item.add_marker(skip_passed)
 
 
 @pytest.fixture(autouse=True)
