@@ -40,7 +40,6 @@ class PathManager(QDialog):
 
         self.paths = paths or OrderedDict()
         self.read_only_paths = read_only_paths or ()
-        self.not_active_path = (k for k, v in self.paths.items() if not v)
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
 
@@ -179,20 +178,20 @@ class PathManager(QDialog):
         return [self.add_button, self.remove_button, self.import_button,
                 self.export_button]
 
-    def _create_item(self, path):
+    def _create_item(self, path, read_only=False, active=True):
         """Helper to create a new list item."""
         item = QListWidgetItem(path)
         item.setIcon(ima.icon('DirClosedIcon'))
 
-        if path in self.read_only_paths:
+        if read_only:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked)
-        elif path in self.not_active_path:
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Unchecked)
         else:
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+
+        if active:
             item.setCheckState(Qt.Checked)
+        else:
+            item.setCheckState(Qt.Unchecked)
 
         return item
 
@@ -206,8 +205,11 @@ class PathManager(QDialog):
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
-        for path in tuple(self.paths) + self.read_only_paths:
-            item = self._create_item(path)
+        for path, active in self.paths.items():
+            item = self._create_item(path, active=active)
+            self.listwidget.addItem(item)
+        for path in self.read_only_paths:
+            item = self._create_item(path, read_only=True)
             self.listwidget.addItem(item)
         self.listwidget.setCurrentRow(0)
         self.original_path_dict = self.get_path_dict()
@@ -321,10 +323,9 @@ class PathManager(QDialog):
         odict = OrderedDict()
         for row in range(self.listwidget.count()):
             item = self.listwidget.item(row)
-            path = item.text()
-            if path in self.read_only_paths and not read_only:
-                continue
-            odict[path] = item.checkState() == Qt.Checked
+            if bool(item.flags() & Qt.ItemIsEnabled) or read_only:
+                odict[item.text()] = item.checkState() == Qt.Checked
+
         return odict
 
     def refresh(self):
@@ -490,12 +491,15 @@ def test():
     _ = qapplication()
     dlg = PathManager(
         None,
-        path=tuple(sys.path[4:-2]),
+        paths=OrderedDict({p: True for p in sys.path[4:-2]}),
         read_only_paths=tuple(sys.path[-2:]),
     )
 
     def callback(path_dict):
-        sys.stdout.write(str(path_dict))
+        sys.stdout.write(
+            '\n'.join([f'{k} : {v}' for k, v in path_dict.items()])
+        )
+        sys.stdout.write('\n')
 
     dlg.sig_path_changed.connect(callback)
     sys.exit(dlg.exec_())
