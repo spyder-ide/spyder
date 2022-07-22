@@ -18,7 +18,6 @@ from qtpy.QtWidgets import QMessageBox, QPushButton
 from collections import OrderedDict
 
 # Local imports
-from spyder.py3compat import PY3
 from spyder.utils.programs import is_module_installed
 from spyder.widgets import pathmanager as pathmanager_mod
 

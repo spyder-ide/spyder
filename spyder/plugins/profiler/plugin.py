@@ -8,9 +8,6 @@
 Profiler Plugin.
 """
 
-# Standard library imports
-import os.path as osp
-
 # Third party imports
 from qtpy.QtCore import Signal
 
@@ -22,7 +19,6 @@ from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
-                                                         ProfilerWidgetActions,
                                                          is_profiler_installed)
 from spyder.plugins.run.widgets import get_run_configuration
 

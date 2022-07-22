@@ -119,6 +119,7 @@ logger = logging.getLogger(__name__)
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
 
+
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -1656,8 +1657,7 @@ class MainWindow(QMainWindow):
                 .format(fpath=osp.normpath(fpath), fname=fname)
             )
 
-    # --- Path Manager
-    # ------------------------------------------------------------------------
+    # ---- Path Manager
     def get_spyder_pythonpath(self):
         """
         Return Spyder PYTHONPATH, including project paths, as ordered
