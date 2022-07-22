@@ -568,9 +568,7 @@ class MainWindow(QMainWindow):
         self.shortcut_queue = []
 
         # Handle Spyder path
-        self.path = ()
-        self.not_active_path = ()
-        self.project_path = ()
+        self.old_path = OrderedDict()
         self._path_manager = None
 
         # New API
@@ -1697,7 +1695,6 @@ class MainWindow(QMainWindow):
         Update python path in configuration and on Spyder interpreter and
         kernels.
         """
-        old_path = self.get_spyder_pythonpath()
         if new_path_dict is not None:
             CONF.set('pythonpath_manager', 'paths', dict(new_path_dict))
 
@@ -1705,8 +1702,9 @@ class MainWindow(QMainWindow):
 
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
-        # ??? Do we need to emit if old and new are same?
-        self.sig_pythonpath_changed.emit(old_path, new_path)
+        self.sig_pythonpath_changed.emit(self.old_path, new_path)
+
+        self.old_path = new_path
 
     @Slot()
     def show_path_manager(self):
