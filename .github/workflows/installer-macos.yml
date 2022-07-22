@@ -91,7 +91,7 @@ jobs:
           pil=$(${pythonLocation} -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
           rm -v ${DISTDIR}/Spyder.app/Contents/Frameworks/liblzma.5.dylib
           cp -v ${pil}/.dylibs/liblzma.5.dylib ${DISTDIR}/Spyder.app/Contents/Frameworks/
-          ./codesign.sh -a "${DISTDIR}/Spyder.app"
+          ./codesign.sh "${DISTDIR}/Spyder.app"
       - name: Test Application Bundle
         run: ./test_app.sh -t 60 -d 10 ${DISTDIR}
       - name: Build Disk Image
