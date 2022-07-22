@@ -10,13 +10,15 @@ Required:
 
 Options:
   -h          Display this help
+  -u          Unsign code
 
 EOF
 }
 
-while getopts ":h" option; do
+while getopts ":hu" option; do
     case $option in
         (h) help; exit ;;
+        (u) unsign=0 ;;
     esac
 done
 shift $(($OPTIND - 1))
@@ -37,7 +39,11 @@ qt_ent_file=$(cd $(dirname $BASH_SOURCE) && pwd -P)/qt_webengine.xml
 CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
 log "Certificate ID: $CNAME"
 
-csopts=("--force" "--verify" "--verbose" "--timestamp" "--sign" "$CNAME")
+if [[ -n "${unsign}" ]]; then
+    csopts=("--remove-signature")
+else
+    csopts=("--force" "--verify" "--verbose" "--timestamp" "--sign" "$CNAME")
+fi
 
 # --- Helper functions
 code-sign(){
