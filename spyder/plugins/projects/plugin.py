@@ -532,7 +532,6 @@ class Projects(SpyderDockablePlugin):
             self.sig_project_loaded.emit(workdir)
         else:
             self.sig_project_loaded.emit(path)
-        self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
 
         if restart_consoles:
@@ -541,6 +540,8 @@ class Projects(SpyderDockablePlugin):
         open_successfully, message = project.open_project()
         if not open_successfully:
             QMessageBox.warning(self.get_widget(), "Project open", message)
+
+        self.sig_pythonpath_changed.emit()  # Wait until console restart
 
     def close_project(self):
         """
@@ -565,7 +566,6 @@ class Projects(SpyderDockablePlugin):
 
             self.sig_project_closed.emit(path)
             self.sig_project_closed[bool].emit(True)
-            self.sig_pythonpath_changed.emit()
 
             # Hide pane.
             self.set_conf('visible_if_project_open',
@@ -575,6 +575,8 @@ class Projects(SpyderDockablePlugin):
             self.get_widget().clear()
             self.restart_consoles()
             self.watcher.stop()
+
+            self.sig_pythonpath_changed.emit()  # Wait until console restart
 
     def delete_project(self):
         """
