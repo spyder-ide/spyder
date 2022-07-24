@@ -12,7 +12,7 @@ Configuration manager providing access to user/site/project configuration.
 import logging
 import os
 import os.path as osp
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
 # Local imports
@@ -106,6 +106,14 @@ class ConfigurationManager(object):
         #
         # type: Dict[ConfigurationObserver, Dict[str, Set[ConfigurationKey]]]
         self._observer_map_keys = weakref.WeakKeyDictionary()
+
+        # List of options with disabled notifications.
+        # This holds a list of (section, option) options that won't be notified
+        # to observers. It can be used to temporarily disable notifications for
+        # some options.
+        #
+        # type: List[Tuple(str, ConfigurationKey)]
+        self._disabled_options = []
 
         # Setup
         self.remove_deprecated_config_locations()
@@ -355,6 +363,9 @@ class ConfigurationManager(object):
             logger.debug('Sending notification to observers of '
                          f'{option} in configuration section {section}')
         for observer in list(option_observers):
+            if (section, option) in self._disabled_options:
+                continue
+
             try:
                 observer.on_configuration_change(option, section, value)
             except RuntimeError:
@@ -388,6 +399,17 @@ class ConfigurationManager(object):
             except cp.NoOptionError:
                 # See above explanation.
                 pass
+
+    def disable_notifications(self, section:str, option:ConfigurationKey):
+        """Disable notitications for `option` in `section`."""
+        self._disabled_options.append((section, option))
+
+    def restore_notifications(self, section:str, option:ConfigurationKey):
+        """Restore notitications for disabled `option` in `section`."""
+        try:
+            self._disabled_options.remove((section, option))
+        except ValueError:
+            pass
 
     # --- Projects
     # ------------------------------------------------------------------------
@@ -623,7 +645,7 @@ class ConfigurationManager(object):
                 context, name = context_name.split('/', 1)
                 yield context, name, keystr
 
-        for _, (_, plugin_config) in self._plugin_configs.items():
+        for __, (__, plugin_config) in self._plugin_configs.items():
             items = plugin_config.items('shortcuts')
             if items:
                 for context_name, keystr in items:
@@ -633,7 +655,7 @@ class ConfigurationManager(object):
     def reset_shortcuts(self):
         """Reset keyboard shortcuts to default values."""
         self._user_config.reset_to_defaults(section='shortcuts')
-        for _, (_, plugin_config) in self._plugin_configs.items():
+        for __, (__, plugin_config) in self._plugin_configs.items():
             # TODO: check if the section exists?
             plugin_config.reset_to_defaults(section='shortcuts')
 
