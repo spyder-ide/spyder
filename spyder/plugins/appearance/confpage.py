@@ -26,6 +26,10 @@ _ = get_translation('spyder')
 
 class AppearanceConfigPage(PluginConfigPage):
 
+    def __init__(self, plugin, parent):
+        super().__init__(plugin, parent)
+        self.pre_apply_callback = self.check_color_scheme_notification
+
     def setup_page(self):
         names = self.get_option("names")
         try:
@@ -191,6 +195,10 @@ class AppearanceConfigPage(PluginConfigPage):
                 if mismatch:
                     # Ask for a restart
                     self.changed_options.add('ui_theme')
+
+        # We need to restore notifications for this option so the color scheme
+        # can be changed when selecting other options.
+        CONF.restore_notifications(section='appearance', option='selected')
 
         self.update_combobox()
         self.update_preview()
@@ -437,3 +445,23 @@ class AppearanceConfigPage(PluginConfigPage):
             )
 
         return mismatch
+
+    def check_color_scheme_notification(self):
+        """
+        Check if it's necessary to notify plugins to update their color scheme.
+        """
+        ui_theme = self.get_option('ui_theme')
+        mismatch = self.color_scheme_and_ui_theme_mismatch(
+            self.current_scheme, ui_theme)
+
+        # This is only needed if there's a mismatch between the UI theme and
+        # the selected color scheme, which requires a restart to apply it.
+        if ui_theme == 'automatic':
+            if mismatch:
+                CONF.disable_notifications(section='appearance',
+                                           option='selected')
+        else:
+            if not ('ui_theme' in self.changed_options):
+                if mismatch:
+                    CONF.disable_notifications(section='appearance',
+                                               option='selected')
