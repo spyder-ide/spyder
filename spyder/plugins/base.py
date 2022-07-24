@@ -465,16 +465,6 @@ class BasePluginWidgetMixin(object):
         self.sig_update_plugin_title.connect(self._update_plugin_title)
         self.setWindowTitle(self.get_plugin_title())
 
-    def _register_shortcut(self, qaction_or_qshortcut, context, name,
-                           add_shortcut_to_tip=False):
-        """Register a shortcut associated to a QAction or QShortcut."""
-        self.main.register_shortcut(
-            qaction_or_qshortcut,
-            context,
-            name,
-            add_shortcut_to_tip,
-            self.CONF_SECTION)
-
     def _get_color_scheme(self):
         """Get the current color scheme."""
         return get_color_scheme(CONF.get('appearance', 'selected'))
