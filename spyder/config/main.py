@@ -330,7 +330,6 @@ DEFAULTS = [
             ('completions',
              {
                'enable': True,
-               'kite_call_to_action': False,
                'enable_code_snippets': True,
                'completions_wait_for_ms': 200,
                'enabled_providers': {},
