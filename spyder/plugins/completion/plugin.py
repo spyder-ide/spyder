@@ -18,6 +18,7 @@ import logging
 import os
 from pkg_resources import parse_version, iter_entry_points
 from typing import List, Union
+import weakref
 
 # Third-party imports
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
@@ -1020,7 +1021,7 @@ class CompletionPlugin(SpyderPluginV2):
         self.requests[req_id] = {
             'language': language,
             'req_type': req_type,
-            'response_instance': req['response_instance'],
+            'response_instance': weakref.ref(req['response_instance']),
             'sources': {},
             'timed_out': False,
         }
@@ -1239,7 +1240,7 @@ class CompletionPlugin(SpyderPluginV2):
         """
         request_responses = self.requests[req_id]
         req_type = request_responses['req_type']
-        response_instance = id(request_responses['response_instance'])
+        response_instance = id(request_responses['response_instance']())
         do_send = True
 
         # This is necessary to prevent sending completions for old requests
@@ -1248,7 +1249,7 @@ class CompletionPlugin(SpyderPluginV2):
             max_req_id = max(
                 [key for key, item in self.requests.items()
                  if item['req_type'] == req_type
-                 and id(item['response_instance']) == response_instance]
+                 and id(item['response_instance']()) == response_instance]
                 or [-1])
             do_send = (req_id == max_req_id)
 
@@ -1266,7 +1267,7 @@ class CompletionPlugin(SpyderPluginV2):
         """
         req_type = request_responses['req_type']
         req_id_responses = request_responses['sources']
-        response_instance = request_responses['response_instance']
+        response_instance = request_responses['response_instance']()
         logger.debug('Gather responses for {0}'.format(req_type))
 
         if req_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
@@ -1275,7 +1276,8 @@ class CompletionPlugin(SpyderPluginV2):
             responses = self.gather_responses(req_type, req_id_responses)
 
         try:
-            response_instance.handle_response(req_type, responses)
+            if response_instance:
+                response_instance.handle_response(req_type, responses)
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
             # removed before the response can be processed.
