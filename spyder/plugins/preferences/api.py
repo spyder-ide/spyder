@@ -68,7 +68,13 @@ class ConfigPage(QWidget):
 
     def __init__(self, parent, apply_callback=None):
         QWidget.__init__(self, parent)
+
+        # Callback to call before saving settings to disk
+        self.pre_apply_callback = None
+
+        # Callback to call after saving settings to disk
         self.apply_callback = apply_callback
+
         self.is_modified = False
 
     def initialize(self):
@@ -103,7 +109,11 @@ class ConfigPage(QWidget):
     def apply_changes(self):
         """Apply changes callback"""
         if self.is_modified:
+            if self.pre_apply_callback is not None:
+                self.pre_apply_callback()
+
             self.save_to_conf()
+
             if self.apply_callback is not None:
                 self.apply_callback()
 
