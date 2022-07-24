@@ -55,6 +55,7 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
+from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -535,6 +536,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
+@pytest.mark.use_introspection
 def test_leaks(main_window, qtbot):
     """
     Test leaks in mainwindow when closing a file or a console.
@@ -565,8 +567,18 @@ def test_leaks(main_window, qtbot):
     # Open a second file and console
     main_window.editor.new()
     main_window.ipyconsole.create_new_client()
-    # Give time for paint events
-    qtbot.wait(100)
+    # Do something interesting in the new window
+    code_editor = main_window.editor.get_focus_widget()
+    # Show an error in the editor
+    code_editor.set_text("aaa")
+    del code_editor
+
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+
     # Close all files and consoles
     main_window.editor.close_all_files()
     main_window.ipyconsole.restart()
