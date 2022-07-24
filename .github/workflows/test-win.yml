@@ -114,7 +114,7 @@ jobs:
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: |
-          touch log.txt  # This is necessary to run the script below
+          rm -f pytest_log.txt  # Must remove any log file from a previous run
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh || \
