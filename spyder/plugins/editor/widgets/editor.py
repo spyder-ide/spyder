@@ -1636,7 +1636,10 @@ class EditorStack(QWidget):
 
             filename = self.data[index].filename
             self.remove_from_data(index)
-            finfo.editor.notify_close()
+            editor = finfo.editor
+            editor.notify_close()
+            editor.setParent(None)
+            editor.completion_widget.setParent(None)
             if self.parent():
                 # Can be false in tests
                 self.get_plugin().unregister_widget_shortcuts(editor)

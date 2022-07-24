@@ -1926,6 +1926,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
+        client.setParent(None)
 
         # This is needed to prevent that hanged consoles make reference
         # to an index that doesn't exist. See spyder-ide/spyder#4881

@@ -484,6 +484,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def close_widget(self, nsb):
         nsb.close()
+        nsb.setParent(None)
 
     def import_data(self, filenames=None):
         """
