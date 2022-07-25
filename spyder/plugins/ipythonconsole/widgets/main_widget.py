@@ -1436,7 +1436,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
@@ -1575,7 +1574,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=connection_file,
                               context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
                               hostname=hostname,
                               is_external_kernel=is_external_kernel,
                               is_spyder_kernel=known_spyder_kernel,
@@ -1864,6 +1862,9 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
+
+        # Show time label
+        client.sig_time_label.connect(self.time_label.setText)
 
     def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or widget (or close current tab)"""

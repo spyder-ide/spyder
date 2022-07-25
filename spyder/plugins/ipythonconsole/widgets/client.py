@@ -81,6 +81,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     sig_append_to_history_requested = Signal(str, str)
     sig_execution_state_changed = Signal()
+    sig_time_label = Signal(str)
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -98,7 +99,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  given_name=None,
                  give_focus=True,
                  options_button=None,
-                 time_label=None,
                  show_elapsed_time=False,
                  reset_warning=True,
                  ask_before_restart=True,
@@ -126,7 +126,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         # --- Other attrs
         self.context_menu_actions = context_menu_actions
-        self.time_label = time_label
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
@@ -918,8 +917,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def show_time(self, end=False):
         """Text to show in time_label."""
-        if self.time_label is None:
-            return
 
         elapsed_time = time.monotonic() - self.t0
         # System time changed to past date, so reset start.
@@ -938,9 +935,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                "</b></span>" % (color,
                                 time.strftime(fmt, time.gmtime(elapsed_time)))
         if self.show_elapsed_time:
-            self.time_label.setText(text)
+            self.sig_time_label.emit(text)
         else:
-            self.time_label.setText("")
+            self.sig_time_label.emit("")
 
     @Slot(bool)
     def set_show_elapsed_time(self, state):
