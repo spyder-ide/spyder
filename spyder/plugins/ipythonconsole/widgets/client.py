@@ -644,6 +644,25 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except AttributeError:
             pass
 
+    def close_client(self, last_client):
+        """Close the client"""
+        # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
+        try:
+            # Close client
+            self.stop_button_click_handler()
+        except RuntimeError:
+            pass
+
+        # Disconnect timer needed to update elapsed time
+        try:
+            self.timer.timeout.disconnect(self.show_time)
+        except (RuntimeError, TypeError):
+            pass
+
+        self.shutdown(last_client)
+        self.close()
+        self.setParent(None)
+
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()

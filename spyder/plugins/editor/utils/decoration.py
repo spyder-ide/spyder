@@ -135,11 +135,14 @@ class TextDecorationsManager(Manager, QObject):
         NOTE: Update TextDecorations to use editor font, using a different
         font family and point size could cause unwanted behaviors.
         """
+        editor = self.editor
+        if editor is None:
+            return
         try:
-            font = self.editor.font()
+            font = editor.font()
 
             # Get the current visible block numbers
-            first, last = self.editor.get_buffer_block_numbers()
+            first, last = editor.get_buffer_block_numbers()
 
             # Update visible decorations
             visible_decorations = []
@@ -166,7 +169,7 @@ class TextDecorationsManager(Manager, QObject):
                         decoration.format.setFontFamily(font.family())
                         decoration.format.setFontPointSize(font.pointSize())
 
-            self.editor.setExtraSelections(visible_decorations)
+            editor.setExtraSelections(visible_decorations)
         except RuntimeError:
             # This is needed to fix spyder-ide/spyder#9173.
             return
