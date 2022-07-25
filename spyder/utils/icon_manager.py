@@ -112,6 +112,7 @@ class IconManager():
             'environment':             [('mdi.cube-outline',), {'color': self.MAIN_FG_COLOR}],
             'drag_dock_widget':        [('mdi.drag-variant',), {'color': self.MAIN_FG_COLOR}],
             'format_letter_case':      [('mdi.format-letter-case',), {'color': self.MAIN_FG_COLOR}],
+            'format_letter_matches':   [('mdi.format-letter-matches',), {'color': self.MAIN_FG_COLOR}],
             'regex':                   [('mdi.regex',), {'color': self.MAIN_FG_COLOR}],
             'log':                     [('mdi.file-document',), {'color': self.MAIN_FG_COLOR}],
             'configure':               [('mdi.wrench',), {'color': self.MAIN_FG_COLOR, 'rotated': 90}],

@@ -143,7 +143,7 @@ class FindReplace(QWidget):
 
         self.words_button = create_toolbutton(
             self,
-            icon=ima.icon("whole_words"),
+            icon=ima.icon("format_letter_matches"),
             tip=_("Whole words")
         )
         self.words_button.setCheckable(True)
