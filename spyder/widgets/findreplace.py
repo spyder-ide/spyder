@@ -72,26 +72,34 @@ class FindReplace(QWidget):
         glayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(glayout)
 
-        self.close_button = create_toolbutton(self, triggered=self.hide,
-                                      icon=ima.icon('DialogCloseButton'))
+        self.close_button = create_toolbutton(
+            self,
+            triggered=self.hide,
+            icon=ima.icon('DialogCloseButton')
+        )
         glayout.addWidget(self.close_button, 0, 0)
 
         # Find layout
-        self.search_text = PatternComboBox(self, tip=_("Search string"),
-                                           adjust_to_minimum=False)
+        self.search_text = PatternComboBox(
+            self,
+            tip=_("Search string"),
+            adjust_to_minimum=False
+        )
 
         self.return_shift_pressed.connect(
-                lambda:
-                self.find(changed=False, forward=False, rehighlight=False,
-                          multiline_replace_check = False))
+            lambda:
+            self.find(changed=False, forward=False, rehighlight=False,
+                      multiline_replace_check = False)
+        )
 
         self.return_pressed.connect(
-                     lambda:
-                     self.find(changed=False, forward=True, rehighlight=False,
-                               multiline_replace_check = False))
+            lambda:
+            self.find(changed=False, forward=True, rehighlight=False,
+                      multiline_replace_check = False)
+        )
 
         self.search_text.lineEdit().textEdited.connect(
-                                                     self.text_has_been_edited)
+            self.text_has_been_edited)
 
         self.number_matches_text = QLabel(self)
         self.replace_on = False
@@ -101,75 +109,108 @@ class FindReplace(QWidget):
             icon=ima.icon('replace'),
             tip=_("Replace text")
         )
-        self.previous_button = create_toolbutton(self,
-                                                 triggered=self.find_previous,
-                                                 icon=ima.icon('findprevious'),
-                                                 tip=_("Find previous"))
-        self.next_button = create_toolbutton(self,
-                                             triggered=self.find_next,
-                                             icon=ima.icon('findnext'),
-                                             tip=_("Find next"))
+
+        self.previous_button = create_toolbutton(
+            self,
+            triggered=self.find_previous,
+            icon=ima.icon('findprevious'),
+            tip=_("Find previous")
+        )
+
+        self.next_button = create_toolbutton(
+            self,
+            triggered=self.find_next,
+            icon=ima.icon('findnext'),
+            tip=_("Find next")
+        )
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
-        self.re_button = create_toolbutton(self, icon=ima.icon('regex'),
-                                           tip=_("Regular expression"))
+        self.re_button = create_toolbutton(
+            self, icon=ima.icon('regex'),
+            tip=_("Regular expression")
+        )
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
 
-        self.case_button = create_toolbutton(self,
-                                             icon=ima.icon(
-                                                 "format_letter_case"),
-                                             tip=_("Case Sensitive"))
+        self.case_button = create_toolbutton(
+            self,
+            icon=ima.icon("format_letter_case"),
+            tip=_("Case Sensitive")
+        )
         self.case_button.setCheckable(True)
         self.case_button.toggled.connect(lambda state: self.find())
 
-        self.words_button = create_toolbutton(self,
-                                              icon=ima.icon("whole_words"),
-                                              tip=_("Whole words"))
+        self.words_button = create_toolbutton(
+            self,
+            icon=ima.icon("whole_words"),
+            tip=_("Whole words")
+        )
         self.words_button.setCheckable(True)
         self.words_button.toggled.connect(lambda state: self.find())
 
         hlayout = QHBoxLayout()
-        self.widgets = [self.close_button, self.search_text,
-                        self.number_matches_text, self.replace_text_button,
-                        self.previous_button, self.next_button,
-                        self.re_button, self.case_button,
-                        self.words_button]
+        self.widgets = [
+            self.close_button,
+            self.search_text,
+            self.number_matches_text,
+            self.replace_text_button,
+            self.previous_button,
+            self.next_button,
+            self.re_button,
+            self.case_button,
+            self.words_button
+        ]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
         glayout.addLayout(hlayout, 0, 1)
 
         # Replace layout
         replace_with = QLabel(_("Replace with:"))
-        self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
-                                            tip=_('Replace string'))
+        self.replace_text = PatternComboBox(
+            self,
+            adjust_to_minimum=False,
+            tip=_('Replace string')
+        )
         self.replace_text.valid.connect(
-                    lambda _: self.replace_find(focus_replace_text=True))
-        self.replace_button = create_toolbutton(self,
-                                     text=_('Find next'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find,
-                                     text_beside_icon=True)
-        self.replace_sel_button = create_toolbutton(self,
-                                     text=_('In selection'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_selection,
-                                     text_beside_icon=True)
+            lambda _: self.replace_find(focus_replace_text=True))
+
+        self.replace_button = create_toolbutton(
+            self,
+            text=_('Find next'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find,
+            text_beside_icon=True
+        )
+
+        self.replace_sel_button = create_toolbutton(
+            self,
+            text=_('In selection'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find_selection,
+            text_beside_icon=True
+        )
         self.replace_sel_button.clicked.connect(self.update_replace_combo)
         self.replace_sel_button.clicked.connect(self.update_search_combo)
 
-        self.replace_all_button = create_toolbutton(self,
-                                     text=_('All'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_all,
-                                     text_beside_icon=True)
+        self.replace_all_button = create_toolbutton(
+            self,
+            text=_('All'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find_all,
+            text_beside_icon=True
+        )
         self.replace_all_button.clicked.connect(self.update_replace_combo)
         self.replace_all_button.clicked.connect(self.update_search_combo)
 
         self.replace_layout = QHBoxLayout()
-        widgets = [replace_with, self.replace_text, self.replace_button,
-                   self.replace_sel_button, self.replace_all_button]
+        widgets = [
+            replace_with,
+            self.replace_text,
+            self.replace_button,
+            self.replace_sel_button,
+            self.replace_all_button
+        ]
         for widget in widgets:
             self.replace_layout.addWidget(widget)
         glayout.addLayout(self.replace_layout, 1, 1)
@@ -178,9 +219,7 @@ class FindReplace(QWidget):
         self.hide_replace()
 
         self.search_text.setTabOrder(self.search_text, self.replace_text)
-
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
         self.shortcuts = self.create_shortcuts(parent)
 
         self.highlight_timer = QTimer(self)
@@ -621,7 +660,7 @@ class FindReplace(QWidget):
                 # Check if replace_text can be substituted in re_pattern
                 # Fixes spyder-ide/spyder#7177.
                 re_pattern.sub(replace_text, '')
-            except re.error as e:
+            except re.error:
                 # Do nothing with an invalid regexp
                 return
 
