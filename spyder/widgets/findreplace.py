@@ -43,16 +43,14 @@ def is_position_inf(pos1, pos2):
 
 class FindReplace(QWidget):
     """Find widget"""
-    STYLE = {False: "background-color:'#F37E12';",
-             True: "",
-             None: "",
-             'regexp_error': "background-color:'#E74C3C';",
-             }
-    TOOLTIP = {False: _("No matches"),
-               True: _("Search string"),
-               None: _("Search string"),
-               'regexp_error': _("Regular expression error")
-               }
+    TOOLTIP = {
+        False: _("No matches"),
+        True: _("Search string"),
+        None: _("Search string"),
+        'regexp_error': _("Regular expression error"),
+        'no_matches': _("No matches")
+    }
+
     visibility_changed = Signal(bool)
     return_shift_pressed = Signal()
     return_pressed = Signal()
@@ -62,11 +60,6 @@ class FindReplace(QWidget):
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None
-        self.setStyleSheet(
-             "QComboBox {"
-             "padding-right: 0px;"
-             "padding-left: 0px;"
-             "}")
 
         glayout = QGridLayout()
         glayout.setContentsMargins(0, 0, 0, 0)
@@ -102,6 +95,13 @@ class FindReplace(QWidget):
             self.text_has_been_edited)
 
         self.number_matches_text = QLabel(self)
+
+        self.messages_label = QLabel(self)
+        self.messages_label.setText('')
+        icon_size = self.close_button.iconSize()
+        self.warning_icon = ima.icon('warning').pixmap(icon_size)
+        self.error_icon = ima.icon('error').pixmap(icon_size)
+
         self.replace_on = False
         self.replace_text_button = create_toolbutton(
             self,
@@ -154,6 +154,7 @@ class FindReplace(QWidget):
             self.close_button,
             self.search_text,
             self.number_matches_text,
+            self.messages_label,
             self.replace_text_button,
             self.previous_button,
             self.next_button,
@@ -474,7 +475,6 @@ class FindReplace(QWidget):
                 return None
         text = self.search_text.currentText()
         if len(text) == 0:
-            self.search_text.lineEdit().setStyleSheet("")
             if not self.is_code_editor:
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
@@ -488,15 +488,19 @@ class FindReplace(QWidget):
             found = self.editor.find_text(text, changed, forward, case=case,
                                           word=word, regexp=regexp)
 
-            stylesheet = self.STYLE[found]
+            error_msg = False
             tooltip = self.TOOLTIP[found]
             if not found and regexp:
                 error_msg = regexp_error_msg(text)
-                if error_msg:  # special styling for regexp errors
-                    stylesheet = self.STYLE['regexp_error']
+                if error_msg:
                     tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
-            self.search_text.lineEdit().setStyleSheet(stylesheet)
+                    self.show_error(error_msg)
             self.search_text.setToolTip(tooltip)
+
+            # No need to continue after this point if we detected an error in
+            # the passed regexp.
+            if error_msg:
+                return
 
             if self.is_code_editor and found:
                 cursor = QTextCursor(self.editor.textCursor())
@@ -689,11 +693,50 @@ class FindReplace(QWidget):
     def change_number_matches(self, current_match=0, total_matches=0):
         """Change number of match and total matches."""
         if current_match and total_matches:
+            self.number_matches_text.show()
+            self.messages_label.hide()
             matches_string = u"{} {} {}".format(current_match, _(u"of"),
-                                               total_matches)
+                                                total_matches)
             self.number_matches_text.setText(matches_string)
         elif total_matches:
+            self.number_matches_text.show()
+            self.messages_label.hide()
             matches_string = u"{} {}".format(total_matches, _(u"matches"))
             self.number_matches_text.setText(matches_string)
         else:
-            self.number_matches_text.setText(_(u"no matches"))
+            self.number_matches_text.hide()
+            self.show_warning()
+
+    def show_warning(self):
+        """Show a warning message with an icon when no matches can be found."""
+        self._show_icon_message('warning')
+
+    def show_error(self, error_msg):
+        """Show a regexp error message with an icon."""
+        self._show_icon_message('error', extra_info=error_msg)
+
+    def _show_icon_message(self, kind, extra_info=None):
+        """
+        Show a message to users with an icon when no matches can be found or
+        there's an error in the passed regexp.
+
+        Parameters
+        ----------
+        kind: str
+            The kind of message. It can be 'warning' or 'error'.
+        extra_info:
+            Extra info to add to the icon's tooltip.
+        """
+        if kind == 'warning':
+            tooltip = self.TOOLTIP['no_matches']
+            icon = self.warning_icon
+        else:
+            tooltip = self.TOOLTIP['regexp_error']
+            icon = self.error_icon
+
+        if extra_info:
+            tooltip = tooltip + ': ' + extra_info
+
+        self.messages_label.setPixmap(icon)
+        self.messages_label.setToolTip(tooltip)
+        self.messages_label.show()
