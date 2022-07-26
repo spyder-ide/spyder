@@ -2307,7 +2307,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def _create_print_editor(self):
         """Create a SimpleCodeEditor instance to print file contents."""
         editor = SimpleCodeEditor(self)
-        editor.setup_editor(color_scheme="idle", highlight_current_line=False)
+        editor.setup_editor(
+            color_scheme="scintilla", highlight_current_line=False
+        )
         return editor
 
     @Slot()
