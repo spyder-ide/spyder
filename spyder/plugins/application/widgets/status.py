@@ -35,7 +35,6 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.installation_thread = parent
         super().__init__(parent)
 
-        
         # Installation dialog
         self.installer = UpdateInstallerDialog(
             self,
@@ -44,31 +43,27 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.installation_thread.sig_installation_status.connect(
             self.set_value)
         self.sig_clicked.connect(self.show_installation_dialog)
-        
 
     def set_value(self, value):
         """Return update installation state."""
 
-
-        if value == "Downloading installer" or value == "Installing" :
+        if value == "Downloading installer" or value == "Installing":
             self.setVisible(True)
             self.tooltip = _("Update installation will continue in the "
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again")
-        elif value == "Checking for updates" :
-            self.tooltip = self.BASE_TOOLTIP
-        else:            
+        elif value == "Checking for updates" or value == "Update ready":
+            self.setVisible(True)
+            self.tooltip = value
+        else:
             self.setVisible(False)
-            value =self.DEFAULT_STATUS
+            value = self.DEFAULT_STATUS
             self.tooltip = self.BASE_TOOLTIP
-            
-        self.update_tooltip()        
-        value = "Update: {0}".format(value)
-        super().set_value(value)#super(ApplicationUpdateStatus, self).set_value(value)
-        
 
-        #self.setVisible(False)
+        self.update_tooltip()
+        value = "Update: {0}".format(value)
+        super().set_value(value)
 
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
@@ -80,9 +75,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     @Slot()
     def show_installation_dialog(self):
         """Show installation dialog."""
-        if (not self.tooltip==self.BASE_TOOLTIP):
+        if (not self.tooltip == self.BASE_TOOLTIP and not
+                self.tooltip == "Update ready"):
             self.installer.show()
-
-   
-
-    
+        elif (self.tooltip == "Update ready"):
+            self.installer.continue_install()

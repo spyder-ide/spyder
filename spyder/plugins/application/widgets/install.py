@@ -24,21 +24,7 @@ INSTALLING = _("Installing")
 FINISHED = _("Installation finished")
 ERRORED = _("Installation errored")
 CANCELLED = _("Cancelled")
-class HoverEventFilter(QObject):
-    """QObject to handle event filtering."""
-    # Signal to trigger on a HoverEnter event
-    sig_hover_enter = Signal()
-    # Signal to trigger on a HoverLeave event
-    sig_hover_leave = Signal()
-
-    def eventFilter(self, widget, event):
-        """Reimplemented Qt method."""
-        if event.type() == QEvent.HoverEnter:
-            self.sig_hover_enter.emit()
-        elif event.type() == QEvent.HoverLeave:
-            self.sig_hover_leave.emit()
-
-        return super(HoverEventFilter, self).eventFilter(widget, event)
+PENDING = _("Update ready")
 
 
 class UpdateInstallation(QWidget):
@@ -52,13 +38,10 @@ class UpdateInstallation(QWidget):
         progress_layout = QHBoxLayout()
         self._progress_widget = QWidget(self)
         self._progress_widget.setFixedHeight(50)
-        self._progress_filter = HoverEventFilter()
         self._progress_bar = QProgressBar(self)
         self._progress_bar.setFixedWidth(180)
-        self._progress_widget.installEventFilter(self._progress_filter)
         self.cancel_button = QPushButton()
         self.cancel_button.setIcon(ima.icon('DialogCloseButton'))
-        #self.cancel_button.hide()
         progress_layout.addWidget(self._progress_bar, alignment=Qt.AlignLeft)
         progress_layout.addWidget(self.cancel_button)
         self._progress_widget.setLayout(progress_layout)
@@ -80,12 +63,11 @@ class UpdateInstallation(QWidget):
         action_layout.addWidget(self.install_info)
         action_layout.addSpacing(10)
         action_layout.addLayout(button_layout)
-        action_layout.addStretch()       
+        action_layout.addStretch()
 
         # Layout
         general_layout = QHBoxLayout()
         general_layout.addLayout(action_layout)
-        #general_layout.addWidget(copilot_label)
 
         self.setLayout(general_layout)
 
@@ -95,7 +77,7 @@ class UpdateInstallation(QWidget):
         self.install_info.setText(status + " the latest version of Spyder.")
         if status == INSTALLING:
             self._progress_bar.setRange(0, 0)
-        
+            self.cancel_button.hide()
 
     def update_installation_progress(self, current_value, total):
         """Update installation progress bar."""
@@ -127,8 +109,7 @@ class UpdateInstallerDialog(QDialog):
         self._installation_thread.sig_installation_status.connect(
             self._installation_widget.update_installation_status)
         self._installation_thread.sig_installation_status.connect(
-            self.finished_installation)    
-
+            self.finished_installation)
 
         self._installation_widget.ok_button.clicked.connect(
             self.close_installer)
@@ -138,13 +119,10 @@ class UpdateInstallerDialog(QDialog):
         # Show integration widget
         self.setup()
 
-
-
-    def setup(self,installation=False):
+    def setup(self, installation=False):
         """Setup visibility of widgets."""
         self._installation_widget.setVisible(True)
         self.adjustSize()
-
 
     def cancel_install(self):
         """Cancel the installation in progress."""
@@ -154,18 +132,30 @@ class UpdateInstallerDialog(QDialog):
             QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self._installation_thread.cancelled = True
-            self._installation_thread._cancell_thread_install_update()            
+            self._installation_thread._cancell_thread_install_update()
             self.setup()
             self.accept()
             return True
         return False
 
+    def continue_install(self):
+        """Cancel the installation in progress."""
+        reply = QMessageBox(icon=QMessageBox.Question,
+                            text=_('Do you really want to cancel Update'
+                                   'installation?'),
+                            parent=self)
+        reply.setWindowTitle("Spyder")
+        reply.setAttribute(Qt.WA_ShowWithoutActivating)
+        reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        reply.buttonClicked.connect(self._installation_thread._thread_launcher)
+        reply.show()
 
     def finished_installation(self, status):
         """Handle finished installation."""
-        if status == FINISHED:
+        if status == FINISHED or status == PENDING:
             self.setup()
             self.accept()
+
     def close_installer(self):
         """Close the installation dialog."""
         if (self._installation_thread.status == ERRORED
