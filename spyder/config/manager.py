@@ -400,11 +400,11 @@ class ConfigurationManager(object):
                 # See above explanation.
                 pass
 
-    def disable_notifications(self, section:str, option:ConfigurationKey):
+    def disable_notifications(self, section: str, option: ConfigurationKey):
         """Disable notitications for `option` in `section`."""
         self._disabled_options.append((section, option))
 
-    def restore_notifications(self, section:str, option:ConfigurationKey):
+    def restore_notifications(self, section: str, option: ConfigurationKey):
         """Restore notitications for disabled `option` in `section`."""
         try:
             self._disabled_options.remove((section, option))
