@@ -22,7 +22,9 @@ import time
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
-from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
+from qtpy.QtGui import QTextCursor
+from qtpy.QtPrintSupport import (QAbstractPrintDialog, QPrintDialog, QPrinter,
+                                 QPrintPreviewDialog)
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
                             QToolBar, QVBoxLayout, QWidget)
@@ -61,6 +63,7 @@ from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         get_run_configuration, RunConfigDialog,
                                         RunConfiguration, RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
 logger = logging.getLogger(__name__)
@@ -246,9 +249,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # (needs to be done before EditorSplitter)
         self.autosave = AutosaveForPlugin(self)
         self.autosave.try_recover_from_autosave()
+
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = self.get_option('autosave_interval') * 1000
         self.autosave.enabled = self.get_option('autosave_enabled')
+
+        # SimpleCodeEditor instance used to print file contents
+        self._print_editor = self._create_print_editor()
+        self._print_editor.hide()
 
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
@@ -259,6 +267,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                          self.stack_menu_actions, first=True)
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
+        editor_layout.addWidget(self._print_editor)
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
@@ -2295,36 +2304,79 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.__ignore_cursor_history = cursor_history_state
         self.add_cursor_to_history()
 
+    def _create_print_editor(self):
+        """Create a SimpleCodeEditor instance to print file contents."""
+        editor = SimpleCodeEditor(self)
+        editor.setup_editor(
+            color_scheme="scintilla", highlight_current_line=False
+        )
+        return editor
+
     @Slot()
     def print_file(self):
-        """Print current file"""
+        """Print current file."""
         editor = self.get_current_editor()
         filename = self.get_current_filename()
+
+        # Set print editor
+        self._print_editor.set_text(editor.toPlainText())
+        self._print_editor.set_language(editor.language)
+        self._print_editor.set_font(self.get_font())
+
+        # Create printer
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=self.get_font())
-        printDialog = QPrintDialog(printer, editor)
+        print_dialog = QPrintDialog(printer, self._print_editor)
+
+        # Adjust print options when user has selected text
         if editor.has_selected_text():
-            printDialog.setOption(QAbstractPrintDialog.PrintSelection, True)
+            print_dialog.setOption(QAbstractPrintDialog.PrintSelection, True)
+
+            # Copy selection from current editor to print editor
+            cursor_1 = editor.textCursor()
+            start, end = cursor_1.selectionStart(), cursor_1.selectionEnd()
+
+            cursor_2 = self._print_editor.textCursor()
+            cursor_2.setPosition(start)
+            cursor_2.setPosition(end, QTextCursor.KeepAnchor)
+            self._print_editor.setTextCursor(cursor_2)
+
+        # Print
         self.redirect_stdio.emit(False)
-        answer = printDialog.exec_()
+        answer = print_dialog.exec_()
         self.redirect_stdio.emit(True)
+
         if answer == QDialog.Accepted:
             self.starting_long_process(_("Printing..."))
             printer.setDocName(filename)
-            editor.print_(printer)
+            self._print_editor.print_(printer)
             self.ending_long_process()
+
+        # Clear selection
+        self._print_editor.textCursor().removeSelectedText()
 
     @Slot()
     def print_preview(self):
-        """Print preview for current file"""
-        from qtpy.QtPrintSupport import QPrintPreviewDialog
-
+        """Print preview for current file."""
         editor = self.get_current_editor()
+
+        # Set print editor
+        self._print_editor.set_text(editor.toPlainText())
+        self._print_editor.set_language(editor.language)
+        self._print_editor.set_font(self.get_font())
+
+        # Create printer
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=self.get_font())
+
+        # Create preview
         preview = QPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
-        preview.paintRequested.connect(lambda printer: editor.print_(printer))
+        preview.paintRequested.connect(
+            lambda printer: self._print_editor.print_(printer)
+        )
+
+        # Show preview
         self.redirect_stdio.emit(False)
         preview.exec_()
         self.redirect_stdio.emit(True)
