@@ -11,8 +11,13 @@ from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QToolBar
 from qtpy.QtPrintSupport import QPrinter, QPrintPreviewDialog
 
+from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+
+
+# Translations
+_ = get_translation('spyder')
 
 
 # TODO: Implement header and footer support
@@ -48,7 +53,9 @@ class SpyderPrintPreviewDialog(QPrintPreviewDialog):
     def __init__(self, printer, parent=None):
         super().__init__(printer, parent)
         self.toolbar = self.findChildren(QToolBar)[0]
+
         self.adjust_toolbar_style()
+        self.make_tooltips_translatable()
 
     def adjust_toolbar_style(self):
         """Make toolbar to follow Spyder style."""
@@ -77,11 +84,37 @@ class SpyderPrintPreviewDialog(QPrintPreviewDialog):
 
         actions[16].setIcon(ima.icon('print.single_page'))
         actions[17].setVisible(False)  # No icon in Material design for this
-        actions[18].setIcon(ima.icon('print.multiple_pages'))
+        actions[18].setIcon(ima.icon('print.all_pages'))
         actions[19].setVisible(False)  # Separator
 
         actions[20].setIcon(ima.icon('print.page_setup'))
         actions[21].setIcon(ima.icon('print'))
+
+    def make_tooltips_translatable(self):
+        """Make toolbar button tooltips translatable."""
+        # These are the tooltips shown by default by Qt. The number on the left
+        # is the corresponding action index in the toolbar.
+        translatable_tooltips = [
+            (0, _('Fit width')),
+            (1, _('Fit page')),
+            (4, _('Zoom out')),
+            (5, _('Zoom in')),
+            (7, _('Portrait')),
+            (8, _('Landscape')),
+            (10, _('First page')),
+            (11, _('Previous page')),
+            (13, _('Next page')),
+            (14, _('Last page')),
+            (16, _('Show single page')),
+            (18, _('Show overview of all pages')),
+            (20, _('Page setup')),
+            (21, _('Print')),
+        ]
+
+        actions = self.toolbar.actions()
+        for idx, tooltip in translatable_tooltips:
+            actions[idx].setText(tooltip)
+            actions[idx].setToolTip(tooltip)
 
     def showEvent(self, event):
         """

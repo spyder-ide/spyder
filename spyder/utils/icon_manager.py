@@ -353,7 +353,7 @@ class IconManager():
             'first_page':              [('mdi.page-first',), {'color': self.MAIN_FG_COLOR}],
             'last_page':               [('mdi.page-last',), {'color': self.MAIN_FG_COLOR}],
             'print.single_page':       [('mdi.file-document-outline',), {'color': self.MAIN_FG_COLOR}],
-            'print.multiple_pages':    [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
+            'print.all_pages':         [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
             'print.page_setup':        [('mdi.ruler-square',), {'color': self.MAIN_FG_COLOR}],
         }
 
