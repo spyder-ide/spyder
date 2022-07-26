@@ -343,6 +343,18 @@ class IconManager():
             'statusbar':               [('mdi.dock-bottom',), {'color': self.MAIN_FG_COLOR}],
             # --- Plugin registry ---------------------------------------------------
             'plugins':                 [('mdi.puzzle',), {'color': self.MAIN_FG_COLOR}],
+            # --- Print preview dialog ----------------------------------------------
+            'print.fit_width':         [('mdi.arrow-expand-horizontal',), {'color': self.MAIN_FG_COLOR}],
+            'print.fit_page':          [('mdi.stretch-to-page-outline',), {'color': self.MAIN_FG_COLOR}],
+            'portrait':                [('mdi.crop-portrait',), {'color': self.MAIN_FG_COLOR}],
+            'landscape':               [('mdi.crop-landscape',), {'color': self.MAIN_FG_COLOR}],
+            'previous_page':           [('mdi.chevron-left',), {'color': self.MAIN_FG_COLOR}],
+            'next_page':               [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],
+            'first_page':              [('mdi.page-first',), {'color': self.MAIN_FG_COLOR}],
+            'last_page':               [('mdi.page-last',), {'color': self.MAIN_FG_COLOR}],
+            'print.single_page':       [('mdi.file-document-outline',), {'color': self.MAIN_FG_COLOR}],
+            'print.multiple_pages':    [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
+            'print.page_setup':        [('mdi.ruler-square',), {'color': self.MAIN_FG_COLOR}],
         }
 
     def get_std_icon(self, name, size=None):
