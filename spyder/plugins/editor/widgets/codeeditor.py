@@ -74,7 +74,7 @@ from spyder.plugins.editor.panels.utils import (
     merge_folding, collect_folding_regions)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
-from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
+from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)

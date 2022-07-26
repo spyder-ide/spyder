@@ -9,12 +9,13 @@ from qtpy.QtGui import QIntValidator
 from qtpy.QtWidgets import (QDialog, QLabel, QLineEdit, QGridLayout,
                             QDialogButtonBox, QVBoxLayout, QHBoxLayout)
 
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 
 
-# =============================================================================
-# Go to line dialog box
-# =============================================================================
+# Translations
+_ = get_translation('spyder')
+
+
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor, Qt.WindowTitleHint
