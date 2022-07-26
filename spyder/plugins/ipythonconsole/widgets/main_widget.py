@@ -1910,8 +1910,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        last_client = len(self.get_related_clients(client)) == 0
-        client.close_client(last_client)
+        is_last_client = len(self.get_related_clients(client)) == 0
+        client.close_client(is_last_client)
 
         # This is needed to prevent that hanged consoles make reference
         # to an index that doesn't exist. See spyder-ide/spyder#4881
@@ -1937,8 +1937,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         """
         while self.clients:
             client = self.clients.pop()
-            last_client = len(self.get_related_clients(client)) == 0
-            client.close_client(last_client)
+            is_last_client = len(self.get_related_clients(client)) == 0
+            client.close_client(is_last_client)
 
         # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()

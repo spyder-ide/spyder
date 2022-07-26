@@ -138,6 +138,7 @@ class TextDecorationsManager(Manager, QObject):
         editor = self.editor
         if editor is None:
             return
+
         try:
             font = editor.font()
 

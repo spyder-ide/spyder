@@ -643,8 +643,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except AttributeError:
             pass
 
-    def close_client(self, last_client):
-        """Close the client"""
+    def close_client(self, is_last_client):
+        """Close the client."""
         # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
         try:
             # Close client
@@ -658,7 +658,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except (RuntimeError, TypeError):
             pass
 
-        self.shutdown(last_client)
+        self.shutdown(is_last_client)
         self.close()
         self.setParent(None)
 

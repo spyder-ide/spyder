@@ -1641,7 +1641,7 @@ class EditorStack(QWidget):
             editor.setParent(None)
             editor.completion_widget.setParent(None)
             if self.parent():
-                # Can be false in tests
+                # Can be None in tests
                 self.get_plugin().unregister_widget_shortcuts(editor)
 
             # We pass self object ID as a QString, because otherwise it would
