@@ -133,10 +133,6 @@ jobs:
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh
       - name: Coverage
         if: env.RUN_BUILD == 'true'

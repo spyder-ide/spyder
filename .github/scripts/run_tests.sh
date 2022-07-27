@@ -7,7 +7,7 @@ fi
 
 # Run tests
 if [ "$OS" = "linux" ]; then
-    xvfb-run --auto-servernum python runtests.py --color=yes | tee log.txt
+    xvfb-run --auto-servernum python runtests.py --color=yes | tee -a pytest_log.txt
 else
     python runtests.py --color=yes | tee -a pytest_log.txt
 fi
