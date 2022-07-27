@@ -43,7 +43,7 @@ def get_passed_tests():
             logfile = f.readlines()
 
         # Detect all tests that passed before.
-        test_re = re.compile(r'(spyder.*) (SKIPPED|PASSED|XFAIL) ')
+        test_re = re.compile(r'(spyder.*) [^ ]*(SKIPPED|PASSED|XFAIL)')
         tests = set()
         for line in logfile:
             match = test_re.match(line)
