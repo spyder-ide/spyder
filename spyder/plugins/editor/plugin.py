@@ -2008,6 +2008,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 VARS = {
                     'date': time.ctime(),
                     'username': username,
+                    'section': '%%',
                 }
                 try:
                     text = text % VARS
