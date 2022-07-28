@@ -193,13 +193,23 @@ def pypi_wheels_in(requirements, skip_packages):
             package = yarg.get(name)
             releases = package.release(version)
             if not releases:
-                raise RuntimeError(
-                    "ABORTING: Did not find {!r} at PyPI. "
-                    "(bad meta-data?)".format(
-                        requirement
+                # Needed to workaround https://github.com/pypi/warehouse/issues/11949
+                get_version = requests.get(
+                    "https://pypi.org/pypi/{name}/{version}/json".format(
+                        name=name, version=version))
+                package_info = get_version.json()
+                releases = package_info.get("urls", None)
+                if not releases:
+                    raise RuntimeError(
+                        "ABORTING: Did not find {!r} at PyPI. "
+                        "(bad meta-data?)".format(
+                            requirement
+                        )
                     )
-                )
-            if any(r.package_type == "wheel" for r in releases):
+                if any("wheel" in r.get("packagetype", "") for r in releases):
+                    wheels.append(requirement)
+                    feedback = "ok"
+            elif any(r.package_type == "wheel" for r in releases):
                 wheels.append(requirement)
                 feedback = "ok"
             else:
