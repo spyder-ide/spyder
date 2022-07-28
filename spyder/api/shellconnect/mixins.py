@@ -28,7 +28,10 @@ class ShellConnectMixin:
     def on_ipython_console_available(self):
         """Connect to the IPython console."""
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        self.register_ipythonconsole(ipyconsole)
 
+    def register_ipythonconsole(self, ipyconsole):
+        """Register the console."""
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
@@ -39,6 +42,10 @@ class ShellConnectMixin:
     def on_ipython_console_teardown(self):
         """Disconnect from the IPython console."""
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        self.unregister_ipythonconsole(ipyconsole)
+
+    def unregister_ipythonconsole(self, ipyconsole):
+        """Unregister the console."""
 
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)

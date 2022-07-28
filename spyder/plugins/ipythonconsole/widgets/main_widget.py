@@ -40,7 +40,8 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget, ShellWidget)
+    KernelConnectionDialog, PageControlWidget, ShellWidget,
+    MatplotlibStatus)
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -392,6 +393,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Needed to start Spyder in Windows with Python 3.8
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
+
+        # Create MatplotlibStatus
+        self.matplotlib_status = MatplotlibStatus(self)
 
         # To cache kernel properties
         self._cached_kernel_properties = None

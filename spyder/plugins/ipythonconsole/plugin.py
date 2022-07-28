@@ -42,7 +42,8 @@ class IPythonConsole(SpyderDockablePlugin):
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
-                Plugins.Projects, Plugins.WorkingDirectory]
+                Plugins.Projects, Plugins.WorkingDirectory,
+                Plugins.StatusBar]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -251,6 +252,22 @@ class IPythonConsole(SpyderDockablePlugin):
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         self._remove_old_std_files()
+
+    @on_plugin_available(plugin=Plugins.StatusBar)
+    def on_statusbar_available(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        matplotlib_status = self.get_widget().matplotlib_status
+        statusbar.add_status_widget(matplotlib_status)
+        matplotlib_status.register_ipythonconsole(self)
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        matplotlib_status = self.get_widget().matplotlib_status
+        matplotlib_status.unregister_ipythonconsole(self)
+        statusbar.remove_status_widget(matplotlib_status.ID)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
