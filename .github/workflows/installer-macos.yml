@@ -21,7 +21,7 @@ name: Create macOS App Bundle and DMG
 jobs:
   matrix_prep:
     name: Determine Build Matrix
-    runs-on: macos-10.15
+    runs-on: macos-12
     outputs:
       build_type: ${{ steps.set-matrix.outputs.build_type }}
     steps:
@@ -35,7 +35,7 @@ jobs:
         echo "::set-output name=build_type::{'build_type':$(echo $build_type)}"
   build:
     name: macOS App Bundle
-    runs-on: macos-10.15
+    runs-on: macos-12
     needs: matrix_prep
     strategy:
       matrix: ${{fromJson(needs.matrix_prep.outputs.build_type)}}
