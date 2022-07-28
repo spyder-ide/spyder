@@ -426,7 +426,7 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
         if (isinstance(error, bdb.BdbQuit)
                 and ipython_shell.pdb_session):
             # Ignore BdbQuit if we are debugging, as it is expected.
-            ipython_shell.pdb_session = None
+            pass
         elif post_mortem and isinstance(error, Exception):
             error_type, error, tb = sys.exc_info()
             post_mortem_excepthook(error_type, error, tb)

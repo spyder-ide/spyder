@@ -86,6 +86,8 @@ class SpyderKernel(IPythonKernel):
             'enable_faulthandler': self.enable_faulthandler,
             "flush_std": self.flush_std,
             'get_current_frames': self.get_current_frames,
+            'request_pdb_stop': self.shell.request_pdb_stop,
+            'raise_interrupt_signal': self.shell.raise_interrupt_signal,
             }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -935,3 +937,14 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             self.comm_manager.log.error(
                 'Exception in comm_msg for %s', comm_id, exc_info=True)
+
+    def pre_handler_hook(self):
+        """Hook to execute before calling message handler"""
+        pass
+
+    def post_handler_hook(self):
+        """Hook to execute after calling message handler"""
+        # keep ipykernel behavior of resetting sigint every call
+        self.shell.register_debugger_sigint()
+        # Reset tracing function so that pdb.set_trace works
+        sys.settrace(None)
