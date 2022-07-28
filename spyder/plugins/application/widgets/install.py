@@ -19,8 +19,16 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.plugins.application.container import (
-    INSTALLING, FINISHED, CANCELLED, PENDING)
+
+
+# Update Installation process statusesf
+NO_STATUS = _("No status")
+DOWNLOADING_INSTALLER = _("Downloading installer")
+INSTALLING = _("Installing")
+FINISHED = _("Installation finished")
+PENDING = _("Update ready")
+CHECKING = _("Checking for updates")
+CANCELLED = _("Cancelled")
 
 
 class UpdateInstallation(QWidget):

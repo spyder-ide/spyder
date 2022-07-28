@@ -20,11 +20,19 @@ from spyder.config.base import _
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog)
 from spyder.utils.icon_manager import ima
-from spyder.plugins.application.container import (
-    INSTALLING, PENDING, DOWNLOADING_INSTALLER, CHECKING)
 from spyder import get_versions
 
 logger = logging.getLogger(__name__)
+
+
+# Update Installation process statusesf
+NO_STATUS = _("No status")
+DOWNLOADING_INSTALLER = _("Downloading installer")
+INSTALLING = _("Installing")
+FINISHED = _("Installation finished")
+PENDING = _("Update ready")
+CHECKING = _("Checking for updates")
+CANCELLED = _("Cancelled")
 
 
 class ApplicationUpdateStatus(StatusBarWidget):
