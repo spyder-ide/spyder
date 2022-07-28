@@ -64,7 +64,7 @@ class DebuggingHistoryWidget(RichJupyterWidget):
     def __init__(self, *args, **kwargs):
         # History
         self._pdb_history_input_number = 0  # Input number for current session
-        self._saved_pdb_history_input_number = []  # for recursive debugging
+        self._saved_pdb_history_input_number = {}  # for recursive debugging
 
         # Catch any exception that prevents to create or access the history
         # file to avoid errors.
@@ -190,7 +190,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def __init__(self, *args, **kwargs):
         # Communication state
-        self._pdb_in_loop = 0  # NUmber of debbuging loop we are in
+        self._pdb_recursion_level = 0  # Number of debbuging loop we are in
         self._pdb_input_ready = False  # Can we send a command now
         self._waiting_pdb_input = False  # Are we waiting on the user
         # Other state
@@ -230,28 +230,31 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     # --- Comm API --------------------------------------------------
 
-    def set_debug_state(self, is_debugging):
+    def set_debug_state(self, recursion_level):
         """Update the debug state."""
-        if is_debugging:
+        if recursion_level > self._pdb_recursion_level:
             # Start debugging
-            if self._pdb_in_loop > 0:
-                # Recursive debugging
-                self._saved_pdb_history_input_number.append(
-                    self._pdb_history_input_number)
+            if self._pdb_recursion_level > 0:
+                # Recursive debugging, save state
+                self._saved_pdb_history_input_number[
+                    self._pdb_recursion_level] = self._pdb_history_input_number
                 self.end_history_session()
             self.new_history_session()
-            self._pdb_in_loop += 1
-        elif self._pdb_in_loop > 0:
+        elif recursion_level < self._pdb_recursion_level:
             # Stop debugging
-            self._pdb_in_loop -= 1
             self.end_history_session()
-            if self._pdb_in_loop > 0:
-                # Still debugging
+            if recursion_level > 0:
+                # Still debugging, restore state
                 self.new_history_session()
                 self._pdb_history_input_number = (
-                    self._saved_pdb_history_input_number.pop())
+                    self._saved_pdb_history_input_number.pop(
+                        recursion_level, 0))
+        else:
+            # This should not happen unless we missed some messages
+            pass
 
         # If debugging starts or stops, clear the input queue.
+        self._pdb_recursion_level = recursion_level
         self._pdb_input_queue = []
         self._pdb_frame_loc = (None, None)
 
@@ -462,11 +465,15 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def is_debugging(self):
         """Check if we are debugging."""
-        return self._pdb_in_loop > 0
+        return self._pdb_recursion_level > 0
+
+    def debugging_depth(self):
+        """Debugging depth"""
+        return self._pdb_recursion_level
 
     def is_waiting_pdb_input(self):
         """Check if we are waiting a pdb input."""
-        # If the comm is not open, self._pdb_in_loop can not be set
+        # If the comm is not open, self._pdb_recursion_level can not be set
         return self.is_debugging() and self._waiting_pdb_input
 
     # ---- Public API (overrode by us) ----------------------------
@@ -487,7 +494,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     # --- Private API --------------------------------------------------
     def _current_prompt(self):
         prompt = "IPdb [{}]".format(self._pdb_history_input_number + 1)
-        for i in range(self._pdb_in_loop - 1):
+        for i in range(self._pdb_recursion_level - 1):
             # Add recursive debugger prompt
             prompt = "({})".format(prompt)
         return prompt + ": "
@@ -495,7 +502,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     def _current_out_prompt(self):
         """Get current out prompt."""
         prompt = "Out\u00A0\u00A0[{}]".format(self._pdb_history_input_number)
-        for i in range(self._pdb_in_loop - 1):
+        for i in range(self._pdb_recursion_level - 1):
             # Add recursive debugger prompt
             prompt = "({})".format(prompt)
         return prompt + ": "

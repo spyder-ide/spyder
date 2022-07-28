@@ -33,6 +33,13 @@ from spyder.widgets.helperwidgets import FinderWidget
 _ = get_translation('spyder')
 
 
+class FramesBrowserState:
+    Debug = 'debug'
+    DebugWait = 'debugwait'
+    Inspect = 'inspect'
+    Error = 'error'
+
+
 class FramesBrowser(QWidget, SpyderWidgetMixin):
     """Frames browser (global frames explorer widget)"""
     CONF_SECTION = 'frames_explorer'
@@ -48,11 +55,12 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme
-        self.execution_frames = False
-        self.should_clear = False
-        self.post_mortem = False
+        # -1 means never clear, otherwise number of calls
+        self._persistance = -1
+        self.state = None
         self.finder = None
         self.pdb_curindex = None
+        self._pdb_state = []
 
     def set_context_menu(self, context_menu, empty_context_menu):
         """Set the context menus."""
@@ -101,12 +109,11 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         layout.addWidget(self.finder)
         self.setLayout(layout)
 
-    def _set_frames(self, frames, title):
+    def _show_frames(self, frames, title, state):
         """Set current frames"""
         # Reset defaults
-        self.should_clear = False
-        self.execution_frames = False
-        self.post_mortem = False
+        self._persistance = -1  # survive to the next prompt
+        self.state = state
         self.pdb_curindex = None
 
         if self.results_browser is not None:
@@ -134,37 +141,67 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def set_from_pdb(self, pdb_stack, curindex):
         """Set frames from pdb stack"""
-        self._set_frames({'pdb': pdb_stack}, _("Pdb stack"))
-        self.execution_frames = True
+        depth = self.shellwidget.debugging_depth()
+        # Crop old state
+        self._pdb_state = self._pdb_state[:depth - 1]
+        while len(self._pdb_state) < depth - 1:
+            # Missing data
+            self._pdb_state.append(None)
+        self._pdb_state.append((pdb_stack, curindex))
+
+    def show_pdb(self, pdb_stack, curindex):
+        """Show pdb frames."""
+        self._show_frames(
+            {'pdb': pdb_stack}, _("Pdb stack"), FramesBrowserState.Debug)
+        self._persistance = 0
         self.pdb_curindex = curindex
         self.set_current_item(0, curindex)
         self.results_browser.sig_activated.connect(
             self.set_pdb_index)
         self.sig_update_actions_requested.emit()
 
-    def set_from_exception(self, etype, error, tb):
+    def show_exception(self, etype, error, tb):
         """Set frames from exception"""
-        self._set_frames({etype.__name__: tb}, _("Exception occured"))
-        self.post_mortem = True
-        self.execution_frames = True
+        self._show_frames(
+            {etype.__name__: tb}, _("Exception occured"),
+            FramesBrowserState.Error)
         self.sig_update_actions_requested.emit()
 
-    def set_from_capture_frames(self, frames):
+    def show_captured_frames(self, frames):
         """Set from captured frames"""
-        self._set_frames(frames, _("Snapshot of frames"))
+        self._show_frames(
+            frames, _("Snapshot of frames"), FramesBrowserState.Inspect)
+        self.sig_update_actions_requested.emit()
+
+    def show_pdb_preview(self, frames):
+        """Set from captured frames"""
+        if "MainThread" in frames:
+            frames = {_("Waiting for debugger"): frames["MainThread"]}
+        self._show_frames(
+            frames, _("Waiting for debugger"), FramesBrowserState.DebugWait)
+        # Disappear immediately
+        self._persistance = 0
         self.sig_update_actions_requested.emit()
 
     def clear_if_needed(self):
         """Execution finished. Clear if it is relevant."""
-        if self.should_clear:
-            # Do not clear if still debugging
-            if self.shellwidget.is_debugging():
-                return
-            self._set_frames(None, "")
+
+        # If debugging, show the state if we have it
+        if self.shellwidget.is_debugging():
+            depth = self.shellwidget.debugging_depth()
+            if len(self._pdb_state) > depth - 1:
+                pdb_state = self._pdb_state[depth - 1]
+                if pdb_state:
+                    self.show_pdb(*pdb_state)
+                    self._persistance = 0
+                    return
+
+        # Otherwise check persistance
+        if self._persistance == 0:
+            self._show_frames(None, "", None)
             self.sig_update_actions_requested.emit()
-        elif self.execution_frames:
-            self.should_clear = True
-        self.execution_frames = False
+        elif self._persistance > 0:
+            self._persistance -= 1
 
     def set_current_item(self, top_idx, sub_index):
         """Set current item"""

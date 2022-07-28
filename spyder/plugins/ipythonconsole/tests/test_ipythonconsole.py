@@ -1968,7 +1968,6 @@ def test_stop_pdb(ipyconsole, qtbot):
     assert "In [2]:" in control.toPlainText()
 
 
-
 @flaky(max_runs=3)
 def test_code_cache(ipyconsole, qtbot):
     """
@@ -2000,6 +1999,7 @@ def test_code_cache(ipyconsole, qtbot):
     # Send two execute requests and cancel the second one
     shell.execute('import time; time.sleep(.5)')
     shell.execute('var = 1000')
+    qtbot.wait(100)
     shell.interrupt_kernel()
     qtbot.wait(1000)
     # Make sure the value of var didn't change
@@ -2020,6 +2020,7 @@ def test_code_cache(ipyconsole, qtbot):
     # Send two execute requests and cancel the second one
     shell.execute('import time; time.sleep(.5)')
     shell.execute('var = 1000')
+    qtbot.wait(100)
     shell.interrupt_kernel()
     qtbot.wait(1000)
     # Make sure the value of var didn't change

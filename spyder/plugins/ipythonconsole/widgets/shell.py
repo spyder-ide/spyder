@@ -268,7 +268,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
         self._execute_queue = []
-        super(ShellWidget, self).interrupt_kernel()
+        if self.is_spyder_kernel:
+            self._reading = False
+            self.call_kernel(interrupt=True).raise_interrupt_signal()
+        else:
+            self._append_plain_text(
+                'Cannot interrupt a non-spyder kernel I did not start.\n')
 
     def execute(self, source=None, hidden=False, interactive=False):
         """
