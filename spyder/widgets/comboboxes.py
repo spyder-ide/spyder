@@ -261,8 +261,11 @@ class PathComboBox(EditableComboBox):
     def _complete_options(self):
         """Find available completion options."""
         text = to_text_string(self.currentText())
-        opts = glob.glob(text + "*")
-        opts = sorted([opt for opt in opts if osp.isdir(opt)])
+        glob_opts = glob.glob(text + "*")
+        opts = sorted(
+            [os.path.normcase(opt) for opt in glob_opts if osp.isdir(opt)])
+        opts += sorted(
+            [os.path.normcase(opt) for opt in glob_opts if opt not in opts])
 
         completer = QCompleter(opts, self)
         qss = str(APP_STYLESHEET)
@@ -276,10 +279,16 @@ class PathComboBox(EditableComboBox):
         If there is a single option available one tab completes the option.
         """
         opts = self._complete_options()
+        if len(opts) == 0:
+            return
         if len(opts) == 1:
-            self.set_current_text(opts[0] + os.sep)
+            path = opts[0]
+            if osp.isdir(path):
+                path += os.sep
+            self.set_current_text(path)
             self.hide_completer()
         else:
+            self.set_current_text(os.path.commonprefix(opts))
             self.completer().complete()
 
     def is_valid(self, qstr=None):

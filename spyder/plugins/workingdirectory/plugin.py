@@ -99,6 +99,8 @@ class WorkingDirectory(SpyderPluginV2):
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
         editor.sig_dir_opened.connect(self._editor_change_dir)
+        container = self.get_container()
+        container.edit_goto.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Explorer)
     def on_explorer_available(self):

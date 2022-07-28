@@ -12,10 +12,12 @@ Working Directory widget.
 import logging
 import os
 import os.path as osp
+import re
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Signal, Slot
+from qtpy.QtWidgets import QComboBox
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -55,6 +57,9 @@ class WorkingDirectoryToolbar(ApplicationToolbar):
 
 
 class WorkingDirectoryComboBox(PathComboBox):
+    """Working directory combo box."""
+
+    edit_goto = Signal(str, int, str)
 
     def __init__(self, parent, adjust_to_contents=False, id_=None):
         super().__init__(parent, adjust_to_contents, id_=id_)
@@ -70,8 +75,54 @@ class WorkingDirectoryComboBox(PathComboBox):
         """Set current path as the tooltip of the widget on hover."""
         self.setToolTip(self.currentText())
 
+    def focusOutEvent(self, event):
+        """Handle focus out event restoring the last valid selected path."""
+        if self.add_current_text_if_valid():
+            self.selected()
+            self.hide_completer()
+        hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
+        if hide_status:
+            hide_status()
+        QComboBox.focusOutEvent(self, event)
 
-# ---- Container
+    # --- Own methods
+    def valid_text(self):
+        """Get valid version of current text."""
+        directory = self.currentText()
+        file = None
+        line_number = None
+        if directory:
+            match = re.fullmatch(r"(?:(\d+):)?(.+)", directory[::-1])
+            if match:
+                line_number, directory = match.groups()
+                if line_number:
+                    line_number = int(line_number[::-1])
+                directory = directory[::-1]
+            directory = osp.abspath(directory)
+            # It the directory is a file, open containing directory
+            if os.path.isfile(directory):
+                file = os.path.basename(directory)
+                directory = os.path.dirname(directory)
+
+            # If the directory name is malformed, open parent directory
+            if not os.path.isdir(directory):
+                directory = os.path.dirname(directory)
+            if self.is_valid(directory):
+                return directory, file, line_number
+        return self.selected_text, file, line_number
+
+    def add_current_text_if_valid(self):
+        """Add current text to combo box history if valid."""
+        directory, file, line_number = self.valid_text()
+        if file:
+            self.edit_goto.emit(file, line_number, "")
+        if directory != self.currentText():
+            self.add_text(directory)
+        if directory:
+            return True
+
+
+# --- Container
 # ----------------------------------------------------------------------------
 class WorkingDirectoryContainer(PluginMainContainer):
     """Container for the working directory toolbar."""
@@ -85,6 +136,20 @@ class WorkingDirectoryContainer(PluginMainContainer):
     ----------
     new_working_directory: str
         The new new working directory path.
+    """
+
+    edit_goto = Signal(str, int, str)
+    """
+    This signal is emitted when a file has been requested.
+
+    Parameters
+    ----------
+    filename: str
+        The file to open.
+    line: int
+        The line to go to.
+    word: str
+        The word to go to in the line.
     """
 
     # ---- PluginMainContainer API
@@ -111,6 +176,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
         # Signals
         self.pathedit.open_dir.connect(self.chdir)
+        self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.activated[str].connect(self.chdir)
 
         # Actions
