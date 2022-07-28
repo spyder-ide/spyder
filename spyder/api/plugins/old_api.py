@@ -321,11 +321,43 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
             This is useful if the action is added to a toolbar and
             users hover it to see what it does.
         """
-        super(BasePluginWidget, self)._register_shortcut(
+        self.main.register_shortcut(
             qaction_or_qshortcut,
             context,
             name,
-            add_shortcut_to_tip)
+            add_shortcut_to_tip,
+            self.CONF_SECTION)
+
+    def unregister_shortcut(self, qaction_or_qshortcut, context, name,
+                            add_shortcut_to_tip=False):
+        """
+        Unregister a shortcut associated to a QAction or a QShortcut to
+        Spyder main application.
+
+        Parameters
+        ----------
+        qaction_or_qshortcut: QAction or QShortcut
+            QAction to register the shortcut for or QShortcut.
+        context: str
+            Name of the plugin this shortcut applies to. For instance,
+            if you pass 'Editor' as context, the shortcut will only
+            work when the editor is focused.
+            Note: You can use '_' if you want the shortcut to be work
+            for the entire application.
+        name: str
+            Name of the action the shortcut refers to (e.g. 'Debug
+            exit').
+        add_shortcut_to_tip: bool
+            If True, the shortcut is added to the action's tooltip.
+            This is useful if the action is added to a toolbar and
+            users hover it to see what it does.
+        """
+        self.main.unregister_shortcut(
+            qaction_or_qshortcut,
+            context,
+            name,
+            add_shortcut_to_tip,
+            self.CONF_SECTION)
 
     def register_widget_shortcuts(self, widget):
         """
@@ -345,6 +377,24 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         """
         for qshortcut, context, name in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name)
+
+    def unregister_widget_shortcuts(self, widget):
+        """
+        Unregister shortcuts defined by a plugin's widget.
+
+        Parameters
+        ----------
+        widget: QWidget
+            Widget to register shortcuts for.
+
+        Notes
+        -----
+        The widget interface must have a method called
+        `get_shortcut_data` for this to work. Please see
+        `spyder/widgets/findreplace.py` for an example.
+        """
+        for qshortcut, context, name in widget.get_shortcut_data():
+            self.unregister_shortcut(qshortcut, context, name)
 
     def get_color_scheme(self):
         """

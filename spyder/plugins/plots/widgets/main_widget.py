@@ -318,6 +318,7 @@ class PlotsWidget(ShellConnectMainWidget):
         fig_browser.sig_save_dir_changed.disconnect()
         fig_browser.sig_zoom_changed.disconnect(self.zoom_disp.setValue)
         fig_browser.close()
+        fig_browser.setParent(None)
 
     def switch_widget(self, fig_browser, old_fig_browser):
         option_keys = [('auto_fit_plotting', True),

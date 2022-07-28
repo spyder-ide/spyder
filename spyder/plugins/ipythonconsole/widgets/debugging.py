@@ -10,6 +10,7 @@ mode and Spyder
 """
 
 # Standard library imports
+import atexit
 import pdb
 import re
 
@@ -220,6 +221,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if self._pdb_history_file is not None:
             try:
                 self._pdb_history_file.save_thread.stop()
+                # Now that it was called, no need to call it at exit
+                atexit.unregister(self._pdb_history_file.save_thread.stop)
             except AttributeError:
                 pass
 

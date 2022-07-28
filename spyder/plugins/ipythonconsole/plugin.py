@@ -392,7 +392,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         """Perform actions when plugin is closed"""
         self.get_widget().mainwindow_close = True
-        return self.get_widget().close_clients()
+        return self.get_widget().close_all_clients()
 
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)

@@ -1332,9 +1332,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             completion_size = CONF.get('main', 'completion/size')
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
-                kite_call_to_action = finfo.editor.kite_call_to_action
                 comp_widget.setup_appearance(completion_size, font)
-                kite_call_to_action.setFont(font)
 
     def set_ancestor(self, ancestor):
         """
@@ -1348,7 +1346,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for editorstack in self.editorstacks:
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
-                kite_call_to_action = finfo.editor.kite_call_to_action
 
                 # This is necessary to catch an error when the plugin is
                 # undocked and docked back, and (probably) a completion is
@@ -1356,7 +1353,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 # Fixes spyder-ide/spyder#17486
                 try:
                     comp_widget.setParent(ancestor)
-                    kite_call_to_action.setParent(ancestor)
                 except RuntimeError:
                     pass
 
