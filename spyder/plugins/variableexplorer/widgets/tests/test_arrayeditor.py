@@ -216,6 +216,11 @@ def test_arrayeditor_with_empty_3d_array(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
 
 
+def test_arrayeditor_with_masked_3d_array(qtbot):
+    arr = np.ma.array([[[1]], [[2]], [[3]]])
+    assert_array_equal(arr, launch_arrayeditor(arr, "Masked 3D array"))
+
+
 def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)

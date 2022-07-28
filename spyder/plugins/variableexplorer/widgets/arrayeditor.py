@@ -710,13 +710,6 @@ class ArrayEditor(BaseDialog):
                 self.stack.addWidget(ArrayEditorWidget(self, data[name],
                                                        readonly, xlabels,
                                                        ylabels))
-        elif is_masked_array:
-            self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
-                                                   xlabels, ylabels))
-            self.stack.addWidget(ArrayEditorWidget(self, data.data, readonly,
-                                                   xlabels, ylabels))
-            self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
-                                                   xlabels, ylabels))
         elif data.ndim == 3:
             # We create here the necessary widgets for current_dim_changed to
             # work. The rest are created below.
@@ -730,6 +723,13 @@ class ArrayEditor(BaseDialog):
 
             # Set the widget to display when launched
             self.current_dim_changed(self.last_dim)
+        elif is_masked_array:
+            self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
+                                                   xlabels, ylabels))
+            self.stack.addWidget(ArrayEditorWidget(self, data.data, readonly,
+                                                   xlabels, ylabels))
+            self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
+                                                   xlabels, ylabels))
         else:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
