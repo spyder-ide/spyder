@@ -308,6 +308,7 @@ class PlotsWidget(ShellConnectMainWidget):
 
     def close_widget(self, fig_browser):
         fig_browser.close()
+        fig_browser.setParent(None)
 
     def switch_widget(self, fig_browser, old_fig_browser):
         option_keys = [('auto_fit_plotting', True),

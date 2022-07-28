@@ -309,7 +309,7 @@ class DocumentProvider:
                 if id(codeeditor) == id(editor):
                     idx = i
                     break
-            if idx > 0:
+            if idx >= 0:
                 editors.pop(idx)
 
             if len(editors) == 0:

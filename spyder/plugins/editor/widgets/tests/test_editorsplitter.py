@@ -70,12 +70,10 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
         editorstack.register_completion_capabilities(capabilities, 'python')
 
     def clone(editorstack, template=None):
-        # editorstack.clone_from(template)
-        editor_stack = EditorStack(None, [])
-        editor_stack.set_find_widget(Mock())
-        editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
+        editorstack.set_find_widget(Mock())
+        editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         # Emulate "cloning"
-        editorsplitter.editorstack.new('test.py', 'utf-8', text)
+        editorstack.new('test.py', 'utf-8', text)
 
     mock_plugin = Mock()
     editorsplitter = EditorSplitter(
