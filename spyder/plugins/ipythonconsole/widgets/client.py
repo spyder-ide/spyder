@@ -503,6 +503,22 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
+        self.send_kernel_configuration()
+
+    def send_kernel_configuration(self):
+        """Send kernel configuration to kernel"""
+
+        # send pdb config
+        self.shellwidget.call_kernel().set_pdb_configuration({
+            'breakpoints': self.get_conf(
+                'breakpoints', default={}, section='run'),
+            'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
+            'pdb_execute_events': self.get_conf('pdb_execute_events'),
+            'pdb_use_exclamation_mark': self.get_conf(
+                'pdb_use_exclamation_mark'),
+            'pdb_stop_first_line': self.get_conf('pdb_stop_first_line')
+            })
+
         if self.fault_obj is not None:
             # To display faulthandler
             self.shellwidget.call_kernel().enable_faulthandler(
@@ -794,9 +810,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw._append_html(_("<br>Restarting kernel...<br>"),
                             before_prompt=True)
             sw.insert_horizontal_ruler()
-            if self.fault_obj is not None:
-                self.shellwidget.call_kernel().enable_faulthandler(
-                    self.fault_obj.filename)
+
+            self.send_kernel_configuration()
 
         self._hide_loading_page()
         self.restart_thread = None

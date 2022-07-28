@@ -4651,6 +4651,7 @@ def test_continue_first_line(main_window, qtbot):
     """
     Check we can bypass prevent closing.
     """
+    CONF.set('ipython_console', 'pdb_stop_first_line', False)
     code = "print('a =', 1 + 6)\nprint('b =', 1 + 8)\n"
 
     # Wait until the window is fully up
@@ -4670,7 +4671,9 @@ def test_continue_first_line(main_window, qtbot):
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
 
-    CONF.set('ipython_console', 'pdb_stop_first_line', False)
+    # Wait for control to process config change
+    qtbot.wait(1000)
+
     # Start debugging
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)

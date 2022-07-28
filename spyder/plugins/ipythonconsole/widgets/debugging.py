@@ -372,17 +372,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._pdb_input_queue.append(
             (line, hidden, echo_stack_entry, add_history))
 
-    def get_pdb_settings(self):
-        """Get pdb settings"""
-        return {
-            "breakpoints": self.get_conf(
-                'breakpoints', default={}, section='run'),
-            "pdb_ignore_lib": self.get_conf('pdb_ignore_lib'),
-            "pdb_execute_events": self.get_conf('pdb_execute_events'),
-            "pdb_use_exclamation_mark": self.is_pdb_using_exclamantion_mark(),
-            "pdb_stop_first_line": self.get_conf('pdb_stop_first_line'),
-        }
-
     # --- To Sort --------------------------------------------------
     def stop_debugging(self):
         """Stop debugging."""
@@ -393,23 +382,34 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into a debugging session"""
-        self.call_kernel(interrupt=True).set_breakpoints(
-            self.get_conf('breakpoints', default={}, section='run'))
+        self.call_kernel(interrupt=True).set_pdb_configuration({
+            'breakpoints': self.get_conf(
+                'breakpoints', default={}, section='run')
+            })
 
     def set_pdb_ignore_lib(self, pdb_ignore_lib):
         """Set pdb_ignore_lib into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_ignore_lib(
-            pdb_ignore_lib)
+        self.call_kernel(interrupt=True).set_pdb_configuration({
+            'pdb_ignore_lib': pdb_ignore_lib
+            })
 
     def set_pdb_execute_events(self, pdb_execute_events):
         """Set pdb_execute_events into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_execute_events(
-            pdb_execute_events)
+        self.call_kernel(interrupt=True).set_pdb_configuration({
+            'pdb_execute_events': pdb_execute_events
+            })
 
     def set_pdb_use_exclamation_mark(self, pdb_use_exclamation_mark):
         """Set pdb_use_exclamation_mark into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_use_exclamation_mark(
-            pdb_use_exclamation_mark)
+        self.call_kernel(interrupt=True).set_pdb_configuration({
+            'pdb_use_exclamation_mark': pdb_use_exclamation_mark
+            })
+
+    def set_pdb_stop_first_line(self, pdb_stop_first_line):
+        """Set pdb_stop_first_line into a debugging session"""
+        self.call_kernel(interrupt=True).set_pdb_configuration({
+            'pdb_stop_first_line': pdb_stop_first_line
+            })
 
     def is_pdb_using_exclamantion_mark(self):
         return self.get_conf('pdb_use_exclamation_mark')
