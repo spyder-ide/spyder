@@ -49,6 +49,16 @@ if os.name == 'nt':
 _ = get_translation('spyder')
 
 
+# Update Installation process statuses
+NO_STATUS = _("No status")
+DOWNLOADING_INSTALLER = _("Downloading installer")
+INSTALLING = _("Installing")
+FINISHED = _("Installation finished")
+PENDING = _("Update ready")
+CHECKING = _("Checking for updates")
+CANCELLED = _("Cancelled")
+
+
 class ApplicationPluginMenus:
     DebugLogsMenu = "debug_logs_menu"
 
@@ -80,16 +90,6 @@ class ApplicationActions:
     # so 'Restart' is used instead of something like 'restart_action'
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
-
-
-# Update Installation process statuses
-NO_STATUS = _("No status")
-DOWNLOADING_INSTALLER = _("Downloading installer")
-INSTALLING = _("Installing")
-FINISHED = _("Installation finished")
-PENDING = _("Update ready")
-CHECKING = _("Checking for updates")
-CANCELLED = _("Cancelled")
 
 
 class ApplicationContainer(PluginMainContainer):
@@ -364,7 +364,7 @@ class ApplicationContainer(PluginMainContainer):
             check_updates = box.is_checked()
         else:
 
-            if True:
+            if update_available:
 
                 header = _("<b>Spyder {} is available!</b><br><br>").format(
                     latest_release)
@@ -372,7 +372,7 @@ class ApplicationContainer(PluginMainContainer):
                     "For more information visit our "
                     "<a href=\"{}\">installation guide</a>."
                 ).format(url_i)
-                if not is_anaconda():
+                if is_anaconda():
                     content = _(
                         "<b>Important note:</b> Since you installed "
                         "Spyder with Anaconda, please <b>don't</b> use "

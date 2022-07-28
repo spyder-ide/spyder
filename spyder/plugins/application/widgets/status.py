@@ -20,6 +20,9 @@ from spyder.config.base import _
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog)
 from spyder.utils.icon_manager import ima
+from spyder.plugins.application.container import (
+    INSTALLING, PENDING, DOWNLOADING_INSTALLER, CHECKING)
+from spyder import get_versions
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +30,10 @@ logger = logging.getLogger(__name__)
 class ApplicationUpdateStatus(StatusBarWidget):
     """Status bar widget for Application update status."""
     BASE_TOOLTIP = _("Application update status")
-    DEFAULT_STATUS = _('not reachable')
     ID = 'application_update_status'
 
     def __init__(self, parent):
+
         self.tooltip = self.BASE_TOOLTIP
         self.installation_thread = parent
         super().__init__(parent)
@@ -46,23 +49,23 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def set_value(self, value):
         """Return update installation state."""
-
-        if value == "Downloading installer" or value == "Installing":
+        versions = get_versions()
+        if value == DOWNLOADING_INSTALLER or value == INSTALLING:
             self.setVisible(True)
             self.tooltip = _("Update installation will continue in the "
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again")
-        elif value == "Checking for updates" or value == "Update ready":
+        elif value == CHECKING or value == PENDING:
             self.setVisible(True)
             self.tooltip = value
         else:
             self.setVisible(False)
-            value = self.DEFAULT_STATUS
+            value = versions['spyder']
             self.tooltip = self.BASE_TOOLTIP
 
         self.update_tooltip()
-        value = "Update: {0}".format(value)
+        value = "Spyder: {0}".format(value)
         super().set_value(value)
 
     def get_tooltip(self):
@@ -76,7 +79,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def show_installation_dialog(self):
         """Show installation dialog."""
         if (not self.tooltip == self.BASE_TOOLTIP and not
-                self.tooltip == "Update ready"):
+                self.tooltip == PENDING):
             self.installer.show()
-        elif (self.tooltip == "Update ready"):
+        elif (self.tooltip == PENDING):
             self.installer.continue_install()

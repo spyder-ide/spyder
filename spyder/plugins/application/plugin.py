@@ -106,9 +106,9 @@ class Application(SpyderPluginV2):
         # Add status widget
         statusbar = self.get_plugin(Plugins.StatusBar)
         statusbar.add_status_widget(self.application_update_status)
-        
 
     # -------------------------- PLUGIN TEARDOWN ------------------------------
+
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         # Add status widget

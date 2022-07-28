@@ -19,12 +19,8 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-
-INSTALLING = _("Installing")
-FINISHED = _("Installation finished")
-ERRORED = _("Installation errored")
-CANCELLED = _("Cancelled")
-PENDING = _("Update ready")
+from spyder.plugins.application.container import (
+    INSTALLING, FINISHED, CANCELLED, PENDING)
 
 
 class UpdateInstallation(QWidget):
@@ -86,7 +82,7 @@ class UpdateInstallation(QWidget):
 
 
 class UpdateInstallerDialog(QDialog):
-    """Kite installer."""
+    """Spyder installer."""
 
     def __init__(self, parent, installation_thread):
         super(UpdateInstallerDialog, self).__init__(parent)
@@ -158,8 +154,7 @@ class UpdateInstallerDialog(QDialog):
 
     def close_installer(self):
         """Close the installation dialog."""
-        if (self._installation_thread.status == ERRORED
-                or self._installation_thread.status == FINISHED
+        if (self._installation_thread.status == FINISHED
                 or self._installation_thread.status == CANCELLED):
             self.setup()
             self.accept()
