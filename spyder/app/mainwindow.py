@@ -571,6 +571,7 @@ class MainWindow(QMainWindow):
         # Handle Spyder path
         self.old_path = OrderedDict()
         self._path_manager = None
+        self.load_python_path()  # TODO: Remove on later release
 
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
@@ -1658,6 +1659,38 @@ class MainWindow(QMainWindow):
             )
 
     # ---- Path Manager
+    def load_python_path(self):
+        """
+        Load paths stored in Spyder configuration folder, add them to the
+        modern configuration, and remove the obsolete files.
+
+        TODO: Remove on later release
+        """
+        SPYDER_PATH = get_conf_path('path')
+        SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
+
+        path_dict = OrderedDict()
+        if osp.isfile(SPYDER_PATH):
+            with open(SPYDER_PATH, 'r', encoding='utf-8') as f:
+                paths = f.read().splitlines()
+            for path in paths:
+                if osp.isdir(path):
+                    path_dict[path] = True
+            os.remove(SPYDER_PATH)  # No longer use file
+            logger.info(f"Removed obsolete '{SPYDER_PATH}'")
+
+        if osp.isfile(SPYDER_NOT_ACTIVE_PATH):
+            with open(SPYDER_NOT_ACTIVE_PATH, 'r', encoding='utf-8') as f:
+                paths = f.read().splitlines()
+            for path in paths:
+                if osp.isdir(path):
+                    path_dict[path] = False
+            os.remove(SPYDER_NOT_ACTIVE_PATH)  # No longer use file
+            logger.info(f"Removed obsolete '{SPYDER_NOT_ACTIVE_PATH}'")
+
+        if path_dict:
+            self.update_python_path(path_dict)
+
     def get_spyder_pythonpath(self):
         """
         Return Spyder PYTHONPATH, including project paths, as ordered
