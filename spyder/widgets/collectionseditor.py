@@ -1512,12 +1512,7 @@ class CollectionsEditor(BaseDialog):
         if icon is None:
             self.setWindowIcon(ima.icon('dictedit'))
 
-        if sys.platform == 'darwin':
-            # See spyder-ide/spyder#9051
-            self.setWindowFlags(Qt.Tool)
-        else:
-            # Make the dialog act as a window
-            self.setWindowFlags(Qt.Window)
+        self.setWindowFlags(Qt.Window)
 
     @Slot()
     def save_and_close_enable(self):
