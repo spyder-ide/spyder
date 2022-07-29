@@ -347,6 +347,37 @@ def get_username():
     return username
 
 
+def get_user_environment_variable(key, default=None):
+    """
+    Get user environment variable(s) from a subprocess.
+
+    Parameters
+    ----------
+    key : str
+        Name of environment variable.
+    default : str | None
+        Default value returned if `key` does not exist or is unset.
+
+    Returns
+    -------
+    val : str | None
+        Value of the environment variable. If the environment variable does
+        not exist or is unset, the value of `default` is returned.
+
+    """
+    if os.name == 'nt':
+        cmd = f"echo %{key}%"
+    else:
+        cmd = f"echo ${key}"
+    proc = run_shell_command(cmd)
+    stdout, stderr = proc.communicate()
+    val = stdout.decode().strip()
+    if val:
+        return val
+    else:
+        return default
+
+
 def _get_win_reg_info(key_path, hive, flag, subkeys):
     """
     See: https://stackoverflow.com/q/53132434

@@ -217,6 +217,7 @@ class PathManager(QDialog):
     @Slot()
     def import_pythonpath(self):
         """Import from PYTHONPATH environment variable"""
+        # TODO: Update method for retrieving PYTHONPATH
         env_pypath = os.environ.get('PYTHONPATH', '')
 
         if env_pypath:

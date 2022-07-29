@@ -8,6 +8,9 @@
 Environment variable utilities.
 """
 
+# TODO: Remove Python 2.x support
+# TODO: Make functions platform agnostic
+
 # Standard library imports
 import os
 
