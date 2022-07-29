@@ -285,7 +285,7 @@ class Application(SpyderPluginV2):
         """Add base actions and menus to the Tools menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            ApplicationActions.SpyderWindowsEnvVariables,
+            ApplicationActions.SpyderUserEnvVariables,
             menu_id=ApplicationMenus.Tools)
 
         if get_debug_level() >= 2:

@@ -66,7 +66,7 @@ class ApplicationActions:
     SpyderAbout = "spyder_about_action"
 
     # Tools
-    SpyderWindowsEnvVariables = "spyder_windows_env_variables_action"
+    SpyderUserEnvVariables = "spyder_user_env_variables_action"
 
     # File
     # The name of the action needs to match the name of the shortcut
@@ -173,7 +173,7 @@ class ApplicationContainer(PluginMainContainer):
             tip = ("Show current user environment "
                    "variables (i.e. for all sessions)")
         self.user_env_action = self.create_action(
-            ApplicationActions.SpyderWindowsEnvVariables,
+            ApplicationActions.SpyderUserEnvVariables,
             _("Current user environment variables..."),
             icon=self.create_icon('win_env'),
             tip=_(tip),

@@ -927,7 +927,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             tip=_("PYTHONPATH manager"),
             id_='spyder_path_action')
         from spyder.plugins.application.container import ApplicationActions
-        user_env_action = ApplicationActions.SpyderWindowsEnvVariables
+        user_env_action = ApplicationActions.SpyderUserEnvVariables
         mainmenu.add_item_to_application_menu(
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
