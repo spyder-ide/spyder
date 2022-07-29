@@ -177,7 +177,7 @@ class ApplicationContainer(PluginMainContainer):
             _("Current user environment variables..."),
             icon=self.create_icon('environment'),
             tip=_(tip),
-            triggered=self.show_windows_env_variables)
+            triggered=self.show_user_env_variables)
 
         # Application base actions
         self.restart_action = self.create_action(
@@ -235,7 +235,7 @@ class ApplicationContainer(PluginMainContainer):
         abt.show()
 
     @Slot()
-    def show_windows_env_variables(self):
+    def show_user_env_variables(self):
         """Show Windows current user environment variables."""
         self.dialog_manager.show(UserEnvDialog(self))
 
