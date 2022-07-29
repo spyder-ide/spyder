@@ -8,13 +8,11 @@
 Environment variable utilities.
 """
 
-# TODO: Make functions platform agnostic
-
 # Standard library imports
 import os
 
 # Third party imports
-from qtpy.QtWidgets import QDialog, QMessageBox
+from qtpy.QtWidgets import QMessageBox
 try:
     import winreg
 except ImportError:
@@ -99,13 +97,14 @@ def clean_env(env_vars):
 class RemoteEnvDialog(CollectionsEditor):
     """Remote process environment variables dialog."""
 
-    def __init__(self, environ, parent=None):
+    def __init__(self, environ, parent=None,
+                 title="Environment variables", readonly=True):
         super(RemoteEnvDialog, self).__init__(parent)
         try:
             self.setup(
                 envdict2listdict(environ),
-                title=_("Environment variables"),
-                readonly=True,
+                title=_(title),
+                readonly=readonly,
                 icon=ima.icon('environ')
             )
         except Exception as e:
@@ -126,15 +125,20 @@ class EnvDialog(RemoteEnvDialog):
         RemoteEnvDialog.__init__(self, dict(os.environ), parent=parent)
 
 
-# For Windows only
-try:
-    class WinUserEnvDialog(CollectionsEditor):
-        """Windows User Environment Variables Editor"""
+class UserEnvDialog(RemoteEnvDialog):
+    """User Environment Variables Viewer/Editor"""
 
-        def __init__(self, parent=None):
-            super(WinUserEnvDialog, self).__init__(parent)
-            self.setup(get_user_env(),
-                       title=r"HKEY_CURRENT_USER\Environment")
+    def __init__(self, parent=None):
+        title = "User Environment variables"
+        readonly = True
+        if os.name == 'nt':
+            title = r"HKEY_CURRENT_USER\Environment"
+            readonly = False
+
+        super(UserEnvDialog, self).__init__(get_user_env(), parent,
+                                            title, readonly)
+
+        if os.name == 'nt':
             if parent is None:
                 parent = self
             QMessageBox.warning(
@@ -151,26 +155,22 @@ try:
                   "like <i>Python(x,y) Home</i> for example)")
             )
 
-        def accept(self):
-            """Reimplement Qt method"""
+    def accept(self):
+        """Reimplement Qt method"""
+        if os.name == 'nt':
             set_user_env(listdict2envdict(self.get_value()), parent=self)
-            QDialog.accept(self)
-
-except Exception:
-    pass
+        super(UserEnvDialog, self).accept()
 
 
-def main():
+def test():
     """Run Windows environment variable editor"""
+    import sys
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-    if os.name == 'nt':
-        dialog = WinUserEnvDialog()
-    else:
-        dialog = EnvDialog()
-    dialog.show()
-    app.exec_()
+    _ = qapplication()
+    dlg = UserEnvDialog()
+    dlg.show()
+    sys.exit(dlg.exec())
 
 
 if __name__ == "__main__":
-    main()
+    test()
