@@ -181,7 +181,7 @@ class Application(SpyderPluginV2):
         """Add base actions and menus to the Tools menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.add_item_to_application_menu(
-            self.winenv_action,
+            self.user_env_action,
             menu_id=ApplicationMenus.Tools,
             section=ToolsMenuSections.Tools)
 
@@ -430,9 +430,9 @@ class Application(SpyderPluginV2):
         return self.get_container().about_action
 
     @property
-    def winenv_action(self):
+    def user_env_action(self):
         """Show Spyder's Windows user env variables dialog box."""
-        return self.get_container().winenv_action
+        return self.get_container().user_env_action
 
     @property
     def restart_action(self):

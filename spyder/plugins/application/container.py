@@ -172,7 +172,7 @@ class ApplicationContainer(PluginMainContainer):
         else:
             tip = ("Show current user environment "
                    "variables (i.e. for all sessions)")
-        self.winenv_action = self.create_action(
+        self.user_env_action = self.create_action(
             ApplicationActions.SpyderWindowsEnvVariables,
             _("Current user environment variables..."),
             icon=self.create_icon('win_env'),
