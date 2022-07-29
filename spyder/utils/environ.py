@@ -82,6 +82,7 @@ class RemoteEnvDialog(CollectionsEditor):
 
 class EnvDialog(RemoteEnvDialog):
     """Environment variables Dialog"""
+
     def __init__(self, parent=None):
         RemoteEnvDialog.__init__(self, dict(os.environ), parent=parent)
 
@@ -121,30 +122,35 @@ try:
             SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
                                "Environment", SMTO_ABORTIFHUNG, 5000)
         except Exception:
-            QMessageBox.warning(parent, _("Warning"),
-                        _("Module <b>pywin32 was not found</b>.<br>"
-                          "Please restart this Windows <i>session</i> "
-                          "(not the computer) for changes to take effect."))
+            QMessageBox.warning(
+                parent, _("Warning"),
+                _("Module <b>pywin32 was not found</b>.<br>"
+                  "Please restart this Windows <i>session</i> "
+                  "(not the computer) for changes to take effect.")
+            )
 
     class WinUserEnvDialog(CollectionsEditor):
         """Windows User Environment Variables Editor"""
+
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)
             self.setup(get_user_env(),
                        title=r"HKEY_CURRENT_USER\Environment")
             if parent is None:
                 parent = self
-            QMessageBox.warning(parent, _("Warning"),
-                        _("If you accept changes, "
-                          "this will modify the current user environment "
-                          "variables directly <b>in Windows registry</b>. "
-                          "Use it with precautions, at your own risks.<br>"
-                          "<br>Note that for changes to take effect, you will "
-                          "need to restart the parent process of this applica"
-                          "tion (simply restart Spyder if you have executed it "
-                          "from a Windows shortcut, otherwise restart any "
-                          "application from which you may have executed it, "
-                          "like <i>Python(x,y) Home</i> for example)"))
+            QMessageBox.warning(
+                parent, _("Warning"),
+                _("If you accept changes, "
+                  "this will modify the current user environment "
+                  "variables directly <b>in Windows registry</b>. "
+                  "Use it with precautions, at your own risks.<br>"
+                  "<br>Note that for changes to take effect, you will "
+                  "need to restart the parent process of this applica"
+                  "tion (simply restart Spyder if you have executed it "
+                  "from a Windows shortcut, otherwise restart any "
+                  "application from which you may have executed it, "
+                  "like <i>Python(x,y) Home</i> for example)")
+            )
 
         def accept(self):
             """Reimplement Qt method"""
@@ -153,6 +159,7 @@ try:
 
 except Exception:
     pass
+
 
 def main():
     """Run Windows environment variable editor"""
@@ -164,6 +171,7 @@ def main():
         dialog = EnvDialog()
     dialog.show()
     app.exec_()
+
 
 if __name__ == "__main__":
     main()
