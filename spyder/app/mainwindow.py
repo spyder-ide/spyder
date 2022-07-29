@@ -119,7 +119,6 @@ logger = logging.getLogger(__name__)
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
 
-
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -570,8 +569,8 @@ class MainWindow(QMainWindow):
 
         # Handle Spyder path
         self.old_path = OrderedDict()
+        self.prepend_path = None
         self._path_manager = None
-        self.load_python_path()  # TODO: Remove on later release
 
         # New API
         self._APPLICATION_TOOLBARS = OrderedDict()
@@ -1659,42 +1658,10 @@ class MainWindow(QMainWindow):
             )
 
     # ---- Path Manager
-    def load_python_path(self):
-        """
-        Load paths stored in Spyder configuration folder, add them to the
-        modern configuration, and remove the obsolete files.
-
-        TODO: Remove on later release
-        """
-        SPYDER_PATH = get_conf_path('path')
-        SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
-
-        path_dict = OrderedDict()
-        if osp.isfile(SPYDER_PATH):
-            with open(SPYDER_PATH, 'r', encoding='utf-8') as f:
-                paths = f.read().splitlines()
-            for path in paths:
-                if osp.isdir(path):
-                    path_dict[path] = True
-            os.remove(SPYDER_PATH)  # No longer use file
-            logger.info(f"Removed obsolete '{SPYDER_PATH}'")
-
-        if osp.isfile(SPYDER_NOT_ACTIVE_PATH):
-            with open(SPYDER_NOT_ACTIVE_PATH, 'r', encoding='utf-8') as f:
-                paths = f.read().splitlines()
-            for path in paths:
-                if osp.isdir(path):
-                    path_dict[path] = False
-            os.remove(SPYDER_NOT_ACTIVE_PATH)  # No longer use file
-            logger.info(f"Removed obsolete '{SPYDER_NOT_ACTIVE_PATH}'")
-
-        if path_dict:
-            self.update_python_path(path_dict)
-
     def get_spyder_pythonpath(self):
         """
-        Return Spyder PYTHONPATH, including project paths, as ordered
-        dictionary.
+        Return Spyder PYTHONPATH, including project paths, as an ordered
+        dictionary, and the prepend configuration.
 
         The returned dictionary has the paths as keys and the state as values.
         The state is `True` for active and `False` for inactive.
@@ -1703,7 +1670,7 @@ class MainWindow(QMainWindow):
         for path in self.get_project_paths():
             path_dict[path] = True
 
-        return path_dict
+        return path_dict, self.prepend_path
 
     def get_project_paths(self):
         """Return project paths as tuple"""
@@ -1723,7 +1690,7 @@ class MainWindow(QMainWindow):
         path = [k for k, v in path_dict.items() if v]
         return path
 
-    def update_python_path(self, new_path_dict=None):
+    def update_python_path(self, new_path_dict=None, new_prepend=False):
         """
         Update python path in configuration and on Spyder interpreter and
         kernels.
