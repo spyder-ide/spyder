@@ -24,6 +24,7 @@ except ImportError:
 from spyder.config.base import _
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
+from spyder.utils.programs import get_user_environment_variables
 
 
 def envdict2listdict(envdict):
@@ -41,6 +42,44 @@ def listdict2envdict(listdict):
         if isinstance(val, list):
             listdict[key] = os.path.pathsep.join(val)
     return listdict
+
+
+def get_user_env():
+    """Return current user environment variables with parsed values"""
+    env_dict = get_user_environment_variables()
+    return envdict2listdict(env_dict)
+
+
+def set_user_env(env, parent=None):
+    """Set HKCU (current user) environment variables"""
+    if os.name != 'nt':
+        raise NotImplementedError("Not implemented for %s platforms", os.name)
+
+    reg = listdict2envdict(env)
+    types = dict()
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+    for name in reg:
+        try:
+            _x, types[name] = winreg.QueryValueEx(key, name)
+        except WindowsError:
+            types[name] = winreg.REG_EXPAND_SZ
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
+                         winreg.KEY_SET_VALUE)
+    for name in reg:
+        winreg.SetValueEx(key, name, 0, types[name], reg[name])
+    try:
+        from win32gui import SendMessageTimeout
+        from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
+                              SMTO_ABORTIFHUNG)
+        SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
+                           "Environment", SMTO_ABORTIFHUNG, 5000)
+    except Exception:
+        QMessageBox.warning(
+            parent, _("Warning"),
+            _("Module <b>pywin32 was not found</b>.<br>"
+              "Please restart this Windows <i>session</i> "
+              "(not the computer) for changes to take effect.")
+        )
 
 
 def clean_env(env_vars):
@@ -89,46 +128,6 @@ class EnvDialog(RemoteEnvDialog):
 
 # For Windows only
 try:
-    def get_user_env():
-        """Return HKCU (current user) environment variables"""
-        reg = dict()
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
-        for index in range(0, winreg.QueryInfoKey(key)[1]):
-            try:
-                value = winreg.EnumValue(key, index)
-                reg[value[0]] = value[1]
-            except:
-                break
-        return envdict2listdict(reg)
-
-    def set_user_env(reg, parent=None):
-        """Set HKCU (current user) environment variables"""
-        reg = listdict2envdict(reg)
-        types = dict()
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
-        for name in reg:
-            try:
-                _x, types[name] = winreg.QueryValueEx(key, name)
-            except WindowsError:
-                types[name] = winreg.REG_EXPAND_SZ
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
-                             winreg.KEY_SET_VALUE)
-        for name in reg:
-            winreg.SetValueEx(key, name, 0, types[name], reg[name])
-        try:
-            from win32gui import SendMessageTimeout
-            from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
-                                  SMTO_ABORTIFHUNG)
-            SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
-                               "Environment", SMTO_ABORTIFHUNG, 5000)
-        except Exception:
-            QMessageBox.warning(
-                parent, _("Warning"),
-                _("Module <b>pywin32 was not found</b>.<br>"
-                  "Please restart this Windows <i>session</i> "
-                  "(not the computer) for changes to take effect.")
-            )
-
     class WinUserEnvDialog(CollectionsEditor):
         """Windows User Environment Variables Editor"""
 
