@@ -26,14 +26,10 @@ from spyder.utils.environ import clean_env
 
 @pytest.fixture
 def environ_dialog(qtbot):
-    "Setup the Environment variables Dialog taking into account the os."
+    "Setup the Environment variables Dialog."
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
-    if os.name == 'nt':
-        from spyder.utils.environ import WinUserEnvDialog
-        dialog = WinUserEnvDialog()
-    else:
-        from spyder.utils.environ import EnvDialog
-        dialog = EnvDialog()
+    from spyder.utils.environ import UserEnvDialog
+    dialog = UserEnvDialog()
     qtbot.addWidget(dialog)
 
     return dialog
