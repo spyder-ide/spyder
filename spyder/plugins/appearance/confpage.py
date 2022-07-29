@@ -219,6 +219,10 @@ class AppearanceConfigPage(PluginConfigPage):
     def current_scheme_index(self):
         return self.schemes_combobox.currentIndex()
 
+    @property
+    def current_ui_theme_index(self):
+        return self.ui_combobox.currentIndex()
+
     def update_combobox(self):
         """Recreates the combobox contents."""
         index = self.current_scheme_index
@@ -450,18 +454,13 @@ class AppearanceConfigPage(PluginConfigPage):
         """
         Check if it's necessary to notify plugins to update their color scheme.
         """
-        ui_theme = self.get_option('ui_theme')
+        ui_theme_map = {0: 'automatic', 1: 'light', 2: 'dark'}
+        ui_theme = ui_theme_map[self.current_ui_theme_index]
         mismatch = self.color_scheme_and_ui_theme_mismatch(
             self.current_scheme, ui_theme)
 
-        # This is only needed if there's a mismatch between the UI theme and
-        # the selected color scheme, which requires a restart to apply it.
-        if ui_theme == 'automatic':
-            if mismatch:
-                CONF.disable_notifications(section='appearance',
-                                           option='selected')
-        else:
-            if not ('ui_theme' in self.changed_options):
-                if mismatch:
-                    CONF.disable_notifications(section='appearance',
-                                               option='selected')
+        # We don't need to apply the selected color scheme if there's a
+        # mismatch between it and the UI theme. Instead, we only we need to ask
+        # for a restart.
+        if mismatch:
+            CONF.disable_notifications(section='appearance', option='selected')
