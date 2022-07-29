@@ -347,35 +347,29 @@ def get_username():
     return username
 
 
-def get_user_environment_variable(key, default=None):
+def get_user_environment_variables():
     """
-    Get user environment variable(s) from a subprocess.
-
-    Parameters
-    ----------
-    key : str
-        Name of environment variable.
-    default : str | None
-        Default value returned if `key` does not exist or is unset.
+    Get user environment variables from a subprocess.
 
     Returns
     -------
-    val : str | None
-        Value of the environment variable. If the environment variable does
-        not exist or is unset, the value of `default` is returned.
+    env_var : dict
+        Key-value pairs of environment variables
 
     """
     if os.name == 'nt':
-        cmd = f"echo %{key}%"
+        cmd = "set"
     else:
-        cmd = f"echo ${key}"
+        cmd = "printenv"
     proc = run_shell_command(cmd)
     stdout, stderr = proc.communicate()
-    val = stdout.decode().strip()
-    if val:
-        return val
-    else:
-        return default
+    res = stdout.decode().strip().split(os.linesep)
+    env_var = {}
+    for kv in res:
+        k, v = kv.split('=', 1)
+        env_var[k] = v
+
+    return env_var
 
 
 def _get_win_reg_info(key_path, hive, flag, subkeys):
