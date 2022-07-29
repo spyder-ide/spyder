@@ -42,13 +42,17 @@ class AppearanceConfigPage(PluginConfigPage):
         theme_group = QGroupBox(_("Main interface"))
 
         # Interface Widgets
-        ui_themes = ['Automatic', 'Light', 'Dark']
-        ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
-                                                for ui_theme in ui_themes]))
-        ui_theme_combo = self.create_combobox(_('Interface theme'),
-                                              ui_theme_choices,
-                                              'ui_theme',
-                                              restart=True)
+        ui_theme_choices = [
+            (_('Automatic'), 'automatic'),
+            (_('Light'), 'light'),
+            (_('Dark'), 'dark')
+        ]
+        ui_theme_combo = self.create_combobox(
+            _('Interface theme'),
+            ui_theme_choices,
+            'ui_theme',
+            restart=True
+        )
         self.ui_combobox = ui_theme_combo.combobox
 
         themes = ['Spyder 2', 'Spyder 3']
