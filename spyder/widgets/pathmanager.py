@@ -17,9 +17,9 @@ import sys
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
-                            QListWidget, QListWidgetItem, QMessageBox,
-                            QVBoxLayout, QLabel)
+from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QHBoxLayout,
+                            QLabel, QListWidget, QListWidgetItem, QMessageBox,
+                            QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _
@@ -31,7 +31,7 @@ from spyder.utils.qthelpers import create_toolbutton
 class PathManager(QDialog):
     """Path manager dialog."""
     redirect_stdio = Signal(bool)
-    sig_path_changed = Signal(object)
+    sig_path_changed = Signal(object, bool)
 
     def __init__(self, parent, paths=None, read_only_paths=None, sync=True):
         """Path manager dialog."""
@@ -42,6 +42,7 @@ class PathManager(QDialog):
         self.read_only_paths = read_only_paths or ()
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
+        self.original_prepend_paths = None
 
         # Widgets
         self.add_button = None
@@ -56,9 +57,13 @@ class PathManager(QDialog):
         self.top_toolbar_widgets = self._setup_top_toolbar()
         self.bottom_toolbar_widgets = self._setup_bottom_toolbar()
         self.listwidget = QListWidget(self)
+        self.prepend_cb = QCheckBox(_("Prepend paths to sys.path"), self)
         self.bbox = QDialogButtonBox(QDialogButtonBox.Ok
                                      | QDialogButtonBox.Cancel)
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
+
+        # TODO: set state from prepend global preference
+        self.prepend_cb.setChecked(False)
 
         # Widget setup
         # Destroying the C++ object right after closing the dialog box,
@@ -93,12 +98,14 @@ class PathManager(QDialog):
         layout.addWidget(description)
         layout.addLayout(top_layout)
         layout.addWidget(self.listwidget)
+        layout.addWidget(self.prepend_cb)
         layout.addLayout(bottom_layout)
         self.setLayout(layout)
 
         # Signals
         self.listwidget.currentRowChanged.connect(lambda x: self.refresh())
         self.listwidget.itemChanged.connect(lambda x: self.refresh())
+        self.prepend_cb.stateChanged.connect(self.prepend_paths)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
 
@@ -213,6 +220,7 @@ class PathManager(QDialog):
             self.listwidget.addItem(item)
         self.listwidget.setCurrentRow(0)
         self.original_path_dict = self.get_path_dict()
+        self.original_prepend_paths = self.prepend_cb.isChecked()
         self.refresh()
 
     @Slot()
@@ -353,9 +361,14 @@ class PathManager(QDialog):
                                       - len(self.read_only_paths))
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
+        prepend_changed = False
+        if self.original_prepend_paths != self.prepend_cb.isChecked():
+            prepend_changed = True
+            # TODO: set prepend global preference
+
         # Ok button only enabled if actual changes occur
         self.button_ok.setEnabled(
-            self.original_path_dict != self.get_path_dict())
+            self.original_path_dict != self.get_path_dict() or prepend_changed)
 
     def check_path(self, path):
         """Check that the path is not a [site|dist]-packages folder."""
@@ -476,11 +489,20 @@ class PathManager(QDialog):
         """Return the number of items."""
         return self.listwidget.count()
 
+    def prepend_paths(self, state):
+        """Set prepend status"""
+        if state:
+            msg = _("Prepend message.")
+        else:
+            msg = _("Append message.")
+        QMessageBox.information(self, _("Prepend paths"), msg, QMessageBox.Ok)
+        self.refresh()
+
     def accept(self):
         """Override Qt method."""
         path_dict = self.get_path_dict()
         if self.original_path_dict != path_dict:
-            self.sig_path_changed.emit(path_dict)
+            self.sig_path_changed.emit(path_dict, self.prepend_cb.isChecked())
         super(PathManager, self).accept()
 
 

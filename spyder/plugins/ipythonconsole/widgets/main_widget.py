@@ -2388,12 +2388,12 @@ class IPythonConsoleWidget(PluginMainWidget):
         if shellwidget is not None:
             shellwidget.update_cwd()
 
-    def update_path(self, path_dict, new_path_dict):
+    def update_path(self, path_dict, new_path_dict, prepend):
         """Update path on consoles."""
         for client in self.clients:
             shell = client.shellwidget
             if shell is not None:
-                shell.update_syspath(path_dict, new_path_dict)
+                shell.update_syspath(path_dict, new_path_dict, prepend)
 
     def get_active_project_path(self):
         """Get the active project path."""
