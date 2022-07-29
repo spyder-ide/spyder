@@ -32,7 +32,6 @@ import psutil
 # Local imports
 from spyder.config.base import (running_under_pytest, get_home_dir,
                                 running_in_mac_app)
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
@@ -714,7 +713,7 @@ def shell_split(text):
     function (see standard library `shlex`) except that it is supporting
     unicode strings (shlex does not support unicode until Python 2.7.3).
     """
-    assert is_text_string(text)  # in case a QString is passed...
+    assert isinstance(text, str)  # in case a QString is passed...
     pattern = r'(\s+|(?<!\\)".*?(?<!\\)"|(?<!\\)\'.*?(?<!\\)\')'
     out = []
     for token in re.split(pattern, text):
@@ -1031,7 +1030,7 @@ def check_python_help(filename):
     try:
         proc = run_program(filename, ['-c', 'import this'], env={})
         stdout, _ = proc.communicate()
-        stdout = to_text_string(stdout)
+        stdout = str(stdout)
         valid_lines = [
             'Beautiful is better than ugly.',
             'Explicit is better than implicit.',
