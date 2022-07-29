@@ -8,7 +8,6 @@
 Environment variable utilities.
 """
 
-# TODO: Remove Python 2.x support
 # TODO: Make functions platform agnostic
 
 # Standard library imports
@@ -16,29 +15,31 @@ import os
 
 # Third party imports
 from qtpy.QtWidgets import QDialog, QMessageBox
+try:
+    import winreg
+except ImportError:
+    pass
 
 # Local imports
 from spyder.config.base import _
 from spyder.widgets.collectionseditor import CollectionsEditor
-from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
 from spyder.utils.icon_manager import ima
-from spyder.utils.encoding import to_unicode_from_fs
 
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
     sep = os.path.pathsep
-    for key in envdict:
-        if sep in envdict[key]:
-            envdict[key] = [path.strip() for path in envdict[key].split(sep)]
+    for key, val in envdict.items():
+        if isinstance(val, str) and sep in val:
+            envdict[key] = [path.strip() for path in val.split(sep)]
     return envdict
 
 
 def listdict2envdict(listdict):
     """Dict of lists --> Dict"""
-    for key in listdict:
-        if isinstance(listdict[key], list):
-            listdict[key] = os.path.pathsep.join(listdict[key])
+    for key, val in listdict.items():
+        if isinstance(val, list):
+            listdict[key] = os.path.pathsep.join(val)
     return listdict
 
 
@@ -50,27 +51,8 @@ def clean_env(env_vars):
     exception is raised, an empty string will be used.
     """
     new_env_vars = env_vars.copy()
-    for key, var in iteritems(env_vars):
-        if PY2:
-            # Try to convert vars first to utf-8.
-            try:
-                unicode_var = to_text_string(var)
-            except UnicodeDecodeError:
-                # If that fails, try to use the file system
-                # encoding because one of our vars is our
-                # PYTHONPATH, and that contains file system
-                # directories
-                try:
-                    unicode_var = to_unicode_from_fs(var)
-                except Exception:
-                    # If that also fails, make the var empty
-                    # to be able to start Spyder.
-                    # See https://stackoverflow.com/q/44506900/438386
-                    # for details.
-                    unicode_var = ''
-            new_env_vars[key] = to_binary_string(unicode_var, encoding='utf-8')
-        else:
-            new_env_vars[key] = to_text_string(var)
+    for key, var in env_vars.items():
+        new_env_vars[key] = str(var)
 
     return new_env_vars
 
@@ -106,8 +88,6 @@ class EnvDialog(RemoteEnvDialog):
 
 # For Windows only
 try:
-    from spyder.py3compat import winreg
-
     def get_user_env():
         """Return HKCU (current user) environment variables"""
         reg = dict()
