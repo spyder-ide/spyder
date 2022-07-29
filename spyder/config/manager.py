@@ -359,13 +359,20 @@ class ConfigurationManager(object):
                        value: Any):
         section_observers = self._observers.get(section, {})
         option_observers = section_observers.get(option, set({}))
-        if len(option_observers) > 0:
-            logger.debug('Sending notification to observers of '
-                         f'{option} in configuration section {section}')
-        for observer in list(option_observers):
-            if (section, option) in self._disabled_options:
-                continue
 
+        if (section, option) in self._disabled_options:
+            logger.debug(
+                f"Don't send notification to observers of disabled option "
+                f"{option} in configuration section {section}"
+            )
+            return
+        elif len(option_observers) > 0:
+            logger.debug(
+                f"Sending notification to observers of {option} option in "
+                f"configuration section {section}"
+            )
+
+        for observer in list(option_observers):
             try:
                 observer.on_configuration_change(option, section, value)
             except RuntimeError:
@@ -402,10 +409,18 @@ class ConfigurationManager(object):
 
     def disable_notifications(self, section: str, option: ConfigurationKey):
         """Disable notitications for `option` in `section`."""
+        logger.debug(
+            f"Disable notifications for option {option} option in section "
+            f"{section}"
+        )
         self._disabled_options.append((section, option))
 
     def restore_notifications(self, section: str, option: ConfigurationKey):
         """Restore notitications for disabled `option` in `section`."""
+        logger.debug(
+            f"Restore notifications for option {option} option in section "
+            f"{section}"
+        )
         try:
             self._disabled_options.remove((section, option))
         except ValueError:
