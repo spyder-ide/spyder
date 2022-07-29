@@ -175,7 +175,7 @@ class ApplicationContainer(PluginMainContainer):
         self.user_env_action = self.create_action(
             ApplicationActions.SpyderUserEnvVariables,
             _("Current user environment variables..."),
-            icon=self.create_icon('win_env'),
+            icon=self.create_icon('environment'),
             tip=_(tip),
             triggered=self.show_windows_env_variables)
 
