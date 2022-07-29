@@ -10,7 +10,6 @@ Tests for environ.py
 
 # Standard library imports
 import os
-import subprocess
 
 # Test library imports
 import pytest
