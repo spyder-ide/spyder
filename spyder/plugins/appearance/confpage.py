@@ -30,6 +30,10 @@ class AppearanceConfigPage(PluginConfigPage):
         super().__init__(plugin, parent)
         self.pre_apply_callback = self.check_color_scheme_notification
 
+        # Notifications for this option are disabled when the plugin is
+        # initialized, so we need to restore them here.
+        CONF.restore_notifications(section='appearance', option='ui_theme')
+
     def setup_page(self):
         names = self.get_option("names")
         try:
@@ -200,9 +204,10 @@ class AppearanceConfigPage(PluginConfigPage):
                     # Ask for a restart
                     self.changed_options.add('ui_theme')
 
-        # We need to restore notifications for this option so the color scheme
-        # can be changed when selecting other options.
-        CONF.restore_notifications(section='appearance', option='selected')
+        # We need to restore notifications for these options so they can be
+        # changed when the user selects other values for them.
+        for option in ['selected', 'ui_theme']:
+            CONF.restore_notifications(section='appearance', option=option)
 
         self.update_combobox()
         self.update_preview()
@@ -467,4 +472,5 @@ class AppearanceConfigPage(PluginConfigPage):
         # mismatch between it and the UI theme. Instead, we only we need to ask
         # for a restart.
         if mismatch:
-            CONF.disable_notifications(section='appearance', option='selected')
+            for option in ['selected', 'ui_theme']:
+                CONF.disable_notifications(section='appearance', option=option)

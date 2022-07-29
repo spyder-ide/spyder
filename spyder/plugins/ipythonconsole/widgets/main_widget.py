@@ -667,8 +667,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.get_control().set_help_enabled,
                 value)
 
-    @on_conf_change(section='appearance', option='selected')
-    def change_clients_color_scheme(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def change_clients_color_scheme(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         for idx, client in enumerate(self.clients):
             self._change_client_conf(
                 client,
