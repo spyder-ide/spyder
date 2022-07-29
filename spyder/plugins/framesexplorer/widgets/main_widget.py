@@ -277,6 +277,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             "set_pdb_stack", None)
 
         widget.close()
+        widget.setParent(None)
 
     # ---- Public API
     # ------------------------------------------------------------------------
