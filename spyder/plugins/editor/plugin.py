@@ -1156,6 +1156,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             debug_menu_actions + self.main.debug_menu_actions)
         debug_toolbar_actions = [
             self.debug_action,
+            self.debug_cell_action,
             self.debug_next_action,
             self.debug_step_action,
             self.debug_return_action,
