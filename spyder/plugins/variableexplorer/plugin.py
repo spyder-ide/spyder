@@ -11,24 +11,25 @@ Variable Explorer Plugin.
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.translations import get_translation
-from spyder.plugins.variableexplorer.confpage import (
-    VariableExplorerConfigPage)
-from spyder.plugins.variableexplorer.widgets.main_widget import (
-    VariableExplorerWidget)
+from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage
+from spyder.plugins.variableexplorer.widgets.main_widget import VariableExplorerWidget
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     """
     Variable explorer plugin.
     """
-    NAME = 'variable_explorer'
+
+    NAME = "variable_explorer"
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
     TABIFY = None
     WIDGET_CLASS = VariableExplorerWidget
@@ -41,18 +42,20 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Variable explorer')
+        return _("Variable explorer")
 
     def get_description(self):
-        return _('Display, explore load and save variables in the current '
-                 'namespace.')
+        return _(
+            "Display, explore load and save variables in the current " "namespace."
+        )
 
     def get_icon(self):
-        return self.create_icon('dictedit')
+        return self.create_icon("dictedit")
 
     def on_initialize(self):
         self.get_widget().sig_free_memory_requested.connect(
-            self.sig_free_memory_requested)
+            self.sig_free_memory_requested
+        )
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):

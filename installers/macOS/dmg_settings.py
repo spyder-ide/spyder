@@ -2,18 +2,18 @@
 """
 Settings file for building the dmg disk image.
 """
-format = 'UDBZ'
+format = "UDBZ"
 
 # Volume size
 size = None
 
 # Symlinks to create
-symlinks = {'Applications': '/Applications'}
+symlinks = {"Applications": "/Applications"}
 
 # Background
-background = 'builtin-arrow'
+background = "builtin-arrow"
 
-default_view = 'icon-view'
+default_view = "icon-view"
 
 text_size = 14
 icon_size = 96

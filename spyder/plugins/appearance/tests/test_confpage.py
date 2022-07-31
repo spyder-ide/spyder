@@ -12,14 +12,12 @@ import pytest
 # Local imports
 from spyder.plugins.appearance.plugin import Appearance
 from spyder.plugins.preferences.api import SpyderConfigPage
-from spyder.plugins.preferences.tests.conftest import (
-    config_dialog, MainWindowMock)
+from spyder.plugins.preferences.tests.conftest import config_dialog, MainWindowMock
 
 
 @pytest.mark.parametrize(
-    'config_dialog',
-    [[MainWindowMock, [], [Appearance]]],
-    indirect=True)
+    "config_dialog", [[MainWindowMock, [], [Appearance]]], indirect=True
+)
 def test_change_ui_theme_and_color_scheme(config_dialog, mocker, qtbot):
     """Test that changing color scheme or UI theme works as expected."""
     # Patch methods whose calls we want to check
@@ -30,23 +28,23 @@ def test_change_ui_theme_and_color_scheme(config_dialog, mocker, qtbot):
     widget = config_dialog.get_page()
 
     # List of color schemes
-    names = widget.get_option('names')
+    names = widget.get_option("names")
 
     # Assert no restarts have been requested so far.
     assert SpyderConfigPage.prompt_restart_required.call_count == 0
 
     # Assert default UI theme is 'automatic' and interface is dark. The other
     # tests below depend on this.
-    assert widget.get_option('ui_theme') == 'automatic'
+    assert widget.get_option("ui_theme") == "automatic"
     assert widget.is_dark_interface()
 
     # Change to another dark color scheme
-    widget.schemes_combobox.setCurrentIndex(names.index('monokai'))
+    widget.schemes_combobox.setCurrentIndex(names.index("monokai"))
     dlg.apply_btn.click()
     assert SpyderConfigPage.prompt_restart_required.call_count == 0
 
     # Change to a light color scheme
-    widget.schemes_combobox.setCurrentIndex(names.index('pydev'))
+    widget.schemes_combobox.setCurrentIndex(names.index("pydev"))
     dlg.apply_btn.clicked.emit()
     assert SpyderConfigPage.prompt_restart_required.call_count == 1
 
@@ -66,7 +64,7 @@ def test_change_ui_theme_and_color_scheme(config_dialog, mocker, qtbot):
     assert SpyderConfigPage.prompt_restart_required.call_count == 3
 
     # Change to another dark color scheme
-    widget.schemes_combobox.setCurrentIndex(names.index('solarized/dark'))
+    widget.schemes_combobox.setCurrentIndex(names.index("solarized/dark"))
     dlg.apply_btn.clicked.emit()
     assert SpyderConfigPage.prompt_restart_required.call_count == 4
 

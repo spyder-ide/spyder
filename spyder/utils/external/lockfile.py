@@ -30,18 +30,22 @@ from time import time as _uniquefloat
 from spyder.py3compat import PY2, to_binary_string
 from spyder.utils.programs import is_spyder_process
 
+
 def unique():
     if PY2:
         return str(long(_uniquefloat() * 1000))
     else:
         return str(int(_uniquefloat() * 1000))
 
+
 from os import rename
-if not os.name == 'nt':
+
+if not os.name == "nt":
     from os import kill
     from os import symlink
     from os import readlink
     from os import remove as rmlink
+
     _windows = False
 else:
     _windows = True
@@ -66,16 +70,15 @@ else:
         # If the process exited recently, a pid may still exist for the
         # handle. So, check if we can get the exit code.
         exit_code = wintypes.DWORD()
-        retval = kernel32.GetExitCodeProcess(handle,
-                                             ctypes.byref(exit_code))
-        is_running = (retval == 0)
+        retval = kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code))
+        is_running = retval == 0
         kernel32.CloseHandle(handle)
 
         # See if we couldn't get the exit code or the exit code indicates
         # that the process is still running.
         return is_running or exit_code.value == STILL_ACTIVE
 
-    def kill(pid, signal):                    # analysis:ignore
+    def kill(pid, signal):  # analysis:ignore
         if not _is_pid_running(pid):
             raise OSError(errno.ESRCH, None)
         else:
@@ -84,11 +87,11 @@ else:
     _open = open
 
     # XXX Implement an atomic thingamajig for win32
-    def symlink(value, filename):    #analysis:ignore
-        newlinkname = filename+"."+unique()+'.newlink'
+    def symlink(value, filename):  # analysis:ignore
+        newlinkname = filename + "." + unique() + ".newlink"
         newvalname = os.path.join(newlinkname, "symlink")
         os.mkdir(newlinkname)
-        f = _open(newvalname, 'wb')
+        f = _open(newvalname, "wb")
         f.write(to_binary_string(value))
         f.flush()
         f.close()
@@ -105,9 +108,9 @@ else:
                 return
             raise
 
-    def readlink(filename):   #analysis:ignore
+    def readlink(filename):  # analysis:ignore
         try:
-            fObj = _open(os.path.join(filename, 'symlink'), 'rb')
+            fObj = _open(os.path.join(filename, "symlink"), "rb")
         except IOError as e:
             if e.errno == errno.ENOENT or e.errno == errno.EIO:
                 raise OSError(e.errno, None)
@@ -117,10 +120,9 @@ else:
             fObj.close()
             return result
 
-    def rmlink(filename):    #analysis:ignore
-        os.remove(os.path.join(filename, 'symlink'))
+    def rmlink(filename):  # analysis:ignore
+        os.remove(os.path.join(filename, "symlink"))
         os.rmdir(filename)
-
 
 
 class FilesystemLock:
@@ -190,7 +192,7 @@ class FilesystemLock:
                         if kill is not None:
                             kill(int(pid), 0)
                         if not is_spyder_process(int(pid)):
-                            raise(OSError(errno.ESRCH, 'No such process'))
+                            raise (OSError(errno.ESRCH, "No such process"))
                     except OSError as e:
                         if e.errno == errno.ESRCH:
                             # The owner has vanished, try to claim it in the
@@ -248,4 +250,4 @@ def isLocked(name):
     return not result
 
 
-__all__ = ['FilesystemLock', 'isLocked']
+__all__ = ["FilesystemLock", "isLocked"]

@@ -26,8 +26,11 @@ from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
-from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
-                                             getsignaturefromtext)
+from spyder_kernels.utils.dochelpers import (
+    getargspecfromtext,
+    getobj,
+    getsignaturefromtext,
+)
 
 # Local imports
 from spyder.config.manager import CONF
@@ -48,13 +51,13 @@ EOL_SYMBOLS = [
     "\v",  # Line Tabulation
     "\x0b",  # Line Tabulation
     "\f",  # Form Feed
-    "\x0c",   # Form Feed
-    "\x1c",   # File Separator
-    "\x1d",   # Group Separator
-    "\x1e",   # Record Separator
-    "\x85",   # Next Line (C1 Control Code)
-    "\u2028",   # Line Separator
-    "\u2029",   # Paragraph Separator
+    "\x0c",  # Form Feed
+    "\x1c",  # File Separator
+    "\x1d",  # Group Separator
+    "\x1e",  # Record Separator
+    "\x85",  # Next Line (C1 Control Code)
+    "\u2028",  # Line Separator
+    "\u2029",  # Paragraph Separator
 ]
 
 
@@ -64,7 +67,7 @@ class BaseEditMixin(object):
     _DEFAULT_TITLE_COLOR = QStylePalette.COLOR_ACCENT_4
     _CHAR_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
     _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
-    _DEFAULT_LANGUAGE = 'python'
+    _DEFAULT_LANGUAGE = "python"
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
     _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 52
@@ -82,7 +85,7 @@ class BaseEditMixin(object):
         self.eol_chars = None
         self.calltip_size = 600
 
-    #------Line number area
+    # ------Line number area
     def get_linenumberarea_width(self):
         """Return line number area width"""
         # Implemented in CodeEditor, but needed for calltip/completion widgets
@@ -118,15 +121,15 @@ class BaseEditMixin(object):
             cy = int(self.cursorRect(cursor).top())
         else:
             # Showing tooltip at cursor position
-            cx, cy = self.get_coordinates('cursor')
+            cx, cy = self.get_coordinates("cursor")
             cx = int(cx)
             cy = int(cy - font.pointSize() / 2)
 
         # Calculate vertical delta
         # The needed delta changes with font size, so we use a power law
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             delta = int((font.pointSize() * 1.20) ** 0.98 + 4.5)
-        elif os.name == 'nt':
+        elif os.name == "nt":
             delta = int((font.pointSize() * 1.20) ** 1.05) + 7
         else:
             delta = int((font.pointSize() * 1.20) ** 0.98) + 7
@@ -150,27 +153,38 @@ class BaseEditMixin(object):
         border = QStylePalette.COLOR_TEXT_4
         name = widget.__class__.__name__
         widget.setObjectName(name)
-        css = '''
+        css = """
             {0}#{0} {{
                 background-color:{1};
                 border: 1px solid {2};
-            }}'''.format(name, background, border)
+            }}""".format(
+            name, background, border
+        )
         widget.setStyleSheet(css)
 
     def _get_inspect_shortcut(self):
         """
         Queries the editor's config to get the current "Inspect" shortcut.
         """
-        value = CONF.get('shortcuts', 'editor/inspect current object')
+        value = CONF.get("shortcuts", "editor/inspect current object")
         if value:
             if sys.platform == "darwin":
-                value = value.replace('Ctrl', 'Cmd')
+                value = value.replace("Ctrl", "Cmd")
         return value
 
-    def _format_text(self, title=None, signature=None, text=None,
-                     inspect_word=None, title_color=None, max_lines=None,
-                     max_width=_DEFAULT_MAX_WIDTH, display_link=False,
-                     text_new_line=False,  with_html_format=False):
+    def _format_text(
+        self,
+        title=None,
+        signature=None,
+        text=None,
+        inspect_word=None,
+        title_color=None,
+        max_lines=None,
+        max_width=_DEFAULT_MAX_WIDTH,
+        display_link=False,
+        text_new_line=False,
+        with_html_format=False,
+    ):
         """
         Create HTML template for calltips and tooltips.
 
@@ -187,13 +201,13 @@ class BaseEditMixin(object):
         | Link or shortcut with `inspect_word` |
         ----------------------------------------
         """
-        BASE_TEMPLATE = u'''
+        BASE_TEMPLATE = """
             <div style=\'font-family: "{font_family}";
                         font-size: {size}pt;
                         color: {color}\'>
                 {main_text}
             </div>
-        '''
+        """
         # Get current font properties
         font = self.font()
         font_family = font.family()
@@ -201,7 +215,7 @@ class BaseEditMixin(object):
         text_size = title_size - 1 if title_size > 9 else title_size
         text_color = self._DEFAULT_TEXT_COLOR
 
-        template = ''
+        template = ""
         if title:
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
@@ -211,10 +225,10 @@ class BaseEditMixin(object):
             )
 
             if text or signature:
-                template += '<hr>'
+                template += "<hr>"
 
         if signature:
-            signature = signature.strip('\r\n')
+            signature = signature.strip("\r\n")
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
                 size=text_size,
@@ -223,30 +237,31 @@ class BaseEditMixin(object):
             )
 
         # Documentation/text handling
-        if (text is None or not text.strip() or
-                text.strip() == '<no docstring>'):
-            text = '<i>No documentation available</i>'
+        if text is None or not text.strip() or text.strip() == "<no docstring>":
+            text = "<i>No documentation available</i>"
         else:
             text = text.strip()
 
         if not with_html_format:
             # All these replacements are need to properly divide the
             # text in actual paragraphs and wrap the text on each one
-            paragraphs = (text
-                          .replace(u"\xa0", u" ")
-                          .replace("\n\n", "<!DOUBLE_ENTER!>")
-                          .replace(".\n", ".<!SINGLE_ENTER!>")
-                          .replace("\n-", "<!SINGLE_ENTER!>-")
-                          .replace("-\n", "-<!SINGLE_ENTER!>")
-                          .replace("\n=", "<!SINGLE_ENTER!>=")
-                          .replace("=\n", "=<!SINGLE_ENTER!>")
-                          .replace("\n*", "<!SINGLE_ENTER!>*")
-                          .replace("*\n", "*<!SINGLE_ENTER!>")
-                          .replace("\n ", "<!SINGLE_ENTER!> ")
-                          .replace(" \n", " <!SINGLE_ENTER!>")
-                          .replace("\n", " ")
-                          .replace("<!DOUBLE_ENTER!>", "\n\n")
-                          .replace("<!SINGLE_ENTER!>", "\n").splitlines())
+            paragraphs = (
+                text.replace("\xa0", " ")
+                .replace("\n\n", "<!DOUBLE_ENTER!>")
+                .replace(".\n", ".<!SINGLE_ENTER!>")
+                .replace("\n-", "<!SINGLE_ENTER!>-")
+                .replace("-\n", "-<!SINGLE_ENTER!>")
+                .replace("\n=", "<!SINGLE_ENTER!>=")
+                .replace("=\n", "=<!SINGLE_ENTER!>")
+                .replace("\n*", "<!SINGLE_ENTER!>*")
+                .replace("*\n", "*<!SINGLE_ENTER!>")
+                .replace("\n ", "<!SINGLE_ENTER!> ")
+                .replace(" \n", " <!SINGLE_ENTER!>")
+                .replace("\n", " ")
+                .replace("<!DOUBLE_ENTER!>", "\n\n")
+                .replace("<!SINGLE_ENTER!>", "\n")
+                .splitlines()
+            )
             new_paragraphs = []
             for paragraph in paragraphs:
                 # Wrap text
@@ -256,32 +271,32 @@ class BaseEditMixin(object):
                 new_paragraph = [l for l in new_paragraph if l.strip()]
 
                 # Merge paragraph text
-                new_paragraph = '\n'.join(new_paragraph)
+                new_paragraph = "\n".join(new_paragraph)
 
                 # Add new paragraph
                 new_paragraphs.append(new_paragraph)
 
             # Join paragraphs and split in lines for max_lines check
-            paragraphs = '\n'.join(new_paragraphs)
-            paragraphs = paragraphs.strip('\r\n')
+            paragraphs = "\n".join(new_paragraphs)
+            paragraphs = paragraphs.strip("\r\n")
             lines = paragraphs.splitlines()
 
             # Check that the first line is not empty
             if len(lines) > 0 and not lines[0].strip():
                 lines = lines[1:]
         else:
-            lines = [l for l in text.split('\n') if l.strip()]
+            lines = [l for l in text.split("\n") if l.strip()]
 
         # Limit max number of text displayed
         if max_lines:
             if len(lines) > max_lines:
-                text = '\n'.join(lines[:max_lines]) + ' ...'
+                text = "\n".join(lines[:max_lines]) + " ..."
             else:
-                text = '\n'.join(lines)
+                text = "\n".join(lines)
 
-        text = text.replace('\n', '<br>')
+        text = text.replace("\n", "<br>")
         if text_new_line and signature:
-            text = '<br>' + text
+            text = "<br>" + text
 
         template += BASE_TEMPLATE.format(
             font_family=font_family,
@@ -290,14 +305,14 @@ class BaseEditMixin(object):
             main_text=text,
         )
 
-        help_text = ''
+        help_text = ""
         if inspect_word:
             if display_link:
                 help_text = (
-                    '<span style="font-family: \'{font_family}\';'
+                    "<span style=\"font-family: '{font_family}';"
                     'font-size:{font_size}pt;">'
-                    'Click anywhere in this tooltip for additional help'
-                    '</span>'.format(
+                    "Click anywhere in this tooltip for additional help"
+                    "</span>".format(
                         font_size=text_size,
                         font_family=font_family,
                     )
@@ -306,11 +321,11 @@ class BaseEditMixin(object):
                 shortcut = self._get_inspect_shortcut()
                 if shortcut:
                     base_style = (
-                        f'background-color:{QStylePalette.COLOR_BACKGROUND_4};'
-                        f'color:{QStylePalette.COLOR_TEXT_1};'
-                        'font-size:11px;'
+                        f"background-color:{QStylePalette.COLOR_BACKGROUND_4};"
+                        f"color:{QStylePalette.COLOR_TEXT_1};"
+                        "font-size:11px;"
                     )
-                    help_text = ''
+                    help_text = ""
                     # (
                     #     'Press '
                     #     '<kbd style="{1}">[</kbd>'
@@ -322,29 +337,36 @@ class BaseEditMixin(object):
         if help_text and inspect_word:
             if display_link:
                 template += (
-                    '<hr>'
-                    '<div align="left">'
-                    f'<span style="color: {QStylePalette.COLOR_ACCENT_4};'
-                    'text-decoration:none;'
-                    'font-family:"{font_family}";font-size:{size}pt;><i>'
-                    ''.format(font_family=font_family,
-                              size=text_size)
-                    ) + help_text + '</i></span></div>'
+                    (
+                        "<hr>"
+                        '<div align="left">'
+                        f'<span style="color: {QStylePalette.COLOR_ACCENT_4};'
+                        "text-decoration:none;"
+                        'font-family:"{font_family}";font-size:{size}pt;><i>'
+                        "".format(font_family=font_family, size=text_size)
+                    )
+                    + help_text
+                    + "</i></span></div>"
+                )
             else:
                 template += (
-                    '<hr>'
+                    "<hr>"
                     '<div align="left">'
                     '<span style="color:white;text-decoration:none;">'
-                    '' + help_text + '</span></div>'
+                    "" + help_text + "</span></div>"
                 )
 
         return template
 
-    def _format_signature(self, signatures, parameter=None,
-                          max_width=_DEFAULT_MAX_WIDTH,
-                          parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
-                          char_color=_CHAR_HIGHLIGHT_COLOR,
-                          language=_DEFAULT_LANGUAGE):
+    def _format_signature(
+        self,
+        signatures,
+        parameter=None,
+        max_width=_DEFAULT_MAX_WIDTH,
+        parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
+        char_color=_CHAR_HIGHLIGHT_COLOR,
+        language=_DEFAULT_LANGUAGE,
+    ):
         """
         Create HTML template for signature.
 
@@ -353,18 +375,18 @@ class BaseEditMixin(object):
 
         Special chars depend on the language.
         """
-        language = getattr(self, 'language', language).lower()
+        language = getattr(self, "language", language).lower()
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
-            'font-size:{font_size}pt;'
-            'color:{color}\'>'
-            '<b>{parameter}</b>'
-            '</span>'
+            "font-size:{font_size}pt;"
+            "color:{color}'>"
+            "<b>{parameter}</b>"
+            "</span>"
         )
         chars_template = (
-            '<span style="color:{0};'.format(self._CHAR_HIGHLIGHT_COLOR) +
-            'font-weight:bold">{char}'
-            '</span>'
+            '<span style="color:{0};'.format(self._CHAR_HIGHLIGHT_COLOR)
+            + 'font-weight:bold">{char}'
+            "</span>"
         )
 
         def handle_sub(matchobj):
@@ -383,52 +405,50 @@ class BaseEditMixin(object):
         new_signatures = []
         for signature in signatures:
             # Remove duplicate spaces
-            signature = ' '.join(signature.split())
+            signature = " ".join(signature.split())
 
             # Replace initial spaces
-            signature = signature.replace('( ', '(')
+            signature = signature.replace("( ", "(")
 
             # Process signature template
-            if parameter and language == 'python':
+            if parameter and language == "python":
                 # Escape all possible regex characters
                 # ( ) { } | [ ] . ^ $ * +
-                escape_regex_chars = ['|', '.', '^', '$', '*', '+']
-                remove_regex_chars = ['(', ')', '{', '}', '[', ']']
+                escape_regex_chars = ["|", ".", "^", "$", "*", "+"]
+                remove_regex_chars = ["(", ")", "{", "}", "[", "]"]
                 regex_parameter = parameter
                 for regex_char in escape_regex_chars + remove_regex_chars:
                     if regex_char in escape_regex_chars:
-                        escape_char = r'\{char}'.format(char=regex_char)
-                        regex_parameter = regex_parameter.replace(regex_char,
-                                                                  escape_char)
+                        escape_char = r"\{char}".format(char=regex_char)
+                        regex_parameter = regex_parameter.replace(
+                            regex_char, escape_char
+                        )
                     else:
-                        regex_parameter = regex_parameter.replace(regex_char,
-                                                                  '')
-                        parameter = parameter.replace(regex_char, '')
+                        regex_parameter = regex_parameter.replace(regex_char, "")
+                        parameter = parameter.replace(regex_char, "")
 
-                pattern = (r'[\*|\(|\[|\s](' + regex_parameter +
-                           r')[,|\)|\]|\s|=]')
+                pattern = r"[\*|\(|\[|\s](" + regex_parameter + r")[,|\)|\]|\s|=]"
 
             formatted_lines = []
-            name = signature.split('(')[0]
-            indent = ' ' * (len(name) + 1)
-            rows = textwrap.wrap(signature, width=max_width,
-                                 subsequent_indent=indent)
+            name = signature.split("(")[0]
+            indent = " " * (len(name) + 1)
+            rows = textwrap.wrap(signature, width=max_width, subsequent_indent=indent)
             for row in rows:
-                if parameter and language == 'python':
+                if parameter and language == "python":
                     # Add template to highlight the active parameter
                     row = re.sub(pattern, handle_sub, row)
 
-                row = row.replace(' ', '&nbsp;')
-                row = row.replace('span&nbsp;', 'span ')
-                row = row.replace('{}', '{{}}')
+                row = row.replace(" ", "&nbsp;")
+                row = row.replace("span&nbsp;", "span ")
+                row = row.replace("{}", "{{}}")
 
-                if language and language == 'python':
-                    for char in ['(', ')', ',', '*', '**']:
+                if language and language == "python":
+                    for char in ["(", ")", ",", "*", "**"]:
                         new_char = chars_template.format(char=char)
                         row = row.replace(char, new_char)
 
                 formatted_lines.append(row)
-            title_template = '<br>'.join(formatted_lines)
+            title_template = "<br>".join(formatted_lines)
 
             # Get current font properties
             font = self.font()
@@ -436,7 +456,7 @@ class BaseEditMixin(object):
             font_family = font.family()
 
             # Format title to display active parameter
-            if parameter and language == 'python':
+            if parameter and language == "python":
                 title = title_template.format(
                     font_size=font_size,
                     font_family=font_family,
@@ -447,35 +467,38 @@ class BaseEditMixin(object):
                 title = title_template
             new_signatures.append(title)
 
-        return '<br>'.join(new_signatures)
+        return "<br>".join(new_signatures)
 
-    def _check_signature_and_format(self, signature_or_text, parameter=None,
-                                    inspect_word=None,
-                                    max_width=_DEFAULT_MAX_WIDTH,
-                                    language=_DEFAULT_LANGUAGE):
+    def _check_signature_and_format(
+        self,
+        signature_or_text,
+        parameter=None,
+        inspect_word=None,
+        max_width=_DEFAULT_MAX_WIDTH,
+        language=_DEFAULT_LANGUAGE,
+    ):
         """
         LSP hints might provide docstrings instead of signatures.
 
         This method will check for multiple signatures (dict, type etc...) and
         format the text accordingly.
         """
-        open_func_char = ''
+        open_func_char = ""
         has_signature = False
         has_multisignature = False
-        language = getattr(self, 'language', language).lower()
-        signature_or_text = signature_or_text.replace('\\*', '*')
+        language = getattr(self, "language", language).lower()
+        signature_or_text = signature_or_text.replace("\\*", "*")
 
         # Remove special symbols that could itefere with ''.format
-        signature_or_text = signature_or_text.replace('{', '&#123;')
-        signature_or_text = signature_or_text.replace('}', '&#125;')
+        signature_or_text = signature_or_text.replace("{", "&#123;")
+        signature_or_text = signature_or_text.replace("}", "&#125;")
 
         # Remove 'ufunc' signature if needed. See spyder-ide/spyder#11821
-        lines = [line for line in signature_or_text.split('\n')
-                 if 'ufunc' not in line]
-        signature_or_text = '\n'.join(lines)
+        lines = [line for line in signature_or_text.split("\n") if "ufunc" not in line]
+        signature_or_text = "\n".join(lines)
 
-        if language == 'python':
-            open_func_char = '('
+        if language == "python":
+            open_func_char = "("
             has_multisignature = False
 
             if inspect_word:
@@ -490,8 +513,10 @@ class BaseEditMixin(object):
 
                 all_lines = []
                 for line in lines:
-                    if (line.startswith(name_plus_char)
-                            and line.count(name_plus_char) > 1):
+                    if (
+                        line.startswith(name_plus_char)
+                        and line.count(name_plus_char) > 1
+                    ):
                         sublines = line.split(name_plus_char)
                         sublines = [name_plus_char + l for l in sublines]
                         sublines = [l.strip() for l in sublines]
@@ -512,36 +537,33 @@ class BaseEditMixin(object):
 
         if has_signature and not has_multisignature:
             for i, line in enumerate(lines):
-                if line.strip() == '':
+                if line.strip() == "":
                     break
 
             if i == 0:
                 signature = lines[0]
                 extra_text = None
             else:
-                signature = '\n'.join(lines[:i])
-                extra_text = '\n'.join(lines[i:])
+                signature = "\n".join(lines[:i])
+                extra_text = "\n".join(lines[i:])
 
             if signature:
                 new_signature = self._format_signature(
-                    signatures=signature,
-                    parameter=parameter,
-                    max_width=max_width
+                    signatures=signature, parameter=parameter, max_width=max_width
                 )
         elif has_multisignature:
-            signature = signature_or_text.replace(name_plus_char,
-                                                  '<br>' + name_plus_char)
+            signature = signature_or_text.replace(
+                name_plus_char, "<br>" + name_plus_char
+            )
             signature = signature[4:]  # Remove the first line break
-            signature = signature.replace('\n', ' ')
-            signature = signature.replace(r'\\*', '*')
-            signature = signature.replace(r'\*', '*')
-            signature = signature.replace('<br>', '\n')
-            signatures = signature.split('\n')
+            signature = signature.replace("\n", " ")
+            signature = signature.replace(r"\\*", "*")
+            signature = signature.replace(r"\*", "*")
+            signature = signature.replace("<br>", "\n")
+            signatures = signature.split("\n")
             signatures = [sig for sig in signatures if sig]  # Remove empty
             new_signature = self._format_signature(
-                signatures=signatures,
-                parameter=parameter,
-                max_width=max_width
+                signatures=signatures, parameter=parameter, max_width=max_width
             )
             extra_text = None
         else:
@@ -550,9 +572,16 @@ class BaseEditMixin(object):
 
         return new_signature, extra_text, inspect_word
 
-    def show_calltip(self, signature, parameter=None, documentation=None,
-                     language=_DEFAULT_LANGUAGE, max_lines=_DEFAULT_MAX_LINES,
-                     max_width=_DEFAULT_MAX_WIDTH, text_new_line=True):
+    def show_calltip(
+        self,
+        signature,
+        parameter=None,
+        documentation=None,
+        language=_DEFAULT_LANGUAGE,
+        max_lines=_DEFAULT_MAX_LINES,
+        max_width=_DEFAULT_MAX_WIDTH,
+        text_new_line=True,
+    ):
         """
         Show calltip.
 
@@ -564,30 +593,33 @@ class BaseEditMixin(object):
         point = self._calculate_position()
         signature = signature.strip()
         inspect_word = None
-        language = getattr(self, 'language', language).lower()
-        if language == 'python' and signature:
-            inspect_word = signature.split('(')[0]
+        language = getattr(self, "language", language).lower()
+        if language == "python" and signature:
+            inspect_word = signature.split("(")[0]
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
-            check_doc = ' '
+            check_doc = " "
             if documentation:
-                check_doc.join(documentation.split()).replace('\\*', '*')
-            check_sig = ' '.join(signature.split())
+                check_doc.join(documentation.split()).replace("\\*", "*")
+            check_sig = " ".join(signature.split())
             if check_doc == check_sig:
                 signature = documentation
-                documentation = ''
+                documentation = ""
 
         # Remove duplicate signature inside documentation
         if documentation:
-            documentation = documentation.replace('\\*', '*')
+            documentation = documentation.replace("\\*", "*")
             if signature.strip():
-                documentation = documentation.replace(signature + '\n', '')
+                documentation = documentation.replace(signature + "\n", "")
 
         # Format
-        res = self._check_signature_and_format(signature, parameter,
-                                               inspect_word=inspect_word,
-                                               language=language,
-                                               max_width=max_width)
+        res = self._check_signature_and_format(
+            signature,
+            parameter,
+            inspect_word=inspect_word,
+            language=language,
+            max_width=max_width,
+        )
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
@@ -596,7 +628,7 @@ class BaseEditMixin(object):
             text=documentation,
             max_lines=max_lines,
             max_width=max_width,
-            text_new_line=text_new_line
+            text_new_line=text_new_line,
         )
 
         self._update_stylesheet(self.calltip_widget)
@@ -605,15 +637,23 @@ class BaseEditMixin(object):
         self.calltip_widget.show_tip(point, text, [])
         self.calltip_widget.show()
 
-    def show_tooltip(self, title=None, signature=None, text=None,
-                     inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
-                     at_line=None, at_point=None, display_link=False,
-                     max_lines=_DEFAULT_MAX_LINES,
-                     max_width=_DEFAULT_MAX_WIDTH,
-                     cursor=None,
-                     with_html_format=False,
-                     text_new_line=True,
-                     completion_doc=None):
+    def show_tooltip(
+        self,
+        title=None,
+        signature=None,
+        text=None,
+        inspect_word=None,
+        title_color=_DEFAULT_TITLE_COLOR,
+        at_line=None,
+        at_point=None,
+        display_link=False,
+        max_lines=_DEFAULT_MAX_LINES,
+        max_width=_DEFAULT_MAX_WIDTH,
+        cursor=None,
+        with_html_format=False,
+        text_new_line=True,
+        completion_doc=None,
+    ):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
@@ -631,22 +671,30 @@ class BaseEditMixin(object):
             max_lines=max_lines,
             max_width=max_width,
             with_html_format=with_html_format,
-            text_new_line=text_new_line
+            text_new_line=text_new_line,
         )
 
         self._update_stylesheet(self.tooltip_widget)
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor,
-                                     completion_doc=completion_doc)
+        self.tooltip_widget.show_tip(
+            point, tiptext, cursor=cursor, completion_doc=completion_doc
+        )
 
-    def show_hint(self, text, inspect_word, at_point,
-                  max_lines=_DEFAULT_MAX_HINT_LINES,
-                  max_width=_DEFAULT_MAX_HINT_WIDTH,
-                  text_new_line=True, completion_doc=None):
+    def show_hint(
+        self,
+        text,
+        inspect_word,
+        at_point,
+        max_lines=_DEFAULT_MAX_HINT_LINES,
+        max_width=_DEFAULT_MAX_HINT_WIDTH,
+        text_new_line=True,
+        completion_doc=None,
+    ):
         """Show code hint and crop text as needed."""
-        res = self._check_signature_and_format(text, max_width=max_width,
-                                               inspect_word=inspect_word)
+        res = self._check_signature_and_format(
+            text, max_width=max_width, inspect_word=inspect_word
+        )
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
@@ -654,16 +702,21 @@ class BaseEditMixin(object):
         if extra_text is not None:
             # This is needed to get hover hints
             cursor = self.cursorForPosition(at_point)
-            cursor.movePosition(QTextCursor.StartOfWord,
-                                QTextCursor.MoveAnchor)
+            cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
             self._last_hover_cursor = cursor
 
-            self.show_tooltip(signature=html_signature, text=extra_text,
-                              at_point=point, inspect_word=inspect_word,
-                              display_link=True, max_lines=max_lines,
-                              max_width=max_width, cursor=cursor,
-                              text_new_line=text_new_line,
-                              completion_doc=completion_doc)
+            self.show_tooltip(
+                signature=html_signature,
+                text=extra_text,
+                at_point=point,
+                inspect_word=inspect_word,
+                display_link=True,
+                max_lines=max_lines,
+                max_width=max_width,
+                cursor=cursor,
+                text_new_line=text_new_line,
+                completion_doc=completion_doc,
+            )
 
     def hide_tooltip(self):
         """
@@ -683,7 +736,7 @@ class BaseEditMixin(object):
     def document_did_change(self, text=None):
         pass
 
-    #------EOL characters
+    # ------EOL characters
     def set_eol_chars(self, text=None, eol_chars=None):
         """
         Set widget end-of-line (EOL) characters.
@@ -732,20 +785,20 @@ class BaseEditMixin(object):
             text = text.replace(symbol, linesep)
         return text
 
-    #------Positions, coordinates (cursor, EOF, ...)
+    # ------Positions, coordinates (cursor, EOF, ...)
     def get_position(self, subject):
         """Get offset in character for the given subject from the start of
-           text edit area"""
+        text edit area"""
         cursor = self.textCursor()
-        if subject == 'cursor':
+        if subject == "cursor":
             pass
-        elif subject == 'sol':
+        elif subject == "sol":
             cursor.movePosition(QTextCursor.StartOfBlock)
-        elif subject == 'eol':
+        elif subject == "eol":
             cursor.movePosition(QTextCursor.EndOfBlock)
-        elif subject == 'eof':
+        elif subject == "eof":
             cursor.movePosition(QTextCursor.End)
-        elif subject == 'sof':
+        elif subject == "sof":
             cursor.movePosition(QTextCursor.Start)
         else:
             # Assuming that input argument was already a position
@@ -802,15 +855,14 @@ class BaseEditMixin(object):
 
     def get_cursor_line_number(self):
         """Return cursor line number"""
-        return self.textCursor().blockNumber()+1
+        return self.textCursor().blockNumber() + 1
 
     def get_position_line_number(self, line, col):
         """Get position offset from (line, col) coordinates."""
         block = self.document().findBlockByNumber(line)
         cursor = QTextCursor(block)
         cursor.movePosition(QTextCursor.StartOfBlock)
-        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
-                            n=col + 1)
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, n=col + 1)
         return cursor.position()
 
     def set_cursor_position(self, position):
@@ -853,39 +905,39 @@ class BaseEditMixin(object):
             return self.textCursor() < cursor
 
     def __move_cursor_anchor(self, what, direction, move_mode):
-        assert what in ('character', 'word', 'line')
-        if what == 'character':
-            if direction == 'left':
+        assert what in ("character", "word", "line")
+        if what == "character":
+            if direction == "left":
                 self.moveCursor(QTextCursor.PreviousCharacter, move_mode)
-            elif direction == 'right':
+            elif direction == "right":
                 self.moveCursor(QTextCursor.NextCharacter, move_mode)
-        elif what == 'word':
-            if direction == 'left':
+        elif what == "word":
+            if direction == "left":
                 self.moveCursor(QTextCursor.PreviousWord, move_mode)
-            elif direction == 'right':
+            elif direction == "right":
                 self.moveCursor(QTextCursor.NextWord, move_mode)
-        elif what == 'line':
-            if direction == 'down':
+        elif what == "line":
+            if direction == "down":
                 self.moveCursor(QTextCursor.NextBlock, move_mode)
-            elif direction == 'up':
+            elif direction == "up":
                 self.moveCursor(QTextCursor.PreviousBlock, move_mode)
 
-    def move_cursor_to_next(self, what='word', direction='left'):
+    def move_cursor_to_next(self, what="word", direction="left"):
         """
         Move cursor to next *what* ('word' or 'character')
         toward *direction* ('left' or 'right')
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.MoveAnchor)
 
-    #------Selection
-    def extend_selection_to_next(self, what='word', direction='left'):
+    # ------Selection
+    def extend_selection_to_next(self, what="word", direction="left"):
         """
         Extend selection to next *what* ('word' or 'character')
         toward *direction* ('left' or 'right')
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
 
-    #------Text: get, set, ...
+    # ------Text: get, set, ...
 
     def _select_text(self, position_from, position_to):
         """Select text and return cursor."""
@@ -934,7 +986,7 @@ class BaseEditMixin(object):
         cursor = self._select_text(position_from, position_to)
         text = to_text_string(cursor.selectedText())
         if remove_newlines:
-            remove_newlines = position_from != 'sof' or position_to != 'eof'
+            remove_newlines = position_from != "sof" or position_to != "eof"
         if text and remove_newlines:
             while text and text[-1] in EOL_SYMBOLS:
                 text = text[:-1]
@@ -947,11 +999,10 @@ class BaseEditMixin(object):
         cursor.movePosition(QTextCursor.End)
         if position < cursor.position():
             cursor.setPosition(position)
-            cursor.movePosition(QTextCursor.Right,
-                                QTextCursor.KeepAnchor)
+            cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
             return to_text_string(cursor.selectedText())
         else:
-            return ''
+            return ""
 
     def insert_text(self, text, will_insert_text=True):
         """Insert text at cursor position"""
@@ -1013,19 +1064,18 @@ class BaseEditMixin(object):
         cursor_pos_right = cursor.position()
 
         # Get text of the object under the cursor
-        current_text = self.get_text(
-            cursor_pos_left, cursor_pos_right).strip()
+        current_text = self.get_text(cursor_pos_left, cursor_pos_right).strip()
         current_object = current_word
 
         if current_text and current_word is not None:
             if current_word != current_text and current_word in current_text:
-                current_object = (
-                    current_text.split(current_word)[0] + current_word)
+                current_object = current_text.split(current_word)[0] + current_word
 
         return current_object
 
-    def get_current_word_and_position(self, completion=False, help_req=False,
-                                      valid_python_variable=True):
+    def get_current_word_and_position(
+        self, completion=False, help_req=False, valid_python_variable=True
+    ):
         """
         Return current word, i.e. word at cursor position, and the start
         position.
@@ -1038,8 +1088,7 @@ class BaseEditMixin(object):
             # of the selection: this is required to be able to properly
             # select the whole word under cursor (otherwise, the same word is
             # not selected when the cursor is at the right side of it):
-            cursor.setPosition(min([cursor.selectionStart(),
-                                    cursor.selectionEnd()]))
+            cursor.setPosition(min([cursor.selectionStart(), cursor.selectionEnd()]))
         else:
             # Checks if the first character to the right is a white space
             # and if not, moves the cursor one word to the left (otherwise,
@@ -1057,8 +1106,7 @@ class BaseEditMixin(object):
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
                 text_cursor = to_text_string(curs.selectedText()).strip()
-                return len(
-                    re.findall(r'([^\d\W]\w*)', text_cursor, re.UNICODE)) == 0
+                return len(re.findall(r"([^\d\W]\w*)", text_cursor, re.UNICODE)) == 0
 
             if help_req:
                 if is_special_character(QTextCursor.PreviousCharacter):
@@ -1073,7 +1121,7 @@ class BaseEditMixin(object):
             else:
                 if is_space(QTextCursor.PreviousCharacter):
                     return
-                if (is_special_character(QTextCursor.NextCharacter)):
+                if is_special_character(QTextCursor.NextCharacter):
                     cursor.movePosition(QTextCursor.WordLeft)
 
         cursor.select(QTextCursor.WordUnderCursor)
@@ -1082,7 +1130,7 @@ class BaseEditMixin(object):
 
         # Find a valid Python variable name
         if valid_python_variable:
-            match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
+            match = re.findall(r"([^\d\W]\w*)", text, re.UNICODE)
             if not match:
                 # This is assumed in several places of our codebase,
                 # so please don't change this return!
@@ -1091,17 +1139,18 @@ class BaseEditMixin(object):
                 text = match[0]
 
         if completion:
-            text = text[:cursor_pos - startpos]
+            text = text[: cursor_pos - startpos]
 
         return text, startpos
 
-    def get_current_word(self, completion=False, help_req=False,
-                         valid_python_variable=True):
+    def get_current_word(
+        self, completion=False, help_req=False, valid_python_variable=True
+    ):
         """Return current word, i.e. word at cursor position."""
         ret = self.get_current_word_and_position(
             completion=completion,
             help_req=help_req,
-            valid_python_variable=valid_python_variable
+            valid_python_variable=valid_python_variable,
         )
 
         if ret is not None:
@@ -1119,7 +1168,7 @@ class BaseEditMixin(object):
 
     def get_current_line_to_cursor(self):
         """Return text from prompt to cursor."""
-        return self.get_text(self.current_prompt_pos, 'cursor')
+        return self.get_text(self.current_prompt_pos, "cursor")
 
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)."""
@@ -1130,7 +1179,7 @@ class BaseEditMixin(object):
         """Return line at *coordinates* (QPoint)."""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.BlockUnderCursor)
-        return to_text_string(cursor.selectedText()).replace(u'\u2029', '')
+        return to_text_string(cursor.selectedText()).replace("\u2029", "")
 
     def get_word_at(self, coordinates):
         """Return word at *coordinates* (QPoint)."""
@@ -1139,14 +1188,14 @@ class BaseEditMixin(object):
         if self._is_point_inside_word_rect(coordinates):
             word = to_text_string(cursor.selectedText())
         else:
-            word = ''
+            word = ""
 
         return word
 
     def get_line_indentation(self, text):
         """Get indentation for given line."""
-        text = text.replace("\t", " "*self.tab_stop_width_spaces)
-        return len(text)-len(text.lstrip())
+        text = text.replace("\t", " " * self.tab_stop_width_spaces)
+        return len(text) - len(text.lstrip())
 
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)."""
@@ -1175,7 +1224,7 @@ class BaseEditMixin(object):
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
 
-    #------Text selection
+    # ------Text selection
     def has_selected_text(self):
         """Returns True if some text is selected."""
         return bool(to_text_string(self.textCursor().selectedText()))
@@ -1189,8 +1238,9 @@ class BaseEditMixin(object):
         """
         if cursor is None:
             cursor = self.textCursor()
-        return to_text_string(cursor.selectedText()).replace(u"\u2029",
-                                                     self.get_line_separator())
+        return to_text_string(cursor.selectedText()).replace(
+            "\u2029", self.get_line_separator()
+        )
 
     def remove_selected_text(self):
         """Delete selected text."""
@@ -1199,8 +1249,11 @@ class BaseEditMixin(object):
         # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
         # See spyder-ide/spyder#12663 and
         # https://bugreports.qt.io/browse/QTBUG-35861
-        if (parse_version(QT_VERSION) < parse_version('5.15')
-                or os.name == 'nt' or sys.platform == 'darwin'):
+        if (
+            parse_version(QT_VERSION) < parse_version("5.15")
+            or os.name == "nt"
+            or sys.platform == "darwin"
+        ):
             cursor = self.textCursor()
             cursor.setPosition(cursor.position())
             self.setTextCursor(cursor)
@@ -1219,8 +1272,9 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
         if pattern is not None:
-            text = re.sub(to_text_string(pattern),
-                          to_text_string(text), to_text_string(seltxt))
+            text = re.sub(
+                to_text_string(pattern), to_text_string(text), to_text_string(seltxt)
+            )
         if self.sig_will_insert_text is not None:
             self.sig_will_insert_text.emit(text)
         cursor.insertText(text)
@@ -1228,8 +1282,7 @@ class BaseEditMixin(object):
             self.sig_text_was_inserted.emit()
         cursor.endEditBlock()
 
-
-    #------Find/replace
+    # ------Find/replace
     def find_multiline_pattern(self, regexp, cursor, findflag):
         """Reimplement QTextDocument's find method.
 
@@ -1260,14 +1313,15 @@ class BaseEditMixin(object):
             fcursor.setPosition(pos2, QTextCursor.KeepAnchor)
             return fcursor
 
-    def find_text(self, text, changed=True, forward=True, case=False,
-                  word=False, regexp=False):
+    def find_text(
+        self, text, changed=True, forward=True, case=False, word=False, regexp=False
+    ):
         """Find text."""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
 
         # Get visible region to center cursor in case it's necessary.
-        if getattr(self, 'get_visible_block_numbers', False):
+        if getattr(self, "get_visible_block_numbers", False):
             current_visible_region = self.get_visible_block_numbers()
         else:
             current_visible_region = None
@@ -1283,8 +1337,7 @@ class BaseEditMixin(object):
             moves += [QTextCursor.NextWord, QTextCursor.Start]
             if changed:
                 if to_text_string(cursor.selectedText()):
-                    new_position = min([cursor.selectionStart(),
-                                        cursor.selectionEnd()])
+                    new_position = min([cursor.selectionStart(), cursor.selectionEnd()])
                     cursor.setPosition(new_position)
                 else:
                     cursor.movePosition(QTextCursor.PreviousWord)
@@ -1296,17 +1349,15 @@ class BaseEditMixin(object):
         else:
             text = re.escape(to_text_string(text))
 
-        pattern = QRegularExpression(u"\\b{}\\b".format(text) if word else
-                                     text)
+        pattern = QRegularExpression("\\b{}\\b".format(text) if word else text)
         if case:
             pattern.setPatternOptions(QRegularExpression.CaseInsensitiveOption)
 
         for move in moves:
             cursor.movePosition(move)
-            if regexp and '\\n' in text:
+            if regexp and "\\n" in text:
                 # Multiline regular expression
-                found_cursor = self.find_multiline_pattern(pattern, cursor,
-                                                           findflag)
+                found_cursor = self.find_multiline_pattern(pattern, cursor, findflag)
             else:
                 # Single line find: using the QTextDocument's find function,
                 # probably much more efficient than ours
@@ -1329,8 +1380,9 @@ class BaseEditMixin(object):
         """Needs to be overloaded in the codeeditor where it will be True"""
         return False
 
-    def get_number_matches(self, pattern, source_text='', case=False,
-                           regexp=False, word=False):
+    def get_number_matches(
+        self, pattern, source_text="", case=False, regexp=False, word=False
+    ):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
@@ -1343,7 +1395,7 @@ class BaseEditMixin(object):
             source_text = to_text_string(self.toPlainText())
 
         if word:  # match whole words only
-            pattern = r'\b{pattern}\b'.format(pattern=pattern)
+            pattern = r"\b{pattern}\b".format(pattern=pattern)
         try:
             re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
             regobj = re.compile(pattern, flags=re_flags)
@@ -1359,11 +1411,10 @@ class BaseEditMixin(object):
     def get_match_number(self, pattern, case=False, regexp=False, word=False):
         """Get number of the match for the searched text."""
         position = self.textCursor().position()
-        source_text = self.get_text(position_from='sof', position_to=position)
-        match_number = self.get_number_matches(pattern,
-                                               source_text=source_text,
-                                               case=case, regexp=regexp,
-                                               word=word)
+        source_text = self.get_text(position_from="sof", position_to=position)
+        match_number = self.get_number_matches(
+            pattern, source_text=source_text, case=case, regexp=regexp, word=word
+        )
         return match_number
 
     # --- Array builder helper / See 'spyder/widgets/arraybuilder.py'
@@ -1377,15 +1428,15 @@ class BaseEditMixin(object):
 
     def _enter_array(self, inline):
         """Enter array builder mode."""
-        offset = self.get_position('cursor') - self.get_position('sol')
+        offset = self.get_position("cursor") - self.get_position("sol")
         rect = self.cursorRect()
         dlg = ArrayBuilderDialog(self, inline, offset)
 
         # TODO: adapt to font size
         x = rect.left()
         x = int(x - 14)
-        y = rect.top() + (rect.bottom() - rect.top())/2
-        y = int(y - dlg.height()/2 - 3)
+        y = rect.top() + (rect.bottom() - rect.top()) / 2
+        y = int(y - dlg.height() / 2 - 3)
 
         pos = QPoint(x, y)
         pos = self.calculate_real_position(pos)
@@ -1394,15 +1445,15 @@ class BaseEditMixin(object):
         # called from editor
         if self.is_editor():
             python_like_check = self.is_python_like()
-            suffix = '\n'
+            suffix = "\n"
         # called from a console
         else:
             python_like_check = True
-            suffix = ''
+            suffix = ""
 
         if python_like_check and dlg.exec_():
             text = dlg.text() + suffix
-            if text != '':
+            if text != "":
                 cursor = self.textCursor()
                 cursor.beginEditBlock()
                 if self.sig_will_insert_text is not None:
@@ -1415,6 +1466,7 @@ class BaseEditMixin(object):
 
 class TracebackLinksMixin(object):
     """ """
+
     QT_CLASS = None
 
     # This signal emits a parsed error traceback text so we can then
@@ -1425,7 +1477,7 @@ class TracebackLinksMixin(object):
         self.__cursor_changed = False
         self.setMouseTracking(True)
 
-    #------Mouse events
+    # ------Mouse events
     def mouseReleaseEvent(self, event):
         """Go to error"""
         self.QT_CLASS.mouseReleaseEvent(self, event)
@@ -1457,7 +1509,6 @@ class TracebackLinksMixin(object):
 
 
 class GetHelpMixin(object):
-
     def __init__(self):
         self.help_enabled = False
 
@@ -1477,24 +1528,24 @@ class GetHelpMixin(object):
         help_enabled = self.help_enabled or force
         if help_enabled:
             doc = {
-                'name': text,
-                'ignore_unknown': False,
+                "name": text,
+                "ignore_unknown": False,
             }
             self.sig_help_requested.emit(doc)
 
         # Show calltip
-        if call and getattr(self, 'calltips', None):
+        if call and getattr(self, "calltips", None):
             # Display argument list if this is a function call
             iscallable = self.iscallable(text)
             if iscallable is not None:
                 if iscallable:
                     arglist = self.get_arglist(text)
-                    name =  text.split('.')[-1]
-                    argspec = signature = ''
+                    name = text.split(".")[-1]
+                    argspec = signature = ""
                     if isinstance(arglist, bool):
                         arglist = []
                     if arglist:
-                        argspec = '(' + ''.join(arglist) + ')'
+                        argspec = "(" + "".join(arglist) + ")"
                     else:
                         doc = self.get__doc__(text)
                         if doc is not None:
@@ -1527,7 +1578,7 @@ class SaveHistoryMixin(object):
 
     sig_append_to_history_requested = None
 
-    def __init__(self, history_filename=''):
+    def __init__(self, history_filename=""):
         self.history_filename = history_filename
         self.create_history_filename()
 
@@ -1542,9 +1593,9 @@ class SaveHistoryMixin(object):
     def add_to_history(self, command):
         """Add command to history"""
         command = to_text_string(command)
-        if command in ['', '\n'] or command.startswith('Traceback'):
+        if command in ["", "\n"] or command.startswith("Traceback"):
             return
-        if command.endswith('\n'):
+        if command.endswith("\n"):
             command = command[:-1]
         self.histidx = None
         if len(self.history) > 0 and self.history[-1] == command:
@@ -1560,16 +1611,14 @@ class SaveHistoryMixin(object):
         # Needed to prevent errors when writing history to disk
         # See spyder-ide/spyder#6431.
         try:
-            encoding.write(text, self.history_filename, mode='ab')
+            encoding.write(text, self.history_filename, mode="ab")
         except EnvironmentError:
             pass
         if self.sig_append_to_history_requested is not None:
-            self.sig_append_to_history_requested.emit(
-                self.history_filename, text)
+            self.sig_append_to_history_requested.emit(self.history_filename, text)
 
 
 class BrowseHistory(object):
-
     def __init__(self):
         self.history = []
         self.histidx = None
@@ -1584,8 +1633,7 @@ class BrowseHistory(object):
         if cursor_pos < len(line) and self.hist_wholeline:
             self.hist_wholeline = False
         tocursor = line[:cursor_pos]
-        text, self.histidx = self.find_in_history(tocursor, self.histidx,
-                                                  backward)
+        text, self.histidx = self.find_in_history(tocursor, self.histidx, backward)
         if text is not None:
             text = text.strip()
             if self.hist_wholeline:
@@ -1611,10 +1659,10 @@ class BrowseHistory(object):
             return self.history[idx], idx
         else:
             for index in range(len(self.history)):
-                idx = (start_idx+step*(index+1)) % len(self.history)
+                idx = (start_idx + step * (index + 1)) % len(self.history)
                 entry = self.history[idx]
                 if entry.startswith(tocursor):
-                    return entry[len(tocursor):], idx
+                    return entry[len(tocursor) :], idx
             else:
                 return None, start_idx
 
@@ -1624,21 +1672,21 @@ class BrowseHistory(object):
 
 
 class BrowseHistoryMixin(BrowseHistory):
-
     def clear_line(self):
         """Clear current line (without clearing console prompt)"""
-        self.remove_text(self.current_prompt_pos, 'eof')
+        self.remove_text(self.current_prompt_pos, "eof")
 
     def browse_history(self, backward):
         """Browse history"""
-        line = self.get_text(self.current_prompt_pos, 'eof')
-        old_pos = self.get_position('cursor')
-        cursor_pos = self.get_position('cursor') - self.current_prompt_pos
+        line = self.get_text(self.current_prompt_pos, "eof")
+        old_pos = self.get_position("cursor")
+        cursor_pos = self.get_position("cursor") - self.current_prompt_pos
         if cursor_pos < 0:
             cursor_pos = 0
             self.set_cursor_position(self.current_prompt_pos)
         text, move_cursor = super(BrowseHistoryMixin, self).browse_history(
-            line, cursor_pos, backward)
+            line, cursor_pos, backward
+        )
         if text is not None:
             self.clear_line()
             self.insert_text(text)

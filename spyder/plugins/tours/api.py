@@ -17,15 +17,16 @@ class SpyderWidgets:
     """List of supported widgets to highlight/decorate."""
 
     # Panes
-    ipython_console = 'ipyconsole'
-    editor = 'editor'
+    ipython_console = "ipyconsole"
+    editor = "editor"
     panel = Panel.Position.LEFT
     editor_line_number_area = (
-        f'editor.get_current_editor().panels._panels[{panel}].values()')
-    editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
-    file_explorer = 'explorer'
-    help_plugin = 'help'
-    variable_explorer = 'variableexplorer'
+        f"editor.get_current_editor().panels._panels[{panel}].values()"
+    )
+    editor_scroll_flag_area = "editor.get_current_editor().scrollflagarea"
+    file_explorer = "explorer"
+    help_plugin = "help"
+    variable_explorer = "variableexplorer"
     history_log = "historylog"
     plots_plugin = "plots"
     find_plugin = "findinfiles"
@@ -33,15 +34,15 @@ class SpyderWidgets:
     code_analysis = "pylint"
 
     # Toolbars
-    toolbars = ''
-    toolbars_active = ''
-    toolbar_file = ''
-    toolbar_edit = ''
-    toolbar_run = ''
-    toolbar_debug = ''
-    toolbar_main = ''
+    toolbars = ""
+    toolbars_active = ""
+    toolbar_file = ""
+    toolbar_edit = ""
+    toolbar_run = ""
+    toolbar_debug = ""
+    toolbar_main = ""
 
-    status_bar = ''
-    menu_bar = ''
-    menu_file = ''
-    menu_edit = ''
+    status_bar = ""
+    menu_bar = ""
+    menu_file = ""
+    menu_edit = ""

@@ -18,7 +18,7 @@ def get_class_values(cls):
     Idea from:
     https://stackoverflow.com/a/17249228/438386
     """
-    return [v for (k, v) in cls.__dict__.items() if k[:1] != '_']
+    return [v for (k, v) in cls.__dict__.items() if k[:1] != "_"]
 
 
 class PrefixNode:
@@ -32,8 +32,7 @@ class PrefixNode:
         prefix = [((self.path,), self)]
         while prefix != []:
             current_prefix, node = prefix.pop(0)
-            prefix += [(current_prefix + (c,), node.children[c])
-                       for c in node.children]
+            prefix += [(current_prefix + (c,), node.children[c]) for c in node.children]
             yield current_prefix
 
     def add_path(self, path):

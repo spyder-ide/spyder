@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 def __remove_pyc_pyo(fname):
     """Eventually remove .pyc and .pyo files associated to a Python script"""
-    if osp.splitext(fname)[1] == '.py':
-        for ending in ('c', 'o'):
+    if osp.splitext(fname)[1] == ".py":
+        for ending in ("c", "o"):
             if osp.exists(fname + ending):
                 os.remove(fname + ending)
 
@@ -54,6 +54,7 @@ def move_file(source, dest):
     If file is a Python script, also rename .pyc and .pyo files if any
     """
     import shutil
+
     shutil.copy(source, dest)
     remove_file(source)
 
@@ -77,12 +78,11 @@ def onerror(function, path, excinfo):
 def select_port(default_port=20128):
     """Find and return a non used port"""
     import socket
+
     while True:
         try:
-            sock = socket.socket(socket.AF_INET,
-                                 socket.SOCK_STREAM,
-                                 socket.IPPROTO_TCP)
-#            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+            #            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind(("127.0.0.1", default_port))
         except socket.error as _msg:  # analysis:ignore
             default_port += 1
@@ -99,20 +99,42 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
     of *path* with names ending with *extensions*
     Directory names *excluded_dirnames* will be ignored"""
     if extensions is None:
-        extensions = ['.py', '.pyw', '.ipy', '.enaml', '.c', '.h', '.cpp',
-                      '.hpp', '.inc', '.', '.hh', '.hxx', '.cc', '.cxx',
-                      '.cl', '.f', '.for', '.f77', '.f90', '.f95', '.f2k',
-                      '.f03', '.f08']
+        extensions = [
+            ".py",
+            ".pyw",
+            ".ipy",
+            ".enaml",
+            ".c",
+            ".h",
+            ".cpp",
+            ".hpp",
+            ".inc",
+            ".",
+            ".hh",
+            ".hxx",
+            ".cc",
+            ".cxx",
+            ".cl",
+            ".f",
+            ".for",
+            ".f77",
+            ".f90",
+            ".f95",
+            ".f2k",
+            ".f03",
+            ".f08",
+        ]
     if excluded_dirnames is None:
-        excluded_dirnames = ['build', 'dist', '.hg', '.svn']
+        excluded_dirnames = ["build", "dist", ".hg", ".svn"]
 
     def get_filelines(path):
         dfiles, dlines = 0, 0
         if osp.splitext(path)[1] in extensions:
             dfiles = 1
-            with open(path, 'rb') as textfile:
+            with open(path, "rb") as textfile:
                 dlines = len(textfile.read().strip().splitlines())
         return dfiles, dlines
+
     lines = 0
     files = 0
     if osp.isdir(path):
@@ -120,8 +142,10 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
             for d in dirnames[:]:
                 if d in excluded_dirnames:
                     dirnames.remove(d)
-            if excluded_dirnames is None or \
-               osp.dirname(dirpath) not in excluded_dirnames:
+            if (
+                excluded_dirnames is None
+                or osp.dirname(dirpath) not in excluded_dirnames
+            ):
                 for fname in filenames:
                     dfiles, dlines = get_filelines(osp.join(dirpath, fname))
                     files += dfiles
@@ -143,19 +167,20 @@ def remove_backslashes(path):
     Windows platforms for which folder paths may contain backslashes
     and provoke unicode decoding errors in Python 3 (or in Python 2
     when future 'unicode_literals' symbol has been imported)."""
-    if os.name == 'nt':
+    if os.name == "nt":
         # Removing trailing single backslash
-        if path.endswith('\\') and not path.endswith('\\\\'):
+        if path.endswith("\\") and not path.endswith("\\\\"):
             path = path[:-1]
         # Replacing backslashes by slashes
-        path = path.replace('\\', '/')
-        path = path.replace('/\'', '\\\'')
+        path = path.replace("\\", "/")
+        path = path.replace("/'", "\\'")
     return path
 
 
 def get_error_match(text):
     """Return error match"""
     import re
+
     return re.match(r'  File "(.*)", line (\d*)', text)
 
 
@@ -181,6 +206,7 @@ def monkeypatch_method(cls, patch_name):
     cls._old<patch_name><name>. If the "_old_<patch_name>_<name>" attribute
     already exists, KeyError is raised.
     """
+
     def decorator(func):
         fname = func.__name__
         old_func = getattr(cls, fname, None)
@@ -192,16 +218,16 @@ def monkeypatch_method(cls, patch_name):
             if old_attr is None:
                 setattr(cls, old_ref, old_func)
             else:
-                raise KeyError("%s.%s already exists."
-                               % (cls.__name__, old_ref))
+                raise KeyError("%s.%s already exists." % (cls.__name__, old_ref))
         setattr(cls, fname, func)
         return func
+
     return decorator
 
 
 def is_python_script(fname):
     """Is it a valid Python script?"""
-    return osp.isfile(fname) and fname.endswith(('.py', '.pyw', '.ipy'))
+    return osp.isfile(fname) and fname.endswith((".py", ".pyw", ".ipy"))
 
 
 def abspardir(path):
@@ -217,7 +243,7 @@ def get_common_path(pathlist):
             return abspardir(common)
         else:
             for path in pathlist:
-                if not osp.isdir(osp.join(common, path[len(common) + 1:])):
+                if not osp.isdir(osp.join(common, path[len(common) + 1 :])):
                     # `common` is not the real common prefix
                     return abspardir(common)
             else:
@@ -244,6 +270,7 @@ def memoize(obj):
         if len(cache) > 100:
             cache.popitem(last=False)
         return cache[key]
+
     return memoizer
 
 
@@ -256,8 +283,10 @@ def getcwd_or_home():
     try:
         return getcwd()
     except OSError:
-        logger.debug("WARNING: Current working directory was deleted, "
-                     "falling back to home dirertory")
+        logger.debug(
+            "WARNING: Current working directory was deleted, "
+            "falling back to home dirertory"
+        )
         return get_home_dir()
 
 
@@ -278,15 +307,13 @@ def check_connection_port(address, port):
     # Create a TCP socket
     s = socket.socket()
     s.settimeout(2)
-    logger.debug("Attempting to connect to {} on port {}".format(
-                 address, port))
+    logger.debug("Attempting to connect to {} on port {}".format(address, port))
     try:
         s.connect((address, port))
         logger.debug("Connected to {} on port {}".format(address, port))
         return True
     except socket.error as e:
-        logger.debug("Connection to {} on port {} failed: {}".format(
-                     address, port, e))
+        logger.debug("Connection to {} on port {} failed: {}".format(address, port, e))
         return False
     finally:
         s.close()

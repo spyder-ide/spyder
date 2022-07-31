@@ -38,10 +38,12 @@ class SpyderConfigurationAccessor:
     # config system.
     CONF_SECTION = None
 
-    def get_conf(self,
-                 option: ConfigurationKey,
-                 default: Union[NoDefault, BasicTypes] = NoDefault,
-                 section: Optional[str] = None):
+    def get_conf(
+        self,
+        option: ConfigurationKey,
+        default: Union[NoDefault, BasicTypes] = NoDefault,
+        section: Optional[str] = None,
+    ):
         """
         Get an option from the Spyder configuration system.
 
@@ -69,8 +71,8 @@ class SpyderConfigurationAccessor:
         section = self.CONF_SECTION if section is None else section
         if section is None:
             raise AttributeError(
-                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
-                'class attribute!'
+                "A SpyderConfigurationAccessor must define a `CONF_SECTION` "
+                "class attribute!"
             )
 
         return CONF.get(section, option, default)
@@ -98,16 +100,18 @@ class SpyderConfigurationAccessor:
         section = self.CONF_SECTION if section is None else section
         if section is None:
             raise AttributeError(
-                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
-                'class attribute!'
+                "A SpyderConfigurationAccessor must define a `CONF_SECTION` "
+                "class attribute!"
             )
         return CONF.options(section)
 
-    def set_conf(self,
-                 option: ConfigurationKey,
-                 value: BasicTypes,
-                 section: Optional[str] = None,
-                 recursive_notification: bool = True):
+    def set_conf(
+        self,
+        option: ConfigurationKey,
+        value: BasicTypes,
+        section: Optional[str] = None,
+        recursive_notification: bool = True,
+    ):
         """
         Set an option in the Spyder configuration system.
 
@@ -131,19 +135,12 @@ class SpyderConfigurationAccessor:
         section = self.CONF_SECTION if section is None else section
         if section is None:
             raise AttributeError(
-                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
-                'class attribute!'
+                "A SpyderConfigurationAccessor must define a `CONF_SECTION` "
+                "class attribute!"
             )
-        CONF.set(
-            section,
-            option,
-            value,
-            recursive_notification=recursive_notification
-        )
+        CONF.set(section, option, value, recursive_notification=recursive_notification)
 
-    def remove_conf(self,
-                    option: ConfigurationKey,
-                    section: Optional[str] = None):
+    def remove_conf(self, option: ConfigurationKey, section: Optional[str] = None):
         """
         Remove an option in the Spyder configuration system.
 
@@ -158,14 +155,12 @@ class SpyderConfigurationAccessor:
         section = self.CONF_SECTION if section is None else section
         if section is None:
             raise AttributeError(
-                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
-                'class attribute!'
+                "A SpyderConfigurationAccessor must define a `CONF_SECTION` "
+                "class attribute!"
             )
         CONF.remove_option(section, option)
 
-    def get_conf_default(self,
-                         option: ConfigurationKey,
-                         section: Optional[str] = None):
+    def get_conf_default(self, option: ConfigurationKey, section: Optional[str] = None):
         """
         Get an option default value in the Spyder configuration system.
 
@@ -180,8 +175,8 @@ class SpyderConfigurationAccessor:
         section = self.CONF_SECTION if section is None else section
         if section is None:
             raise AttributeError(
-                'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
-                'class attribute!'
+                "A SpyderConfigurationAccessor must define a `CONF_SECTION` "
+                "class attribute!"
             )
         return CONF.get_default(section, option)
 
@@ -210,8 +205,8 @@ class SpyderConfigurationAccessor:
         return CONF.get_shortcut(context, name)
 
     def config_shortcut(
-            self, action: QAction, name: str, parent: QWidget,
-            context: Optional[str] = None) -> Shortcut:
+        self, action: QAction, name: str, parent: QWidget, context: Optional[str] = None
+    ) -> Shortcut:
         """
         Create a Shortcut namedtuple for a widget.
 
@@ -236,12 +231,7 @@ class SpyderConfigurationAccessor:
             shortcuts preferences page.
         """
         shortcut_context = self.CONF_SECTION if context is None else context
-        return CONF.config_shortcut(
-            action,
-            shortcut_context,
-            name,
-            parent
-        )
+        return CONF.config_shortcut(action, shortcut_context, name, parent)
 
     @property
     def old_conf_version(self):
@@ -267,9 +257,9 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         super().__init__()
         if self.CONF_SECTION is None:
             warnings.warn(
-                'A SpyderConfigurationObserver must define a `CONF_SECTION` '
-                f'class attribute! Hint: {self} or its parent should define '
-                'the section.'
+                "A SpyderConfigurationObserver must define a `CONF_SECTION` "
+                f"class attribute! Hint: {self} or its parent should define "
+                "the section."
             )
 
         self._configuration_listeners = {}
@@ -282,8 +272,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
             section = self.CONF_SECTION if section is None else section
             observed_options = self._configuration_listeners[section]
             for option in observed_options:
-                logger.debug(f'{self} is observing {option} '
-                             f'in section {section}')
+                logger.debug(f"{self} is observing {option} " f"in section {section}")
                 CONF.observe_configuration(self, section, option)
 
     def __del__(self):
@@ -294,14 +283,13 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         """Gather all the methods decorated with `on_conf_change`."""
         for method_name in dir(self):
             method = getattr(self, method_name, None)
-            if hasattr(method, '_conf_listen'):
+            if hasattr(method, "_conf_listen"):
                 info = method._conf_listen
                 if len(info) > 1:
                     self._multi_option_listeners |= {method_name}
 
                 for section, option in info:
-                    section_listeners = self._configuration_listeners.get(
-                        section, {})
+                    section_listeners = self._configuration_listeners.get(section, {})
                     option_listeners = section_listeners.get(option, [])
                     option_listeners.append(method_name)
                     section_listeners[option] = option_listeners
@@ -310,21 +298,20 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     def _merge_none_observers(self):
         """Replace observers that declared section as None by CONF_SECTION."""
         default_selectors = self._configuration_listeners.get(None, {})
-        section_selectors = self._configuration_listeners.get(
-            self.CONF_SECTION, {})
+        section_selectors = self._configuration_listeners.get(self.CONF_SECTION, {})
 
         for option in default_selectors:
             default_option_receivers = default_selectors.get(option, [])
             section_option_receivers = section_selectors.get(option, [])
-            merged_receivers = (
-                default_option_receivers + section_option_receivers)
+            merged_receivers = default_option_receivers + section_option_receivers
             section_selectors[option] = merged_receivers
 
         self._configuration_listeners[self.CONF_SECTION] = section_selectors
         self._configuration_listeners.pop(None, None)
 
-    def on_configuration_change(self, option: ConfigurationKey, section: str,
-                                value: Any):
+    def on_configuration_change(
+        self, option: ConfigurationKey, section: str, value: Any
+    ):
         """
         Handle configuration updates for the option `option` on the section
         `section`, whose new value corresponds to `value`.

@@ -28,14 +28,14 @@ from spyder.widgets.comboboxes import PathComboBox
 
 
 # Localization and logging
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 logger = logging.getLogger(__name__)
 
 
 # ---- Constants
 # ----------------------------------------------------------------------------
 class WorkingDirectoryActions:
-    Previous = 'previous_action'
+    Previous = "previous_action"
     Next = "next_action"
     Browse = "browse_action"
     Parent = "parent_action"
@@ -46,16 +46,16 @@ class WorkingDirectoryToolbarSections:
 
 
 class WorkingDirectoryToolbarItems:
-    PathComboBox = 'path_combo'
+    PathComboBox = "path_combo"
+
 
 # ---- Widgets
 # ----------------------------------------------------------------------------
 class WorkingDirectoryToolbar(ApplicationToolbar):
-    ID = 'working_directory_toolbar'
+    ID = "working_directory_toolbar"
 
 
 class WorkingDirectoryComboBox(PathComboBox):
-
     def __init__(self, parent, adjust_to_contents=False, id_=None):
         super().__init__(parent, adjust_to_contents, id_=id_)
 
@@ -91,22 +91,22 @@ class WorkingDirectoryContainer(PluginMainContainer):
     # ------------------------------------------------------------------------
     def setup(self):
         # Variables
-        self.history = self.get_conf('history', [])
+        self.history = self.get_conf("history", [])
         self.histindex = None
 
         # Widgets
-        title = _('Current working directory')
+        title = _("Current working directory")
         self.toolbar = WorkingDirectoryToolbar(self, title)
         self.pathedit = WorkingDirectoryComboBox(
             self,
-            adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
-            id_=WorkingDirectoryToolbarItems.PathComboBox
+            adjust_to_contents=self.get_conf("working_dir_adjusttocontents"),
+            id_=WorkingDirectoryToolbarItems.PathComboBox,
         )
 
         # Widget Setup
         self.toolbar.setWindowTitle(title)
         self.toolbar.setObjectName(title)
-        self.pathedit.setMaxCount(self.get_conf('working_dir_history'))
+        self.pathedit.setMaxCount(self.get_conf("working_dir_history"))
         self.pathedit.selected_text = self.pathedit.currentText()
 
         # Signals
@@ -116,35 +116,34 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Actions
         self.previous_action = self.create_action(
             WorkingDirectoryActions.Previous,
-            text=_('Back'),
-            tip=_('Back'),
-            icon=self.create_icon('previous'),
+            text=_("Back"),
+            tip=_("Back"),
+            icon=self.create_icon("previous"),
             triggered=self._previous_directory,
         )
         self.next_action = self.create_action(
             WorkingDirectoryActions.Next,
-            text=_('Next'),
-            tip=_('Next'),
-            icon=self.create_icon('next'),
+            text=_("Next"),
+            tip=_("Next"),
+            icon=self.create_icon("next"),
             triggered=self._next_directory,
         )
         browse_action = self.create_action(
             WorkingDirectoryActions.Browse,
-            text=_('Browse a working directory'),
-            tip=_('Browse a working directory'),
-            icon=self.create_icon('DirOpenIcon'),
+            text=_("Browse a working directory"),
+            tip=_("Browse a working directory"),
+            icon=self.create_icon("DirOpenIcon"),
             triggered=self._select_directory,
         )
         parent_action = self.create_action(
             WorkingDirectoryActions.Parent,
-            text=_('Change to parent directory'),
-            tip=_('Change to parent directory'),
-            icon=self.create_icon('up'),
+            text=_("Change to parent directory"),
+            tip=_("Change to parent directory"),
+            icon=self.create_icon("up"),
             triggered=self._parent_directory,
         )
 
-        for item in [self.pathedit,
-                     browse_action, parent_action]:
+        for item in [self.pathedit, browse_action, parent_action]:
             self.add_item_to_toolbar(
                 item,
                 self.toolbar,
@@ -153,13 +152,13 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
     def update_actions(self):
         self.previous_action.setEnabled(
-            self.histindex is not None and self.histindex > 0)
+            self.histindex is not None and self.histindex > 0
+        )
         self.next_action.setEnabled(
-            self.histindex is not None
-            and self.histindex < len(self.history) - 1
+            self.histindex is not None and self.histindex < len(self.history) - 1
         )
 
-    @on_conf_change(option='history')
+    @on_conf_change(option="history")
     def on_history_update(self, value):
         self.history = value
 
@@ -177,15 +176,15 @@ class WorkingDirectoryContainer(PluginMainContainer):
         """
         workdir = get_home_dir()
 
-        if self.get_conf('startup/use_project_or_home_directory'):
+        if self.get_conf("startup/use_project_or_home_directory"):
             workdir = get_home_dir()
-        elif self.get_conf('startup/use_fixed_directory'):
-            workdir = self.get_conf('startup/fixed_directory')
+        elif self.get_conf("startup/use_fixed_directory"):
+            workdir = self.get_conf("startup/fixed_directory")
 
             # If workdir can't be found, restore default options.
             if not osp.isdir(workdir):
-                self.set_conf('startup/use_project_or_home_directory', True)
-                self.set_conf('startup/use_fixed_directory', False)
+                self.set_conf("startup/use_project_or_home_directory", True)
+                self.set_conf("startup/use_fixed_directory", False)
                 workdir = get_home_dir()
 
         return workdir
@@ -220,13 +219,13 @@ class WorkingDirectoryContainer(PluginMainContainer):
     def _previous_directory(self):
         """Select the previous directory."""
         self.histindex -= 1
-        self.chdir(directory='', browsing_history=True)
+        self.chdir(directory="", browsing_history=True)
 
     @Slot()
     def _next_directory(self):
         """Select the next directory."""
         self.histindex += 1
-        self.chdir(directory='', browsing_history=True)
+        self.chdir(directory="", browsing_history=True)
 
     @Slot()
     def _parent_directory(self):
@@ -275,14 +274,14 @@ class WorkingDirectoryContainer(PluginMainContainer):
             if self.histindex is None:
                 self.history = []
             else:
-                self.history = self.history[:self.histindex + 1]
+                self.history = self.history[: self.histindex + 1]
 
             self.history.append(directory)
             self.histindex = len(self.history) - 1
 
         # Changing working directory
         try:
-            logger.debug(f'Setting cwd to {directory}')
+            logger.debug(f"Setting cwd to {directory}")
             os.chdir(directory)
             self.pathedit.add_text(directory)
             self.update_actions()
@@ -301,8 +300,9 @@ class WorkingDirectoryContainer(PluginMainContainer):
         list
             List of string paths.
         """
-        return [str(self.pathedit.itemText(index)) for index
-                in range(self.pathedit.count())]
+        return [
+            str(self.pathedit.itemText(index)) for index in range(self.pathedit.count())
+        ]
 
     def set_history(self, history, cli_workdir=None):
         """
@@ -315,14 +315,14 @@ class WorkingDirectoryContainer(PluginMainContainer):
         cli_workdir: str or None
             Working directory passed on the command line.
         """
-        self.set_conf('history', history)
+        self.set_conf("history", history)
         if history:
             self.pathedit.addItems(history)
 
         if cli_workdir is None:
             workdir = self._get_init_workdir()
         else:
-            logger.debug('Setting cwd passed from the command line')
+            logger.debug("Setting cwd passed from the command line")
             workdir = cli_workdir
 
             # In case users pass an invalid directory on the command line

@@ -17,7 +17,7 @@ import re
 
 # ---- To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
-os.environ['SPYDER_PYTEST'] = 'True'
+os.environ["SPYDER_PYTEST"] = "True"
 
 # ---- Pytest adjustments
 import pytest
@@ -25,8 +25,9 @@ import pytest
 
 def pytest_addoption(parser):
     """Add option to run slow tests."""
-    parser.addoption("--run-slow", action="store_true",
-                     default=False, help="Run slow tests")
+    parser.addoption(
+        "--run-slow", action="store_true", default=False, help="Run slow tests"
+    )
 
 
 def get_passed_tests():
@@ -38,12 +39,12 @@ def get_passed_tests():
     """
     # This assumes the pytest log is placed next to this file. That's where
     # we put it on CIs.
-    if osp.isfile('pytest_log.txt'):
-        with open('pytest_log.txt') as f:
+    if osp.isfile("pytest_log.txt"):
+        with open("pytest_log.txt") as f:
             logfile = f.readlines()
 
         # Detect all tests that passed before.
-        test_re = re.compile(r'(spyder.*) [^ ]*(SKIPPED|PASSED|XFAIL)')
+        test_re = re.compile(r"(spyder.*) [^ ]*(SKIPPED|PASSED|XFAIL)")
         tests = set()
         for line in logfile:
             match = test_re.match(line)
@@ -81,6 +82,7 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(autouse=True)
 def reset_conf_before_test():
     from spyder.config.manager import CONF
+
     CONF.reset_to_defaults(notification=False)
 
     from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
@@ -95,17 +97,24 @@ def reset_conf_before_test():
         Provider = entry_point.resolve()
         provider_name = Provider.COMPLETION_PROVIDER_NAME
 
-        (provider_conf_version,
-         current_conf_values,
-         provider_defaults) = CompletionPlugin._merge_default_configurations(
-            Provider, provider_name, provider_configurations)
+        (
+            provider_conf_version,
+            current_conf_values,
+            provider_defaults,
+        ) = CompletionPlugin._merge_default_configurations(
+            Provider, provider_name, provider_configurations
+        )
 
         new_provider_config = {
-            'version': provider_conf_version,
-            'values': current_conf_values,
-            'defaults': provider_defaults
+            "version": provider_conf_version,
+            "values": current_conf_values,
+            "defaults": provider_defaults,
         }
         provider_configurations[provider_name] = new_provider_config
 
-    CONF.set('completions', 'provider_configuration', provider_configurations,
-             notification=False)
+    CONF.set(
+        "completions",
+        "provider_configuration",
+        provider_configurations,
+        notification=False,
+    )

@@ -41,31 +41,35 @@ class FigureBrowserWidget(RichJupyterWidget):
         and the kernel.
         """
         img = None
-        data = msg['content']['data']
-        if 'image/svg+xml' in data:
-            fmt = 'image/svg+xml'
-            img = data['image/svg+xml']
-        elif 'image/png' in data:
+        data = msg["content"]["data"]
+        if "image/svg+xml" in data:
+            fmt = "image/svg+xml"
+            img = data["image/svg+xml"]
+        elif "image/png" in data:
             # PNG data is base64 encoded as it passes over the network
             # in a JSON structure so we decode it.
-            fmt = 'image/png'
-            img = decodebytes(data['image/png'].encode('ascii'))
-        elif 'image/jpeg' in data and self._jpg_supported:
-            fmt = 'image/jpeg'
-            img = decodebytes(data['image/jpeg'].encode('ascii'))
+            fmt = "image/png"
+            img = decodebytes(data["image/png"].encode("ascii"))
+        elif "image/jpeg" in data and self._jpg_supported:
+            fmt = "image/jpeg"
+            img = decodebytes(data["image/jpeg"].encode("ascii"))
 
         if img is not None:
             self.sig_new_inline_figure.emit(img, fmt)
-            if (self.figurebrowser is not None and
-                    self.figurebrowser.mute_inline_plotting):
+            if (
+                self.figurebrowser is not None
+                and self.figurebrowser.mute_inline_plotting
+            ):
                 if not self.sended_render_message:
                     self._append_html("<br>", before_prompt=True)
                     self.append_html_message(
-                        _('Figures now render in the Plots pane by default. '
-                          'To make them also appear inline in the Console, '
-                          'uncheck "Mute Inline Plotting" under the Plots '
-                          'pane options menu.'),
-                        before_prompt=True
+                        _(
+                            "Figures now render in the Plots pane by default. "
+                            "To make them also appear inline in the Console, "
+                            'uncheck "Mute Inline Plotting" under the Plots '
+                            "pane options menu."
+                        ),
+                        before_prompt=True,
                     )
                     self.sended_render_message = True
                 return

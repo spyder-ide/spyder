@@ -29,7 +29,7 @@ from spyder.utils.registries import TOOLBAR_REGISTRY
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 # Type annotations
 ToolbarItem = Union[SpyderAction, QWidget]
@@ -51,6 +51,7 @@ class ToolbarActions:
 
 class QActionID(QAction):
     """Wrapper class around QAction that allows to set/get an identifier."""
+
     @property
     def action_id(self):
         return self._action_id
@@ -78,14 +79,13 @@ class ToolbarContainer(PluginMainContainer):
         for toolbar in self._visible_toolbars:
             toolbars.append(toolbar.objectName())
 
-        self.set_conf('last_visible_toolbars', toolbars)
+        self.set_conf("last_visible_toolbars", toolbars)
 
     def _get_visible_toolbars(self):
         """Collect the visible toolbars."""
         toolbars = []
         for toolbar in self._toolbarslist:
-            if (toolbar.toggleViewAction().isChecked()
-                    and toolbar not in toolbars):
+            if toolbar.toggleViewAction().isChecked() and toolbar not in toolbars:
                 toolbars.append(toolbar)
 
         self._visible_toolbars = toolbars
@@ -109,8 +109,9 @@ class ToolbarContainer(PluginMainContainer):
         if toolbar_id in self._ITEMS_QUEUE:
             pending_items = self._ITEMS_QUEUE.pop(toolbar_id)
             for item, section, before, before_section in pending_items:
-                toolbar.add_item(item, section=section, before=before,
-                                 before_section=before_section)
+                toolbar.add_item(
+                    item, section=section, before=before, before_section=before_section
+                )
 
     # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
@@ -118,14 +119,14 @@ class ToolbarContainer(PluginMainContainer):
         self.show_toolbars_action = self.create_action(
             ToolbarActions.ShowToolbars,
             text=_("Show toolbars"),
-            triggered=self._show_toolbars
+            triggered=self._show_toolbars,
         )
 
         self.toolbars_menu = self.create_menu(
             ToolbarMenus.ToolbarsMenu,
             _("Toolbars"),
         )
-        self.toolbars_menu.setObjectName('checkbox-padding')
+        self.toolbars_menu.setObjectName("checkbox-padding")
 
     def update_actions(self):
         visible_toolbars = self.get_conf("toolbars_visible")
@@ -143,7 +144,8 @@ class ToolbarContainer(PluginMainContainer):
     # ---- Public API
     # ------------------------------------------------------------------------
     def create_application_toolbar(
-            self, toolbar_id: str, title: str) -> ApplicationToolbar:
+        self, toolbar_id: str, title: str
+    ) -> ApplicationToolbar:
         """
         Create an application toolbar and add it to the main window.
 
@@ -161,14 +163,16 @@ class ToolbarContainer(PluginMainContainer):
         """
         if toolbar_id in self._APPLICATION_TOOLBARS:
             raise SpyderAPIError(
-                'Toolbar with ID "{}" already added!'.format(toolbar_id))
+                'Toolbar with ID "{}" already added!'.format(toolbar_id)
+            )
 
         toolbar = ApplicationToolbar(self, title)
         toolbar.ID = toolbar_id
         toolbar.setObjectName(toolbar_id)
 
         TOOLBAR_REGISTRY.register_reference(
-            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+        )
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
@@ -187,9 +191,7 @@ class ToolbarContainer(PluginMainContainer):
         """
         # Check toolbar class
         if not isinstance(toolbar, ApplicationToolbar):
-            raise SpyderAPIError(
-                'Any toolbar must subclass ApplicationToolbar!'
-            )
+            raise SpyderAPIError("Any toolbar must subclass ApplicationToolbar!")
 
         # Check ID
         toolbar_id = toolbar.ID
@@ -200,7 +202,8 @@ class ToolbarContainer(PluginMainContainer):
 
         if toolbar_id in self._ADDED_TOOLBARS:
             raise SpyderAPIError(
-                'Toolbar with ID "{}" already added!'.format(toolbar_id))
+                'Toolbar with ID "{}" already added!'.format(toolbar_id)
+            )
 
         # TODO: Make the icon size adjustable in Preferences later on.
         iconsize = 24
@@ -229,8 +232,8 @@ class ToolbarContainer(PluginMainContainer):
 
         if toolbar_id not in self._ADDED_TOOLBARS:
             raise SpyderAPIError(
-                'Toolbar with ID "{}" is not in the main window'.format(
-                    toolbar_id))
+                'Toolbar with ID "{}" is not in the main window'.format(toolbar_id)
+            )
 
         toolbar = self._ADDED_TOOLBARS.pop(toolbar_id)
         self._toolbarslist.remove(toolbar)
@@ -238,13 +241,15 @@ class ToolbarContainer(PluginMainContainer):
         if mainwindow:
             mainwindow.removeToolBar(toolbar)
 
-    def add_item_to_application_toolbar(self,
-                                        item: ToolbarItem,
-                                        toolbar_id: Optional[str] = None,
-                                        section: Optional[str] = None,
-                                        before: Optional[str] = None,
-                                        before_section: Optional[str] = None,
-                                        omit_id: bool = False):
+    def add_item_to_application_toolbar(
+        self,
+        item: ToolbarItem,
+        toolbar_id: Optional[str] = None,
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        omit_id: bool = False,
+    ):
         """
         Add action or widget `item` to given application toolbar `section`.
 
@@ -272,11 +277,17 @@ class ToolbarContainer(PluginMainContainer):
             self._ITEMS_QUEUE[toolbar_id] = pending_items
         else:
             toolbar = self.get_application_toolbar(toolbar_id)
-            toolbar.add_item(item, section=section, before=before,
-                             before_section=before_section, omit_id=omit_id)
+            toolbar.add_item(
+                item,
+                section=section,
+                before=before,
+                before_section=before_section,
+                omit_id=omit_id,
+            )
 
-    def remove_item_from_application_toolbar(self, item_id: str,
-                                             toolbar_id: Optional[str] = None):
+    def remove_item_from_application_toolbar(
+        self, item_id: str, toolbar_id: Optional[str] = None
+    ):
         """
         Remove action or widget from given application toolbar by id.
 
@@ -288,8 +299,7 @@ class ToolbarContainer(PluginMainContainer):
             The application toolbar unique string identifier.
         """
         if toolbar_id not in self._APPLICATION_TOOLBARS:
-            raise SpyderAPIError(
-                '{} is not a valid toolbar_id'.format(toolbar_id))
+            raise SpyderAPIError("{} is not a valid toolbar_id".format(toolbar_id))
 
         toolbar = self.get_application_toolbar(toolbar_id)
         toolbar.remove_item(item_id)
@@ -311,9 +321,8 @@ class ToolbarContainer(PluginMainContainer):
         if toolbar_id not in self._APPLICATION_TOOLBARS:
             raise SpyderAPIError(
                 'Application toolbar "{0}" not found! '
-                'Available toolbars are: {1}'.format(
-                    toolbar_id,
-                    list(self._APPLICATION_TOOLBARS.keys())
+                "Available toolbars are: {1}".format(
+                    toolbar_id, list(self._APPLICATION_TOOLBARS.keys())
                 )
             )
 
@@ -338,7 +347,7 @@ class ToolbarContainer(PluginMainContainer):
 
     def load_last_visible_toolbars(self):
         """Load the last visible toolbars from our preferences."""
-        toolbars_names = self.get_conf('last_visible_toolbars')
+        toolbars_names = self.get_conf("last_visible_toolbars")
         toolbars_visible = self.get_conf("toolbars_visible")
 
         if toolbars_names:
@@ -382,7 +391,7 @@ class ToolbarContainer(PluginMainContainer):
                     # and QMainWindow.addToolbar(QString), which return a
                     # pointer to an already existing QObject.
                     action.__class__ = QActionID
-                action.action_id = f'toolbar_{toolbar_id}'
+                action.action_id = f"toolbar_{toolbar_id}"
                 section = (
                     main_section
                     if toolbar_id in default_toolbars

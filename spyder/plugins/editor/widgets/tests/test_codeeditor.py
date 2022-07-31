@@ -17,109 +17,113 @@ import pytest
 
 
 HERE = osp.dirname(osp.abspath(__file__))
-ASSETS = osp.join(HERE, 'assets')
+ASSETS = osp.join(HERE, "assets")
 
 
 def test_editor_upper_to_lower(codeeditor):
     widget = codeeditor
-    text = 'UPPERCASE'
+    text = "UPPERCASE"
     widget.set_text(text)
     cursor = widget.textCursor()
-    cursor.movePosition(QTextCursor.NextCharacter,
-                        QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
     widget.setTextCursor(cursor)
     widget.transform_to_lowercase()
-    new_text = widget.get_text('sof', 'eof')
+    new_text = widget.get_text("sof", "eof")
     assert text != new_text
 
 
 def test_editor_lower_to_upper(codeeditor):
     widget = codeeditor
-    text = 'uppercase'
+    text = "uppercase"
     widget.set_text(text)
     cursor = widget.textCursor()
-    cursor.movePosition(QTextCursor.NextCharacter,
-                        QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
     widget.setTextCursor(cursor)
     widget.transform_to_uppercase()
-    new_text = widget.get_text('sof', 'eof')
+    new_text = widget.get_text("sof", "eof")
     assert text != new_text
 
 
 @pytest.mark.parametrize(
     "input_text, expected_text, keys, strip_all",
     [
-        ("for i in range(2): ",
-         "for i in range(2): \n    \n     \n    ",
-         [Qt.Key_Enter, Qt.Key_Enter, ' ', Qt.Key_Enter],
-         False),
-        ('for i in range(2): ',
-         'for i in range(2):\n\n    ',
-         [Qt.Key_Enter, Qt.Key_Enter],
-         True),
-        ('myvar = 2 ',
-         'myvar = 2\n',
-         [Qt.Key_Enter],
-         True),
-        ('somecode = 1\nmyvar = 2 \nmyvar = 3',
-         'somecode = 1\nmyvar = 2 \nmyvar = 3',
-         [' ', Qt.Key_Up, Qt.Key_Up],
-         True),
-        ('somecode = 1\nmyvar = 2 ',
-         'somecode = 1\nmyvar = 2 ',
-         [Qt.Key_Left],
-         True),
-        ('"""This is a string with important spaces\n    ',
-         '"""This is a string with important spaces\n    \n',
-         [Qt.Key_Enter],
-         True),
-        ('"""string   ',
-         '"""string   \n',
-         [Qt.Key_Enter],
-         True),
-        ('somecode = 1\nmyvar = 2',
-         'somecode = 1\nmyvar = 2',
-         [' ', (Qt.LeftButton, 0)],
-         True),
-        ('somecode = 1\nmyvar = 2',
-         'somecode = 1\nmyvar = 2 ',
-         [' ', (Qt.LeftButton, 23)],
-         True),
-        ('a=1\na=2 \na=3',
-         'a=1\na=2 \na=3',
-         [(Qt.LeftButton, 6), Qt.Key_Up],
-         True),
-        ('def fun():\n    """fun',
-         'def fun():\n    """fun\n\n    ',
-         [Qt.Key_Enter, Qt.Key_Enter],
-         True),
-        ('def fun():\n    """fun',
-         'def fun():\n    """fun\n    \n    ',
-         [Qt.Key_Enter, Qt.Key_Enter],
-         False),
-        ("('🚫')",
-         "('🚫')\n",
-         [Qt.Key_Enter],
-         True),
-        ("def fun():",
-         "def fun():\n\n    ",
-         [Qt.Key_Enter, Qt.Key_Enter],
-         True),
-        ("def fun():",
-         "def fun():\n\n\n",
-         [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Enter],
-         True),
-        ("def fun():\n    i = 0\n# no indent",
-         "def fun():\n    i = 0\n# no indent\n",
-         [Qt.Key_Enter],
-         True),
-        ("if a:\n    def b():\n        i = 1",
-         "if a:\n    def b():\n        i = 1\n\n    ",
-         [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Backspace],
-         True),
-    ])
-def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
-                                keys, strip_all):
+        (
+            "for i in range(2): ",
+            "for i in range(2): \n    \n     \n    ",
+            [Qt.Key_Enter, Qt.Key_Enter, " ", Qt.Key_Enter],
+            False,
+        ),
+        (
+            "for i in range(2): ",
+            "for i in range(2):\n\n    ",
+            [Qt.Key_Enter, Qt.Key_Enter],
+            True,
+        ),
+        ("myvar = 2 ", "myvar = 2\n", [Qt.Key_Enter], True),
+        (
+            "somecode = 1\nmyvar = 2 \nmyvar = 3",
+            "somecode = 1\nmyvar = 2 \nmyvar = 3",
+            [" ", Qt.Key_Up, Qt.Key_Up],
+            True,
+        ),
+        ("somecode = 1\nmyvar = 2 ", "somecode = 1\nmyvar = 2 ", [Qt.Key_Left], True),
+        (
+            '"""This is a string with important spaces\n    ',
+            '"""This is a string with important spaces\n    \n',
+            [Qt.Key_Enter],
+            True,
+        ),
+        ('"""string   ', '"""string   \n', [Qt.Key_Enter], True),
+        (
+            "somecode = 1\nmyvar = 2",
+            "somecode = 1\nmyvar = 2",
+            [" ", (Qt.LeftButton, 0)],
+            True,
+        ),
+        (
+            "somecode = 1\nmyvar = 2",
+            "somecode = 1\nmyvar = 2 ",
+            [" ", (Qt.LeftButton, 23)],
+            True,
+        ),
+        ("a=1\na=2 \na=3", "a=1\na=2 \na=3", [(Qt.LeftButton, 6), Qt.Key_Up], True),
+        (
+            'def fun():\n    """fun',
+            'def fun():\n    """fun\n\n    ',
+            [Qt.Key_Enter, Qt.Key_Enter],
+            True,
+        ),
+        (
+            'def fun():\n    """fun',
+            'def fun():\n    """fun\n    \n    ',
+            [Qt.Key_Enter, Qt.Key_Enter],
+            False,
+        ),
+        ("('🚫')", "('🚫')\n", [Qt.Key_Enter], True),
+        ("def fun():", "def fun():\n\n    ", [Qt.Key_Enter, Qt.Key_Enter], True),
+        (
+            "def fun():",
+            "def fun():\n\n\n",
+            [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Enter],
+            True,
+        ),
+        (
+            "def fun():\n    i = 0\n# no indent",
+            "def fun():\n    i = 0\n# no indent\n",
+            [Qt.Key_Enter],
+            True,
+        ),
+        (
+            "if a:\n    def b():\n        i = 1",
+            "if a:\n    def b():\n        i = 1\n\n    ",
+            [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Backspace],
+            True,
+        ),
+    ],
+)
+def test_editor_rstrip_keypress(
+    codeeditor, qtbot, input_text, expected_text, keys, strip_all
+):
     """
     Test that whitespace is removed when leaving a line.
     """
@@ -136,17 +140,19 @@ def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
             cursor = widget.textCursor()
             cursor.setPosition(position)
             xypos = widget.cursorRect(cursor).center()
-            widget.mousePressEvent(QMouseEvent(
-                    QEvent.MouseButtonPress, xypos,
-                    button, button,
-                    Qt.NoModifier))
+            widget.mousePressEvent(
+                QMouseEvent(
+                    QEvent.MouseButtonPress, xypos, button, button, Qt.NoModifier
+                )
+            )
         else:
             qtbot.keyPress(widget, key)
     assert widget.toPlainText() == expected_text
 
 
 @pytest.mark.parametrize(
-    "input_text, expected_state", [
+    "input_text, expected_state",
+    [
         ("'string ", [True, False]),
         ('"string ', [True, False]),
         ("'string \\", [True, True]),
@@ -156,9 +162,9 @@ def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
         ("'string ' ", [False, False]),
         ('"string " ', [False, False]),
         ("'string \"", [True, False]),
-        ('"string \'', [True, False]),
+        ("\"string '", [True, False]),
         ("'string \" ", [True, False]),
-        ('"string \' ', [True, False]),
+        ("\"string ' ", [True, False]),
         ("'''string ", [True, True]),
         ('"""string ', [True, True]),
         ("'''string \\", [True, True]),
@@ -168,16 +174,17 @@ def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
         ("'''string ''' ", [False, False]),
         ('"""string """ ', [False, False]),
         ("'''string \"\"\"", [True, True]),
-        ('"""string \'\'\'', [True, True]),
+        ("\"\"\"string '''", [True, True]),
         ("'''string \"\"\" ", [True, True]),
-        ('"""string \'\'\' ', [True, True]),
-    ])
+        ("\"\"\"string ''' ", [True, True]),
+    ],
+)
 def test_in_string(codeeditor, input_text, expected_state):
     """
     Test that in_string works correctly.
     """
     widget = codeeditor
-    widget.set_text(input_text + '\n  ')
+    widget.set_text(input_text + "\n  ")
     cursor = widget.textCursor()
 
     for blanks_enabled in [True, False]:
@@ -244,7 +251,7 @@ def test_brace_match(codeeditor):
     """
     # Create editor with contents loaded from assets/brackets.py
     editor = codeeditor
-    with open(osp.join(ASSETS, 'braces.py'), 'r') as file:
+    with open(osp.join(ASSETS, "braces.py"), "r") as file:
         editor.set_text(file.read())
 
     # Each element of *positions* is a two element list:
@@ -262,11 +269,11 @@ def test_brace_match(codeeditor):
     # illustrate in what part of 'braces.py' the cursor is placed in
     # that test case.
     positions = [
-        [0, None],       # b
-        [5,  (4, 55)],   # b = [
-        [56, (55,  4)],  # ]
-        [7,  (6, 12)],   # [x
-        [13, (12,  6)],  # x*2]
+        [0, None],  # b
+        [5, (4, 55)],  # b = [
+        [56, (55, 4)],  # ]
+        [7, (6, 12)],  # [x
+        [13, (12, 6)],  # x*2]
         [29, (28, 54)],  # [1
         [55, (54, 28)],  # ]
         [32, (31, 35)],  # [2
@@ -274,13 +281,13 @@ def test_brace_match(codeeditor):
         [38, (37, 53)],  # [4
         [54, (53, 37)],  # ]
         [41, (40, 42)],  # [5
-        [42, None],      # 5
+        [42, None],  # 5
         [43, (42, 40)],  # 5]
         [47, (46, 52)],  # [7
         [53, (52, 46)],  # 8]
         [63, (62, 143)],  # a = [
         [144, (143, 62)],  # ]
-        [69, (68, )],    # """(
+        [69, (68,)],  # """(
         [70, (69, 78)],  # (
         [71, (70, 77)],  # (
         [72, (71, 76)],  # (
@@ -299,10 +306,10 @@ def test_brace_match(codeeditor):
         [87, (86, 83)],  # ]
         [88, (87, 82)],  # ]
         [89, (88, 81)],  # ]
-        [90, (89, )],    # ]"""
-        [99, (98, )],    # 'x)'
-        [105, (104, )],  # 'b('
-        [111, (110, )],  # # )
+        [90, (89,)],  # ]"""
+        [99, (98,)],  # 'x)'
+        [105, (104,)],  # 'b('
+        [111, (110,)],  # # )
         [112, (111, 128)],  # {[
         [129, (128, 111)],  # ]}
         [113, (112, 127)],  # [(
@@ -392,7 +399,7 @@ def test_editor_delete_char(codeeditor, qtbot):
 
 
 # Fails in CI Linux tests, but not necessarily on all Linux installations
-@pytest.mark.skipif(sys.platform.startswith('linux'), reason='Fail on Linux')
+@pytest.mark.skipif(sys.platform.startswith("linux"), reason="Fail on Linux")
 def test_editor_delete_selection(codeeditor, qtbot):
     """Regression test for issue spyder-ide/spyder#12663."""
     editor = codeeditor
@@ -421,8 +428,7 @@ def test_editor_delete_selection(codeeditor, qtbot):
     assert editor.textCursor().columnNumber() == expected_column
 
 
-@pytest.mark.skipif(QT_VERSION.startswith('5.15'),
-                    reason='Fixed on Qt 5.15')
+@pytest.mark.skipif(QT_VERSION.startswith("5.15"), reason="Fixed on Qt 5.15")
 def test_qtbug35861(qtbot):
     """This test will detect if upstream QTBUG-35861 is fixed.
     If that happens, then the workarounds for spyder-ide/spyder#12663
@@ -438,7 +444,7 @@ def test_qtbug35861(qtbot):
     cursor.setPosition(0)
     # Build the text from a single character since a non-fixed width
     # font is used by default.
-    cursor.insertText("0000000000\n"*5)
+    cursor.insertText("0000000000\n" * 5)
 
     expected_column = 5
     cursor.setPosition(expected_column)
@@ -461,10 +467,10 @@ def test_qtbug35861(qtbot):
 @pytest.mark.parametrize(
     "text",
     [
-        "def foo(x):\n    return x\n",      # LF
+        "def foo(x):\n    return x\n",  # LF
         "def foo(x):\r\n    return x\r\n",  # CRLF
-        "def foo(x):\r    return x\r"       # CR
-    ]
+        "def foo(x):\r    return x\r",  # CR
+    ],
 )
 def test_get_text_with_eol(codeeditor, text):
     """
@@ -519,7 +525,7 @@ def test_format_signature(codeeditor):
 def test_delete(codeeditor):
     """Test CodeEditor.delete()."""
     editor = codeeditor
-    text = ('def f1(a, b):\n')
+    text = "def f1(a, b):\n"
     editor.set_text(text)
 
     # Move to start and delete next character without selection.
@@ -527,21 +533,21 @@ def test_delete(codeeditor):
     cursor.movePosition(QTextCursor.Start)
     editor.setTextCursor(cursor)
     editor.delete()
-    assert editor.get_text_line(0) == 'ef f1(a, b):'
+    assert editor.get_text_line(0) == "ef f1(a, b):"
 
     # Delete selection.
     cursor = editor.textCursor()
     cursor.select(QTextCursor.WordUnderCursor)
     editor.setTextCursor(cursor)
     editor.delete()
-    assert editor.get_text_line(0) == ' f1(a, b):'
+    assert editor.get_text_line(0) == " f1(a, b):"
 
     # Move to end of document - nothing to delete after cursor.
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.End)
     editor.setTextCursor(cursor)
     editor.delete()
-    assert editor.get_text_line(0) == ' f1(a, b):'
+    assert editor.get_text_line(0) == " f1(a, b):"
 
 
 def test_paste_files(codeeditor, copy_files_clipboard):
@@ -560,9 +566,10 @@ def test_paste_files(codeeditor, copy_files_clipboard):
         assert osp.normpath(path) == osp.normpath(expected_path)
 
 
-@pytest.mark.parametrize('line_ending_char', ['\n', '\r\n', '\r'])
-@pytest.mark.parametrize('text', ['def fun(a, b):\n\treturn a + b',
-                                  'https://www.spyder-ide.org'])
+@pytest.mark.parametrize("line_ending_char", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize(
+    "text", ["def fun(a, b):\n\treturn a + b", "https://www.spyder-ide.org"]
+)
 def test_paste_text(codeeditor, text, line_ending_char):
     """Test pasting text into the editor."""
     editor = codeeditor
@@ -580,7 +587,7 @@ def test_paste_text(codeeditor, text, line_ending_char):
 def test_cell_highlight(codeeditor, qtbot):
     """Test cells are properly highlighted."""
     editor = codeeditor
-    text = ('\n\n\n#%%\n\n\n')
+    text = "\n\n\n#%%\n\n\n"
     editor.set_text(text)
     # Set cursor to start of file
     cursor = editor.textCursor()
@@ -623,5 +630,5 @@ def test_cell_highlight(codeeditor, qtbot):
     assert editor.current_cell[0].selectionEnd() == 8
 
 
-if __name__ == '__main__':
-    pytest.main(['test_codeeditor.py'])
+if __name__ == "__main__":
+    pytest.main(["test_codeeditor.py"])

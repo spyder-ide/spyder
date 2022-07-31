@@ -34,7 +34,7 @@ class CompletionContainer(PluginMainContainer):
         widget = Widget(self)
 
         if isinstance(widget, QMessageBox):
-            if hasattr(widget, 'sig_restart_spyder'):
+            if hasattr(widget, "sig_restart_spyder"):
                 widget.sig_restart_spyder.connect(self.sig_restart_requested)
             widget.exec_()
 
@@ -58,8 +58,7 @@ class CompletionContainer(PluginMainContainer):
         """Get the list of statusbar keys for the given provider."""
         return self.provider_statusbars.get(provider_name, [])
 
-    def statusbar_rpc(self, status_key: str, method: str, args: tuple,
-                      kwargs: dict):
+    def statusbar_rpc(self, status_key: str, method: str, args: tuple, kwargs: dict):
         """
         Perform a remote call on the status bar with ID `status_key`.
 

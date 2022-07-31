@@ -10,8 +10,9 @@
 # shadowed standard libraries.
 import os
 import sys
-if os.environ.get('PYTHONPATH'):
-    for path in os.environ['PYTHONPATH'].split(os.pathsep):
+
+if os.environ.get("PYTHONPATH"):
+    for path in os.environ["PYTHONPATH"].split(os.pathsep):
         try:
             sys.path.remove(path.rstrip(os.sep))
         except ValueError:
@@ -50,8 +51,12 @@ except:
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import (get_conf_path, running_in_mac_app,
-                                reset_config_files, running_under_pytest)
+from spyder.config.base import (
+    get_conf_path,
+    running_in_mac_app,
+    reset_config_files,
+    running_under_pytest,
+)
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
 
@@ -65,10 +70,10 @@ else:
 
 # Start Spyder with a clean configuration directory for testing purposes
 if CLI_OPTIONS.safe_mode:
-    os.environ['SPYDER_SAFE_MODE'] = 'True'
+    os.environ["SPYDER_SAFE_MODE"] = "True"
 
 if CLI_OPTIONS.conf_dir:
-    os.environ['SPYDER_CONFDIR'] = CLI_OPTIONS.conf_dir
+    os.environ["SPYDER_CONFDIR"] = CLI_OPTIONS.conf_dir
 
 
 def send_args_to_spyder(args):
@@ -80,7 +85,8 @@ def send_args_to_spyder(args):
     .npy, or .h5, which can be imported by the Variable Explorer.
     """
     from spyder.config.manager import CONF
-    port = CONF.get('main', 'open_files_port')
+
+    port = CONF.get("main", "open_files_port")
     print_warning = True
 
     # Wait ~50 secs for the server to be up
@@ -88,18 +94,21 @@ def send_args_to_spyder(args):
     for __ in range(200):
         try:
             for arg in args:
-                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
-                                       socket.IPPROTO_TCP)
+                client = socket.socket(
+                    socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP
+                )
                 client.connect(("127.0.0.1", port))
                 if is_unicode(arg):
-                    arg = arg.encode('utf-8')
+                    arg = arg.encode("utf-8")
                 client.send(osp.abspath(arg))
                 client.close()
         except socket.error:
             # Print informative warning to let users know what Spyder is doing
             if print_warning:
-                print("Waiting for the server to open files and directories "
-                      "to be up (perhaps it failed to be started).")
+                print(
+                    "Waiting for the server to open files and directories "
+                    "to be up (perhaps it failed to be started)."
+                )
                 print_warning = False
 
             # Wait 250 ms before trying again
@@ -128,87 +137,92 @@ def main():
     from spyder.config.manager import CONF
 
     # Store variable to be used in self.restart (restart spyder instance)
-    os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
+    os.environ["SPYDER_ARGS"] = str(sys.argv[1:])
 
-    #==========================================================================
+    # ==========================================================================
     # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
     # be set before creating the application.
-    #==========================================================================
-    if CONF.get('main', 'high_dpi_custom_scale_factor'):
-        factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
-        f = list(filter(None, factors.split(';')))
+    # ==========================================================================
+    if CONF.get("main", "high_dpi_custom_scale_factor"):
+        factors = str(CONF.get("main", "high_dpi_custom_scale_factors"))
+        f = list(filter(None, factors.split(";")))
         if len(f) == 1:
-            os.environ['QT_SCALE_FACTOR'] = f[0]
+            os.environ["QT_SCALE_FACTOR"] = f[0]
         else:
-            os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+            os.environ["QT_SCREEN_SCALE_FACTORS"] = factors
     else:
-        os.environ['QT_SCALE_FACTOR'] = ''
-        os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
+        os.environ["QT_SCALE_FACTOR"] = ""
+        os.environ["QT_SCREEN_SCALE_FACTORS"] = ""
 
-    if sys.platform == 'darwin':
+    if sys.platform == "darwin":
         # Fixes launching issues with Big Sur (spyder-ide/spyder#14222)
-        os.environ['QT_MAC_WANTS_LAYER'] = '1'
+        os.environ["QT_MAC_WANTS_LAYER"] = "1"
         # Prevent Spyder from crashing in macOS if locale is not defined
-        LANG = os.environ.get('LANG')
-        LC_ALL = os.environ.get('LC_ALL')
+        LANG = os.environ.get("LANG")
+        LC_ALL = os.environ.get("LC_ALL")
         if bool(LANG) and not bool(LC_ALL):
             LC_ALL = LANG
         elif not bool(LANG) and bool(LC_ALL):
             LANG = LC_ALL
         else:
-            LANG = LC_ALL = 'en_US.UTF-8'
+            LANG = LC_ALL = "en_US.UTF-8"
 
-        os.environ['LANG'] = LANG
-        os.environ['LC_ALL'] = LC_ALL
+        os.environ["LANG"] = LANG
+        os.environ["LC_ALL"] = LC_ALL
 
         # Don't show useless warning in the terminal where Spyder
         # was started.
         # See spyder-ide/spyder#3730.
-        os.environ['EVENT_NOKQUEUE'] = '1'
+        os.environ["EVENT_NOKQUEUE"] = "1"
     else:
         # Prevent our kernels to crash when Python fails to identify
         # the system locale.
         # Fixes spyder-ide/spyder#7051.
         try:
             from locale import getlocale
+
             getlocale()
         except ValueError:
             # This can fail on Windows. See spyder-ide/spyder#6886.
             try:
-                os.environ['LANG'] = 'C'
-                os.environ['LC_ALL'] = 'C'
+                os.environ["LANG"] = "C"
+                os.environ["LC_ALL"] = "C"
             except Exception:
                 pass
 
     if options.debug_info:
-        levels = {'minimal': '2', 'verbose': '3'}
-        os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
+        levels = {"minimal": "2", "verbose": "3"}
+        os.environ["SPYDER_DEBUG"] = levels[options.debug_info]
 
-    _filename = 'spyder-debug.log'
-    if options.debug_output == 'file':
+    _filename = "spyder-debug.log"
+    if options.debug_output == "file":
         _filepath = osp.realpath(_filename)
     else:
         _filepath = get_conf_path(_filename)
-    os.environ['SPYDER_DEBUG_FILE'] = _filepath
+    os.environ["SPYDER_DEBUG_FILE"] = _filepath
 
     if options.paths:
         from spyder.config.base import get_conf_paths
-        sys.stdout.write('\nconfig:' + '\n')
+
+        sys.stdout.write("\nconfig:" + "\n")
         for path in reversed(get_conf_paths()):
-            sys.stdout.write('\t' + path + '\n')
-        sys.stdout.write('\n' )
+            sys.stdout.write("\t" + path + "\n")
+        sys.stdout.write("\n")
         return
 
-    if (CONF.get('main', 'single_instance') and not options.new_instance
-            and not options.reset_config_files
-            and not running_in_mac_app()):
+    if (
+        CONF.get("main", "single_instance")
+        and not options.new_instance
+        and not options.reset_config_files
+        and not running_in_mac_app()
+    ):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
-        time.sleep(random.randrange(1000, 2000, 90)/10000.)
+        time.sleep(random.randrange(1000, 2000, 90) / 10000.0)
 
         # Lock file creation
-        lock_file = get_conf_path('spyder.lock')
+        lock_file = get_conf_path("spyder.lock")
         lock = lockfile.FilesystemLock(lock_file)
 
         # Try to lock spyder.lock. If it's *possible* to do it, then
@@ -223,9 +237,10 @@ def main():
             # This is reported to solve all problems with lockfile.
             # See spyder-ide/spyder#2363.
             try:
-                if os.name == 'nt':
+                if os.name == "nt":
                     if osp.isdir(lock_file):
                         import shutil
+
                         shutil.rmtree(lock_file, ignore_errors=True)
                 else:
                     if osp.islink(lock_file):
@@ -237,6 +252,7 @@ def main():
             # executing this script because it doesn't make
             # sense
             from spyder.app import mainwindow
+
             if running_under_pytest():
                 return mainwindow.main(options, args)
             else:
@@ -246,6 +262,7 @@ def main():
         if lock_created:
             # Start a new instance
             from spyder.app import mainwindow
+
             if running_under_pytest():
                 return mainwindow.main(options, args)
             else:
@@ -256,10 +273,13 @@ def main():
             if args:
                 send_args_to_spyder(args)
             else:
-                print("Spyder is already running. If you want to open a new \n"
-                      "instance, please use the --new-instance option")
+                print(
+                    "Spyder is already running. If you want to open a new \n"
+                    "instance, please use the --new-instance option"
+                )
     else:
         from spyder.app import mainwindow
+
         if running_under_pytest():
             return mainwindow.main(options, args)
         else:

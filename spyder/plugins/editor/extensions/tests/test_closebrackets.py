@@ -13,8 +13,7 @@ from qtpy.QtGui import QTextCursor
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.utils.editor import TextHelper
-from spyder.plugins.editor.extensions.closebrackets import (
-        CloseBracketsExtension)
+from spyder.plugins.editor.extensions.closebrackets import CloseBracketsExtension
 
 
 # =============================================================================
@@ -26,8 +25,8 @@ def editor_close_brackets():
     app = qapplication()
     editor = CodeEditor(parent=None)
     kwargs = {}
-    kwargs['language'] = 'Python'
-    kwargs['close_parentheses'] = True
+    kwargs["language"] = "Python"
+    kwargs["close_parentheses"] = True
     editor.setup_editor(**kwargs)
     return editor
 
@@ -42,28 +41,30 @@ def test_bracket_closing_new_line(qtbot, editor_close_brackets):
     For spyder-ide/spyder#11217
     """
     editor = editor_close_brackets
-    editor.textCursor().insertText('foo(\nbar)')
+    editor.textCursor().insertText("foo(\nbar)")
 
     # Move from 'foo(\nbar)|' to 'foo(\nbar|)'
     editor.move_cursor(-1)
 
-    qtbot.keyClicks(editor, '()')
-    assert editor.toPlainText() == 'foo(\nbar())'
+    qtbot.keyClicks(editor, "()")
+    assert editor.toPlainText() == "foo(\nbar())"
     assert editor.textCursor().columnNumber() == 5
-    qtbot.keyClicks(editor, ')')
-    assert editor.toPlainText() == 'foo(\nbar())'
+    qtbot.keyClicks(editor, ")")
+    assert editor.toPlainText() == "foo(\nbar())"
     assert editor.textCursor().columnNumber() == 6
 
 
 @pytest.mark.parametrize(
-    'text, expected_text, cursor_column',
+    "text, expected_text, cursor_column",
     [
         ("(", "()", 1),  # Close brackets
         ("{", "{}", 1),
         ("[", "[]", 1),
-    ])
-def test_close_brackets(qtbot, editor_close_brackets, text, expected_text,
-                        cursor_column):
+    ],
+)
+def test_close_brackets(
+    qtbot, editor_close_brackets, text, expected_text, cursor_column
+):
     """Test insertion of brackets."""
     editor = editor_close_brackets
 
@@ -74,17 +75,19 @@ def test_close_brackets(qtbot, editor_close_brackets, text, expected_text,
 
 
 @pytest.mark.parametrize(
-    'text, expected_text, cursor_column',
+    "text, expected_text, cursor_column",
     [
-        ('()', '(())', 2),  # Complete in brackets
-        ('{}', '{()}', 2),
-        ('[]', '[()]', 2),
-        (',', '(),', 1),  # Complete before commas, colons and semi-colons
-        (':', '():', 1),
-        (';', '();', 1),
-    ])
-def test_nested_brackets(qtbot, editor_close_brackets, text, expected_text,
-                      cursor_column):
+        ("()", "(())", 2),  # Complete in brackets
+        ("{}", "{()}", 2),
+        ("[]", "[()]", 2),
+        (",", "(),", 1),  # Complete before commas, colons and semi-colons
+        (":", "():", 1),
+        (";", "();", 1),
+    ],
+)
+def test_nested_brackets(
+    qtbot, editor_close_brackets, text, expected_text, cursor_column
+):
     """
     Test completion of brackets inside brackets and before commas,
     colons and semi-colons.
@@ -93,7 +96,7 @@ def test_nested_brackets(qtbot, editor_close_brackets, text, expected_text,
 
     qtbot.keyClicks(editor, text)
     editor.move_cursor(-1)
-    qtbot.keyClicks(editor, '(')
+    qtbot.keyClicks(editor, "(")
     assert editor.toPlainText() == expected_text
 
     assert cursor_column == TextHelper(editor).current_column_nbr()
@@ -122,9 +125,7 @@ def test_selected_text(qtbot, editor_close_brackets):
 def test_selected_text_multiple_lines(qtbot, editor_close_brackets):
     """Test insert surronding brackets to multiple lines selected text."""
     editor = editor_close_brackets
-    text = ("some text\n"
-            "\n"
-            "some text")
+    text = "some text\n" "\n" "some text"
     editor.set_text(text)
 
     # select until second some
@@ -134,60 +135,54 @@ def test_selected_text_multiple_lines(qtbot, editor_close_brackets):
     editor.setTextCursor(cursor)
 
     qtbot.keyClicks(editor, ")")
-    assert editor.toPlainText() == ("(some text\n"
-                                    "\n"
-                                    "some) text")
+    assert editor.toPlainText() == ("(some text\n" "\n" "some) text")
 
     qtbot.keyClicks(editor, "{")
-    assert editor.toPlainText() == ("({some text\n"
-                                    "\n"
-                                    "some}) text")
+    assert editor.toPlainText() == ("({some text\n" "\n" "some}) text")
 
     qtbot.keyClicks(editor, "]")
-    assert editor.toPlainText() == ("({[some text\n"
-                                    "\n"
-                                    "some]}) text")
+    assert editor.toPlainText() == ("({[some text\n" "\n" "some]}) text")
 
 
 def test_complex_completion(qtbot, editor_close_brackets):
     """Test bracket completion in nested brackets."""
     editor = editor_close_brackets
     # Test completion when following character is a right bracket
-    editor.textCursor().insertText('foo(bar)')
+    editor.textCursor().insertText("foo(bar)")
     editor.move_cursor(-1)
-    qtbot.keyClicks(editor, '(')
-    assert editor.toPlainText() == 'foo(bar())'
+    qtbot.keyClicks(editor, "(")
+    assert editor.toPlainText() == "foo(bar())"
     assert editor.textCursor().columnNumber() == 8
     # Test normal insertion when next character is not a right bracket
     editor.move_cursor(-1)
-    qtbot.keyClicks(editor, '[')
-    assert editor.toPlainText() == 'foo(bar[())'
+    qtbot.keyClicks(editor, "[")
+    assert editor.toPlainText() == "foo(bar[())"
     assert editor.textCursor().columnNumber() == 8
     # Test completion when following character is a comma
-    qtbot.keyClicks(editor, ',')
+    qtbot.keyClicks(editor, ",")
     editor.move_cursor(-1)
-    qtbot.keyClicks(editor, '{')
-    assert editor.toPlainText() == 'foo(bar[{},())'
+    qtbot.keyClicks(editor, "{")
+    assert editor.toPlainText() == "foo(bar[{},())"
     assert editor.textCursor().columnNumber() == 9
 
 
 def test_bracket_closing(qtbot, editor_close_brackets):
     """Test bracket completion with existing brackets."""
     editor = editor_close_brackets
-    editor.textCursor().insertText('foo(bar(x')
-    qtbot.keyClicks(editor, ')')
-    assert editor.toPlainText() == 'foo(bar(x)'
+    editor.textCursor().insertText("foo(bar(x")
+    qtbot.keyClicks(editor, ")")
+    assert editor.toPlainText() == "foo(bar(x)"
     assert editor.textCursor().columnNumber() == 10
-    qtbot.keyClicks(editor, ')')
-    assert editor.toPlainText() == 'foo(bar(x))'
+    qtbot.keyClicks(editor, ")")
+    assert editor.toPlainText() == "foo(bar(x))"
     assert editor.textCursor().columnNumber() == 11
     # same ')' closing with existing brackets starting at 'foo(bar(x|))'
     editor.move_cursor(-2)
-    qtbot.keyClicks(editor, ')')
-    assert editor.toPlainText() == 'foo(bar(x))'
+    qtbot.keyClicks(editor, ")")
+    assert editor.toPlainText() == "foo(bar(x))"
     assert editor.textCursor().columnNumber() == 10
-    qtbot.keyClicks(editor, ')')
-    assert editor.toPlainText() == 'foo(bar(x))'
+    qtbot.keyClicks(editor, ")")
+    assert editor.toPlainText() == "foo(bar(x))"
     assert editor.textCursor().columnNumber() == 11
 
 
@@ -210,5 +205,5 @@ def test_activate_deactivate(qtbot, editor_close_brackets):
     assert editor.toPlainText() == "()"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main()

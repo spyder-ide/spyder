@@ -23,8 +23,8 @@ from spyder.utils.palette import QStylePalette
 class IntrospectionConfigTab(SpyderPreferencesTab):
     """Introspection settings tab."""
 
-    TITLE = _('Introspection')
-    CTRL = "Cmd" if sys.platform == 'darwin' else "Ctrl"
+    TITLE = _("Introspection")
+    CTRL = "Cmd" if sys.platform == "darwin" else "Ctrl"
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -33,20 +33,27 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
         introspection_group = QGroupBox(_("Basic features"))
         goto_definition_box = newcb(
             _("Enable Go to definition"),
-            'jedi_definition',
-            tip=_("If enabled, left-clicking on an object name while \n"
-                  "pressing the {} key will go to that object's definition\n"
-                  "(if resolved).").format(self.CTRL))
-        follow_imports_box = newcb(_("Follow imports when going to a "
-                                     "definition"),
-                                   'jedi_definition/follow_imports')
-        show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
+            "jedi_definition",
+            tip=_(
+                "If enabled, left-clicking on an object name while \n"
+                "pressing the {} key will go to that object's definition\n"
+                "(if resolved)."
+            ).format(self.CTRL),
+        )
+        follow_imports_box = newcb(
+            _("Follow imports when going to a " "definition"),
+            "jedi_definition/follow_imports",
+        )
+        show_signature_box = newcb(_("Show calltips"), "jedi_signature_help")
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
-            'enable_hover_hints',
-            tip=_("If enabled, hovering the mouse pointer over an object\n"
-                  "name will display that object's signature and/or\n"
-                  "docstring (if present)."))
+            "enable_hover_hints",
+            tip=_(
+                "If enabled, hovering the mouse pointer over an object\n"
+                "name will display that object's signature and/or\n"
+                "docstring (if present)."
+            ),
+        )
         introspection_layout = QVBoxLayout()
         introspection_layout.addWidget(goto_definition_box)
         introspection_layout.addWidget(follow_imports_box)
@@ -59,9 +66,11 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
         modules_textedit = self.create_textedit(
-            _("Preload the following modules to make completion faster "
-              "and more accurate:"),
-            'preload_modules'
+            _(
+                "Preload the following modules to make completion faster "
+                "and more accurate:"
+            ),
+            "preload_modules",
         )
         modules_textedit.textbox.setStyleSheet(
             f"border: 1px solid {QStylePalette.COLOR_BACKGROUND_2};"

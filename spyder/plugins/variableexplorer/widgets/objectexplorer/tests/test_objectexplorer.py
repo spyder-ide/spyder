@@ -20,8 +20,7 @@ import pytest
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.plugins.variableexplorer.widgets.objectexplorer import (
-    ObjectExplorer)
+from spyder.plugins.variableexplorer.widgets.objectexplorer import ObjectExplorer
 from spyder.py3compat import PY2
 
 # =============================================================================
@@ -30,10 +29,12 @@ from spyder.py3compat import PY2
 @pytest.fixture
 def objectexplorer(qtbot):
     """Set up ObjectExplorer."""
+
     def create_objectexplorer(obj, **kwargs):
         editor = ObjectExplorer(obj, **kwargs)
         qtbot.addWidget(editor)
         return editor
+
     return create_objectexplorer
 
 
@@ -42,6 +43,7 @@ def objectexplorer(qtbot):
 # =============================================================================
 def test_objectexplorer(objectexplorer):
     """Test to validate proper creation of the editor."""
+
     class Foobar(object):
         def __init__(self):
             self.text = "toto"
@@ -58,45 +60,34 @@ def test_objectexplorer(objectexplorer):
     foobar = Foobar()
 
     # Editor was created
-    editor = objectexplorer(foobar, name='foobar')
+    editor = objectexplorer(foobar, name="foobar")
     assert editor
 
     # Check header data and default hidden sections
     header = editor.obj_tree.header()
     header_model = header.model()
     assert not header.isSectionHidden(0)
-    assert header_model.headerData(0, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Name"
+    assert header_model.headerData(0, Qt.Horizontal, Qt.DisplayRole) == "Name"
     assert not header.isSectionHidden(1)
-    assert header_model.headerData(1, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Type"
+    assert header_model.headerData(1, Qt.Horizontal, Qt.DisplayRole) == "Type"
     assert not header.isSectionHidden(2)
-    assert header_model.headerData(2, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Size"
+    assert header_model.headerData(2, Qt.Horizontal, Qt.DisplayRole) == "Size"
     assert not header.isSectionHidden(3)
-    assert header_model.headerData(3, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Value"
+    assert header_model.headerData(3, Qt.Horizontal, Qt.DisplayRole) == "Value"
     assert not header.isSectionHidden(4)
-    assert header_model.headerData(4, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Callable"
+    assert header_model.headerData(4, Qt.Horizontal, Qt.DisplayRole) == "Callable"
     assert not header.isSectionHidden(5)
-    assert header_model.headerData(5, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Path"
+    assert header_model.headerData(5, Qt.Horizontal, Qt.DisplayRole) == "Path"
     assert header.isSectionHidden(6)
-    assert header_model.headerData(6, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Id"
+    assert header_model.headerData(6, Qt.Horizontal, Qt.DisplayRole) == "Id"
     assert header.isSectionHidden(7)
-    assert header_model.headerData(7, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Attribute"
+    assert header_model.headerData(7, Qt.Horizontal, Qt.DisplayRole) == "Attribute"
     assert header.isSectionHidden(8)
-    assert header_model.headerData(8, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Routine"
+    assert header_model.headerData(8, Qt.Horizontal, Qt.DisplayRole) == "Routine"
     assert header.isSectionHidden(9)
-    assert header_model.headerData(9, Qt.Horizontal,
-                                   Qt.DisplayRole) == "File"
+    assert header_model.headerData(9, Qt.Horizontal, Qt.DisplayRole) == "File"
     assert header.isSectionHidden(10)
-    assert header_model.headerData(10, Qt.Horizontal,
-                                   Qt.DisplayRole) == "Source file"
+    assert header_model.headerData(10, Qt.Horizontal, Qt.DisplayRole) == "Source file"
 
     model = editor.obj_tree.model()
 
@@ -105,22 +96,25 @@ def test_objectexplorer(objectexplorer):
     assert model.columnCount() == 11
 
 
-@pytest.mark.parametrize('params', [
-    # variable to show, rowCount for different Python 3 versions
-    ('kjkj kj k j j kj k jkj', [71, 80]),
-    ([1, 3, 4, 'kjkj', None], [45, 47]),
-    ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 56]),
-    (1.2233, [57, 59]),
-    (np.random.rand(10, 10), [166, 162]),
-    (datetime.date(1945, 5, 8), [43, 47])
-])
+@pytest.mark.parametrize(
+    "params",
+    [
+        # variable to show, rowCount for different Python 3 versions
+        ("kjkj kj k j j kj k jkj", [71, 80]),
+        ([1, 3, 4, "kjkj", None], [45, 47]),
+        ({1, 2, 1, 3, None, "A", "B", "C", True, False}, [54, 56]),
+        (1.2233, [57, 59]),
+        (np.random.rand(10, 10), [166, 162]),
+        (datetime.date(1945, 5, 8), [43, 47]),
+    ],
+)
 def test_objectexplorer_collection_types(objectexplorer, params):
     """Test to validate proper handling of collection data types."""
     test, row_count = params
-    CONF.set('variable_explorer', 'show_special_attributes', True)
+    CONF.set("variable_explorer", "show_special_attributes", True)
 
     # Editor was created
-    editor = objectexplorer(test, name='variable')
+    editor = objectexplorer(test, name="variable")
     assert editor
 
     # Check number of rows and row content
@@ -137,31 +131,44 @@ def test_objectexplorer_collection_types(objectexplorer, params):
     assert model.columnCount() == 11
 
 
-@pytest.mark.parametrize('params', [
-            # show_callable_, show_special_, rowCount for python 3 and 2
-            (True, True, [34, 26], ),
-            (False, False, [8, 8], )
-        ])
+@pytest.mark.parametrize(
+    "params",
+    [
+        # show_callable_, show_special_, rowCount for python 3 and 2
+        (
+            True,
+            True,
+            [34, 26],
+        ),
+        (
+            False,
+            False,
+            [8, 8],
+        ),
+    ],
+)
 def test_objectexplorer_types(objectexplorer, params):
     """Test to validate proper handling of data types inside an object."""
+
     class Foobar(object):
         def __init__(self):
             self.text = "toto"
-            self.list = [1, 3, 4, 'kjkj', None]
-            self.set = {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
-            self.dict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
-            self.float = 1.2233,
-            self.array = np.random.rand(10, 10),
-            self.date = datetime.date(1945, 5, 8),
+            self.list = [1, 3, 4, "kjkj", None]
+            self.set = ({1, 2, 1, 3, None, "A", "B", "C", True, False},)
+            self.dict = ({"d": 1, "a": np.random.rand(10, 10), "b": [1, 2]},)
+            self.float = (1.2233,)
+            self.array = (np.random.rand(10, 10),)
+            self.date = (datetime.date(1945, 5, 8),)
             self.datetime = datetime.datetime(1945, 5, 8)
+
     foo = Foobar()
 
     show_callable, show_special, row_count = params
-    CONF.set('variable_explorer', 'show_callable_attributes', show_callable)
-    CONF.set('variable_explorer', 'show_special_attributes', show_special)
+    CONF.set("variable_explorer", "show_callable_attributes", show_callable)
+    CONF.set("variable_explorer", "show_special_attributes", show_special)
 
     # Editor was created
-    editor = objectexplorer(foo, name='foo')
+    editor = objectexplorer(foo, name="foo")
     assert editor
 
     # Check number of rows and row content

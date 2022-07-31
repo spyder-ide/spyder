@@ -8,17 +8,17 @@
 
 import re
 
-BACKSLASH_REPLACE_REGEX = re.compile(r'(\\)([^\\\s])')
+BACKSLASH_REPLACE_REGEX = re.compile(r"(\\)([^\\\s])")
 
 # ------------------------ Misc functions -------------------------------------
 def _compute_offset_str(offset, value):
     line, col = offset
     mark_for_position = True
-    if value == '\n':
+    if value == "\n":
         line += 1
         col = 0
         mark_for_position = False
-    elif value == '\r':
+    elif value == "\r":
         mark_for_position = False
     else:
         col += len(value)
@@ -27,25 +27,25 @@ def _compute_offset_str(offset, value):
 
 # ------------------------ ASTNode identifiers --------------------------------
 class SnippetKind:
-    TABSTOP = 'tabstop'
-    PLACEHOLDER = 'placeholder'
-    CHOICE = 'choice'
-    VARIABLE = 'variable'
-    VARIABLE_PLACEHOLDER = 'variable_placeholder'
-    REGEX = 'regex'
+    TABSTOP = "tabstop"
+    PLACEHOLDER = "placeholder"
+    CHOICE = "choice"
+    VARIABLE = "variable"
+    VARIABLE_PLACEHOLDER = "variable_placeholder"
+    REGEX = "regex"
 
 
 class FormatKind:
-    SIMPLE = 'simple'
-    IF = 'if'
-    IF_ELSE = 'if_else'
-    ELSE = 'else'
+    SIMPLE = "simple"
+    IF = "if"
+    IF_ELSE = "if_else"
+    ELSE = "else"
 
 
 class NodeKind:
-    TEXT = 'text'
-    LEAF = 'leaf'
-    FORMAT = 'format'
+    TEXT = "text"
+    LEAF = "leaf"
+    FORMAT = "format"
 
 
 # ------------------------- Base AST Node classes -----------------------------
@@ -67,8 +67,8 @@ class ASTNode:
         self.index_in_parent = -1
         self.to_delete = False
         self.depth = 0
-        self.name = ''
-        self.value = ''
+        self.name = ""
+        self.value = ""
 
     def update_position(self, position):
         """Updates node text position."""
@@ -147,7 +147,7 @@ class TextNode(ASTNode):
                         x, y = position[0]
                         position = ((x, y), (x, y + 1))
                         if isinstance(token, LeafNode):
-                            if token.name == 'EPSILON':
+                            if token.name == "EPSILON":
                                 position = ((x, y), (x, y))
                 polygon += list(position)
         flatten_polygon = []
@@ -180,7 +180,7 @@ class TextNode(ASTNode):
         return current_offset
 
     def text(self):
-        return ''.join([token.text() for token in self._tokens])
+        return "".join([token.text() for token in self._tokens])
 
     def accept(self, visitor):
         visitor.visit(self)
@@ -198,7 +198,7 @@ class LeafNode(ASTNode):
 
     KIND = NodeKind.LEAF
 
-    def __init__(self, name='EPSILON', value=''):
+    def __init__(self, name="EPSILON", value=""):
         ASTNode.__init__(self)
         self.name = name
         self.value = value
@@ -214,16 +214,16 @@ class LeafNode(ASTNode):
         return new_offset
 
     def text(self):
-        text = BACKSLASH_REPLACE_REGEX.sub(r'\2', self.value)
-        if self.name == 'left_curly_name':
+        text = BACKSLASH_REPLACE_REGEX.sub(r"\2", self.value)
+        if self.name == "left_curly_name":
             text = text[1:]
         return text
 
     def __str__(self):
-        return 'LeafNode({0}: {1})'.format(self.name, self.value)
+        return "LeafNode({0}: {1})".format(self.name, self.value)
 
     def __repr__(self):
-        return r'{0}'.format(self.__str__())
+        return r"{0}".format(self.__str__())
 
 
 class SnippetASTNode(ASTNode):
@@ -232,6 +232,7 @@ class SnippetASTNode(ASTNode):
 
     Used to unify type hierarchies between int and variable snippets.
     """
+
     pass
 
 
@@ -249,7 +250,7 @@ class FormatNode(ASTNode):
         This method takes a regex result and applies some transformation to
         return a new string.
         """
-        return ''
+        return ""
 
 
 # -------------------------- Int snippet node classes -------------------------
@@ -268,8 +269,9 @@ class TabstopSnippetNode(SnippetASTNode):
         default_placeholder = TextNode(LeafNode())
 
         self.number = int(number.value)
-        self._placeholder = (placeholder if placeholder is not None else
-                             default_placeholder)
+        self._placeholder = (
+            placeholder if placeholder is not None else default_placeholder
+        )
         self._placeholder.parent = self
         self._placeholder.depth = self.depth + 1
 
@@ -318,7 +320,7 @@ class PlaceholderNode(TabstopSnippetNode):
 
     KIND = SnippetKind.PLACEHOLDER
 
-    def __init__(self, number, placeholder=''):
+    def __init__(self, number, placeholder=""):
         TabstopSnippetNode.__init__(self, number, placeholder)
 
     def text(self):
@@ -327,9 +329,10 @@ class PlaceholderNode(TabstopSnippetNode):
         elif isinstance(self._placeholder, ASTNode):
             return self._placeholder.text()
         else:
-            raise ValueError('Placeholder should be of type '
-                             'SnippetASTNode or str, got {0}'.format(
-                                 type(self._placeholder)))
+            raise ValueError(
+                "Placeholder should be of type "
+                "SnippetASTNode or str, got {0}".format(type(self._placeholder))
+            )
 
 
 class ChoiceNode(TabstopSnippetNode):
@@ -351,9 +354,10 @@ class ChoiceNode(TabstopSnippetNode):
         if choice not in self.choices:
             # TODO: Maybe we should display this as a warning
             # instead of raising an exception.
-            raise LookupError('Choice {0} is not a valid value for this '
-                              'snippet, expected any of {1}'.format(
-                                  choice, self.choices))
+            raise LookupError(
+                "Choice {0} is not a valid value for this "
+                "snippet, expected any of {1}".format(choice, self.choices)
+            )
         self.current_choice = choice
         self._placeholder = choice
 
@@ -427,8 +431,9 @@ class RegexNode(VariableSnippetNode):
     def text(self):
         # FIXME: Implement regex variable placeholder composition once
         # microsoft/language-server-protocol#801 is clarified
-        raise NotImplementedError('Regex variable snippets are '
-                                  'not currently implemented')
+        raise NotImplementedError(
+            "Regex variable snippets are " "not currently implemented"
+        )
 
 
 # -------------------- Regex formatting node classes --------------------------
@@ -445,7 +450,7 @@ class FormatSequenceNode(FormatNode):
         self.formatting_nodes.append(fmt)
 
     def transform_regex(self, regex_result):
-        result = ''
+        result = ""
         for fmt in self.formatting_nodes:
             if isinstance(fmt, TextNode):
                 result += fmt.text()
@@ -492,7 +497,7 @@ class IfFormatNode(SimpleFormatNode):
         self.positive_match = positive_match
 
     def transform_regex(self, regex_result):
-        result = ''
+        result = ""
         if regex_result.group(self.group_number) is not None:
             result = self.positive_match.transform_regex(regex_result)
         return result
@@ -516,7 +521,7 @@ class IfElseNode(SimpleFormatNode):
         self.negative_match = negative_match
 
     def transform_regex(self, regex_result):
-        result = ''
+        result = ""
         if regex_result.group(self.group_number) is not None:
             result = self.positive_match.transform_regex(regex_result)
         else:
@@ -540,7 +545,7 @@ class ElseNode(SimpleFormatNode):
         self.negative_match = negative_match
 
     def transform_regex(self, regex_result):
-        result = ''
+        result = ""
         if regex_result.group(self.group_number) is None:
             result = self.negative_match.transform_regex(regex_result)
         else:

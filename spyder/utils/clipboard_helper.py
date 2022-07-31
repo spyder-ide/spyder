@@ -26,7 +26,7 @@ class ClipboardHelper:
         """Get indentation for given line."""
         if tab_stop_width_spaces:
             text = text.replace("\t", " " * tab_stop_width_spaces)
-        return len(text)-len(text.lstrip())
+        return len(text) - len(text.lstrip())
 
     def save_indentation(self, preceding_text, tab_stop_width_spaces=None):
         """
@@ -36,7 +36,8 @@ class ClipboardHelper:
         """
         self.metadata_hash = self.get_current_hash()
         self.metadata_indent = self.get_line_indentation(
-            preceding_text, tab_stop_width_spaces)
+            preceding_text, tab_stop_width_spaces
+        )
         self.metadata_tab_stop_width_spaces = tab_stop_width_spaces
 
     def remaining_lines_adjustment(self, preceding_text):
@@ -47,9 +48,10 @@ class ClipboardHelper:
         if self.get_current_hash() == self.metadata_hash:
             return (
                 self.get_line_indentation(
-                    preceding_text,
-                    self.metadata_tab_stop_width_spaces)
-                - self.metadata_indent)
+                    preceding_text, self.metadata_tab_stop_width_spaces
+                )
+                - self.metadata_indent
+            )
         return 0
 
 

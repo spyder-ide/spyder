@@ -16,8 +16,14 @@ import sys
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QInputDialog, QMessageBox, QTextEdit)
+from qtpy.QtWidgets import (
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QInputDialog,
+    QMessageBox,
+    QTextEdit,
+)
 
 # Local imports
 from spyder.plugins.explorer.widgets.main_widget import FileExplorerTest
@@ -39,20 +45,20 @@ def file_explorer(qtbot):
 @pytest.fixture
 def file_explorer_associations(qtbot):
     """Set up FileExplorerTest."""
-    if os.name == 'nt':
-        ext = '.exe'
-    elif sys.platform == 'darwin':
-        ext = '.app'
+    if os.name == "nt":
+        ext = ".exe"
+    elif sys.platform == "darwin":
+        ext = ".app"
     else:
-        ext = '.desktop'
+        ext = ".desktop"
 
     associations = {
-        '*.txt': [
-            ('App 1', '/some/fake/some_app_1' + ext),
+        "*.txt": [
+            ("App 1", "/some/fake/some_app_1" + ext),
         ],
-        '*.json,*.csv': [
-            ('App 2', '/some/fake/some_app_2' + ext),
-            ('App 1', '/some/fake/some_app_1' + ext),
+        "*.json,*.csv": [
+            ("App 2", "/some/fake/some_app_2" + ext),
+            ("App 1", "/some/fake/some_app_1" + ext),
         ],
     }
     widget = FileExplorerTest(file_associations=associations)
@@ -89,23 +95,23 @@ def test_file_explorer(file_explorer):
     assert file_explorer
 
 
-@pytest.mark.parametrize('path_method', ['absolute', 'relative'])
+@pytest.mark.parametrize("path_method", ["absolute", "relative"])
 def test_copy_path(explorer_with_files, path_method):
     """Test copy absolute and relative paths."""
     project, __, file_paths, __, cb = explorer_with_files
     explorer_directory = project.explorer.treewidget.fsmodel.rootPath()
     copied_from = project.explorer.treewidget._parent.__class__.__name__
-    project.explorer.treewidget.copy_path(fnames=file_paths,
-                                          method=path_method)
+    project.explorer.treewidget.copy_path(fnames=file_paths, method=path_method)
     cb_output = cb.text(mode=cb.Clipboard)
     path_list = [path.strip(',"') for path in cb_output.splitlines()]
     assert len(path_list) == len(file_paths)
     for path, expected_path in zip(path_list, file_paths):
-        if path_method == 'relative':
+        if path_method == "relative":
             expected_path = osp.relpath(expected_path, explorer_directory)
-            if copied_from == 'ProjectExplorerWidget':
-                expected_path = os.sep.join(expected_path.strip(os.sep).
-                                            split(os.sep)[1:])
+            if copied_from == "ProjectExplorerWidget":
+                expected_path = os.sep.join(
+                    expected_path.strip(os.sep).split(os.sep)[1:]
+                )
         assert osp.normpath(path) == osp.normpath(expected_path)
 
 
@@ -122,7 +128,7 @@ def test_copy_file(explorer_with_files):
             assert osp.isdir(file_name)
         except AssertionError:
             assert osp.isfile(file_name)
-            with open(file_name, 'r') as fh:
+            with open(file_name, "r") as fh:
                 text = fh.read()
             assert text == "File Path:\n" + str(file_name)
 
@@ -136,15 +142,15 @@ def test_save_file(explorer_with_files):
         destination_item = osp.join(dest.directory, osp.basename(item))
         assert osp.exists(destination_item)
         if osp.isfile(destination_item):
-            with open(destination_item, 'r') as fh:
+            with open(destination_item, "r") as fh:
                 text = fh.read()
-            assert text == "File Path:\n" + str(item).replace(os.sep, '/')
+            assert text == "File Path:\n" + str(item).replace(os.sep, "/")
 
 
 def test_delete_file(explorer_with_files, mocker):
     """Test delete file(s)/folders(s)."""
     project, __, __, top_folder, __ = explorer_with_files
-    mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
+    mocker.patch.object(QMessageBox, "warning", return_value=QMessageBox.Yes)
     project.explorer.treewidget.delete(fnames=[top_folder])
     assert not osp.exists(top_folder)
 
@@ -155,18 +161,19 @@ def test_rename_file_with_files(explorer_with_files, mocker, qtbot):
     for old_path in file_paths:
         if osp.isfile(old_path):
             old_basename = osp.basename(old_path)
-            new_basename = 'new' + old_basename
+            new_basename = "new" + old_basename
             new_path = osp.join(osp.dirname(old_path), new_basename)
-            mocker.patch.object(QInputDialog, 'getText',
-                                return_value=(new_basename, True))
+            mocker.patch.object(
+                QInputDialog, "getText", return_value=(new_basename, True)
+            )
             treewidget = project.explorer.treewidget
             with qtbot.waitSignal(treewidget.sig_renamed) as blocker:
                 treewidget.rename_file(old_path)
             assert blocker.args == [old_path, new_path]
             assert not osp.exists(old_path)
-            with open(new_path, 'r') as fh:
+            with open(new_path, "r") as fh:
                 text = fh.read()
-            assert text == "File Path:\n" + str(old_path).replace(os.sep, '/')
+            assert text == "File Path:\n" + str(old_path).replace(os.sep, "/")
 
 
 def test_single_click_to_open(qtbot, file_explorer):
@@ -182,8 +189,8 @@ def test_single_click_to_open(qtbot, file_explorer):
     def run_test_helper(single_click, initial_index):
         # Reset the widget
         treewidget.setCurrentIndex(initial_index)
-        file_explorer.label3.setText('')
-        file_explorer.label1.setText('')
+        file_explorer.label3.setText("")
+        file_explorer.label1.setText("")
 
         for __ in range(4):  # 4 items inside `/spyder/plugins/explorer/`
             qtbot.keyClick(treewidget, Qt.Key_Down)
@@ -195,8 +202,7 @@ def test_single_click_to_open(qtbot, file_explorer):
                 if os.path.isfile(full_path):
                     rect = treewidget.visualRect(index)
                     pos = rect.center()
-                    qtbot.mouseClick(
-                        treewidget.viewport(), Qt.LeftButton, pos=pos)
+                    qtbot.mouseClick(treewidget.viewport(), Qt.LeftButton, pos=pos)
 
                     if single_click:
                         assert full_path == file_explorer.label1.text()
@@ -204,11 +210,11 @@ def test_single_click_to_open(qtbot, file_explorer):
                         assert full_path != file_explorer.label1.text()
 
     # Test single click to open
-    treewidget.set_conf('single_click_to_open', True)
+    treewidget.set_conf("single_click_to_open", True)
     run_test_helper(single_click=True, initial_index=initial_index)
 
     # Test double click to open
-    treewidget.set_conf('single_click_to_open', False)
+    treewidget.set_conf("single_click_to_open", False)
     run_test_helper(single_click=False, initial_index=initial_index)
 
 
@@ -217,55 +223,54 @@ def test_get_common_file_associations(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
     associations = widget.get_common_file_associations(
         [
-            '/some/path/file.txt',
-            '/some/path/file1.json',
-            '/some/path/file2.csv',
-        ])
-    if os.name == 'nt':
-        ext = '.exe'
-    elif sys.platform == 'darwin':
-        ext = '.app'
+            "/some/path/file.txt",
+            "/some/path/file1.json",
+            "/some/path/file2.csv",
+        ]
+    )
+    if os.name == "nt":
+        ext = ".exe"
+    elif sys.platform == "darwin":
+        ext = ".app"
     else:
-        ext = '.desktop'
-    assert associations[0][-1] == '/some/fake/some_app_1' + ext
+        ext = ".desktop"
+    assert associations[0][-1] == "/some/fake/some_app_1" + ext
 
 
 @pytest.mark.order(1)
 def test_get_file_associations(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
-    associations = widget.get_file_associations('/some/path/file.txt')
-    if os.name == 'nt':
-        ext = '.exe'
-    elif sys.platform == 'darwin':
-        ext = '.app'
+    associations = widget.get_file_associations("/some/path/file.txt")
+    if os.name == "nt":
+        ext = ".exe"
+    elif sys.platform == "darwin":
+        ext = ".app"
     else:
-        ext = '.desktop'
-    assert associations[0][-1] == '/some/fake/some_app_1' + ext
+        ext = ".desktop"
+    assert associations[0][-1] == "/some/fake/some_app_1" + ext
 
 
 @pytest.mark.order(1)
-def test_create_file_manager_actions(qtbot, file_explorer_associations,
-                                     tmp_path):
+def test_create_file_manager_actions(qtbot, file_explorer_associations, tmp_path):
     widget = file_explorer_associations.explorer.treewidget
-    fpath = tmp_path / 'text.txt'
-    fpath.write_text(u'hello!')
-    fpath_2 = tmp_path / 'text.json'
-    fpath_2.write_text(u'hello!')
-    fpath_3 = tmp_path / 'text.md'
-    fpath_3.write_text(u'hello!')
+    fpath = tmp_path / "text.txt"
+    fpath.write_text("hello!")
+    fpath_2 = tmp_path / "text.json"
+    fpath_2.write_text("hello!")
+    fpath_3 = tmp_path / "text.md"
+    fpath_3.write_text("hello!")
 
     # Single file with valid association
     actions = widget._create_file_associations_actions([str(fpath)])
     action_texts = [action.text().lower() for action in actions]
-    assert any('app 1' in text for text in action_texts)
-    assert any('default external application' in text for text in action_texts)
+    assert any("app 1" in text for text in action_texts)
+    assert any("default external application" in text for text in action_texts)
 
     # Two files with valid association
-    actions = widget._create_file_associations_actions(
-        [str(fpath), str(fpath_2)])
+    actions = widget._create_file_associations_actions([str(fpath), str(fpath_2)])
     action_texts = [action.text().lower() for action in actions]
-    assert any('app 1' in text for text in action_texts)
-    assert any('default external application' in text for text in action_texts)
+    assert any("app 1" in text for text in action_texts)
+    assert any("default external application" in text for text in action_texts)
 
     # Single file with no association
     actions = widget._create_file_associations_actions([str(fpath_3)])
@@ -276,10 +281,10 @@ def test_create_file_manager_actions(qtbot, file_explorer_associations,
 @pytest.mark.order(1)
 def test_clicked(qtbot, file_explorer_associations, tmp_path):
     widget = file_explorer_associations.explorer.treewidget
-    some_dir = tmp_path / 'some_dir'
+    some_dir = tmp_path / "some_dir"
     some_dir.mkdir()
-    fpath = some_dir / 'text.txt'
-    fpath.write_text(u'hello!')
+    fpath = some_dir / "text.txt"
+    fpath.write_text("hello!")
     widget.chdir(str(some_dir))
     qtbot.wait(500)
 
@@ -310,7 +315,7 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
 
     # Check no problems
-    return_codes = {'some-command': 0, 'some-other-command': 0}
+    return_codes = {"some-command": 0, "some-other-command": 0}
     assert widget.check_launch_error_codes(return_codes)
 
     # Check problem
@@ -319,7 +324,7 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
         assert msgbox
         qtbot.keyClick(msgbox, Qt.Key_Return)
 
-    return_codes = {'some-command': 1}
+    return_codes = {"some-command": 1}
     _ = create_timer(interact)
     res = widget.check_launch_error_codes(return_codes)
     assert not res
@@ -330,7 +335,7 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
         assert msgbox
         qtbot.keyClick(msgbox, Qt.Key_Return)
 
-    return_codes = {'some-command': 1, 'some-other-command': 1}
+    return_codes = {"some-command": 1, "some-other-command": 1}
     _ = create_timer(interact_2)
     res = widget.check_launch_error_codes(return_codes)
     assert not res
@@ -339,10 +344,10 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
 @pytest.mark.order(1)
 def test_open_association(qtbot, file_explorer_associations, tmp_path):
     widget = file_explorer_associations.explorer.treewidget
-    some_dir = tmp_path / 'some_dir'
+    some_dir = tmp_path / "some_dir"
     some_dir.mkdir()
-    fpath = some_dir / 'text.txt'
-    fpath.write_text(u'hello!')
+    fpath = some_dir / "text.txt"
+    fpath.write_text("hello!")
 
     # Select first item
     qtbot.keyClick(widget, Qt.Key_Down)
@@ -353,7 +358,7 @@ def test_open_association(qtbot, file_explorer_associations, tmp_path):
         qtbot.keyClick(msgbox, Qt.Key_Return)
 
     _ = create_timer(interact)
-    widget.open_association('some-app')
+    widget.open_association("some-app")
 
 
 @pytest.mark.order(1)
@@ -367,7 +372,7 @@ def test_update_filters(file_explorer, qtbot):
     widget = file_explorer.explorer.treewidget
 
     # Assert explorer.py is present (in case we rename it)
-    explorer_file = osp.join(osp.dirname(HERE), 'explorer.py')
+    explorer_file = osp.join(osp.dirname(HERE), "explorer.py")
     assert osp.isfile(explorer_file)
 
     # Assert explorer.py is in view before applying the new filters
@@ -384,7 +389,7 @@ def test_update_filters(file_explorer, qtbot):
 
         # Change filters
         filters = dlg.findChild(QTextEdit)
-        filters.setPlainText('*.png')
+        filters.setPlainText("*.png")
 
         # Apply settings
         button_box = dlg.findChild(QDialogButtonBox)

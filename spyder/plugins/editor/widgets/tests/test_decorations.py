@@ -39,7 +39,7 @@ def test_decorations(codeeditor, qtbot):
         "    return some_variable\n\n"
     )
 
-    text = ''
+    text = ""
     for __ in range(100):
         base_text = base_function * random.randint(2, 8) + "# %%\n"
         text = text + base_text
@@ -56,20 +56,20 @@ def test_decorations(codeeditor, qtbot):
     qtbot.wait(3000)
     decorations = editor.decorations._sorted_decorations()
 
-    assert len(decorations) == 2 + text.count('some_variable')
+    assert len(decorations) == 2 + text.count("some_variable")
 
     # Assert that selection 0 is current cell
-    assert decorations[0].kind == 'current_cell'
+    assert decorations[0].kind == "current_cell"
 
     # Assert that selection 1 is current_line
-    assert decorations[1].kind == 'current_line'
+    assert decorations[1].kind == "current_line"
 
     # Assert the other decorations are occurrences
-    assert all([d.kind == 'occurrences' for d in decorations[2:5]])
+    assert all([d.kind == "occurrences" for d in decorations[2:5]])
 
     # Assert all other decorations are some_variable
     selected_texts = [d.cursor.selectedText() for d in decorations]
-    assert set(selected_texts[2:]) == set(['some_variable'])
+    assert set(selected_texts[2:]) == set(["some_variable"])
 
     # Assert painted extra selections are much smaller.
     first, last = editor.get_buffer_block_numbers()
@@ -89,7 +89,7 @@ def test_decorations(codeeditor, qtbot):
 
     # Assert a new cell is painted
     decorations = editor.decorations._sorted_decorations()
-    assert decorations[0].kind == 'current_cell'
+    assert decorations[0].kind == "current_cell"
 
 
 @flaky(max_runs=10)
@@ -102,16 +102,17 @@ def test_update_decorations_when_scrolling(qtbot):
     # mocker fixture, to have the same results when running the test
     # alone and with the other tests in this file.
 
-    patched_object = ('spyder.plugins.editor.utils.decoration.'
-                      'TextDecorationsManager._update')
+    patched_object = (
+        "spyder.plugins.editor.utils.decoration." "TextDecorationsManager._update"
+    )
 
     with patch(patched_object) as _update:
         # NOTE: We can't use a fixture to build a CodeEditor instance here
         # because the testing results are not consistent.
         editor = CodeEditor(parent=None)
         editor.setup_editor(
-            language='Python',
-            color_scheme='spyder/dark',
+            language="Python",
+            color_scheme="spyder/dark",
             font=QFont("Monospace", 10),
         )
         editor.resize(640, 480)
@@ -122,7 +123,7 @@ def test_update_decorations_when_scrolling(qtbot):
         # be a call to _update.
         assert _update.call_count == 0
 
-        with open(osp.join(PARENT, 'codeeditor.py'), 'r') as f:
+        with open(osp.join(PARENT, "codeeditor.py"), "r") as f:
             text = f.read()
         editor.set_text(text)
 

@@ -15,10 +15,20 @@ import os.path as osp
 from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                            QPushButton, QRadioButton, QSpacerItem,
-                            QVBoxLayout)
+from qtpy.QtWidgets import (
+    QCheckBox,
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QRadioButton,
+    QSpacerItem,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -28,30 +38,33 @@ from spyder.config.base import _, get_home_dir
 class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
     """Dialog to connect to existing kernels (either local or remote)."""
 
-    CONF_SECTION = 'existing-kernel'
+    CONF_SECTION = "existing-kernel"
 
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
-        self.setWindowTitle(_('Connect to an existing kernel'))
+        self.setWindowTitle(_("Connect to an existing kernel"))
 
-        main_label = QLabel(_(
-            "<p>Please select the JSON connection file (<i>e.g.</i> "
-            "<tt>kernel-1234.json</tt>) of the existing kernel, and enter "
-            "the SSH information if connecting to a remote machine. "
-            "To learn more about starting external kernels and connecting "
-            "to them, see <a href=\"https://docs.spyder-ide.org/5/panes/"
-            "ipythonconsole.html#using-external-kernels\">"
-            "our documentation</a>.</p>"))
+        main_label = QLabel(
+            _(
+                "<p>Please select the JSON connection file (<i>e.g.</i> "
+                "<tt>kernel-1234.json</tt>) of the existing kernel, and enter "
+                "the SSH information if connecting to a remote machine. "
+                "To learn more about starting external kernels and connecting "
+                'to them, see <a href="https://docs.spyder-ide.org/5/panes/'
+                'ipythonconsole.html#using-external-kernels">'
+                "our documentation</a>.</p>"
+            )
+        )
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
         main_label.setOpenExternalLinks(True)
 
         # Connection file
-        cf_label = QLabel(_('Connection file:'))
+        cf_label = QLabel(_("Connection file:"))
         self.cf = QLineEdit()
-        self.cf.setPlaceholderText(_('Kernel connection file path'))
+        self.cf.setPlaceholderText(_("Kernel connection file path"))
         self.cf.setMinimumWidth(350)
-        cf_open_btn = QPushButton(_('Browse'))
+        cf_open_btn = QPushButton(_("Browse"))
         cf_open_btn.clicked.connect(self.select_connection_file)
 
         cf_layout = QHBoxLayout()
@@ -63,21 +76,21 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         self.rm_group = QGroupBox(_("This is a remote kernel (via SSH)"))
 
         # SSH connection
-        hn_label = QLabel(_('Hostname:'))
+        hn_label = QLabel(_("Hostname:"))
         self.hn = QLineEdit()
-        pn_label = QLabel(_('Port:'))
+        pn_label = QLabel(_("Port:"))
         self.pn = QLineEdit()
         self.pn.setMaximumWidth(75)
 
-        un_label = QLabel(_('Username:'))
+        un_label = QLabel(_("Username:"))
         self.un = QLineEdit()
 
         # SSH authentication
         auth_group = QGroupBox(_("Authentication method:"))
         self.pw_radio = QRadioButton()
-        pw_label = QLabel(_('Password:'))
+        pw_label = QLabel(_("Password:"))
         self.kf_radio = QRadioButton()
-        kf_label = QLabel(_('SSH keyfile:'))
+        kf_label = QLabel(_("SSH keyfile:"))
 
         self.pw = QLineEdit()
         self.pw.setEchoMode(QLineEdit.Password)
@@ -85,15 +98,15 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         self.kf_radio.toggled.connect(self.pw.setDisabled)
 
         self.kf = QLineEdit()
-        kf_open_btn = QPushButton(_('Browse'))
+        kf_open_btn = QPushButton(_("Browse"))
         kf_open_btn.clicked.connect(self.select_ssh_key)
         kf_layout = QHBoxLayout()
         kf_layout.addWidget(self.kf)
         kf_layout.addWidget(kf_open_btn)
 
-        kfp_label = QLabel(_('Passphase:'))
+        kfp_label = QLabel(_("Passphase:"))
         self.kfp = QLineEdit()
-        self.kfp.setPlaceholderText(_('Optional'))
+        self.kfp.setPlaceholderText(_("Optional"))
         self.kfp.setEchoMode(QLineEdit.Password)
 
         self.kf_radio.toggled.connect(self.kf.setEnabled)
@@ -137,8 +150,8 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
 
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self)
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+        )
 
         self.accept_btns.accepted.connect(self.save_connection_settings)
         self.accept_btns.accepted.connect(self.accept)
@@ -191,10 +204,11 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
 
         try:
             import keyring
-            ssh_passphrase = keyring.get_password("spyder_remote_kernel",
-                                                  "ssh_key_passphrase")
-            ssh_password = keyring.get_password("spyder_remote_kernel",
-                                                "ssh_password")
+
+            ssh_passphrase = keyring.get_password(
+                "spyder_remote_kernel", "ssh_key_passphrase"
+            )
+            ssh_password = keyring.get_password("spyder_remote_kernel", "ssh_password")
             if ssh_passphrase:
                 self.kfp.setText(ssh_passphrase)
             if ssh_password:
@@ -216,31 +230,37 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             "hostname": self.hn.text(),
             "port": self.pn.text(),
             "is_ssh_keyfile": is_ssh_key,
-            "ssh_key_file_path": self.kf.text()
+            "ssh_key_file_path": self.kf.text(),
         }
         self.set_conf("settings", connection_settings)
 
         try:
             import keyring
+
             if is_ssh_key:
-                keyring.set_password("spyder_remote_kernel",
-                                     "ssh_key_passphrase",
-                                     self.kfp.text())
+                keyring.set_password(
+                    "spyder_remote_kernel", "ssh_key_passphrase", self.kfp.text()
+                )
             else:
-                keyring.set_password("spyder_remote_kernel",
-                                     "ssh_password",
-                                     self.pw.text())
+                keyring.set_password(
+                    "spyder_remote_kernel", "ssh_password", self.pw.text()
+                )
         except Exception:
             pass
 
     def select_connection_file(self):
-        cf = getopenfilename(self, _('Select kernel connection file'),
-                             jupyter_runtime_dir(), '*.json;;*.*')[0]
+        cf = getopenfilename(
+            self,
+            _("Select kernel connection file"),
+            jupyter_runtime_dir(),
+            "*.json;;*.*",
+        )[0]
         self.cf.setText(cf)
 
     def select_ssh_key(self):
-        kf = getopenfilename(self, _('Select SSH keyfile'),
-                             get_home_dir(), '*.pem;;*')[0]
+        kf = getopenfilename(self, _("Select SSH keyfile"), get_home_dir(), "*.pem;;*")[
+            0
+        ]
         self.kf.setText(kf)
 
     @staticmethod
@@ -252,13 +272,15 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         accepted = result == QDialog.Accepted
 
         if is_remote:
+
             def falsy_to_none(arg):
                 return arg if arg else None
+
             if dialog.hn.text() and dialog.un.text():
-                port = dialog.pn.text() if dialog.pn.text() else '22'
-                hostname = "{0}@{1}:{2}".format(dialog.un.text(),
-                                                dialog.hn.text(),
-                                                port)
+                port = dialog.pn.text() if dialog.pn.text() else "22"
+                hostname = "{0}@{1}:{2}".format(
+                    dialog.un.text(), dialog.hn.text(), port
+                )
             else:
                 hostname = None
             if dialog.pw_radio.isChecked():
@@ -274,6 +296,6 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         else:
             path = dialog.cf.text()
             _dir, filename = osp.dirname(path), osp.basename(path)
-            if _dir == '' and not filename.endswith('.json'):
-                path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
+            if _dir == "" and not filename.endswith(".json"):
+                path = osp.join(jupyter_runtime_dir(), "kernel-" + path + ".json")
             return (path, None, None, None, accepted)

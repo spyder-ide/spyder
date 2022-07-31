@@ -17,18 +17,21 @@ import logging
 from difflib import SequenceMatcher
 
 # Third-party imports
-from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
-                         QSortFilterProxyModel, Signal)
+from qtpy.QtCore import (
+    QAbstractItemModel,
+    QModelIndex,
+    Qt,
+    QSortFilterProxyModel,
+    Signal,
+)
 from qtpy.QtGui import QBrush, QColor
 from spyder_kernels.utils.nsview import is_editable_type
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
-    cut_off_str)
-from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
-    TreeItem)
+from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import cut_off_str
+from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import TreeItem
 from spyder.py3compat import to_unichr
 from spyder.utils.icon_manager import ima
 
@@ -51,13 +54,16 @@ class TreeModel(QAbstractItemModel):
     Model that provides an interface to an objectree
     that is build of TreeItems.
     """
-    def __init__(self,
-                 obj,
-                 obj_name='',
-                 attr_cols=None,
-                 parent=None,
-                 regular_font=None,
-                 special_attribute_font=None):
+
+    def __init__(
+        self,
+        obj,
+        obj_name="",
+        attr_cols=None,
+        parent=None,
+        regular_font=None,
+        special_attribute_font=None,
+    ):
         """
         Constructor
 
@@ -73,14 +79,15 @@ class TreeModel(QAbstractItemModel):
         # Font for members (non-functions)
         self.regular_font = regular_font if regular_font else get_font()
         # Font for __special_attributes__
-        self.special_attribute_font = (special_attribute_font
-                                       if special_attribute_font
-                                       else get_font())
+        self.special_attribute_font = (
+            special_attribute_font if special_attribute_font else get_font()
+        )
         self.special_attribute_font.setItalic(False)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))
         self.callable_color = QBrush(
-            QColor(ima.MAIN_FG_COLOR))  # for functions, methods, etc.
+            QColor(ima.MAIN_FG_COLOR)
+        )  # for functions, methods, etc.
 
         # The following members will be initialized by populateTree
         # The rootItem is always invisible. If the obj_name
@@ -105,8 +112,7 @@ class TreeModel(QAbstractItemModel):
 
     @property
     def rootItem(self):
-        """ The root TreeItem.
-        """
+        """The root TreeItem."""
         return self._root_item
 
     @property
@@ -129,7 +135,7 @@ class TreeModel(QAbstractItemModel):
             return self.rootIndex()
 
     def columnCount(self, _parent=None):
-        """ Returns the number of columns in the tree """
+        """Returns the number of columns in the tree"""
         return len(self._attr_cols)
 
     def data(self, index, role):
@@ -146,9 +152,11 @@ class TreeModel(QAbstractItemModel):
                 attr = self._attr_cols[col].data_fn(tree_item)
                 # Replace carriage returns and line feeds with unicode glyphs
                 # so that all table rows fit on one line.
-                return (attr.replace('\r\n', to_unichr(0x21B5))
-                            .replace('\n', to_unichr(0x21B5))
-                            .replace('\r', to_unichr(0x21B5)))
+                return (
+                    attr.replace("\r\n", to_unichr(0x21B5))
+                    .replace("\n", to_unichr(0x21B5))
+                    .replace("\r", to_unichr(0x21B5))
+                )
             except Exception as ex:
                 # logger.exception(ex)
                 return "**ERROR**: {}".format(ex)
@@ -199,9 +207,9 @@ class TreeModel(QAbstractItemModel):
         parentItem = self.treeItem(parent)
 
         if not self.hasIndex(row, column, parent):
-            logger.debug("hasIndex "
-                         "is False: ({}, {}) {!r}".format(row,
-                                                          column, parentItem))
+            logger.debug(
+                "hasIndex " "is False: ({}, {}) {!r}".format(row, column, parentItem)
+            )
             # logger.warn("Parent index model"
             #             ": {!r} != {!r}".format(parent.model(), self))
 
@@ -265,8 +273,7 @@ class TreeModel(QAbstractItemModel):
         if parent_item.children_fetched:
             return
 
-        tree_items = self._fetchObjectChildren(parent_item.obj,
-                                               parent_item.obj_path)
+        tree_items = self._fetchObjectChildren(parent_item.obj, parent_item.obj_path)
 
         self.beginInsertRows(parent, 0, len(tree_items) - 1)
         for tree_item in tree_items:
@@ -293,39 +300,38 @@ class TreeModel(QAbstractItemModel):
             try:
                 attr_value = getattr(obj, attr_name)
                 obj_children.append((attr_name, attr_value))
-                path_strings.append('{}.{}'.format(obj_path, attr_name)
-                                    if obj_path else attr_name)
+                path_strings.append(
+                    "{}.{}".format(obj_path, attr_name) if obj_path else attr_name
+                )
                 is_attr_list.append(True)
             except Exception:
                 # Attribute could not be get
                 pass
         assert len(obj_children) == len(path_strings), "sanity check"
 
-        for item, path_str, is_attr in zip(obj_children, path_strings,
-                                           is_attr_list):
+        for item, path_str, is_attr in zip(obj_children, path_strings, is_attr_list):
             name, child_obj = item
             tree_items.append(TreeItem(child_obj, name, path_str, is_attr))
 
         return tree_items
 
-    def populateTree(self, obj, obj_name='', inspected_node_is_visible=None):
+    def populateTree(self, obj, obj_name="", inspected_node_is_visible=None):
         """Fills the tree using a python object. Sets the rootItem."""
         logger.debug("populateTree with object id = 0x{:x}".format(id(obj)))
         if inspected_node_is_visible is None:
-            inspected_node_is_visible = (obj_name != '')
+            inspected_node_is_visible = obj_name != ""
         self._inspected_node_is_visible = inspected_node_is_visible
 
         if self._inspected_node_is_visible:
-            self._root_item = TreeItem(None, _('<invisible_root>'),
-                                       _('<invisible_root>'), None)
+            self._root_item = TreeItem(
+                None, _("<invisible_root>"), _("<invisible_root>"), None
+            )
             self._root_item.children_fetched = True
-            self._inspected_item = TreeItem(obj, obj_name,
-                                            obj_name, is_attribute=None)
+            self._inspected_item = TreeItem(obj, obj_name, obj_name, is_attribute=None)
             self._root_item.append_child(self._inspected_item)
         else:
             # The root itself will be invisible
-            self._root_item = TreeItem(obj, obj_name,
-                                       obj_name, is_attribute=None)
+            self._root_item = TreeItem(obj, obj_name, obj_name, is_attribute=None)
             self._inspected_item = self._root_item
 
             # Fetch all items of the root so we can
@@ -349,62 +355,72 @@ class TreeModel(QAbstractItemModel):
         let the refreshNode function emit the dataChanged signal for all cells.
         """
         tree_item = self.treeItem(tree_index)
-        logger.debug("_auxRefreshTree({}): {}{}".format(
-            tree_index, tree_item.obj_path,
-            "*" if tree_item.children_fetched else ""))
+        logger.debug(
+            "_auxRefreshTree({}): {}{}".format(
+                tree_index,
+                tree_item.obj_path,
+                "*" if tree_item.children_fetched else "",
+            )
+        )
 
         if tree_item.children_fetched:
 
             old_items = tree_item.child_items
-            new_items = self._fetchObjectChildren(tree_item.obj,
-                                                  tree_item.obj_path)
+            new_items = self._fetchObjectChildren(tree_item.obj, tree_item.obj_path)
 
-            old_item_names = [(item.obj_name,
-                               item.is_attribute) for item in old_items]
-            new_item_names = [(item.obj_name,
-                               item.is_attribute) for item in new_items]
-            seqMatcher = SequenceMatcher(isjunk=None, a=old_item_names,
-                                         b=new_item_names,
-                                         autojunk=False)
+            old_item_names = [(item.obj_name, item.is_attribute) for item in old_items]
+            new_item_names = [(item.obj_name, item.is_attribute) for item in new_items]
+            seqMatcher = SequenceMatcher(
+                isjunk=None, a=old_item_names, b=new_item_names, autojunk=False
+            )
             opcodes = seqMatcher.get_opcodes()
 
-            logger.debug("(reversed) "
-                         "opcodes: {}".format(list(reversed(opcodes))))
+            logger.debug("(reversed) " "opcodes: {}".format(list(reversed(opcodes))))
 
             for tag, i1, i2, j1, j2 in reversed(opcodes):
 
-                if 1 or tag != 'equal':
-                    logger.debug("  {:7s}, a[{}:{}] ({}), b[{}:{}] ({})"
-                                 .format(tag, i1, i2,
-                                         old_item_names[i1:i2], j1, j2,
-                                         new_item_names[j1:j2]))
+                if 1 or tag != "equal":
+                    logger.debug(
+                        "  {:7s}, a[{}:{}] ({}), b[{}:{}] ({})".format(
+                            tag,
+                            i1,
+                            i2,
+                            old_item_names[i1:i2],
+                            j1,
+                            j2,
+                            new_item_names[j1:j2],
+                        )
+                    )
 
-                if tag == 'equal':
+                if tag == "equal":
                     # Only when node names are equal is _auxRefreshTree
                     # called recursively.
-                    assert i2-i1 == j2-j1, ("equal sanity "
-                                            "check failed "
-                                            "{} != {}".format(i2-i1, j2-j1))
+                    assert i2 - i1 == j2 - j1, (
+                        "equal sanity "
+                        "check failed "
+                        "{} != {}".format(i2 - i1, j2 - j1)
+                    )
                     for old_row, new_row in zip(range(i1, i2), range(j1, j2)):
                         old_items[old_row].obj = new_items[new_row].obj
                         child_index = self.index(old_row, 0, parent=tree_index)
                         self._auxRefreshTree(child_index)
 
-                elif tag == 'replace':
+                elif tag == "replace":
                     # Explicitly remove the old item and insert the new.
                     # The old item may have child nodes which indices must be
                     # removed by Qt, otherwise it crashes.
-                    assert i2-i1 == j2-j1, ("replace sanity "
-                                            "check failed "
-                                            "{} != {}").format(i2-i1, j2-j1)
+                    assert i2 - i1 == j2 - j1, (
+                        "replace sanity " "check failed " "{} != {}"
+                    ).format(i2 - i1, j2 - j1)
 
                     # row number of first removed
                     first = i1
                     # row number of last element after insertion
                     last = i1 + i2 - 1
-                    logger.debug("     calling "
-                                 "beginRemoveRows({}, {}, {})".format(
-                                    tree_index, first, last))
+                    logger.debug(
+                        "     calling "
+                        "beginRemoveRows({}, {}, {})".format(tree_index, first, last)
+                    )
                     self.beginRemoveRows(tree_index, first, last)
                     del tree_item.child_items[i1:i2]
                     self.endRemoveRows()
@@ -413,41 +429,44 @@ class TreeModel(QAbstractItemModel):
                     first = i1
                     # row number of last element after insertion
                     last = i1 + j2 - j1 - 1
-                    logger.debug("     calling "
-                                 "beginInsertRows({}, {}, {})".format(
-                                    tree_index, first, last))
+                    logger.debug(
+                        "     calling "
+                        "beginInsertRows({}, {}, {})".format(tree_index, first, last)
+                    )
                     self.beginInsertRows(tree_index, first, last)
                     tree_item.insert_children(i1, new_items[j1:j2])
                     self.endInsertRows()
 
-                elif tag == 'delete':
-                    assert j1 == j2, ("delete"
-                                      " sanity check "
-                                      "failed. {} != {}".format(j1, j2))
+                elif tag == "delete":
+                    assert j1 == j2, (
+                        "delete" " sanity check " "failed. {} != {}".format(j1, j2)
+                    )
                     # row number of first that will be removed
                     first = i1
                     # row number of last element after insertion
                     last = i1 + i2 - 1
-                    logger.debug("     calling "
-                                 "beginRemoveRows"
-                                 "({}, {}, {})".format(tree_index,
-                                                       first, last))
+                    logger.debug(
+                        "     calling "
+                        "beginRemoveRows"
+                        "({}, {}, {})".format(tree_index, first, last)
+                    )
                     self.beginRemoveRows(tree_index, first, last)
                     del tree_item.child_items[i1:i2]
                     self.endRemoveRows()
 
-                elif tag == 'insert':
-                    assert i1 == i2, ("insert "
-                                      "sanity check "
-                                      "failed. {} != {}".format(i1, i2))
+                elif tag == "insert":
+                    assert i1 == i2, (
+                        "insert " "sanity check " "failed. {} != {}".format(i1, i2)
+                    )
                     # row number of first element after insertion
                     first = i1
                     # row number of last element after insertion
                     last = i1 + j2 - j1 - 1
-                    logger.debug("     "
-                                 "calling beginInsertRows"
-                                 "({}, {}, {})".format(tree_index,
-                                                       first, last))
+                    logger.debug(
+                        "     "
+                        "calling beginInsertRows"
+                        "({}, {}, {})".format(tree_index, first, last)
+                    )
                     self.beginInsertRows(tree_index, first, last)
                     tree_item.insert_children(i1, new_items[j1:j2])
                     self.endInsertRows()
@@ -463,21 +482,24 @@ class TreeModel(QAbstractItemModel):
         logger.info("refreshTree: {}".format(self.rootItem))
 
         root_item = self.treeItem(self.rootIndex())
-        logger.info("  root_item:      {} (idx={})".format(root_item,
-                                                           self.rootIndex()))
+        logger.info("  root_item:      {} (idx={})".format(root_item, self.rootIndex()))
         inspected_item = self.treeItem(self.inspectedIndex())
-        logger.info("  inspected_item: {} (idx={})".format(
-            inspected_item,
-            self.inspectedIndex()))
+        logger.info(
+            "  inspected_item: {} (idx={})".format(
+                inspected_item, self.inspectedIndex()
+            )
+        )
 
-        assert (root_item is inspected_item) != self.inspectedNodeIsVisible, \
-            "sanity check"
+        assert (
+            root_item is inspected_item
+        ) != self.inspectedNodeIsVisible, "sanity check"
 
         self._auxRefreshTree(self.inspectedIndex())
 
         root_obj = self.rootItem.obj
-        logger.debug("After _auxRefreshTree, "
-                     "root_obj: {}".format(cut_off_str(root_obj, 80)))
+        logger.debug(
+            "After _auxRefreshTree, " "root_obj: {}".format(cut_off_str(root_obj, 80))
+        )
         self.rootItem.pretty_print()
 
         # Emit the dataChanged signal for all cells.
@@ -486,22 +508,23 @@ class TreeModel(QAbstractItemModel):
         n_rows = self.rowCount()
         n_cols = self.columnCount()
         top_left = self.index(0, 0)
-        bottom_right = self.index(n_rows-1, n_cols-1)
+        bottom_right = self.index(n_rows - 1, n_cols - 1)
 
-        logger.debug("bottom_right: ({}, {})".format(bottom_right.row(),
-                                                     bottom_right.column()))
+        logger.debug(
+            "bottom_right: ({}, {})".format(bottom_right.row(), bottom_right.column())
+        )
         self.dataChanged.emit(top_left, bottom_right)
 
 
 class TreeProxyModel(QSortFilterProxyModel):
     """Proxy model that overrides the sorting and can filter out items."""
+
     sig_setting_data = Signal()
     sig_update_details = Signal(object)
 
-    def __init__(self,
-                 show_callable_attributes=True,
-                 show_special_attributes=True,
-                 parent=None):
+    def __init__(
+        self, show_callable_attributes=True, show_special_attributes=True, parent=None
+    ):
         """
         Constructor
 
@@ -554,10 +577,9 @@ class TreeProxyModel(QSortFilterProxyModel):
         parent_item = self.sourceModel().treeItem(sourceParentIndex)
         tree_item = parent_item.child(sourceRow)
 
-        accept = ((self._show_special_attributes or
-                   not tree_item.is_special_attribute) and
-                  (self._show_callables or
-                   not tree_item.is_callable_attribute))
+        accept = (
+            self._show_special_attributes or not tree_item.is_special_attribute
+        ) and (self._show_callables or not tree_item.is_callable_attribute)
 
         return accept
 
@@ -581,7 +603,6 @@ class TreeProxyModel(QSortFilterProxyModel):
         Shows/hides special attributes, which begin with an underscore.
         Repopulates the tree.
         """
-        logger.debug("setShowSpecialAttributes:"
-                     " {}".format(show_special_attributes))
+        logger.debug("setShowSpecialAttributes:" " {}".format(show_special_attributes))
         self._show_special_attributes = show_special_attributes
         self.invalidateFilter()

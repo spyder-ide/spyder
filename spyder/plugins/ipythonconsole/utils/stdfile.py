@@ -24,7 +24,7 @@ from spyder.utils.programs import get_temp_dir
 def std_filename(connection_file, extension, std_dir=None):
     """Filename to save kernel output."""
     json_file = osp.basename(connection_file)
-    file = json_file.split('.json')[0] + extension
+    file = json_file.split(".json")[0] + extension
     if std_dir is not None:
         file = osp.join(std_dir, file)
     else:
@@ -52,8 +52,7 @@ class StdFile:
             # Needed to prevent any error that could appear.
             # See spyder-ide/spyder#6267.
             try:
-                self._handle = codecs.open(
-                    self.filename, 'w', encoding='utf-8')
+                self._handle = codecs.open(self.filename, "w", encoding="utf-8")
             except Exception:
                 pass
         return self._handle
@@ -74,7 +73,7 @@ class StdFile:
     def get_contents(self):
         """Get the contents of the std kernel file."""
         try:
-            with open(self.filename, 'rb') as f:
+            with open(self.filename, "rb") as f:
                 # We need to read the file as bytes to be able to
                 # detect its encoding with chardet
                 text = f.read()
@@ -83,7 +82,7 @@ class StdFile:
                 # when the kernel takes too much time to start.
                 # See spyder-ide/spyder#8581.
                 if not text:
-                    return ''
+                    return ""
 
                 # This is needed since the file could be encoded
                 # in something different to utf-8.
@@ -108,7 +107,7 @@ class StdFile:
         self._mtime = mtime
         text = self.get_contents()
         if text:
-            ret_text = text[self._cursor:]
+            ret_text = text[self._cursor :]
             self._cursor = len(text)
             return ret_text
 

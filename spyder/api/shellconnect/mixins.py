@@ -9,7 +9,9 @@ Mixin to connect a plugin to the IPython console.
 """
 
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.plugins import Plugins
 
 
@@ -33,7 +35,8 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
         ipyconsole.sig_external_spyder_kernel_connected.connect(
-            self.on_connection_to_external_spyder_kernel)
+            self.on_connection_to_external_spyder_kernel
+        )
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
@@ -44,7 +47,8 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.disconnect(self.remove_shellwidget)
         ipyconsole.sig_external_spyder_kernel_connected.disconnect(
-            self.on_connection_to_external_spyder_kernel)
+            self.on_connection_to_external_spyder_kernel
+        )
 
     # ---- Public API
     # -------------------------------------------------------------------------

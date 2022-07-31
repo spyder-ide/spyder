@@ -9,8 +9,7 @@
 import logging
 
 from spyder.plugins.completion.api import CompletionRequestTypes
-from spyder.plugins.completion.providers.languageserver.decorators import (
-    handles)
+from spyder.plugins.completion.providers.languageserver.decorators import handles
 
 logger = logging.getLogger(__name__)
 

@@ -8,44 +8,47 @@
 
 import os
 
+
 class ANSIEscapeCodeHandler(object):
     """ANSI Escape sequences handler"""
-    if os.name == 'nt':
+
+    if os.name == "nt":
         # Windows terminal colors:
-        ANSI_COLORS = ( # Normal, Bright/Light
-                       ('#000000', '#808080'), # 0: black
-                       ('#800000', '#ff0000'), # 1: red
-                       ('#008000', '#00ff00'), # 2: green
-                       ('#808000', '#ffff00'), # 3: yellow
-                       ('#000080', '#0000ff'), # 4: blue
-                       ('#800080', '#ff00ff'), # 5: magenta
-                       ('#008080', '#00ffff'), # 6: cyan
-                       ('#c0c0c0', '#ffffff'), # 7: white
-                       )
-    elif os.name == 'mac':
+        ANSI_COLORS = (  # Normal, Bright/Light
+            ("#000000", "#808080"),  # 0: black
+            ("#800000", "#ff0000"),  # 1: red
+            ("#008000", "#00ff00"),  # 2: green
+            ("#808000", "#ffff00"),  # 3: yellow
+            ("#000080", "#0000ff"),  # 4: blue
+            ("#800080", "#ff00ff"),  # 5: magenta
+            ("#008080", "#00ffff"),  # 6: cyan
+            ("#c0c0c0", "#ffffff"),  # 7: white
+        )
+    elif os.name == "mac":
         # Terminal.app colors:
-        ANSI_COLORS = ( # Normal, Bright/Light
-                       ('#000000', '#818383'), # 0: black
-                       ('#C23621', '#FC391F'), # 1: red
-                       ('#25BC24', '#25BC24'), # 2: green
-                       ('#ADAD27', '#EAEC23'), # 3: yellow
-                       ('#492EE1', '#5833FF'), # 4: blue
-                       ('#D338D3', '#F935F8'), # 5: magenta
-                       ('#33BBC8', '#14F0F0'), # 6: cyan
-                       ('#CBCCCD', '#E9EBEB'), # 7: white
-                       )
+        ANSI_COLORS = (  # Normal, Bright/Light
+            ("#000000", "#818383"),  # 0: black
+            ("#C23621", "#FC391F"),  # 1: red
+            ("#25BC24", "#25BC24"),  # 2: green
+            ("#ADAD27", "#EAEC23"),  # 3: yellow
+            ("#492EE1", "#5833FF"),  # 4: blue
+            ("#D338D3", "#F935F8"),  # 5: magenta
+            ("#33BBC8", "#14F0F0"),  # 6: cyan
+            ("#CBCCCD", "#E9EBEB"),  # 7: white
+        )
     else:
         # xterm colors:
-        ANSI_COLORS = ( # Normal, Bright/Light
-                       ('#000000', '#7F7F7F'), # 0: black
-                       ('#CD0000', '#ff0000'), # 1: red
-                       ('#00CD00', '#00ff00'), # 2: green
-                       ('#CDCD00', '#ffff00'), # 3: yellow
-                       ('#0000EE', '#5C5CFF'), # 4: blue
-                       ('#CD00CD', '#ff00ff'), # 5: magenta
-                       ('#00CDCD', '#00ffff'), # 6: cyan
-                       ('#E5E5E5', '#ffffff'), # 7: white
-                       )
+        ANSI_COLORS = (  # Normal, Bright/Light
+            ("#000000", "#7F7F7F"),  # 0: black
+            ("#CD0000", "#ff0000"),  # 1: red
+            ("#00CD00", "#00ff00"),  # 2: green
+            ("#CDCD00", "#ffff00"),  # 3: yellow
+            ("#0000EE", "#5C5CFF"),  # 4: blue
+            ("#CD00CD", "#ff00ff"),  # 5: magenta
+            ("#00CDCD", "#00ffff"),  # 6: cyan
+            ("#E5E5E5", "#ffffff"),  # 7: white
+        )
+
     def __init__(self):
         self.intensity = 0
         self.italic = None
@@ -66,7 +69,7 @@ class ANSIEscapeCodeHandler(object):
             self.intensity = 1
             # The following line is commented because most terminals won't
             # change the font weight, against ANSI standard recommendation:
-#            self.bold = True
+        #            self.bold = True
         elif code == 3:
             # Italic on
             self.italic = True

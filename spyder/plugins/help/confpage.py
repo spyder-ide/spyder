@@ -21,17 +21,22 @@ class HelpConfigPage(PluginConfigPage):
     def setup_page(self):
         # Connections group
         connections_group = QGroupBox(_("Automatic connections"))
-        connections_label = QLabel(_("This pane can automatically "
-                                     "show an object's help information after "
-                                     "a left parenthesis is written next to it. "
-                                     "Below you can decide to which plugin "
-                                     "you want to connect it to turn on this "
-                                     "feature."))
+        connections_label = QLabel(
+            _(
+                "This pane can automatically "
+                "show an object's help information after "
+                "a left parenthesis is written next to it. "
+                "Below you can decide to which plugin "
+                "you want to connect it to turn on this "
+                "feature."
+            )
+        )
         connections_label.setWordWrap(True)
-        editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
+        editor_box = self.create_checkbox(_("Editor"), "connect/editor")
 
-        ipython_box = self.create_checkbox(_("IPython Console"),
-                                           'connect/ipython_console')
+        ipython_box = self.create_checkbox(
+            _("IPython Console"), "connect/ipython_console"
+        )
 
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)
@@ -41,12 +46,11 @@ class HelpConfigPage(PluginConfigPage):
 
         # Features group
         features_group = QGroupBox(_("Additional features"))
-        math_box = self.create_checkbox(_("Render mathematical equations"),
-                                        'math')
-        req_sphinx = programs.is_module_installed('sphinx', '>=1.1')
+        math_box = self.create_checkbox(_("Render mathematical equations"), "math")
+        req_sphinx = programs.is_module_installed("sphinx", ">=1.1")
         math_box.setEnabled(req_sphinx)
         if not req_sphinx:
-            sphinx_ver = programs.get_module_version('sphinx')
+            sphinx_ver = programs.get_module_version("sphinx")
             sphinx_tip = _("This feature requires Sphinx 1.1 or superior.")
             sphinx_tip += "\n" + _("Sphinx %s is currently installed.") % sphinx_ver
             math_box.setToolTip(sphinx_tip)
@@ -57,7 +61,7 @@ class HelpConfigPage(PluginConfigPage):
 
         # Source code group
         sourcecode_group = QGroupBox(_("Source code"))
-        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
+        wrap_mode_box = self.create_checkbox(_("Wrap lines"), "wrap")
 
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
@@ -70,4 +74,3 @@ class HelpConfigPage(PluginConfigPage):
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-

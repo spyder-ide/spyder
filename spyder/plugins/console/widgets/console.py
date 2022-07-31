@@ -24,6 +24,7 @@ MAIN_ERROR_FG_COLOR = SpyderPalette.COLOR_ERROR_1
 MAIN_TB_FG_COLOR = QStylePalette.COLOR_ACCENT_3
 MAIN_PROMPT_FG_COLOR = SpyderPalette.COLOR_SUCCESS_1
 
+
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
     while True:
@@ -33,7 +34,7 @@ def insert_text_to(cursor, text, fmt):
         cursor.insertText(text[:index], fmt)
         if cursor.positionInBlock() > 0:
             cursor.deletePreviousChar()
-        text = text[index+1:]
+        text = text[index + 1 :]
     cursor.insertText(text, fmt)
 
 
@@ -74,14 +75,14 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
         if self.foreground_color is None:
             qcolor = self.base_format.foreground()
         else:
-            cstr = self.ANSI_COLORS[self.foreground_color-30][self.intensity]
+            cstr = self.ANSI_COLORS[self.foreground_color - 30][self.intensity]
             qcolor = QColor(cstr)
         self.current_format.setForeground(qcolor)
         # Background color
         if self.background_color is None:
             qcolor = self.base_format.background()
         else:
-            cstr = self.ANSI_COLORS[self.background_color-40][self.intensity]
+            cstr = self.ANSI_COLORS[self.background_color - 40][self.intensity]
             qcolor = QColor(cstr)
         self.current_format.setBackground(qcolor)
 
@@ -108,12 +109,11 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
 
 
 def inverse_color(color):
-    color.setHsv(color.hue(), color.saturation(), 255-color.value())
+    color.setHsv(color.hue(), color.saturation(), 255 - color.value())
 
 
 class ConsoleFontStyle(object):
-    def __init__(self, foregroundcolor, backgroundcolor,
-                 bold, italic, underline):
+    def __init__(self, foregroundcolor, backgroundcolor, bold, italic, underline):
         self.foregroundcolor = foregroundcolor
         self.backgroundcolor = backgroundcolor
         self.bold = bold
@@ -137,8 +137,9 @@ class ConsoleFontStyle(object):
 
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
-    BRACE_MATCHING_SCOPE = ('sol', 'eol')
-    COLOR_PATTERN = re.compile(r'\x01?\x1b\[(.*?)m\x02?')
+
+    BRACE_MATCHING_SCOPE = ("sol", "eol")
+    COLOR_PATTERN = re.compile(r"\x01?\x1b\[(.*?)m\x02?")
 
     # --- Signals
     # This signal emits an error text, which corresponds to a Python
@@ -151,7 +152,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         TextEditBaseWidget.__init__(self, parent)
 
         # To adjust some things for the internal console
-        self.setObjectName('console')
+        self.setObjectName("console")
 
         self.setMaximumBlockCount(300)
 
@@ -162,7 +163,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         self.setUndoRedoEnabled(False)
 
         self.userListActivated.connect(
-            lambda user_id, text: self.completion_widget_activated.emit(text))
+            lambda user_id, text: self.completion_widget_activated.emit(text)
+        )
 
         background_color = MAIN_BG_COLOR
         default_foreground_color = MAIN_DEFAULT_FG_COLOR
@@ -171,23 +173,39 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         prompt_foreground_color = MAIN_PROMPT_FG_COLOR
 
         self.default_style = ConsoleFontStyle(
-                            foregroundcolor=default_foreground_color,
-                            backgroundcolor=background_color,
-                            bold=False, italic=False, underline=False)
+            foregroundcolor=default_foreground_color,
+            backgroundcolor=background_color,
+            bold=False,
+            italic=False,
+            underline=False,
+        )
         self.error_style = ConsoleFontStyle(
-                            foregroundcolor=error_foreground_color,
-                            backgroundcolor=background_color,
-                            bold=False, italic=False, underline=False)
+            foregroundcolor=error_foreground_color,
+            backgroundcolor=background_color,
+            bold=False,
+            italic=False,
+            underline=False,
+        )
         self.traceback_link_style = ConsoleFontStyle(
-                            foregroundcolor=traceback_foreground_color,
-                            backgroundcolor=background_color,
-                            bold=True, italic=False, underline=True)
+            foregroundcolor=traceback_foreground_color,
+            backgroundcolor=background_color,
+            bold=True,
+            italic=False,
+            underline=True,
+        )
         self.prompt_style = ConsoleFontStyle(
-                            foregroundcolor=prompt_foreground_color,
-                            backgroundcolor=background_color,
-                            bold=True, italic=False, underline=False)
-        self.font_styles = (self.default_style, self.error_style,
-                            self.traceback_link_style, self.prompt_style)
+            foregroundcolor=prompt_foreground_color,
+            backgroundcolor=background_color,
+            bold=True,
+            italic=False,
+            underline=False,
+        )
+        self.font_styles = (
+            self.default_style,
+            self.error_style,
+            self.traceback_link_style,
+            self.prompt_style,
+        )
 
         self.set_color_scheme(default_foreground_color, background_color)
         self.setMouseTracking(True)
@@ -199,8 +217,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         background_color = QColor(background_color)
         foreground_color = QColor(foreground_color)
 
-        self.set_palette(background=background_color,
-                         foreground=foreground_color)
+        self.set_palette(background=background_color, foreground=foreground_color)
 
         self.set_pythonshell_font()
 
@@ -229,33 +246,33 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
-        if '\r' in text:    # replace \r\n with \n
-            text = text.replace('\r\n', '\n')
-            text = text.replace('\r', '\n')
+        if "\r" in text:  # replace \r\n with \n
+            text = text.replace("\r\n", "\n")
+            text = text.replace("\r", "\n")
         while True:
             index = text.find(chr(12))
             if index == -1:
                 break
-            text = text[index+1:]
+            text = text[index + 1 :]
             self.clear()
 
         if error:
             is_traceback = False
             is_warning = False
             for line in text.splitlines(True):
-                if (line.startswith('  File')
-                        and not line.startswith('  File "<')):
+                if line.startswith("  File") and not line.startswith('  File "<'):
                     is_traceback = True
                     is_warning = False
                     # Show error links in blue underlined text
-                    cursor.insertText('  ', self.default_style.format)
-                    cursor.insertText(line[2:],
-                                      self.traceback_link_style.format)
+                    cursor.insertText("  ", self.default_style.format)
+                    cursor.insertText(line[2:], self.traceback_link_style.format)
                 else:
                     # Detect if line is a warning.
-                    if (re.findall('[A-Z].*Warning', line) != [] or
-                            'warnings.warn' in line or
-                            'WARNING' in line):
+                    if (
+                        re.findall("[A-Z].*Warning", line) != []
+                        or "warnings.warn" in line
+                        or "WARNING" in line
+                    ):
                         is_warning = True
 
                     # Show error/warning messages in red
@@ -273,26 +290,27 @@ class ConsoleBaseWidget(TextEditBaseWidget):
             # Show other outputs in black
             last_end = 0
             for match in self.COLOR_PATTERN.finditer(text):
-                insert_text_to(cursor, text[last_end:match.start()],
-                               self.default_style.format)
+                insert_text_to(
+                    cursor, text[last_end : match.start()], self.default_style.format
+                )
                 last_end = match.end()
                 try:
-                    for code in [int(_c) for _c in match.group(1).split(';')]:
+                    for code in [int(_c) for _c in match.group(1).split(";")]:
                         self.ansi_handler.set_code(code)
                 except ValueError:
                     pass
                 self.default_style.format = self.ansi_handler.get_format()
             insert_text_to(cursor, text[last_end:], self.default_style.format)
-#            # Slower alternative:
-#            segments = self.COLOR_PATTERN.split(text)
-#            cursor.insertText(segments.pop(0), self.default_style.format)
-#            if segments:
-#                for ansi_tags, text in zip(segments[::2], segments[1::2]):
-#                    for ansi_tag in ansi_tags.split(';'):
-#                        self.ansi_handler.set_code(int(ansi_tag))
-#                    self.default_style.format = self.ansi_handler.get_format()
-#                    cursor.insertText(text, self.default_style.format)
-        self.set_cursor_position('eof')
+        #            # Slower alternative:
+        #            segments = self.COLOR_PATTERN.split(text)
+        #            cursor.insertText(segments.pop(0), self.default_style.format)
+        #            if segments:
+        #                for ansi_tags, text in zip(segments[::2], segments[1::2]):
+        #                    for ansi_tag in ansi_tags.split(';'):
+        #                        self.ansi_handler.set_code(int(ansi_tag))
+        #                    self.default_style.format = self.ansi_handler.get_format()
+        #                    cursor.insertText(text, self.default_style.format)
+        self.set_cursor_position("eof")
         self.setCurrentCharFormat(self.default_style.format)
 
     def set_pythonshell_font(self, font=None):
@@ -300,6 +318,5 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         if font is None:
             font = QFont()
         for style in self.font_styles:
-            style.apply_style(font=font,
-                              is_default=style is self.default_style)
+            style.apply_style(font=font, is_default=style is self.default_style)
         self.ansi_handler.set_base_format(self.default_style.format)

@@ -28,7 +28,7 @@ else:
 def as_posix(path_obj):
     """Get path as_posix as unicode using correct separator."""
     path = path_obj
-    return to_unicode(str(path)).replace(os.sep, '/')
+    return to_unicode(str(path)).replace(os.sep, "/")
 
 
 def make_as_uri(path):
@@ -38,19 +38,18 @@ def make_as_uri(path):
     """
     drive = path.drive
     path_string = as_posix(path)
-    if len(drive) == 2 and drive[1] == ':':
+    if len(drive) == 2 and drive[1] == ":":
         # It's a path on a local drive => 'file:///c:/a/b'
-        rest = path_string[2:].lstrip('/')
-        return u'file:///%s/%s' % (
-            drive, urlquote_from_bytes(rest.encode('utf-8')))
+        rest = path_string[2:].lstrip("/")
+        return "file:///%s/%s" % (drive, urlquote_from_bytes(rest.encode("utf-8")))
     else:
         # It's a path on a network drive => 'file://host/share/a/b'
-        return u'file:' + urlquote_from_bytes(path_string.encode('utf-8'))
+        return "file:" + urlquote_from_bytes(path_string.encode("utf-8"))
 
 
 def path_as_uri(path):
     path_obj = pathlib.Path(osp.abspath(path))
-    if os.name == 'nt' and PY2:
+    if os.name == "nt" and PY2:
         return make_as_uri(path_obj)
     else:
         return path_obj.as_uri()
@@ -60,7 +59,7 @@ def process_uri(uri):
     uri = urlparse(uri)
     netloc, path = uri.netloc, uri.path
     # Prepend UNC share notation if we have a UNC path.
-    netloc = '\\\\' + netloc if netloc else netloc
+    netloc = "\\\\" + netloc if netloc else netloc
     return url2pathname(netloc + path)
 
 
@@ -85,4 +84,4 @@ def match_path_to_folder(folders, path):
 
 def snake_to_camel(text):
     """Convert a string from CamelCase to snake_case."""
-    return re.sub('_([a-zA-Z0-9])', lambda m: m.group(1).upper(), text)
+    return re.sub("_([a-zA-Z0-9])", lambda m: m.group(1).upper(), text)

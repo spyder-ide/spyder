@@ -25,8 +25,7 @@ from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.plots.widgets.figurebrowser import (FigureBrowser,
-                                                        FigureThumbnail)
+from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser, FigureThumbnail
 from spyder.plugins.plots.widgets.figurebrowser import get_unique_figname
 
 
@@ -39,9 +38,9 @@ def figbrowser(qtbot):
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
     options = {
-        'mute_inline_plotting': True,
-        'show_plot_outline': False,
-        'auto_fit_plotting': False,
+        "mute_inline_plotting": True,
+        "show_plot_outline": False,
+        "auto_fit_plotting": False,
     }
     figbrowser.setup(options)
     qtbot.addWidget(figbrowser)
@@ -60,7 +59,7 @@ def create_figure(figname):
     canvas = FigureCanvasAgg(fig)
     ax = fig.add_axes([0.15, 0.15, 0.7, 0.7])
     fig.set_size_inches(6, 4)
-    ax.plot(np.random.rand(10), '.', color='red')
+    ax.plot(np.random.rand(10), ".", color="red")
     fig.savefig(figname)
 
     # Read back and return the binary data from the file.
@@ -69,15 +68,15 @@ def create_figure(figname):
     return fig
 
 
-def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
+def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt="image/png"):
     """
     Create and add bitmap figures to the figure browser. Also return a list
     of the created figures data.
     """
-    fext = '.svg' if fmt == 'image/svg+xml' else '.png'
+    fext = ".svg" if fmt == "image/svg+xml" else ".png"
     figs = []
     for i in range(nfig):
-        figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
+        figname = osp.join(str(tmpdir), "mplfig" + str(i) + fext)
         figs.append(create_figure(figname))
         figbrowser._handle_new_figure(figs[-1], fmt)
 
@@ -92,7 +91,7 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
 def png_to_qimage(png):
     """Return a QImage from the raw data of a png image."""
     qpix = QPixmap()
-    qpix.loadFromData(png, 'image/png'.upper())
+    qpix.loadFromData(png, "image/png".upper())
     return qpix.toImage()
 
 
@@ -100,8 +99,9 @@ def png_to_qimage(png):
 # ---- Tests
 # =============================================================================
 @pytest.mark.order(1)
-@pytest.mark.parametrize("fmt, fext",
-                         [('image/png', '.png'), ('image/svg+xml', '.svg')])
+@pytest.mark.parametrize(
+    "fmt, fext", [("image/png", ".png"), ("image/svg+xml", ".svg")]
+)
 def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
     """
     Test that the figure browser widget display correctly new figures in
@@ -112,7 +112,7 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
     assert figbrowser.figviewer.figcanvas.fig is None
 
     for i in range(3):
-        figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
+        figname = osp.join(str(tmpdir), "mplfig" + str(i) + fext)
         fig = create_figure(figname)
         figbrowser._handle_new_figure(fig, fmt)
         assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
@@ -121,10 +121,10 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
         assert figbrowser.figviewer.figcanvas.fig == fig
 
 
-@pytest.mark.parametrize("fmt, fext",
-                         [('image/png', '.png'),
-                          ('image/svg+xml', '.svg'),
-                          ('image/svg+xml', '.png')])
+@pytest.mark.parametrize(
+    "fmt, fext",
+    [("image/png", ".png"), ("image/svg+xml", ".svg"), ("image/svg+xml", ".png")],
+)
 def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     """
     Test saving png and svg figures to file with the figure browser.
@@ -134,9 +134,11 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     expected_qpix.loadFromData(fig, fmt.upper())
 
     # Save the figure to disk with the figure browser.
-    saved_figname = osp.join(str(tmpdir), 'spyfig' + fext)
-    mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
-                 return_value=(saved_figname, fext))
+    saved_figname = osp.join(str(tmpdir), "spyfig" + fext)
+    mocker.patch(
+        "spyder.plugins.plots.widgets.figurebrowser.getsavefilename",
+        return_value=(saved_figname, fext),
+    )
 
     figbrowser.save_figure()
     saved_qpix = QPixmap()
@@ -146,7 +148,7 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     assert expected_qpix.toImage() == saved_qpix.toImage()
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
     """
     Test saving all figures contained in the thumbnail scrollbar in batch
@@ -156,15 +158,17 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
 
     # Save all figures, but cancel the dialog to get a directory.
     mocker.patch(
-        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=None)
+        "spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory",
+        return_value=None,
+    )
     fignames = figbrowser.save_all_figures()
     assert fignames is None
 
     # Save all figures.
     mocker.patch(
-        'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=str(tmpdir.mkdir('all_saved_figures')))
+        "spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory",
+        return_value=str(tmpdir.mkdir("all_saved_figures")),
+    )
     fignames = figbrowser.save_all_figures()
     assert len(fignames) == len(figs)
     for fig, figname in zip(figs, fignames):
@@ -182,29 +186,26 @@ def test_get_unique_figname(tmpdir):
     Test that the unique fig names work when saving only one and when
     saving multiple figures.
     """
-    fext = '.png'
+    fext = ".png"
     # Saving only one figure
-    figname_root = ('Figure ' +
-                    datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+    figname_root = "Figure " + datetime.datetime.now().strftime("%Y-%m-%d %H%M%S")
     figname = get_unique_figname(tmpdir, figname_root, fext)
-    expected = osp.join(tmpdir, '{}{}'.format(figname_root, fext))
+    expected = osp.join(tmpdir, "{}{}".format(figname_root, fext))
     assert figname == expected
 
     # Saving multiple figures
-    figname_root = ('Figure ' +
-                    datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+    figname_root = "Figure " + datetime.datetime.now().strftime("%Y-%m-%d %H%M%S")
     for i in range(5):
-        figname = get_unique_figname(tmpdir, figname_root, fext,
-                                     start_at_zero=True)
+        figname = get_unique_figname(tmpdir, figname_root, fext, start_at_zero=True)
         # Create empty file with figname
-        with open(figname, 'w') as _:
+        with open(figname, "w") as _:
             pass
 
-        expected = osp.join(tmpdir, '{} ({}){}'.format(figname_root, i, fext))
+        expected = osp.join(tmpdir, "{} ({}){}".format(figname_root, i, fext))
         assert figname == expected
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_close_current_figure(figbrowser, tmpdir, fmt):
     """
     Test that clearing the current figure works as expected.
@@ -226,7 +227,7 @@ def test_close_current_figure(figbrowser, tmpdir, fmt):
     assert figbrowser.figviewer.figcanvas.fig is None
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_close_all_figures(figbrowser, tmpdir, fmt):
     """
     Test that clearing all figures displayed in the thumbnails scrollbar
@@ -243,7 +244,7 @@ def test_close_all_figures(figbrowser, tmpdir, fmt):
     assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 0
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_close_one_thumbnail(qtbot, figbrowser, tmpdir, fmt):
     """
     Test the thumbnail is removed from the GUI.
@@ -262,7 +263,7 @@ def test_close_one_thumbnail(qtbot, figbrowser, tmpdir, fmt):
     assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 1
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_go_prev_next_thumbnail(figbrowser, tmpdir, fmt):
     """
     Test go to previous and next thumbnail actions.
@@ -290,7 +291,7 @@ def test_go_prev_next_thumbnail(figbrowser, tmpdir, fmt):
 def test_scroll_to_item(figbrowser, tmpdir, qtbot):
     """Test scroll to the item of ThumbnailScrollBar."""
     nfig = 10
-    add_figures_to_browser(figbrowser, nfig, tmpdir, 'image/png')
+    add_figures_to_browser(figbrowser, nfig, tmpdir, "image/png")
     figbrowser.setFixedSize(500, 500)
 
     for __ in range(nfig // 2):
@@ -303,8 +304,11 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
     height = scene.itemAt(0).sizeHint().height()
     height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
 
-    expected = (spacing * (nfig // 2)) + (height * (nfig // 2 - 1)) - \
-               ((height_view - height) // 2)
+    expected = (
+        (spacing * (nfig // 2))
+        + (height * (nfig // 2 - 1))
+        - ((height_view - height) // 2)
+    )
 
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
     assert vsb.value() == expected
@@ -321,9 +325,8 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
 
     nfig = 8
     for i in range(8):
-        newfig = create_figure(
-            osp.join(str(tmpdir), 'new_mplfig{}.png'.format(i)))
-        figbrowser._handle_new_figure(newfig, 'image/png')
+        newfig = create_figure(osp.join(str(tmpdir), "new_mplfig{}.png".format(i)))
+        figbrowser._handle_new_figure(newfig, "image/png")
         qtbot.wait(500)
 
     # Assert that the scrollbar range was updated correctly and that it's
@@ -338,32 +341,33 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     assert vsb.value() == expected
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
     """
     Test mouse clicking on thumbnails.
     """
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
     for i in [1, 0, 2]:
-        qtbot.mouseClick(
-            figbrowser.thumbnails_sb._thumbnails[i].canvas, Qt.LeftButton)
+        qtbot.mouseClick(figbrowser.thumbnails_sb._thumbnails[i].canvas, Qt.LeftButton)
         assert figbrowser.thumbnails_sb.get_current_index() == i
         assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[i]
         assert figbrowser.figviewer.figcanvas.fig == figs[i]
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     """
     Test saving figures by clicking on the thumbnail icon.
     """
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
-    fext = '.svg' if fmt == 'image/svg+xml' else '.png'
+    fext = ".svg" if fmt == "image/svg+xml" else ".png"
 
     # Select and save the second thumbnail of the scrollbar.
-    figname = osp.join(str(tmpdir), 'figname' + fext)
-    mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
-                 return_value=(figname, fext))
+    figname = osp.join(str(tmpdir), "figname" + fext)
+    mocker.patch(
+        "spyder.plugins.plots.widgets.figurebrowser.getsavefilename",
+        return_value=(figname, fext),
+    )
     figbrowser.thumbnails_sb.set_current_index(1)
     figbrowser.save_figure()
 
@@ -376,7 +380,7 @@ def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     assert expected_qpix.toImage() == saved_qpix.toImage()
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_close_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     """
     Test closing figures by clicking on the thumbnail icon.
@@ -397,7 +401,7 @@ def test_copy_png_to_clipboard(figbrowser, tmpdir):
     """
     Test copying png figures to the clipboard.
     """
-    figs = add_figures_to_browser(figbrowser, 3, tmpdir, 'image/png')
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, "image/png")
     clipboard = QApplication.clipboard()
 
     # Copy the current figure (last thumbnail) to the clipboard.
@@ -414,20 +418,20 @@ def test_copy_svg_to_clipboard(figbrowser, tmpdir):
     """
     Test copying svg figures to the clipboard.
     """
-    figs = add_figures_to_browser(figbrowser, 3, tmpdir, 'image/svg+xml')
+    figs = add_figures_to_browser(figbrowser, 3, tmpdir, "image/svg+xml")
     clipboard = QApplication.clipboard()
 
     # Copy the current figure (last thumbnail) to the clipboard.
     figbrowser.copy_figure()
-    assert clipboard.mimeData().data('image/svg+xml') == figs[-1]
+    assert clipboard.mimeData().data("image/svg+xml") == figs[-1]
 
     # Copy the first thumbnail to the clipboard.
     figbrowser.go_next_thumbnail()
     figbrowser.copy_figure()
-    assert clipboard.mimeData().data('image/svg+xml') == figs[0]
+    assert clipboard.mimeData().data("image/svg+xml") == figs[0]
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     """
     Test zooming in and out the figure diplayed in the figure viewer.
@@ -458,13 +462,14 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         scaling_factor += zoom_step
         scale = scaling_step**scaling_factor
 
-        assert (figbrowser.zoom_disp_value ==
-                np.round(int(fwidth * scale) / fwidth * 100))
+        assert figbrowser.zoom_disp_value == np.round(
+            int(fwidth * scale) / fwidth * 100
+        )
         assert figcanvas.width() == int(fwidth * scale)
         assert figcanvas.height() == int(fheight * scale)
 
 
-@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+@pytest.mark.parametrize("fmt", ["image/png", "image/svg+xml"])
 def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
     """
     Test figure diplayed when `Fit plots to window` is True.
@@ -484,12 +489,16 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
 
     size = figviewer.size()
     style = figviewer.style()
-    width = (size.width() -
-             style.pixelMetric(QStyle.PM_LayoutLeftMargin) -
-             style.pixelMetric(QStyle.PM_LayoutRightMargin))
-    height = (size.height() -
-              style.pixelMetric(QStyle.PM_LayoutTopMargin) -
-              style.pixelMetric(QStyle.PM_LayoutBottomMargin))
+    width = (
+        size.width()
+        - style.pixelMetric(QStyle.PM_LayoutLeftMargin)
+        - style.pixelMetric(QStyle.PM_LayoutRightMargin)
+    )
+    height = (
+        size.height()
+        - style.pixelMetric(QStyle.PM_LayoutTopMargin)
+        - style.pixelMetric(QStyle.PM_LayoutBottomMargin)
+    )
     if (fwidth / fheight) > (width / height):
         new_width = int(width)
         new_height = int(width / fwidth * fheight)
@@ -499,8 +508,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
 
     assert figcanvas.width() == new_width
     assert figcanvas.height() == new_height
-    assert (figbrowser.zoom_disp_value ==
-            round(figcanvas.width() / fwidth * 100))
+    assert figbrowser.zoom_disp_value == round(figcanvas.width() / fwidth * 100)
 
 
 if __name__ == "__main__":

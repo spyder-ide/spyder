@@ -17,13 +17,13 @@ import requests
 # Local imports
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.completion.providers.kite import (
-    KITE_ENDPOINTS, KITE_REQUEST_MAPPING)
+    KITE_ENDPOINTS,
+    KITE_REQUEST_MAPPING,
+)
 from spyder.plugins.completion.providers.kite.decorators import class_register
-from spyder.plugins.completion.providers.kite.providers import (
-    KiteMethodProviderMixIn)
+from spyder.plugins.completion.providers.kite.providers import KiteMethodProviderMixIn
 from spyder.plugins.completion.providers.kite.utils.status import status
-from spyder.py3compat import (
-    ConnectionError, ConnectionRefusedError, TEXT_TYPES)
+from spyder.py3compat import ConnectionError, ConnectionRefusedError, TEXT_TYPES
 
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     def start(self):
         if not self.thread_started:
             self.thread.start()
-        logger.debug('Starting Kite HTTP session...')
+        logger.debug("Starting Kite HTTP session...")
         self.endpoint = requests.Session()
         self.languages = self.get_languages()
         self.sig_client_started.emit(self.languages)
@@ -71,7 +71,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
 
     def stop(self):
         if self.thread_started:
-            logger.debug('Closing Kite HTTP session...')
+            logger.debug("Closing Kite HTTP session...")
             self.endpoint.close()
             self.thread.quit()
 
@@ -82,7 +82,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             return []
 
         if response is None or isinstance(response, TEXT_TYPES):
-            response = ['python']
+            response = ["python"]
         return response
 
     def _get_onboarding_file(self):
@@ -100,11 +100,10 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         """Perform a request to get kite status for a file."""
         verb, url = KITE_ENDPOINTS.STATUS_ENDPOINT
         if filename:
-            url_params = {'filename': filename}
+            url_params = {"filename": filename}
         else:
-            url_params = {'filetype': 'python'}
-        success, response = self.perform_http_request(
-            verb, url, url_params=url_params)
+            url_params = {"filetype": "python"}
+        success, response = self.perform_http_request(verb, url, url_params=url_params)
         return success, response
 
     def get_status(self, filename):
@@ -114,16 +113,18 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             kite_status = status()
             self.sig_status_response_ready[str].emit(kite_status)
         elif isinstance(kite_status, TEXT_TYPES):
-            status_str = status(extra_status=' with errors')
-            long_str = _("<code>{error}</code><br><br>"
-                         "Note: If you are using a VPN, "
-                         "please don't route requests to "
-                         "localhost/127.0.0.1 with it").format(
-                             error=kite_status)
+            status_str = status(extra_status=" with errors")
+            long_str = _(
+                "<code>{error}</code><br><br>"
+                "Note: If you are using a VPN, "
+                "please don't route requests to "
+                "localhost/127.0.0.1 with it"
+            ).format(error=kite_status)
             kite_status_dict = {
-                'status': status_str,
-                'short': status_str,
-                'long': long_str}
+                "status": status_str,
+                "short": status_str,
+                "long": long_str,
+            }
             self.sig_status_response_ready[dict].emit(kite_status_dict)
         else:
             self.sig_status_response_ready[dict].emit(kite_status)
@@ -141,7 +142,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 response = http_response.json()
             except Exception:
                 response = http_response.text
-                response = None if response == '' else response
+                response = None if response == "" else response
         return success, response
 
     def send(self, method, params, url_params):
@@ -150,11 +151,13 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             http_verb, path = KITE_REQUEST_MAPPING[method]
             encoded_url_params = {
                 key: quote(value) if isinstance(value, TEXT_TYPES) else value
-                for (key, value) in url_params.items()}
+                for (key, value) in url_params.items()
+            }
             path = path.format(**encoded_url_params)
             try:
                 success, response = self.perform_http_request(
-                    http_verb, path, params=params)
+                    http_verb, path, params=params
+                )
             except (ConnectionRefusedError, ConnectionError):
                 return response
         return response
@@ -162,8 +165,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     def perform_request(self, req_id, method, params):
         response = None
         if method in self.sender_registry:
-            logger.debug('Perform request {0} with id {1}'.format(
-                method, req_id))
+            logger.debug("Perform request {0} with id {1}".format(method, req_id))
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
             response = handler(params)

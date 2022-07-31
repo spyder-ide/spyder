@@ -21,18 +21,20 @@ from qtpy.QtCore import Signal
 from spyder.api.translations import get_translation
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.plugins.explorer.widgets.main_widget import ExplorerWidget
 from spyder.plugins.explorer.confpage import ExplorerConfigPage
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class Explorer(SpyderDockablePlugin):
     """File and Directories Explorer DockWidget."""
 
-    NAME = 'explorer'
+    NAME = "explorer"
     REQUIRES = [Plugins.Preferences]
     OPTIONAL = [Plugins.IPythonConsole, Plugins.Editor]
     TABIFY = Plugins.VariableExplorer
@@ -167,7 +169,7 @@ class Explorer(SpyderDockablePlugin):
     def get_icon(self):
         """Return the explorer icon."""
         # TODO: Find a decent icon for the explorer
-        return self.create_icon('outline_explorer')
+        return self.create_icon("outline_explorer")
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -176,8 +178,7 @@ class Explorer(SpyderDockablePlugin):
         widget.sig_dir_opened.connect(self.sig_dir_opened)
         widget.sig_file_created.connect(self.sig_file_created)
         widget.sig_open_file_requested.connect(self.sig_open_file_requested)
-        widget.sig_open_interpreter_requested.connect(
-            self.sig_interpreter_opened)
+        widget.sig_open_interpreter_requested.connect(self.sig_interpreter_opened)
         widget.sig_module_created.connect(self.sig_module_created)
         widget.sig_removed.connect(self.sig_file_removed)
         widget.sig_renamed.connect(self.sig_file_renamed)
@@ -207,12 +208,12 @@ class Explorer(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipython_console_available(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.sig_interpreter_opened.connect(
-            ipyconsole.create_client_from_path)
+        self.sig_interpreter_opened.connect(ipyconsole.create_client_from_path)
         self.sig_run_requested.connect(
-            lambda fname:
-            ipyconsole.run_script(fname, osp.dirname(fname), '', False,
-                                  False, False, True, False))
+            lambda fname: ipyconsole.run_script(
+                fname, osp.dirname(fname), "", False, False, False, True, False
+            )
+        )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -235,8 +236,7 @@ class Explorer(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.sig_interpreter_opened.disconnect(
-            ipyconsole.create_client_from_path)
+        self.sig_interpreter_opened.disconnect(ipyconsole.create_client_from_path)
         self.sig_run_requested.disconnect()
 
     # ---- Public API

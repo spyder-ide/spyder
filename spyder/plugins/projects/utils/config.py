@@ -12,37 +12,45 @@ from spyder.config.user import MultiUserConfig, UserConfig
 
 
 # Constants
-PROJECT_FILENAME = '.spyproj'
-WORKSPACE = 'workspace'
-CODESTYLE = 'codestyle'
-ENCODING = 'encoding'
-VCS = 'vcs'
+PROJECT_FILENAME = ".spyproj"
+WORKSPACE = "workspace"
+CODESTYLE = "codestyle"
+ENCODING = "encoding"
+VCS = "vcs"
 
 
 # Project configuration defaults
 PROJECT_DEFAULTS = [
-    (WORKSPACE,
-     {'restore_data_on_startup': True,
-      'save_data_on_exit': True,
-      'save_history': True,
-      'save_non_project_files': False,
-      }
-     ),
-    (CODESTYLE,
-     {'indentation': True,
-      'edge_line': True,
-      'edge_line_columns': '79',
-      }
-     ),
-    (VCS,
-     {'use_version_control': False,
-      'version_control_system': '',
-      }
-     ),
-    (ENCODING,
-     {'text_encoding': 'utf-8',
-      }
-     )
+    (
+        WORKSPACE,
+        {
+            "restore_data_on_startup": True,
+            "save_data_on_exit": True,
+            "save_history": True,
+            "save_non_project_files": False,
+        },
+    ),
+    (
+        CODESTYLE,
+        {
+            "indentation": True,
+            "edge_line": True,
+            "edge_line_columns": "79",
+        },
+    ),
+    (
+        VCS,
+        {
+            "use_version_control": False,
+            "version_control_system": "",
+        },
+    ),
+    (
+        ENCODING,
+        {
+            "text_encoding": "utf-8",
+        },
+    ),
 ]
 
 
@@ -54,34 +62,42 @@ PROJECT_NAME_MAP = {
     # These options change on spyder startup or are tied to a specific OS,
     # not good for version control
     WORKSPACE: [
-        (WORKSPACE, [
-            'restore_data_on_startup',
-            'save_data_on_exit',
-            'save_history',
-            'save_non_project_files',
+        (
+            WORKSPACE,
+            [
+                "restore_data_on_startup",
+                "save_data_on_exit",
+                "save_history",
+                "save_non_project_files",
             ],
-         ),
+        ),
     ],
     CODESTYLE: [
-        (CODESTYLE, [
-            'indentation',
-            'edge_line',
-            'edge_line_columns',
+        (
+            CODESTYLE,
+            [
+                "indentation",
+                "edge_line",
+                "edge_line_columns",
             ],
-         ),
+        ),
     ],
     VCS: [
-        (VCS, [
-            'use_version_control',
-            'version_control_system',
+        (
+            VCS,
+            [
+                "use_version_control",
+                "version_control_system",
             ],
-         ),
+        ),
     ],
     ENCODING: [
-        (ENCODING, [
-            'text_encoding',
-            ]
-         ),
+        (
+            ENCODING,
+            [
+                "text_encoding",
+            ],
+        ),
     ],
 }
 
@@ -96,7 +112,7 @@ PROJECT_NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-PROJECT_CONF_VERSION = '0.2.0'
+PROJECT_CONF_VERSION = "0.2.0"
 
 
 class ProjectConfig(UserConfig):
@@ -105,6 +121,7 @@ class ProjectConfig(UserConfig):
 
 class ProjectMultiConfig(MultiUserConfig):
     """Plugin configuration handler with multifile support."""
+
     DEFAULT_FILE_NAME = WORKSPACE
 
     def get_config_class(self):

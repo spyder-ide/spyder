@@ -24,9 +24,11 @@ from functools import partial
 
 # Local imports
 from spyder.plugins.completion.providers.languageserver.transport.tcp.producer import (
-    TCPLanguageServerClient)
+    TCPLanguageServerClient,
+)
 from spyder.plugins.completion.providers.languageserver.transport.stdio.producer import (
-    StdioLanguageServerClient)
+    StdioLanguageServerClient,
+)
 from spyder.py3compat import getcwd
 
 
@@ -36,36 +38,37 @@ PARENT_PROCESS_WATCH_INTERVAL = 3  # 3 s
 
 
 parser = argparse.ArgumentParser(
-    description='ZMQ Python-based MS Language-Server v3.0 client for Spyder')
-parser.add_argument('--zmq-in-port',
-                    default=7000,
-                    help="ZMQ (in) port to be contacted")
-parser.add_argument('--zmq-out-port',
-                    default=7001,
-                    help="ZMQ (out) port to be contacted")
-parser.add_argument('--server-host',
-                    default='127.0.0.1',
-                    help='Host that serves the ls-server')
-parser.add_argument('--server-port',
-                    default=2087,
-                    help="Deployment port of the ls-server")
-parser.add_argument('--server-log-file',
-                    default=None,
-                    help="Log file to register ls-server activity")
-parser.add_argument('--folder',
-                    default=getcwd(),
-                    help="Initial current working directory used to "
-                         "initialize ls-server")
-parser.add_argument('--external-server',
-                    action="store_true",
-                    help="Do not start a local server")
-parser.add_argument('--stdio-server',
-                    action="store_true",
-                    help='Server communication should use stdio pipes')
-parser.add_argument('--transport-debug',
-                    default=0,
-                    type=int,
-                    help='Verbosity level for log messages')
+    description="ZMQ Python-based MS Language-Server v3.0 client for Spyder"
+)
+parser.add_argument("--zmq-in-port", default=7000, help="ZMQ (in) port to be contacted")
+parser.add_argument(
+    "--zmq-out-port", default=7001, help="ZMQ (out) port to be contacted"
+)
+parser.add_argument(
+    "--server-host", default="127.0.0.1", help="Host that serves the ls-server"
+)
+parser.add_argument(
+    "--server-port", default=2087, help="Deployment port of the ls-server"
+)
+parser.add_argument(
+    "--server-log-file", default=None, help="Log file to register ls-server activity"
+)
+parser.add_argument(
+    "--folder",
+    default=getcwd(),
+    help="Initial current working directory used to " "initialize ls-server",
+)
+parser.add_argument(
+    "--external-server", action="store_true", help="Do not start a local server"
+)
+parser.add_argument(
+    "--stdio-server",
+    action="store_true",
+    help="Server communication should use stdio pipes",
+)
+parser.add_argument(
+    "--transport-debug", default=0, type=int, help="Verbosity level for log messages"
+)
 args, extra_args = parser.parse_known_args()
 
 
@@ -78,8 +81,10 @@ def logger_init(level):
     """
     levellist = [logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG]
     handler = logging.StreamHandler()
-    fmt = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
-           '-35s %(lineno) -5d: %(message)s')
+    fmt = (
+        "%(levelname) -10s %(asctime)s %(name) -30s %(funcName) "
+        "-35s %(lineno) -5d: %(message)s"
+    )
     handler.setFormatter(logging.Formatter(fmt))
     logger = logging.root
     logger.addHandler(handler)
@@ -88,6 +93,7 @@ def logger_init(level):
 
 class TerminateSignal(Exception):
     """Terminal exception descriptor."""
+
     pass
 
 
@@ -99,43 +105,48 @@ class SignalManager:
         self.original_sigterm = signal.getsignal(signal.SIGTERM)
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
-        if os.name == 'nt':
+        if os.name == "nt":
             self.original_sigbreak = signal.getsignal(signal.SIGBREAK)
             signal.signal(signal.SIGBREAK, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
         """Capture exit/kill signal and throw and exception."""
-        logger.info('Termination signal ({}) captured, '
-                    'initiating exit sequence'.format(signum))
+        logger.info(
+            "Termination signal ({}) captured, "
+            "initiating exit sequence".format(signum)
+        )
         raise TerminateSignal("Exit process!")
 
     def restore(self):
         """Restore signal handlers to their original settings."""
         signal.signal(signal.SIGINT, self.original_sigint)
         signal.signal(signal.SIGTERM, self.original_sigterm)
-        if os.name == 'nt':
+        if os.name == "nt":
             signal.signal(signal.SIGBREAK, self.original_sigbreak)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger_init(args.transport_debug)
     extra_args = [x for x in extra_args if len(x) > 0]
-    extra_args = ' '.join(extra_args)
+    extra_args = " ".join(extra_args)
     logger.debug(extra_args)
     process = psutil.Process()
     parent_pid = process.ppid()
 
     sig_manager = SignalManager()
     if args.stdio_server:
-        LanguageServerClient = partial(StdioLanguageServerClient,
-                                       server_args=extra_args,
-                                       log_file=args.server_log_file)
+        LanguageServerClient = partial(
+            StdioLanguageServerClient,
+            server_args=extra_args,
+            log_file=args.server_log_file,
+        )
     else:
-        LanguageServerClient = partial(TCPLanguageServerClient,
-                                       host=args.server_host,
-                                       port=args.server_port)
-    client = LanguageServerClient(zmq_in_port=args.zmq_in_port,
-                                  zmq_out_port=args.zmq_out_port)
+        LanguageServerClient = partial(
+            TCPLanguageServerClient, host=args.server_host, port=args.server_port
+        )
+    client = LanguageServerClient(
+        zmq_in_port=args.zmq_in_port, zmq_out_port=args.zmq_out_port
+    )
     client.start()
     is_alive = True
 
@@ -150,11 +161,11 @@ if __name__ == '__main__':
             logger.info("parent process %s is not alive, exiting!", pid)
             is_alive = False
         if is_alive:
-            threading.Timer(PARENT_PROCESS_WATCH_INTERVAL,
-                            watch_parent_process, args=[pid]).start()
+            threading.Timer(
+                PARENT_PROCESS_WATCH_INTERVAL, watch_parent_process, args=[pid]
+            ).start()
 
-    watching_thread = threading.Thread(
-        target=watch_parent_process, args=(parent_pid,))
+    watching_thread = threading.Thread(target=watch_parent_process, args=(parent_pid,))
     watching_thread.daemon = True
     watching_thread.start()
 

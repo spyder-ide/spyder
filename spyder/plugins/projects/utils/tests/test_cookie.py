@@ -19,7 +19,9 @@ import pytest
 
 # Local imports
 from spyder.plugins.projects.utils.cookie import (
-    generate_cookiecutter_project, load_cookiecutter_project)
+    generate_cookiecutter_project,
+    load_cookiecutter_project,
+)
 
 
 def test_load_cookiecutter_project_config():
@@ -27,10 +29,10 @@ def test_load_cookiecutter_project_config():
         "opt_1": "value",
         "opt_2": "{{ cookiecutter.opt_1 }}",
     }
-    temp_path = tempfile.mkdtemp(suffix='-some-cookiecutter')
-    temp_cookie_path = os.path.join(temp_path, 'cookiecutter.json')
+    temp_path = tempfile.mkdtemp(suffix="-some-cookiecutter")
+    temp_cookie_path = os.path.join(temp_path, "cookiecutter.json")
 
-    with open(temp_cookie_path, 'w') as fh:
+    with open(temp_cookie_path, "w") as fh:
         fh.write(json.dumps(settings, sort_keys=True))
 
     sets, pre_gen_code = load_cookiecutter_project(temp_path)
@@ -46,16 +48,16 @@ def test_load_cookiecutter_project_hooks():
         "opt_2": "{{ cookiecutter.opt_1 }}",
     }
     pre_gen_code = "import sys\n\nprint('test!')\nsys.exit(1)\n"
-    temp_path = tempfile.mkdtemp(suffix='-some-cookiecutter')
-    temp_cookie_path = os.path.join(temp_path, 'cookiecutter.json')
-    temp_hooks_path = os.path.join(temp_path, 'hooks')
-    temp_hooks_pre_path = os.path.join(temp_hooks_path, 'pre_gen_project.py')
+    temp_path = tempfile.mkdtemp(suffix="-some-cookiecutter")
+    temp_cookie_path = os.path.join(temp_path, "cookiecutter.json")
+    temp_hooks_path = os.path.join(temp_path, "hooks")
+    temp_hooks_pre_path = os.path.join(temp_hooks_path, "pre_gen_project.py")
     os.makedirs(temp_hooks_path)
 
-    with open(temp_cookie_path, 'w') as fh:
+    with open(temp_cookie_path, "w") as fh:
         fh.write(json.dumps(settings, sort_keys=True))
 
-    with open(temp_hooks_pre_path, 'w') as fh:
+    with open(temp_hooks_pre_path, "w") as fh:
         fh.write(pre_gen_code)
 
     sets, pre_gen_code = load_cookiecutter_project(temp_path)
@@ -69,13 +71,13 @@ def test_generate_cookiecutter_project_defaults():
     settings = {
         "repo_name": "value",
     }
-    temp_path = tempfile.mkdtemp(suffix='-some-cookiecutter')
-    temp_path_created = tempfile.mkdtemp(suffix='-created-project')
-    temp_cookie_path = os.path.join(temp_path, 'cookiecutter.json')
-    temp_project_path = os.path.join(temp_path, '{{cookiecutter.repo_name}}')
+    temp_path = tempfile.mkdtemp(suffix="-some-cookiecutter")
+    temp_path_created = tempfile.mkdtemp(suffix="-created-project")
+    temp_cookie_path = os.path.join(temp_path, "cookiecutter.json")
+    temp_project_path = os.path.join(temp_path, "{{cookiecutter.repo_name}}")
     os.makedirs(temp_project_path)
 
-    with open(temp_cookie_path, 'w') as fh:
+    with open(temp_cookie_path, "w") as fh:
         fh.write(json.dumps(settings, sort_keys=True))
 
     status, result = generate_cookiecutter_project(
@@ -91,13 +93,13 @@ def test_generate_cookiecutter_project_extra_content():
     settings = {
         "repo_name": "value",
     }
-    temp_path = tempfile.mkdtemp(suffix='-some-cookiecutter')
-    temp_path_created = tempfile.mkdtemp(suffix='-created-project')
-    temp_cookie_path = os.path.join(temp_path, 'cookiecutter.json')
-    temp_project_path = os.path.join(temp_path, '{{cookiecutter.repo_name}}')
+    temp_path = tempfile.mkdtemp(suffix="-some-cookiecutter")
+    temp_path_created = tempfile.mkdtemp(suffix="-created-project")
+    temp_cookie_path = os.path.join(temp_path, "cookiecutter.json")
+    temp_project_path = os.path.join(temp_path, "{{cookiecutter.repo_name}}")
     os.makedirs(temp_project_path)
 
-    with open(temp_cookie_path, 'w') as fh:
+    with open(temp_cookie_path, "w") as fh:
         fh.write(json.dumps(settings, sort_keys=True))
 
     status, result = generate_cookiecutter_project(
@@ -114,16 +116,16 @@ def test_generate_cookiecutter_project_exception():
     settings = {
         "repo_name": "value",
     }
-    temp_path = tempfile.mkdtemp(suffix='-some-invalid-cookiecutter')
-    temp_path_created = tempfile.mkdtemp(suffix='-created-project')
-    temp_cookie_path = os.path.join(temp_path, 'cookiecutter.json')
+    temp_path = tempfile.mkdtemp(suffix="-some-invalid-cookiecutter")
+    temp_path_created = tempfile.mkdtemp(suffix="-created-project")
+    temp_cookie_path = os.path.join(temp_path, "cookiecutter.json")
     temp_project_path = os.path.join(
         temp_path,
-        '{{cookiecutter.not_foun_variable}}',
+        "{{cookiecutter.not_foun_variable}}",
     )
     os.makedirs(temp_project_path)
 
-    with open(temp_cookie_path, 'w') as fh:
+    with open(temp_cookie_path, "w") as fh:
         fh.write(json.dumps(settings, sort_keys=True))
 
     status, __ = generate_cookiecutter_project(

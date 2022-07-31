@@ -15,6 +15,6 @@ Objects defined in this module were adapted from
 `DAFSA <https://github.com/tresoldi/dafsa>`_.
 """
 
-__author__ = 'Tiago Tresoldi'
-__email__ = 'tresoldi@shh.mpg.de'
-__version__ = '1.0.0'
+__author__ = "Tiago Tresoldi"
+__email__ = "tresoldi@shh.mpg.de"
+__version__ = "1.0.0"

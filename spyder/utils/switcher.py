@@ -42,7 +42,7 @@ def shorten_paths(path_list, is_unsaved):
 
     for ii, (path, is_unsav) in enumerate(zip(path_list, is_unsaved)):
         if is_unsav:
-            new_path_list.append(_('unsaved file'))
+            new_path_list.append(_("unsaved file"))
             path_list[ii] = None
         else:
             drive, path = osp.splitdrive(osp.dirname(path))
@@ -63,20 +63,22 @@ def shorten_paths(path_list, is_unsaved):
             s = 0
         else:
             for s, sample_val in enumerate(sample_toks):
-                if not all(len(toks) > s and toks[s] == sample_val
-                           for toks in level_idx.values()):
+                if not all(
+                    len(toks) > s and toks[s] == sample_val
+                    for toks in level_idx.values()
+                ):
                     break
 
         # Shorten longest common prefix
         if s == 0:
-            short_form = ''
+            short_form = ""
         else:
             if s == 1:
                 short_form = sample_toks[0]
             elif s == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
             else:
-                short_form = "..." + sep + sample_toks[s-1]
+                short_form = "..." + sep + sample_toks[s - 1]
             for idx in level_idx:
                 new_path_list[idx] += short_form + sep
                 level_idx[idx] = level_idx[idx][s:]
@@ -86,17 +88,20 @@ def shorten_paths(path_list, is_unsaved):
             k, group = 0, level_idx  # k is length of the group's common prefix
             while True:
                 # Abort if we've gone beyond end of one or more in the group
-                prospective_group = {idx: toks for idx, toks
-                                     in group.items() if len(toks) == k}
+                prospective_group = {
+                    idx: toks for idx, toks in group.items() if len(toks) == k
+                }
                 if prospective_group:
                     if k == 0:  # we spit out the group with no suffix
                         group = prospective_group
                     break
                 # Only keep going if all n still match on the kth token
                 _, sample_toks = next(iteritems(group))
-                prospective_group = {idx: toks for idx, toks
-                                     in group.items()
-                                     if toks[k] == sample_toks[k]}
+                prospective_group = {
+                    idx: toks
+                    for idx, toks in group.items()
+                    if toks[k] == sample_toks[k]
+                }
                 if len(prospective_group) == len(group) or k == 0:
                     group = prospective_group
                     k += 1
@@ -104,15 +109,15 @@ def shorten_paths(path_list, is_unsaved):
                     break
             _, sample_toks = next(iteritems(group))
             if k == 0:
-                short_form = ''
+                short_form = ""
             elif k == 1:
                 short_form = sample_toks[0]
             elif k == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
             else:  # k > 2
-                short_form = sample_toks[0] + "..." + sep + sample_toks[k-1]
+                short_form = sample_toks[0] + "..." + sep + sample_toks[k - 1]
             for idx in group.keys():
-                new_path_list[idx] += short_form + (sep if k > 0 else '')
+                new_path_list[idx] += short_form + (sep if k > 0 else "")
                 del level_idx[idx]
             recurse_level({idx: toks[k:] for idx, toks in group.items()})
 
@@ -135,9 +140,9 @@ def shorten_paths(path_list, is_unsaved):
 def get_file_icon(path):
     """Get icon for file by extension."""
 
-    if sys.platform == 'darwin':
+    if sys.platform == "darwin":
         scale_factor = 0.9
-    elif os.name == 'nt':
+    elif os.name == "nt":
         scale_factor = 0.8
     else:
         scale_factor = 0.6

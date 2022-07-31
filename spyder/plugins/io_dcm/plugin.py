@@ -21,6 +21,7 @@ try:
     except ImportError:
         # pydicom 1.0
         from pydicom import dicomio
+
     def load_dicom(filename):
         try:
             name = osp.splitext(osp.basename(filename))[0]
@@ -32,5 +33,6 @@ try:
             return {name: arr}, None
         except Exception as error:
             return None, str(error)
+
 except ImportError:
     load_dicom = None

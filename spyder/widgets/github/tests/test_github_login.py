@@ -38,7 +38,7 @@ def test_dialog(github_dialog, qtbot):
     assert not dlg.bt_sign_in.isEnabled()
 
     # Add token
-    qtbot.keyClicks(dlg.le_token, 'token')
+    qtbot.keyClicks(dlg.le_token, "token")
 
     # Assert Sign in button is enabled
     assert dlg.bt_sign_in.isEnabled()

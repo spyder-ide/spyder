@@ -86,11 +86,11 @@ PROLOGFUNCT -> : | :-
 
 def _preprocess_grammar(grammar):
     grammar_lines = grammar.strip().splitlines()
-    grammar_lines = [line.strip() for line in grammar_lines if line != '']
+    grammar_lines = [line.strip() for line in grammar_lines if line != ""]
     grammar = {}
     for line in grammar_lines:
-        production_name, rules = line.split(' -> ')
-        rules = rules.split(' | ')
+        production_name, rules = line.split(" -> ")
+        rules = rules.split(" | ")
         productions = []
         for rule in rules:
             rule_parts = rule.strip().split()
@@ -99,7 +99,7 @@ def _preprocess_grammar(grammar):
     return grammar
 
 
-def create_LL1_parsing_table(grammar=GRAMMAR, starting_rule='START'):
+def create_LL1_parsing_table(grammar=GRAMMAR, starting_rule="START"):
     """Create LL(1) parsing table for a given grammar."""
     grammar = _preprocess_grammar(grammar)
     fne = first_no_epsilon(grammar)
@@ -111,7 +111,7 @@ def create_LL1_parsing_table(grammar=GRAMMAR, starting_rule='START'):
     for rule in fne:
         parse_table[rule] = {}
         for _, sym, production in fne[rule]:
-            if sym != 'EPSILON':
+            if sym != "EPSILON":
                 parse_table[rule][sym] = production
             else:
                 for follow_sym in follow_rules[rule]:
@@ -153,7 +153,7 @@ def first(grammar, rule, fne):
                     fne = first(grammar, production, fne)
                     num_epsilon = 0
                     for _, sym, _ in fne[first_production]:
-                        if sym != 'EPSILON':
+                        if sym != "EPSILON":
                             first_set.append((rule, sym, productions))
                         else:
                             num_epsilon += 1
@@ -161,7 +161,7 @@ def first(grammar, rule, fne):
                         epsilon_found = False
                         break
             if epsilon_found:
-                first_set.append((rule, 'EPSILON', productions))
+                first_set.append((rule, "EPSILON", productions))
         fne[rule] = first_set
     return fne
 
@@ -170,7 +170,7 @@ def follow(grammar, fne, starting_rule):
     """Compute FOLLOW sets for all grammar rules."""
     follow = {}
     position = {}
-    follow[starting_rule] = ['<eof>']
+    follow[starting_rule] = ["<eof>"]
     for rule1 in grammar:
         rule1_position = []
         for rule2 in grammar:
@@ -206,18 +206,19 @@ def _follow(grammar, fne, rule, follow, position, starting_rule):
             if j < len(production) - 1:
                 next_rule = production[j + 1]
                 if next_rule in grammar:
-                    next_rule_first = [x for x in fne[next_rule]
-                                       if x != 'EPSILON']
+                    next_rule_first = [x for x in fne[next_rule] if x != "EPSILON"]
                     rule_follow += next_rule_first
-                    if 'EPSILON' in fne[next_rule]:
-                        follow = _follow(grammar, fne, derived_rule,
-                                         follow, position, starting_rule)
+                    if "EPSILON" in fne[next_rule]:
+                        follow = _follow(
+                            grammar, fne, derived_rule, follow, position, starting_rule
+                        )
                         rule_follow += follow[derived_rule]
                 else:
                     rule_follow.append(next_rule)
             else:
-                follow = _follow(grammar, fne, derived_rule,
-                                 follow, position, starting_rule)
+                follow = _follow(
+                    grammar, fne, derived_rule, follow, position, starting_rule
+                )
                 rule_follow += follow[derived_rule]
         follow[rule] = list(set(rule_follow))
     return follow

@@ -20,8 +20,7 @@ import os.path as osp
 # Third party imports
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
-                            QSizePolicy, QToolTip)
+from qtpy.QtWidgets import QComboBox, QCompleter, QLineEdit, QSizePolicy, QToolTip
 
 # Local imports
 from spyder.config.base import _
@@ -32,6 +31,7 @@ from spyder.widgets.helperwidgets import IconLineEdit
 
 class BaseComboBox(QComboBox):
     """Editable combo box base class"""
+
     valid = Signal(bool, bool)
     sig_tab_pressed = Signal(bool)
 
@@ -112,11 +112,11 @@ class BaseComboBox(QComboBox):
             self.removeItem(index)
             index = self.findText(text)
         self.insertItem(0, text)
-        index = self.findText('')
+        index = self.findText("")
         if index != -1:
             self.removeItem(index)
-            self.insertItem(0, '')
-            if text != '':
+            self.insertItem(0, "")
+            if text != "":
                 self.setCurrentIndex(1)
             else:
                 self.setCurrentIndex(0)
@@ -149,10 +149,9 @@ class BaseComboBox(QComboBox):
 class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
 
-    def __init__(self, parent, items=None, tip=None,
-                 adjust_to_minimum=True, id_=None):
+    def __init__(self, parent, items=None, tip=None, adjust_to_minimum=True, id_=None):
         BaseComboBox.__init__(self, parent)
-        if hasattr(self.lineEdit(), 'setClearButtonEnabled'):  # only Qt >= 5.2
+        if hasattr(self.lineEdit(), "setClearButtonEnabled"):  # only Qt >= 5.2
             self.lineEdit().setClearButtonEnabled(True)
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
@@ -180,8 +179,10 @@ class EditableComboBox(BaseComboBox):
 
         # Signals
         self.editTextChanged.connect(self.validate)
-        self.tips = {True: _("Press enter to validate this entry"),
-                     False: _('This entry is incorrect')}
+        self.tips = {
+            True: _("Press enter to validate this entry"),
+            False: _("This entry is incorrect"),
+        }
 
     def show_tip(self, tip=""):
         """Show tip"""
@@ -194,7 +195,7 @@ class EditableComboBox(BaseComboBox):
 
     def validate(self, qstr, editing=True):
         """Validate entered path"""
-        if self.selected_text == qstr and qstr != '':
+        if self.selected_text == qstr and qstr != "":
             self.valid.emit(True, True)
             return
 
@@ -210,6 +211,7 @@ class PathComboBox(EditableComboBox):
     """
     QComboBox handling path locations
     """
+
     open_dir = Signal(str)
 
     def __init__(self, parent, adjust_to_contents=False, id_=None):
@@ -224,8 +226,7 @@ class PathComboBox(EditableComboBox):
         else:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.tips = {True: _("Press enter to validate this path"),
-                     False: ''}
+        self.tips = {True: _("Press enter to validate this path"), False: ""}
         self.setLineEdit(lineedit)
 
         # Signals
@@ -239,7 +240,7 @@ class PathComboBox(EditableComboBox):
     # --- Qt overrides
     def focusInEvent(self, event):
         """Handle focus in event restoring to display the status icon."""
-        show_status = getattr(self.lineEdit(), 'show_status_icon', None)
+        show_status = getattr(self.lineEdit(), "show_status_icon", None)
         if show_status:
             show_status()
         QComboBox.focusInEvent(self, event)
@@ -252,7 +253,7 @@ class PathComboBox(EditableComboBox):
             lineedit = self.lineEdit()
             QTimer.singleShot(50, lambda: lineedit.setText(self.selected_text))
 
-        hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
+        hide_status = getattr(self.lineEdit(), "hide_status_icon", None)
         if hide_status:
             hide_status()
         QComboBox.focusOutEvent(self, event)
@@ -317,6 +318,7 @@ class UrlComboBox(PathComboBox):
     """
     QComboBox handling urls
     """
+
     def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
         line_edit = QLineEdit(self)
@@ -337,8 +339,8 @@ class FileComboBox(PathComboBox):
     """
     QComboBox handling File paths
     """
-    def __init__(self, parent=None, adjust_to_contents=False,
-                 default_line_edit=False):
+
+    def __init__(self, parent=None, adjust_to_contents=False, default_line_edit=False):
         PathComboBox.__init__(self, parent, adjust_to_contents)
 
         if default_line_edit:
@@ -356,8 +358,7 @@ class FileComboBox(PathComboBox):
         """Return True if string is valid."""
         if qstr is None:
             qstr = self.currentText()
-        valid = (osp.isfile(to_text_string(qstr)) or
-                 osp.isdir(to_text_string(qstr)))
+        valid = osp.isfile(to_text_string(qstr)) or osp.isdir(to_text_string(qstr))
         return valid
 
     def tab_complete(self):
@@ -378,8 +379,7 @@ class FileComboBox(PathComboBox):
         """Find available completion options."""
         text = to_text_string(self.currentText())
         opts = glob.glob(text + "*")
-        opts = sorted([opt for opt in opts
-                       if osp.isdir(opt) or osp.isfile(opt)])
+        opts = sorted([opt for opt in opts if osp.isdir(opt) or osp.isfile(opt)])
 
         completer = QCompleter(opts, self)
         qss = str(APP_STYLESHEET)
@@ -391,8 +391,8 @@ class FileComboBox(PathComboBox):
 
 def is_module_or_package(path):
     """Return True if path is a Python module/package"""
-    is_module = osp.isfile(path) and osp.splitext(path)[1] in ('.py', '.pyw')
-    is_package = osp.isdir(path) and osp.isfile(osp.join(path, '__init__.py'))
+    is_module = osp.isfile(path) and osp.splitext(path)[1] in (".py", ".pyw")
+    is_package = osp.isdir(path) and osp.isfile(osp.join(path, "__init__.py"))
     return is_module or is_package
 
 
@@ -401,6 +401,7 @@ class PythonModulesComboBox(PathComboBox):
     QComboBox handling Python modules or packages path
     (i.e. .py, .pyw files *and* directories containing __init__.py)
     """
+
     def __init__(self, parent, adjust_to_contents=False, id_=None):
         PathComboBox.__init__(self, parent, adjust_to_contents)
         if id_ is not None:

@@ -15,13 +15,22 @@ from urllib.parse import quote
 # Third party imports
 from qtpy.QtCore import Qt, QUrl, QUrlQuery, Signal
 from qtpy.QtGui import QDesktopServices
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
-                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-                            QPlainTextEdit, QPushButton, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QDialog,
+    QFormLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QVBoxLayout,
+)
 
 # Local imports
-from spyder import (__project_url__, __trouble_url__, dependencies,
-                    get_versions_text)
+from spyder import __project_url__, __trouble_url__, dependencies, get_versions_text
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.config.gui import get_font
@@ -49,7 +58,7 @@ class DescriptionWidget(SimpleCodeEditor):
 
         # Editor options
         self.setup_editor(
-            language='md',
+            language="md",
             font=get_font(),
             wrap=True,
             linenumbers=False,
@@ -59,11 +68,12 @@ class DescriptionWidget(SimpleCodeEditor):
         # Header
         self.header = (
             "### What steps will reproduce the problem?\n\n"
-            "<!--- You can use Markdown here --->\n\n")
+            "<!--- You can use Markdown here --->\n\n"
+        )
         self.set_text(self.header)
 
         self.move_cursor(len(self.header))
-        self.header_end_pos = self.get_position('eof')
+        self.header_end_pos = self.get_position("eof")
 
     def remove_text(self):
         """Remove text."""
@@ -79,10 +89,10 @@ class DescriptionWidget(SimpleCodeEditor):
     def keyPressEvent(self, event):
         """Reimplemented Qt Method to avoid removing the header."""
         event, text, key, ctrl, shift = restore_keyevent(event)
-        cursor_position = self.get_position('cursor')
+        cursor_position = self.get_position("cursor")
 
         if cursor_position < self.header_end_pos:
-            self.restrict_cursor_position(self.header_end_pos, 'eof')
+            self.restrict_cursor_position(self.header_end_pos, "eof")
         elif key == Qt.Key_Backspace:
             if self.has_selected_text():
                 self.remove_text()
@@ -97,10 +107,10 @@ class DescriptionWidget(SimpleCodeEditor):
 
     def delete(self):
         """Reimplemented to avoid removing the header."""
-        cursor_position = self.get_position('cursor')
+        cursor_position = self.get_position("cursor")
 
         if cursor_position < self.header_end_pos:
-            self.restrict_cursor_position(self.header_end_pos, 'eof')
+            self.restrict_cursor_position(self.header_end_pos, "eof")
         elif self.has_selected_text():
             self.remove_text()
         else:
@@ -113,6 +123,7 @@ class DescriptionWidget(SimpleCodeEditor):
 
 class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
     """Widget to show errors as they appear in the Internal console."""
+
     QT_CLASS = QPlainTextEdit
     sig_go_to_error_requested = Signal(str)
 
@@ -135,8 +146,8 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         self._testing = False
 
         self.setWindowTitle(_("Issue reporter"))
-        self._github_org = 'spyder-ide'
-        self._github_repo = 'spyder'
+        self._github_org = "spyder-ide"
+        self._github_repo = "spyder"
 
         # To save the traceback sent to the internal console
         self.error_traceback = ""
@@ -147,26 +158,30 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         else:
             title = _("Spyder has encountered an internal problem!")
         self.main_label = QLabel(
-            _("<h3>{title}</h3>"
-              "Before reporting this problem, <i>please</i> consult our "
-              "comprehensive "
-              "<b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> "
-              "which should help solve most issues, and search for "
-              "<b><a href=\"{project_url}\">known bugs</a></b> "
-              "matching your error message or problem description for a "
-              "quicker solution."
-              ).format(title=title, trouble_url=__trouble_url__,
-                       project_url=__project_url__))
+            _(
+                "<h3>{title}</h3>"
+                "Before reporting this problem, <i>please</i> consult our "
+                "comprehensive "
+                '<b><a href="{trouble_url}">Troubleshooting Guide</a></b> '
+                "which should help solve most issues, and search for "
+                '<b><a href="{project_url}">known bugs</a></b> '
+                "matching your error message or problem description for a "
+                "quicker solution."
+            ).format(
+                title=title, trouble_url=__trouble_url__, project_url=__project_url__
+            )
+        )
         self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
-        self.main_label.setStyleSheet('font-size: 12px;')
+        self.main_label.setStyleSheet("font-size: 12px;")
 
         # Issue title
         self.title = QLineEdit()
         self.title.textChanged.connect(self._contents_changed)
-        self.title_chars_label = QLabel(_("{} more characters "
-                                          "to go...").format(TITLE_MIN_CHARS))
+        self.title_chars_label = QLabel(
+            _("{} more characters " "to go...").format(TITLE_MIN_CHARS)
+        )
         form_layout = QFormLayout()
         form_layout.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
         red_asterisk = '<font color="Red">*</font>'
@@ -175,17 +190,18 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         form_layout.setWidget(0, QFormLayout.FieldRole, self.title)
 
         # Description
-        steps_header = QLabel(
-            _("<b>Steps to reproduce:</b> {}").format(red_asterisk))
+        steps_header = QLabel(_("<b>Steps to reproduce:</b> {}").format(red_asterisk))
         self.steps_text = QLabel(
-            _("Please enter a detailed step-by-step "
-              "description (in English) of what led up to "
-              "the problem below. Issue reports without a "
-              "clear way to reproduce them will be closed.")
+            _(
+                "Please enter a detailed step-by-step "
+                "description (in English) of what led up to "
+                "the problem below. Issue reports without a "
+                "clear way to reproduce them will be closed."
+            )
         )
         self.steps_text.setWordWrap(True)
         self.steps_text.setAlignment(Qt.AlignJustify)
-        self.steps_text.setStyleSheet('font-size: 12px;')
+        self.steps_text.setStyleSheet("font-size: 12px;")
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
@@ -203,29 +219,28 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         # Label to show missing chars
         self.initial_chars = len(self.input_description.toPlainText())
-        self.desc_chars_label = QLabel(_("{} more characters "
-                                         "to go...").format(
-                                             self.description_minimum_length))
+        self.desc_chars_label = QLabel(
+            _("{} more characters " "to go...").format(self.description_minimum_length)
+        )
 
         # Checkbox to dismiss future errors
-        self.dismiss_box = QCheckBox(_("Hide all future errors during this "
-                                       "session"))
+        self.dismiss_box = QCheckBox(_("Hide all future errors during this " "session"))
 
         # Checkbox to include IPython console environment
         self.include_env = QCheckBox(_("Include IPython console environment"))
 
         # Dialog buttons
-        gh_icon = ima.icon('github')
-        self.submit_btn = QPushButton(gh_icon, _('Submit to Github'))
+        gh_icon = ima.icon("github")
+        self.submit_btn = QPushButton(gh_icon, _("Submit to Github"))
         self.submit_btn.setEnabled(False)
         self.submit_btn.clicked.connect(self._submit_to_github)
 
-        self.details_btn = QPushButton(_('Show details'))
+        self.details_btn = QPushButton(_("Show details"))
         self.details_btn.clicked.connect(self._show_details)
         if self.is_report:
             self.details_btn.hide()
 
-        self.close_btn = QPushButton(_('Close'))
+        self.close_btn = QPushButton(_("Close"))
         self.close_btn.clicked.connect(self.reject)
 
         # Buttons layout
@@ -254,9 +269,8 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
             layout.addWidget(self.dismiss_box)
 
         # Only provide checkbox if not an installer default interpreter
-        if (
-            not (is_pynsist() or running_in_mac_app())
-            or not self.get_conf('default', section='main_interpreter')
+        if not (is_pynsist() or running_in_mac_app()) or not self.get_conf(
+            "default", section="main_interpreter"
         ):
             layout.addWidget(self.include_env)
             layout.addSpacing(15)
@@ -272,7 +286,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         self.setTabOrder(self.title, self.input_description)
 
     @classmethod
-    def render_issue(cls, description='', traceback='', include_env=False):
+    def render_issue(cls, description="", traceback="", include_env=False):
         """
         Render issue content.
 
@@ -298,12 +312,11 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         # Make error section from traceback and add appropriate reminder header
         if traceback:
-            error_section = ("### Traceback\n"
-                             "```python-traceback\n"
-                             "{}\n"
-                             "```".format(traceback))
+            error_section = (
+                "### Traceback\n" "```python-traceback\n" "{}\n" "```".format(traceback)
+            )
         else:
-            error_section = ''
+            error_section = ""
 
         versions_text = get_versions_text()
 
@@ -326,15 +339,15 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         # Report environment if selected
         if include_env:
-            pyexe = cls.get_conf(cls, 'executable', section='main_interpreter')
+            pyexe = cls.get_conf(cls, "executable", section="main_interpreter")
 
             if is_conda_env(pyexec=pyexe):
                 path = get_conda_env_path(pyexe)
                 exe = find_conda()
-                args = ['list', '--prefix', path]
+                args = ["list", "--prefix", path]
             else:
                 exe = pyexe
-                args = ['-m', 'pip', 'list']
+                args = ["-m", "pip", "list"]
 
             proc = run_program(exe, args=args)
             ext_env, stderr = proc.communicate()
@@ -363,7 +376,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         title: str or None, optional
             The title of the report. Default is None.
         """
-        url = QUrl(__project_url__ + '/issues/new')
+        url = QUrl(__project_url__ + "/issues/new")
         query = QUrlQuery()
         query.addQueryItem("body", quote(body))
 
@@ -379,11 +392,11 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         if state:
             self._contents_changed()
         else:
-            self.desc_chars_label.setText('')
+            self.desc_chars_label.setText("")
 
     def set_github_repo_org(self, repo_fullname):
         """Set the report Github organization and repository."""
-        org, repo = repo_fullname.split('/')
+        org, repo = repo_fullname.split("/")
         self._github_org = org
         self._github_repo = repo
 
@@ -396,11 +409,13 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         # Render issue
         issue_text = self.render_issue(
-            description=description, traceback=traceback,
-            include_env=self.include_env.isChecked())
+            description=description,
+            traceback=traceback,
+            include_env=self.include_env.isChecked(),
+        )
 
         try:
-            org = self._github_org if not self._testing else 'ccordoba12'
+            org = self._github_org if not self._testing else "ccordoba12"
             repo = self._github_repo
             github_backend = GithubBackend(org, repo, parent_widget=self)
             github_report = github_backend.send_report(title, issue_text)
@@ -409,21 +424,24 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         except Exception:
             ret = QMessageBox.question(
                 self,
-                _('Error'),
-                _("An error occurred while trying to send the issue to "
-                  "Github automatically. Would you like to open it "
-                  "manually?<br><br>"
-                  "If so, please make sure to paste your clipboard "
-                  "into the issue report box that will appear in a new "
-                  "browser tab before clicking <i>Submit</i> on that "
-                  "page."),
+                _("Error"),
+                _(
+                    "An error occurred while trying to send the issue to "
+                    "Github automatically. Would you like to open it "
+                    "manually?<br><br>"
+                    "If so, please make sure to paste your clipboard "
+                    "into the issue report box that will appear in a new "
+                    "browser tab before clicking <i>Submit</i> on that "
+                    "page."
+                ),
             )
 
             if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 QApplication.clipboard().setText(issue_text)
                 issue_body = (
                     " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE "
-                    "TO COMPLETE YOUR REPORT ***   ---!>\n")
+                    "TO COMPLETE YOUR REPORT ***   ---!>\n"
+                )
 
                 self.open_web_report(body=issue_body, title=title)
 
@@ -435,39 +453,45 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         """Show traceback on its own dialog"""
         if self.details.isVisible():
             self.details.hide()
-            self.details_btn.setText(_('Show details'))
+            self.details_btn.setText(_("Show details"))
         else:
             self.resize(570, 700)
-            self.details.document().setPlainText('')
-            self.details.append_text_to_shell(self.error_traceback,
-                                              error=True,
-                                              prompt=False)
+            self.details.document().setPlainText("")
+            self.details.append_text_to_shell(
+                self.error_traceback, error=True, prompt=False
+            )
             self.details.show()
-            self.details_btn.setText(_('Hide details'))
+            self.details_btn.setText(_("Hide details"))
 
     def _contents_changed(self):
         """Activate submit_btn."""
         if not self.require_minimum_length:
             return
-        desc_chars = (len(self.input_description.toPlainText()) -
-                      self.initial_chars)
+        desc_chars = len(self.input_description.toPlainText()) - self.initial_chars
         if desc_chars < self.description_minimum_length:
             self.desc_chars_label.setText(
-                u"{} {}".format(self.description_minimum_length - desc_chars,
-                                _("more characters to go...")))
+                "{} {}".format(
+                    self.description_minimum_length - desc_chars,
+                    _("more characters to go..."),
+                )
+            )
         else:
             self.desc_chars_label.setText(_("Description complete; thanks!"))
 
         title_chars = len(self.title.text())
         if title_chars < TITLE_MIN_CHARS:
             self.title_chars_label.setText(
-                u"{} {}".format(TITLE_MIN_CHARS - title_chars,
-                                _("more characters to go...")))
+                "{} {}".format(
+                    TITLE_MIN_CHARS - title_chars, _("more characters to go...")
+                )
+            )
         else:
             self.title_chars_label.setText(_("Title complete; thanks!"))
 
-        submission_enabled = (desc_chars >= self.description_minimum_length and
-                              title_chars >= TITLE_MIN_CHARS)
+        submission_enabled = (
+            desc_chars >= self.description_minimum_length
+            and title_chars >= TITLE_MIN_CHARS
+        )
         self.submit_btn.setEnabled(submission_enabled)
 
     def set_title(self, title):
@@ -485,6 +509,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
 def test():
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()  # noqa
     dlg = SpyderErrorDialog()
     dlg._testing = True

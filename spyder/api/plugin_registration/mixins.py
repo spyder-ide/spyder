@@ -38,16 +38,15 @@ class SpyderPluginObserver:
         self._plugin_teardown_listeners = {}
         for method_name in dir(self):
             method = getattr(self, method_name, None)
-            if hasattr(method, '_plugin_listen'):
+            if hasattr(method, "_plugin_listen"):
                 plugin_listen = method._plugin_listen
 
                 # Check if plugin is listed among REQUIRES and OPTIONAL.
                 # Note: We can't do this validation for the Layout plugin
                 # because it depends on all plugins through the Plugins.All
                 # wildcard.
-                if (
-                    self.NAME != Plugins.Layout and
-                    (plugin_listen not in self.REQUIRES + self.OPTIONAL)
+                if self.NAME != Plugins.Layout and (
+                    plugin_listen not in self.REQUIRES + self.OPTIONAL
                 ):
                     raise SpyderAPIError(
                         f"Method {method_name} of {self} is trying to watch "
@@ -55,21 +54,18 @@ class SpyderPluginObserver:
                         f"listed in REQUIRES nor OPTIONAL."
                     )
 
-                logger.debug(
-                    f'Method {method_name} is watching plugin {plugin_listen}'
-                )
+                logger.debug(f"Method {method_name} is watching plugin {plugin_listen}")
                 self._plugin_listeners[plugin_listen] = method_name
 
-            if hasattr(method, '_plugin_teardown'):
+            if hasattr(method, "_plugin_teardown"):
                 plugin_teardown = method._plugin_teardown
 
                 # Check if plugin is listed among REQUIRES and OPTIONAL.
                 # Note: We can't do this validation for the Layout plugin
                 # because it depends on all plugins through the Plugins.All
                 # wildcard.
-                if (
-                    self.NAME != Plugins.Layout and
-                    (plugin_teardown not in self.REQUIRES + self.OPTIONAL)
+                if self.NAME != Plugins.Layout and (
+                    plugin_teardown not in self.REQUIRES + self.OPTIONAL
                 ):
                     raise SpyderAPIError(
                         f"Method {method_name} of {self} is trying to watch "
@@ -77,8 +73,10 @@ class SpyderPluginObserver:
                         f"listed in REQUIRES nor OPTIONAL."
                     )
 
-                logger.debug(f'Method {method_name} will handle plugin '
-                             f'teardown for {plugin_teardown}')
+                logger.debug(
+                    f"Method {method_name} will handle plugin "
+                    f"teardown for {plugin_teardown}"
+                )
                 self._plugin_teardown_listeners[plugin_teardown] = method_name
 
     def _on_plugin_available(self, plugin: str):
@@ -95,12 +93,12 @@ class SpyderPluginObserver:
         if plugin in self._plugin_listeners:
             method_name = self._plugin_listeners[plugin]
             method = getattr(self, method_name)
-            logger.debug(f'Calling {method}')
+            logger.debug(f"Calling {method}")
             method()
 
         # Call global plugin handler
-        if '__all' in self._plugin_listeners:
-            method_name = self._plugin_listeners['__all']
+        if "__all" in self._plugin_listeners:
+            method_name = self._plugin_listeners["__all"]
             method = getattr(self, method_name)
             method(plugin)
 
@@ -118,5 +116,5 @@ class SpyderPluginObserver:
         if plugin in self._plugin_teardown_listeners:
             method_name = self._plugin_teardown_listeners[plugin]
             method = getattr(self, method_name)
-            logger.debug(f'Calling {method}')
+            logger.debug(f"Calling {method}")
             method()

@@ -22,33 +22,40 @@ from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
 
 # Local imports
-from spyder.config.base import (
-    _, is_pynsist, running_in_mac_app, running_under_pytest)
+from spyder.config.base import _, is_pynsist, running_in_mac_app, running_under_pytest
 from spyder.config.gui import get_color_scheme
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
-    create_qss_style, create_style_class)
+    create_qss_style,
+    create_style_class,
+)
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
-    ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
-    NamepaceBrowserWidget, PageControlWidget)
+    ControlWidget,
+    DebuggingWidget,
+    FigureBrowserWidget,
+    HelpWidget,
+    NamepaceBrowserWidget,
+    PageControlWidget,
+)
 
 
-MODULES_FAQ_URL = (
-    "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
+MODULES_FAQ_URL = "https://docs.spyder-ide.org/5/faq.html#using-packages-installer"
 
 
-class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
-                  FigureBrowserWidget):
+class ShellWidget(
+    NamepaceBrowserWidget, HelpWidget, DebuggingWidget, FigureBrowserWidget
+):
     """
     Shell widget for the IPython Console
 
     This is the widget in charge of executing code
     """
+
     # NOTE: Signals can't be assigned separately to each widget
     #       That's why we define all needed signals here.
 
@@ -107,22 +114,32 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 thread.wait()
         cls.shutdown_thread_list = []
 
-    def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 is_external_kernel, is_spyder_kernel, handlers, *args, **kw):
+    def __init__(
+        self,
+        ipyclient,
+        additional_options,
+        interpreter_versions,
+        is_external_kernel,
+        is_spyder_kernel,
+        handlers,
+        *args,
+        **kw,
+    ):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
+            self.sig_exception_occurred
+        )
         super(ShellWidget, self).__init__(*args, **kw)
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.is_external_kernel = is_external_kernel
         self.is_spyder_kernel = is_spyder_kernel
-        self._cwd = ''
+        self._cwd = ""
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -136,20 +153,23 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_manager = None
         self.kernel_client = None
-        handlers.update({
-            'pdb_state': self.set_pdb_state,
-            'pdb_execute': self.pdb_execute,
-            'show_pdb_output': self.show_pdb_output,
-            'get_pdb_settings': self.get_pdb_settings,
-            'set_debug_state': self.set_debug_state,
-            'update_syspath': self.update_syspath,
-            'do_where': self.do_where,
-            'pdb_input': self.pdb_input,
-            'request_interrupt_eventloop': self.request_interrupt_eventloop,
-        })
+        handlers.update(
+            {
+                "pdb_state": self.set_pdb_state,
+                "pdb_execute": self.pdb_execute,
+                "show_pdb_output": self.show_pdb_output,
+                "get_pdb_settings": self.get_pdb_settings,
+                "set_debug_state": self.set_debug_state,
+                "update_syspath": self.update_syspath,
+                "do_where": self.do_where,
+                "pdb_input": self.pdb_input,
+                "request_interrupt_eventloop": self.request_interrupt_eventloop,
+            }
+        )
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
-                request_id, handlers[request_id])
+                request_id, handlers[request_id]
+            )
 
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
@@ -203,8 +223,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.prune_shutdown_thread_list()
         super(ShellWidget, self).shutdown()
 
-    def call_kernel(self, interrupt=False, blocking=False, callback=None,
-                    timeout=None, display_error=False):
+    def call_kernel(
+        self,
+        interrupt=False,
+        blocking=False,
+        callback=None,
+        timeout=None,
+        display_error=False,
+    ):
         """
         Send message to Spyder kernel connected to this console.
 
@@ -232,7 +258,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             blocking=blocking,
             callback=callback,
             timeout=timeout,
-            display_error=display_error
+            display_error=display_error,
         )
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
@@ -282,15 +308,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.exit_requested.connect(self.ipyclient.exit_callback)
 
     def is_running(self):
-        if self.kernel_client is not None and \
-          self.kernel_client.channels_running:
+        if self.kernel_client is not None and self.kernel_client.channels_running:
             return True
         else:
             return False
 
     def check_spyder_kernel(self):
         """Determine if the kernel is from Spyder."""
-        code = u"getattr(get_ipython().kernel, 'set_value', False)"
+        code = "getattr(get_ipython().kernel, 'set_value', False)"
         if self._reading:
             return
         else:
@@ -298,7 +323,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        if os.name == 'nt':
+        if os.name == "nt":
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
@@ -337,26 +362,26 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not dark_color:
             # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
-            self.call_kernel().set_sympy_forecolor(background_color='dark')
+            self.call_kernel().set_sympy_forecolor(background_color="dark")
         else:
             self.silent_execute("%colors lightbg")
-            self.call_kernel().set_sympy_forecolor(background_color='light')
+            self.call_kernel().set_sympy_forecolor(background_color="light")
 
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False).update_syspath(path_dict, new_path_dict)
+        self.call_kernel(interrupt=True, blocking=False).update_syspath(
+            path_dict, new_path_dict
+        )
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
         self.call_kernel(
-            interrupt=True, callback=self.sig_show_syspath.emit).get_syspath()
+            interrupt=True, callback=self.sig_show_syspath.emit
+        ).get_syspath()
 
     def request_env(self):
         """Ask the kernel for environment variables."""
-        self.call_kernel(
-            interrupt=True, callback=self.sig_show_env.emit).get_env()
+        self.call_kernel(interrupt=True, callback=self.sig_show_env.emit).get_env()
 
     def set_show_calltips(self, show_calltips):
         """Enable/Disable showing calltips."""
@@ -380,15 +405,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def get_matplotlib_backend(self):
         """Call kernel to get current backend."""
-        return self.call_kernel(
-            interrupt=True,
-            blocking=True).get_matplotlib_backend()
+        return self.call_kernel(interrupt=True, blocking=True).get_matplotlib_backend()
 
     def get_mpl_interactive_backend(self):
         """Call kernel to get current interactive backend."""
         return self.call_kernel(
-            interrupt=True,
-            blocking=True).get_mpl_interactive_backend()
+            interrupt=True, blocking=True
+        ).get_mpl_interactive_backend()
 
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""
@@ -434,27 +457,28 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def long_banner(self):
         """Banner for clients with additional content."""
         # Default banner
-        py_ver = self.interpreter_versions['python_version'].split('\n')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
+        py_ver = self.interpreter_versions["python_version"].split("\n")[0]
+        ipy_ver = self.interpreter_versions["ipython_version"]
 
         banner_parts = [
-            'Python %s\n' % py_ver,
+            "Python %s\n" % py_ver,
             'Type "copyright", "credits" or "license" for more information.',
-            '\n\n',
-            'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
+            "\n\n",
+            "IPython %s -- An enhanced Interactive Python.\n" % ipy_ver,
         ]
-        banner = ''.join(banner_parts)
+        banner = "".join(banner_parts)
 
         # Pylab additions
-        pylab_o = self.additional_options['pylab']
-        autoload_pylab_o = self.additional_options['autoload_pylab']
+        pylab_o = self.additional_options["pylab"]
+        autoload_pylab_o = self.additional_options["autoload_pylab"]
         if pylab_o and autoload_pylab_o:
-            pylab_message = ("\nPopulating the interactive namespace from "
-                             "numpy and matplotlib\n")
+            pylab_message = (
+                "\nPopulating the interactive namespace from " "numpy and matplotlib\n"
+            )
             banner = banner + pylab_message
 
         # Sympy additions
-        sympy_o = self.additional_options['sympy']
+        sympy_o = self.additional_options["sympy"]
         if sympy_o:
             lines = """
 These commands were executed:
@@ -465,7 +489,7 @@ These commands were executed:
 >>> f, g, h = symbols('f g h', cls=Function)
 """
             banner = banner + lines
-        if (pylab_o and sympy_o):
+        if pylab_o and sympy_o:
             lines = """
 Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
 enabled at the same time. Some pylab functions are going to be overrided by
@@ -477,9 +501,9 @@ the sympy module (e.g. plot)
 
     def short_banner(self):
         """Short banner with Python and IPython versions only."""
-        py_ver = self.interpreter_versions['python_version'].split(' ')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
-        banner = 'Python %s -- IPython %s' % (py_ver, ipy_ver)
+        py_ver = self.interpreter_versions["python_version"].split(" ")[0]
+        ipy_ver = self.interpreter_versions["ipython_version"]
+        banner = "Python %s -- IPython %s" % (py_ver, ipy_ver)
         return banner
 
     # --- To define additional shortcuts
@@ -489,7 +513,7 @@ the sympy module (e.g. plot)
         self._reading = False
 
     def _reset_namespace(self):
-        warning = self.get_conf('show_reset_namespace_warning')
+        warning = self.get_conf("show_reset_namespace_warning")
         self.reset_namespace(warning=warning)
 
     def reset_namespace(self, warning=False, message=False):
@@ -500,8 +524,10 @@ the sympy module (e.g. plot)
 
         if warning:
             reset_str = _("Remove all variables")
-            warn_str = _("All user-defined variables will be removed. "
-                         "Are you sure you want to proceed?")
+            warn_str = _(
+                "All user-defined variables will be removed. "
+                "Are you sure you want to proceed?"
+            )
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
             box.setWindowTitle(reset_str)
             box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -513,8 +539,7 @@ the sympy module (e.g. plot)
             box.setText(warn_str)
 
             box.buttonClicked.connect(
-                lambda button: self.handle_reset_message_answer(
-                    box, button, message)
+                lambda button: self.handle_reset_message_answer(box, button, message)
             )
             box.show()
         else:
@@ -560,19 +585,18 @@ the sympy module (e.g. plot)
 
         try:
             if self.is_waiting_pdb_input():
-                self.execute('%reset -f')
+                self.execute("%reset -f")
             else:
                 if message:
                     self.reset()
                     self._append_html(
-                        _("<br><br>Removing all variables...<br>"),
-                        before_prompt=False
+                        _("<br><br>Removing all variables...<br>"), before_prompt=False
                     )
                     self.insert_horizontal_ruler()
                 self.silent_execute("%reset -f")
-                if kernel_env.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
+                if kernel_env.get("SPY_AUTOLOAD_PYLAB_O") == "True":
                     self.silent_execute("from pylab import *")
-                if kernel_env.get('SPY_SYMPY_O') == 'True':
+                if kernel_env.get("SPY_SYMPY_O") == "True":
                     sympy_init = """
                         from __future__ import division
                         from sympy import *
@@ -581,7 +605,7 @@ the sympy module (e.g. plot)
                         f, g, h = symbols('f g h', cls=Function)
                         init_printing()"""
                     self.silent_execute(dedent(sympy_init))
-                if kernel_env.get('SPY_RUN_CYTHON') == 'True':
+                if kernel_env.get("SPY_RUN_CYTHON") == "True":
                     self.silent_execute("%reload_ext Cython")
 
                 # This doesn't need to interrupt the kernel because
@@ -599,64 +623,77 @@ the sympy module (e.g. plot)
         Update options and variables based on the interaction in the
         reset warning message box shown to the user.
         """
-        self.set_conf(
-            'show_reset_namespace_warning',
-            not message_box.is_checked()
-        )
+        self.set_conf("show_reset_namespace_warning", not message_box.is_checked())
         self.ipyclient.reset_warning = not message_box.is_checked()
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
         inspect = self.config_shortcut(
             self._control.inspect_current_object,
-            context='ipython_console',
-            name='Inspect current object',
-            parent=self)
+            context="ipython_console",
+            name="Inspect current object",
+            parent=self,
+        )
 
         clear_console = self.config_shortcut(
             self.clear_console,
-            context='ipython_console',
-            name='Clear shell',
-            parent=self)
+            context="ipython_console",
+            name="Clear shell",
+            parent=self,
+        )
 
         restart_kernel = self.config_shortcut(
             self.ipyclient.restart_kernel,
-            context='ipython_console',
-            name='Restart kernel',
-            parent=self)
+            context="ipython_console",
+            name="Restart kernel",
+            parent=self,
+        )
 
         new_tab = self.config_shortcut(
             lambda: self.new_client.emit(),
-            context='ipython_console',
-            name='new tab',
-            parent=self)
+            context="ipython_console",
+            name="new tab",
+            parent=self,
+        )
 
         reset_namespace = self.config_shortcut(
             lambda: self._reset_namespace(),
-            context='ipython_console',
-            name='reset namespace',
-            parent=self)
+            context="ipython_console",
+            name="reset namespace",
+            parent=self,
+        )
 
         array_inline = self.config_shortcut(
             self._control.enter_array_inline,
-            context='ipython_console',
-            name='enter array inline',
-            parent=self)
+            context="ipython_console",
+            name="enter array inline",
+            parent=self,
+        )
 
         array_table = self.config_shortcut(
             self._control.enter_array_table,
-            context='ipython_console',
-            name='enter array table',
-            parent=self)
+            context="ipython_console",
+            name="enter array table",
+            parent=self,
+        )
 
         clear_line = self.config_shortcut(
             self.ipyclient.clear_line,
-            context='ipython_console',
-            name='clear line',
-            parent=self)
+            context="ipython_console",
+            name="clear line",
+            parent=self,
+        )
 
-        return [inspect, clear_console, restart_kernel, new_tab,
-                reset_namespace, array_inline, array_table, clear_line]
+        return [
+            inspect,
+            clear_console,
+            restart_kernel,
+            new_tab,
+            reset_namespace,
+            array_inline,
+            array_table,
+            clear_line,
+        ]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
@@ -701,13 +738,12 @@ the sympy module (e.g. plot)
             return
 
         msg_id = self.kernel_client.execute(
-            '', silent=True,
-            user_expressions={local_uuid: code})
+            "", silent=True, user_expressions={local_uuid: code}
+        )
         self._kernel_methods[local_uuid] = code
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(
-            msg_id,
-            'silent_exec_method',
-            False)
+        self._request_info["execute"][msg_id] = self._ExecutionRequest(
+            msg_id, "silent_exec_method", False
+        )
 
     def handle_exec_method(self, msg):
         """
@@ -716,7 +752,7 @@ the sympy module (e.g. plot)
         This is based on the _handle_exec_callback of RichJupyterWidget.
         Therefore this is licensed BSD.
         """
-        user_exp = msg['content'].get('user_expressions')
+        user_exp = msg["content"].get("user_expressions")
         if not user_exp:
             return
         for expression in user_exp:
@@ -724,11 +760,11 @@ the sympy module (e.g. plot)
                 # Process kernel reply
                 method = self._kernel_methods[expression]
                 reply = user_exp[expression]
-                data = reply.get('data')
-                if 'getattr' in method:
-                    if data is not None and 'text/plain' in data:
-                        is_spyder_kernel = data['text/plain']
-                        if 'SpyderKernel' in is_spyder_kernel:
+                data = reply.get("data")
+                if "getattr" in method:
+                    if data is not None and "text/plain" in data:
+                        is_spyder_kernel = data["text/plain"]
+                        if "SpyderKernel" in is_spyder_kernel:
                             self.is_spyder_kernel = True
                             self.sig_is_spykernel.emit(self)
 
@@ -743,13 +779,13 @@ the sympy module (e.g. plot)
         calling_mayavi = False
         lines = command.splitlines()
         for line in lines:
-            if not line.startswith('#'):
-                if 'import mayavi' in line or 'from mayavi' in line:
+            if not line.startswith("#"):
+                if "import mayavi" in line or "from mayavi" in line:
                     calling_mayavi = True
                     break
         if calling_mayavi:
             message = _("Changing backend to Qt for Mayavi")
-            self._append_plain_text(message + '\n')
+            self._append_plain_text(message + "\n")
             self.silent_execute("%gui inline\n%gui qt")
 
     def change_mpl_backend(self, command):
@@ -760,13 +796,11 @@ the sympy module (e.g. plot)
 
         Fixes spyder-ide/spyder#4002.
         """
-        if (command.startswith('%matplotlib') and
-                len(command.splitlines()) == 1):
-            if 'inline' not in command:
+        if command.startswith("%matplotlib") and len(command.splitlines()) == 1:
+            if "inline" not in command:
                 self.silent_execute(command)
 
-    def append_html_message(self, html, before_prompt=False,
-                            msg_type='warning'):
+    def append_html_message(self, html, before_prompt=False, msg_type="warning"):
         """
         Append an html message enclosed in a box.
 
@@ -780,13 +814,10 @@ the sympy module (e.g. plot)
         """
         # The message is displayed in a table with a single cell.
         table_properties = (
-            "border='0.5'" +
-            "width='90%'" +
-            "cellpadding='8'" +
-            "cellspacing='0'"
+            "border='0.5'" + "width='90%'" + "cellpadding='8'" + "cellspacing='0'"
         )
 
-        if msg_type == 'error':
+        if msg_type == "error":
             header = _("Error")
             bgcolor = SpyderPalette.COLOR_ERROR_2
         else:
@@ -794,11 +825,13 @@ the sympy module (e.g. plot)
             bgcolor = SpyderPalette.COLOR_WARN_1
 
         self._append_html(
-            f"<div align='center'><table {table_properties}>" +
-            f"<tr><th bgcolor='{bgcolor}'>{header}</th></tr>" +
-            "<tr><td>" + html + "</td></tr>" +
-            "</table></div>",
-            before_prompt=before_prompt
+            f"<div align='center'><table {table_properties}>"
+            + f"<tr><th bgcolor='{bgcolor}'>{header}</th></tr>"
+            + "<tr><td>"
+            + html
+            + "</td></tr>"
+            + "</table></div>",
+            before_prompt=before_prompt,
         )
 
     def insert_horizontal_ruler(self):
@@ -824,7 +857,7 @@ the sympy module (e.g. plot)
             return line
 
         if indent_adjustment > 0:
-            return ' ' * indent_adjustment + line
+            return " " * indent_adjustment + line
 
         max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
         indent_adjustment = min(max_indent, -indent_adjustment)
@@ -832,7 +865,7 @@ the sympy module (e.g. plot)
         return line[indent_adjustment:]
 
     def paste(self, mode=QtGui.QClipboard.Clipboard):
-        """ Paste the contents of the clipboard into the input region.
+        """Paste the contents of the clipboard into the input region.
 
         Parameters
         ----------
@@ -854,12 +887,14 @@ the sympy module (e.g. plot)
             # Adjust indentation of multilines pastes
             if len(text.splitlines()) > 1:
                 lines_adjustment = CLIPBOARD_HELPER.remaining_lines_adjustment(
-                    self._get_preceding_text())
+                    self._get_preceding_text()
+                )
                 eol_chars = "\n"
                 first_line, *remaining_lines = (text + eol_chars).splitlines()
                 remaining_lines = [
                     self.adjust_indentation(line, lines_adjustment)
-                    for line in remaining_lines]
+                    for line in remaining_lines
+                ]
                 text = eol_chars.join([first_line, *remaining_lines])
 
             # dedent removes "common leading whitespace" but to preserve
@@ -867,7 +902,7 @@ the sympy module (e.g. plot)
             # leading space on the first line, if we're pasting into
             # an indented position.
             cursor_offset = cursor.position() - self._get_line_start_pos()
-            if text.startswith(' ' * cursor_offset):
+            if text.startswith(" " * cursor_offset):
                 text = text[cursor_offset:]
 
             self._insert_plain_text_into_buffer(cursor, dedent(text))
@@ -880,8 +915,7 @@ the sympy module (e.g. plot)
             return ""
         first_line_selection = text.splitlines()[0]
         cursor.setPosition(cursor.selectionStart())
-        cursor.setPosition(cursor.block().position(),
-                           QtGui.QTextCursor.KeepAnchor)
+        cursor.setPosition(cursor.block().position(), QtGui.QTextCursor.KeepAnchor)
         preceding_text = cursor.selection().toPlainText()
         first_line = preceding_text + first_line_selection
         len_with_prompt = len(first_line)
@@ -937,8 +971,8 @@ the sympy module (e.g. plot)
         """
         # Don't change banner for external kernels
         if self.is_external_kernel:
-            return ''
-        show_banner_o = self.additional_options['show_banner']
+            return ""
+        show_banner_o = self.additional_options["show_banner"]
         if show_banner_o:
             return self.long_banner()
         else:
@@ -952,7 +986,7 @@ the sympy module (e.g. plot)
         super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
         self.sig_kernel_restarted.emit()
 
-    @observe('syntax_style')
+    @observe("syntax_style")
     def _syntax_style_changed(self, changed=None):
         """Refresh the highlighting with the current syntax style by class."""
         if self._highlighter is None:
@@ -971,9 +1005,10 @@ the sympy module (e.g. plot)
         """
         color_scheme = get_color_scheme(self.syntax_style)
         return dict(
-            bgcolor=color_scheme['background'],
-            select=color_scheme['background'],
-            fgcolor=color_scheme['normal'][0])[color]
+            bgcolor=color_scheme["background"],
+            select=color_scheme["background"],
+            fgcolor=color_scheme["normal"][0],
+        )[color]
 
     def _prompt_started_hook(self):
         """Emit a signal when the prompt is ready."""
@@ -993,15 +1028,21 @@ the sympy module (e.g. plot)
         """
         super(ShellWidget, self)._process_execute_error(msg)
         if self.show_modules_message:
-            error = msg['content']['traceback']
-            if any(['ModuleNotFoundError' in frame or 'ImportError' in frame
-                    for frame in error]):
+            error = msg["content"]["traceback"]
+            if any(
+                [
+                    "ModuleNotFoundError" in frame or "ImportError" in frame
+                    for frame in error
+                ]
+            ):
                 self.append_html_message(
-                    _("It seems you're trying to use a module that doesn't "
-                      "come with our installer. Check "
-                      "<a href='{}'>this FAQ</a> in our docs to learn how "
-                      "to do this.").format(MODULES_FAQ_URL),
-                    before_prompt=True
+                    _(
+                        "It seems you're trying to use a module that doesn't "
+                        "come with our installer. Check "
+                        "<a href='{}'>this FAQ</a> in our docs to learn how "
+                        "to do this."
+                    ).format(MODULES_FAQ_URL),
+                    before_prompt=True,
                 )
             self.show_modules_message = False
 

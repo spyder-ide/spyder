@@ -26,27 +26,25 @@ logger = logging.getLogger(__name__)
 
 # Main constants
 class ClientStatus:
-    STARTING = 'starting'
-    READY = 'ready'
-    RESTARTING = 'restarting'
-    DOWN = 'down'
+    STARTING = "starting"
+    READY = "ready"
+    RESTARTING = "restarting"
+    DOWN = "down"
 
     STRINGS_FOR_TRANSLATION = {
         STARTING: _("starting"),
         READY: _("ready"),
         RESTARTING: _("restarting"),
-        DOWN: _("down")
+        DOWN: _("down"),
     }
 
 
 class LSPStatusWidget(StatusBarWidget):
     """Status bar widget for LSP  status."""
-    ID = 'lsp_status'
 
-    BASE_TOOLTIP = _(
-        "Completions, linting, code\n"
-        "folding and symbols status."
-    )
+    ID = "lsp_status"
+
+    BASE_TOOLTIP = _("Completions, linting, code\n" "folding and symbols status.")
 
     STATUS = "LSP: {}"
 
@@ -71,19 +69,18 @@ class LSPStatusWidget(StatusBarWidget):
 
         if language is not None:
             menu.clear()
-            text = _(
-                "Restart {} Language Server").format(language.capitalize())
+            text = _("Restart {} Language Server").format(language.capitalize())
             restart_action = create_action(
                 self,
                 text=text,
-                triggered=lambda: self.provider.restart_lsp(language,
-                                                            force=True),
+                triggered=lambda: self.provider.restart_lsp(language, force=True),
             )
             add_actions(menu, [restart_action])
             rect = self.contentsRect()
-            os_height = 7 if os.name == 'nt' else 12
+            os_height = 7 if os.name == "nt" else 12
             pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-40, -rect.height() - os_height))
+                rect.topLeft() + QPoint(-40, -rect.height() - os_height)
+            )
             menu.popup(pos)
 
     def set_status(self, lsp_language=None, status=None):
@@ -98,10 +95,13 @@ class LSPStatusWidget(StatusBarWidget):
 
         # Icon
         if status == ClientStatus.READY:
-            self._icon = self.create_icon('lspserver.ready')
-        elif status in [ClientStatus.DOWN, ClientStatus.STARTING,
-                        ClientStatus.RESTARTING]:
-            self._icon = self.create_icon('lspserver.down')
+            self._icon = self.create_icon("lspserver.ready")
+        elif status in [
+            ClientStatus.DOWN,
+            ClientStatus.STARTING,
+            ClientStatus.RESTARTING,
+        ]:
+            self._icon = self.create_icon("lspserver.down")
         self.set_icon()
 
         # Language
@@ -113,7 +113,7 @@ class LSPStatusWidget(StatusBarWidget):
         return self.tooltip
 
     def get_icon(self):
-        return self.create_icon('lspserver.down')
+        return self.create_icon("lspserver.down")
 
     @Slot()
     def update_status(self, lsp_language=None, status=None):
@@ -125,8 +125,7 @@ class LSPStatusWidget(StatusBarWidget):
                 self.setVisible(False)
             else:
                 status = self.provider.clients_statusbar.get(
-                    lsp_language,
-                    ClientStatus.STARTING
+                    lsp_language, ClientStatus.STARTING
                 )
                 self.set_status(lsp_language, status)
                 self.setVisible(True)
@@ -134,8 +133,10 @@ class LSPStatusWidget(StatusBarWidget):
 
         # Don't update the status in case the editor and LSP languages
         # are different.
-        if (self.current_language is None or
-                self.current_language.lower() != lsp_language):
+        if (
+            self.current_language is None
+            or self.current_language.lower() != lsp_language
+        ):
             return
         else:
             self.set_status(self.current_language, status)

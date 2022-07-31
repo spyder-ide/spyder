@@ -21,8 +21,9 @@ class ConfigurationObserver:
     the values of configuration options that the object subscribed to.
     """
 
-    def on_configuration_change(self, option: ConfigurationKey, section: str,
-                                value: Any):
+    def on_configuration_change(
+        self, option: ConfigurationKey, section: str, value: Any
+    ):
         """
         Handle configuration updates for the option `option` on the section
         `section`, whose new value corresponds to `value`.
@@ -38,4 +39,5 @@ class ConfigurationObserver:
         """
         ...
 
-    def __hash__(self) -> int: ...
+    def __hash__(self) -> int:
+        ...

@@ -12,8 +12,7 @@
 # pylint: disable=R0201
 
 # Third party imports
-from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout)
+from qtpy.QtWidgets import QButtonGroup, QGroupBox, QHBoxLayout, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
@@ -22,40 +21,41 @@ from spyder.utils.misc import getcwd_or_home
 
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
-
     def setup_page(self):
         about_label = QLabel(
-            _("This is the directory that will be set as the default for "
-              "the IPython console and Files panes.")
+            _(
+                "This is the directory that will be set as the default for "
+                "the IPython console and Files panes."
+            )
         )
         about_label.setWordWrap(True)
 
         # Startup directory
         startup_group = QGroupBox(_("Startup"))
         startup_bg = QButtonGroup(startup_group)
-        startup_label = QLabel(
-            _("At startup, the working directory is:")
-        )
+        startup_label = QLabel(_("At startup, the working directory is:"))
         startup_label.setWordWrap(True)
         lastdir_radio = self.create_radiobutton(
             _("The project (if open) or user home directory"),
-            'startup/use_project_or_home_directory',
-            tip=_("The startup working dir will be root of the "
-                  "current project if one is open, otherwise the "
-                  "user home directory"),
-            button_group=startup_bg
+            "startup/use_project_or_home_directory",
+            tip=_(
+                "The startup working dir will be root of the "
+                "current project if one is open, otherwise the "
+                "user home directory"
+            ),
+            button_group=startup_bg,
         )
         thisdir_radio = self.create_radiobutton(
             _("The following directory:"),
-            'startup/use_fixed_directory',
-            _("At startup, the current working directory will be the "
-              "specified path"),
-            button_group=startup_bg
+            "startup/use_fixed_directory",
+            _(
+                "At startup, the current working directory will be the "
+                "specified path"
+            ),
+            button_group=startup_bg,
         )
         thisdir_bd = self.create_browsedir(
-            "",
-            'startup/fixed_directory',
-            getcwd_or_home()
+            "", "startup/fixed_directory", getcwd_or_home()
         )
         thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
         lastdir_radio.toggled.connect(thisdir_bd.setDisabled)
@@ -71,34 +71,31 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
 
         # Console Directory
         console_group = QGroupBox(_("New consoles"))
-        console_label = QLabel(
-            _("The working directory for new IPython consoles is:")
-        )
+        console_label = QLabel(_("The working directory for new IPython consoles is:"))
         console_label.setWordWrap(True)
         console_bg = QButtonGroup(console_group)
         console_project_radio = self.create_radiobutton(
             _("The project (if open) or user home directory"),
-            'console/use_project_or_home_directory',
-            tip=_("The working dir for new consoles will be root of the "
-                  "project if one is open, otherwise the user home directory"),
-            button_group=console_bg
+            "console/use_project_or_home_directory",
+            tip=_(
+                "The working dir for new consoles will be root of the "
+                "project if one is open, otherwise the user home directory"
+            ),
+            button_group=console_bg,
         )
         console_cwd_radio = self.create_radiobutton(
             _("The working directory of the current console"),
-            'console/use_cwd',
-            button_group=console_bg
+            "console/use_cwd",
+            button_group=console_bg,
         )
         console_dir_radio = self.create_radiobutton(
             _("The following directory:"),
-            'console/use_fixed_directory',
-            _("The directory when a new console is open will be the "
-              "specified path"),
-            button_group=console_bg
+            "console/use_fixed_directory",
+            _("The directory when a new console is open will be the " "specified path"),
+            button_group=console_bg,
         )
         console_dir_bd = self.create_browsedir(
-            "",
-            'console/fixed_directory',
-            getcwd_or_home()
+            "", "console/fixed_directory", getcwd_or_home()
         )
         console_dir_radio.toggled.connect(console_dir_bd.setEnabled)
         console_project_radio.toggled.connect(console_dir_bd.setDisabled)

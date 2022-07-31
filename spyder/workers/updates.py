@@ -36,6 +36,7 @@ class WorkerUpdates(QObject):
     blocking the Spyder user interface, in case of connection
     issues.
     """
+
     sig_ready = Signal()
 
     def __init__(self, parent, startup, version="", releases=None):
@@ -59,41 +60,42 @@ class WorkerUpdates(QObject):
         Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
         """
         # Don't perform any check for development versions
-        if 'dev' in self.version:
+        if "dev" in self.version:
             return (False, self.latest_release)
 
         # Filter releases
         if is_stable_version(self.version):
             releases = [r for r in self.releases if is_stable_version(r)]
         else:
-            releases = [r for r in self.releases
-                        if not is_stable_version(r) or r in self.version]
+            releases = [
+                r
+                for r in self.releases
+                if not is_stable_version(r) or r in self.version
+            ]
 
         latest_release = releases[-1]
 
-        return (check_version(self.version, latest_release, '<'),
-                latest_release)
+        return (check_version(self.version, latest_release, "<"), latest_release)
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
         if is_anaconda():
-            self.url = 'https://repo.anaconda.com/pkgs/main'
-            if os.name == 'nt':
-                self.url += '/win-64/repodata.json'
-            elif sys.platform == 'darwin':
-                self.url += '/osx-64/repodata.json'
+            self.url = "https://repo.anaconda.com/pkgs/main"
+            if os.name == "nt":
+                self.url += "/win-64/repodata.json"
+            elif sys.platform == "darwin":
+                self.url += "/osx-64/repodata.json"
             else:
-                self.url += '/linux-64/repodata.json'
+                self.url += "/linux-64/repodata.json"
         else:
-            self.url = ('https://api.github.com/repos/'
-                        'spyder-ide/spyder/releases')
+            self.url = "https://api.github.com/repos/" "spyder-ide/spyder/releases"
         self.update_available = False
         self.latest_release = __version__
 
         error_msg = None
 
         try:
-            if hasattr(ssl, '_create_unverified_context'):
+            if hasattr(ssl, "_create_unverified_context"):
                 # Fix for spyder-ide/spyder#2685.
                 # [Works only with Python >=2.7.9]
                 # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
@@ -112,28 +114,32 @@ class WorkerUpdates(QObject):
                 if is_anaconda():
                     if self.releases is None:
                         self.releases = []
-                        for item in data['packages']:
-                            if ('spyder' in item and
-                                    not re.search(r'spyder-[a-zA-Z]', item)):
-                                self.releases.append(item.split('-')[1])
+                        for item in data["packages"]:
+                            if "spyder" in item and not re.search(
+                                r"spyder-[a-zA-Z]", item
+                            ):
+                                self.releases.append(item.split("-")[1])
                     result = self.check_update_available()
                 else:
                     if self.releases is None:
-                        self.releases = [item['tag_name'].replace('v', '')
-                                         for item in data]
+                        self.releases = [
+                            item["tag_name"].replace("v", "") for item in data
+                        ]
                         self.releases = list(reversed(self.releases))
 
                 result = self.check_update_available()
                 self.update_available, self.latest_release = result
             except Exception:
-                error_msg = _('Unable to retrieve information.')
+                error_msg = _("Unable to retrieve information.")
         except HTTPError:
-            error_msg = _('Unable to retrieve information.')
+            error_msg = _("Unable to retrieve information.")
         except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>Make '
-                          'sure the connection is working properly.')
+            error_msg = _(
+                "Unable to connect to the internet. <br><br>Make "
+                "sure the connection is working properly."
+            )
         except Exception:
-            error_msg = _('Unable to check for updates.')
+            error_msg = _("Unable to check for updates.")
 
         # Don't show dialog when starting up spyder and an error occur
         if not (self.startup and error_msg is not None):

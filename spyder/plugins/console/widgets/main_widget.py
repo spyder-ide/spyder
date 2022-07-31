@@ -35,15 +35,14 @@ from spyder.config.base import DEV, get_debug_level
 from spyder.plugins.console.widgets.internalshell import InternalShell
 from spyder.py3compat import to_text_string
 from spyder.utils.environ import EnvDialog
-from spyder.utils.misc import (get_error_match, getcwd_or_home,
-                               remove_backslashes)
+from spyder.utils.misc import get_error_match, getcwd_or_home, remove_backslashes
 from spyder.utils.qthelpers import DialogManager, mimedata2url
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.reporterror import SpyderErrorDialog
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 logger = logging.getLogger(__name__)
 
 
@@ -51,31 +50,31 @@ logger = logging.getLogger(__name__)
 # ----------------------------------------------------------------------------
 class ConsoleWidgetActions:
     # Triggers
-    Environment = 'environment_action'
-    ExternalEditor = 'external_editor_action'
-    MaxLineCount = 'max_line_count_action'
+    Environment = "environment_action"
+    ExternalEditor = "external_editor_action"
+    MaxLineCount = "max_line_count_action"
     # The name of the action needs to match name of the shortcut
     # so 'Quit' is used instead of something like 'quit_action'
-    Quit = 'Quit'
-    Run = 'run_action'
-    SysPath = 'sys_path_action'
+    Quit = "Quit"
+    Run = "run_action"
+    SysPath = "sys_path_action"
 
     # Toggles
-    ToggleCodeCompletion = 'toggle_code_completion_action'
-    ToggleWrap = 'toggle_wrap_action'
+    ToggleCodeCompletion = "toggle_code_completion_action"
+    ToggleWrap = "toggle_wrap_action"
 
 
 class ConsoleWidgetMenus:
-    InternalSettings = 'internal_settings_submenu'
+    InternalSettings = "internal_settings_submenu"
 
 
 class ConsoleWidgetOptionsMenuSections:
-    Run = 'run_section'
-    Quit = 'quit_section'
+    Run = "run_section"
+    Quit = "quit_section"
 
 
 class ConsoleWidgetInternalSettingsSubMenuSections:
-    Main = 'main'
+    Main = "main"
 
 
 # --- Widgets
@@ -114,7 +113,7 @@ class ConsoleWidget(PluginMainWidget):
         logger.info("Initializing...")
 
         # Traceback MessageBox
-        self.error_traceback = ''
+        self.error_traceback = ""
         self.dismiss_error = False
 
         # Header message
@@ -138,7 +137,7 @@ class ConsoleWidget(PluginMainWidget):
         self.shell = InternalShell(  # TODO: Move to use SpyderWidgetMixin?
             commands=[],
             message=message,
-            max_line_count=self.get_conf('max_line_count'),
+            max_line_count=self.get_conf("max_line_count"),
             profile=profile,
             multithreaded=multithreaded,
         )
@@ -148,7 +147,7 @@ class ConsoleWidget(PluginMainWidget):
         self.setAcceptDrops(True)
         self.find_widget.set_editor(self.shell)
         self.find_widget.hide()
-        self.shell.toggle_wrap_mode(self.get_conf('wrap'))
+        self.shell.toggle_wrap_mode(self.get_conf("wrap"))
 
         # Layout
         layout = QVBoxLayout()
@@ -162,15 +161,17 @@ class ConsoleWidget(PluginMainWidget):
         self.shell.sig_focus_changed.connect(self.sig_focus_changed)
         self.shell.sig_go_to_error_requested.connect(self.go_to_error)
         self.shell.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
+            self.sig_redirect_stdio_requested
+        )
         self.shell.sig_refreshed.connect(self.sig_refreshed)
         self.shell.sig_show_status_requested.connect(
-            lambda msg: self.sig_show_status_message.emit(msg, 0))
+            lambda msg: self.sig_show_status_message.emit(msg, 0)
+        )
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return _('Internal console')
+        return _("Internal console")
 
     def setup(self):
         # TODO: Move this to the shell
@@ -178,33 +179,32 @@ class ConsoleWidget(PluginMainWidget):
             ConsoleWidgetActions.Quit,
             text=_("&Quit"),
             tip=_("Quit"),
-            icon=self.create_icon('exit'),
+            icon=self.create_icon("exit"),
             triggered=self.sig_quit_requested,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True,
-            menurole=QAction.QuitRole
+            menurole=QAction.QuitRole,
         )
         run_action = self.create_action(
             ConsoleWidgetActions.Run,
             text=_("&Run..."),
             tip=_("Run a Python file"),
-            icon=self.create_icon('run_small'),
+            icon=self.create_icon("run_small"),
             triggered=self.run_script,
         )
         environ_action = self.create_action(
             ConsoleWidgetActions.Environment,
             text=_("Environment variables..."),
-            tip=_("Show and edit environment variables (for current "
-                  "session)"),
-            icon=self.create_icon('environ'),
+            tip=_("Show and edit environment variables (for current " "session)"),
+            icon=self.create_icon("environ"),
             triggered=self.show_env,
         )
         syspath_action = self.create_action(
             ConsoleWidgetActions.SysPath,
             text=_("Show sys.path contents..."),
             tip=_("Show (read-only) sys.path"),
-            icon=self.create_icon('syspath'),
+            icon=self.create_icon("syspath"),
             triggered=self.show_syspath,
         )
         buffer_action = self.create_action(
@@ -222,24 +222,28 @@ class ConsoleWidget(PluginMainWidget):
         wrap_action = self.create_action(
             ConsoleWidgetActions.ToggleWrap,
             text=_("Wrap lines"),
-            toggled=lambda val: self.set_conf('wrap', val),
-            initial=self.get_conf('wrap'),
+            toggled=lambda val: self.set_conf("wrap", val),
+            initial=self.get_conf("wrap"),
         )
         codecompletion_action = self.create_action(
             ConsoleWidgetActions.ToggleCodeCompletion,
             text=_("Automatic code completion"),
-            toggled=lambda val: self.set_conf('codecompletion/auto', val),
-            initial=self.get_conf('codecompletion/auto'),
+            toggled=lambda val: self.set_conf("codecompletion/auto", val),
+            initial=self.get_conf("codecompletion/auto"),
         )
 
         # Submenu
         internal_settings_menu = self.create_menu(
             ConsoleWidgetMenus.InternalSettings,
-            _('Internal console settings'),
-            icon=self.create_icon('tooloptions'),
+            _("Internal console settings"),
+            icon=self.create_icon("tooloptions"),
         )
-        for item in [buffer_action, wrap_action, codecompletion_action,
-                     exteditor_action]:
+        for item in [
+            buffer_action,
+            wrap_action,
+            codecompletion_action,
+            exteditor_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=internal_settings_menu,
@@ -248,8 +252,12 @@ class ConsoleWidget(PluginMainWidget):
 
         # Options menu
         options_menu = self.get_options_menu()
-        for item in [run_action, environ_action, syspath_action,
-                     internal_settings_menu]:
+        for item in [
+            run_action,
+            environ_action,
+            syspath_action,
+            internal_settings_menu,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -262,20 +270,19 @@ class ConsoleWidget(PluginMainWidget):
             section=ConsoleWidgetOptionsMenuSections.Quit,
         )
 
-        self.shell.set_external_editor(
-            self.get_conf('external_editor/path'), '')
+        self.shell.set_external_editor(self.get_conf("external_editor/path"), "")
 
-    @on_conf_change(option='max_line_count')
+    @on_conf_change(option="max_line_count")
     def max_line_count_update(self, value):
         self.shell.setMaximumBlockCount(value)
 
-    @on_conf_change(option='wrap')
+    @on_conf_change(option="wrap")
     def wrap_mode_update(self, value):
         self.shell.toggle_wrap_mode(value)
 
-    @on_conf_change(option='external_editor/path')
+    @on_conf_change(option="external_editor/path")
     def external_editor_update(self, value):
-        self.shell.set_external_editor(value, '')
+        self.shell.set_external_editor(value, "")
 
     def update_actions(self):
         pass
@@ -312,7 +319,7 @@ class ConsoleWidget(PluginMainWidget):
             self.shell.drop_pathlist(pathlist)
         elif source.hasText():
             lines = to_text_string(source.text())
-            self.shell.set_cursor_position('eof')
+            self.shell.set_cursor_position("eof")
             self.shell.execute_lines(lines)
 
         event.acceptProposedAction()
@@ -332,8 +339,7 @@ class ConsoleWidget(PluginMainWidget):
         Not used anymore since v2.0.
         """
         historylog.add_history(self.shell.history_filename)
-        self.shell.sig_append_to_history_requested.connect(
-            historylog.append_to_history)
+        self.shell.sig_append_to_history_requested.connect(historylog.append_to_history)
 
     def set_help(self, help_plugin):
         """
@@ -344,8 +350,9 @@ class ConsoleWidget(PluginMainWidget):
     def report_issue(self):
         """Report an issue with the SpyderErrorDialog."""
         self._report_dlg = SpyderErrorDialog(self, is_report=True)
-        self._report_dlg.set_color_scheme(self.get_conf(
-            'selected', section='appearance'))
+        self._report_dlg.set_color_scheme(
+            self.get_conf("selected", section="appearance")
+        )
         self._report_dlg.show()
 
     @Slot(dict)
@@ -390,8 +397,9 @@ class ConsoleWidget(PluginMainWidget):
         steps = error_data.get("steps", "")
 
         # Skip errors without traceback (and no text) or dismiss
-        if ((not text and not is_traceback and self.error_dlg is None)
-                or self.dismiss_error):
+        if (
+            not text and not is_traceback and self.error_dlg is None
+        ) or self.dismiss_error:
             return
 
         InstallerInternalError(title + text)
@@ -402,8 +410,7 @@ class ConsoleWidget(PluginMainWidget):
         # Get if sender is internal or not
         is_internal_plugin = True
         if sender is not None:
-            sender_name = getattr(
-                sender, 'NAME', getattr(sender, 'CONF_SECTION'))
+            sender_name = getattr(sender, "NAME", getattr(sender, "CONF_SECTION"))
             is_internal_plugin = sender_name in internal_plugins
 
         # Set repo
@@ -418,20 +425,22 @@ class ConsoleWidget(PluginMainWidget):
                     "my-org/my-repo (only Github is supported)."
                 )
 
-            if repo == 'spyder-ide/spyder':
+            if repo == "spyder-ide/spyder":
                 raise SpyderAPIError(
                     f"External plugin '{sender_name}' 'repo' key needs to be "
                     "different from the main Spyder repo."
                 )
 
-        if self.get_conf('show_internal_errors', section='main'):
+        if self.get_conf("show_internal_errors", section="main"):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
                 self.error_dlg.set_color_scheme(
-                    self.get_conf('selected', section='appearance'))
+                    self.get_conf("selected", section="appearance")
+                )
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.sig_go_to_error_requested.connect(
-                    self.go_to_error)
+                    self.go_to_error
+                )
 
             # Set the report repository
             self.error_dlg.set_github_repo_org(repo)
@@ -493,13 +502,12 @@ class ConsoleWidget(PluginMainWidget):
             sys.path,
             title="sys.path",
             readonly=True,
-            icon=self.create_icon('syspath'),
+            icon=self.create_icon("syspath"),
         )
         self.dialog_manager.show(editor)
 
     @Slot()
-    def run_script(self, filename=None, silent=False, set_focus=False,
-                   args=None):
+    def run_script(self, filename=None, silent=False, set_focus=False, args=None):
         """
         Run a Python script.
         """
@@ -529,7 +537,7 @@ class ConsoleWidget(PluginMainWidget):
 
         self.change_visibility(True, True)
 
-        self.shell.write(command+'\n')
+        self.shell.write(command + "\n")
         self.shell.run_command(command)
 
     def go_to_error(self, text):
@@ -548,7 +556,7 @@ class ConsoleWidget(PluginMainWidget):
         if filename is not None:
             # Called from InternalShell
             self.shell.external_editor(filename, goto)
-            self.sig_edit_goto_requested.emit(osp.abspath(filename), goto, '')
+            self.sig_edit_goto_requested.emit(osp.abspath(filename), goto, "")
 
     def execute_lines(self, lines):
         """
@@ -559,22 +567,22 @@ class ConsoleWidget(PluginMainWidget):
 
     @Slot()
     def change_max_line_count(self, value=None):
-        """"
+        """ "
         Change maximum line count.
         """
         valid = True
         if value is None:
             value, valid = QInputDialog.getInt(
                 self,
-                _('Buffer'),
-                _('Maximum line count'),
-                self.get_conf('max_line_count'),
+                _("Buffer"),
+                _("Maximum line count"),
+                self.get_conf("max_line_count"),
                 0,
                 1000000,
             )
 
         if valid:
-            self.set_conf('max_line_count', value)
+            self.set_conf("max_line_count", value)
 
     @Slot()
     def change_exteditor(self, path=None):
@@ -585,14 +593,14 @@ class ConsoleWidget(PluginMainWidget):
         if path is None:
             path, valid = QInputDialog.getText(
                 self,
-                _('External editor'),
-                _('External editor executable path:'),
+                _("External editor"),
+                _("External editor executable path:"),
                 QLineEdit.Normal,
-                self.get_conf('external_editor/path'),
+                self.get_conf("external_editor/path"),
             )
 
         if valid:
-            self.set_conf('external_editor/path', to_text_string(path))
+            self.set_conf("external_editor/path", to_text_string(path))
 
     def set_exit_function(self, func):
         """

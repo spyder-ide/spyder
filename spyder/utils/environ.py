@@ -64,8 +64,8 @@ def clean_env(env_vars):
                     # to be able to start Spyder.
                     # See https://stackoverflow.com/q/44506900/438386
                     # for details.
-                    unicode_var = ''
-            new_env_vars[key] = to_binary_string(unicode_var, encoding='utf-8')
+                    unicode_var = ""
+            new_env_vars[key] = to_binary_string(unicode_var, encoding="utf-8")
         else:
             new_env_vars[key] = to_text_string(var)
 
@@ -82,21 +82,24 @@ class RemoteEnvDialog(CollectionsEditor):
                 envdict2listdict(environ),
                 title=_("Environment variables"),
                 readonly=True,
-                icon=ima.icon('environ')
+                icon=ima.icon("environ"),
             )
         except Exception as e:
             QMessageBox.warning(
                 parent,
                 _("Warning"),
-                _("An error occurred while trying to show your "
-                  "environment variables. The error was<br><br>"
-                  "<tt>{0}</tt>").format(e),
-                QMessageBox.Ok
+                _(
+                    "An error occurred while trying to show your "
+                    "environment variables. The error was<br><br>"
+                    "<tt>{0}</tt>"
+                ).format(e),
+                QMessageBox.Ok,
             )
 
 
 class EnvDialog(RemoteEnvDialog):
     """Environment variables Dialog"""
+
     def __init__(self, parent=None):
         RemoteEnvDialog.__init__(self, dict(os.environ), parent=parent)
 
@@ -127,41 +130,58 @@ try:
                 _x, types[name] = winreg.QueryValueEx(key, name)
             except WindowsError:
                 types[name] = winreg.REG_EXPAND_SZ
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
-                             winreg.KEY_SET_VALUE)
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, "Environment", 0, winreg.KEY_SET_VALUE
+        )
         for name in reg:
             winreg.SetValueEx(key, name, 0, types[name], reg[name])
         try:
             from win32gui import SendMessageTimeout
-            from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
-                                  SMTO_ABORTIFHUNG)
-            SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
-                               "Environment", SMTO_ABORTIFHUNG, 5000)
+            from win32con import HWND_BROADCAST, WM_SETTINGCHANGE, SMTO_ABORTIFHUNG
+
+            SendMessageTimeout(
+                HWND_BROADCAST,
+                WM_SETTINGCHANGE,
+                0,
+                "Environment",
+                SMTO_ABORTIFHUNG,
+                5000,
+            )
         except Exception:
-            QMessageBox.warning(parent, _("Warning"),
-                        _("Module <b>pywin32 was not found</b>.<br>"
-                          "Please restart this Windows <i>session</i> "
-                          "(not the computer) for changes to take effect."))
+            QMessageBox.warning(
+                parent,
+                _("Warning"),
+                _(
+                    "Module <b>pywin32 was not found</b>.<br>"
+                    "Please restart this Windows <i>session</i> "
+                    "(not the computer) for changes to take effect."
+                ),
+            )
 
     class WinUserEnvDialog(CollectionsEditor):
         """Windows User Environment Variables Editor"""
+
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)
-            self.setup(get_user_env(),
-                       title=r"HKEY_CURRENT_USER\Environment")
+            self.setup(get_user_env(), title=r"HKEY_CURRENT_USER\Environment")
             if parent is None:
                 parent = self
-            QMessageBox.warning(parent, _("Warning"),
-                        _("If you accept changes, "
-                          "this will modify the current user environment "
-                          "variables directly <b>in Windows registry</b>. "
-                          "Use it with precautions, at your own risks.<br>"
-                          "<br>Note that for changes to take effect, you will "
-                          "need to restart the parent process of this applica"
-                          "tion (simply restart Spyder if you have executed it "
-                          "from a Windows shortcut, otherwise restart any "
-                          "application from which you may have executed it, "
-                          "like <i>Python(x,y) Home</i> for example)"))
+            QMessageBox.warning(
+                parent,
+                _("Warning"),
+                _(
+                    "If you accept changes, "
+                    "this will modify the current user environment "
+                    "variables directly <b>in Windows registry</b>. "
+                    "Use it with precautions, at your own risks.<br>"
+                    "<br>Note that for changes to take effect, you will "
+                    "need to restart the parent process of this applica"
+                    "tion (simply restart Spyder if you have executed it "
+                    "from a Windows shortcut, otherwise restart any "
+                    "application from which you may have executed it, "
+                    "like <i>Python(x,y) Home</i> for example)"
+                ),
+            )
 
         def accept(self):
             """Reimplement Qt method"""
@@ -171,16 +191,19 @@ try:
 except Exception:
     pass
 
+
 def main():
     """Run Windows environment variable editor"""
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
-    if os.name == 'nt':
+    if os.name == "nt":
         dialog = WinUserEnvDialog()
     else:
         dialog = EnvDialog()
     dialog.show()
     app.exec_()
+
 
 if __name__ == "__main__":
     main()

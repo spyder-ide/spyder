@@ -32,12 +32,12 @@ class EdgeLine(Panel):
         size = self.size()
 
         color = QColor(self.color)
-        color.setAlphaF(.5)
+        color.setAlphaF(0.5)
         painter.setPen(color)
 
         for column in self.columns:
             # draw edge line at column n + 3 to account for line number margin
-            x = self.editor.fontMetrics().width(column * '9') + 3
+            x = self.editor.fontMetrics().width(column * "9") + 3
             painter.drawLine(x, 0, x, size.height())
 
     def sizeHint(self):
@@ -58,7 +58,7 @@ class EdgeLine(Panel):
             self.columns = columns
         elif columns:
             columns = str(columns)
-            self.columns = tuple(int(e) for e in columns.split(','))
+            self.columns = tuple(int(e) for e in columns.split(","))
 
         self.update()
 
@@ -66,4 +66,4 @@ class EdgeLine(Panel):
         """
         Set edgeline color using syntax highlighter color for comments
         """
-        self.color = self.editor.highlighter.get_color_name('comment')
+        self.color = self.editor.highlighter.get_color_name("comment")

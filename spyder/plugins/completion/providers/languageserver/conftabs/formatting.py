@@ -13,8 +13,14 @@ import re
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel, QMessageBox,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QGroupBox,
+    QGridLayout,
+    QLabel,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
@@ -24,63 +30,80 @@ from spyder.config.base import _
 class FormattingStyleConfigTab(SpyderPreferencesTab):
     """Code style and formatting tab."""
 
-    TITLE = _('Code style and formatting')
+    TITLE = _("Code style and formatting")
 
     def __init__(self, parent):
         super().__init__(parent)
         newcb = self.create_checkbox
 
-        pep_url = (
-            '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>')
+        pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>'
         code_style_codes_url = _(
             "<a href='http://pycodestyle.pycqa.org/en/stable"
-            "/intro.html#error-codes'>pycodestyle error codes</a>")
+            "/intro.html#error-codes'>pycodestyle error codes</a>"
+        )
         code_style_label = QLabel(
-            _("Spyder can use pycodestyle to analyze your code for "
-              "conformance to the {} convention. You can also "
-              "manually show or hide specific warnings by their "
-              "{}.").format(pep_url, code_style_codes_url))
+            _(
+                "Spyder can use pycodestyle to analyze your code for "
+                "conformance to the {} convention. You can also "
+                "manually show or hide specific warnings by their "
+                "{}."
+            ).format(pep_url, code_style_codes_url)
+        )
         code_style_label.setOpenExternalLinks(True)
         code_style_label.setWordWrap(True)
 
         # Code style checkbox
         self.code_style_check = self.create_checkbox(
-            _("Enable code style linting"),
-            'pycodestyle')
+            _("Enable code style linting"), "pycodestyle"
+        )
 
         # Code style options
         self.code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
-            'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Check Python files: *.py"))
+            "pycodestyle/filename",
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Check Python files: *.py"),
+        )
         self.code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns:"),
-            'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Exclude all test files: (?!test_).*\\.py"))
+            "pycodestyle/exclude",
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Exclude all test files: (?!test_).*\\.py"),
+        )
         code_style_select = self.create_lineedit(
-            _("Show the following errors or warnings:").format(
-                code_style_codes_url),
-            'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Example codes: E113, W391"))
+            _("Show the following errors or warnings:").format(code_style_codes_url),
+            "pycodestyle/select",
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Example codes: E113, W391"),
+        )
         code_style_ignore = self.create_lineedit(
             _("Ignore the following errors or warnings:"),
-            'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Example codes: E201, E303"))
+            "pycodestyle/ignore",
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Example codes: E201, E303"),
+        )
         self.code_style_max_line_length = self.create_spinbox(
-            _("Maximum allowed line length:"), None,
-            'pycodestyle/max_line_length', min_=10, max_=500, step=1,
-            tip=_("Default is 79"))
+            _("Maximum allowed line length:"),
+            None,
+            "pycodestyle/max_line_length",
+            min_=10,
+            max_=500,
+            step=1,
+            tip=_("Default is 79"),
+        )
 
         vertical_line_box = newcb(
-            _("Show vertical line at that length"), 'edge_line',
-            section='editor')
+            _("Show vertical line at that length"), "edge_line", section="editor"
+        )
 
         # Code style layout
         code_style_g_layout = QGridLayout()
-        code_style_g_layout.addWidget(
-            self.code_style_filenames_match.label, 1, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_filenames_match.textbox, 1, 1)
+        code_style_g_layout.addWidget(self.code_style_filenames_match.label, 1, 0)
+        code_style_g_layout.addWidget(self.code_style_filenames_match.textbox, 1, 1)
         code_style_g_layout.addWidget(self.code_style_exclude.label, 2, 0)
         code_style_g_layout.addWidget(self.code_style_exclude.textbox, 2, 1)
         code_style_g_layout.addWidget(code_style_select.label, 3, 0)
@@ -91,7 +114,7 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         # Set Code style options enabled/disabled
         code_style_g_widget = QWidget()
         code_style_g_widget.setLayout(code_style_g_layout)
-        code_style_g_widget.setEnabled(self.get_option('pycodestyle'))
+        code_style_g_widget.setEnabled(self.get_option("pycodestyle"))
         self.code_style_check.toggled.connect(code_style_g_widget.setEnabled)
 
         # Code style layout
@@ -110,35 +133,31 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         line_length_group.setLayout(line_length_layout)
 
         # Code formatting label
-        autopep8_url = (
-            "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
-        )
-        yapf_url = (
-            "<a href='https://github.com/google/yapf'>Yapf</a>"
-        )
-        black_url = (
-            "<a href='https://black.readthedocs.io/en/stable'>Black</a>"
-        )
+        autopep8_url = "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
+        yapf_url = "<a href='https://github.com/google/yapf'>Yapf</a>"
+        black_url = "<a href='https://black.readthedocs.io/en/stable'>Black</a>"
         code_fmt_label = QLabel(
-            _("Spyder can use {0} or {1} to format your code for "
-              "conformance to the {2} convention.").format(
-                  autopep8_url, black_url, pep_url))
+            _(
+                "Spyder can use {0} or {1} to format your code for "
+                "conformance to the {2} convention."
+            ).format(autopep8_url, black_url, pep_url)
+        )
         code_fmt_label.setOpenExternalLinks(True)
         code_fmt_label.setWordWrap(True)
 
         # Code formatting providers
         code_fmt_provider = self.create_combobox(
             _("Choose the code formatting provider: "),
-            (("autopep8", 'autopep8'),
-             ("black", 'black')),
-            'formatting')
+            (("autopep8", "autopep8"), ("black", "black")),
+            "formatting",
+        )
 
         # Autoformat on save
         format_on_save_box = newcb(
             _("Autoformat files on save"),
-            'format_on_save',
-            tip=_("If enabled, autoformatting will take place when "
-                  "saving a file"))
+            "format_on_save",
+            tip=_("If enabled, autoformatting will take place when " "saving a file"),
+        )
 
         # Code formatting layout
         code_fmt_group = QGroupBox(_("Code formatting"))
@@ -159,11 +178,15 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         Report that excluded files/directories should be valid regular
         expressions.
         """
-        msg = _('Directory patterns listed for exclusion should be valid '
-                'regular expressions')
+        msg = _(
+            "Directory patterns listed for exclusion should be valid "
+            "regular expressions"
+        )
         if files:
-            msg = _('File patterns listed for exclusion should be valid '
-                    'regular expressions')
+            msg = _(
+                "File patterns listed for exclusion should be valid "
+                "regular expressions"
+            )
 
         QMessageBox.critical(self, _("Error"), msg)
 
@@ -171,7 +194,8 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         # Check regex of code style options
         try:
             code_style_filenames_matches = (
-                self.code_style_filenames_match.textbox.text().split(","))
+                self.code_style_filenames_match.textbox.text().split(",")
+            )
             for match in code_style_filenames_matches:
                 re.compile(match.strip())
         except re.error:
@@ -179,8 +203,7 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
             return False
 
         try:
-            code_style_excludes = (
-                self.code_style_exclude.textbox.text().split(","))
+            code_style_excludes = self.code_style_exclude.textbox.text().split(",")
             for match in code_style_excludes:
                 re.compile(match.strip())
         except re.error:

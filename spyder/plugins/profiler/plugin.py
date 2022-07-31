@@ -17,23 +17,27 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
-from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
-                                                         ProfilerWidgetActions,
-                                                         is_profiler_installed)
+from spyder.plugins.profiler.widgets.main_widget import (
+    ProfilerWidget,
+    ProfilerWidgetActions,
+    is_profiler_installed,
+)
 from spyder.plugins.run.widgets import get_run_configuration
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # --- Constants
 # ----------------------------------------------------------------------------
 class ProfilerActions:
-    ProfileCurrentFile = 'profile_current_filename_action'
+    ProfileCurrentFile = "profile_current_filename_action"
 
 
 # --- Plugin
@@ -43,7 +47,7 @@ class Profiler(SpyderDockablePlugin):
     Profiler (after python's profile and pstats).
     """
 
-    NAME = 'profiler'
+    NAME = "profiler"
     REQUIRES = [Plugins.Preferences, Plugins.Editor]
     OPTIONAL = [Plugins.MainMenu]
     TABIFY = Plugins.Help
@@ -70,7 +74,7 @@ class Profiler(SpyderDockablePlugin):
         return _("Profile your scripts and find bottlenecks.")
 
     def get_icon(self):
-        return self.create_icon('profiler')
+        return self.create_icon("profiler")
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -81,7 +85,7 @@ class Profiler(SpyderDockablePlugin):
             ProfilerActions.ProfileCurrentFile,
             text=_("Run profiler"),
             tip=_("Run profiler"),
-            icon=self.create_icon('profiler'),
+            icon=self.create_icon("profiler"),
             triggered=self.run_profiler,
             register_shortcut=True,
         )
@@ -104,8 +108,7 @@ class Profiler(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         run_action = self.get_action(ProfilerActions.ProfileCurrentFile)
 
-        mainmenu.add_item_to_application_menu(
-            run_action, menu_id=ApplicationMenus.Run)
+        mainmenu.add_item_to_application_menu(run_action, menu_id=ApplicationMenus.Run)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -123,8 +126,7 @@ class Profiler(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
         mainmenu.remove_item_from_application_menu(
-            ProfilerActions.ProfileCurrentFile,
-            menu_id=ApplicationMenus.Run
+            ProfilerActions.ProfileCurrentFile, menu_id=ApplicationMenus.Run
         )
 
     # --- Public API

@@ -19,8 +19,10 @@ import traceback
 
 # Local imports
 from spyder.config.base import get_debug_level, STDERR
+
 DEBUG_EDITOR = get_debug_level() >= 3
 from spyder.py3compat import pickle
+
 PICKLE_HIGHEST_PROTOCOL = 2
 
 
@@ -30,7 +32,7 @@ def temp_fail_retry(error, fun, *args):
         try:
             return fun(*args)
         except error as e:
-            eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
+            eintr = errno.WSAEINTR if os.name == "nt" else errno.EINTR
             if e.args[0] == eintr:
                 continue
             raise
@@ -59,23 +61,23 @@ def read_packet(sock, timeout=None):
     sock.settimeout(timeout)
     dlen, data = None, None
     try:
-        if os.name == 'nt':
+        if os.name == "nt":
             #  Windows implementation
             datalen = sock.recv(SZ)
-            dlen, = struct.unpack("l", datalen)
-            data = b''
+            (dlen,) = struct.unpack("l", datalen)
+            data = b""
             while len(data) < dlen:
                 data += sock.recv(dlen)
         else:
             #  Linux/MacOSX implementation
             #  Thanks to eborisch:
             #  See spyder-ide/spyder#1106.
-            datalen = temp_fail_retry(socket.error, sock.recv,
-                                      SZ, socket.MSG_WAITALL)
+            datalen = temp_fail_retry(socket.error, sock.recv, SZ, socket.MSG_WAITALL)
             if len(datalen) == SZ:
-                dlen, = struct.unpack("l", datalen)
-                data = temp_fail_retry(socket.error, sock.recv,
-                                       dlen, socket.MSG_WAITALL)
+                (dlen,) = struct.unpack("l", datalen)
+                data = temp_fail_retry(
+                    socket.error, sock.recv, dlen, socket.MSG_WAITALL
+                )
     except socket.timeout:
         raise
     except socket.error:
@@ -109,9 +111,10 @@ def communicate(sock, command, settings=[]):
     finally:
         COMMUNICATE_LOCK.release()
 
+
 # new com implementation:
 # See solution (2) in spyder-ide/spyder#434, comment 13:
-#def communicate(sock, command, settings=[], timeout=None):
+# def communicate(sock, command, settings=[], timeout=None):
 #    """Communicate with monitor"""
 #    write_packet(sock, command)
 #    for option in settings:
@@ -138,11 +141,12 @@ def communicate(sock, command, settings=[]):
 class PacketNotReceived(object):
     pass
 
+
 PACKET_NOT_RECEIVED = PacketNotReceived()
 
 
-if __name__ == '__main__':
-    if not os.name == 'nt':
+if __name__ == "__main__":
+    if not os.name == "nt":
         # socket read/write testing - client and server in one thread
 
         # (techtonik): the stuff below is placed into public domain
@@ -153,13 +157,13 @@ if __name__ == '__main__':
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setblocking(0)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind( address )
+        server.bind(address)
         server.listen(2)
 
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect( address )
+        client.connect(address)
 
-        client.send("data to be catched".encode('utf-8'))
+        client.send("data to be catched".encode("utf-8"))
         # accepted server socket is the one we can read from
         # note that it is different from server socket
         accsock, addr = server.accept()
@@ -167,15 +171,16 @@ if __name__ == '__main__':
 
         # accsock.close()
         # client.send("more data for recv")
-        #socket.error: [Errno 9] Bad file descriptor
+        # socket.error: [Errno 9] Bad file descriptor
         # accsock, addr = server.accept()
-        #socket.error: [Errno 11] Resource temporarily unavailable
-
+        # socket.error: [Errno 11] Resource temporarily unavailable
 
         print("-- Testing BSD socket write_packet/read_packet --")  # spyder: test-skip
 
         write_packet(client, "a tiny piece of data")
-        print('..got "%s" from read_packet()' % (read_packet(accsock)))  # spyder: test-skip
+        print(
+            '..got "%s" from read_packet()' % (read_packet(accsock))
+        )  # spyder: test-skip
 
         client.close()
         server.close()

@@ -19,8 +19,15 @@ import re
 
 # Third party imports
 from qtpy.QtCore import QEvent, QPoint, Qt
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
-                            QTableWidgetItem, QToolButton, QToolTip)
+from qtpy.QtWidgets import (
+    QDialog,
+    QHBoxLayout,
+    QLineEdit,
+    QTableWidget,
+    QTableWidgetItem,
+    QToolButton,
+    QToolTip,
+)
 
 # Local imports
 from spyder.config.base import _
@@ -47,19 +54,19 @@ class ArrayBuilderType:
 
 
 class ArrayBuilderPython(ArrayBuilderType):
-    ELEMENT_SEPARATOR = ', '
-    ROW_SEPARATOR = ';'
-    BRACES = '], ['
+    ELEMENT_SEPARATOR = ", "
+    ROW_SEPARATOR = ";"
+    BRACES = "], ["
     EXTRA_VALUES = {
-        'np.nan': ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na'],
-        'np.inf': ['inf', 'INF'],
+        "np.nan": ["nan", "NAN", "NaN", "Na", "NA", "na"],
+        "np.inf": ["inf", "INF"],
     }
-    ARRAY_PREFIX = 'np.array([['
-    MATRIX_PREFIX = 'np.matrix([['
+    ARRAY_PREFIX = "np.array([["
+    MATRIX_PREFIX = "np.matrix([["
 
 
 _REGISTERED_ARRAY_BUILDERS = {
-    'python': ArrayBuilderPython,
+    "python": ArrayBuilderPython,
 }
 
 
@@ -86,16 +93,20 @@ class ArrayInline(QLineEdit):
         This is needed to be able to intercept the Tab key press event.
         """
         if event.type() == QEvent.KeyPress:
-            if (event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space):
+            if event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space:
                 text = self.text()
                 cursor = self.cursorPosition()
 
                 # Fix to include in "undo/redo" history
-                if cursor != 0 and text[cursor-1] == ' ':
-                    text = (text[:cursor-1] + self._options.ROW_SEPARATOR
-                            + ' ' + text[cursor:])
+                if cursor != 0 and text[cursor - 1] == " ":
+                    text = (
+                        text[: cursor - 1]
+                        + self._options.ROW_SEPARATOR
+                        + " "
+                        + text[cursor:]
+                    )
                 else:
-                    text = text[:cursor] + ' ' + text[cursor:]
+                    text = text[:cursor] + " " + text[cursor:]
                 self.setCursorPosition(cursor)
                 self.setText(text)
                 self.setCursorPosition(cursor + 1)
@@ -163,7 +174,7 @@ class ArrayTable(QTableWidget):
         if rows == 2 and cols == 2:
             item = self.item(0, 0)
             if item is None:
-                return ''
+                return ""
 
         for r in range(rows - 1):
             for c in range(cols - 1):
@@ -171,24 +182,25 @@ class ArrayTable(QTableWidget):
                 if item is not None:
                     value = item.text()
                 else:
-                    value = '0'
+                    value = "0"
 
                 if not value.strip():
-                    value = '0'
+                    value = "0"
 
-                text.append(' ')
+                text.append(" ")
                 text.append(value)
             text.append(self._options.ROW_SEPARATOR)
 
-        return ''.join(text[:-1])  # Remove the final uneeded `;`
+        return "".join(text[:-1])  # Remove the final uneeded `;`
 
 
 class ArrayBuilderDialog(QDialog):
-    def __init__(self, parent=None, inline=True, offset=0, force_float=False,
-                 language='python'):
+    def __init__(
+        self, parent=None, inline=True, offset=0, force_float=False, language="python"
+    ):
         super(ArrayBuilderDialog, self).__init__(parent=parent)
         self._language = language
-        self._options = _REGISTERED_ARRAY_BUILDERS.get('python', None)
+        self._options = _REGISTERED_ARRAY_BUILDERS.get("python", None)
         self._parent = parent
         self._text = None
         self._valid = None
@@ -197,7 +209,8 @@ class ArrayBuilderDialog(QDialog):
         # TODO: add this as an option in the General Preferences?
         self._force_float = force_float
 
-        self._help_inline = _("""
+        self._help_inline = _(
+            """
            <b>Numpy Array/Matrix Helper</b><br>
            Type an array in Matlab    : <code>[1 2;3 4]</code><br>
            or Spyder simplified syntax : <code>1 2;3 4</code>
@@ -206,9 +219,11 @@ class ArrayBuilderDialog(QDialog):
            <br><br>
            <b>Hint:</b><br>
            Use two spaces or two tabs to generate a ';'.
-           """)
+           """
+        )
 
-        self._help_table = _("""
+        self._help_table = _(
+            """
            <b>Numpy Array/Matrix Helper</b><br>
            Enter an array in the table. <br>
            Use Tab to move between cells.
@@ -217,14 +232,16 @@ class ArrayBuilderDialog(QDialog):
            <br><br>
            <b>Hint:</b><br>
            Use two tabs at the end of a row to move to the next row.
-           """)
+           """
+        )
 
         # Widgets
         self._button_warning = QToolButton()
         self._button_help = HelperToolButton()
-        self._button_help.setIcon(ima.icon('MessageBoxInformation'))
+        self._button_help.setIcon(ima.icon("MessageBoxInformation"))
 
-        style = (("""
+        style = (
+            """
             QToolButton {{
               border: 1px solid grey;
               padding:0px;
@@ -232,8 +249,11 @@ class ArrayBuilderDialog(QDialog):
               background-color: qlineargradient(x1: 1, y1: 1, x2: 1, y2: 1,
                   stop: 0 {stop_0}, stop: 1 {stop_1});
             }}
-            """).format(stop_0=QStylePalette.COLOR_BACKGROUND_4,
-                        stop_1=QStylePalette.COLOR_BACKGROUND_2))
+            """
+        ).format(
+            stop_0=QStylePalette.COLOR_BACKGROUND_4,
+            stop_1=QStylePalette.COLOR_BACKGROUND_2,
+        )
 
         self._button_help.setStyleSheet(style)
 
@@ -313,20 +333,20 @@ class ArrayBuilderDialog(QDialog):
         else:
             prefix = self._options.MATRIX_PREFIX
 
-        suffix = ']])'
+        suffix = "]])"
         values = self._widget.text().strip()
 
-        if values != '':
+        if values != "":
             # cleans repeated spaces
-            exp = r'(\s*)' + self._options.ROW_SEPARATOR + r'(\s*)'
+            exp = r"(\s*)" + self._options.ROW_SEPARATOR + r"(\s*)"
             values = re.sub(exp, self._options.ROW_SEPARATOR, values)
             values = re.sub(r"\s+", " ", values)
             values = re.sub(r"]$", "", values)
             values = re.sub(r"^\[", "", values)
-            values = re.sub(self._options.ROW_SEPARATOR + r'*$', '', values)
+            values = re.sub(self._options.ROW_SEPARATOR + r"*$", "", values)
 
             # replaces spaces by commas
-            values = values.replace(' ',  self._options.ELEMENT_SEPARATOR)
+            values = values.replace(" ", self._options.ELEMENT_SEPARATOR)
 
             # iterate to find number of rows and columns
             new_values = []
@@ -352,8 +372,7 @@ class ArrayBuilderDialog(QDialog):
                         except:
                             pass
                     new_row.append(num)
-                new_values.append(
-                    self._options.ELEMENT_SEPARATOR.join(new_row))
+                new_values.append(self._options.ELEMENT_SEPARATOR.join(new_row))
             new_values = self._options.ROW_SEPARATOR.join(new_values)
             values = new_values
 
@@ -371,14 +390,14 @@ class ArrayBuilderDialog(QDialog):
             # Fix offset
             offset = self._offset
             braces = self._options.BRACES.replace(
-                ' ',
-                '\n' + ' '*(offset + len(prefix) - 1))
-            values = values.replace(self._options.ROW_SEPARATOR,  braces)
+                " ", "\n" + " " * (offset + len(prefix) - 1)
+            )
+            values = values.replace(self._options.ROW_SEPARATOR, braces)
             text = "{0}{1}{2}".format(prefix, values, suffix)
 
             self._text = text
         else:
-            self._text = ''
+            self._text = ""
 
         self.update_warning()
 
@@ -388,12 +407,12 @@ class ArrayBuilderDialog(QDialog):
         """
         widget = self._button_warning
         if not self.is_valid():
-            tip = _('Array dimensions not valid')
-            widget.setIcon(ima.icon('MessageBoxWarning'))
+            tip = _("Array dimensions not valid")
+            widget.setIcon(ima.icon("MessageBoxWarning"))
             widget.setToolTip(tip)
             QToolTip.showText(self._widget.mapToGlobal(QPoint(0, 5)), tip)
         else:
-            self._button_warning.setToolTip('')
+            self._button_warning.setToolTip("")
 
     def is_valid(self):
         """Return if the current array state is valid."""
@@ -411,6 +430,7 @@ class ArrayBuilderDialog(QDialog):
 
 def test():  # pragma: no cover
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     dlg_table = ArrayBuilderDialog(None, inline=False)
     dlg_inline = ArrayBuilderDialog(None, inline=True)

@@ -23,7 +23,7 @@ def is_string_io(instance):
     if isinstance(instance, BytesIO):
         return True
     if not running_python_3:
-        return isinstance(instance, (StringIO.StringIO,
-                                     cStringIO.InputType,
-                                     cStringIO.OutputType))
+        return isinstance(
+            instance, (StringIO.StringIO, cStringIO.InputType, cStringIO.OutputType)
+        )
     return False

@@ -19,8 +19,7 @@ Original file:
 # Third party imports
 from qtpy.QtWidgets import QTextEdit
 from qtpy.QtCore import QObject, Signal, Qt
-from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
-                        QTextCharFormat)
+from qtpy.QtGui import QTextCursor, QFont, QPen, QColor, QTextFormat, QTextCharFormat
 
 # Local imports
 from spyder.utils.palette import QStylePalette, SpyderPalette
@@ -35,11 +34,13 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 # NOTE: If two decorations have the same draw_order smaller decoration will
 # appear in front of the other.
 
-DRAW_ORDERS = {'on_bottom': 0,
-               'current_cell': 1,
-               'codefolding': 2,
-               'current_line': 3,
-               'on_top': 4}
+DRAW_ORDERS = {
+    "on_bottom": 0,
+    "current_cell": 1,
+    "codefolding": 2,
+    "current_line": 3,
+    "on_top": 4,
+}
 
 
 class TextDecoration(QTextEdit.ExtraSelection):
@@ -63,17 +64,29 @@ class TextDecoration(QTextEdit.ExtraSelection):
         def a_slot(decoration):
             print(decoration)  # spyder: test-skip
     """
+
     class Signals(QObject):
         """
         Holds the signals for a TextDecoration (since we cannot make it a
         QObject, we need to store its signals in an external QObject).
         """
+
         #: Signal emitted when a TextDecoration has been clicked.
         clicked = Signal(object)
 
-    def __init__(self, cursor_or_bloc_or_doc, start_pos=None, end_pos=None,
-                 start_line=None, end_line=None, draw_order=0, tooltip=None,
-                 full_width=False, font=None, kind=None):
+    def __init__(
+        self,
+        cursor_or_bloc_or_doc,
+        start_pos=None,
+        end_pos=None,
+        start_line=None,
+        end_line=None,
+        draw_order=0,
+        tooltip=None,
+        full_width=False,
+        font=None,
+        kind=None,
+    ):
         """
         Creates a text decoration.
 
@@ -113,11 +126,13 @@ class TextDecoration(QTextEdit.ExtraSelection):
             self.cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
         if start_line is not None:
             self.cursor.movePosition(self.cursor.Start, self.cursor.MoveAnchor)
-            self.cursor.movePosition(self.cursor.Down, self.cursor.MoveAnchor,
-                                     start_line)
+            self.cursor.movePosition(
+                self.cursor.Down, self.cursor.MoveAnchor, start_line
+            )
         if end_line is not None:
-            self.cursor.movePosition(self.cursor.Down, self.cursor.KeepAnchor,
-                                     end_line - start_line)
+            self.cursor.movePosition(
+                self.cursor.Down, self.cursor.KeepAnchor, end_line - start_line
+            )
         if font is not None:
             self.format.setFont(font)
 
@@ -163,8 +178,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
         :param color: Color of the outline rect
         :type color: QtGui.QColor
         """
-        self.format.setProperty(QTextFormat.OutlinePen,
-                                QPen(color))
+        self.format.setProperty(QTextFormat.OutlinePen, QPen(color))
 
     def select_line(self):
         """
@@ -176,8 +190,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
         text = self.cursor.block().text()
         lindent = len(text) - len(text.lstrip())
         self.cursor.setPosition(self.cursor.block().position() + lindent)
-        self.cursor.movePosition(self.cursor.EndOfBlock,
-                                 self.cursor.KeepAnchor)
+        self.cursor.movePosition(self.cursor.EndOfBlock, self.cursor.KeepAnchor)
 
     def set_full_width(self, flag=True, clear=True):
         """
@@ -200,8 +213,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
         :param color: underline color.
         """
-        self.format.setUnderlineStyle(
-            QTextCharFormat.SingleUnderline)
+        self.format.setUnderlineStyle(QTextCharFormat.SingleUnderline)
         self.format.setUnderlineColor(color)
 
     def set_as_spell_check(self, color=Qt.blue):
@@ -211,8 +223,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
         :param color: Underline color
         :type color: QtGui.QColor
         """
-        self.format.setUnderlineStyle(
-            QTextCharFormat.SpellCheckUnderline)
+        self.format.setUnderlineStyle(QTextCharFormat.SpellCheckUnderline)
         self.format.setUnderlineColor(color)
 
     def set_as_error(self, color=SpyderPalette.COLOR_ERROR_2):
@@ -222,8 +233,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
         :param color: Underline color
         :type color: QtGui.QColor
         """
-        self.format.setUnderlineStyle(
-            QTextCharFormat.WaveUnderline)
+        self.format.setUnderlineStyle(QTextCharFormat.WaveUnderline)
         self.format.setUnderlineColor(color)
 
     def set_as_warning(self, color=QColor(SpyderPalette.COLOR_WARN_1)):
@@ -233,6 +243,5 @@ class TextDecoration(QTextEdit.ExtraSelection):
         :param color: Underline color
         :type color: QtGui.QColor
         """
-        self.format.setUnderlineStyle(
-            QTextCharFormat.WaveUnderline)
+        self.format.setUnderlineStyle(QTextCharFormat.WaveUnderline)
         self.format.setUnderlineColor(color)

@@ -14,7 +14,7 @@ import os
 
 # To activate/deactivate certain things for pytests only
 # NOTE: Please leave this before any other import here!!
-os.environ['SPYDER_PYTEST'] = 'True'
+os.environ["SPYDER_PYTEST"] = "True"
 
 # Third party imports
 # NOTE: This needs to be imported before any QApplication.
@@ -25,25 +25,31 @@ import pytest
 
 
 # To run our slow tests only in our CIs
-CI = bool(os.environ.get('CI', None))
-RUN_SLOW = os.environ.get('RUN_SLOW', None) == 'true'
+CI = bool(os.environ.get("CI", None))
+RUN_SLOW = os.environ.get("RUN_SLOW", None) == "true"
 
 
 def run_pytest(run_slow=False, extra_args=None):
     """Run pytest tests for Spyder."""
     # Be sure to ignore subrepos
-    pytest_args = ['-vv', '-rw', '--durations=10', '--ignore=./external-deps',
-                   '-W ignore::UserWarning', '--timeout=120']
+    pytest_args = [
+        "-vv",
+        "-rw",
+        "--durations=10",
+        "--ignore=./external-deps",
+        "-W ignore::UserWarning",
+        "--timeout=120",
+    ]
 
     if CI:
         # Show coverage
-        pytest_args += ['--cov=spyder', '--no-cov-on-fail']
+        pytest_args += ["--cov=spyder", "--no-cov-on-fail"]
 
         # To display nice tests resume in Azure's web page
-        if os.environ.get('AZURE', None) is not None:
-            pytest_args += ['--cache-clear', '--junitxml=result.xml']
+        if os.environ.get("AZURE", None) is not None:
+            pytest_args += ["--cache-clear", "--junitxml=result.xml"]
     if run_slow or RUN_SLOW:
-        pytest_args += ['--run-slow']
+        pytest_args += ["--run-slow"]
     # Allow user to pass a custom test path to pytest to e.g. run just one test
     if extra_args:
         pytest_args += extra_args
@@ -61,13 +67,15 @@ def run_pytest(run_slow=False, extra_args=None):
 def main():
     """Parse args then run the pytest suite for Spyder."""
     test_parser = argparse.ArgumentParser(
-        usage='python runtests.py [-h] [--run-slow] [pytest_args]',
-        description="Helper script to run Spyder's test suite")
-    test_parser.add_argument('--run-slow', action='store_true', default=False,
-                             help='Run the slow tests')
+        usage="python runtests.py [-h] [--run-slow] [pytest_args]",
+        description="Helper script to run Spyder's test suite",
+    )
+    test_parser.add_argument(
+        "--run-slow", action="store_true", default=False, help="Run the slow tests"
+    )
     test_args, pytest_args = test_parser.parse_known_args()
     run_pytest(run_slow=test_args.run_slow, extra_args=pytest_args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

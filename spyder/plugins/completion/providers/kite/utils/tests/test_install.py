@@ -16,10 +16,16 @@ import pytest
 
 # Local imports
 from spyder.plugins.completion.providers.kite.utils.install import (
-    KiteInstallationThread, DOWNLOADING_INSTALLER, DOWNLOADING_SCRIPT,
-    INSTALLING, FINISHED)
+    KiteInstallationThread,
+    DOWNLOADING_INSTALLER,
+    DOWNLOADING_SCRIPT,
+    INSTALLING,
+    FINISHED,
+)
 from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed, check_if_kite_running)
+    check_if_kite_installed,
+    check_if_kite_running,
+)
 
 # Time to wait until the installation finishes
 # (6 minutes in milliseconds)
@@ -49,15 +55,13 @@ def test_kite_install(qtbot):
                 DOWNLOADING_SCRIPT,
                 DOWNLOADING_INSTALLER,
                 INSTALLING,
-                FINISHED]
+                FINISHED,
+            ]
         else:
-            expected_installation_status = [
-                DOWNLOADING_INSTALLER,
-                INSTALLING,
-                FINISHED]
+            expected_installation_status = [DOWNLOADING_INSTALLER, INSTALLING, FINISHED]
 
         # This status can be obtained the second time our tests are run
-        if not installation_statuses == ['Installation finished']:
+        if not installation_statuses == ["Installation finished"]:
             assert installation_statuses == expected_installation_status
 
     install_manager.sig_installation_status.connect(installation_status)
@@ -69,8 +73,8 @@ def test_kite_install(qtbot):
 
     # Check that kite was installed and is running
     qtbot.waitUntil(
-        lambda: check_if_kite_installed() and check_if_kite_running(),
-        timeout=5000)
+        lambda: check_if_kite_installed() and check_if_kite_running(), timeout=5000
+    )
 
 
 if __name__ == "__main__":

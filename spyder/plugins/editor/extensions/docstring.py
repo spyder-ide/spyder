@@ -23,7 +23,7 @@ from spyder.py3compat import to_text_string
 def is_start_of_function(text):
     """Return True if text is the beginning of the function definition."""
     if isinstance(text, str):
-        function_prefix = ['def', 'async def']
+        function_prefix = ["def", "async def"]
         text = text.lstrip()
 
         for prefix in function_prefix:
@@ -39,9 +39,9 @@ def get_indent(text):
     https://stackoverflow.com/questions/2268532/grab-a-lines-whitespace-
     indention-with-python
     """
-    indent = ''
+    indent = ""
 
-    ret = re.match(r'(\s*)', text)
+    ret = re.match(r"(\s*)", text)
     if ret:
         indent = ret.group(1)
 
@@ -57,20 +57,24 @@ def is_in_scope_forward(text):
         if scopes[i] in text:
             indices[i] = text.index(scopes[i])
     if min(indices) == 10**6:
-        return (text.count(")") != text.count("(") or
-                text.count("]") != text.count("[") or
-                text.count("}") != text.count("{"))
+        return (
+            text.count(")") != text.count("(")
+            or text.count("]") != text.count("[")
+            or text.count("}") != text.count("{")
+        )
     s = scopes[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
     ls = len(s)
-    if s in text[p + ls:]:
-        text = text[:p] + text[p + ls:][text[p + ls:].index(s) + ls:]
+    if s in text[p + ls :]:
+        text = text[:p] + text[p + ls :][text[p + ls :].index(s) + ls :]
         return is_in_scope_forward(text)
     elif ls == 3:
         text = text[:p]
-        return (text.count(")") != text.count("(") or
-                text.count("]") != text.count("[") or
-                text.count("}") != text.count("{"))
+        return (
+            text.count(")") != text.count("(")
+            or text.count("]") != text.count("[")
+            or text.count("}") != text.count("{")
+        )
     else:
         return False
 
@@ -87,8 +91,8 @@ def is_tuple_brackets(text):
         return "," in text
     s = complements[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
-    if s in text[p + 1:]:
-        text = text[:p] + text[p + 1:][text[p + 1:].index(s) + 1:]
+    if s in text[p + 1 :]:
+        text = text[:p] + text[p + 1 :][text[p + 1 :].index(s) + 1 :]
         return is_tuple_brackets(text)
     else:
         return False
@@ -107,8 +111,8 @@ def is_tuple_strings(text):
     s = scopes[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
     ls = len(s)
-    if s in text[p + ls:]:
-        text = text[:p] + text[p + ls:][text[p + ls:].index(s) + ls:]
+    if s in text[p + ls :]:
+        text = text[:p] + text[p + ls :][text[p + ls :].index(s) + ls :]
         return is_tuple_strings(text)
     else:
         return False
@@ -116,8 +120,7 @@ def is_tuple_strings(text):
 
 def is_in_scope_backward(text):
     """Check if the next empty line could be part of the definition."""
-    return is_in_scope_forward(
-        text.replace(r"\"", "").replace(r"\'", "")[::-1])
+    return is_in_scope_forward(text.replace(r"\"", "").replace(r"\'", "")[::-1])
 
 
 class DocstringWriterExtension(object):
@@ -143,17 +146,20 @@ class DocstringWriterExtension(object):
         """Return True if text is the end of the function definition."""
         text_without_whitespace = "".join(text.split())
         if (
-            text_without_whitespace.endswith("):") or
-            text_without_whitespace.endswith("]:") or
-            (text_without_whitespace.endswith(":") and
-             "->" in text_without_whitespace)
+            text_without_whitespace.endswith("):")
+            or text_without_whitespace.endswith("]:")
+            or (
+                text_without_whitespace.endswith(":")
+                and "->" in text_without_whitespace
+            )
         ):
             return True
         elif text_without_whitespace.endswith(":") and line_number > 1:
             complete_text = text_without_whitespace
             document = self.code_editor.document()
             cursor = QTextCursor(
-                document.findBlockByNumber(line_number - 2))  # previous line
+                document.findBlockByNumber(line_number - 2)
+            )  # previous line
             for i in range(line_number - 2, -1, -1):
                 txt = "".join(str(cursor.block().text()).split())
                 if txt.endswith("\\") or is_in_scope_backward(complete_text):
@@ -166,10 +172,9 @@ class DocstringWriterExtension(object):
                     cursor.movePosition(QTextCursor.PreviousBlock)
             if is_start_of_function(complete_text):
                 return (
-                    complete_text.endswith("):") or
-                    complete_text.endswith("]:") or
-                    (complete_text.endswith(":") and
-                     "->" in complete_text)
+                    complete_text.endswith("):")
+                    or complete_text.endswith("]:")
+                    or (complete_text.endswith(":") and "->" in complete_text)
                 )
             else:
                 return False
@@ -179,11 +184,10 @@ class DocstringWriterExtension(object):
     def get_function_definition_from_first_line(self):
         """Get func def when the cursor is located on the first def line."""
         document = self.code_editor.document()
-        cursor = QTextCursor(
-            document.findBlockByNumber(self.line_number_cursor - 1))
+        cursor = QTextCursor(document.findBlockByNumber(self.line_number_cursor - 1))
 
-        func_text = ''
-        func_indent = ''
+        func_text = ""
+        func_indent = ""
 
         is_first_line = True
         line_number = cursor.blockNumber() + 1
@@ -203,22 +207,22 @@ class DocstringWriterExtension(object):
                 is_first_line = False
             else:
                 cur_indent = get_indent(cur_text)
-                if cur_indent <= func_indent and cur_text.strip() != '':
+                if cur_indent <= func_indent and cur_text.strip() != "":
                     return None
                 if is_start_of_function(cur_text):
                     return None
-                if (cur_text.strip() == '' and
-                        not is_in_scope_forward(func_text)):
+                if cur_text.strip() == "" and not is_in_scope_forward(func_text):
                     return None
 
-            if len(cur_text) > 0 and cur_text[-1] == '\\':
+            if len(cur_text) > 0 and cur_text[-1] == "\\":
                 cur_text = cur_text[:-1]
 
             func_text += cur_text
             number_of_lines_of_function += 1
 
             if self.is_end_of_function_definition(
-                    cur_text, line_number + number_of_lines_of_function - 1):
+                cur_text, line_number + number_of_lines_of_function - 1
+            ):
                 return func_text, number_of_lines_of_function
 
             cursor.movePosition(QTextCursor.NextBlock)
@@ -228,7 +232,7 @@ class DocstringWriterExtension(object):
     def get_function_definition_from_below_last_line(self):
         """Get func def when the cursor is located below the last def line."""
         cursor = self.code_editor.textCursor()
-        func_text = ''
+        func_text = ""
         is_first_line = True
         line_number = cursor.blockNumber() + 1
         number_of_lines_of_function = 0
@@ -241,15 +245,15 @@ class DocstringWriterExtension(object):
             prev_text = to_text_string(cursor.block().text()).rstrip()
 
             if is_first_line:
-                if not self.is_end_of_function_definition(
-                        prev_text, line_number - 1):
+                if not self.is_end_of_function_definition(prev_text, line_number - 1):
                     return None
                 is_first_line = False
             elif self.is_end_of_function_definition(
-                    prev_text, line_number - number_of_lines_of_function - 1):
+                prev_text, line_number - number_of_lines_of_function - 1
+            ):
                 return None
 
-            if len(prev_text) > 0 and prev_text[-1] == '\\':
+            if len(prev_text) > 0 and prev_text[-1] == "\\":
                 prev_text = prev_text[:-1]
 
             func_text = prev_text + func_text
@@ -271,7 +275,7 @@ class DocstringWriterExtension(object):
             text = to_text_string(cursor.block().text())
             text_indent = get_indent(text)
 
-            if text.strip() == '':
+            if text.strip() == "":
                 pass
             elif len(text_indent) <= len(func_indent):
                 break
@@ -280,17 +284,17 @@ class DocstringWriterExtension(object):
 
             cursor.movePosition(QTextCursor.NextBlock)
 
-        return '\n'.join(body_list)
+        return "\n".join(body_list)
 
     def write_docstring(self):
         """Write docstring to editor."""
-        line_to_cursor = self.code_editor.get_text('sol', 'cursor')
+        line_to_cursor = self.code_editor.get_text("sol", "cursor")
         if self.is_beginning_triple_quotes(line_to_cursor):
             cursor = self.code_editor.textCursor()
             prev_pos = cursor.position()
 
             quote = line_to_cursor[-1]
-            docstring_type = CONF.get('editor', 'docstring_type')
+            docstring_type = CONF.get("editor", "docstring_type")
             docstring = self._generate_docstring(docstring_type, quote)
 
             if docstring:
@@ -299,8 +303,7 @@ class DocstringWriterExtension(object):
                 cursor = self.code_editor.textCursor()
                 cursor.setPosition(prev_pos, QTextCursor.KeepAnchor)
                 cursor.movePosition(QTextCursor.NextBlock)
-                cursor.movePosition(QTextCursor.EndOfLine,
-                                    QTextCursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
                 cursor.clearSelection()
                 self.code_editor.setTextCursor(cursor)
                 return True
@@ -313,8 +316,7 @@ class DocstringWriterExtension(object):
         editor = self.code_editor
         if result:
             func_text, number_of_line_func = result
-            line_number_function = (self.line_number_cursor +
-                                    number_of_line_func - 1)
+            line_number_function = self.line_number_cursor + number_of_line_func - 1
 
             cursor = editor.textCursor()
             line_number_cursor = cursor.blockNumber() + 1
@@ -371,9 +373,9 @@ class DocstringWriterExtension(object):
                 if func_body:
                     func_info.parse_body(func_body)
 
-                if doc_type == 'Numpydoc':
+                if doc_type == "Numpydoc":
                     docstring = self._generate_numpy_doc(func_info)
-                elif doc_type == 'Googledoc':
+                elif doc_type == "Googledoc":
                     docstring = self._generate_google_doc(func_info)
                 elif doc_type == "Sphinxdoc":
                     docstring = self._generate_sphinx_doc(func_info)
@@ -382,13 +384,13 @@ class DocstringWriterExtension(object):
 
     def _generate_numpy_doc(self, func_info):
         """Generate a docstring of numpy type."""
-        numpy_doc = ''
+        numpy_doc = ""
 
         arg_names = func_info.arg_name_list
         arg_types = func_info.arg_type_list
         arg_values = func_info.arg_value_list
 
-        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
+        if len(arg_names) > 0 and arg_names[0] in ("self", "cls"):
             del arg_names[0]
             del arg_types[0]
             del arg_values[0]
@@ -396,82 +398,82 @@ class DocstringWriterExtension(object):
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
-        numpy_doc += '\n{}\n'.format(indent1)
+        numpy_doc += "\n{}\n".format(indent1)
 
         if len(arg_names) > 0:
-            numpy_doc += '\n{}Parameters'.format(indent1)
-            numpy_doc += '\n{}----------\n'.format(indent1)
+            numpy_doc += "\n{}Parameters".format(indent1)
+            numpy_doc += "\n{}----------\n".format(indent1)
 
-        arg_text = ''
-        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
-                                                 arg_values):
-            arg_text += '{}{} : '.format(indent1, arg_name)
+        arg_text = ""
+        for arg_name, arg_type, arg_value in zip(arg_names, arg_types, arg_values):
+            arg_text += "{}{} : ".format(indent1, arg_name)
             if arg_type:
-                arg_text += '{}'.format(arg_type)
+                arg_text += "{}".format(arg_type)
             else:
-                arg_text += 'TYPE'
+                arg_text += "TYPE"
 
             if arg_value:
-                arg_text += ', optional'
+                arg_text += ", optional"
 
-            arg_text += '\n{}DESCRIPTION.'.format(indent2)
+            arg_text += "\n{}DESCRIPTION.".format(indent2)
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ' The default is {}.'.format(arg_value)
+                arg_text += " The default is {}.".format(arg_value)
 
-            arg_text += '\n'
+            arg_text += "\n"
 
         numpy_doc += arg_text
 
         if func_info.raise_list:
-            numpy_doc += '\n{}Raises'.format(indent1)
-            numpy_doc += '\n{}------'.format(indent1)
+            numpy_doc += "\n{}Raises".format(indent1)
+            numpy_doc += "\n{}------".format(indent1)
             for raise_type in func_info.raise_list:
-                numpy_doc += '\n{}{}'.format(indent1, raise_type)
-                numpy_doc += '\n{}DESCRIPTION.'.format(indent2)
-            numpy_doc += '\n'
+                numpy_doc += "\n{}{}".format(indent1, raise_type)
+                numpy_doc += "\n{}DESCRIPTION.".format(indent2)
+            numpy_doc += "\n"
 
-        numpy_doc += '\n'
+        numpy_doc += "\n"
         if func_info.has_yield:
-            header = '{0}Yields\n{0}------\n'.format(indent1)
+            header = "{0}Yields\n{0}------\n".format(indent1)
         else:
-            header = '{0}Returns\n{0}-------\n'.format(indent1)
+            header = "{0}Returns\n{0}-------\n".format(indent1)
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            return_section = '{}{}{}'.format(header, indent1,
-                                             return_type_annotated)
-            return_section += '\n{}DESCRIPTION.'.format(indent2)
+            return_section = "{}{}{}".format(header, indent1, return_type_annotated)
+            return_section += "\n{}DESCRIPTION.".format(indent2)
         else:
-            return_element_type = indent1 + '{return_type}\n' + indent2 + \
-                'DESCRIPTION.'
-            placeholder = return_element_type.format(return_type='TYPE')
-            return_element_name = indent1 + '{return_name} : ' + \
-                placeholder.lstrip()
+            return_element_type = indent1 + "{return_type}\n" + indent2 + "DESCRIPTION."
+            placeholder = return_element_type.format(return_type="TYPE")
+            return_element_name = indent1 + "{return_name} : " + placeholder.lstrip()
 
             try:
                 return_section = self._generate_docstring_return_section(
-                    func_info.return_value_in_body, header,
-                    return_element_name, return_element_type, placeholder,
-                    indent1)
+                    func_info.return_value_in_body,
+                    header,
+                    return_element_name,
+                    return_element_type,
+                    placeholder,
+                    indent1,
+                )
             except (ValueError, IndexError):
-                return_section = '{}{}None.'.format(header, indent1)
+                return_section = "{}{}None.".format(header, indent1)
 
         numpy_doc += return_section
-        numpy_doc += '\n\n{}{}'.format(indent1, self.quote3)
+        numpy_doc += "\n\n{}{}".format(indent1, self.quote3)
 
         return numpy_doc
 
     def _generate_google_doc(self, func_info):
         """Generate a docstring of google type."""
-        google_doc = ''
+        google_doc = ""
 
         arg_names = func_info.arg_name_list
         arg_types = func_info.arg_type_list
         arg_values = func_info.arg_value_list
 
-        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
+        if len(arg_names) > 0 and arg_names[0] in ("self", "cls"):
             del arg_names[0]
             del arg_types[0]
             del arg_values[0]
@@ -479,134 +481,134 @@ class DocstringWriterExtension(object):
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
-        google_doc += '\n{}\n'.format(indent1)
+        google_doc += "\n{}\n".format(indent1)
 
         if len(arg_names) > 0:
-            google_doc += '\n{0}Args:\n'.format(indent1)
+            google_doc += "\n{0}Args:\n".format(indent1)
 
-        arg_text = ''
-        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
-                                                 arg_values):
-            arg_text += '{}{} '.format(indent2, arg_name)
+        arg_text = ""
+        for arg_name, arg_type, arg_value in zip(arg_names, arg_types, arg_values):
+            arg_text += "{}{} ".format(indent2, arg_name)
 
-            arg_text += '('
+            arg_text += "("
             if arg_type:
-                arg_text += '{}'.format(arg_type)
+                arg_text += "{}".format(arg_type)
             else:
-                arg_text += 'TYPE'
+                arg_text += "TYPE"
 
             if arg_value:
-                arg_text += ', optional'
-            arg_text += '):'
+                arg_text += ", optional"
+            arg_text += "):"
 
-            arg_text += ' DESCRIPTION.'
+            arg_text += " DESCRIPTION."
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ' Defaults to {}.\n'.format(arg_value)
+                arg_text += " Defaults to {}.\n".format(arg_value)
             else:
-                arg_text += '\n'
+                arg_text += "\n"
 
         google_doc += arg_text
 
         if func_info.raise_list:
-            google_doc += '\n{0}Raises:'.format(indent1)
+            google_doc += "\n{0}Raises:".format(indent1)
             for raise_type in func_info.raise_list:
-                google_doc += '\n{}{}'.format(indent2, raise_type)
-                google_doc += ': DESCRIPTION.'
-            google_doc += '\n'
+                google_doc += "\n{}{}".format(indent2, raise_type)
+                google_doc += ": DESCRIPTION."
+            google_doc += "\n"
 
-        google_doc += '\n'
+        google_doc += "\n"
         if func_info.has_yield:
-            header = '{}Yields:\n'.format(indent1)
+            header = "{}Yields:\n".format(indent1)
         else:
-            header = '{}Returns:\n'.format(indent1)
+            header = "{}Returns:\n".format(indent1)
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            return_section = '{}{}{}: DESCRIPTION.'.format(
-                header, indent2, return_type_annotated)
+            return_section = "{}{}{}: DESCRIPTION.".format(
+                header, indent2, return_type_annotated
+            )
         else:
-            return_element_type = indent2 + '{return_type}: DESCRIPTION.'
-            placeholder = return_element_type.format(return_type='TYPE')
-            return_element_name = indent2 + '{return_name} ' + \
-                '(TYPE): DESCRIPTION.'
+            return_element_type = indent2 + "{return_type}: DESCRIPTION."
+            placeholder = return_element_type.format(return_type="TYPE")
+            return_element_name = indent2 + "{return_name} " + "(TYPE): DESCRIPTION."
 
             try:
                 return_section = self._generate_docstring_return_section(
-                    func_info.return_value_in_body, header,
-                    return_element_name, return_element_type, placeholder,
-                    indent2)
+                    func_info.return_value_in_body,
+                    header,
+                    return_element_name,
+                    return_element_type,
+                    placeholder,
+                    indent2,
+                )
             except (ValueError, IndexError):
-                return_section = '{}{}None.'.format(header, indent2)
+                return_section = "{}{}None.".format(header, indent2)
 
         google_doc += return_section
-        google_doc += '\n\n{}{}'.format(indent1, self.quote3)
+        google_doc += "\n\n{}{}".format(indent1, self.quote3)
 
         return google_doc
 
     def _generate_sphinx_doc(self, func_info):
         """Generate a docstring of sphinx type."""
-        sphinx_doc = ''
+        sphinx_doc = ""
 
         arg_names = func_info.arg_name_list
         arg_types = func_info.arg_type_list
         arg_values = func_info.arg_value_list
 
-        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
+        if len(arg_names) > 0 and arg_names[0] in ("self", "cls"):
             del arg_names[0]
             del arg_types[0]
             del arg_values[0]
 
         indent1 = func_info.func_indent + self.code_editor.indent_chars
 
-        sphinx_doc += '\n{}\n'.format(indent1)
+        sphinx_doc += "\n{}\n".format(indent1)
 
-        arg_text = ''
-        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
-                                                 arg_values):
-            arg_text += '{}:param {}: DESCRIPTION'.format(indent1, arg_name)
+        arg_text = ""
+        for arg_name, arg_type, arg_value in zip(arg_names, arg_types, arg_values):
+            arg_text += "{}:param {}: DESCRIPTION".format(indent1, arg_name)
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ', defaults to {}\n'.format(arg_value)
+                arg_text += ", defaults to {}\n".format(arg_value)
             else:
-                arg_text += '\n'
+                arg_text += "\n"
 
-            arg_text += '{}:type {}: '.format(indent1, arg_name)
+            arg_text += "{}:type {}: ".format(indent1, arg_name)
 
             if arg_type:
-                arg_text += '{}'.format(arg_type)
+                arg_text += "{}".format(arg_type)
             else:
-                arg_text += 'TYPE'
+                arg_text += "TYPE"
 
             if arg_value:
-                arg_text += ', optional'
-            arg_text += '\n'
+                arg_text += ", optional"
+            arg_text += "\n"
 
         sphinx_doc += arg_text
 
         if func_info.raise_list:
             for raise_type in func_info.raise_list:
-                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(indent1,
-                                                                   raise_type)
+                sphinx_doc += "{}:raises {}: DESCRIPTION\n".format(indent1, raise_type)
 
         if func_info.has_yield:
-            header = '{}:yield:'.format(indent1)
+            header = "{}:yield:".format(indent1)
         else:
-            header = '{}:return:'.format(indent1)
+            header = "{}:return:".format(indent1)
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            return_section = '{} DESCRIPTION\n'.format(header)
-            return_section += '{}:rtype: {}'.format(indent1,
-                                                    return_type_annotated)
+            return_section = "{} DESCRIPTION\n".format(header)
+            return_section += "{}:rtype: {}".format(indent1, return_type_annotated)
         else:
-            return_section = '{} DESCRIPTION\n'.format(header)
-            return_section += '{}:rtype: TYPE'.format(indent1)
+            return_section = "{} DESCRIPTION\n".format(header)
+            return_section += "{}:rtype: TYPE".format(indent1)
 
         sphinx_doc += return_section
-        sphinx_doc += '\n\n{}{}'.format(indent1, self.quote3)
+        sphinx_doc += "\n\n{}{}".format(indent1, self.quote3)
 
         return sphinx_doc
 
@@ -616,69 +618,103 @@ class DocstringWriterExtension(object):
         bracket_stack = []
         replace_args_list = []
         bracket_type = None
-        literal_type = ''
-        brackets = {'(': ')', '[': ']', '{': '}'}
+        literal_type = ""
+        brackets = {"(": ")", "[": "]", "{": "}"}
         for idx, character in enumerate(string_toparse):
-            if (not bracket_stack and character in brackets.keys()
-                    or character == bracket_type):
+            if (
+                not bracket_stack
+                and character in brackets.keys()
+                or character == bracket_type
+            ):
                 bracket_stack.append(idx)
                 bracket_type = character
             elif bracket_type and character == brackets[bracket_type]:
                 begin_idx = bracket_stack.pop()
                 if not bracket_stack:
                     if not literal_type:
-                        if bracket_type == '(':
-                            literal_type = '(None)'
-                        elif bracket_type == '[':
-                            literal_type = '[list]'
-                        elif bracket_type == '{':
+                        if bracket_type == "(":
+                            literal_type = "(None)"
+                        elif bracket_type == "[":
+                            literal_type = "[list]"
+                        elif bracket_type == "{":
                             if idx - begin_idx <= 1:
-                                literal_type = '{dict}'
+                                literal_type = "{dict}"
                             else:
-                                literal_type = '{set}'
+                                literal_type = "{set}"
                     replace_args_list.append(
-                        (string_toparse[begin_idx:idx + 1],
-                         literal_type, 1))
+                        (string_toparse[begin_idx : idx + 1], literal_type, 1)
+                    )
                     bracket_type = None
-                    literal_type = ''
+                    literal_type = ""
             elif len(bracket_stack) == 1:
-                if bracket_type == '(' and character == ',':
-                    literal_type = '(tuple)'
-                elif bracket_type == '{' and character == ':':
-                    literal_type = '{dict}'
-                elif bracket_type == '(' and character == ':':
-                    literal_type = '[slice]'
+                if bracket_type == "(" and character == ",":
+                    literal_type = "(tuple)"
+                elif bracket_type == "{" and character == ":":
+                    literal_type = "{dict}"
+                elif bracket_type == "(" and character == ":":
+                    literal_type = "[slice]"
 
         if bracket_stack:
-            raise IndexError('Bracket mismatch')
+            raise IndexError("Bracket mismatch")
         for replace_args in replace_args_list:
             string_toparse = string_toparse.replace(*replace_args)
         return string_toparse
 
     @staticmethod
-    def parse_return_elements(return_vals_group, return_element_name,
-                              return_element_type, placeholder):
+    def parse_return_elements(
+        return_vals_group, return_element_name, return_element_type, placeholder
+    ):
         """Return the appropriate text for a group of return elements."""
-        all_eq = (return_vals_group.count(return_vals_group[0])
-                  == len(return_vals_group))
-        if all([{'[list]', '(tuple)', '{dict}', '{set}'}.issuperset(
-                return_vals_group)]) and all_eq:
-            return return_element_type.format(
-                return_type=return_vals_group[0][1:-1])
+        all_eq = return_vals_group.count(return_vals_group[0]) == len(return_vals_group)
+        if (
+            all(
+                [{"[list]", "(tuple)", "{dict}", "{set}"}.issuperset(return_vals_group)]
+            )
+            and all_eq
+        ):
+            return return_element_type.format(return_type=return_vals_group[0][1:-1])
         # Output placeholder if special Python chars present in name
-        py_chars = {' ', '+', '-', '*', '/', '%', '@', '<', '>', '&', '|', '^',
-                    '~', '=', ',', ':', ';', '#', '(', '[', '{', '}', ']',
-                    ')', }
-        if any([any([py_char in return_val for py_char in py_chars])
-                for return_val in return_vals_group]):
+        py_chars = {
+            " ",
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            "@",
+            "<",
+            ">",
+            "&",
+            "|",
+            "^",
+            "~",
+            "=",
+            ",",
+            ":",
+            ";",
+            "#",
+            "(",
+            "[",
+            "{",
+            "}",
+            "]",
+            ")",
+        }
+        if any(
+            [
+                any([py_char in return_val for py_char in py_chars])
+                for return_val in return_vals_group
+            ]
+        ):
             return placeholder
         # Output str type and no name if only string literals
-        if all(['"' in return_val or '\'' in return_val
-                for return_val in return_vals_group]):
-            return return_element_type.format(return_type='str')
+        if all(
+            ['"' in return_val or "'" in return_val for return_val in return_vals_group]
+        ):
+            return return_element_type.format(return_type="str")
         # Output bool type and no name if only bool literals
-        if {'True', 'False'}.issuperset(return_vals_group):
-            return return_element_type.format(return_type='bool')
+        if {"True", "False"}.issuperset(return_vals_group):
+            return return_element_type.format(return_type="bool")
         # Output numeric types and no name if only numeric literals
         try:
             [float(return_val) for return_val in return_vals_group]
@@ -689,37 +725,49 @@ class DocstringWriterExtension(object):
                 except ValueError:  # If not an integer (EAFP)
                     num_not_int = num_not_int + 1
             if num_not_int == 0:
-                return return_element_type.format(return_type='int')
+                return return_element_type.format(return_type="int")
             elif num_not_int == len(return_vals_group):
-                return return_element_type.format(return_type='float')
+                return return_element_type.format(return_type="float")
             else:
-                return return_element_type.format(return_type='numeric')
+                return return_element_type.format(return_type="numeric")
         except ValueError:  # Not a numeric if float conversion didn't work
             pass
         # If names are not equal, don't contain "." or are a builtin
-        if ({'self', 'cls', 'None'}.isdisjoint(return_vals_group) and all_eq
-                and all(['.' not in return_val
-                         for return_val in return_vals_group])):
+        if (
+            {"self", "cls", "None"}.isdisjoint(return_vals_group)
+            and all_eq
+            and all(["." not in return_val for return_val in return_vals_group])
+        ):
             return return_element_name.format(return_name=return_vals_group[0])
         return placeholder
 
-    def _generate_docstring_return_section(self, return_vals, header,
-                                           return_element_name,
-                                           return_element_type,
-                                           placeholder, indent):
+    def _generate_docstring_return_section(
+        self,
+        return_vals,
+        header,
+        return_element_name,
+        return_element_type,
+        placeholder,
+        indent,
+    ):
         """Generate the Returns section of a function/method docstring."""
         # If all return values are None, return none
-        non_none_vals = [return_val for return_val in return_vals
-                         if return_val and return_val != 'None']
+        non_none_vals = [
+            return_val
+            for return_val in return_vals
+            if return_val and return_val != "None"
+        ]
         if not non_none_vals:
-            return header + indent + 'None.'
+            return header + indent + "None."
 
         # Get only values with matching brackets that can be cleaned up
-        non_none_vals = [return_val.strip(' ()\t\n').rstrip(',')
-                         for return_val in non_none_vals]
-        non_none_vals = [re.sub('([\"\'])(?:(?=(\\\\?))\\2.)*?\\1',
-                                '"string"', return_val)
-                         for return_val in non_none_vals]
+        non_none_vals = [
+            return_val.strip(" ()\t\n").rstrip(",") for return_val in non_none_vals
+        ]
+        non_none_vals = [
+            re.sub("([\"'])(?:(?=(\\\\?))\\2.)*?\\1", '"string"', return_val)
+            for return_val in non_none_vals
+        ]
         unambiguous_vals = []
         for return_val in non_none_vals:
             try:
@@ -733,15 +781,17 @@ class DocstringWriterExtension(object):
         # If remaining are a mix of tuples and not, return single placeholder
         single_vals, tuple_vals = [], []
         for return_val in unambiguous_vals:
-            (tuple_vals.append(return_val) if ',' in return_val
-             else single_vals.append(return_val))
+            (
+                tuple_vals.append(return_val)
+                if "," in return_val
+                else single_vals.append(return_val)
+            )
         if single_vals and tuple_vals:
             return header + placeholder
 
         # If return values are tuples of different length, return a placeholder
         if tuple_vals:
-            num_elements = [return_val.count(',') + 1
-                            for return_val in tuple_vals]
+            num_elements = [return_val.count(",") + 1 for return_val in tuple_vals]
             if num_elements.count(num_elements[0]) != len(num_elements):
                 return header + placeholder
             num_elements = num_elements[0]
@@ -750,23 +800,27 @@ class DocstringWriterExtension(object):
 
         # If all have the same len but some ambiguous return that placeholders
         if len(unambiguous_vals) != len(non_none_vals):
-            return header + '\n'.join(
-                [placeholder for __ in range(num_elements)])
+            return header + "\n".join([placeholder for __ in range(num_elements)])
 
         # Handle tuple (or single) values position by position
-        return_vals_grouped = zip(*[
-            [return_element.strip() for return_element in
-             return_val.split(',')]
-            for return_val in unambiguous_vals])
+        return_vals_grouped = zip(
+            *[
+                [return_element.strip() for return_element in return_val.split(",")]
+                for return_val in unambiguous_vals
+            ]
+        )
         return_elements_out = []
         for return_vals_group in return_vals_grouped:
             return_elements_out.append(
-                self.parse_return_elements(return_vals_group,
-                                           return_element_name,
-                                           return_element_type,
-                                           placeholder))
+                self.parse_return_elements(
+                    return_vals_group,
+                    return_element_name,
+                    return_element_type,
+                    placeholder,
+                )
+            )
 
-        return header + '\n'.join(return_elements_out)
+        return header + "\n".join(return_elements_out)
 
 
 class FunctionInfo(object):
@@ -775,9 +829,9 @@ class FunctionInfo(object):
     def __init__(self):
         """."""
         self.has_info = False
-        self.func_text = ''
-        self.args_text = ''
-        self.func_indent = ''
+        self.func_text = ""
+        self.args_text = ""
+        self.func_indent = ""
         self.arg_name_list = []
         self.arg_type_list = []
         self.arg_value_list = []
@@ -808,7 +862,7 @@ class FunctionInfo(object):
                     quote = character
                     left_pos = idx
             else:
-                if character == quote and text[idx - 1] != '\\':
+                if character == quote and text[idx - 1] != "\\":
                     pos[left_pos] = idx
                     is_found_left_quote = False
 
@@ -817,8 +871,7 @@ class FunctionInfo(object):
 
         return pos
 
-    def _find_bracket_position(self, text, bracket_left, bracket_right,
-                               pos_quote):
+    def _find_bracket_position(self, text, bracket_left, bracket_right, pos_quote):
         """Return the start and end position of pairs of brackets.
 
         https://stackoverflow.com/questions/29991917/
@@ -828,19 +881,17 @@ class FunctionInfo(object):
         pstack = []
 
         for idx, character in enumerate(text):
-            if character == bracket_left and \
-                    not self.is_char_in_pairs(idx, pos_quote):
+            if character == bracket_left and not self.is_char_in_pairs(idx, pos_quote):
                 pstack.append(idx)
-            elif character == bracket_right and \
-                    not self.is_char_in_pairs(idx, pos_quote):
+            elif character == bracket_right and not self.is_char_in_pairs(
+                idx, pos_quote
+            ):
                 if len(pstack) == 0:
-                    raise IndexError(
-                        "No matching closing parens at: " + str(idx))
+                    raise IndexError("No matching closing parens at: " + str(idx))
                 pos[pstack.pop()] = idx
 
         if len(pstack) > 0:
-            raise IndexError(
-                "No matching opening parens at: " + str(pstack.pop()))
+            raise IndexError("No matching opening parens at: " + str(pstack.pop()))
 
         return pos
 
@@ -853,8 +904,8 @@ class FunctionInfo(object):
             has_type = False
             has_value = False
 
-            pos_colon = arg.find(':')
-            pos_equal = arg.find('=')
+            pos_colon = arg.find(":")
+            pos_equal = arg.find("=")
 
             if pos_equal > -1:
                 has_value = True
@@ -867,14 +918,14 @@ class FunctionInfo(object):
 
             if has_value and has_type:
                 arg_name = arg[0:pos_colon].strip()
-                arg_type = arg[pos_colon + 1:pos_equal].strip()
-                arg_value = arg[pos_equal + 1:].strip()
+                arg_type = arg[pos_colon + 1 : pos_equal].strip()
+                arg_value = arg[pos_equal + 1 :].strip()
             elif not has_value and has_type:
                 arg_name = arg[0:pos_colon].strip()
-                arg_type = arg[pos_colon + 1:].strip()
+                arg_type = arg[pos_colon + 1 :].strip()
             elif has_value and not has_type:
                 arg_name = arg[0:pos_equal].strip()
-                arg_value = arg[pos_equal + 1:].strip()
+                arg_value = arg[pos_equal + 1 :].strip()
             else:
                 arg_name = arg.strip()
 
@@ -894,27 +945,26 @@ class FunctionInfo(object):
 
         try:
             pos_quote = self._find_quote_position(args_text)
-            pos_round = self._find_bracket_position(args_text, '(', ')',
-                                                    pos_quote)
-            pos_curly = self._find_bracket_position(args_text, '{', '}',
-                                                    pos_quote)
-            pos_square = self._find_bracket_position(args_text, '[', ']',
-                                                     pos_quote)
+            pos_round = self._find_bracket_position(args_text, "(", ")", pos_quote)
+            pos_curly = self._find_bracket_position(args_text, "{", "}", pos_quote)
+            pos_square = self._find_bracket_position(args_text, "[", "]", pos_quote)
         except IndexError:
             return None
 
         while True:
-            pos_comma = args_text.find(',', idx_find_start)
+            pos_comma = args_text.find(",", idx_find_start)
 
             if pos_comma == -1:
                 break
 
             idx_find_start = pos_comma + 1
 
-            if self.is_char_in_pairs(pos_comma, pos_round) or \
-                    self.is_char_in_pairs(pos_comma, pos_curly) or \
-                    self.is_char_in_pairs(pos_comma, pos_square) or \
-                    self.is_char_in_pairs(pos_comma, pos_quote):
+            if (
+                self.is_char_in_pairs(pos_comma, pos_round)
+                or self.is_char_in_pairs(pos_comma, pos_curly)
+                or self.is_char_in_pairs(pos_comma, pos_square)
+                or self.is_char_in_pairs(pos_comma, pos_quote)
+            ):
                 continue
 
             args_list.append(args_text[idx_arg_start:pos_comma])
@@ -936,21 +986,18 @@ class FunctionInfo(object):
 
         text = text.strip()
 
-        return_type_re = re.search(
-            r'->[ ]*([\"\'a-zA-Z0-9_,()\[\] ]*):$', text)
+        return_type_re = re.search(r"->[ ]*([\"\'a-zA-Z0-9_,()\[\] ]*):$", text)
         if return_type_re:
             self.return_type_annotated = return_type_re.group(1).strip(" ()\\")
             if is_tuple_strings(self.return_type_annotated):
-                self.return_type_annotated = (
-                    "(" + self.return_type_annotated + ")"
-                )
+                self.return_type_annotated = "(" + self.return_type_annotated + ")"
             text_end = text.rfind(return_type_re.group(0))
         else:
             self.return_type_annotated = None
             text_end = len(text)
 
-        pos_args_start = text.find('(') + 1
-        pos_args_end = text.rfind(')', pos_args_start, text_end)
+        pos_args_start = text.find("(") + 1
+        pos_args_end = text.rfind(")", pos_args_start, text_end)
 
         self.args_text = text[pos_args_start:pos_args_end]
 
@@ -961,7 +1008,7 @@ class FunctionInfo(object):
 
     def parse_body(self, text):
         """Parse the function body text."""
-        re_raise = re.findall(r'[ \t]raise ([a-zA-Z0-9_]*)', text)
+        re_raise = re.findall(r"[ \t]raise ([a-zA-Z0-9_]*)", text)
         if len(re_raise) > 0:
             self.raise_list = [x.strip() for x in re_raise]
             # remove duplicates from list while keeping it in the order
@@ -969,15 +1016,15 @@ class FunctionInfo(object):
             # stackoverflow.com/questions/7961363/removing-duplicates-in-lists
             self.raise_list = list(OrderedDict.fromkeys(self.raise_list))
 
-        re_yield = re.search(r'[ \t]yield ', text)
+        re_yield = re.search(r"[ \t]yield ", text)
         if re_yield:
             self.has_yield = True
 
         # get return value
-        pattern_return = r'return |yield '
-        line_list = text.split('\n')
+        pattern_return = r"return |yield "
+        line_list = text.split("\n")
         is_found_return = False
-        line_return_tmp = ''
+        line_return_tmp = ""
 
         for line in line_list:
             line = line.strip()
@@ -992,24 +1039,21 @@ class FunctionInfo(object):
                 try:
                     pos_quote = self._find_quote_position(line_return_tmp)
 
-                    if line_return_tmp[-1] == '\\':
+                    if line_return_tmp[-1] == "\\":
                         line_return_tmp = line_return_tmp[:-1]
                         continue
 
-                    self._find_bracket_position(line_return_tmp, '(', ')',
-                                                pos_quote)
-                    self._find_bracket_position(line_return_tmp, '{', '}',
-                                                pos_quote)
-                    self._find_bracket_position(line_return_tmp, '[', ']',
-                                                pos_quote)
+                    self._find_bracket_position(line_return_tmp, "(", ")", pos_quote)
+                    self._find_bracket_position(line_return_tmp, "{", "}", pos_quote)
+                    self._find_bracket_position(line_return_tmp, "[", "]", pos_quote)
                 except IndexError:
                     continue
 
-                return_value = re.sub(pattern_return, '', line_return_tmp)
+                return_value = re.sub(pattern_return, "", line_return_tmp)
                 self.return_value_in_body.append(return_value)
 
                 is_found_return = False
-                line_return_tmp = ''
+                line_return_tmp = ""
 
 
 class QMenuOnlyForEnter(QMenu):

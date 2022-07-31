@@ -16,7 +16,8 @@ client via ZMQ.
 
 import logging
 from spyder.plugins.completion.providers.languageserver.transport.common.consumer import (
-    IncomingMessageThread)
+    IncomingMessageThread,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,4 +26,4 @@ class StdioIncomingMessageThread(IncomingMessageThread):
     """Stdio socket consumer."""
 
     def read_num_bytes(self, n):
-        return self.fd.read(n).encode('utf-8')
+        return self.fd.read(n).encode("utf-8")

@@ -18,14 +18,16 @@ from qtpy.QtCore import Slot
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
 from spyder.utils.misc import get_python_executable
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class MainInterpreter(SpyderPluginV2):
@@ -51,7 +53,7 @@ class MainInterpreter(SpyderPluginV2):
         return _("Main Python interpreter to open consoles.")
 
     def get_icon(self):
-        return self.create_icon('python')
+        return self.create_icon("python")
 
     def on_initialize(self):
         container = self.get_container()
@@ -68,12 +70,12 @@ class MainInterpreter(SpyderPluginV2):
 
         # Validate that the custom interpreter from the previous session
         # still exists
-        if self.get_conf('custom'):
-            interpreter = self.get_conf('custom_interpreter')
+        if self.get_conf("custom"):
+            interpreter = self.get_conf("custom_interpreter")
             if not osp.isfile(interpreter):
-                self.set_conf('custom', False)
-                self.set_conf('default', True)
-                self.set_conf('executable', get_python_executable())
+                self.set_conf("custom", False)
+                self.set_conf("default", True)
+                self.set_conf("executable", get_python_executable())
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -116,7 +118,7 @@ class MainInterpreter(SpyderPluginV2):
     @Slot(str)
     def _add_to_custom_interpreters(self, interpreter):
         """Add a new interpreter to the list of saved ones."""
-        custom_list = self.get_conf('custom_interpreters_list')
+        custom_list = self.get_conf("custom_interpreters_list")
         if interpreter not in custom_list:
             custom_list.append(interpreter)
-            self.set_conf('custom_interpreters_list', custom_list)
+            self.set_conf("custom_interpreters_list", custom_list)

@@ -19,7 +19,7 @@ from spyder.config.base import get_conf_path
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # --- Plugin
@@ -29,7 +29,7 @@ class OnlineHelp(SpyderDockablePlugin):
     Online Help Plugin.
     """
 
-    NAME = 'onlinehelp'
+    NAME = "onlinehelp"
     TABIFY = Plugins.Help
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -47,19 +47,17 @@ class OnlineHelp(SpyderDockablePlugin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Online help')
+        return _("Online help")
 
     def get_description(self):
-        return _(
-            'Browse and search the currently installed modules interactively.')
+        return _("Browse and search the currently installed modules interactively.")
 
     def get_icon(self):
-        return self.create_icon('help')
+        return self.create_icon("help")
 
     def on_close(self, cancelable=False):
         self.save_history()
-        self.set_conf('zoom_factor',
-                      self.get_widget().get_zoom_factor())
+        self.set_conf("zoom_factor", self.get_widget().get_zoom_factor())
         return True
 
     def on_initialize(self):
@@ -77,10 +75,10 @@ class OnlineHelp(SpyderDockablePlugin):
         Load history from a text file in the Spyder configuration directory.
         """
         if osp.isfile(self.LOG_PATH):
-            with open(self.LOG_PATH, 'r') as fh:
-                lines = fh.read().split('\n')
+            with open(self.LOG_PATH, "r") as fh:
+                lines = fh.read().split("\n")
 
-            history = [line.replace('\n', '') for line in lines]
+            history = [line.replace("\n", "") for line in lines]
         else:
             history = []
 
@@ -91,5 +89,5 @@ class OnlineHelp(SpyderDockablePlugin):
         Save history to a text file in the Spyder configuration directory.
         """
         data = "\n".join(self.get_widget().get_history())
-        with open(self.LOG_PATH, 'w') as fh:
+        with open(self.LOG_PATH, "w") as fh:
             fh.write(data)

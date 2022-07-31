@@ -21,10 +21,16 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.manager import CONF
 from spyder.plugins.editor.tests.conftest import (
-    editor_plugin, editor_plugin_open_files, python_files)
+    editor_plugin,
+    editor_plugin_open_files,
+    python_files,
+)
 from spyder.plugins.completion.tests.conftest import (
-    qtbot_module, MainWindowMock, completion_plugin_all_started,
-    completion_plugin_all)
+    qtbot_module,
+    MainWindowMock,
+    completion_plugin_all_started,
+    completion_plugin_all,
+)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
@@ -34,18 +40,20 @@ from spyder.widgets.findreplace import FindReplace
 
 def codeeditor_factory():
     editor = CodeEditor(parent=None)
-    editor.setup_editor(language='Python',
-                        tab_mode=False,
-                        markers=True,
-                        close_quotes=True,
-                        close_parentheses=True,
-                        color_scheme='spyder/dark',
-                        font=QFont("Monospace", 10),
-                        automatic_completions=True,
-                        automatic_completions_after_chars=1,
-                        automatic_completions_after_ms=200,
-                        folding=False)
-    editor.eol_chars = '\n'
+    editor.setup_editor(
+        language="Python",
+        tab_mode=False,
+        markers=True,
+        close_quotes=True,
+        close_parentheses=True,
+        color_scheme="spyder/dark",
+        font=QFont("Monospace", 10),
+        automatic_completions=True,
+        automatic_completions_after_chars=1,
+        automatic_completions_after_ms=200,
+        folding=False,
+    )
+    editor.eol_chars = "\n"
     editor.resize(640, 480)
     return editor
 
@@ -56,11 +64,8 @@ def editor_factory(new_file=True, text=None):
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     if new_file:
         if not text:
-            text = ('a = 1\n'
-                    'print(a)\n'
-                    '\n'
-                    'x = 2')  # a newline is added at end
-        finfo = editorstack.new('foo.py', 'utf-8', text)
+            text = "a = 1\n" "print(a)\n" "\n" "x = 2"  # a newline is added at end
+        finfo = editorstack.new("foo.py", "utf-8", text)
         return editorstack, finfo.editor
     return editorstack, None
 
@@ -79,8 +84,8 @@ def setup_editor(qtbot):
 
 @pytest.fixture
 def completions_editor(
-        completion_plugin_all_started, qtbot_module, request, capsys,
-        tmp_path):
+    completion_plugin_all_started, qtbot_module, request, capsys, tmp_path
+):
     """Editorstack instance with LSP services activated."""
     # Create a CodeEditor instance
     editorstack, editor = editor_factory(new_file=False)
@@ -89,22 +94,20 @@ def completions_editor(
     completion_plugin, capabilities = completion_plugin_all_started
     completion_plugin.wait_for_ms = 2000
 
-    CONF.set('completions', 'enable_code_snippets', False)
+    CONF.set("completions", "enable_code_snippets", False)
     completion_plugin.after_configuration_update([])
-    CONF.notify_section_all_observers('completions')
+    CONF.notify_section_all_observers("completions")
 
-    file_path = tmp_path / 'test.py'
-    editor = editorstack.new(str(file_path), 'utf-8', '').editor
+    file_path = tmp_path / "test.py"
+    editor = editorstack.new(str(file_path), "utf-8", "").editor
     # Redirect editor LSP requests to lsp_manager
-    editor.sig_perform_completion_request.connect(
-        completion_plugin.send_request)
+    editor.sig_perform_completion_request.connect(completion_plugin.send_request)
 
-    completion_plugin.register_file('python', str(file_path), editor)
+    completion_plugin.register_file("python", str(file_path), editor)
     editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
-    with qtbot_module.waitSignal(
-            editor.completions_response_signal, timeout=30000):
+    with qtbot_module.waitSignal(editor.completions_response_signal, timeout=30000):
         editor.document_did_open()
 
     def teardown():
@@ -115,7 +118,7 @@ def completions_editor(
         # Capture stderr and assert there are no errors
         sys_stream = capsys.readouterr()
         sys_err = sys_stream.err
-        assert sys_err == ''
+        assert sys_err == ""
 
     request.addfinalizer(teardown)
 
@@ -137,10 +140,10 @@ def kite_codeeditor(qtbot_module, request):
     test mentioned above.
     """
     main = MainWindowWidgetMock()
-    completions = CompletionManager(main, ['kite'])
+    completions = CompletionManager(main, ["kite"])
     completions.start()
-    completions.start_client('python')
-    completions.language_status['python']['kite'] = True
+    completions.start_client("python")
+    completions.language_status["python"]["kite"] = True
     qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance
@@ -150,8 +153,8 @@ def kite_codeeditor(qtbot_module, request):
 
     # Redirect editor fallback requests to FallbackActor
     editor.sig_perform_completion_request.connect(completions.send_request)
-    editor.filename = 'test.py'
-    editor.language = 'Python'
+    editor.filename = "test.py"
+    editor.language = "Python"
     editor.completions_available = True
     qtbot_module.wait(2000)
 
@@ -161,10 +164,10 @@ def kite_codeeditor(qtbot_module, request):
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    kite = completions.get_client('kite')
-    CONF.set('kite', 'show_installation_dialog', False)
-    CONF.set('kite', 'show_onboarding', False)
-    CONF.set('kite', 'call_to_action', False)
+    kite = completions.get_client("kite")
+    CONF.set("kite", "show_installation_dialog", False)
+    CONF.set("kite", "show_onboarding", False)
+    CONF.set("kite", "call_to_action", False)
     kite.update_configuration()
     return editor, kite
 
@@ -188,24 +191,27 @@ def mock_completions_codeeditor(qtbot_module, request):
         print("DEBUG {}".format(resp))
         if resp is not None:
             editor.handle_response(method, resp)
+
     editor.sig_perform_completion_request.connect(perform_request)
 
-    editor.filename = 'test.py'
-    editor.language = 'Python'
+    editor.filename = "test.py"
+    editor.language = "Python"
     editor.completions_available = True
     qtbot_module.wait(2000)
 
     def teardown():
         editor.hide()
         editor.completion_widget.hide()
+
     request.addfinalizer(teardown)
 
     return editor, mock_response
 
 
 @pytest.fixture
-def completions_codeeditor(completion_plugin_all_started, qtbot_module,
-                           request, capsys, tmp_path):
+def completions_codeeditor(
+    completion_plugin_all_started, qtbot_module, request, capsys, tmp_path
+):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = codeeditor_factory()
@@ -214,26 +220,24 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
     completion_plugin, capabilities = completion_plugin_all_started
     completion_plugin.wait_for_ms = 2000
 
-    CONF.set('completions', 'enable_code_snippets', False)
+    CONF.set("completions", "enable_code_snippets", False)
     completion_plugin.after_configuration_update([])
-    CONF.notify_section_all_observers('completions')
+    CONF.notify_section_all_observers("completions")
 
     # Redirect editor LSP requests to lsp_manager
-    editor.sig_perform_completion_request.connect(
-        completion_plugin.send_request)
+    editor.sig_perform_completion_request.connect(completion_plugin.send_request)
 
-    file_path = tmp_path / 'test.py'
-    file_path.write_text('')
+    file_path = tmp_path / "test.py"
+    file_path.write_text("")
 
     editor.filename = str(file_path)
-    editor.language = 'Python'
+    editor.language = "Python"
 
-    completion_plugin.register_file('python', str(file_path), editor)
+    completion_plugin.register_file("python", str(file_path), editor)
     editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
-    with qtbot_module.waitSignal(
-            editor.completions_response_signal, timeout=30000):
+    with qtbot_module.waitSignal(editor.completions_response_signal, timeout=30000):
         editor.document_did_open()
 
     def teardown():
@@ -246,8 +250,8 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
         sys_err = sys_stream.err
 
         if PY2:
-            sys_err = to_text_string(sys_err).encode('utf-8')
-        assert sys_err == ''
+            sys_err = to_text_string(sys_err).encode("utf-8")
+        assert sys_err == ""
 
     request.addfinalizer(teardown)
 
@@ -274,13 +278,16 @@ def search_codeeditor(completions_codeeditor, qtbot_module, request):
 @pytest.fixture
 def codeeditor(qtbot):
     widget = CodeEditor(None)
-    widget.setup_editor(linenumbers=True,
-                        markers=True,
-                        tab_mode=False,
-                        font=QFont("Courier New", 10),
-                        show_blanks=True, color_scheme='spyder/dark',
-                        scroll_past_end=True)
-    widget.setup_editor(language='Python')
+    widget.setup_editor(
+        linenumbers=True,
+        markers=True,
+        tab_mode=False,
+        font=QFont("Courier New", 10),
+        show_blanks=True,
+        color_scheme="spyder/dark",
+        scroll_past_end=True,
+    )
+    widget.setup_editor(language="Python")
     widget.resize(640, 480)
     widget.show()
     yield widget

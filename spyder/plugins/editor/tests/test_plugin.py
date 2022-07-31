@@ -36,22 +36,26 @@ def test_basic_initialization(editor_plugin):
 
 
 @pytest.mark.parametrize(
-    'last_focused_filename, expected_current_filename',
-    [('other_file.py', 'file1.py'),
-     ('file1.py', 'file1.py'),
-     ('file2.py', 'file2.py'),
-     ('file4.py', 'file4.py')
-     ])
-def test_setup_open_files(editor_plugin_open_files, last_focused_filename,
-                          expected_current_filename):
+    "last_focused_filename, expected_current_filename",
+    [
+        ("other_file.py", "file1.py"),
+        ("file1.py", "file1.py"),
+        ("file2.py", "file2.py"),
+        ("file4.py", "file4.py"),
+    ],
+)
+def test_setup_open_files(
+    editor_plugin_open_files, last_focused_filename, expected_current_filename
+):
     """Test Editor plugin open files setup.
 
     Test that the file order is preserved during the Editor plugin setup and
     that the current file correspond to the last focused file.
     """
     editor_factory = editor_plugin_open_files
-    editor, expected_filenames, expected_current_filename = (
-        editor_factory(last_focused_filename, expected_current_filename))
+    editor, expected_filenames, expected_current_filename = editor_factory(
+        last_focused_filename, expected_current_filename
+    )
 
     current_filename = editor.get_current_editorstack().get_current_filename()
     current_filename = osp.normcase(current_filename)
@@ -67,8 +71,7 @@ def test_setup_open_files_cleanprefs(editor_plugin_open_files):
     Regression test for spyder-ide/spyder#8458.
     """
     editor_factory = editor_plugin_open_files
-    editor, expected_filenames, expected_current_filename = (
-        editor_factory(None, None))
+    editor, expected_filenames, expected_current_filename = editor_factory(None, None)
 
     filenames = editor.get_current_editorstack().get_filenames()
     filenames = [osp.normcase(f) for f in filenames]
@@ -86,14 +89,12 @@ def test_open_untitled_files(editor_plugin_open_files):
     Regression test for spyder-ide/spyder#7831
     """
     editor_factory = editor_plugin_open_files
-    editor, expected_filenames, expected_current_filename = (
-        editor_factory(None, None))
+    editor, expected_filenames, expected_current_filename = editor_factory(None, None)
 
     editor.new()
     filenames = editor.get_current_editorstack().get_filenames()
     new_filename = filenames[-1]
-    assert 'untitled5.py' in new_filename
-
+    assert "untitled5.py" in new_filename
 
 
 def test_renamed_tree(editor_plugin, mocker):
@@ -104,21 +105,26 @@ def test_renamed_tree(editor_plugin, mocker):
     Project Explorer, and Editor widget as those aren't part of the plugin.
     """
     editor = editor_plugin
-    mocker.patch.object(editor, 'get_filenames')
-    mocker.patch.object(editor, 'renamed')
-    editor.get_filenames.return_value = ['/test/directory/file1.py',
-                                         '/test/directory/file2.txt',
-                                         '/home/spyder/testing/file3.py',
-                                         '/test/directory/file4.rst']
+    mocker.patch.object(editor, "get_filenames")
+    mocker.patch.object(editor, "renamed")
+    editor.get_filenames.return_value = [
+        "/test/directory/file1.py",
+        "/test/directory/file2.txt",
+        "/home/spyder/testing/file3.py",
+        "/test/directory/file4.rst",
+    ]
 
-    editor.renamed_tree('/test/directory', '/test/dir')
+    editor.renamed_tree("/test/directory", "/test/dir")
     assert editor.renamed.call_count == 3
-    assert editor.renamed.called_with(source='/test/directory/file1.py',
-                                      dest='test/dir/file1.py')
-    assert editor.renamed.called_with(source='/test/directory/file2.txt',
-                                      dest='test/dir/file2.txt')
-    assert editor.renamed.called_with(source='/test/directory/file4.rst',
-                                      dest='test/dir/file4.rst')
+    assert editor.renamed.called_with(
+        source="/test/directory/file1.py", dest="test/dir/file1.py"
+    )
+    assert editor.renamed.called_with(
+        source="/test/directory/file2.txt", dest="test/dir/file2.txt"
+    )
+    assert editor.renamed.called_with(
+        source="/test/directory/file4.rst", dest="test/dir/file4.rst"
+    )
 
 
 def test_no_template(editor_plugin):
@@ -129,20 +135,20 @@ def test_no_template(editor_plugin):
 
     # Move template to another file to simulate the lack of it
     template = editor.TEMPLATE_PATH
-    shutil.move(template, osp.join(osp.dirname(template), 'template.py.old'))
+    shutil.move(template, osp.join(osp.dirname(template), "template.py.old"))
 
     # Open a new file
     editor.new()
 
     # Get contents
     code_editor = editor.get_focus_widget()
-    contents = code_editor.get_text('sof', 'eof')
+    contents = code_editor.get_text("sof", "eof")
 
     # Assert contents are empty
     assert not contents
 
     # Revert template back
-    shutil.move(osp.join(osp.dirname(template), 'template.py.old'), template)
+    shutil.move(osp.join(osp.dirname(template), "template.py.old"), template)
 
 
 def test_editor_has_autosave_component(editor_plugin):
@@ -156,7 +162,7 @@ def test_autosave_component_do_autosave(editor_plugin, mocker):
     stack's autosave_all()."""
     editor = editor_plugin
     editorStack = editor.get_current_editorstack()
-    mocker.patch.object(editorStack.autosave, 'autosave_all')
+    mocker.patch.object(editorStack.autosave, "autosave_all")
     editor.autosave.do_autosave()
     assert editorStack.autosave.autosave_all.called
 
@@ -165,8 +171,8 @@ def test_editor_transmits_sig_option_changed(editor_plugin, qtbot):
     editor = editor_plugin
     editorStack = editor.get_current_editorstack()
     with qtbot.waitSignal(editor.sig_option_changed) as blocker:
-        editorStack.sig_option_changed.emit('autosave_mapping', {1: 2})
-    assert blocker.args == ['autosave_mapping', {1: 2}]
+        editorStack.sig_option_changed.emit("autosave_mapping", {1: 2})
+    assert blocker.args == ["autosave_mapping", {1: 2}]
 
 
 def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
@@ -183,7 +189,8 @@ def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
 # The mock_RecoveryDialog fixture needs to be called before setup_editor, so
 # it needs to be mentioned first
 def test_editor_calls_recoverydialog_exec_if_nonempty(
-        mock_RecoveryDialog, editor_plugin):
+    mock_RecoveryDialog, editor_plugin
+):
     """Check that editor tries to exec a recovery dialog on construction."""
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
@@ -201,20 +208,19 @@ def test_renamed_propagates_to_autosave(editor_plugin_open_files, mocker):
 
     Regression test for spyder-ide/spyder#11348"""
     editor_factory = editor_plugin_open_files
-    editor, expected_filenames, expected_current_filename = (
-        editor_factory(None, None))
+    editor, expected_filenames, expected_current_filename = editor_factory(None, None)
 
     editorstack = editor.get_current_editorstack()
-    mocker.patch.object(editorstack, 'rename_in_data')
-    mocker.patch.object(editorstack.autosave, 'file_renamed')
+    mocker.patch.object(editorstack, "rename_in_data")
+    mocker.patch.object(editorstack.autosave, "file_renamed")
 
     # Test renaming a file that is not opened in the editor
-    editor.renamed('nonexisting', 'newname')
+    editor.renamed("nonexisting", "newname")
     assert not editorstack.autosave.file_renamed.called
 
     # Test renaming a file that is opened in the editor
     filename = editorstack.get_filenames()[0]
-    editor.renamed(filename, 'newname')
+    editor.renamed(filename, "newname")
     assert editorstack.autosave.file_renamed.called
 
 
@@ -245,10 +251,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_undo_history = [
         (filenames[0], 0),
         (filenames[-1], len(editorstack.data[-1].get_source_code())),
-        (filenames[2], 5)
-        ]
-    for history, expected_history in zip(editor_plugin.cursor_undo_history,
-                                         expected_cursor_undo_history):
+        (filenames[2], 5),
+    ]
+    for history, expected_history in zip(
+        editor_plugin.cursor_undo_history, expected_cursor_undo_history
+    ):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
 
@@ -267,16 +274,19 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
         elif move == 1:
             editor_plugin.go_to_next_cursor_position()
         assert len(editor_plugin.cursor_undo_history) - 1 == index
-        assert (editor_plugin.get_current_filename(),
-                editor_plugin.get_current_editor().get_position('cursor')
-                ) == expected_cursor_undo_history[index]
+        assert (
+            editor_plugin.get_current_filename(),
+            editor_plugin.get_current_editor().get_position("cursor"),
+        ) == expected_cursor_undo_history[index]
 
-    for history, expected_history in zip(editor_plugin.cursor_undo_history,
-                                         expected_cursor_undo_history[:1]):
+    for history, expected_history in zip(
+        editor_plugin.cursor_undo_history, expected_cursor_undo_history[:1]
+    ):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
-    for history, expected_history in zip(editor_plugin.cursor_redo_history,
-                                         expected_cursor_undo_history[:0:-1]):
+    for history, expected_history in zip(
+        editor_plugin.cursor_redo_history, expected_cursor_undo_history[:0:-1]
+    ):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
 
@@ -290,8 +300,9 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_undo_history = expected_cursor_undo_history[:1]
     expected_cursor_undo_history.append((filenames[3], 0))
 
-    for history, expected_history in zip(editor_plugin.cursor_undo_history,
-                                         expected_cursor_undo_history):
+    for history, expected_history in zip(
+        editor_plugin.cursor_undo_history, expected_cursor_undo_history
+    ):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
     assert editor_plugin.cursor_redo_history == []
@@ -308,8 +319,7 @@ def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
 
     # Create files
     editor_factory = editor_plugin_open_files
-    editor, expected_filenames, expected_current_filename = (
-        editor_factory(None, None))
+    editor, expected_filenames, expected_current_filename = editor_factory(None, None)
 
     # Assert that we called document_did_open once per file
     assert CodeEditor.document_did_open.call_count == 5
@@ -340,7 +350,7 @@ def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
     assert CodeEditor.notify_close.call_count == 2
 
 
-@pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])
+@pytest.mark.parametrize("os_name", ["nt", "mac", "posix"])
 def test_toggle_eol_chars(editor_plugin, python_files, qtbot, os_name):
     """
     Check that changing eol chars from the 'Convert end-of-line characters'
@@ -359,24 +369,23 @@ def test_toggle_eol_chars(editor_plugin, python_files, qtbot, os_name):
     editor_plugin.toggle_eol_chars(os_name, True)
     assert codeeditor.document().isModified()
     editorstack.save()
-    with open(fname, mode='r', newline='') as f:
+    with open(fname, mode="r", newline="") as f:
         text = f.read()
     assert get_eol_chars(text) == get_eol_chars_from_os_name(os_name)
 
 
-@pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])
-def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
-                                       os_name):
+@pytest.mark.parametrize("os_name", ["nt", "mac", "posix"])
+def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot, os_name):
     """Check that saving files with preferred eol chars works as expected."""
     filenames, tmpdir = python_files
     editorstack = editor_plugin.get_current_editorstack()
-    eol_lookup = {'posix': 'LF', 'nt': 'CRLF', 'mac': 'CR'}
+    eol_lookup = {"posix": "LF", "nt": "CRLF", "mac": "CR"}
 
     # Set options
-    editor_plugin.set_option('convert_eol_on_save', True)
-    editor_plugin.set_option('convert_eol_on_save_to', eol_lookup[os_name])
+    editor_plugin.set_option("convert_eol_on_save", True)
+    editor_plugin.set_option("convert_eol_on_save_to", eol_lookup[os_name])
     editor_plugin.apply_plugin_settings(
-        {'convert_eol_on_save', 'convert_eol_on_save_to'}
+        {"convert_eol_on_save", "convert_eol_on_save_to"}
     )
 
     # Load a test file
@@ -388,7 +397,7 @@ def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
     # Set file as dirty, save it and check that it has the right eol.
     codeeditor.document().setModified(True)
     editorstack.save()
-    with open(fname, mode='r', newline='') as f:
+    with open(fname, mode="r", newline="") as f:
         text = f.read()
     assert get_eol_chars(text) == get_eol_chars_from_os_name(os_name)
 
@@ -398,9 +407,9 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
     editorstack = editor_plugin.get_current_editorstack()
 
     # Mock output of save file dialog.
-    fname = osp.join(tmpdir, 'test_eol_chars.py')
-    mocker.patch.object(editor_module, 'getsavefilename')
-    editor_module.getsavefilename.return_value = (fname, '')
+    fname = osp.join(tmpdir, "test_eol_chars.py")
+    mocker.patch.object(editor_module, "getsavefilename")
+    editor_module.getsavefilename.return_value = (fname, "")
 
     # Load new, empty file
     editor_plugin.new()
@@ -413,11 +422,11 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
 
     # Save file and check that it has the right eol.
     editorstack.save()
-    with open(fname, mode='r', newline='') as f:
+    with open(fname, mode="r", newline="") as f:
         text = f.read()
 
     assert get_eol_chars(text) == os.linesep
 
 
 if __name__ == "__main__":
-    pytest.main(['-x', osp.basename(__file__), '-vv', '-rw'])
+    pytest.main(["-x", osp.basename(__file__), "-vv", "-rw"])

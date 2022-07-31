@@ -13,42 +13,43 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import get_translation
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerTreeWidget
 
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # ---- Enums
 # -----------------------------------------------------------------------------
 class OutlineExplorerToolbuttons:
-    GoToCursor = 'go_to_cursor'
+    GoToCursor = "go_to_cursor"
 
 
 class OutlineExplorerSections:
-    Main = 'main_section'
-    DisplayOptions = 'display_options'
+    Main = "main_section"
+    DisplayOptions = "display_options"
 
 
 class OutlineExplorerActions:
-    GoToCursor = 'go_to_cursor'
-    ShowFullPath = 'show_fullpath'
-    ShowAllFiles = 'show_all_files'
-    ShowSpecialComments = 'show_comments'
-    GroupCodeCells = 'group_code_cells'
-    DisplayVariables = 'display_variables'
-    FollowCursor = 'follow_cursor'
-    SortFiles = 'sort_files_alphabetically'
+    GoToCursor = "go_to_cursor"
+    ShowFullPath = "show_fullpath"
+    ShowAllFiles = "show_all_files"
+    ShowSpecialComments = "show_comments"
+    GroupCodeCells = "group_code_cells"
+    DisplayVariables = "display_variables"
+    FollowCursor = "follow_cursor"
+    SortFiles = "sort_files_alphabetically"
 
 
 # ---- Main widget
 # -----------------------------------------------------------------------------
 class OutlineExplorerWidget(PluginMainWidget):
     """Class browser"""
+
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
     is_visible = Signal()
     sig_update_configuration = Signal()
 
     ENABLE_SPINNER = True
-    CONF_SECTION = 'outline_explorer'
+    CONF_SECTION = "outline_explorer"
 
     def __init__(self, name, plugin, parent=None, context=None):
         if context is not None:
@@ -59,8 +60,7 @@ class OutlineExplorerWidget(PluginMainWidget):
         self.treewidget = OutlineExplorerTreeWidget(self)
         self.treewidget.sig_display_spinner.connect(self.start_spinner)
         self.treewidget.sig_hide_spinner.connect(self.stop_spinner)
-        self.treewidget.sig_update_configuration.connect(
-            self.sig_update_configuration)
+        self.treewidget.sig_update_configuration.connect(self.sig_update_configuration)
 
         self.treewidget.header().hide()
 
@@ -84,74 +84,90 @@ class OutlineExplorerWidget(PluginMainWidget):
         toolbar = self.get_main_toolbar()
         fromcursor_btn = self.create_toolbutton(
             OutlineExplorerToolbuttons.GoToCursor,
-            icon=self.create_icon('fromcursor'),
-            tip=_('Go to cursor position'),
-            triggered=self.treewidget.go_to_cursor_position)
+            icon=self.create_icon("fromcursor"),
+            tip=_("Go to cursor position"),
+            triggered=self.treewidget.go_to_cursor_position,
+        )
 
-        for item in [fromcursor_btn,
-                     self.treewidget.collapse_all_action,
-                     self.treewidget.expand_all_action,
-                     self.treewidget.restore_action,
-                     self.treewidget.collapse_selection_action,
-                     self.treewidget.expand_selection_action]:
-            self.add_item_to_toolbar(item, toolbar=toolbar,
-                                     section=OutlineExplorerSections.Main)
+        for item in [
+            fromcursor_btn,
+            self.treewidget.collapse_all_action,
+            self.treewidget.expand_all_action,
+            self.treewidget.restore_action,
+            self.treewidget.collapse_selection_action,
+            self.treewidget.expand_selection_action,
+        ]:
+            self.add_item_to_toolbar(
+                item, toolbar=toolbar, section=OutlineExplorerSections.Main
+            )
 
         # Actions
         fromcursor_act = self.create_action(
             OutlineExplorerActions.GoToCursor,
-            text=_('Go to cursor position'),
-            icon=self.create_icon('fromcursor'),
-            triggered=self.treewidget.go_to_cursor_position)
+            text=_("Go to cursor position"),
+            icon=self.create_icon("fromcursor"),
+            triggered=self.treewidget.go_to_cursor_position,
+        )
 
         fullpath_act = self.create_action(
             OutlineExplorerActions.ShowFullPath,
-            text=_('Show absolute path'),
+            text=_("Show absolute path"),
             toggled=True,
-            option='show_fullpath')
+            option="show_fullpath",
+        )
 
         allfiles_act = self.create_action(
             OutlineExplorerActions.ShowAllFiles,
-            text=_('Show all files'),
+            text=_("Show all files"),
             toggled=True,
-            option='show_all_files')
+            option="show_all_files",
+        )
 
         comment_act = self.create_action(
             OutlineExplorerActions.ShowSpecialComments,
-            text=_('Show special comments'),
+            text=_("Show special comments"),
             toggled=True,
-            option='show_comments')
+            option="show_comments",
+        )
 
         group_cells_act = self.create_action(
             OutlineExplorerActions.GroupCodeCells,
-            text=_('Group code cells'),
+            text=_("Group code cells"),
             toggled=True,
-            option='group_cells')
+            option="group_cells",
+        )
 
         display_variables_act = self.create_action(
             OutlineExplorerActions.DisplayVariables,
-            text=_('Display variables and attributes'),
+            text=_("Display variables and attributes"),
             toggled=True,
-            option='display_variables'
+            option="display_variables",
         )
 
         follow_cursor_act = self.create_action(
             OutlineExplorerActions.FollowCursor,
-            text=_('Follow cursor position'),
+            text=_("Follow cursor position"),
             toggled=True,
-            option='follow_cursor'
+            option="follow_cursor",
         )
 
         sort_files_alphabetically_act = self.create_action(
             OutlineExplorerActions.SortFiles,
-            text=_('Sort files alphabetically'),
+            text=_("Sort files alphabetically"),
             toggled=True,
-            option='sort_files_alphabetically'
+            option="sort_files_alphabetically",
         )
 
-        actions = [fullpath_act, allfiles_act, group_cells_act,
-                   display_variables_act, follow_cursor_act, comment_act,
-                   sort_files_alphabetically_act, fromcursor_act]
+        actions = [
+            fullpath_act,
+            allfiles_act,
+            group_cells_act,
+            display_variables_act,
+            follow_cursor_act,
+            comment_act,
+            sort_files_alphabetically_act,
+            fromcursor_act,
+        ]
 
         option_menu = self.get_options_menu()
         for action in actions:

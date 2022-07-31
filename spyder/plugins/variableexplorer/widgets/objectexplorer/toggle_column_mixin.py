@@ -13,8 +13,15 @@ import logging
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QAbstractItemView, QAction, QActionGroup,
-                            QHeaderView, QTableWidget, QTreeView, QTreeWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QAction,
+    QActionGroup,
+    QHeaderView,
+    QTableWidget,
+    QTreeView,
+    QTreeWidget,
+)
 
 # Local imports
 from spyder.config.base import _
@@ -28,8 +35,8 @@ class ToggleColumnMixIn(object):
     Adds actions to a QTableView that can show/hide columns
     by right clicking on the header
     """
-    def add_header_context_menu(self, checked=None, checkable=None,
-                                enabled=None):
+
+    def add_header_context_menu(self, checked=None, checkable=None, enabled=None):
         """
         Adds the context menu from using header information
 
@@ -55,21 +62,21 @@ class ToggleColumnMixIn(object):
         self.__toggle_functions = []  # for keeping references
 
         for col in range(horizontal_header.count()):
-            column_label = self.model().headerData(col, Qt.Horizontal,
-                                                   Qt.DisplayRole)
+            column_label = self.model().headerData(col, Qt.Horizontal, Qt.DisplayRole)
             logger.debug("Adding: col {}: {}".format(col, column_label))
-            action = QAction(str(column_label),
-                             self.toggle_column_actions_group,
-                             checkable=checkable.get(column_label, True),
-                             enabled=enabled.get(column_label, True),
-                             toolTip=_("Shows or hides "
-                                       "the {} column").format(column_label))
+            action = QAction(
+                str(column_label),
+                self.toggle_column_actions_group,
+                checkable=checkable.get(column_label, True),
+                enabled=enabled.get(column_label, True),
+                toolTip=_("Shows or hides " "the {} column").format(column_label),
+            )
             func = self.__make_show_column_function(col)
             self.__toggle_functions.append(func)  # keep reference
             horizontal_header.addAction(action)
             is_checked = checked.get(
-                column_label,
-                not horizontal_header.isSectionHidden(col))
+                column_label, not horizontal_header.isSectionHidden(col)
+            )
             horizontal_header.setSectionHidden(col, not is_checked)
             action.setChecked(is_checked)
             action.toggled.connect(func)
@@ -88,8 +95,7 @@ class ToggleColumnMixIn(object):
 
     def __make_show_column_function(self, column_idx):
         """Creates a function that shows or hides a column."""
-        show_column = lambda checked: self.setColumnHidden(column_idx,
-                                                           not checked)
+        show_column = lambda checked: self.setColumnHidden(column_idx, not checked)
         return show_column
 
     def read_view_settings(self, key, settings=None, reset=False):
@@ -103,24 +109,26 @@ class ToggleColumnMixIn(object):
         logger.debug("Reading view settings for: {}".format(key))
         header_restored = False
         # TODO: Implement settings management
-#        if not reset:
-#            if settings is None:
-#                settings = get_qsettings()
-#            horizontal_header = self._horizontal_header()
-#            header_data = settings.value(key)
-#            if header_data:
-#                header_restored = horizontal_header.restoreState(header_data)
-#
-#            # update actions
-#            for col, action in enumerate(horizontal_header.actions()):
-#                is_checked = not horizontal_header.isSectionHidden(col)
-#                action.setChecked(is_checked)
+        #        if not reset:
+        #            if settings is None:
+        #                settings = get_qsettings()
+        #            horizontal_header = self._horizontal_header()
+        #            header_data = settings.value(key)
+        #            if header_data:
+        #                header_restored = horizontal_header.restoreState(header_data)
+        #
+        #            # update actions
+        #            for col, action in enumerate(horizontal_header.actions()):
+        #                is_checked = not horizontal_header.isSectionHidden(col)
+        #                action.setChecked(is_checked)
 
         return header_restored
 
     def write_view_settings(self, key, settings=None):
         """Writes the view settings to the persistent store."""
         logger.debug("Writing view settings for: {}".format(key))
+
+
 #       TODO: Settings management
 #        if settings is None:
 #            settings = get_qsettings()
@@ -132,6 +140,7 @@ class ToggleColumnTableWidget(QTableWidget, ToggleColumnMixIn):
     A QTableWidget where right clicking on the header allows the user
     to show/hide columns.
     """
+
     pass
 
 
@@ -140,6 +149,7 @@ class ToggleColumnTreeWidget(QTreeWidget, ToggleColumnMixIn):
     A QTreeWidget where right clicking on the header allows the user to
     show/hide columns.
     """
+
     def _horizontal_header(self):
         """
         Returns the horizontal header (of type QHeaderView).
@@ -158,8 +168,10 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     def __init__(self, readonly=False):
         QTreeView.__init__(self)
         self.readonly = readonly
-        from spyder.plugins.variableexplorer.widgets.collectionsdelegate \
-            import ToggleColumnDelegate
+        from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
+            ToggleColumnDelegate,
+        )
+
         self.setItemDelegate(ToggleColumnDelegate(self))
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
         self.expanded.connect(self.resize_columns_to_contents)

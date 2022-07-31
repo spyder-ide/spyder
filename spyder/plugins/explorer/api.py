@@ -10,8 +10,14 @@ Explorer Plugin API.
 
 # Local imports
 from spyder.plugins.explorer.widgets.explorer import (
-    DirViewActions, DirViewContextMenuSections, DirViewMenus,
-    DirViewNewSubMenuSections, ExplorerTreeWidgetActions)
+    DirViewActions,
+    DirViewContextMenuSections,
+    DirViewMenus,
+    DirViewNewSubMenuSections,
+    ExplorerTreeWidgetActions,
+)
 
 from spyder.plugins.explorer.widgets.main_widget import (
-    ExplorerWidgetMainToolbarSections, ExplorerWidgetOptionsMenuSections)
+    ExplorerWidgetMainToolbarSections,
+    ExplorerWidgetOptionsMenuSections,
+)

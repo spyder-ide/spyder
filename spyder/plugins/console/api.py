@@ -10,8 +10,11 @@ Console Plugin API.
 
 # Local imports
 from spyder.plugins.console.widgets.main_widget import (
-    ConsoleWidgetActions, ConsoleWidgetInternalSettingsSubMenuSections,
-    ConsoleWidgetMenus, ConsoleWidgetOptionsMenuSections)
+    ConsoleWidgetActions,
+    ConsoleWidgetInternalSettingsSubMenuSections,
+    ConsoleWidgetMenus,
+    ConsoleWidgetOptionsMenuSections,
+)
 
 
 class ConsoleActions:

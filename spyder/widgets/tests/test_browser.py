@@ -18,7 +18,7 @@ from spyder.widgets.browser import WebBrowser
 @pytest.fixture
 def browser(qtbot):
     """Set up WebBrowser."""
-    WebBrowser.CONF_SECTION = ''
+    WebBrowser.CONF_SECTION = ""
     widget = WebBrowser(None)
     widget.show()
     yield widget
@@ -28,7 +28,7 @@ def browser(qtbot):
 
 def test_browser(browser):
     """Run web browser."""
-    browser.set_home_url('https://www.google.com/')
+    browser.set_home_url("https://www.google.com/")
     browser.go_home()
     assert browser
 

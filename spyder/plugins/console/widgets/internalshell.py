@@ -11,7 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-#FIXME: Internal shell MT: for i in range(100000): print i -> bug
+# FIXME: Internal shell MT: for i in range(100000): print i -> bug
 
 # Standard library imports
 from time import time
@@ -21,15 +21,13 @@ import threading
 # Third party imports
 from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
 from qtpy.QtWidgets import QMessageBox
-from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
-                                             getsource)
+from spyder_kernels.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
 
 # Local imports
 from spyder import get_versions
 from spyder.api.translations import get_translation
 from spyder.plugins.console.utils.interpreter import Interpreter
-from spyder.py3compat import (builtins, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import builtins, to_binary_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.misc import get_error_match, getcwd_or_home
@@ -40,7 +38,7 @@ from spyder.config.base import get_conf_path, get_debug_level
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 builtins.oedit = oedit
 
 
@@ -48,14 +46,18 @@ def create_banner(message):
     """Create internal shell banner"""
     if message is None:
         versions = get_versions()
-        return 'Python %s %dbits [%s]'\
-               % (versions['python'], versions['bitness'], versions['system'])
+        return "Python %s %dbits [%s]" % (
+            versions["python"],
+            versions["bitness"],
+            versions["system"],
+        )
     else:
         return message
 
 
 class SysOutput(QObject):
     """Handle standard I/O queue"""
+
     data_avail = Signal()
 
     def __init__(self):
@@ -85,8 +87,10 @@ class SysOutput(QObject):
     def closed(self):
         return False
 
+
 class WidgetProxyData(object):
     pass
+
 
 class WidgetProxy(QObject):
     """Handle Shell widget refresh signal"""
@@ -118,7 +122,7 @@ class WidgetProxy(QObject):
         """Return True if input data is available"""
         return self.input_data is not WidgetProxyData
 
-    def wait_input(self, prompt=''):
+    def wait_input(self, prompt=""):
         self.input_data = WidgetProxyData
         self.sig_wait_input.emit(prompt)
 
@@ -147,11 +151,17 @@ class InternalShell(PythonShellWidget):
     # TODO: I think this is not being used now?
     sig_focus_changed = Signal()
 
-    def __init__(self, parent=None, commands=[], message=None,
-                 max_line_count=300, exitfunc=None, profile=False,
-                 multithreaded=True):
-        super().__init__(parent, get_conf_path('history_internal.py'),
-                         profile=profile)
+    def __init__(
+        self,
+        parent=None,
+        commands=[],
+        message=None,
+        max_line_count=300,
+        exitfunc=None,
+        profile=False,
+        multithreaded=True,
+    ):
+        super().__init__(parent, get_conf_path("history_internal.py"), profile=profile)
 
         self.multithreaded = multithreaded
         self.setMaximumBlockCount(max_line_count)
@@ -175,15 +185,14 @@ class InternalShell(PythonShellWidget):
         self.interpreter = None
 
         # Clear status bar
-        self.sig_show_status_requested.emit('')
+        self.sig_show_status_requested.emit("")
 
         # Embedded shell -- requires the monitor (which installs the
         # 'open_in_spyder' function in builtins)
-        if hasattr(builtins, 'open_in_spyder'):
-            self.sig_go_to_error_requested.connect(
-                self.open_with_external_spyder)
+        if hasattr(builtins, "open_in_spyder"):
+            self.sig_go_to_error_requested.connect(self.open_with_external_spyder)
 
-    #------ Interpreter
+    # ------ Interpreter
     def start_interpreter(self, namespace):
         """Start Python interpreter."""
         self.clear()
@@ -191,9 +200,9 @@ class InternalShell(PythonShellWidget):
         if self.interpreter is not None:
             self.interpreter.closing()
 
-        self.interpreter = Interpreter(namespace, self.exitfunc,
-                                       SysOutput, WidgetProxy,
-                                       get_debug_level())
+        self.interpreter = Interpreter(
+            namespace, self.exitfunc, SysOutput, WidgetProxy, get_debug_level()
+        )
         self.interpreter.stdout_write.data_avail.connect(self.stdout_avail)
         self.interpreter.stderr_write.data_avail.connect(self.stderr_avail)
         self.interpreter.widget_proxy.sig_set_readonly.connect(self.setReadOnly)
@@ -222,7 +231,7 @@ class InternalShell(PythonShellWidget):
         """Exit interpreter"""
         self.interpreter.exit_flag = True
         if self.multithreaded:
-            self.interpreter.stdin_write.write(to_binary_string('\n'))
+            self.interpreter.stdin_write.write(to_binary_string("\n"))
         self.interpreter.restore_stds()
 
     def edit_script(self, filename, external_editor):
@@ -245,9 +254,8 @@ class InternalShell(PythonShellWidget):
             self.write(data, error=True)
             self.flush(error=True)
 
-
-    #------Raw input support
-    def wait_input(self, prompt=''):
+    # ------Raw input support
+    def wait_input(self, prompt=""):
         """Wait for input (raw_input support)"""
         self.new_prompt(prompt)
         self.setFocus()
@@ -262,21 +270,22 @@ class InternalShell(PythonShellWidget):
         self.input_loop.exit()
         self.interpreter.widget_proxy.end_input(cmd)
 
-
-    #----- Menus, actions, ...
+    # ----- Menus, actions, ...
     def setup_context_menu(self):
         """Reimplement PythonShellWidget method"""
         PythonShellWidget.setup_context_menu(self)
-        self.help_action = create_action(self, _("Help..."),
-                           icon=ima.icon('DialogHelpButton'),
-                           triggered=self.help)
+        self.help_action = create_action(
+            self, _("Help..."), icon=ima.icon("DialogHelpButton"), triggered=self.help
+        )
         self.menu.addAction(self.help_action)
 
     @Slot()
     def help(self):
         """Help on Spyder console"""
-        QMessageBox.about(self, _("Help"),
-                          """<b>%s</b>
+        QMessageBox.about(
+            self,
+            _("Help"),
+            """<b>%s</b>
                           <p><i>%s</i><br>    edit foobar.py
                           <p><i>%s</i><br>    xedit foobar.py
                           <p><i>%s</i><br>    run foobar.py
@@ -284,17 +293,20 @@ class InternalShell(PythonShellWidget):
                           <p><i>%s</i><br>    !ls
                           <p><i>%s</i><br>    object?
                           <p><i>%s</i><br>    result = oedit(object)
-                          """ % (_('Shell special commands:'),
-                                 _('Internal editor:'),
-                                 _('External editor:'),
-                                 _('Run script:'),
-                                 _('Remove references:'),
-                                 _('System commands:'),
-                                 _('Python help:'),
-                                 _('GUI-based editor:')))
+                          """
+            % (
+                _("Shell special commands:"),
+                _("Internal editor:"),
+                _("External editor:"),
+                _("Run script:"),
+                _("Remove references:"),
+                _("System commands:"),
+                _("Python help:"),
+                _("GUI-based editor:"),
+            ),
+        )
 
-
-    #------ External editing
+    # ------ External editing
     def open_with_external_spyder(self, text):
         """Load file in external Spyder's editor, if available
         This method is used only for embedded consoles
@@ -322,14 +334,13 @@ class InternalShell(PythonShellWidget):
             try:
                 args = [filename]
                 if goto > 0 and goto_option:
-                    args.append('%s%d'.format(goto_option, goto))
+                    args.append("%s%d".format(goto_option, goto))
 
                 programs.run_program(editor_path, args)
             except OSError:
-                self.write_error("External editor was not found:"
-                                 " %s\n" % editor_path)
+                self.write_error("External editor was not found:" " %s\n" % editor_path)
 
-    #------ I/O
+    # ------ I/O
     def flush(self, error=False, prompt=False):
         """Reimplement ShellBaseWidget method"""
         PythonShellWidget.flush(self, error=error, prompt=prompt)
@@ -337,15 +348,15 @@ class InternalShell(PythonShellWidget):
             self.interrupted = False
             raise KeyboardInterrupt
 
-
-    #------ Clear terminal
+    # ------ Clear terminal
     def clear_terminal(self):
         """Reimplement ShellBaseWidget method"""
         self.clear()
-        self.new_prompt(self.interpreter.p2 if self.interpreter.more else self.interpreter.p1)
+        self.new_prompt(
+            self.interpreter.p2 if self.interpreter.more else self.interpreter.p1
+        )
 
-
-    #------ Keyboard events
+    # ------ Keyboard events
     def on_enter(self, command):
         """on_enter"""
         if self.profile:
@@ -353,7 +364,7 @@ class InternalShell(PythonShellWidget):
             t0 = time()
             for _ in range(10):
                 self.execute_command(command)
-            self.insert_text(u"\n<Δt>=%dms\n" % (1e2*(time()-t0)))
+            self.insert_text("\n<Δt>=%dms\n" % (1e2 * (time() - t0)))
             self.new_prompt(self.interpreter.p1)
         else:
             self.execute_command(command)
@@ -375,7 +386,7 @@ class InternalShell(PythonShellWidget):
             past_event = self.eventqueue.pop(0)
             self.postprocess_keyevent(past_event)
 
-    #------ Command execution
+    # ------ Command execution
     def keyboard_interrupt(self):
         """Simulate keyboard interrupt"""
         if self.multithreaded:
@@ -396,10 +407,10 @@ class InternalShell(PythonShellWidget):
         """
         for line in lines.splitlines():
             stripped_line = line.strip()
-            if stripped_line.startswith('#'):
+            if stripped_line.startswith("#"):
                 continue
-            self.write(line+os.linesep, flush=True)
-            self.execute_command(line+"\n")
+            self.write(line + os.linesep, flush=True)
+            self.execute_command(line + "\n")
             self.flush()
 
     def execute_command(self, cmd):
@@ -410,10 +421,10 @@ class InternalShell(PythonShellWidget):
         if self.input_mode:
             self.end_input(cmd)
             return
-        if cmd.endswith('\n'):
+        if cmd.endswith("\n"):
             cmd = cmd[:-1]
         # cls command
-        if cmd == 'cls':
+        if cmd == "cls":
             self.clear_terminal()
             return
         self.run_command(cmd)
@@ -421,26 +432,28 @@ class InternalShell(PythonShellWidget):
     def run_command(self, cmd, history=True, new_prompt=True):
         """Run command in interpreter"""
         if not cmd:
-            cmd = ''
+            cmd = ""
         else:
             if history:
                 self.add_to_history(cmd)
         if not self.multithreaded:
-            if 'input' not in cmd:
-                self.interpreter.stdin_write.write(
-                                                to_binary_string(cmd + '\n'))
+            if "input" not in cmd:
+                self.interpreter.stdin_write.write(to_binary_string(cmd + "\n"))
                 self.interpreter.run_line()
                 self.sig_refreshed.emit()
             else:
-                self.write(_('In order to use commands like "raw_input" '
-                             'or "input" run Spyder with the multithread '
-                             'option (--multithread) from a system terminal'),
-                           error=True)
+                self.write(
+                    _(
+                        'In order to use commands like "raw_input" '
+                        'or "input" run Spyder with the multithread '
+                        "option (--multithread) from a system terminal"
+                    ),
+                    error=True,
+                )
         else:
-            self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
+            self.interpreter.stdin_write.write(to_binary_string(cmd + "\n"))
 
-
-    #------ Code completion / Calltips
+    # ------ Code completion / Calltips
     def _eval(self, text):
         """Is text a valid object?"""
         return self.interpreter.eval(text)

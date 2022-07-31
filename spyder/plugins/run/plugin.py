@@ -13,12 +13,14 @@ Run Plugin.
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.plugins.run.confpage import RunConfigPage
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # --- Plugin
@@ -46,7 +48,7 @@ class Run(SpyderPluginV2):
         return _("Manage run configuration.")
 
     def get_icon(self):
-        return self.create_icon('run')
+        return self.create_icon("run")
 
     def on_initialize(self):
         pass

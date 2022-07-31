@@ -40,6 +40,7 @@ class TextDecorationsManager(Manager, QObject):
     Manages the collection of TextDecoration that have been set on the editor
     widget.
     """
+
     def __init__(self, editor):
         super(TextDecorationsManager, self).__init__(editor)
         QObject.__init__(self, None)
@@ -49,8 +50,7 @@ class TextDecorationsManager(Manager, QObject):
         self.update_timer = QTimer(self)
         self.update_timer.setSingleShot(True)
         self.update_timer.setInterval(UPDATE_TIMEOUT)
-        self.update_timer.timeout.connect(
-            self._update)
+        self.update_timer.timeout.connect(self._update)
 
     def add(self, decorations):
         """
@@ -160,12 +160,16 @@ class TextDecorationsManager(Manager, QObject):
                     need_update_sel = first <= block_nb_start <= last
 
                 block_nb = decoration.cursor.block().blockNumber()
-                if (first <= block_nb <= last or need_update_sel or
-                        decoration.kind == 'current_cell'):
+                if (
+                    first <= block_nb <= last
+                    or need_update_sel
+                    or decoration.kind == "current_cell"
+                ):
                     visible_decorations.append(decoration)
                     try:
                         decoration.format.setFont(
-                            font, QTextCharFormat.FontPropertiesSpecifiedOnly)
+                            font, QTextCharFormat.FontPropertiesSpecifiedOnly
+                        )
                     except (TypeError, AttributeError):  # Qt < 5.3
                         decoration.format.setFontFamily(font.family())
                         decoration.format.setFontPointSize(font.pointSize())
@@ -184,7 +188,6 @@ class TextDecorationsManager(Manager, QObject):
     def _sorted_decorations(self):
         """Get all sorted decorations."""
         return sorted(
-            [v for key in self._decorations
-             for v in self._decorations[key]],
-            key=order_function
+            [v for key in self._decorations for v in self._decorations[key]],
+            key=order_function,
         )

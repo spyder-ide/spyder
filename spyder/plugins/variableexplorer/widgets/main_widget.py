@@ -10,19 +10,21 @@ Variable Explorer Main Plugin Widget.
 
 # Third party imports
 from qtpy.QtCore import QTimer, Signal, Slot
-from qtpy.QtWidgets import (
-    QAction, QHBoxLayout, QWidget)
+from qtpy.QtWidgets import QAction, QHBoxLayout, QWidget
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
+    NamespaceBrowser,
+    NamespacesBrowserFinder,
+    VALID_VARIABLE_CHARS,
+)
 from spyder.utils.programs import is_module_installed
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # =============================================================================
@@ -30,64 +32,64 @@ _ = get_translation('spyder')
 # =============================================================================
 class VariableExplorerWidgetActions:
     # Triggers
-    ImportData = 'import_data_action'
-    SaveData = 'save_data_action'
-    SaveDataAs = 'save_data_as_action'
-    ResetNamespace = 'reset_namespaces_action'
-    Search = 'search'
-    Refresh = 'refresh'
+    ImportData = "import_data_action"
+    SaveData = "save_data_action"
+    SaveDataAs = "save_data_as_action"
+    ResetNamespace = "reset_namespaces_action"
+    Search = "search"
+    Refresh = "refresh"
 
     # Toggles
-    ToggleExcludePrivate = 'toggle_exclude_private_action'
-    ToggleExcludeUpperCase = 'toggle_exclude_uppercase_action'
-    ToggleExcludeCapitalized = 'toggle_exclude_capitalized_action'
-    ToggleExcludeUnsupported = 'toggle_exclude_unsupported_action'
-    ToggleExcludeCallablesAndModules = (
-        'toggle_exclude_callables_and_modules_action')
-    ToggleMinMax = 'toggle_minmax_action'
+    ToggleExcludePrivate = "toggle_exclude_private_action"
+    ToggleExcludeUpperCase = "toggle_exclude_uppercase_action"
+    ToggleExcludeCapitalized = "toggle_exclude_capitalized_action"
+    ToggleExcludeUnsupported = "toggle_exclude_unsupported_action"
+    ToggleExcludeCallablesAndModules = "toggle_exclude_callables_and_modules_action"
+    ToggleMinMax = "toggle_minmax_action"
 
 
 class VariableExplorerWidgetOptionsMenuSections:
-    Display = 'excludes_section'
-    Highlight = 'highlight_section'
+    Display = "excludes_section"
+    Highlight = "highlight_section"
 
 
 class VariableExplorerWidgetMainToolBarSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 class VariableExplorerWidgetMenus:
-    EmptyContextMenu = 'empty'
-    PopulatedContextMenu = 'populated'
+    EmptyContextMenu = "empty"
+    PopulatedContextMenu = "populated"
 
 
 class VariableExplorerContextMenuActions:
-    ResizeRowsAction = 'resize_rows_action'
-    ResizeColumnsAction = 'resize_columns_action'
-    PasteAction = 'paste_action'
-    CopyAction = 'copy'
-    EditAction = 'edit_action'
-    PlotAction = 'plot_action'
-    HistogramAction = 'histogram_action'
-    ImshowAction = 'imshow_action'
-    SaveArrayAction = 'save_array_action'
-    InsertAction = 'insert_action'
-    RemoveAction = 'remove_action'
-    RenameAction = 'rename_action'
-    DuplicateAction = 'duplicate_action'
-    ViewAction = 'view_action'
+    ResizeRowsAction = "resize_rows_action"
+    ResizeColumnsAction = "resize_columns_action"
+    PasteAction = "paste_action"
+    CopyAction = "copy"
+    EditAction = "edit_action"
+    PlotAction = "plot_action"
+    HistogramAction = "histogram_action"
+    ImshowAction = "imshow_action"
+    SaveArrayAction = "save_array_action"
+    InsertAction = "insert_action"
+    RemoveAction = "remove_action"
+    RenameAction = "rename_action"
+    DuplicateAction = "duplicate_action"
+    ViewAction = "view_action"
 
 
 class VariableExplorerContextMenuSections:
-    Edit = 'edit_section'
-    Insert = 'insert_section'
-    View = 'view_section'
-    Resize = 'resize_section'
+    Edit = "edit_section"
+    Insert = "insert_section"
+    View = "view_section"
+    Resize = "resize_section"
 
 
 # =============================================================================
 # ---- Widgets
 # =============================================================================
+
 
 class VariableExplorerWidget(ShellConnectMainWidget):
 
@@ -114,7 +116,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return _('Variable Explorer')
+        return _("Variable Explorer")
 
     def setup(self):
         # ---- Options menu actions
@@ -123,7 +125,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             text=_("Exclude private variables"),
             tip=_("Exclude variables that start with an underscore"),
             toggled=True,
-            option='exclude_private',
+            option="exclude_private",
         )
 
         exclude_uppercase_action = self.create_action(
@@ -131,34 +133,36 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             text=_("Exclude all-uppercase variables"),
             tip=_("Exclude variables whose name is uppercase"),
             toggled=True,
-            option='exclude_uppercase',
+            option="exclude_uppercase",
         )
 
         exclude_capitalized_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCapitalized,
             text=_("Exclude capitalized variables"),
-            tip=_("Exclude variables whose name starts with a capital "
-                  "letter"),
+            tip=_("Exclude variables whose name starts with a capital " "letter"),
             toggled=True,
-            option='exclude_capitalized',
+            option="exclude_capitalized",
         )
 
         exclude_unsupported_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeUnsupported,
             text=_("Exclude unsupported data types"),
-            tip=_("Exclude references to data types that don't have "
-                  "an specialized viewer or can't be edited."),
+            tip=_(
+                "Exclude references to data types that don't have "
+                "an specialized viewer or can't be edited."
+            ),
             toggled=True,
-            option='exclude_unsupported',
+            option="exclude_unsupported",
         )
 
         exclude_callables_and_modules_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCallablesAndModules,
             text=_("Exclude callables and modules"),
-            tip=_("Exclude references to functions, modules and "
-                  "any other callable."),
+            tip=_(
+                "Exclude references to functions, modules and " "any other callable."
+            ),
             toggled=True,
-            option='exclude_callables_and_modules'
+            option="exclude_callables_and_modules",
         )
 
         self.show_minmax_action = self.create_action(
@@ -166,50 +170,50 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             text=_("Show arrays min/max"),
             tip=_("Show minimum and maximum of arrays"),
             toggled=True,
-            option='minmax'
+            option="minmax",
         )
 
         # ---- Toolbar actions
         import_data_action = self.create_action(
             VariableExplorerWidgetActions.ImportData,
-            text=_('Import data'),
-            icon=self.create_icon('fileimport'),
+            text=_("Import data"),
+            icon=self.create_icon("fileimport"),
             triggered=lambda x: self.import_data(),
         )
 
         save_action = self.create_action(
             VariableExplorerWidgetActions.SaveData,
             text=_("Save data"),
-            icon=self.create_icon('filesave'),
+            icon=self.create_icon("filesave"),
             triggered=lambda x: self.save_data(),
         )
 
         save_as_action = self.create_action(
             VariableExplorerWidgetActions.SaveDataAs,
             text=_("Save data as..."),
-            icon=self.create_icon('filesaveas'),
+            icon=self.create_icon("filesaveas"),
             triggered=lambda x: self.save_data(),
         )
 
         reset_namespace_action = self.create_action(
             VariableExplorerWidgetActions.ResetNamespace,
             text=_("Remove all variables"),
-            icon=self.create_icon('editdelete'),
+            icon=self.create_icon("editdelete"),
             triggered=lambda x: self.reset_namespace(),
         )
 
         search_action = self.create_action(
             VariableExplorerWidgetActions.Search,
             text=_("Search variable names and types"),
-            icon=self.create_icon('find'),
+            icon=self.create_icon("find"),
             toggled=self.show_finder,
-            register_shortcut=True
+            register_shortcut=True,
         )
 
         refresh_action = self.create_action(
             VariableExplorerWidgetActions.Refresh,
             text=_("Refresh variables"),
-            icon=self.create_icon('refresh'),
+            icon=self.create_icon("refresh"),
             triggered=self.refresh_table,
             register_shortcut=True,
         )
@@ -218,111 +222,115 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         resize_rows_action = self.create_action(
             VariableExplorerContextMenuActions.ResizeRowsAction,
             text=_("Resize rows to contents"),
-            icon=self.create_icon('collapse_row'),
-            triggered=self.resize_rows
+            icon=self.create_icon("collapse_row"),
+            triggered=self.resize_rows,
         )
 
         resize_columns_action = self.create_action(
             VariableExplorerContextMenuActions.ResizeColumnsAction,
             _("Resize columns to contents"),
-            icon=self.create_icon('collapse_column'),
-            triggered=self.resize_columns
+            icon=self.create_icon("collapse_column"),
+            triggered=self.resize_columns,
         )
 
         self.paste_action = self.create_action(
             VariableExplorerContextMenuActions.PasteAction,
             _("Paste"),
-            icon=self.create_icon('editpaste'),
-            triggered=self.paste
+            icon=self.create_icon("editpaste"),
+            triggered=self.paste,
         )
 
         self.copy_action = self.create_action(
             VariableExplorerContextMenuActions.CopyAction,
             _("Copy"),
-            icon=self.create_icon('editcopy'),
-            triggered=self.copy
+            icon=self.create_icon("editcopy"),
+            triggered=self.copy,
         )
 
         self.edit_action = self.create_action(
             VariableExplorerContextMenuActions.EditAction,
             _("Edit"),
-            icon=self.create_icon('edit'),
-            triggered=self.edit_item
+            icon=self.create_icon("edit"),
+            triggered=self.edit_item,
         )
 
         self.plot_action = self.create_action(
             VariableExplorerContextMenuActions.PlotAction,
             _("Plot"),
-            icon=self.create_icon('plot'),
-            triggered=self.plot_item
+            icon=self.create_icon("plot"),
+            triggered=self.plot_item,
         )
         self.plot_action.setVisible(False)
 
         self.hist_action = self.create_action(
             VariableExplorerContextMenuActions.HistogramAction,
             _("Histogram"),
-            icon=self.create_icon('hist'),
-            triggered=self.histogram_item
+            icon=self.create_icon("hist"),
+            triggered=self.histogram_item,
         )
         self.hist_action.setVisible(False)
 
         self.imshow_action = self.create_action(
             VariableExplorerContextMenuActions.ImshowAction,
             _("Show image"),
-            icon=self.create_icon('imshow'),
-            triggered=self.imshow_item
+            icon=self.create_icon("imshow"),
+            triggered=self.imshow_item,
         )
         self.imshow_action.setVisible(False)
 
         self.save_array_action = self.create_action(
             VariableExplorerContextMenuActions.SaveArrayAction,
             _("Save array"),
-            icon=self.create_icon('filesave'),
-            triggered=self.save_array
+            icon=self.create_icon("filesave"),
+            triggered=self.save_array,
         )
         self.save_array_action.setVisible(False)
 
         self.insert_action = self.create_action(
             VariableExplorerContextMenuActions.InsertAction,
             _("Insert"),
-            icon=self.create_icon('insert'),
-            triggered=self.insert_item
+            icon=self.create_icon("insert"),
+            triggered=self.insert_item,
         )
 
         self.remove_action = self.create_action(
             VariableExplorerContextMenuActions.RemoveAction,
             _("Remove"),
-            icon=self.create_icon('editdelete'),
-            triggered=self.remove_item
+            icon=self.create_icon("editdelete"),
+            triggered=self.remove_item,
         )
 
         self.rename_action = self.create_action(
             VariableExplorerContextMenuActions.RenameAction,
             _("Rename"),
-            icon=self.create_icon('rename'),
-            triggered=self.rename_item
+            icon=self.create_icon("rename"),
+            triggered=self.rename_item,
         )
 
         self.duplicate_action = self.create_action(
             VariableExplorerContextMenuActions.DuplicateAction,
             _("Duplicate"),
-            icon=self.create_icon('edit_add'),
-            triggered=self.duplicate_item
+            icon=self.create_icon("edit_add"),
+            triggered=self.duplicate_item,
         )
 
         self.view_action = self.create_action(
             VariableExplorerContextMenuActions.ViewAction,
             _("View with the Object Explorer"),
-            icon=self.create_icon('outline_explorer'),
-            triggered=self.view_item
+            icon=self.create_icon("outline_explorer"),
+            triggered=self.view_item,
         )
 
         # Options menu
         options_menu = self.get_options_menu()
-        for item in [exclude_private_action, exclude_uppercase_action,
-                     exclude_capitalized_action, exclude_unsupported_action,
-                     exclude_callables_and_modules_action,
-                     self.show_minmax_action]:
+        for item in [
+            exclude_private_action,
+            exclude_uppercase_action,
+            exclude_capitalized_action,
+            exclude_unsupported_action,
+            exclude_callables_and_modules_action,
+            self.show_minmax_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -331,8 +339,14 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [import_data_action, save_action, save_as_action,
-                     reset_namespace_action, search_action, refresh_action]:
+        for item in [
+            import_data_action,
+            save_action,
+            save_as_action,
+            reset_namespace_action,
+            search_action,
+            refresh_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -342,10 +356,16 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # ---- Context menu to show when there are variables present
         self.context_menu = self.create_menu(
-            VariableExplorerWidgetMenus.PopulatedContextMenu)
-        for item in [self.edit_action, self.copy_action, self.paste_action,
-                     self.rename_action, self.remove_action,
-                     self.save_array_action]:
+            VariableExplorerWidgetMenus.PopulatedContextMenu
+        )
+        for item in [
+            self.edit_action,
+            self.copy_action,
+            self.paste_action,
+            self.rename_action,
+            self.remove_action,
+            self.save_array_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
@@ -359,8 +379,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 section=VariableExplorerContextMenuSections.Insert,
             )
 
-        for item in [self.view_action, self.plot_action, self.hist_action,
-                     self.imshow_action, self.show_minmax_action]:
+        for item in [
+            self.view_action,
+            self.plot_action,
+            self.hist_action,
+            self.imshow_action,
+            self.show_minmax_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
@@ -376,7 +401,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # ---- Context menu when the variable explorer is empty
         self.empty_context_menu = self.create_menu(
-            VariableExplorerWidgetMenus.EmptyContextMenu)
+            VariableExplorerWidgetMenus.EmptyContextMenu
+        )
         for item in [self.insert_action, self.paste_action]:
             self.add_item_to_menu(
                 item,
@@ -386,7 +412,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         action = self.get_action(VariableExplorerWidgetActions.ToggleMinMax)
-        action.setEnabled(is_module_installed('numpy'))
+        action.setEnabled(is_module_installed("numpy"))
         nsb = self.current_widget()
 
         for __, action in self.get_actions().items():
@@ -397,7 +423,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 # for shortcuts to work
                 if nsb:
                     save_data_action = self.get_action(
-                        VariableExplorerWidgetActions.SaveData)
+                        VariableExplorerWidgetActions.SaveData
+                    )
                     save_data_action.setEnabled(nsb.filename is not None)
 
                     nsb_actions = nsb.actions()
@@ -422,12 +449,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 nsb.editor,
                 callback=nsb.editor.set_regex,
                 main=nsb,
-                regex_base=VALID_VARIABLE_CHARS)
+                regex_base=VALID_VARIABLE_CHARS,
+            )
             self.finder.text_finder = self.text_finder
             self.finder_close_button = self.create_toolbutton(
-                'close_finder',
+                "close_finder",
                 triggered=self.hide_finder,
-                icon=self.create_icon('DialogCloseButton'),
+                icon=self.create_icon("DialogCloseButton"),
             )
 
             finder_layout = QHBoxLayout()
@@ -471,14 +499,10 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb = NamespaceBrowser(self)
         nsb.set_shellwidget(shellwidget)
         nsb.setup()
-        nsb.sig_free_memory_requested.connect(
-            self.free_memory)
-        nsb.sig_start_spinner_requested.connect(
-            self.start_spinner)
-        nsb.sig_stop_spinner_requested.connect(
-            self.stop_spinner)
-        nsb.sig_hide_finder_requested.connect(
-            self.hide_finder)
+        nsb.sig_free_memory_requested.connect(self.free_memory)
+        nsb.sig_start_spinner_requested.connect(self.start_spinner)
+        nsb.sig_stop_spinner_requested.connect(self.stop_spinner)
+        nsb.sig_hide_finder_requested.connect(self.hide_finder)
         self._set_actions_and_menus(nsb)
         return nsb
 
@@ -514,7 +538,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 self.finder.text_finder.setText(nsb.last_find)
             else:
                 self.save_finder_state(nsb)
-                self.finder.text_finder.setText('')
+                self.finder.text_finder.setText("")
             self.finder.setVisible(checked)
             if self.finder.isVisible():
                 self.finder.text_finder.setFocus()
@@ -527,7 +551,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         action.setChecked(False)
         nsb = self.current_widget()
         self.save_finder_state(nsb)
-        self.finder.text_finder.setText('')
+        self.finder.text_finder.setText("")
 
     def save_finder_state(self, nsb):
         """
@@ -550,10 +574,12 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         Free memory signal.
         """
         self.sig_free_memory_requested.emit()
-        QTimer.singleShot(self.INITIAL_FREE_MEMORY_TIME_TRIGGER,
-                          self.sig_free_memory_requested)
-        QTimer.singleShot(self.SECONDARY_FREE_MEMORY_TIME_TRIGGER,
-                          self.sig_free_memory_requested)
+        QTimer.singleShot(
+            self.INITIAL_FREE_MEMORY_TIME_TRIGGER, self.sig_free_memory_requested
+        )
+        QTimer.singleShot(
+            self.SECONDARY_FREE_MEMORY_TIME_TRIGGER, self.sig_free_memory_requested
+        )
 
     def resize_rows(self):
         self._current_editor.resizeRowsToContents()
@@ -571,10 +597,10 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self._current_editor.edit_item()
 
     def plot_item(self):
-        self._current_editor.plot_item('plot')
+        self._current_editor.plot_item("plot")
 
     def histogram_item(self):
-        self._current_editor.plot_item('hist')
+        self._current_editor.plot_item("hist")
 
     def imshow_item(self):
         self._current_editor.imshow_item()

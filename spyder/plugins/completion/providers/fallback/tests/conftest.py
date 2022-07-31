@@ -8,8 +8,7 @@ import pytest
 
 from qtpy.QtCore import QObject, Signal
 
-from spyder.plugins.completion.providers.fallback.provider import (
-    FallbackProvider)
+from spyder.plugins.completion.providers.fallback.provider import FallbackProvider
 from spyder.plugins.completion.tests.conftest import qtbot_module
 
 
@@ -17,11 +16,11 @@ class CompletionManagerMock(QObject):
     sig_recv_tokens = Signal(list)
 
     def handle_response(self, client, req_id, response):
-        tokens = list(response['params'])
+        tokens = list(response["params"])
         self.sig_recv_tokens.emit(list(tokens))
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def fallback_completions(qtbot_module, request):
     fallback = FallbackProvider(None, {})
     completions = CompletionManagerMock(None)

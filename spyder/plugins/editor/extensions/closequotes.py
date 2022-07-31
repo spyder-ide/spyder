@@ -30,13 +30,13 @@ def unmatched_quotes_in_line(text):
     # We check " first, then ', so complex cases with nested quotes will
     # get the " to take precedence.
     text = text.replace("\\'", "")
-    text = text.replace('\\"', '')
+    text = text.replace('\\"', "")
     if text.count('"') % 2:
         return '"'
     elif text.count("'") % 2:
         return "'"
     else:
-        return ''
+        return ""
 
 
 class CloseQuotesExtension(EditorExtension):
@@ -57,59 +57,59 @@ class CloseQuotesExtension(EditorExtension):
         # to avoid issues with international keyboards.
         # See spyder-ide/spyder#9814
         char = event.text()
-        if char in ('"', '\'') and self.enabled:
+        if char in ('"', "'") and self.enabled:
             self.editor.completion_widget.hide()
             self._autoinsert_quotes(char)
             event.accept()
 
     def _autoinsert_quotes(self, char):
         """Control how to automatically insert quotes in various situations."""
-        line_text = self.editor.get_text('sol', 'eol')
-        line_to_cursor = self.editor.get_text('sol', 'cursor')
+        line_text = self.editor.get_text("sol", "eol")
+        line_to_cursor = self.editor.get_text("sol", "cursor")
         cursor = self.editor.textCursor()
-        last_three = self.editor.get_text('sol', 'cursor')[-3:]
-        last_two = self.editor.get_text('sol', 'cursor')[-2:]
-        trailing_text = self.editor.get_text('cursor', 'eol').strip()
+        last_three = self.editor.get_text("sol", "cursor")[-3:]
+        last_two = self.editor.get_text("sol", "cursor")[-2:]
+        trailing_text = self.editor.get_text("cursor", "eol").strip()
 
         if self.editor.has_selected_text():
             text = self.editor.get_selected_text()
             self.editor.insert_text("{0}{1}{0}".format(char, text))
             # keep text selected, for inserting multiple quotes
             cursor.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor, 1)
-            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
-                                len(text))
+            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, len(text))
             self.editor.setTextCursor(cursor)
         elif self.editor.in_comment():
             self.editor.insert_text(char)
-        elif (len(trailing_text) > 0 and
-                not unmatched_quotes_in_line(line_to_cursor) == char and
-                not trailing_text[0] in (',', ':', ';', ')', ']', '}')):
+        elif (
+            len(trailing_text) > 0
+            and not unmatched_quotes_in_line(line_to_cursor) == char
+            and not trailing_text[0] in (",", ":", ";", ")", "]", "}")
+        ):
             self.editor.insert_text(char)
-        elif (unmatched_quotes_in_line(line_text) and
-                (not last_three == 3*char)):
+        elif unmatched_quotes_in_line(line_text) and (not last_three == 3 * char):
             self.editor.insert_text(char)
         # Move to the right if we are before a quote
         elif self.editor.next_char() == char:
-            cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor, 1)
+            cursor.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor, 1)
             cursor.clearSelection()
             self.editor.setTextCursor(cursor)
         # Automatic insertion of triple double quotes (for docstrings)
-        elif last_three == 3*char:
-            self.editor.insert_text(3*char)
+        elif last_three == 3 * char:
+            self.editor.insert_text(3 * char)
             cursor = self.editor.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter,
-                                QTextCursor.KeepAnchor, 3)
+            cursor.movePosition(
+                QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor, 3
+            )
             cursor.clearSelection()
             self.editor.setTextCursor(cursor)
         # If last two chars are quotes, just insert one more because most
         # probably the user wants to write a docstring
-        elif last_two == 2*char:
+        elif last_two == 2 * char:
             self.editor.insert_text(char)
             self.editor.delayed_popup_docstring()
         # Automatic insertion of quotes
         else:
-            self.editor.insert_text(2*char)
+            self.editor.insert_text(2 * char)
             cursor = self.editor.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter)
             self.editor.setTextCursor(cursor)

@@ -33,9 +33,8 @@ GET_ENVS_TIME = time.time() - t0
 
 
 @pytest.mark.skipif(
-    ((len(conda_envs) == 0 and len(pyenv_envs) == 0) or
-     sys.platform == 'darwin'),
-    reason="Makes no sense if conda and pyenv are not installed, fails on mac"
+    ((len(conda_envs) == 0 and len(pyenv_envs) == 0) or sys.platform == "darwin"),
+    reason="Makes no sense if conda and pyenv are not installed, fails on mac",
 )
 def test_load_time(qtbot):
     # Create Preferences dialog

@@ -22,12 +22,19 @@ import os
 import sys
 
 # Third party imports
-from qtpy.QtCore import (QBasicTimer, QCoreApplication, QEvent, Qt, QTimer,
-                         Signal)
+from qtpy.QtCore import QBasicTimer, QCoreApplication, QEvent, Qt, QTimer, Signal
 from qtpy.QtGui import QCursor, QPalette
-from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
-                            QPlainTextEdit, QStyle, QStyleOptionFrame,
-                            QStylePainter, QToolTip)
+from qtpy.QtWidgets import (
+    QApplication,
+    QFrame,
+    QLabel,
+    QTextEdit,
+    QPlainTextEdit,
+    QStyle,
+    QStyleOptionFrame,
+    QStylePainter,
+    QToolTip,
+)
 
 # Local imports
 from spyder.py3compat import to_text_string
@@ -49,7 +56,7 @@ class ToolTipWidget(QLabel):
 
         # Variables
         self.completion_doc = None
-        self._url = ''
+        self._url = ""
         self.app = QCoreApplication.instance()
         self.as_tooltip = as_tooltip
         self.tip = None
@@ -58,7 +65,7 @@ class ToolTipWidget(QLabel):
 
         # Setup
         # This keeps the hints below other applications
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             self.setWindowFlags(Qt.SplashScreen)
         else:
             self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
@@ -74,15 +81,13 @@ class ToolTipWidget(QLabel):
         self.setIndent(1)
         self.setFrameStyle(QFrame.NoFrame)
         style = self.style()
-        delta_margin = style.pixelMetric(QStyle.PM_ToolTipLabelFrameWidth,
-                                         None, self)
+        delta_margin = style.pixelMetric(QStyle.PM_ToolTipLabelFrameWidth, None, self)
         self.setMargin(1 + delta_margin)
 
         # Signals
         self.linkHovered.connect(self._update_hover_html_link_style)
         self._timer_hide.timeout.connect(self.hide)
-        QApplication.instance().applicationStateChanged.connect(
-            self._should_hide)
+        QApplication.instance().applicationStateChanged.connect(self._should_hide)
 
     def paintEvent(self, event):
         """Reimplemented to paint the background panel."""
@@ -96,8 +101,8 @@ class ToolTipWidget(QLabel):
 
     def _update_hover_html_link_style(self, url):
         """Update style of labels that include rich text and html links."""
-        link = 'text-decoration:none;'
-        link_hovered = 'text-decoration:underline;'
+        link = "text-decoration:none;"
+        link_hovered = "text-decoration:underline;"
         self._url = url
 
         if url:
@@ -152,8 +157,8 @@ class ToolTipWidget(QLabel):
         tip_height = self.size().height()
         tip_width = self.size().width()
 
-        vertical = 'bottom'
-        horizontal = 'Right'
+        vertical = "bottom"
+        horizontal = "Right"
 
         if point.y() + tip_height > screen_rect.height() + screen_rect.y():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
@@ -163,11 +168,11 @@ class ToolTipWidget(QLabel):
                 # If point is in upper half of screen, show tip below it.
                 # otherwise above it.
                 if 2 * point.y() < screen_rect.height():
-                    vertical = 'bottom'
+                    vertical = "bottom"
                 else:
-                    vertical = 'top'
+                    vertical = "top"
             else:
-                vertical = 'top'
+                vertical = "top"
 
         if point.x() + tip_width > screen_rect.width() + screen_rect.x():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
@@ -175,22 +180,22 @@ class ToolTipWidget(QLabel):
             # left half of the screen.
             if point_.x() - tip_width < padding:
                 if 2 * point.x() < screen_rect.width():
-                    horizontal = 'Right'
+                    horizontal = "Right"
                 else:
-                    horizontal = 'Left'
+                    horizontal = "Left"
             else:
-                horizontal = 'Left'
-        pos = getattr(cursor_rect, '%s%s' % (vertical, horizontal))
+                horizontal = "Left"
+        pos = getattr(cursor_rect, "%s%s" % (vertical, horizontal))
         adjusted_point = text_edit.mapToGlobal(pos())
 
-        if vertical == 'top':
-            if os.name == 'nt':
+        if vertical == "top":
+            if os.name == "nt":
                 padding = -7
             else:
                 padding = -4
             point.setY(adjusted_point.y() - tip_height - padding)
 
-        if horizontal == 'Left':
+        if horizontal == "Left":
             point.setX(adjusted_point.x() - tip_width - padding)
 
         self.move(point)
@@ -204,8 +209,8 @@ class ToolTipWidget(QLabel):
         """
         QApplication.restoreOverrideCursor()
         if self.completion_doc:
-            name = self.completion_doc.get('name', '')
-            signature = self.completion_doc.get('signature', '')
+            name = self.completion_doc.get("name", "")
+            signature = self.completion_doc.get("signature", "")
             self.sig_completion_help_requested.emit(name, signature)
         else:
             self.sig_help_requested.emit(self._url)
@@ -241,18 +246,16 @@ class ToolTipWidget(QLabel):
             self.hide()
 
 
-
 class CallTipWidget(QLabel):
-    """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
-    """
+    """Shows call tips by parsing the current text of Q[Plain]TextEdit."""
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # 'QObject' interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def __init__(self, text_edit, hide_timer_on=False, as_tooltip=False):
-        """ Create a call tip manager that is attached to the specified Qt
-            text edit widget.
+        """Create a call tip manager that is attached to the specified Qt
+        text edit widget.
         """
         assert isinstance(text_edit, (QTextEdit, QPlainTextEdit))
         super(CallTipWidget, self).__init__(None, Qt.ToolTip)
@@ -266,7 +269,7 @@ class CallTipWidget(QLabel):
         self._start_position = -1
 
         # Setup
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             # This keeps the hints below other applications
             self.setWindowFlags(Qt.SplashScreen)
         else:
@@ -281,16 +284,16 @@ class CallTipWidget(QLabel):
         self.setAlignment(Qt.AlignLeft)
         self.setIndent(1)
         self.setFrameStyle(QFrame.NoFrame)
-        self.setMargin(1 + self.style().pixelMetric(
-                QStyle.PM_ToolTipLabelFrameWidth, None, self))
+        self.setMargin(
+            1 + self.style().pixelMetric(QStyle.PM_ToolTipLabelFrameWidth, None, self)
+        )
 
         # Signals
-        QApplication.instance().applicationStateChanged.connect(
-            self._should_hide)
+        QApplication.instance().applicationStateChanged.connect(self._should_hide)
 
     def eventFilter(self, obj, event):
-        """ Reimplemented to hide on certain key presses and on text edit focus
-            changes.
+        """Reimplemented to hide on certain key presses and on text edit focus
+        changes.
         """
         if obj == self._text_edit:
             etype = event.type()
@@ -298,23 +301,23 @@ class CallTipWidget(QLabel):
             if etype == QEvent.KeyPress:
                 key = event.key()
                 cursor = self._text_edit.textCursor()
-                prev_char = self._text_edit.get_character(cursor.position(),
-                                                          offset=-1)
-                if key in (Qt.Key_Enter, Qt.Key_Return,
-                           Qt.Key_Down, Qt.Key_Up):
+                prev_char = self._text_edit.get_character(cursor.position(), offset=-1)
+                if key in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Down, Qt.Key_Up):
                     self.hide()
                 elif key == Qt.Key_Escape:
                     self.hide()
                     return True
-                elif prev_char == ')':
+                elif prev_char == ")":
                     self.hide()
 
             elif etype == QEvent.FocusOut:
                 self.hide()
 
             elif etype == QEvent.Enter:
-                if (self._hide_timer.isActive() and
-                  self.app.topLevelAt(QCursor.pos()) == self):
+                if (
+                    self._hide_timer.isActive()
+                    and self.app.topLevelAt(QCursor.pos()) == self
+                ):
                     self._hide_timer.stop()
 
             elif etype == QEvent.Leave:
@@ -326,43 +329,39 @@ class CallTipWidget(QLabel):
         return super(CallTipWidget, self).eventFilter(obj, event)
 
     def timerEvent(self, event):
-        """ Reimplemented to hide the widget when the hide timer fires.
-        """
+        """Reimplemented to hide the widget when the hide timer fires."""
         if event.timerId() == self._hide_timer.timerId():
             self._hide_timer.stop()
             self.hide()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # 'QWidget' interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def enterEvent(self, event):
-        """ Reimplemented to cancel the hide timer.
-        """
+        """Reimplemented to cancel the hide timer."""
         super(CallTipWidget, self).enterEvent(event)
         if self.as_tooltip:
             self.hide()
 
-        if (self._hide_timer.isActive() and
-          self.app.topLevelAt(QCursor.pos()) == self):
+        if self._hide_timer.isActive() and self.app.topLevelAt(QCursor.pos()) == self:
             self._hide_timer.stop()
 
     def hideEvent(self, event):
-        """ Reimplemented to disconnect signal handlers and event filter.
-        """
+        """Reimplemented to disconnect signal handlers and event filter."""
         super(CallTipWidget, self).hideEvent(event)
         # This is needed for issue spyder-ide/spyder#9221,
         try:
             self._text_edit.cursorPositionChanged.disconnect(
-                self._cursor_position_changed)
+                self._cursor_position_changed
+            )
         except (TypeError, RuntimeError):
             pass
         else:
             self._text_edit.removeEventFilter(self)
 
     def leaveEvent(self, event):
-        """ Reimplemented to start the hide timer.
-        """
+        """Reimplemented to start the hide timer."""
         super(CallTipWidget, self).leaveEvent(event)
         self._leave_event_hide()
 
@@ -371,8 +370,7 @@ class CallTipWidget(QLabel):
         self.hide()
 
     def paintEvent(self, event):
-        """ Reimplemented to paint the background panel.
-        """
+        """Reimplemented to paint the background panel."""
         painter = QStylePainter(self)
         option = QStyleOptionFrame()
         option.initFrom(self)
@@ -382,31 +380,27 @@ class CallTipWidget(QLabel):
         super(CallTipWidget, self).paintEvent(event)
 
     def setFont(self, font):
-        """ Reimplemented to allow use of this method as a slot.
-        """
+        """Reimplemented to allow use of this method as a slot."""
         super(CallTipWidget, self).setFont(font)
 
     def showEvent(self, event):
-        """ Reimplemented to connect signal handlers and event filter.
-        """
+        """Reimplemented to connect signal handlers and event filter."""
         super(CallTipWidget, self).showEvent(event)
-        self._text_edit.cursorPositionChanged.connect(
-            self._cursor_position_changed)
+        self._text_edit.cursorPositionChanged.connect(self._cursor_position_changed)
         self._text_edit.installEventFilter(self)
 
     def focusOutEvent(self, event):
-        """ Reimplemented to hide it when focus goes out of the main
-            window.
+        """Reimplemented to hide it when focus goes out of the main
+        window.
         """
         self.hide()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # 'CallTipWidget' interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def show_tip(self, point, tip, wrapped_tiplines):
-        """ Attempts to show the specified tip at the current cursor location.
-        """
+        """Attempts to show the specified tip at the current cursor location."""
         # Don't show the widget if the main window is not focused
         if QApplication.instance().applicationState() != Qt.ApplicationActive:
             return
@@ -423,8 +417,7 @@ class CallTipWidget(QLabel):
         text_edit = self._text_edit
         cursor = text_edit.textCursor()
         search_pos = cursor.position() - 1
-        self._start_position, _ = self._find_parenthesis(search_pos,
-                                                         forward=False)
+        self._start_position, _ = self._find_parenthesis(search_pos, forward=False)
         if self._start_position == -1:
             return False
 
@@ -433,8 +426,8 @@ class CallTipWidget(QLabel):
             # Logic to decide how much time to show the calltip depending
             # on the amount of text present
             if len(wrapped_tiplines) == 1:
-                args = wrapped_tiplines[0].split('(')[1]
-                nargs = len(args.split(','))
+                args = wrapped_tiplines[0].split("(")[1]
+                nargs = len(args.split(","))
                 if nargs == 1:
                     hide_time = 1400
                 elif nargs == 2:
@@ -443,7 +436,7 @@ class CallTipWidget(QLabel):
                     hide_time = 1800
             elif len(wrapped_tiplines) == 2:
                 args1 = wrapped_tiplines[1].strip()
-                nargs1 = len(args1.split(','))
+                nargs1 = len(args1.split(","))
                 if nargs1 == 1:
                     hide_time = 2500
                 else:
@@ -467,8 +460,8 @@ class CallTipWidget(QLabel):
         tip_height = self.size().height()
         tip_width = self.size().width()
 
-        vertical = 'bottom'
-        horizontal = 'Right'
+        vertical = "bottom"
+        horizontal = "Right"
         if point.y() + tip_height > screen_rect.height() + screen_rect.y():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
             # If tip is still off screen, check if point is in top or bottom
@@ -476,64 +469,64 @@ class CallTipWidget(QLabel):
             if point_.y() - tip_height < padding:
                 # If point is in upper half of screen, show tip below it.
                 # otherwise above it.
-                if 2*point.y() < screen_rect.height():
-                    vertical = 'bottom'
+                if 2 * point.y() < screen_rect.height():
+                    vertical = "bottom"
                 else:
-                    vertical = 'top'
+                    vertical = "top"
             else:
-                vertical = 'top'
+                vertical = "top"
         if point.x() + tip_width > screen_rect.width() + screen_rect.x():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
             # If tip is still off-screen, check if point is in the right or
             # left half of the screen.
             if point_.x() - tip_width < padding:
-                if 2*point.x() < screen_rect.width():
-                    horizontal = 'Right'
+                if 2 * point.x() < screen_rect.width():
+                    horizontal = "Right"
                 else:
-                    horizontal = 'Left'
+                    horizontal = "Left"
             else:
-                horizontal = 'Left'
-        pos = getattr(cursor_rect, '%s%s' %(vertical, horizontal))
+                horizontal = "Left"
+        pos = getattr(cursor_rect, "%s%s" % (vertical, horizontal))
         adjusted_point = text_edit.mapToGlobal(pos())
 
-        if vertical == 'top':
-            if os.name == 'nt':
+        if vertical == "top":
+            if os.name == "nt":
                 padding = -7
             else:
                 padding = -4
             point.setY(adjusted_point.y() - tip_height - padding)
 
-        if horizontal == 'Left':
+        if horizontal == "Left":
             point.setX(adjusted_point.x() - tip_width - padding)
 
         self.move(point)
         self.show()
         return True
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Protected interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def _find_parenthesis(self, position, forward=True):
-        """ If 'forward' is True (resp. False), proceed forwards
-            (resp. backwards) through the line that contains 'position' until an
-            unmatched closing (resp. opening) parenthesis is found. Returns a
-            tuple containing the position of this parenthesis (or -1 if it is
-            not found) and the number commas (at depth 0) found along the way.
+        """If 'forward' is True (resp. False), proceed forwards
+        (resp. backwards) through the line that contains 'position' until an
+        unmatched closing (resp. opening) parenthesis is found. Returns a
+        tuple containing the position of this parenthesis (or -1 if it is
+        not found) and the number commas (at depth 0) found along the way.
         """
         commas = depth = 0
         document = self._text_edit.document()
         char = to_text_string(document.characterAt(position))
         # Search until a match is found or a non-printable character is
         # encountered.
-        while category(char) != 'Cc' and position > 0:
-            if char == ',' and depth == 0:
+        while category(char) != "Cc" and position > 0:
+            if char == "," and depth == 0:
                 commas += 1
-            elif char == ')':
+            elif char == ")":
                 if forward and depth == 0:
                     break
                 depth += 1
-            elif char == '(':
+            elif char == "(":
                 if not forward and depth == 0:
                     break
                 depth -= 1
@@ -544,28 +537,31 @@ class CallTipWidget(QLabel):
         return position, commas
 
     def _leave_event_hide(self):
-        """ Hides the tooltip after some time has passed (assuming the cursor is
-            not over the tooltip).
+        """Hides the tooltip after some time has passed (assuming the cursor is
+        not over the tooltip).
         """
-        if (self.hide_timer_on and not self._hide_timer.isActive() and
+        if (
+            self.hide_timer_on
+            and not self._hide_timer.isActive()
+            and
             # If Enter events always came after Leave events, we wouldn't need
             # this check. But on Mac OS, it sometimes happens the other way
             # around when the tooltip is created.
-            self.app.topLevelAt(QCursor.pos()) != self):
+            self.app.topLevelAt(QCursor.pos()) != self
+        ):
             self._hide_timer.start(800, self)
 
-    #------ Signal handlers ----------------------------------------------------
+    # ------ Signal handlers ----------------------------------------------------
 
     def _cursor_position_changed(self):
-        """ Updates the tip based on user cursor movement.
-        """
+        """Updates the tip based on user cursor movement."""
         cursor = self._text_edit.textCursor()
         position = cursor.position()
         document = self._text_edit.document()
         char = to_text_string(document.characterAt(position - 1))
         if position <= self._start_position:
             self.hide()
-        elif char == ')':
+        elif char == ")":
             pos, _ = self._find_parenthesis(position - 1, forward=False)
             if pos == -1:
                 self.hide()

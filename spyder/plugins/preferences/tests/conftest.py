@@ -54,11 +54,11 @@ class MainWindowMock(QMainWindow):
         for context, name, __ in CONF.iter_shortcuts():
             self.shortcut_data.append((None, context, name, None, None))
 
-        for attr in ['mem_status', 'cpu_status']:
+        for attr in ["mem_status", "cpu_status"]:
             mock_attr = Mock()
-            setattr(mock_attr, 'toolTip', lambda: '')
-            setattr(mock_attr, 'setToolTip', lambda x: '')
-            setattr(mock_attr, 'prefs_dialog_instance', lambda: '')
+            setattr(mock_attr, "toolTip", lambda: "")
+            setattr(mock_attr, "setToolTip", lambda x: "")
+            setattr(mock_attr, "prefs_dialog_instance", lambda: "")
             setattr(self, attr, mock_attr)
 
     def register_plugin(self, plugin_name, external=False):
@@ -77,8 +77,7 @@ class MainWindowMock(QMainWindow):
 
 
 class ConfigDialogTester(QWidget):
-    def __init__(self, parent, main_class,
-                 general_config_plugins, plugins):
+    def __init__(self, parent, main_class, general_config_plugins, plugins):
         super().__init__(parent)
         self._main = main_class(self) if main_class else None
         if self._main is None:
@@ -99,14 +98,14 @@ class ConfigDialogTester(QWidget):
                 return PLUGIN_REGISTRY.get_plugin(plugin_name)
             return None
 
-        setattr(self._main, 'register_plugin',
-                types.MethodType(register_plugin, self._main))
-        setattr(self._main, 'get_plugin',
-                types.MethodType(get_plugin, self._main))
-        setattr(self._main, 'reset_spyder',
-                types.MethodType(reset_spyder, self._main))
-        setattr(self._main, 'set_prefs_size',
-                types.MethodType(set_prefs_size, self._main))
+        setattr(
+            self._main, "register_plugin", types.MethodType(register_plugin, self._main)
+        )
+        setattr(self._main, "get_plugin", types.MethodType(get_plugin, self._main))
+        setattr(self._main, "reset_spyder", types.MethodType(reset_spyder, self._main))
+        setattr(
+            self._main, "set_prefs_size", types.MethodType(set_prefs_size, self._main)
+        )
 
         PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self._main.register_plugin)
@@ -114,8 +113,8 @@ class ConfigDialogTester(QWidget):
 
         if plugins:
             for Plugin in plugins:
-                if hasattr(Plugin, 'CONF_WIDGET_CLASS'):
-                    for required in (Plugin.REQUIRES or []):
+                if hasattr(Plugin, "CONF_WIDGET_CLASS"):
+                    for required in Plugin.REQUIRES or []:
                         if required not in PLUGIN_REGISTRY:
                             PLUGIN_REGISTRY.plugin_registry[required] = MagicMock()
 
@@ -148,11 +147,10 @@ def global_config_dialog(qtbot):
 
 @pytest.fixture
 def config_dialog(qtbot, request, mocker):
-    mocker.patch.object(ima, 'icon', lambda x, *_: QIcon())
+    mocker.patch.object(ima, "icon", lambda x, *_: QIcon())
     main_class, general_config_plugins, plugins = request.param
 
-    main_ref = ConfigDialogTester(
-        None, main_class, general_config_plugins, plugins)
+    main_ref = ConfigDialogTester(None, main_class, general_config_plugins, plugins)
     qtbot.addWidget(main_ref)
 
     preferences = main_ref._main.get_plugin(Plugins.Preferences)

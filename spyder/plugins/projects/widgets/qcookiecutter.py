@@ -49,10 +49,7 @@ class CookiecutterDialog(QtWidgets.QDialog):
     def __init__(self, parent, cookiecutter_settings=None, pre_gen_code=None):
         super().__init__(parent)
 
-        self._widget = CookiecutterWidget(
-            self, cookiecutter_settings,
-            pre_gen_code
-        )
+        self._widget = CookiecutterWidget(self, cookiecutter_settings, pre_gen_code)
         self._info_label = QtWidgets.QLabel()
         self._validate_button = QtWidgets.QPushButton("Validate")
 
@@ -135,8 +132,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
 
         # Layout
         self._form_layout = QtWidgets.QFormLayout()
-        self._form_layout.setFieldGrowthPolicy(
-            self._form_layout.AllNonFixedFieldsGrow)
+        self._form_layout.setFieldGrowthPolicy(self._form_layout.AllNonFixedFieldsGrow)
         self.setLayout(self._form_layout)
 
     # --- Helpers
@@ -147,12 +143,12 @@ class CookiecutterWidget(QtWidgets.QWidget):
         """
         if self._cookiecutter_settings:
             # https://cookiecutter.readthedocs.io/en/latest/advanced/template_extensions.html
-            self._extensions = self._cookiecutter_settings.pop("_extensions",
-                                                               [])
+            self._extensions = self._cookiecutter_settings.pop("_extensions", [])
 
             # https://cookiecutter.readthedocs.io/en/latest/advanced/copy_without_render.html
             self._copy_without_render = self._cookiecutter_settings.pop(
-                "_copy_without_render", [])
+                "_copy_without_render", []
+            )
 
             # https://cookiecutter.readthedocs.io/en/latest/advanced/new_line_characters.html
             self._new_lines = self._cookiecutter_settings.pop("_new_lines", "")
@@ -172,11 +168,10 @@ class CookiecutterWidget(QtWidgets.QWidget):
                     for list_value in list_values:
                         template = Template(list_value)
                         rendered_value = template.render(
-                            cookiecutter=Namespace(
-                                **self._cookiecutter_settings))
+                            cookiecutter=Namespace(**self._cookiecutter_settings)
+                        )
 
-                        are_rendered_values.append(
-                            list_value != rendered_value)
+                        are_rendered_values.append(list_value != rendered_value)
 
                 if any(are_rendered_values):
                     self._rendered_settings[setting] = value
@@ -235,7 +230,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
         def _get_value():
             bool_to_values = {
                 self._parse_bool_text(default): default,
-                not self._parse_bool_text(default): "other-value-" + default
+                not self._parse_bool_text(default): "other-value-" + default,
             }
             return bool_to_values[box.isChecked()]
 
@@ -277,7 +272,8 @@ class CookiecutterWidget(QtWidgets.QWidget):
                 widget = self._create_textbox(setting, label, default=default)
         else:
             raise Exception(
-                "Cookiecutter option '{}'cannot be processed".format(setting))
+                "Cookiecutter option '{}'cannot be processed".format(setting)
+            )
 
         self._widgets[setting] = (label, widget)
 
@@ -331,8 +327,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
         for setting, value in self._rendered_settings.items():
             if not setting.startswith(("__", "_")):
                 template = Template(value)
-                val = template.render(
-                    cookiecutter=Namespace(**cookiecutter_settings))
+                val = template.render(cookiecutter=Namespace(**cookiecutter_settings))
                 __, widget = self._widgets[setting]
                 widget.set_value(val)
 
@@ -351,8 +346,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
 
         # Cookiecutter special variables
         cookiecutter_settings["_extensions"] = self._extensions
-        cookiecutter_settings["_copy_without_render"] = (
-            self._copy_without_render)
+        cookiecutter_settings["_copy_without_render"] = self._copy_without_render
         cookiecutter_settings["_new_lines"] = self._new_lines
 
         return cookiecutter_settings
@@ -364,8 +358,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
         if self._pre_gen_code is not None:
             cookiecutter_settings = self.get_values()
             template = Template(self._pre_gen_code)
-            val = template.render(
-                cookiecutter=Namespace(**cookiecutter_settings))
+            val = template.render(cookiecutter=Namespace(**cookiecutter_settings))
 
             with open(self._tempfile, "w") as fh:
                 fh.write(val)
@@ -397,26 +390,23 @@ if __name__ == "__main__":
                 "png": {
                     "name": "Portable Network Graphic",
                     "library": "libpng",
-                    "apps": [
-                        "GIMP"
-                    ]
+                    "apps": ["GIMP"],
                 },
                 "bmp": {
                     "name": "Bitmap",
                     "library": "libbmp",
-                    "apps": [
-                        "Paint",
-                        "GIMP"
-                    ]
-                }
+                    "apps": ["Paint", "GIMP"],
+                },
             },
             "_private": "{{ cookiecutter.fixed_option }}",
             "__private_rendered": "{{ cookiecutter.fixed_option }}",
         }
     )
-    dlg.set_pre_gen_code('''
+    dlg.set_pre_gen_code(
+        """
 import sys
 print("HELP!")  # spyder: test-skip
-sys.exit(10)''')
+sys.exit(10)"""
+    )
     dlg.show()
     sys.exit(app.exec_())

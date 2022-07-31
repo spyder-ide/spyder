@@ -18,13 +18,14 @@ from spyder.config.gui import is_dark_interface
 # =============================================================================
 
 
-class ImagePathManager():
+class ImagePathManager:
     """Manager of the image path in the project."""
+
     def __init__(self):
         """Initialize main path with all the images."""
         self.IMG_PATH = {}
-        self.add_image_path(get_module_data_path('spyder', relpath='images'))
-        self.default = 'not_found'
+        self.add_image_path(get_module_data_path("spyder", relpath="images"))
+        self.default = "not_found"
 
     def add_image_path(self, path):
         """Add path to the image path list."""
@@ -32,19 +33,20 @@ class ImagePathManager():
             return
 
         for dirpath, __, _filenames in os.walk(path):
-            if is_dark_interface() and osp.basename(dirpath) == 'light':
+            if is_dark_interface() and osp.basename(dirpath) == "light":
                 continue
-            elif not is_dark_interface() and osp.basename(dirpath) == 'dark':
+            elif not is_dark_interface() and osp.basename(dirpath) == "dark":
                 continue
             for filename in _filenames:
-                if filename.startswith('.'):
+                if filename.startswith("."):
                     continue
                 name, __ = osp.splitext(osp.basename(filename))
                 complete_path = osp.join(dirpath, filename)
                 if name in self.IMG_PATH:
                     warnings.warn(
-                        f'The icon located in {complete_path} is overriding '
-                        f'the existing {name}')
+                        f"The icon located in {complete_path} is overriding "
+                        f"the existing {name}"
+                    )
                 self.IMG_PATH[name] = complete_path
 
     def get_image_path(self, name):

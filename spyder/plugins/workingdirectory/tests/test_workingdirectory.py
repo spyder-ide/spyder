@@ -21,11 +21,10 @@ from spyder.config.manager import CONF
 from spyder.plugins.workingdirectory.plugin import WorkingDirectory
 
 
-NEW_DIR = 'new_workingdir'
+NEW_DIR = "new_workingdir"
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self):
         # This avoids using the cli options passed to pytest
         sys_argv = [sys.argv[0]]
@@ -40,23 +39,23 @@ class MainWindow(QMainWindow):
 def setup_workingdirectory(qtbot, request, tmpdir):
     """Setup working directory plugin."""
     CONF.reset_to_defaults()
-    use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
-    use_cli_wdir = request.node.get_closest_marker('use_cli_wdir')
+    use_startup_wdir = request.node.get_closest_marker("use_startup_wdir")
+    use_cli_wdir = request.node.get_closest_marker("use_cli_wdir")
 
     # Setting default options
-    CONF.set('workingdir', 'startup/use_project_or_home_directory', True)
-    CONF.set('workingdir', 'startup/use_fixed_directory', False)
+    CONF.set("workingdir", "startup/use_project_or_home_directory", True)
+    CONF.set("workingdir", "startup/use_fixed_directory", False)
 
     # Create main window and new directory
     main_window = MainWindow()
 
     if use_startup_wdir:
-        new_wdir = tmpdir.mkdir(NEW_DIR + '_startup')
-        CONF.set('workingdir', 'startup/use_project_or_home_directory', False)
-        CONF.set('workingdir', 'startup/use_fixed_directory', True)
-        CONF.set('workingdir', 'startup/fixed_directory', str(new_wdir))
+        new_wdir = tmpdir.mkdir(NEW_DIR + "_startup")
+        CONF.set("workingdir", "startup/use_project_or_home_directory", False)
+        CONF.set("workingdir", "startup/use_fixed_directory", True)
+        CONF.set("workingdir", "startup/fixed_directory", str(new_wdir))
     elif use_cli_wdir:
-        new_wdir = tmpdir.mkdir(NEW_DIR + '_cli')
+        new_wdir = tmpdir.mkdir(NEW_DIR + "_cli")
         main_window._cli_options.working_directory = str(new_wdir)
 
     workingdirectory = WorkingDirectory(main_window, configuration=CONF)
@@ -95,7 +94,7 @@ def test_get_workingdir_startup(setup_workingdirectory):
     folders = osp.split(cwd)
 
     # Asert working directory is the expected one
-    assert folders[-1] == NEW_DIR + '_startup'
+    assert folders[-1] == NEW_DIR + "_startup"
     CONF.reset_to_defaults()
 
 
@@ -112,7 +111,7 @@ def test_get_workingdir_cli(setup_workingdirectory):
     folders = osp.split(cwd)
 
     # Asert working directory is the expected one
-    assert folders[-1] == NEW_DIR + '_cli'
+    assert folders[-1] == NEW_DIR + "_cli"
     CONF.reset_to_defaults()
 
 

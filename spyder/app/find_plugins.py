@@ -44,9 +44,7 @@ def find_internal_plugins():
     # FIXME: This shouldn't be necessary but it's just to be sure
     # plugins are sorted in alphabetical order. We need to remove it
     # in a later version.
-    internal_plugins = {
-        key: value for key, value in sorted(internal_plugins.items())
-    }
+    internal_plugins = {key: value for key, value in sorted(internal_plugins.items())}
 
     return internal_plugins
 
@@ -69,8 +67,7 @@ def find_external_plugins():
 
                 # To display in dependencies dialog.
                 plugin_class._spyder_module_name = entry_point.module_name
-                plugin_class._spyder_package_name = (
-                    entry_point.dist.project_name)
+                plugin_class._spyder_package_name = entry_point.dist.project_name
                 plugin_class._spyder_version = entry_point.dist.version
 
                 external_plugins[name] = plugin_class

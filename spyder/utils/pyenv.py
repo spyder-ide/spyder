@@ -21,13 +21,12 @@ PYENV_ENV_LIST_CACHE = {}
 def get_pyenv_path(name):
     """Return the complete path of the pyenv."""
     home = get_home_dir()
-    if os.name == 'nt':
-        path = osp.join(
-            home, '.pyenv', 'pyenv-win', 'versions', name, 'python.exe')
-    elif name == '':
-        path = osp.join(home, '.pyenv', 'shims', 'python')
+    if os.name == "nt":
+        path = osp.join(home, ".pyenv", "pyenv-win", "versions", name, "python.exe")
+    elif name == "":
+        path = osp.join(home, ".pyenv", "shims", "python")
     else:
-        path = osp.join(home, '.pyenv', 'versions', name, 'bin', 'python')
+        path = osp.join(home, ".pyenv", "versions", name, "bin", "python")
     return path
 
 
@@ -36,24 +35,24 @@ def get_list_pyenv_envs():
     global PYENV_ENV_LIST_CACHE
 
     env_list = {}
-    pyenv = find_program('pyenv')
+    pyenv = find_program("pyenv")
     if pyenv is None:
         return env_list
 
-    cmdstr = ' '.join([pyenv, 'versions', '--bare', '--skip-aliases'])
+    cmdstr = " ".join([pyenv, "versions", "--bare", "--skip-aliases"])
     try:
         out, __ = run_shell_command(cmdstr, env={}).communicate()
         out = out.decode().strip()
     except Exception:
         return env_list
 
-    out = out.split('\n') if out else []
+    out = out.split("\n") if out else []
     for env in out:
         data = env.split(osp.sep)
         path = get_pyenv_path(data[-1])
 
-        name = f'pyenv: {data[-1]}'
-        version = f'Python {data[0]}'
+        name = f"pyenv: {data[-1]}"
+        version = f"Python {data[0]}"
         env_list[name] = (path, version)
 
     PYENV_ENV_LIST_CACHE = env_list

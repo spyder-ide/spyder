@@ -19,27 +19,28 @@ from spyder.config.base import _
 class LintingConfigTab(SpyderPreferencesTab):
     """Linting configuration tab."""
 
-    TITLE = _('Linting')
+    TITLE = _("Linting")
 
     def __init__(self, parent):
         super().__init__(parent)
         newcb = self.create_checkbox
 
-        linting_label = QLabel(_("Spyder can optionally highlight syntax "
-                                 "errors and possible problems with your "
-                                 "code in the editor."))
+        linting_label = QLabel(
+            _(
+                "Spyder can optionally highlight syntax "
+                "errors and possible problems with your "
+                "code in the editor."
+            )
+        )
         linting_label.setOpenExternalLinks(True)
         linting_label.setWordWrap(True)
-        linting_check = self.create_checkbox(
-            _("Enable basic linting"),
-            'pyflakes')
+        linting_check = self.create_checkbox(_("Enable basic linting"), "pyflakes")
         underline_errors_box = newcb(
-            _("Underline errors and warnings"),
-            'underline_errors',
-            section='editor')
+            _("Underline errors and warnings"), "underline_errors", section="editor"
+        )
         linting_complexity_box = self.create_checkbox(
-            _("Enable complexity linting with the Mccabe package"),
-            'mccabe')
+            _("Enable complexity linting with the Mccabe package"), "mccabe"
+        )
 
         # Linting layout
         linting_layout = QVBoxLayout()

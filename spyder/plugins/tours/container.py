@@ -20,7 +20,7 @@ from spyder.plugins.tours.tours import TourIdentifiers
 from spyder.plugins.tours.widgets import AnimatedTour, OpenTourDialog
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 # Set the index for the default tour
 DEFAULT_TOUR = TourIdentifiers.IntroductionTour
@@ -30,6 +30,7 @@ class TourActions:
     """
     Tours actions.
     """
+
     ShowTour = "show tour"
 
 
@@ -45,20 +46,18 @@ class ToursContainer(PluginMainContainer):
         self._tours = OrderedDict()
         self._tour_titles = OrderedDict()
         self._tour_widget = AnimatedTour(self._main)
-        self._tour_dialog = OpenTourDialog(
-            self, lambda: self.show_tour(DEFAULT_TOUR))
+        self._tour_dialog = OpenTourDialog(self, lambda: self.show_tour(DEFAULT_TOUR))
         self.tour_action = self.create_action(
             TourActions.ShowTour,
             text=_("Show tour"),
-            icon=self.create_icon('tour'),
-            triggered=lambda: self.show_tour(DEFAULT_TOUR)
+            icon=self.create_icon("tour"),
+            triggered=lambda: self.show_tour(DEFAULT_TOUR),
         )
 
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
-        self.tours_menu = self.create_menu(
-            "tours_menu", _("Interactive tours"))
+        self.tours_menu = self.create_menu("tours_menu", _("Interactive tours"))
 
     def update_actions(self):
         pass
@@ -80,8 +79,8 @@ class ToursContainer(PluginMainContainer):
         """
         if tour_id in self._tours:
             raise SpyderAPIError(
-                "Tour with id '{}' has already been registered!".format(
-                    tour_id))
+                "Tour with id '{}' has already been registered!".format(tour_id)
+            )
 
         self._tours[tour_id] = tour_data
         self._tour_titles[tour_id] = title
@@ -102,7 +101,7 @@ class ToursContainer(PluginMainContainer):
             Unique tour string identifier.
         """
         tour_data = self._tours[tour_id]
-        dic = {'last': 0, 'tour': tour_data}
+        dic = {"last": 0, "tour": tour_data}
         self._tour_widget.set_tour(tour_id, dic, self._main)
         self._tour_widget.start_tour()
 

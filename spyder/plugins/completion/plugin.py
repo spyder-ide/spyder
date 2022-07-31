@@ -27,12 +27,16 @@ from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.config.base import _, running_under_pytest
 from spyder.config.user import NoDefault
-from spyder.plugins.completion.api import (CompletionRequestTypes,
-                                           SpyderCompletionProvider,
-                                           COMPLETION_ENTRYPOINT)
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes,
+    SpyderCompletionProvider,
+    COMPLETION_ENTRYPOINT,
+)
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
 
@@ -41,14 +45,19 @@ logger = logging.getLogger(__name__)
 
 # List of completion requests
 # e.g., textDocument/didOpen, workspace/configurationDidChange, etc.
-COMPLETION_REQUESTS = [getattr(CompletionRequestTypes, c)
-                       for c in dir(CompletionRequestTypes) if c.isupper()]
+COMPLETION_REQUESTS = [
+    getattr(CompletionRequestTypes, c)
+    for c in dir(CompletionRequestTypes)
+    if c.isupper()
+]
 
 
 def partialclass(cls, *args, **kwds):
     """Return a partial class constructor."""
+
     class NewCls(cls):
         __init__ = functools.partialmethod(cls.__init__, *args, **kwds)
+
     return NewCls
 
 
@@ -68,8 +77,8 @@ class CompletionPlugin(SpyderPluginV2):
     Spyder.
     """
 
-    NAME = 'completions'
-    CONF_SECTION = 'completions'
+    NAME = "completions"
+    CONF_SECTION = "completions"
     REQUIRES = [Plugins.Preferences, Plugins.MainInterpreter]
     OPTIONAL = [Plugins.Application, Plugins.StatusBar, Plugins.MainMenu]
 
@@ -181,16 +190,12 @@ class CompletionPlugin(SpyderPluginV2):
     """
 
     # --------------------------- Other constants -----------------------------
-    RUNNING = 'running'
-    STOPPED = 'stopped'
+    RUNNING = "running"
+    STOPPED = "stopped"
 
-    SKIP_INTERMEDIATE_REQUESTS = {
-        CompletionRequestTypes.DOCUMENT_COMPLETION
-    }
+    SKIP_INTERMEDIATE_REQUESTS = {CompletionRequestTypes.DOCUMENT_COMPLETION}
 
-    AGGREGATE_RESPONSES = {
-        CompletionRequestTypes.DOCUMENT_COMPLETION
-    }
+    AGGREGATE_RESPONSES = {CompletionRequestTypes.DOCUMENT_COMPLETION}
 
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
@@ -222,7 +227,7 @@ class CompletionPlugin(SpyderPluginV2):
         self.provider_speed = {}
 
         # Timeout limit for a response to be received
-        self.wait_for_ms = self.get_conf('completions_wait_for_ms')
+        self.wait_for_ms = self.get_conf("completions_wait_for_ms")
 
         # Save application menus to create if/when MainMenu is available.
         self.application_menus_to_create = []
@@ -239,14 +244,16 @@ class CompletionPlugin(SpyderPluginV2):
                 # loaded. For instance, it can happen when you have an older
                 # Spyder version installed, but you're running it with
                 # bootstrap.
-                if 'kite' in entry_point.name:
+                if "kite" in entry_point.name:
                     continue
-                logger.debug(f'Loading entry point: {entry_point}')
+                logger.debug(f"Loading entry point: {entry_point}")
                 Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
             except Exception as e:
-                logger.warning('Failed to load completion provider from entry '
-                               f'point {entry_point}')
+                logger.warning(
+                    "Failed to load completion provider from entry "
+                    f"point {entry_point}"
+                )
                 raise e
 
         # Register statusbar widgets
@@ -255,36 +262,38 @@ class CompletionPlugin(SpyderPluginV2):
         # Define configuration page and tabs
         (conf_providers, conf_tabs) = self.gather_providers_and_configtabs()
         self.CONF_WIDGET_CLASS = partialclass(
-            CompletionConfigPage, providers=conf_providers)
-        self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
+            CompletionConfigPage, providers=conf_providers
+        )
+        self.ADDITIONAL_CONF_TABS = {"completions": conf_tabs}
 
     # ---------------- Public Spyder API required methods ---------------------
     @staticmethod
     def get_name() -> str:
-        return _('Completion and linting')
+        return _("Completion and linting")
 
     def get_description(self) -> str:
-        return _('This plugin is in charge of handling and dispatching, as '
-                 'well as of receiving the responses of completion and '
-                 'linting requests sent to multiple providers.')
+        return _(
+            "This plugin is in charge of handling and dispatching, as "
+            "well as of receiving the responses of completion and "
+            "linting requests sent to multiple providers."
+        )
 
     def get_icon(self):
-        return self.create_icon('completions')
+        return self.create_icon("completions")
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)
 
         if self.main:
-            self.main.sig_pythonpath_changed.connect(
-                self.sig_pythonpath_changed)
+            self.main.sig_pythonpath_changed.connect(self.sig_pythonpath_changed)
 
         # Do not start providers on tests unless necessary
         if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+            if not os.environ.get("SPY_TEST_USE_INTROSPECTION"):
                 # Prevent providers from receiving configuration updates
                 for provider_name in self.providers:
                     provider_info = self.providers[provider_name]
-                    CONF.unobserve_configuration(provider_info['instance'])
+                    CONF.unobserve_configuration(provider_info["instance"])
                 return
 
         self.start_all_providers()
@@ -301,10 +310,10 @@ class CompletionPlugin(SpyderPluginV2):
 
         # connect signals
         self.completion_status.sig_open_preferences_requested.connect(
-            mi_container.sig_open_preferences_requested)
+            mi_container.sig_open_preferences_requested
+        )
 
-        mi_container.sig_interpreter_changed.connect(
-            self.sig_interpreter_changed)
+        mi_container.sig_interpreter_changed.connect(self.sig_interpreter_changed)
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
@@ -317,8 +326,7 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Application)
     def on_application_available(self):
         application = self.get_plugin(Plugins.Application)
-        self.sig_restart_requested.connect(
-            application.sig_restart_requested)
+        self.sig_restart_requested.connect(application.sig_restart_requested)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -342,8 +350,7 @@ class CompletionPlugin(SpyderPluginV2):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
         mi_container = maininterpreter.get_container()
 
-        mi_container.sig_interpreter_changed.disconnect(
-            self.sig_interpreter_changed)
+        mi_container.sig_interpreter_changed.disconnect(self.sig_interpreter_changed)
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
@@ -365,32 +372,31 @@ class CompletionPlugin(SpyderPluginV2):
             binding = signature.bind(*args, **kwargs)
             binding.apply_defaults()
 
-            item = binding.arguments['item']
-            menu_id = binding.arguments['menu_id']
+            item = binding.arguments["item"]
+            menu_id = binding.arguments["menu_id"]
             item_id = None
-            if hasattr(item, 'action_id'):
+            if hasattr(item, "action_id"):
                 item_id = item.action_id
-            elif hasattr(item, 'menu_id'):
+            elif hasattr(item, "menu_id"):
                 item_id = item.menu_id
             if item_id is not None:
-                main_menu.remove_item_from_application_menu(
-                    item_id, menu_id=menu_id)
+                main_menu.remove_item_from_application_menu(item_id, menu_id=menu_id)
 
     def stop_all_providers(self):
         """Stop all running completion providers."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
+            if provider_info["status"] == self.RUNNING:
                 # TODO: Remove status bar widgets
-                provider_info['instance'].shutdown()
+                provider_info["instance"].shutdown()
 
     def can_close(self) -> bool:
         """Check if any provider has any pending task."""
         can_close = False
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                provider = provider_info['instance']
+            if provider_info["status"] == self.RUNNING:
+                provider = provider_info["instance"]
                 provider_can_close = provider.can_close()
                 can_close |= provider_can_close
         return can_close
@@ -400,8 +406,8 @@ class CompletionPlugin(SpyderPluginV2):
         can_close = False
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                provider = provider_info['instance']
+            if provider_info["status"] == self.RUNNING:
+                provider = provider_info["instance"]
                 provider_can_close = provider.can_close()
                 can_close |= provider_can_close
                 if provider_can_close:
@@ -417,32 +423,32 @@ class CompletionPlugin(SpyderPluginV2):
         """
         providers_to_update = set({})
         for option in options:
-            if option == 'completions_wait_for_ms':
-                self.wait_for_ms = self.get_conf(
-                    'completions_wait_for_ms')
+            if option == "completions_wait_for_ms":
+                self.wait_for_ms = self.get_conf("completions_wait_for_ms")
             elif isinstance(option, tuple):
                 option_name, provider_name, *__ = option
-                if option_name == 'enabled_providers':
+                if option_name == "enabled_providers":
                     provider_status = self.get_conf(
-                        ('enabled_providers', provider_name))
+                        ("enabled_providers", provider_name)
+                    )
                     if provider_status:
                         self.start_provider_instance(provider_name)
                         self.register_statusbar_widget(provider_name)
                     else:
                         self.shutdown_provider_instance(provider_name)
                         self.unregister_statusbar(provider_name)
-                elif option_name == 'provider_configuration':
+                elif option_name == "provider_configuration":
                     providers_to_update |= {provider_name}
 
         # Update entries in the source menu
         # FIXME: Delete this after CONF is moved to an observer pattern.
         # and the editor migration starts
-        self.sig_editor_rpc.emit('update_source_menu', (options,), {})
+        self.sig_editor_rpc.emit("update_source_menu", (options,), {})
 
     def on_mainwindow_visible(self):
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            provider_info['instance'].on_mainwindow_visible()
+            provider_info["instance"].on_mainwindow_visible()
 
     # ---------------------------- Status bar widgets -------------------------
     def register_statusbar_widgets(self, plugin_loaded=True):
@@ -457,11 +463,11 @@ class CompletionPlugin(SpyderPluginV2):
             multiple times at startup.
         """
         for provider_key in self.providers:
-            provider_on = self.get_conf(
-                ('enabled_providers', provider_key), True)
+            provider_on = self.get_conf(("enabled_providers", provider_key), True)
             if provider_on:
                 self.register_statusbar_widget(
-                    provider_key, plugin_loaded=plugin_loaded)
+                    provider_key, plugin_loaded=plugin_loaded
+                )
 
     def register_statusbar_widget(self, provider_name, plugin_loaded=True):
         """
@@ -476,9 +482,10 @@ class CompletionPlugin(SpyderPluginV2):
             being loaded.
         """
         container = self.get_container()
-        provider = self.providers[provider_name]['instance']
+        provider = self.providers[provider_name]["instance"]
         widgets_ids = container.register_statusbar_widgets(
-            provider.STATUS_BAR_CLASSES, provider_name)
+            provider.STATUS_BAR_CLASSES, provider_name
+        )
         if plugin_loaded:
             for id_ in widgets_ids:
                 current_widget = container.statusbar_widgets[id_]
@@ -498,8 +505,7 @@ class CompletionPlugin(SpyderPluginV2):
             Name of the provider that is going to delete statusbar widgets.
         """
         container = self.get_container()
-        provider_keys = self.get_container().get_provider_statusbar_keys(
-            provider_name)
+        provider_keys = self.get_container().get_provider_statusbar_keys(provider_name)
         for id_ in provider_keys:
             # Validation to check for status bar registration before trying
             # to remove a widget.
@@ -520,19 +526,19 @@ class CompletionPlugin(SpyderPluginV2):
         value = mi_status.value
         tool_tip = mi_status._interpreter
 
-        if '(' in value:
-            value, _ = value.split('(')
+        if "(" in value:
+            value, _ = value.split("(")
 
-        if ':' in value:
-            kind, name = value.split(':')
+        if ":" in value:
+            kind, name = value.split(":")
         else:
-            kind, name = value, ''
+            kind, name = value, ""
         kind = kind.strip()
         name = name.strip()
 
-        new_value = f'Completions: {kind}'
+        new_value = f"Completions: {kind}"
         if name:
-            new_value += f'({name})'
+            new_value += f"({name})"
 
         self.completion_status.update_status(new_value, tool_tip)
 
@@ -553,24 +559,21 @@ class CompletionPlugin(SpyderPluginV2):
         widget_funcs = self.gather_create_ops()
 
         for provider_key in self.providers:
-            provider = self.providers[provider_key]['instance']
+            provider = self.providers[provider_key]["instance"]
             for tab in provider.CONF_TABS:
                 # Add set_option/get_option/remove_option to tab definition
-                setattr(tab, 'get_option',
-                        self.wrap_get_option(provider_key))
-                setattr(tab, 'set_option',
-                        self.wrap_set_option(provider_key))
-                setattr(tab, 'remove_option',
-                        self.wrap_remove_option(provider_key))
+                setattr(tab, "get_option", self.wrap_get_option(provider_key))
+                setattr(tab, "set_option", self.wrap_set_option(provider_key))
+                setattr(tab, "remove_option", self.wrap_remove_option(provider_key))
 
                 # Wrap apply_settings to return settings correctly
-                setattr(tab, 'apply_settings',
-                        self.wrap_apply_settings(tab, provider_key))
+                setattr(
+                    tab, "apply_settings", self.wrap_apply_settings(tab, provider_key)
+                )
 
                 # Wrap create_* methods to consider provider
                 for name, pos in widget_funcs:
-                    setattr(tab, name,
-                            self.wrap_create_op(name, pos, provider_key))
+                    setattr(tab, name, self.wrap_create_op(name, pos, provider_key))
 
             conf_tabs += provider.CONF_TABS
             conf_providers.append((provider_key, provider.get_name()))
@@ -586,13 +589,13 @@ class CompletionPlugin(SpyderPluginV2):
         members = inspect.getmembers(CompletionConfigPage)
         widget_funcs = []
         for name, call in members:
-            if name.startswith('create_'):
+            if name.startswith("create_"):
                 sig = inspect.signature(call)
                 parameters = sig.parameters
-                if 'option' in sig.parameters:
+                if "option" in sig.parameters:
                     pos = -1
                     for param in parameters:
-                        if param == 'option':
+                        if param == "option":
                             break
                         pos += 1
                     widget_funcs.append((name, pos))
@@ -612,12 +615,11 @@ class CompletionPlugin(SpyderPluginV2):
         def wrapper(self, option, default=NoDefault, section=None):
             if section is None:
                 if isinstance(option, tuple):
-                    option = ('provider_configuration', provider, 'values',
-                              *option)
+                    option = ("provider_configuration", provider, "values", *option)
                 else:
-                    option = ('provider_configuration', provider, 'values',
-                              option)
+                    option = ("provider_configuration", provider, "values", option)
             return plugin.get_conf(option, default, section)
+
         return wrapper
 
     def wrap_set_option(self, provider):
@@ -631,18 +633,16 @@ class CompletionPlugin(SpyderPluginV2):
         """
         plugin = self
 
-        def wrapper(self, option, value, section=None,
-                    recursive_notification=False):
+        def wrapper(self, option, value, section=None, recursive_notification=False):
             if section is None:
                 if isinstance(option, tuple):
-                    option = ('provider_configuration', provider, 'values',
-                              *option)
+                    option = ("provider_configuration", provider, "values", *option)
                 else:
-                    option = ('provider_configuration', provider, 'values',
-                              option)
+                    option = ("provider_configuration", provider, "values", option)
             return plugin.set_conf(
-                option, value, section,
-                recursive_notification=recursive_notification)
+                option, value, section, recursive_notification=recursive_notification
+            )
+
         return wrapper
 
     def wrap_remove_option(self, provider):
@@ -659,12 +659,11 @@ class CompletionPlugin(SpyderPluginV2):
         def wrapper(self, option, section=None):
             if section is None:
                 if isinstance(option, tuple):
-                    option = ('provider_configuration', provider, 'values',
-                              *option)
+                    option = ("provider_configuration", provider, "values", *option)
                 else:
-                    option = ('provider_configuration', provider, 'values',
-                              option)
+                    option = ("provider_configuration", provider, "values", option)
                 return plugin.remove_conf(option, section)
+
         return wrapper
 
     def wrap_create_op(self, create_name, opt_pos, provider):
@@ -676,22 +675,30 @@ class CompletionPlugin(SpyderPluginV2):
         This wrapper method allows configuration tabs to not be aware about
         their presence behind the completion plugin.
         """
+
         def wrapper(self, *args, **kwargs):
-            if kwargs.get('section', None) is None:
+            if kwargs.get("section", None) is None:
                 arg_list = list(args)
                 if isinstance(args[opt_pos], tuple):
                     arg_list[opt_pos] = (
-                        'provider_configuration', provider, 'values',
-                        *args[opt_pos])
+                        "provider_configuration",
+                        provider,
+                        "values",
+                        *args[opt_pos],
+                    )
                 else:
                     arg_list[opt_pos] = (
-                        'provider_configuration', provider, 'values',
-                        args[opt_pos])
+                        "provider_configuration",
+                        provider,
+                        "values",
+                        args[opt_pos],
+                    )
                 args = tuple(arg_list)
             call = getattr(self.parent, create_name)
             widget = call(*args, **kwargs)
             widget.setParent(self)
             return widget
+
         return wrapper
 
     def wrap_apply_settings(self, Tab, provider):
@@ -709,27 +716,32 @@ class CompletionPlugin(SpyderPluginV2):
             wrapped_opts = set({})
             for opt in prev_method(self):
                 if isinstance(opt, tuple):
-                    wrapped_opts |= {('provider_configuration',
-                                      provider, 'values', *opt)}
+                    wrapped_opts |= {
+                        ("provider_configuration", provider, "values", *opt)
+                    }
                 else:
-                    wrapped_opts |= {(
-                        'provider_configuration', provider, 'values', opt)}
+                    wrapped_opts |= {
+                        ("provider_configuration", provider, "values", opt)
+                    }
             return wrapped_opts
+
         return wrapper
 
     # ---------- Completion provider registering/start/stop methods -----------
     @staticmethod
-    def _merge_default_configurations(Provider: SpyderCompletionProvider,
-                                      provider_name: str,
-                                      provider_configurations: dict):
+    def _merge_default_configurations(
+        Provider: SpyderCompletionProvider,
+        provider_name: str,
+        provider_configurations: dict,
+    ):
         provider_defaults = dict(Provider.CONF_DEFAULTS)
         provider_conf_version = Provider.CONF_VERSION
         if provider_name not in provider_configurations:
             # Pick completion provider default configuration options
             provider_config = {
-                'version': provider_conf_version,
-                'values': provider_defaults,
-                'defaults': provider_defaults,
+                "version": provider_conf_version,
+                "values": provider_defaults,
+                "defaults": provider_defaults,
             }
 
             provider_configurations[provider_name] = provider_config
@@ -737,10 +749,10 @@ class CompletionPlugin(SpyderPluginV2):
         # Check if there were any version changes between configurations
         provider_config = provider_configurations[provider_name]
         provider_conf_version = parse_version(Provider.CONF_VERSION)
-        current_conf_version = parse_version(provider_config['version'])
+        current_conf_version = parse_version(provider_config["version"])
 
-        current_conf_values = provider_config['values']
-        current_defaults = provider_config['defaults']
+        current_conf_values = provider_config["values"]
+        current_defaults = provider_config["defaults"]
 
         # Check if there are new default values and copy them
         new_keys = provider_defaults.keys() - current_conf_values.keys()
@@ -759,42 +771,44 @@ class CompletionPlugin(SpyderPluginV2):
 
             if provider_conf_version.major != current_conf_version.major:
                 # Check if keys were removed/renamed from the previous defaults
-                deleted_keys = (
-                    current_defaults.keys() - provider_defaults.keys())
+                deleted_keys = current_defaults.keys() - provider_defaults.keys()
                 for key in deleted_keys:
                     current_defaults.pop(key)
                     current_conf_values.pop(key)
 
-        return (str(provider_conf_version), current_conf_values,
-                current_defaults)
+        return (str(provider_conf_version), current_conf_values, current_defaults)
 
-    def get_provider_configuration(self, Provider: SpyderCompletionProvider,
-                                   provider_name: str) -> dict:
+    def get_provider_configuration(
+        self, Provider: SpyderCompletionProvider, provider_name: str
+    ) -> dict:
         """Get provider configuration dictionary."""
 
-        provider_configurations = self.get_conf(
-            'provider_configuration')
+        provider_configurations = self.get_conf("provider_configuration")
 
-        (provider_conf_version,
-         current_conf_values,
-         provider_defaults) = self._merge_default_configurations(
-             Provider, provider_name, provider_configurations)
+        (
+            provider_conf_version,
+            current_conf_values,
+            provider_defaults,
+        ) = self._merge_default_configurations(
+            Provider, provider_name, provider_configurations
+        )
 
         new_provider_config = {
-            'version': provider_conf_version,
-            'values': current_conf_values,
-            'defaults': provider_defaults
+            "version": provider_conf_version,
+            "values": current_conf_values,
+            "defaults": provider_defaults,
         }
         provider_configurations[provider_name] = new_provider_config
 
         # Update provider configurations
-        self.set_conf('provider_configuration', provider_configurations)
+        self.set_conf("provider_configuration", provider_configurations)
         return new_provider_config
 
-    def update_request_priorities(self, Provider: SpyderCompletionProvider,
-                                  provider_name: str):
+    def update_request_priorities(
+        self, Provider: SpyderCompletionProvider, provider_name: str
+    ):
         """Sort request priorities based on Provider declared order."""
-        source_priorities = self.get_conf('request_priorities')
+        source_priorities = self.get_conf("request_priorities")
         provider_priority = Provider.DEFAULT_ORDER
 
         for request in COMPLETION_REQUESTS:
@@ -804,62 +818,52 @@ class CompletionPlugin(SpyderPluginV2):
             source_priorities[request] = request_priorities
 
         self.source_priority = source_priorities
-        self.set_conf('request_priorities', source_priorities)
+        self.set_conf("request_priorities", source_priorities)
 
     def connect_provider_signals(self, provider_instance):
         """Connect SpyderCompletionProvider signals."""
         container = self.get_container()
 
         provider_instance.sig_provider_ready.connect(self.provider_available)
-        provider_instance.sig_stop_completions.connect(
-            self.sig_stop_completions)
+        provider_instance.sig_stop_completions.connect(self.sig_stop_completions)
         provider_instance.sig_response_ready.connect(self.receive_response)
-        provider_instance.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
+        provider_instance.sig_exception_occurred.connect(self.sig_exception_occurred)
         provider_instance.sig_language_completions_available.connect(
-            self.sig_language_completions_available)
-        provider_instance.sig_disable_provider.connect(
-            self.shutdown_provider_instance)
-        provider_instance.sig_show_widget.connect(
-            container.show_widget
+            self.sig_language_completions_available
         )
-        provider_instance.sig_call_statusbar.connect(
-            container.statusbar_rpc)
+        provider_instance.sig_disable_provider.connect(self.shutdown_provider_instance)
+        provider_instance.sig_show_widget.connect(container.show_widget)
+        provider_instance.sig_call_statusbar.connect(container.statusbar_rpc)
         provider_instance.sig_open_file.connect(self.sig_open_file)
 
-        self.sig_pythonpath_changed.connect(
-            provider_instance.python_path_update)
-        self.sig_interpreter_changed.connect(
-            provider_instance.main_interpreter_changed)
+        self.sig_pythonpath_changed.connect(provider_instance.python_path_update)
+        self.sig_interpreter_changed.connect(provider_instance.main_interpreter_changed)
 
-    def _instantiate_and_register_provider(
-            self, Provider: SpyderCompletionProvider):
+    def _instantiate_and_register_provider(self, Provider: SpyderCompletionProvider):
         provider_name = Provider.COMPLETION_PROVIDER_NAME
         if provider_name in self._available_providers:
             return
 
         self._available_providers[provider_name] = Provider
 
-        logger.debug("Completion plugin: Registering {0}".format(
-            provider_name))
+        logger.debug("Completion plugin: Registering {0}".format(provider_name))
 
         # Merge configuration settings between a provider defaults and
         # the existing ones
-        provider_config = self.get_provider_configuration(
-            Provider, provider_name)
+        provider_config = self.get_provider_configuration(Provider, provider_name)
 
         # Merge and update source priority order
         self.update_request_priorities(Provider, provider_name)
 
         # Instantiate provider
-        provider_instance = Provider(self, provider_config['values'])
+        provider_instance = Provider(self, provider_config["values"])
 
         # Signals
         self.connect_provider_signals(provider_instance)
 
         self.providers[provider_name] = {
-            'instance': provider_instance,
-            'status': self.STOPPED
+            "instance": provider_instance,
+            "status": self.STOPPED,
         }
 
         for language in self.language_status:
@@ -870,17 +874,18 @@ class CompletionPlugin(SpyderPluginV2):
         """Start all detected completion providers."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.STOPPED or force:
+            if provider_info["status"] == self.STOPPED or force:
                 provider_enabled = self.get_conf(
-                    ('enabled_providers', provider_name), True)
+                    ("enabled_providers", provider_name), True
+                )
                 if provider_enabled:
-                    provider_info['instance'].start()
+                    provider_info["instance"].start()
 
     @Slot(str)
     def provider_available(self, provider_name: str):
         """Indicate that the completion provider `provider_name` is running."""
         provider_info = self.providers[provider_name]
-        provider_info['status'] = self.RUNNING
+        provider_info["status"] = self.RUNNING
         self.sig_provider_ready.emit(provider_name)
 
     def start_completion_services_for_language(self, language: str) -> bool:
@@ -889,10 +894,11 @@ class CompletionPlugin(SpyderPluginV2):
         language_providers = self.language_status.get(language, {})
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                provider = provider_info['instance']
-                provider_started = (
-                    provider.start_completion_services_for_language(language))
+            if provider_info["status"] == self.RUNNING:
+                provider = provider_info["instance"]
+                provider_started = provider.start_completion_services_for_language(
+                    language
+                )
                 started |= provider_started
                 language_providers[provider_name] = provider_started
         self.language_status[language] = language_providers
@@ -902,18 +908,18 @@ class CompletionPlugin(SpyderPluginV2):
         """Stop completion providers for a given programming language."""
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            instance = provider_info['instance']
-            if provider_info['status'] == self.RUNNING:
+            instance = provider_info["instance"]
+            if provider_info["status"] == self.RUNNING:
                 instance.stop_completion_services_for_language(language)
         self.language_status.pop(language)
 
     def get_provider(self, name: str) -> SpyderCompletionProvider:
         """Get the :class:`SpyderCompletionProvider` identified with `name`."""
-        return self.providers[name]['instance']
+        return self.providers[name]["instance"]
 
     def is_provider_running(self, name: str) -> bool:
         """Return if provider is running."""
-        status = self.clients.get(name, {}).get('status', self.STOPPED)
+        status = self.clients.get(name, {}).get("status", self.STOPPED)
         return status == self.RUNNING
 
     def available_providers_for_language(self, language: str) -> List[str]:
@@ -929,13 +935,13 @@ class CompletionPlugin(SpyderPluginV2):
         Return if fallback and snippets are the only available providers for
         a given language.
         """
-        available_providers = set(
-            self.available_providers_for_language(language))
-        fallback_providers = {'snippets', 'fallback'}
+        available_providers = set(self.available_providers_for_language(language))
+        fallback_providers = {"snippets", "fallback"}
         return (available_providers - fallback_providers) == set()
 
     def sort_providers_for_request(
-            self, providers: List[str], req_type: str) -> List[str]:
+        self, providers: List[str], req_type: str
+    ) -> List[str]:
         """Sort providers for a given request type."""
         request_order = self.source_priority[req_type]
         return sorted(providers, key=lambda p: request_order[p])
@@ -943,20 +949,20 @@ class CompletionPlugin(SpyderPluginV2):
     def start_provider_instance(self, provider_name: str):
         """Start a given provider."""
         provider_info = self.providers[provider_name]
-        if provider_info['status'] == self.STOPPED:
-            provider_info['instance'].start()
+        if provider_info["status"] == self.STOPPED:
+            provider_info["instance"].start()
 
     def shutdown_provider_instance(self, provider_name: str):
         """Shutdown a given provider."""
         provider_info = self.providers[provider_name]
-        if provider_info['status'] == self.RUNNING:
-            provider_info['instance'].shutdown()
-            provider_info['status'] = self.STOPPED
+        if provider_info["status"] == self.RUNNING:
+            provider_info["instance"].shutdown()
+            provider_info["status"] = self.STOPPED
 
     # ---------- Methods to create/access graphical elements -----------
     def create_action(self, *args, **kwargs):
         container = self.get_container()
-        kwargs['parent'] = container
+        kwargs["parent"] = container
         return container.create_action(*args, **kwargs)
 
     def get_action(self, *args, **kwargs):
@@ -1019,11 +1025,11 @@ class CompletionPlugin(SpyderPluginV2):
         self.req_id += 1
 
         self.requests[req_id] = {
-            'language': language,
-            'req_type': req_type,
-            'response_instance': weakref.ref(req['response_instance']),
-            'sources': {},
-            'timed_out': False,
+            "language": language,
+            "req_type": req_type,
+            "response_instance": weakref.ref(req["response_instance"]),
+            "sources": {},
+            "timed_out": False,
         }
 
         # Check if there are two or more slow completion providers
@@ -1034,19 +1040,20 @@ class CompletionPlugin(SpyderPluginV2):
         # Start the timer on this request
         if req_type in self.AGGREGATE_RESPONSES and slow_provider_count > 2:
             if self.wait_for_ms > 0:
-                QTimer.singleShot(self.wait_for_ms,
-                                  lambda: self.receive_timeout(req_id))
+                QTimer.singleShot(
+                    self.wait_for_ms, lambda: self.receive_timeout(req_id)
+                )
             else:
-                self.requests[req_id]['timed_out'] = True
+                self.requests[req_id]["timed_out"] = True
 
         # Send request to all running completion providers
         for provider_name in providers:
             provider_info = self.providers[provider_name]
-            provider_info['instance'].send_request(
-                language, req_type, req, req_id)
+            provider_info["instance"].send_request(language, req_type, req, req_id)
 
     def send_notification(
-            self, language: str, notification_type: str, notification: dict):
+        self, language: str, notification_type: str, notification: dict
+    ):
         """
         Send a notification to all available completion providers.
 
@@ -1068,9 +1075,10 @@ class CompletionPlugin(SpyderPluginV2):
         providers = self.available_providers_for_language(language.lower())
         for provider_name in providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                provider_info['instance'].send_notification(
-                    language, notification_type, notification)
+            if provider_info["status"] == self.RUNNING:
+                provider_info["instance"].send_notification(
+                    language, notification_type, notification
+                )
 
     def broadcast_notification(self, req_type: str, req: dict):
         """
@@ -1091,12 +1099,12 @@ class CompletionPlugin(SpyderPluginV2):
         """
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                provider_info['instance'].broadcast_notification(
-                    req_type, req)
+            if provider_info["status"] == self.RUNNING:
+                provider_info["instance"].broadcast_notification(req_type, req)
 
-    def project_path_update(self, project_path: str, update_kind='addition',
-                            instance=None):
+    def project_path_update(
+        self, project_path: str, update_kind="addition", instance=None
+    ):
         """
         Handle project path updates on Spyder.
 
@@ -1112,8 +1120,8 @@ class CompletionPlugin(SpyderPluginV2):
         """
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                provider_info['instance'].project_path_update(
+            if provider_info["status"] == self.RUNNING:
+                provider_info["instance"].project_path_update(
                     project_path, update_kind, instance
                 )
 
@@ -1134,9 +1142,10 @@ class CompletionPlugin(SpyderPluginV2):
         if filename is not None and language is not None:
             for provider_name in self.providers:
                 provider_info = self.providers[provider_name]
-                if provider_info['status'] == self.RUNNING:
-                    provider_info['instance'].file_opened_closed_or_updated(
-                        filename, language)
+                if provider_info["status"] == self.RUNNING:
+                    provider_info["instance"].file_opened_closed_or_updated(
+                        filename, language
+                    )
 
     def register_file(self, language: str, filename: str, codeeditor):
         """
@@ -1156,25 +1165,24 @@ class CompletionPlugin(SpyderPluginV2):
         """
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
-            if provider_info['status'] == self.RUNNING:
-                provider_info['instance'].register_file(
-                    language, filename, codeeditor
-                )
+            if provider_info["status"] == self.RUNNING:
+                provider_info["instance"].register_file(language, filename, codeeditor)
 
     # ----------------- Completion result processing methods ------------------
     @Slot(str, int, dict)
-    def receive_response(
-            self, completion_source: str, req_id: int, resp: dict):
+    def receive_response(self, completion_source: str, req_id: int, resp: dict):
         """Process request response from a completion provider."""
-        logger.debug("Completion plugin: Request {0} Got response "
-                     "from {1}".format(req_id, completion_source))
+        logger.debug(
+            "Completion plugin: Request {0} Got response "
+            "from {1}".format(req_id, completion_source)
+        )
 
         if req_id not in self.requests:
             return
 
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
-            request_responses['sources'][completion_source] = resp
+            request_responses["sources"][completion_source] = resp
             self.match_and_reply(req_id)
 
     @Slot(int)
@@ -1188,7 +1196,7 @@ class CompletionPlugin(SpyderPluginV2):
 
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
-            request_responses['timed_out'] = True
+            request_responses["timed_out"] = True
             self.match_and_reply(req_id)
 
     def match_and_reply(self, req_id: int):
@@ -1199,27 +1207,30 @@ class CompletionPlugin(SpyderPluginV2):
         if req_id not in self.requests:
             return
         request_responses = self.requests[req_id]
-        language = request_responses['language'].lower()
-        req_type = request_responses['req_type']
+        language = request_responses["language"].lower()
+        req_type = request_responses["req_type"]
 
-        available_providers = self.available_providers_for_language(
-            language)
+        available_providers = self.available_providers_for_language(language)
         sorted_providers = self.sort_providers_for_request(
-            available_providers, req_type)
+            available_providers, req_type
+        )
 
         if req_type in self.AGGREGATE_RESPONSES:
             # Wait only for the available providers for the given request
-            timed_out = request_responses['timed_out']
-            all_returned = all(source in request_responses['sources']
-                               for source in sorted_providers)
+            timed_out = request_responses["timed_out"]
+            all_returned = all(
+                source in request_responses["sources"] for source in sorted_providers
+            )
             if not timed_out:
                 # Before the timeout
                 if all_returned:
                     self.skip_and_reply(req_id)
             else:
                 # After the timeout
-                any_nonempty = any(request_responses['sources'].get(source)
-                                   for source in sorted_providers)
+                any_nonempty = any(
+                    request_responses["sources"].get(source)
+                    for source in sorted_providers
+                )
                 if all_returned or any_nonempty:
                     self.skip_and_reply(req_id)
         else:
@@ -1227,8 +1238,9 @@ class CompletionPlugin(SpyderPluginV2):
             # loop will wait for the next non-empty response.
             # This should fix the scenario where Kite does not have a
             # response for a non-aggregated request but the LSP does.
-            any_nonempty = any(request_responses['sources'].get(source)
-                               for source in sorted_providers)
+            any_nonempty = any(
+                request_responses["sources"].get(source) for source in sorted_providers
+            )
             if any_nonempty:
                 self.skip_and_reply(req_id)
 
@@ -1239,19 +1251,23 @@ class CompletionPlugin(SpyderPluginV2):
         it.
         """
         request_responses = self.requests[req_id]
-        req_type = request_responses['req_type']
-        response_instance = id(request_responses['response_instance']())
+        req_type = request_responses["req_type"]
+        response_instance = id(request_responses["response_instance"]())
         do_send = True
 
         # This is necessary to prevent sending completions for old requests
         # See spyder-ide/spyder#10798
         if req_type in self.SKIP_INTERMEDIATE_REQUESTS:
             max_req_id = max(
-                [key for key, item in self.requests.items()
-                 if item['req_type'] == req_type
-                 and id(item['response_instance']()) == response_instance]
-                or [-1])
-            do_send = (req_id == max_req_id)
+                [
+                    key
+                    for key, item in self.requests.items()
+                    if item["req_type"] == req_type
+                    and id(item["response_instance"]()) == response_instance
+                ]
+                or [-1]
+            )
+            do_send = req_id == max_req_id
 
         logger.debug("Completion plugin: Request {} removed".format(req_id))
         del self.requests[req_id]
@@ -1265,10 +1281,10 @@ class CompletionPlugin(SpyderPluginV2):
         Gather request responses from all providers and send them to the
         CodeEditor instance that requested them.
         """
-        req_type = request_responses['req_type']
-        req_id_responses = request_responses['sources']
-        response_instance = request_responses['response_instance']()
-        logger.debug('Gather responses for {0}'.format(req_type))
+        req_type = request_responses["req_type"]
+        req_id_responses = request_responses["sources"]
+        response_instance = request_responses["response_instance"]()
+        logger.debug("Gather responses for {0}".format(req_type))
 
         if req_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
             responses = self.gather_completions(req_id_responses)
@@ -1285,10 +1301,8 @@ class CompletionPlugin(SpyderPluginV2):
 
     def gather_completions(self, req_id_responses: dict):
         """Gather completion responses from providers."""
-        priorities = self.source_priority[
-            CompletionRequestTypes.DOCUMENT_COMPLETION]
-        priorities = sorted(list(priorities.keys()),
-                            key=lambda p: priorities[p])
+        priorities = self.source_priority[CompletionRequestTypes.DOCUMENT_COMPLETION]
+        priorities = sorted(list(priorities.keys()), key=lambda p: priorities[p])
 
         merge_stats = {source: 0 for source in req_id_responses}
         responses = []
@@ -1296,18 +1310,18 @@ class CompletionPlugin(SpyderPluginV2):
         for priority, source in enumerate(priorities):
             if source not in req_id_responses:
                 continue
-            for response in req_id_responses[source].get('params', []):
-                dedupe_key = response['label'].strip()
+            for response in req_id_responses[source].get("params", []):
+                dedupe_key = response["label"].strip()
                 if dedupe_key in dedupe_set:
                     continue
                 dedupe_set.add(dedupe_key)
 
-                response['sortText'] = (priority, response['sortText'])
+                response["sortText"] = (priority, response["sortText"])
                 responses.append(response)
                 merge_stats[source] += 1
 
-        logger.debug('Responses statistics: {0}'.format(merge_stats))
-        responses = {'params': responses}
+        logger.debug("Responses statistics: {0}".format(merge_stats))
+        responses = {"params": responses}
         return responses
 
     def gather_responses(self, req_type: int, responses: dict):
@@ -1315,7 +1329,7 @@ class CompletionPlugin(SpyderPluginV2):
         response = None
         for source in self.source_priority[req_type]:
             if source in responses:
-                response = responses[source].get('params', None)
+                response = responses[source].get("params", None)
                 if response:
                     break
-        return {'params': response}
+        return {"params": response}

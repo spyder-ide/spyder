@@ -22,16 +22,19 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def editor_bot(qtbot):
     widget = CodeEditor(None)
-    widget.setup_editor(linenumbers=True,
-                        markers=True,
-                        show_blanks=True,
-                        scrollflagarea=True,
-                        font=QFont("Courier New", 10),
-                        color_scheme='Zenburn',
-                        language='Python')
+    widget.setup_editor(
+        linenumbers=True,
+        markers=True,
+        show_blanks=True,
+        scrollflagarea=True,
+        font=QFont("Courier New", 10),
+        color_scheme="Zenburn",
+        language="Python",
+    )
     qtbot.addWidget(widget)
     return widget
 
@@ -74,7 +77,7 @@ line6: Found Results
 # Tests
 # ---------------------------------------------------------------------------
 def test_enabled(editor_bot):
-    """"Test that enabling and disabling the srollflagarea panel make
+    """ "Test that enabling and disabling the srollflagarea panel make
     it visible or invisible depending on the case."""
     editor = editor_bot
     sfa = editor.scrollflagarea
@@ -86,10 +89,9 @@ def test_enabled(editor_bot):
     assert not sfa.isVisible()
 
 
-@pytest.mark.skipif(sys.platform.startswith('linux'),
-                    reason="Fails in Linux")
+@pytest.mark.skipif(sys.platform.startswith("linux"), reason="Fails in Linux")
 def test_flag_painting(editor_bot, qtbot):
-    """"Test that there is no error when painting all flag types on the
+    """ "Test that there is no error when painting all flag types on the
     scrollbar area when the editor vertical scrollbar is visible and not
     visible. There is seven different flags: breakpoints, todos, warnings,
     errors, found_results, and occurences"""
@@ -106,19 +108,31 @@ def test_flag_painting(editor_bot, qtbot):
     # Trigger the painting of all flag types.
     editor.debugger.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    analysis = [{'source': 'pycodestyle', 'range':{
-                    'start': {'line': 4, 'character': 0},
-                    'end': {'line': 4, 'character': 1}},
-                 'line': 4, 'code': 'E227','message': 'E227 warning',
-                 'severity': 2},
-                 {'source': 'pyflakes', 'range':{
-                     'start': {'line': 5, 'character': 0},
-                     'end': {'line': 5, 'character': 1}},
-                  'message': 'syntax error', 'severity': 1}]
+    analysis = [
+        {
+            "source": "pycodestyle",
+            "range": {
+                "start": {"line": 4, "character": 0},
+                "end": {"line": 4, "character": 1},
+            },
+            "line": 4,
+            "code": "E227",
+            "message": "E227 warning",
+            "severity": 2,
+        },
+        {
+            "source": "pyflakes",
+            "range": {
+                "start": {"line": 5, "character": 0},
+                "end": {"line": 5, "character": 1},
+            },
+            "message": "syntax error",
+            "severity": 1,
+        },
+    ]
     editor.process_code_analysis(analysis)
-    editor.highlight_found_results('line6')
-    with qtbot.waitSignal(editor.sig_flags_changed, raising=True,
-                          timeout=5000):
+    editor.highlight_found_results("line6")
+    with qtbot.waitSignal(editor.sig_flags_changed, raising=True, timeout=5000):
         cursor = editor.textCursor()
         cursor.setPosition(2)
         editor.setTextCursor(cursor)
@@ -129,19 +143,31 @@ def test_flag_painting(editor_bot, qtbot):
     # Trigger the painting of all flag types.
     editor.debugger.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    analysis = [{'source': 'pycodestyle', 'range':{
-                    'start': {'line': 4, 'character': 0},
-                    'end': {'line': 4, 'character': 1}},
-                 'line': 4, 'code': 'E227','message': 'E227 warning',
-                 'severity': 2},
-                 {'source': 'pyflakes', 'range':{
-                     'start': {'line': 5, 'character': 0},
-                     'end': {'line': 5, 'character': 1}},
-                  'message': 'syntax error', 'severity': 1}]
+    analysis = [
+        {
+            "source": "pycodestyle",
+            "range": {
+                "start": {"line": 4, "character": 0},
+                "end": {"line": 4, "character": 1},
+            },
+            "line": 4,
+            "code": "E227",
+            "message": "E227 warning",
+            "severity": 2,
+        },
+        {
+            "source": "pyflakes",
+            "range": {
+                "start": {"line": 5, "character": 0},
+                "end": {"line": 5, "character": 1},
+            },
+            "message": "syntax error",
+            "severity": 1,
+        },
+    ]
     editor.process_code_analysis(analysis)
-    editor.highlight_found_results('line6')
-    with qtbot.waitSignal(editor.sig_flags_changed, raising=True,
-                          timeout=5000):
+    editor.highlight_found_results("line6")
+    with qtbot.waitSignal(editor.sig_flags_changed, raising=True, timeout=5000):
         cursor = editor.textCursor()
         cursor.setPosition(2)
         editor.setTextCursor(cursor)
@@ -165,8 +191,8 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     # that the slider range indicator remains hidden. The slider range
     # indicator should remains hidden at all times when the vertical scrollbar
     # of the editor is not visible.
-    x = int(sfa.width()/2)
-    y = int(sfa.height()/2)
+    x = int(sfa.width() / 2)
+    y = int(sfa.height() / 2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
 
     assert sfa._range_indicator_is_visible is False
@@ -180,8 +206,8 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     # that the slider range indicator is now shown. When the vertical scrollbar
     # of the editor is visible, the slider range indicator should be visible
     # only when the mouse cursor hover above the scrollflagarea.
-    x = int(sfa.width()/2)
-    y = int(sfa.height()/2)
+    x = int(sfa.width() / 2)
+    y = int(sfa.height() / 2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
     qtbot.wait(500)
 
@@ -189,8 +215,8 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
 
     # Move the mouse cursor outside of the scrollflagarea and assert that the
     # slider range indicator becomes hidden.
-    x = int(editor.width()/2)
-    y = int(editor.height()/2)
+    x = int(editor.width() / 2)
+    y = int(editor.height() / 2)
     qtbot.mouseMove(editor, pos=QPoint(x, y), delay=-1)
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible)
 
@@ -217,7 +243,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # Set the cursor position to the center of the editor.
     w = editor.width()
     h = editor.height()
-    qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w//2, h//2))
+    qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w // 2, h // 2))
 
     # Hold the alt key and assert that the slider range indicator is visible.
     # Because it is not possible to simulate the action of holding the alt
@@ -226,8 +252,8 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # it. This flag is only used for testing purpose.
     qtbot.keyPress(editor, Qt.Key_Alt)
     editor.resize(600, 150)
-    x = int(sfa.width()/2)
-    y = int(sfa.height()/2)
+    x = int(sfa.width() / 2)
+    y = int(sfa.height() / 2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
     qtbot.waitUntil(lambda: sfa._range_indicator_is_visible)
 
@@ -235,32 +261,44 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its middle range position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
-        qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, h//2), modifier=Qt.AltModifier)
-    assert vsb.value() == (vsb.minimum()+vsb.maximum())//2
+        qtbot.mousePress(
+            editor.viewport(),
+            Qt.LeftButton,
+            pos=QPoint(w // 2, h // 2),
+            modifier=Qt.AltModifier,
+        )
+    assert vsb.value() == (vsb.minimum() + vsb.maximum()) // 2
 
     # While the alt key is pressed, click with the mouse at the top of the
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its minimum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
-        qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, 1), modifier=Qt.AltModifier)
+        qtbot.mousePress(
+            editor.viewport(),
+            Qt.LeftButton,
+            pos=QPoint(w // 2, 1),
+            modifier=Qt.AltModifier,
+        )
     assert vsb.value() == vsb.minimum()
 
     # While the alt key is pressed, click with the mouse at the bottom of the
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its maximum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
-        qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, h-1), modifier=Qt.AltModifier)
+        qtbot.mousePress(
+            editor.viewport(),
+            Qt.LeftButton,
+            pos=QPoint(w // 2, h - 1),
+            modifier=Qt.AltModifier,
+        )
     assert vsb.value() == vsb.maximum()
 
     # Release the alt key and assert that the slider range indicator is
     # not visible.
     editor.resize(600, 150)
-    x = int(sfa.width()/2)
-    y = int(sfa.height()/2)
-    qtbot.mouseMove(sfa, pos=QPoint(x*100, y), delay=-1)
+    x = int(sfa.width() / 2)
+    y = int(sfa.height() / 2)
+    qtbot.mouseMove(sfa, pos=QPoint(x * 100, y), delay=-1)
     qtbot.keyRelease(editor, Qt.Key_Alt)
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible, timeout=3000)
 

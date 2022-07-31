@@ -17,17 +17,18 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
-from spyder.plugins.workingdirectory.container import (
-    WorkingDirectoryContainer)
+from spyder.plugins.workingdirectory.container import WorkingDirectoryContainer
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class WorkingDirectory(SpyderPluginV2):
@@ -35,10 +36,15 @@ class WorkingDirectory(SpyderPluginV2):
     Working directory changer plugin.
     """
 
-    NAME = 'workingdir'
+    NAME = "workingdir"
     REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
-    OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
-                Plugins.Find, Plugins.Projects]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.Explorer,
+        Plugins.IPythonConsole,
+        Plugins.Find,
+        Plugins.Projects,
+    ]
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
@@ -62,27 +68,26 @@ class WorkingDirectory(SpyderPluginV2):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Working directory')
+        return _("Working directory")
 
     def get_description(self):
-        return _('Set the current working directory for various plugins.')
+        return _("Set the current working directory for various plugins.")
 
     def get_icon(self):
-        return self.create_icon('DirOpenIcon')
+        return self.create_icon("DirOpenIcon")
 
     def on_initialize(self):
         container = self.get_container()
 
         container.sig_current_directory_changed.connect(
-            self.sig_current_directory_changed)
+            self.sig_current_directory_changed
+        )
         self.sig_current_directory_changed.connect(
-            lambda path, plugin=None: self.chdir(path, plugin))
+            lambda path, plugin=None: self.chdir(path, plugin)
+        )
 
         cli_options = self.get_command_line_options()
-        container.set_history(
-            self.load_history(),
-            cli_options.working_directory
-        )
+        container.set_history(self.load_history(), cli_options.working_directory)
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
@@ -111,9 +116,9 @@ class WorkingDirectory(SpyderPluginV2):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         self.sig_current_directory_changed.connect(
-            ipyconsole.set_current_client_working_directory)
-        ipyconsole.sig_current_directory_changed.connect(
-            self._ipyconsole_change_dir)
+            ipyconsole.set_current_client_working_directory
+        )
+        ipyconsole.sig_current_directory_changed.connect(self._ipyconsole_change_dir)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -124,8 +129,7 @@ class WorkingDirectory(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
-        toolbar.remove_application_toolbar(
-            ApplicationToolbars.WorkingDirectory)
+        toolbar.remove_application_toolbar(ApplicationToolbars.WorkingDirectory)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -148,9 +152,9 @@ class WorkingDirectory(SpyderPluginV2):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         self.sig_current_directory_changed.disconnect(
-            ipyconsole.set_current_client_working_directory)
-        ipyconsole.sig_current_directory_changed.disconnect(
-            self._ipyconsole_change_dir)
+            ipyconsole.set_current_client_working_directory
+        )
+        ipyconsole.sig_current_directory_changed.disconnect(self._ipyconsole_change_dir)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
@@ -256,7 +260,4 @@ class WorkingDirectory(SpyderPluginV2):
 
     def _project_closed(self, path):
         projects = self.get_plugin(Plugins.Projects)
-        self.chdir(
-            directory=projects.get_last_working_dir(),
-            sender_plugin=projects
-        )
+        self.chdir(directory=projects.get_last_working_dir(), sender_plugin=projects)

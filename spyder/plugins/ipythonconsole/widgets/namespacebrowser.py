@@ -11,6 +11,7 @@ the Variable Explorer
 
 import logging
 import time
+
 try:
     time.monotonic  # time.monotonic new in 3.3
 except AttributeError:
@@ -60,12 +61,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return
         if self.namespacebrowser:
             self.call_kernel(
-                interrupt=interrupt,
-                callback=self.set_namespace_view
+                interrupt=interrupt, callback=self.set_namespace_view
             ).get_namespace_view()
             self.call_kernel(
-                interrupt=interrupt,
-                callback=self.set_var_properties
+                interrupt=interrupt, callback=self.set_var_properties
             ).get_var_properties()
 
     def set_namespace_view(self, view):
@@ -84,9 +83,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return
         if self.namespacebrowser:
             settings = self.namespacebrowser.get_view_settings()
-            self.call_kernel(
-                interrupt=True
-            ).set_namespace_view_settings(settings)
+            self.call_kernel(interrupt=True).set_namespace_view_settings(settings)
 
     def get_value(self, name):
         """Ask kernel for a value"""
@@ -95,14 +92,15 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_dead = _("The kernel is dead")
         reason_other = _("An error occured, see the console.")
         reason_comm = _("The comm channel is not working.")
-        msg = _("%s.<br><br>"
-                "Note: Please don't report this problem on Github, "
-                "there's nothing to do about it.")
+        msg = _(
+            "%s.<br><br>"
+            "Note: Please don't report this problem on Github, "
+            "there's nothing to do about it."
+        )
         try:
             return self.call_kernel(
-                blocking=True,
-                display_error=True,
-                timeout=CALL_KERNEL_TIMEOUT).get_value(name)
+                blocking=True, display_error=True, timeout=CALL_KERNEL_TIMEOUT
+            ).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
         except (PicklingError, UnpicklingError, TypeError):
@@ -122,7 +120,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             interrupt=True,
             blocking=False,
             display_error=True,
-            ).set_value(name, value)
+        ).set_value(name, value)
 
     def remove_value(self, name):
         """Remove a variable"""
@@ -130,7 +128,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             interrupt=True,
             blocking=False,
             display_error=True,
-            ).remove_value(name)
+        ).remove_value(name)
 
     def copy_value(self, orig_name, new_name):
         """Copy a variable"""
@@ -138,32 +136,33 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             interrupt=True,
             blocking=False,
             display_error=True,
-            ).copy_value(orig_name, new_name)
+        ).copy_value(orig_name, new_name)
 
     def load_data(self, filename, ext):
         """Load data from a file."""
         overwrite = False
         if self.namespacebrowser.editor.var_properties:
-            message = _('Do you want to overwrite old '
-                        'variables (if any) in the namespace '
-                        'when loading the data?')
+            message = _(
+                "Do you want to overwrite old "
+                "variables (if any) in the namespace "
+                "when loading the data?"
+            )
             buttons = QMessageBox.Yes | QMessageBox.No
-            result = QMessageBox.question(
-                self, _('Data loading'), message, buttons)
+            result = QMessageBox.question(self, _("Data loading"), message, buttons)
             overwrite = result == QMessageBox.Yes
         try:
             return self.call_kernel(
-                blocking=True,
-                display_error=True,
-                timeout=CALL_KERNEL_TIMEOUT).load_data(
-                    filename, ext, overwrite=overwrite)
+                blocking=True, display_error=True, timeout=CALL_KERNEL_TIMEOUT
+            ).load_data(filename, ext, overwrite=overwrite)
         except ImportError as msg:
             module = str(msg).split("'")[1]
-            msg = _("Spyder is unable to open the file "
-                    "you're trying to load because <tt>{module}</tt> is "
-                    "not installed. Please install "
-                    "this package in your working environment."
-                    "<br>").format(module=module)
+            msg = _(
+                "Spyder is unable to open the file "
+                "you're trying to load because <tt>{module}</tt> is "
+                "not installed. Please install "
+                "this package in your working environment."
+                "<br>"
+            ).format(module=module)
             return msg
         except TimeoutError:
             msg = _("Data is too big to be loaded")
@@ -174,9 +173,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def save_namespace(self, filename):
         try:
             return self.call_kernel(
-                blocking=True,
-                display_error=True,
-                timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
+                blocking=True, display_error=True, timeout=CALL_KERNEL_TIMEOUT
+            ).save_namespace(filename)
         except TimeoutError:
             msg = _("Data is too big to be saved")
             return msg
@@ -189,14 +187,14 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         Reimplemented to handle communications between Spyder
         and the kernel
         """
-        msg_id = msg['parent_header']['msg_id']
-        info = self._request_info['execute'].get(msg_id)
+        msg_id = msg["parent_header"]["msg_id"]
+        info = self._request_info["execute"].get(msg_id)
         # unset reading flag, because if execute finished, raw_input can't
         # still be pending.
         self._reading = False
 
         # Refresh namespacebrowser after the kernel starts running
-        exec_count = msg['content'].get('execution_count', '')
+        exec_count = msg["content"].get("execution_count", "")
         if exec_count == 0 and self._kernel_is_starting:
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
@@ -205,9 +203,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self.ipyclient.t0 = time.monotonic()
 
         # Handle silent execution of kernel methods
-        if info and info.kind == 'silent_exec_method':
+        if info and info.kind == "silent_exec_method":
             self.handle_exec_method(msg)
-            self._request_info['execute'].pop(msg_id)
+            self._request_info["execute"].pop(msg_id)
         else:
             super(NamepaceBrowserWidget, self)._handle_execute_reply(msg)
 
@@ -216,9 +214,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         Reimplemented to refresh the namespacebrowser after kernel
         restarts
         """
-        state = msg['content'].get('execution_state', '')
-        msg_type = msg['parent_header'].get('msg_type', '')
-        if state == 'starting':
+        state = msg["content"].get("execution_state", "")
+        msg_type = msg["parent_header"].get("msg_type", "")
+        if state == "starting":
             # This is needed to show the time a kernel
             # has been alive in each console.
             self.ipyclient.t0 = time.monotonic()
@@ -229,7 +227,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             # unexpectedly
             if not self._kernel_is_starting:
                 self._kernel_is_starting = True
-        elif state == 'idle' and msg_type == 'shutdown_request':
+        elif state == "idle" and msg_type == "shutdown_request":
             # This handles restarts asked by the user
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()

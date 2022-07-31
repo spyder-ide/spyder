@@ -7,22 +7,26 @@
 """File explorer configuration page."""
 
 # Third party imports
-from qtpy.QtWidgets import (QTabWidget, QVBoxLayout, QWidget, QGroupBox,
-                            QLabel, QPushButton)
+from qtpy.QtWidgets import (
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+    QGroupBox,
+    QLabel,
+    QPushButton,
+)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
 from spyder.config.main import NAME_FILTERS
-from spyder.plugins.explorer.widgets.fileassociations import (
-    FileAssociationsWidget)
+from spyder.plugins.explorer.widgets.fileassociations import FileAssociationsWidget
 
 # Localization
 _ = get_translation("spyder")
 
 
 class ExplorerConfigPage(PluginConfigPage):
-
     def setup_page(self):
         # Variables
         newcb = self.create_checkbox
@@ -32,9 +36,10 @@ class ExplorerConfigPage(PluginConfigPage):
 
         # General options group
         basic_group = QGroupBox(_("General options"))
-        check_show_hidden_files = newcb(_("Show hidden files"), 'show_hidden')
+        check_show_hidden_files = newcb(_("Show hidden files"), "show_hidden")
         check_single_click = newcb(
-            _("Single click to open files"), 'single_click_to_open')
+            _("Single click to open files"), "single_click_to_open"
+        )
         basic_layout = QVBoxLayout()
         basic_layout.addWidget(check_show_hidden_files)
         basic_layout.addWidget(check_single_click)
@@ -43,15 +48,18 @@ class ExplorerConfigPage(PluginConfigPage):
         # Filter options group
         filter_group = QGroupBox(_("Filter settings"))
         description_label = QLabel(
-            _('Filter files by name, extension, or more using '
-              '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob '
-              'patterns.</a> Please enter the glob patterns of the files you '
-              'want to show, separated by commas.'))
+            _(
+                "Filter files by name, extension, or more using "
+                '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob '
+                "patterns.</a> Please enter the glob patterns of the files you "
+                "want to show, separated by commas."
+            )
+        )
         description_label.setOpenExternalLinks(True)
         description_label.setWordWrap(True)
         self.edit_filename_filters = self.create_textedit(
-            '',
-            'name_filters',
+            "",
+            "name_filters",
             tip=("Enter values separated by commas"),
             content_type=list,
         )
@@ -68,14 +76,14 @@ class ExplorerConfigPage(PluginConfigPage):
 
         associations_widget = QWidget()
         self.edit_file_associations = self.create_textedit(
-            '',
-            'file_associations',
+            "",
+            "file_associations",
             content_type=dict,
         )
         file_associations = FileAssociationsWidget()
 
         # Widget setup
-        file_associations.load_values(self.get_option('file_associations', {}))
+        file_associations.load_values(self.get_option("file_associations", {}))
         # The actual config data is stored on this text edit set to invisible
         self.edit_file_associations.setVisible(False)
 
@@ -91,8 +99,7 @@ class ExplorerConfigPage(PluginConfigPage):
 
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(general_widget), _("General"))
-        self.tabs.addTab(self.create_tab(associations_widget),
-                         _("File associations"))
+        self.tabs.addTab(self.create_tab(associations_widget), _("File associations"))
 
         tab_layout = QVBoxLayout()
         tab_layout.addWidget(self.tabs)
@@ -111,6 +118,6 @@ class ExplorerConfigPage(PluginConfigPage):
 
     def reset_to_default(self):
         """Reset the filter settings to default."""
-        self.set_option('name_filters', NAME_FILTERS)
+        self.set_option("name_filters", NAME_FILTERS)
         textedit = self.edit_filename_filters.textbox
         textedit.setPlainText(", ".join(NAME_FILTERS))

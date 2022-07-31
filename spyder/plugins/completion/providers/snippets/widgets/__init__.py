@@ -7,4 +7,8 @@
 """Snippets related widgets."""
 
 from .snippetsconfig import (
-    SnippetModelsProxy, SnippetTable, SUPPORTED_LANGUAGES_PY, PYTHON_POS)
+    SnippetModelsProxy,
+    SnippetTable,
+    SUPPORTED_LANGUAGES_PY,
+    PYTHON_POS,
+)

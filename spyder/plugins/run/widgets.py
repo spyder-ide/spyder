@@ -12,11 +12,26 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                            QFrame, QGridLayout, QGroupBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QRadioButton, QSizePolicy, QScrollArea,
-                            QStackedWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QRadioButton,
+    QSizePolicy,
+    QScrollArea,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -34,17 +49,17 @@ CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
 SYSTERM_INTERPRETER = _("Execute in an external system terminal")
 
-CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'
-DEDICATED_INTERPRETER_OPTION = 'default/interpreter/dedicated'
-SYSTERM_INTERPRETER_OPTION = 'default/interpreter/systerm'
+CURRENT_INTERPRETER_OPTION = "default/interpreter/current"
+DEDICATED_INTERPRETER_OPTION = "default/interpreter/dedicated"
+SYSTERM_INTERPRETER_OPTION = "default/interpreter/systerm"
 
-WDIR_USE_SCRIPT_DIR_OPTION = 'default/wdir/use_script_directory'
-WDIR_USE_CWD_DIR_OPTION = 'default/wdir/use_cwd_directory'
-WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
-WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
+WDIR_USE_SCRIPT_DIR_OPTION = "default/wdir/use_script_directory"
+WDIR_USE_CWD_DIR_OPTION = "default/wdir/use_cwd_directory"
+WDIR_USE_FIXED_DIR_OPTION = "default/wdir/use_fixed_directory"
+WDIR_FIXED_DIR_OPTION = "default/wdir/fixed_directory"
 
 ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
-ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
+ALWAYS_OPEN_FIRST_RUN_OPTION = "open_on_firstrun"
 
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 CONSOLE_NAMESPACE = _("Run in console's namespace instead of an empty one")
@@ -78,85 +93,94 @@ class RunConfiguration(object):
         self.fixed_dir = None
         self.dir = None
 
-        self.set(CONF.get('run', 'defaultconfiguration', default={}))
+        self.set(CONF.get("run", "defaultconfiguration", default={}))
 
     def set(self, options):
-        self.default = options.get('default', True)
-        self.args = options.get('args', '')
-        self.args_enabled = options.get('args/enabled', False)
-        self.current = options.get('current',
-                           CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
-        self.systerm = options.get('systerm',
-                           CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
-        self.interact = options.get('interact',
-                           CONF.get('run', 'interact', False))
-        self.post_mortem = options.get('post_mortem',
-                           CONF.get('run', 'post_mortem', False))
-        self.python_args = options.get('python_args', '')
-        self.python_args_enabled = options.get('python_args/enabled', False)
-        self.clear_namespace = options.get('clear_namespace',
-                                    CONF.get('run', 'clear_namespace', False))
-        self.console_namespace = options.get('console_namespace',
-                                   CONF.get('run', 'console_namespace', False))
-        self.file_dir = options.get('file_dir',
-                           CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
-        self.cw_dir = options.get('cw_dir',
-                           CONF.get('run', WDIR_USE_CWD_DIR_OPTION, False))
-        self.fixed_dir = options.get('fixed_dir',
-                           CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False))
-        self.dir = options.get('dir', '')
+        self.default = options.get("default", True)
+        self.args = options.get("args", "")
+        self.args_enabled = options.get("args/enabled", False)
+        self.current = options.get(
+            "current", CONF.get("run", CURRENT_INTERPRETER_OPTION, True)
+        )
+        self.systerm = options.get(
+            "systerm", CONF.get("run", SYSTERM_INTERPRETER_OPTION, False)
+        )
+        self.interact = options.get("interact", CONF.get("run", "interact", False))
+        self.post_mortem = options.get(
+            "post_mortem", CONF.get("run", "post_mortem", False)
+        )
+        self.python_args = options.get("python_args", "")
+        self.python_args_enabled = options.get("python_args/enabled", False)
+        self.clear_namespace = options.get(
+            "clear_namespace", CONF.get("run", "clear_namespace", False)
+        )
+        self.console_namespace = options.get(
+            "console_namespace", CONF.get("run", "console_namespace", False)
+        )
+        self.file_dir = options.get(
+            "file_dir", CONF.get("run", WDIR_USE_SCRIPT_DIR_OPTION, True)
+        )
+        self.cw_dir = options.get(
+            "cw_dir", CONF.get("run", WDIR_USE_CWD_DIR_OPTION, False)
+        )
+        self.fixed_dir = options.get(
+            "fixed_dir", CONF.get("run", WDIR_USE_FIXED_DIR_OPTION, False)
+        )
+        self.dir = options.get("dir", "")
 
     def get(self):
         return {
-                'default': self.default,
-                'args/enabled': self.args_enabled,
-                'args': self.args,
-                'workdir/enabled': self.wdir_enabled,
-                'workdir': self.wdir,
-                'current': self.current,
-                'systerm': self.systerm,
-                'interact': self.interact,
-                'post_mortem': self.post_mortem,
-                'python_args/enabled': self.python_args_enabled,
-                'python_args': self.python_args,
-                'clear_namespace': self.clear_namespace,
-                'console_namespace': self.console_namespace,
-                'file_dir': self.file_dir,
-                'cw_dir': self.cw_dir,
-                'fixed_dir': self.fixed_dir,
-                'dir': self.dir
-                }
+            "default": self.default,
+            "args/enabled": self.args_enabled,
+            "args": self.args,
+            "workdir/enabled": self.wdir_enabled,
+            "workdir": self.wdir,
+            "current": self.current,
+            "systerm": self.systerm,
+            "interact": self.interact,
+            "post_mortem": self.post_mortem,
+            "python_args/enabled": self.python_args_enabled,
+            "python_args": self.python_args,
+            "clear_namespace": self.clear_namespace,
+            "console_namespace": self.console_namespace,
+            "file_dir": self.file_dir,
+            "cw_dir": self.cw_dir,
+            "fixed_dir": self.fixed_dir,
+            "dir": self.dir,
+        }
 
     def get_working_directory(self):
-       return self.dir
+        return self.dir
 
     def get_arguments(self):
         if self.args_enabled:
             return self.args
         else:
-            return ''
+            return ""
 
     def get_python_arguments(self):
         if self.python_args_enabled:
             return self.python_args
         else:
-            return ''
+            return ""
 
 
 def _get_run_configurations():
-    history_count = CONF.get('run', 'history', 20)
+    history_count = CONF.get("run", "history", 20)
     try:
-        return [(filename, options)
-                for filename, options in CONF.get('run', 'configurations', [])
-                if osp.isfile(filename)][:history_count]
+        return [
+            (filename, options)
+            for filename, options in CONF.get("run", "configurations", [])
+            if osp.isfile(filename)
+        ][:history_count]
     except ValueError:
-        CONF.set('run', 'configurations', [])
+        CONF.set("run", "configurations", [])
         return []
 
 
 def _set_run_configurations(configurations):
-    history_count = CONF.get('run', 'history', 20)
-    CONF.set('run', 'configurations', configurations[:history_count])
+    history_count = CONF.get("run", "history", 20)
+    CONF.set("run", "configurations", configurations[:history_count])
 
 
 def get_run_configuration(fname):
@@ -171,12 +195,13 @@ def get_run_configuration(fname):
 
 class RunConfigOptions(QWidget):
     """Run configuration options"""
+
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
         self.dir = None
         self.runconf = RunConfiguration()
-        firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
+        firstrun_o = CONF.get("run", ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
         # --- Run settings ---
         self.run_default_config_radio = QRadioButton(RUN_DEFAULT_CONFIG)
@@ -186,8 +211,7 @@ class RunConfigOptions(QWidget):
         interpreter_group = QGroupBox(_("Console"))
         interpreter_group.setDisabled(True)
 
-        self.run_custom_config_radio.toggled.connect(
-            interpreter_group.setEnabled)
+        self.run_custom_config_radio.toggled.connect(interpreter_group.setEnabled)
 
         interpreter_layout = QVBoxLayout(interpreter_group)
 
@@ -215,8 +239,9 @@ class RunConfigOptions(QWidget):
         self.pclo_edit = QLineEdit()
         self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
-        self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
-                                    "other options you set here"))
+        self.pclo_edit.setToolTip(
+            _("<b>-u</b> is added to the " "other options you set here")
+        )
         external_layout.addWidget(self.pclo_edit, 3, 1)
 
         interpreter_layout.addWidget(external_group)
@@ -269,9 +294,9 @@ class RunConfigOptions(QWidget):
         browse_btn = create_toolbutton(
             self,
             triggered=self.select_directory,
-            icon=ima.icon('DirOpenIcon'),
-            tip=_("Select directory")
-            )
+            icon=ima.icon("DirOpenIcon"),
+            tip=_("Select directory"),
+        )
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
@@ -349,24 +374,26 @@ class RunConfigOptions(QWidget):
         if not self.fixed_dir_radio.isChecked() or osp.isdir(wdir):
             return True
         else:
-            QMessageBox.critical(self, _("Run configuration"),
-                                 _("The following working directory is "
-                                   "not valid:<br><b>%s</b>") % wdir)
+            QMessageBox.critical(
+                self,
+                _("Run configuration"),
+                _("The following working directory is " "not valid:<br><b>%s</b>")
+                % wdir,
+            )
             return False
 
     def set_firstrun_o(self):
-        CONF.set('run', ALWAYS_OPEN_FIRST_RUN_OPTION,
-                 self.firstrun_cb.isChecked())
+        CONF.set("run", ALWAYS_OPEN_FIRST_RUN_OPTION, self.firstrun_cb.isChecked())
 
 
 class BaseRunConfigDialog(QDialog):
     """Run configuration dialog box, base widget"""
+
     size_change = Signal(QSize)
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        self.setWindowFlags(
-            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -374,7 +401,7 @@ class BaseRunConfigDialog(QDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.setWindowIcon(ima.icon('run_settings'))
+        self.setWindowIcon(ima.icon("run_settings"))
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -513,10 +540,9 @@ class RunConfigDialog(BaseRunConfigDialog):
         for index in range(self.stack.count()):
             filename = str(self.combo.itemText(index))
             runconfigoptions = self.stack.widget(index)
-            if index == self.stack.currentIndex() and\
-               not runconfigoptions.is_valid():
+            if index == self.stack.currentIndex() and not runconfigoptions.is_valid():
                 return
             options = runconfigoptions.get()
-            configurations.append( (filename, options) )
+            configurations.append((filename, options))
         _set_run_configurations(configurations)
         QDialog.accept(self)

@@ -7,6 +7,7 @@
 
 class MessageKind:
     """JSON-RPC Message types."""
+
     REQUEST = 1
     RESPONSE = 2
     NOTIFICATION = 3

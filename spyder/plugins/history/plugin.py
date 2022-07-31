@@ -14,14 +14,16 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.plugins.history.confpage import HistoryConfigPage
 from spyder.plugins.history.widgets import HistoryWidget
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class HistoryLog(SpyderDockablePlugin):
@@ -29,7 +31,7 @@ class HistoryLog(SpyderDockablePlugin):
     History log plugin.
     """
 
-    NAME = 'historylog'
+    NAME = "historylog"
     REQUIRES = [Plugins.Preferences, Plugins.Console]
     OPTIONAL = [Plugins.IPythonConsole]
     TABIFY = Plugins.IPythonConsole
@@ -49,19 +51,19 @@ class HistoryLog(SpyderDockablePlugin):
     def __init__(self, parent=None, configuration=None):
         """Initialization."""
         super().__init__(parent, configuration)
-        self.add_history(get_conf_path('history.py'))
+        self.add_history(get_conf_path("history.py"))
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('History')
+        return _("History")
 
     def get_description(self):
-        return _('Provide command history for IPython Consoles')
+        return _("Provide command history for IPython Consoles")
 
     def get_icon(self):
-        return self.create_icon('history')
+        return self.create_icon("history")
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -80,8 +82,7 @@ class HistoryLog(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_available(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        ipyconsole.sig_append_to_history_requested.connect(
-            self.append_to_history)
+        ipyconsole.sig_append_to_history_requested.connect(self.append_to_history)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -96,8 +97,7 @@ class HistoryLog(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        ipyconsole.sig_append_to_history_requested.disconnect(
-            self.append_to_history)
+        ipyconsole.sig_append_to_history_requested.disconnect(self.append_to_history)
 
     def update_font(self):
         color_scheme = self.get_color_scheme()

@@ -26,30 +26,29 @@ from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
 from spyder.utils.qthelpers import set_menu_icons, SpyderAction
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 # Extended typing definitions
 ItemType = Union[SpyderAction, SpyderMenu]
-ItemSectionBefore = Tuple[
-    ItemType, Optional[str], Optional[str], Optional[str]]
+ItemSectionBefore = Tuple[ItemType, Optional[str], Optional[str], Optional[str]]
 ItemQueue = Dict[str, List[ItemSectionBefore]]
 
 
 class MainMenu(SpyderPluginV2):
-    NAME = 'mainmenu'
+    NAME = "mainmenu"
     CONF_SECTION = NAME
     CONF_FILE = False
     CAN_BE_DISABLED = False
 
     @staticmethod
     def get_name():
-        return _('Main menus')
+        return _("Main menus")
 
     def get_icon(self):
-        return self.create_icon('genprefs')
+        return self.create_icon("genprefs")
 
     def get_description(self):
-        return _('Provide main application menu management.')
+        return _("Provide main application menu management.")
 
     def on_initialize(self):
         # Reference holder dict for the menus
@@ -98,7 +97,7 @@ class MainMenu(SpyderPluginV2):
         """
         menu_actions = menu.actions()
         for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
+            if getattr(action, "_shown_shortcut", False):
                 # This is a SpyderAction
                 if action._shown_shortcut is not None:
                     action.setShortcut(action._shown_shortcut)
@@ -120,7 +119,7 @@ class MainMenu(SpyderPluginV2):
         """
         menu_actions = menu.actions()
         for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
+            if getattr(action, "_shown_shortcut", False):
                 # This is a SpyderAction
                 if action._shown_shortcut is not None:
                     action.setShortcut(QKeySequence())
@@ -136,7 +135,7 @@ class MainMenu(SpyderPluginV2):
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if isinstance(plugin_instance, SpyderDockablePlugin):
-                if plugin_instance.CONF_SECTION == 'editor':
+                if plugin_instance.CONF_SECTION == "editor":
                     editorstack = self.editor.get_current_editorstack()
                     editorstack.menu.hide()
                 else:
@@ -150,22 +149,24 @@ class MainMenu(SpyderPluginV2):
     def _setup_menus(self):
         """Setup menus."""
         # Show and hide shortcuts and icons in menus for macOS
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             for menu_id in self._APPLICATION_MENUS:
                 menu = self._APPLICATION_MENUS[menu_id]
                 if menu is not None:
                     menu.aboutToShow.connect(
-                        lambda menu=menu: self._show_shortcuts(menu))
+                        lambda menu=menu: self._show_shortcuts(menu)
+                    )
                     menu.aboutToHide.connect(
-                        lambda menu=menu: self._hide_shortcuts(menu))
+                        lambda menu=menu: self._hide_shortcuts(menu)
+                    )
                     menu.aboutToShow.connect(
-                        lambda menu=menu: set_menu_icons(menu, False))
+                        lambda menu=menu: set_menu_icons(menu, False)
+                    )
                     menu.aboutToShow.connect(self._hide_options_menus)
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    def create_application_menu(self, menu_id: str, title: str,
-                                dynamic: bool = True):
+    def create_application_menu(self, menu_id: str, title: str, dynamic: bool = True):
         """
         Create a Spyder application menu.
 
@@ -177,8 +178,7 @@ class MainMenu(SpyderPluginV2):
             The localized menu title to be displayed.
         """
         if menu_id in self._APPLICATION_MENUS:
-            raise SpyderAPIError(
-                'Menu with id "{}" already added!'.format(menu_id))
+            raise SpyderAPIError('Menu with id "{}" already added!'.format(menu_id))
 
         menu = ApplicationMenu(self.main, title, dynamic=dynamic)
         menu.menu_id = menu_id
@@ -187,32 +187,35 @@ class MainMenu(SpyderPluginV2):
         self.main.menuBar().addMenu(menu)
 
         # Show and hide shortcuts and icons in menus for macOS
-        if sys.platform == 'darwin':
-            menu.aboutToShow.connect(
-                lambda menu=menu: self._show_shortcuts(menu))
-            menu.aboutToHide.connect(
-                lambda menu=menu: self._hide_shortcuts(menu))
-            menu.aboutToShow.connect(
-                lambda menu=menu: set_menu_icons(menu, False))
+        if sys.platform == "darwin":
+            menu.aboutToShow.connect(lambda menu=menu: self._show_shortcuts(menu))
+            menu.aboutToHide.connect(lambda menu=menu: self._hide_shortcuts(menu))
+            menu.aboutToShow.connect(lambda menu=menu: set_menu_icons(menu, False))
             menu.aboutToShow.connect(self._hide_options_menus)
 
         if menu_id in self._ITEM_QUEUE:
             pending_items = self._ITEM_QUEUE.pop(menu_id)
             for pending in pending_items:
-                (item, section,
-                 before_item, before_section) = pending
+                (item, section, before_item, before_section) = pending
                 self.add_item_to_application_menu(
-                    item, menu_id=menu_id, section=section,
-                    before=before_item, before_section=before_section)
+                    item,
+                    menu_id=menu_id,
+                    section=section,
+                    before=before_item,
+                    before_section=before_section,
+                )
 
         return menu
 
-    def add_item_to_application_menu(self, item: ItemType,
-                                     menu_id: Optional[str] = None,
-                                     section: Optional[str] = None,
-                                     before: Optional[str] = None,
-                                     before_section: Optional[str] = None,
-                                     omit_id: bool = False):
+    def add_item_to_application_menu(
+        self,
+        item: ItemType,
+        menu_id: Optional[str] = None,
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        omit_id: bool = False,
+    ):
         """
         Add action or widget `item` to given application menu `section`.
 
@@ -239,8 +242,10 @@ class MainMenu(SpyderPluginV2):
         Must provide a `menu` or a `menu_id`.
         """
         if not isinstance(item, (SpyderAction, SpyderMenu)) and not omit_id:
-            raise SpyderAPIError('A menu only accepts items objects of type '
-                                 'SpyderAction or SpyderMenu')
+            raise SpyderAPIError(
+                "A menu only accepts items objects of type "
+                "SpyderAction or SpyderMenu"
+            )
 
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
@@ -259,13 +264,17 @@ class MainMenu(SpyderPluginV2):
         else:
             if menu_id not in self._APPLICATION_MENUS:
                 pending_menu_items = self._ITEM_QUEUE.get(menu_id, [])
-                pending_menu_items.append((item, section, before,
-                                           before_section))
+                pending_menu_items.append((item, section, before, before_section))
                 self._ITEM_QUEUE[menu_id] = pending_menu_items
             else:
                 menu = self.get_application_menu(menu_id)
-                menu.add_action(item, section=section, before=before,
-                                before_section=before_section, omit_id=omit_id)
+                menu.add_action(
+                    item,
+                    section=section,
+                    before=before,
+                    before_section=before_section,
+                    omit_id=omit_id,
+                )
 
     def remove_application_menu(self, menu_id: str):
         """
@@ -280,8 +289,9 @@ class MainMenu(SpyderPluginV2):
             menu = self._APPLICATION_MENUS.pop(menu_id)
             self.main.menuBar().removeAction(menu.menuAction())
 
-    def remove_item_from_application_menu(self, item_id: str,
-                                          menu_id: Optional[str] = None):
+    def remove_item_from_application_menu(
+        self, item_id: str, menu_id: Optional[str] = None
+    ):
         """
         Remove action or widget from given application menu by id.
 
@@ -293,21 +303,25 @@ class MainMenu(SpyderPluginV2):
             The application menu unique string identifier.
         """
         if menu_id not in self._APPLICATION_MENUS:
-            raise SpyderAPIError('{} is not a valid menu_id'.format(menu_id))
+            raise SpyderAPIError("{} is not a valid menu_id".format(menu_id))
 
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
         app_menu_actions = {
-            ApplicationMenus.Edit: (
-                self._main.edit_menu_actions, self._main.edit_menu),
+            ApplicationMenus.Edit: (self._main.edit_menu_actions, self._main.edit_menu),
             ApplicationMenus.Search: (
-                self._main.search_menu_actions, self._main.search_menu),
+                self._main.search_menu_actions,
+                self._main.search_menu,
+            ),
             ApplicationMenus.Source: (
-                self._main.source_menu_actions, self._main.source_menu),
-            ApplicationMenus.Run: (
-                self._main.run_menu_actions, self._main.run_menu),
+                self._main.source_menu_actions,
+                self._main.source_menu,
+            ),
+            ApplicationMenus.Run: (self._main.run_menu_actions, self._main.run_menu),
             ApplicationMenus.Debug: (
-                self._main.debug_menu_actions, self._main.debug_menu),
+                self._main.debug_menu_actions,
+                self._main.debug_menu,
+            ),
         }
 
         app_menus = {
@@ -315,7 +329,7 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Search: self._main.search_menu,
             ApplicationMenus.Source: self._main.source_menu,
             ApplicationMenus.Run: self._main.run_menu,
-            ApplicationMenus.Debug: self._main.debug_menu
+            ApplicationMenus.Debug: self._main.debug_menu,
         }
 
         menu = self.get_application_menu(menu_id)
@@ -326,11 +340,9 @@ class MainMenu(SpyderPluginV2):
             position = None
             for i, action in enumerate(actions):
                 this_item_id = None
-                if (isinstance(action, SpyderAction) or
-                        hasattr(action, 'action_id')):
+                if isinstance(action, SpyderAction) or hasattr(action, "action_id"):
                     this_item_id = action.action_id
-                elif (isinstance(action, SpyderMenu) or
-                        hasattr(action, 'menu_id')):
+                elif isinstance(action, SpyderMenu) or hasattr(action, "menu_id"):
                     this_item_id = action.menu_id
                 if this_item_id is not None and this_item_id == item_id:
                     position = i
@@ -353,8 +365,7 @@ class MainMenu(SpyderPluginV2):
         if menu_id not in self._APPLICATION_MENUS:
             raise SpyderAPIError(
                 'Application menu "{0}" not found! Available '
-                'menus are: {1}'.format(
-                    menu_id, list(self._APPLICATION_MENUS.keys()))
+                "menus are: {1}".format(menu_id, list(self._APPLICATION_MENUS.keys()))
             )
 
         return self._APPLICATION_MENUS[menu_id]

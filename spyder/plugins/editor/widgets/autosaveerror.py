@@ -10,8 +10,7 @@
 import logging
 
 # Third party imports
-from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QLabel,
-                            QVBoxLayout)
+from qtpy.QtWidgets import QCheckBox, QDialog, QDialogButtonBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
@@ -44,13 +43,13 @@ class AutosaveErrorDialog(QDialog):
         logger.error(action, exc_info=error)
 
         QDialog.__init__(self)
-        self.setWindowTitle(_('Autosave error'))
+        self.setWindowTitle(_("Autosave error"))
         self.setModal(True)
 
         layout = QVBoxLayout()
 
-        header = _('Error message:')
-        txt = '<br>{}<br><br>{}<br>{!s}'.format(action, header, error)
+        header = _("Error message:")
+        txt = "<br>{}<br><br>{}<br>{!s}".format(action, header, error)
         layout.addWidget(QLabel(txt))
         layout.addSpacing(15)
 

@@ -30,13 +30,19 @@ class MainWindowMock(QMainWindow):
 
 
 @pytest.mark.parametrize(
-    'config_dialog',
-    [[MainWindowMock, [], [CompletionPlugin]]],
-    indirect=True)
+    "config_dialog", [[MainWindowMock, [], [CompletionPlugin]]], indirect=True
+)
 def test_config_dialog(config_dialog):
-    expected_titles = {'General', 'Snippets', 'Linting', 'Introspection',
-                       'Code style and formatting', 'Docstring style',
-                       'Advanced', 'Other languages'}
+    expected_titles = {
+        "General",
+        "Snippets",
+        "Linting",
+        "Introspection",
+        "Code style and formatting",
+        "Docstring style",
+        "Advanced",
+        "Other languages",
+    }
 
     configpage = config_dialog.get_page()
     assert configpage

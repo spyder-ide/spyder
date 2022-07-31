@@ -22,45 +22,44 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.layout.api import BaseGridLayoutType
 from spyder.plugins.layout.layouts import DefaultLayouts
-from spyder.plugins.layout.widgets.dialog import (
-    LayoutSaveDialog, LayoutSettingsDialog)
+from spyder.plugins.layout.widgets.dialog import LayoutSaveDialog, LayoutSettingsDialog
 
 # Localization
 _ = get_translation("spyder")
 
 
 class LayoutContainerActions:
-    DefaultLayout = 'default_layout_action'
-    MatlabLayout = 'matlab_layout_action'
-    RStudio = 'rstudio_layout_action'
-    HorizontalSplit = 'horizontal_split_layout_action'
-    VerticalSplit = 'vertical_split_layout_action'
-    SaveLayoutAction = 'save_layout_action'
-    ShowLayoutPreferencesAction = 'show_layout_preferences_action'
-    ResetLayout = 'reset_layout_action'
+    DefaultLayout = "default_layout_action"
+    MatlabLayout = "matlab_layout_action"
+    RStudio = "rstudio_layout_action"
+    HorizontalSplit = "horizontal_split_layout_action"
+    VerticalSplit = "vertical_split_layout_action"
+    SaveLayoutAction = "save_layout_action"
+    ShowLayoutPreferencesAction = "show_layout_preferences_action"
+    ResetLayout = "reset_layout_action"
     # Needs to have 'Maximize pane' as name to properly register
     # the action shortcut
-    MaximizeCurrentDockwidget = 'Maximize pane'
+    MaximizeCurrentDockwidget = "Maximize pane"
     # Needs to have 'Fullscreen mode' as name to properly register
     # the action shortcut
-    Fullscreen = 'Fullscreen mode'
+    Fullscreen = "Fullscreen mode"
     # Needs to have 'Use next layout' as name to properly register
     # the action shortcut
-    NextLayout = 'Use next layout'
+    NextLayout = "Use next layout"
     # Needs to have 'Use previous layout' as name to properly register
     # the action shortcut
-    PreviousLayout = 'Use previous layout'
+    PreviousLayout = "Use previous layout"
     # Needs to have 'Close pane' as name to properly register
     # the action shortcut
-    CloseCurrentDockwidget = 'Close pane'
+    CloseCurrentDockwidget = "Close pane"
     # Needs to have 'Lock unlock panes' as name to properly register
     # the action shortcut
-    LockDockwidgetsAndToolbars = 'Lock unlock panes'
+    LockDockwidgetsAndToolbars = "Lock unlock panes"
 
 
 class LayoutPluginMenus:
     PluginsMenu = "plugins_menu"
-    LayoutsMenu = 'layouts_menu'
+    LayoutsMenu = "layouts_menu"
 
 
 class LayoutContainer(PluginMainContainer):
@@ -79,46 +78,48 @@ class LayoutContainer(PluginMainContainer):
         # Close current dockable plugin
         self._close_dockwidget_action = self.create_action(
             LayoutContainerActions.CloseCurrentDockwidget,
-            text=_('Close current pane'),
-            icon=self.create_icon('close_pane'),
+            text=_("Close current pane"),
+            icon=self.create_icon("close_pane"),
             triggered=self._plugin.close_current_dockwidget,
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
-            shortcut_context='_'
+            shortcut_context="_",
         )
 
         # Maximize current dockable plugin
         self._maximize_dockwidget_action = self.create_action(
             LayoutContainerActions.MaximizeCurrentDockwidget,
-            text=_('Maximize current pane'),
-            icon=self.create_icon('maximize'),
+            text=_("Maximize current pane"),
+            icon=self.create_icon("maximize"),
             toggled=lambda state: self._plugin.maximize_dockwidget(),
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
-            shortcut_context='_')
+            shortcut_context="_",
+        )
 
         # Fullscreen mode
         self._fullscreen_action = self.create_action(
             LayoutContainerActions.Fullscreen,
-            text=_('Fullscreen mode'),
+            text=_("Fullscreen mode"),
             triggered=self._plugin.toggle_fullscreen,
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
-            shortcut_context='_')
-        if sys.platform == 'darwin':
+            shortcut_context="_",
+        )
+        if sys.platform == "darwin":
             self._fullscreen_action.setEnabled(False)
-            self._fullscreen_action.setToolTip(_("For fullscreen mode use the "
-                                                 "macOS built-in feature"))
+            self._fullscreen_action.setToolTip(
+                _("For fullscreen mode use the " "macOS built-in feature")
+            )
 
         # Lock dockwidgets and toolbars
         self._lock_interface_action = self.create_action(
             LayoutContainerActions.LockDockwidgetsAndToolbars,
-            text='',
-            triggered=lambda checked:
-                self._plugin.toggle_lock(),
+            text="",
+            triggered=lambda checked: self._plugin.toggle_lock(),
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
-            shortcut_context='_'
+            shortcut_context="_",
         )
 
         self._save_layout_action = self.create_action(
@@ -137,7 +138,7 @@ class LayoutContainer(PluginMainContainer):
         )
         self._reset_action = self.create_action(
             LayoutContainerActions.ResetLayout,
-            text=_('Reset to Spyder default'),
+            text=_("Reset to Spyder default"),
             triggered=self.reset_window_layout,
             register_shortcut=False,
         )
@@ -149,22 +150,24 @@ class LayoutContainer(PluginMainContainer):
             triggered=self.toggle_next_layout,
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
-            shortcut_context='_')
+            shortcut_context="_",
+        )
         self._toggle_previous_layout_action = self.create_action(
             LayoutContainerActions.PreviousLayout,
             _("Use previous layout"),
             triggered=self.toggle_previous_layout,
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
-            shortcut_context='_')
+            shortcut_context="_",
+        )
 
         # Layouts menu
         self._layouts_menu = self.create_menu(
-            LayoutPluginMenus.LayoutsMenu, _("Window layouts"))
+            LayoutPluginMenus.LayoutsMenu, _("Window layouts")
+        )
 
-        self._plugins_menu = self.create_menu(
-            LayoutPluginMenus.PluginsMenu, _("Panes"))
-        self._plugins_menu.setObjectName('checkbox-padding')
+        self._plugins_menu = self.create_menu(LayoutPluginMenus.PluginsMenu, _("Panes"))
+        self._plugins_menu.setObjectName("checkbox-padding")
 
     def update_actions(self):
         pass
@@ -175,10 +178,10 @@ class LayoutContainer(PluginMainContainer):
         """
         menu = self._layouts_menu
         menu.clear_actions()
-        names = self.get_conf('names')
-        ui_names = self.get_conf('ui_names')
-        order = self.get_conf('order')
-        active = self.get_conf('active')
+        names = self.get_conf("names")
+        ui_names = self.get_conf("ui_names")
+        order = self.get_conf("order")
+        active = self.get_conf("active")
 
         actions = []
         for name in order:
@@ -199,7 +202,7 @@ class LayoutContainer(PluginMainContainer):
                     text=name,
                     triggered=trigger(),
                     register_shortcut=False,
-                    overwrite=True
+                    overwrite=True,
                 )
 
                 actions.append(layout_switch_action)
@@ -207,8 +210,11 @@ class LayoutContainer(PluginMainContainer):
         for item in actions:
             self.add_item_to_menu(item, menu, section="layouts_section")
 
-        for item in [self._save_layout_action, self._show_preferences_action,
-                     self._reset_action]:
+        for item in [
+            self._save_layout_action,
+            self._show_preferences_action,
+            self._reset_action,
+        ]:
             self.add_item_to_menu(item, menu, section="layouts_section_2")
 
         self._show_preferences_action.setEnabled(len(order) != 0)
@@ -231,31 +237,31 @@ class LayoutContainer(PluginMainContainer):
             Layout to register.
         """
         if not issubclass(layout_type, BaseGridLayoutType):
-            raise SpyderAPIError(
-                "A layout must be a subclass is `BaseGridLayoutType`!")
+            raise SpyderAPIError("A layout must be a subclass is `BaseGridLayoutType`!")
 
         layout_id = layout_type.ID
         if layout_id in self._spyder_layouts:
             raise SpyderAPIError(
-                "Layout with id `{}` already registered!".format(layout_id))
+                "Layout with id `{}` already registered!".format(layout_id)
+            )
 
         layout = layout_type(parent_plugin)
         layout._check_layout_validity()
         self._spyder_layouts[layout_id] = layout
-        names = self.get_conf('names')
-        ui_names = self.get_conf('ui_names')
-        order = self.get_conf('order')
-        active = self.get_conf('active')
+        names = self.get_conf("names")
+        ui_names = self.get_conf("ui_names")
+        order = self.get_conf("order")
+        active = self.get_conf("active")
 
         if layout_id not in names:
             names.append(layout_id)
             ui_names.append(layout.get_name())
             order.append(layout_id)
             active.append(layout_id)
-            self.set_conf('names', names)
-            self.set_conf('ui_names', ui_names)
-            self.set_conf('order', order)
-            self.set_conf('active', active)
+            self.set_conf("names", names)
+            self.set_conf("ui_names", ui_names)
+            self.set_conf("order", order)
+            self.set_conf("active", active)
 
     def get_layout(self, layout_id):
         """
@@ -278,18 +284,20 @@ class LayoutContainer(PluginMainContainer):
         """
         if layout_id not in self._spyder_layouts:
             raise SpyderAPIError(
-                "Layout with id `{}` is not registered!".format(layout_id))
+                "Layout with id `{}` is not registered!".format(layout_id)
+            )
 
         return self._spyder_layouts[layout_id]
 
     def show_save_layout(self):
         """Show the save layout dialog."""
-        names = self.get_conf('names')
-        ui_names = self.get_conf('ui_names')
-        order = self.get_conf('order')
-        active = self.get_conf('active')
-        dialog_names = [name for name in names
-                        if name not in self._spyder_layouts.keys()]
+        names = self.get_conf("names")
+        ui_names = self.get_conf("ui_names")
+        order = self.get_conf("order")
+        active = self.get_conf("active")
+        dialog_names = [
+            name for name in names if name not in self._spyder_layouts.keys()
+        ]
         dlg = self._save_dialog = LayoutSaveDialog(self, dialog_names)
 
         if dlg.exec_():
@@ -298,17 +306,21 @@ class LayoutContainer(PluginMainContainer):
                 QMessageBox.critical(
                     self,
                     _("Error"),
-                    _("Layout <b>{0}</b> was defined programatically. "
-                      "It is not possible to overwrite programatically "
-                      "registered layouts.").format(name)
+                    _(
+                        "Layout <b>{0}</b> was defined programatically. "
+                        "It is not possible to overwrite programatically "
+                        "registered layouts."
+                    ).format(name),
                 )
                 return
             if name in names:
                 answer = QMessageBox.warning(
                     self,
                     _("Warning"),
-                    _("Layout <b>{0}</b> will be overwritten. "
-                      "Do you want to continue?").format(name),
+                    _(
+                        "Layout <b>{0}</b> will be overwritten. "
+                        "Do you want to continue?"
+                    ).format(name),
                     QMessageBox.Yes | QMessageBox.No,
                 )
                 index = order.index(name)
@@ -333,29 +345,31 @@ class LayoutContainer(PluginMainContainer):
 
             if answer:
                 self._plugin.save_current_window_settings(
-                    'layout_{}/'.format(index), section='quick_layouts')
-                self.set_conf('names', names)
-                self.set_conf('ui_names', ui_names)
-                self.set_conf('order', order)
-                self.set_conf('active', active)
+                    "layout_{}/".format(index), section="quick_layouts"
+                )
+                self.set_conf("names", names)
+                self.set_conf("ui_names", ui_names)
+                self.set_conf("order", order)
+                self.set_conf("active", active)
 
             self.update_layout_menu_actions()
 
     def show_layout_settings(self):
         """Layout settings dialog."""
-        names = self.get_conf('names')
-        ui_names = self.get_conf('ui_names')
-        order = self.get_conf('order')
-        active = self.get_conf('active')
+        names = self.get_conf("names")
+        ui_names = self.get_conf("ui_names")
+        order = self.get_conf("order")
+        active = self.get_conf("active")
         read_only = list(self._spyder_layouts.keys())
 
         dlg = self._settings_dialog = LayoutSettingsDialog(
-            self, names, ui_names, order, active, read_only)
+            self, names, ui_names, order, active, read_only
+        )
         if dlg.exec_():
-            self.set_conf('names', dlg.names)
-            self.set_conf('ui_names', dlg.ui_names)
-            self.set_conf('order', dlg.order)
-            self.set_conf('active', dlg.active)
+            self.set_conf("names", dlg.names)
+            self.set_conf("ui_names", dlg.ui_names)
+            self.set_conf("order", dlg.order)
+            self.set_conf("active", dlg.active)
 
             self.update_layout_menu_actions()
 
@@ -365,9 +379,11 @@ class LayoutContainer(PluginMainContainer):
         answer = QMessageBox.warning(
             self,
             _("Warning"),
-            _("Window layout will be reset to default settings: "
-              "this affects window position, size and dockwidgets.\n"
-              "Do you want to continue?"),
+            _(
+                "Window layout will be reset to default settings: "
+                "this affects window position, size and dockwidgets.\n"
+                "Do you want to continue?"
+            ),
             QMessageBox.Yes | QMessageBox.No,
         )
 
@@ -377,18 +393,18 @@ class LayoutContainer(PluginMainContainer):
     @Slot()
     def toggle_previous_layout(self):
         """Use the previous layout from the layouts list (default + custom)."""
-        self.toggle_layout('previous')
+        self.toggle_layout("previous")
 
     @Slot()
     def toggle_next_layout(self):
         """Use the next layout from the layouts list (default + custom)."""
-        self.toggle_layout('next')
+        self.toggle_layout("next")
 
-    def toggle_layout(self, direction='next'):
+    def toggle_layout(self, direction="next"):
         """Change current layout."""
-        names = self.get_conf('names')
-        order = self.get_conf('order')
-        active = self.get_conf('active')
+        names = self.get_conf("names")
+        order = self.get_conf("order")
+        active = self.get_conf("active")
 
         if len(active) == 0:
             return
@@ -399,7 +415,7 @@ class LayoutContainer(PluginMainContainer):
                 layout_index.append(names.index(name))
 
         current_layout = self._current_quick_layout
-        dic = {'next': 1, 'previous': -1}
+        dic = {"next": 1, "previous": -1}
 
         if current_layout is None:
             # Start from default
@@ -412,8 +428,7 @@ class LayoutContainer(PluginMainContainer):
 
         new_index = (current_index + dic[direction]) % len(layout_index)
         index_or_layout_id = layout_index[new_index]
-        is_layout_id = (
-            names[index_or_layout_id] in self._spyder_layouts)
+        is_layout_id = names[index_or_layout_id] in self._spyder_layouts
 
         if is_layout_id:
             index_or_layout_id = names[layout_index[new_index]]
@@ -428,13 +443,11 @@ class LayoutContainer(PluginMainContainer):
         ----------
         index: int or str
         """
-        possible_current_layout = self._plugin.quick_layout_switch(
-            index_or_layout_id)
+        possible_current_layout = self._plugin.quick_layout_switch(index_or_layout_id)
 
         if possible_current_layout is not None:
             if isinstance(possible_current_layout, int):
                 self._current_quick_layout = possible_current_layout
             else:
-                names = self.get_conf('names')
-                self._current_quick_layout = names.index(
-                    possible_current_layout)
+                names = self.get_conf("names")
+                self._current_quick_layout = names.index(possible_current_layout)

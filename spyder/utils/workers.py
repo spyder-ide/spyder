@@ -16,14 +16,13 @@ import os
 import sys
 
 # Third party imports
-from qtpy.QtCore import (QByteArray, QObject, QProcess, QThread, QTimer,
-                         Signal)
+from qtpy.QtCore import QByteArray, QObject, QProcess, QThread, QTimer, Signal
 
 # Local imports
 from spyder.py3compat import PY2, to_text_string
 
 
-WIN = os.name == 'nt'
+WIN = os.name == "nt"
 
 
 def handle_qbytearray(obj, encoding):
@@ -40,6 +39,7 @@ class PythonWorker(QObject):
 
     For running processes (via QProcess) use the ProcessWorker.
     """
+
     sig_started = Signal(object)
     sig_finished = Signal(object, object, object)  # worker, stdout, stderr
 
@@ -120,15 +120,16 @@ class ProcessWorker(QObject):
 
     def _get_encoding(self):
         """Return the encoding/codepage to use."""
-        enco = 'utf-8'
+        enco = "utf-8"
 
         #  Currently only cp1252 is allowed?
         if WIN:
             import ctypes
+
             codepage = to_text_string(ctypes.cdll.kernel32.GetACP())
             # import locale
             # locale.getpreferredencoding()  # Differences?
-            enco = 'cp' + codepage
+            enco = "cp" + codepage
         return enco
 
     def _set_environment(self, environ):
@@ -153,8 +154,7 @@ class ProcessWorker(QObject):
 
     def _communicate(self):
         """Callback for communicate."""
-        if (not self._communicate_first and
-                self._process.state() == QProcess.NotRunning):
+        if not self._communicate_first and self._process.state() == QProcess.NotRunning:
             self.communicate()
         elif self._fired:
             self._timer.stop()
@@ -177,7 +177,7 @@ class ProcessWorker(QObject):
 
         if PY2:
             stderr = stderr.decode()
-        result[-1] = ''
+        result[-1] = ""
 
         self._result = result
 
@@ -259,7 +259,7 @@ class WorkerManager(QObject):
             self._queue_workers.append(worker)
 
         if self._queue_workers and self._running_threads < self._max_threads:
-            #print('Queue: {0} Running: {1} Workers: {2} '
+            # print('Queue: {0} Running: {1} Workers: {2} '
             #       'Threads: {3}'.format(len(self._queue_workers),
             #                                 self._running_threads,
             #                                 len(self._workers),
@@ -327,6 +327,7 @@ class WorkerManager(QObject):
         worker.sig_started.connect(self._start)
         self._workers.append(worker)
 
+
 # --- Local testing
 # -----------------------------------------------------------------------------
 def ready_print(worker, output, error):  # pragma: no cover
@@ -337,6 +338,7 @@ def ready_print(worker, output, error):  # pragma: no cover
 def sleeping_func(arg, secs=10, result_queue=None):
     """This methods illustrates how the workers can be used."""
     import time
+
     time.sleep(secs)
     if result_queue is not None:
         result_queue.put(arg)
@@ -347,25 +349,25 @@ def sleeping_func(arg, secs=10, result_queue=None):
 def local_test():  # pragma: no cover
     """Main local test."""
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     wm = WorkerManager(max_threads=3)
     for i in range(7):
-        worker = wm.create_python_worker(sleeping_func, 'BOOM! {}'.format(i),
-                                         secs=5)
+        worker = wm.create_python_worker(sleeping_func, "BOOM! {}".format(i), secs=5)
         worker.sig_finished.connect(ready_print)
         worker.start()
-    worker = wm.create_python_worker(sleeping_func, 'BOOM!', secs=5)
+    worker = wm.create_python_worker(sleeping_func, "BOOM!", secs=5)
     worker.sig_finished.connect(ready_print)
     worker.start()
 
-    worker = wm.create_process_worker(['conda', 'info', '--json'])
+    worker = wm.create_process_worker(["conda", "info", "--json"])
     worker.sig_finished.connect(ready_print)
     worker.start()
-#    wm.terminate_all()
-#    wm.terminate_all()
+    #    wm.terminate_all()
+    #    wm.terminate_all()
 
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     local_test()

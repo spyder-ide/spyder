@@ -31,10 +31,12 @@ class DebuggerPanel(Panel):
         self.stop = False
 
         # Diccionary of QIcons to draw in the panel
-        self.icons = {'breakpoint': ima.icon('breakpoint_big'),
-                      'transparent': ima.icon('breakpoint_transparent'),
-                      'condition': ima.icon('breakpoint_cond_big'),
-                      'arrow': ima.icon('arrow_debugger')}
+        self.icons = {
+            "breakpoint": ima.icon("breakpoint_big"),
+            "transparent": ima.icon("breakpoint_transparent"),
+            "condition": ima.icon("breakpoint_cond_big"),
+            "arrow": ima.icon("arrow_debugger"),
+        }
 
     def set_current_line_arrow(self, n):
         self._current_line_arrow = n
@@ -58,8 +60,7 @@ class DebuggerPanel(Panel):
             painter (QPainter)
             icon_name (srt): key of icon to draw (see: self.icons)
         """
-        rect = QRect(0, top, self.sizeHint().width(),
-                     self.sizeHint().height())
+        rect = QRect(0, top, self.sizeHint().width(), self.sizeHint().height())
         try:
             icon = self.icons[icon_name]
         except KeyError as e:
@@ -90,18 +91,18 @@ class DebuggerPanel(Panel):
 
         for top, line_number, block in self.editor.visible_blocks:
             if self.line_number_hint == line_number:
-                self._draw_breakpoint_icon(top, painter, 'transparent')
+                self._draw_breakpoint_icon(top, painter, "transparent")
             if self._current_line_arrow == line_number and not self.stop:
-                self._draw_breakpoint_icon(top, painter, 'arrow')
+                self._draw_breakpoint_icon(top, painter, "arrow")
 
             data = block.userData()
             if data is None or not data.breakpoint:
                 continue
 
             if data.breakpoint_condition is None:
-                self._draw_breakpoint_icon(top, painter, 'breakpoint')
+                self._draw_breakpoint_icon(top, painter, "breakpoint")
             else:
-                self._draw_breakpoint_icon(top, painter, 'condition')
+                self._draw_breakpoint_icon(top, painter, "condition")
 
     def mousePressEvent(self, event):
         """Override Qt method
@@ -110,16 +111,14 @@ class DebuggerPanel(Panel):
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
-        self.editor.debugger.toogle_breakpoint(line_number,
-                                               edit_condition=shift)
+        self.editor.debugger.toogle_breakpoint(line_number, edit_condition=shift)
 
     def mouseMoveEvent(self, event):
         """Override Qt method.
 
         Draw semitransparent breakpoint hint.
         """
-        self.line_number_hint = self.editor.get_linenumber_from_mouse_event(
-            event)
+        self.line_number_hint = self.editor.get_linenumber_from_mouse_event(event)
         self.update()
 
     def leaveEvent(self, event):

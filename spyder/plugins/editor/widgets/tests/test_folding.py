@@ -61,7 +61,7 @@ def test_folding(completions_codeeditor, qtbot):
     code_editor, _ = completions_codeeditor
     code_editor.toggle_code_folding(True)
     code_editor.insert_text(text)
-    folding_panel = code_editor.panels.get('FoldingPanel')
+    folding_panel = code_editor.panels.get("FoldingPanel")
 
     # Wait for the update thread to finish
     qtbot.wait(3000)
@@ -69,10 +69,18 @@ def test_folding(completions_codeeditor, qtbot):
     folding_regions = folding_panel.folding_regions
     folding_levels = folding_panel.folding_levels
 
-    expected_regions = {2: 6, 3: 4, 8: 36, 22: 23, 24: 26, 27: 28,
-                        30: 31, 32: 33, 34: 35}
-    expected_levels = {2: 0, 3: 1, 8: 0, 22: 1, 24: 1, 27: 1, 30: 1,
-                       32: 1, 34: 1}
+    expected_regions = {
+        2: 6,
+        3: 4,
+        8: 36,
+        22: 23,
+        24: 26,
+        27: 28,
+        30: 31,
+        32: 33,
+        34: 35,
+    }
+    expected_levels = {2: 0, 3: 1, 8: 0, 22: 1, 24: 1, 27: 1, 30: 1, 32: 1, 34: 1}
     assert folding_regions == expected_regions
     assert expected_levels == folding_levels
     code_editor.toggle_code_folding(False)
@@ -81,12 +89,12 @@ def test_folding(completions_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
+@pytest.mark.skipif(os.name == "nt", reason="Hangs on Windows")
 def test_unfold_when_searching(search_codeeditor, qtbot):
     editor, finder = search_codeeditor
     editor.toggle_code_folding(True)
 
-    folding_panel = editor.panels.get('FoldingPanel')
+    folding_panel = editor.panels.get("FoldingPanel")
     editor.insert_text(text)
 
     # Wait for the update thread to finish
@@ -101,7 +109,7 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
 
     # unfolded when searching
     finder.show()
-    qtbot.keyClicks(finder.search_text, 'print')
+    qtbot.keyClicks(finder.search_text, "print")
     qtbot.keyPress(finder.search_text, Qt.Key_Return)
     assert line_search.isVisible()
     editor.toggle_code_folding(False)
@@ -110,12 +118,12 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
+@pytest.mark.skipif(os.name == "nt", reason="Hangs on Windows")
 def test_unfold_goto(search_codeeditor, qtbot):
     editor, finder = search_codeeditor
     editor.toggle_code_folding(True)
     editor.insert_text(text)
-    folding_panel = editor.panels.get('FoldingPanel')
+    folding_panel = editor.panels.get("FoldingPanel")
 
     # Wait for the update thread to finish
     qtbot.wait(3000)

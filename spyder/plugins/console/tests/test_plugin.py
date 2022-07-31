@@ -33,8 +33,8 @@ from spyder.widgets.reporterror import SpyderErrorDialog
 # Auxiliary classes
 # =============================================================================
 class MyPlugin(SpyderPluginV2):
-    NAME = 'my-plugin'
-    CONF_SECTION = 'my_plugin'
+    NAME = "my-plugin"
+    CONF_SECTION = "my_plugin"
 
 
 # =============================================================================
@@ -52,8 +52,7 @@ def console_plugin(qtbot):
             super().__init__()
 
     window = MainWindowMock()
-    console_plugin = PLUGIN_REGISTRY.register_plugin(
-        window, Console, external=False)
+    console_plugin = PLUGIN_REGISTRY.register_plugin(window, Console, external=False)
     console_plugin.start_interpreter({})
     window.setCentralWidget(console_plugin.get_widget())
 
@@ -72,12 +71,12 @@ def test_run_code(console_plugin, capsys):
     shell = console_plugin.get_widget().shell
 
     # Run a simple code
-    shell.insert_text('2+2', at_end=True)
+    shell.insert_text("2+2", at_end=True)
     shell._key_enter()
 
     # Capture stdout and assert that it's the expected one
     sys_stream = capsys.readouterr()
-    assert sys_stream.out == u'4\n'
+    assert sys_stream.out == "4\n"
 
 
 @flaky(max_runs=3)
@@ -86,12 +85,12 @@ def test_completions(console_plugin, qtbot):
     shell = console_plugin.get_widget().shell
 
     # Get completions
-    qtbot.keyClicks(shell, 'impor')
+    qtbot.keyClicks(shell, "impor")
     qtbot.keyClick(shell, Qt.Key_Tab)
     qtbot.keyClick(shell.completion_widget, Qt.Key_Enter)
 
     # Assert completion was introduced in the console
-    assert u'import' in shell.toPlainText()
+    assert "import" in shell.toPlainText()
 
 
 @flaky(max_runs=20)
@@ -101,8 +100,7 @@ def test_handle_exception(console_plugin, mocker):
     shell = widget.shell
 
     # Avoid showing the error dialog.
-    mocker.patch('spyder.widgets.reporterror.SpyderErrorDialog.show',
-                 return_value=None)
+    mocker.patch("spyder.widgets.reporterror.SpyderErrorDialog.show", return_value=None)
 
     # --- Test internal errors in Spyder
     # Write error in the console
@@ -119,8 +117,8 @@ ZeroDivisionError: division by zero
 
     # Check that the traceback was shown in the error dialog.
     widget.error_dlg.details_btn.clicked.emit()
-    assert 'foo' in widget.error_dlg.details.toPlainText()
-    assert 'code.py' in widget.error_dlg.details.toPlainText()
+    assert "foo" in widget.error_dlg.details.toPlainText()
+    assert "code.py" in widget.error_dlg.details.toPlainText()
 
     # Remove error dialog
     widget.error_dlg = None
@@ -130,35 +128,33 @@ ZeroDivisionError: division by zero
         dict(
             text=error,
             is_traceback=True,
-            title='Internal Python Language Server error',
+            title="Internal Python Language Server error",
         ),
-        sender=console_plugin
+        sender=console_plugin,
     )
 
     # Make sure the error dialog was generated.
     assert widget.error_dlg is not None
 
     # Check that the traceback was shown in the error dialog.
-    assert (widget.error_dlg.title.text() ==
-            'Internal Python Language Server error')
+    assert widget.error_dlg.title.text() == "Internal Python Language Server error"
 
     # Remove error dialog
     widget.error_dlg = None
 
     # --- Test segfault errors
     # Set config and call register so the dialog is created
-    console_plugin.set_conf('previous_crash', error,
-                            section='main')
+    console_plugin.set_conf("previous_crash", error, section="main")
     console_plugin.on_initialize()
 
     # Make sure the error dialog was generated.
     assert widget.error_dlg is not None
 
     # Check that the traceback was shown in the error dialog.
-    assert widget.error_dlg.title.text() == 'Segmentation fault crash'
+    assert widget.error_dlg.title.text() == "Segmentation fault crash"
 
     # Reset config
-    console_plugin.set_conf('previous_crash', '', section='main')
+    console_plugin.set_conf("previous_crash", "", section="main")
 
 
 def test_handle_warnings(console_plugin):
@@ -167,10 +163,12 @@ def test_handle_warnings(console_plugin):
     shell = widget.shell
 
     # Write warning in the console
-    warning = ("/home/foo/bar.py:1926: UserWarning: baz\n"
-               "Line 1\n"
-               "Line 2\n"
-               "  warnings.warn('baz')")
+    warning = (
+        "/home/foo/bar.py:1926: UserWarning: baz\n"
+        "Line 1\n"
+        "Line 2\n"
+        "  warnings.warn('baz')"
+    )
     shell.append_text_to_shell(warning, error=True, prompt=False)
 
     # Make sure the error dialog was not generated.
@@ -186,19 +184,18 @@ def test_report_external_repo(console_plugin, mocker):
     my_plugin = MyPlugin(None)
 
     # Avoid showing the error dialog.
-    mocker.patch('spyder.widgets.reporterror.SpyderErrorDialog.show',
-                 return_value=None)
+    mocker.patch("spyder.widgets.reporterror.SpyderErrorDialog.show", return_value=None)
 
     # To get the external repo
-    mocker.patch.object(SpyderErrorDialog, 'set_github_repo_org')
+    mocker.patch.object(SpyderErrorDialog, "set_github_repo_org")
 
     # Error data (repo is added later)
     error_data = {
-        "text": 'UserError',
+        "text": "UserError",
         "is_traceback": True,
-        "title": 'My plugin error',
-        "label": '',
-        "steps": '',
+        "title": "My plugin error",
+        "label": "",
+        "steps": "",
     }
 
     # Check that we throw an error if error_data doesn't contain repo
@@ -207,29 +204,29 @@ def test_report_external_repo(console_plugin, mocker):
         assert "does not define 'repo'" in str(excinfo.value)
 
     # Check that we don't allow our main repo in external plugins
-    error_data['repo'] = 'spyder-ide/spyder'
+    error_data["repo"] = "spyder-ide/spyder"
     with pytest.raises(SpyderAPIError) as excinfo:
         widget.handle_exception(error_data, sender=my_plugin)
         assert "needs to be different from" in str(excinfo.value)
 
     # Make sure the error dialog is generated with the right repo
-    error_data['repo'] = 'my-plugin-org/my-plugin'
+    error_data["repo"] = "my-plugin-org/my-plugin"
     widget.handle_exception(error_data, sender=my_plugin)
     assert widget.error_dlg is not None
 
     # Assert we called the method that sets the repo in SpyderErrorDialog
     call_args = SpyderErrorDialog.set_github_repo_org.call_args
-    assert call_args == call(error_data['repo'])
+    assert call_args == call(error_data["repo"])
 
     # Assert repo is not necessary for internal plugins
-    error_data.pop('repo')
+    error_data.pop("repo")
     widget.error_dlg = None
     widget.handle_exception(error_data, sender=console_plugin)
     assert widget.error_dlg is not None
 
     # Assert we use our main repo for internal plugins
     call_args = SpyderErrorDialog.set_github_repo_org.call_args
-    assert call_args == call('spyder-ide/spyder')
+    assert call_args == call("spyder-ide/spyder")
 
 
 if __name__ == "__main__":

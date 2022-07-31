@@ -15,9 +15,13 @@ import pytest
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
-from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
-                                                  EncodingStatus, EOLStatus,
-                                                  ReadWriteStatus, VCSStatus)
+from spyder.plugins.editor.widgets.status import (
+    CursorPositionStatus,
+    EncodingStatus,
+    EOLStatus,
+    ReadWriteStatus,
+    VCSStatus,
+)
 
 
 @pytest.fixture
@@ -35,8 +39,13 @@ def test_status_bar(status_bar, qtbot):
     """Run StatusBarWidget."""
     win, statusbar = status_bar
     swidgets = []
-    for klass in (ReadWriteStatus, EOLStatus, EncodingStatus,
-                  CursorPositionStatus, VCSStatus):
+    for klass in (
+        ReadWriteStatus,
+        EOLStatus,
+        EncodingStatus,
+        CursorPositionStatus,
+        VCSStatus,
+    ):
         swidget = klass(win)
         swidgets.append(swidget)
     assert win

@@ -29,7 +29,7 @@ from spyder.widgets.findreplace import FindReplace
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # --- Constants
@@ -39,17 +39,17 @@ PORT = 30128
 
 class PydocBrowserActions:
     # Triggers
-    Home = 'home_action'
-    Find = 'find_action'
+    Home = "home_action"
+    Find = "find_action"
 
 
 class PydocBrowserMainToolbarSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 class PydocBrowserToolbarItems:
-    PackageLabel = 'package_label'
-    UrlCombo = 'url_combo'
+    PackageLabel = "package_label"
+    UrlCombo = "url_combo"
 
 
 # =============================================================================
@@ -58,7 +58,7 @@ class PydocBrowserToolbarItems:
 # This is needed to prevent pydoc raise an ErrorDuringImport when
 # trying to import numpy.
 # See spyder-ide/spyder#10740
-DIRECT_PYDOC_IMPORT_MODULES = ['numpy', 'numpy.core']
+DIRECT_PYDOC_IMPORT_MODULES = ["numpy", "numpy.core"]
 try:
     from pydoc import safeimport
 
@@ -76,6 +76,7 @@ class PydocServer(QThread):
     """
     Pydoc server.
     """
+
     sig_server_started = Signal()
 
     def __init__(self, parent, port):
@@ -90,7 +91,7 @@ class PydocServer(QThread):
         self.callback(
             _start_server(
                 _url_handler,
-                hostname='127.0.0.1',
+                hostname="127.0.0.1",
                 port=self.port,
             )
         )
@@ -148,16 +149,12 @@ class PydocBrowser(PluginMainWidget):
         self.label = QLabel(_("Package:"))
         self.label.ID = PydocBrowserToolbarItems.PackageLabel
 
-        self.url_combo = UrlComboBox(
-            self, id_=PydocBrowserToolbarItems.UrlCombo)
+        self.url_combo = UrlComboBox(self, id_=PydocBrowserToolbarItems.UrlCombo)
 
         # Setup web view frame
-        self.webview = FrameWebView(
-            self,
-            handle_links=self.get_conf('handle_links')
-        )
+        self.webview = FrameWebView(self, handle_links=self.get_conf("handle_links"))
         self.webview.setup()
-        self.webview.set_zoom_factor(self.get_conf('zoom_factor'))
+        self.webview.set_zoom_factor(self.get_conf("zoom_factor"))
         self.webview.loadStarted.connect(self._start)
         self.webview.loadFinished.connect(self._finish)
         self.webview.titleChanged.connect(self.setWindowTitle)
@@ -169,12 +166,11 @@ class PydocBrowser(PluginMainWidget):
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
-        self.url_combo.setMaxCount(self.get_conf('max_history_entries'))
-        tip = _('Write a package name here, e.g. pandas')
+        self.url_combo.setMaxCount(self.get_conf("max_history_entries"))
+        tip = _("Write a package name here, e.g. pandas")
         self.url_combo.lineEdit().setPlaceholderText(tip)
         self.url_combo.lineEdit().setToolTip(tip)
-        self.url_combo.valid.connect(
-            lambda x: self._handle_url_combo_activation())
+        self.url_combo.valid.connect(lambda x: self._handle_url_combo_activation())
 
         # Layout
         layout = QVBoxLayout()
@@ -186,7 +182,7 @@ class PydocBrowser(PluginMainWidget):
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return _('Online help')
+        return _("Online help")
 
     def get_focus_widget(self):
         self.url_combo.lineEdit().selectAll()
@@ -198,14 +194,14 @@ class PydocBrowser(PluginMainWidget):
             PydocBrowserActions.Home,
             text=_("Home"),
             tip=_("Home"),
-            icon=self.create_icon('home'),
+            icon=self.create_icon("home"),
             triggered=self.go_home,
         )
         find_action = self.create_action(
             PydocBrowserActions.Find,
             text=_("Find"),
             tip=_("Find text"),
-            icon=self.create_icon('find'),
+            icon=self.create_icon("find"),
             toggled=self.toggle_find_widget,
             initial=False,
         )
@@ -214,12 +210,18 @@ class PydocBrowser(PluginMainWidget):
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.get_action(WebViewActions.Back),
-                     self.get_action(WebViewActions.Forward), refresh_action,
-                     stop_action, home_action, self.label, self.url_combo,
-                     self.get_action(WebViewActions.ZoomIn),
-                     self.get_action(WebViewActions.ZoomOut), find_action,
-                     ]:
+        for item in [
+            self.get_action(WebViewActions.Back),
+            self.get_action(WebViewActions.Forward),
+            refresh_action,
+            stop_action,
+            home_action,
+            self.label,
+            self.url_combo,
+            self.get_action(WebViewActions.ZoomIn),
+            self.get_action(WebViewActions.ZoomOut),
+            find_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
@@ -289,8 +291,7 @@ class PydocBrowser(PluginMainWidget):
         """
         Handle icon changes.
         """
-        self.url_combo.setItemIcon(self.url_combo.currentIndex(),
-                                   self.webview.icon())
+        self.url_combo.setItemIcon(self.url_combo.currentIndex(), self.webview.icon())
         self.setWindowIcon(self.webview.icon())
 
     # --- Qt overrides
@@ -343,16 +344,14 @@ class PydocBrowser(PluginMainWidget):
     def start_server(self):
         """Start pydoc server."""
         if self.server is None:
-            self.set_home_url('http://127.0.0.1:{}/'.format(PORT))
+            self.set_home_url("http://127.0.0.1:{}/".format(PORT))
         elif self.server.is_running():
-            self.server.sig_server_started.disconnect(
-                self._continue_initialization)
+            self.server.sig_server_started.disconnect(self._continue_initialization)
             self.server.quit()
             self.server.wait()
 
         self.server = PydocServer(None, port=PORT)
-        self.server.sig_server_started.connect(
-            self._continue_initialization)
+        self.server.sig_server_started.connect(self._continue_initialization)
         self.server.start()
 
     def quit_server(self):
@@ -361,8 +360,7 @@ class PydocBrowser(PluginMainWidget):
             return
 
         if self.server.is_running():
-            self.server.sig_server_started.disconnect(
-                self._continue_initialization)
+            self.server.sig_server_started.disconnect(self._continue_initialization)
             self.server.quit_server()
             self.server.quit()
             self.server.wait()
@@ -385,10 +383,10 @@ class PydocBrowser(PluginMainWidget):
         text: str
             Url address.
         """
-        if text != 'about:blank':
-            text += '.html'
+        if text != "about:blank":
+            text += ".html"
 
-        if text.startswith('/'):
+        if text.startswith("/"):
             text = text[1:]
 
         return QUrl(self.home_url.toString() + text)
@@ -403,10 +401,10 @@ class PydocBrowser(PluginMainWidget):
             Url address.
         """
         string_url = url.toString()
-        if 'about:blank' in string_url:
-            return 'about:blank'
-        elif 'get?key=' in string_url or 'search?key=' in string_url:
-            return url.toString().split('=')[-1]
+        if "about:blank" in string_url:
+            return "about:blank"
+        elif "get?key=" in string_url or "search?key=" in string_url:
+            return url.toString().split("=")[-1]
 
         return osp.splitext(str(url.path()))[0][1:]
 
@@ -500,7 +498,7 @@ def test():
     from unittest.mock import MagicMock
 
     plugin_mock = MagicMock()
-    plugin_mock.CONF_SECTION = 'onlinehelp'
+    plugin_mock.CONF_SECTION = "onlinehelp"
     app = qapplication(test_time=8)
     widget = PydocBrowser(None, plugin=plugin_mock)
     widget._setup()
@@ -509,5 +507,5 @@ def test():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

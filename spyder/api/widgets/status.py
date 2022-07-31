@@ -47,8 +47,9 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     This signal is emmitted when the widget is clicked.
     """
 
-    def __init__(self, parent=None, show_icon=True, show_label=True,
-                 show_spinner=False):
+    def __init__(
+        self, parent=None, show_icon=True, show_label=True, show_spinner=False
+    ):
         """
         Base class for status bar widgets.
 
@@ -108,20 +109,17 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         # Label
         if self.show_label:
             self.label_value = QLabel(self)
-            self.set_value('')
+            self.set_value("")
 
             # See spyder-ide/spyder#9044.
-            self.text_font = QFont(QFont().defaultFamily(),
-                                   weight=QFont.Normal)
+            self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
             self.label_value.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.label_value.setFont(self.text_font)
 
         # Custom widget
         if self.CUSTOM_WIDGET_CLASS:
             if not issubclass(self.CUSTOM_WIDGET_CLASS, QWidget):
-                raise SpyderAPIError(
-                    'Any custom status widget must subclass QWidget!'
-                )
+                raise SpyderAPIError("Any custom status widget must subclass QWidget!")
             self.custom_widget = self.CUSTOM_WIDGET_CLASS(self._parent)
 
         # Spinner
@@ -182,19 +180,21 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     # ---- API to be defined by user
     def get_tooltip(self):
         """Return the widget tooltip text."""
-        return ''
+        return ""
 
     def get_icon(self):
         """Return the widget tooltip text."""
         return None
 
     def _stylesheet(self):
-        stylesheet = ("QToolTip {{background-color: {background_color};"
-                      "color: {color};"
-                      "border: none}}").format(
-                      background_color=QStylePalette.COLOR_ACCENT_2,
-                      color=QStylePalette.COLOR_TEXT_1
-                      )
+        stylesheet = (
+            "QToolTip {{background-color: {background_color};"
+            "color: {color};"
+            "border: none}}"
+        ).format(
+            background_color=QStylePalette.COLOR_ACCENT_2,
+            color=QStylePalette.COLOR_TEXT_1,
+        )
         return stylesheet
 
 
@@ -211,7 +211,7 @@ class BaseTimerStatus(StatusBarWidget):
 
         # Widget setup
         fm = self.label_value.fontMetrics()
-        self.label_value.setMinimumWidth(fm.width('000%'))
+        self.label_value.setMinimumWidth(fm.width("000%"))
 
         # Setup
         self.timer = QTimer(self)

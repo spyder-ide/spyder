@@ -35,34 +35,34 @@ if PYSIDE2:
 # ---- Constants
 # -----------------------------------------------------------------------------
 SYMBOL_NAME_MAP = {
-    SymbolKind.FILE: _('File'),
-    SymbolKind.MODULE: _('Module'),
-    SymbolKind.NAMESPACE: _('Namespace'),
-    SymbolKind.PACKAGE: _('Package'),
-    SymbolKind.CLASS: _('Class'),
-    SymbolKind.METHOD: _('Method'),
-    SymbolKind.PROPERTY: _('Property'),
-    SymbolKind.FIELD: _('Attribute'),
-    SymbolKind.CONSTRUCTOR: _('constructor'),
-    SymbolKind.ENUM: _('Enum'),
-    SymbolKind.INTERFACE: _('Interface'),
-    SymbolKind.FUNCTION: _('Function'),
-    SymbolKind.VARIABLE: _('Variable'),
-    SymbolKind.CONSTANT: _('Constant'),
-    SymbolKind.STRING: _('String'),
-    SymbolKind.NUMBER: _('Number'),
-    SymbolKind.BOOLEAN: _('Boolean'),
-    SymbolKind.ARRAY: _('Array'),
-    SymbolKind.OBJECT: _('Object'),
-    SymbolKind.KEY: _('Key'),
-    SymbolKind.NULL: _('Null'),
-    SymbolKind.ENUM_MEMBER: _('Enum member'),
-    SymbolKind.STRUCT: _('Struct'),
-    SymbolKind.EVENT: _('Event'),
-    SymbolKind.OPERATOR: _('Operator'),
-    SymbolKind.TYPE_PARAMETER: _('Type parameter'),
-    SymbolKind.CELL: _('Cell'),
-    SymbolKind.BLOCK_COMMENT: _('Block comment')
+    SymbolKind.FILE: _("File"),
+    SymbolKind.MODULE: _("Module"),
+    SymbolKind.NAMESPACE: _("Namespace"),
+    SymbolKind.PACKAGE: _("Package"),
+    SymbolKind.CLASS: _("Class"),
+    SymbolKind.METHOD: _("Method"),
+    SymbolKind.PROPERTY: _("Property"),
+    SymbolKind.FIELD: _("Attribute"),
+    SymbolKind.CONSTRUCTOR: _("constructor"),
+    SymbolKind.ENUM: _("Enum"),
+    SymbolKind.INTERFACE: _("Interface"),
+    SymbolKind.FUNCTION: _("Function"),
+    SymbolKind.VARIABLE: _("Variable"),
+    SymbolKind.CONSTANT: _("Constant"),
+    SymbolKind.STRING: _("String"),
+    SymbolKind.NUMBER: _("Number"),
+    SymbolKind.BOOLEAN: _("Boolean"),
+    SymbolKind.ARRAY: _("Array"),
+    SymbolKind.OBJECT: _("Object"),
+    SymbolKind.KEY: _("Key"),
+    SymbolKind.NULL: _("Null"),
+    SymbolKind.ENUM_MEMBER: _("Enum member"),
+    SymbolKind.STRUCT: _("Struct"),
+    SymbolKind.EVENT: _("Event"),
+    SymbolKind.OPERATOR: _("Operator"),
+    SymbolKind.TYPE_PARAMETER: _("Type parameter"),
+    SymbolKind.CELL: _("Cell"),
+    SymbolKind.BLOCK_COMMENT: _("Block comment"),
 }
 
 
@@ -116,7 +116,7 @@ class SymbolStatus:
                 assert idx.index < next_idx.index
 
     def remove_node(self, node):
-        for child in self.children[node.index + 1:]:
+        for child in self.children[node.index + 1 :]:
             child.index -= 1
         self.children.pop(node.index)
         for idx, next_idx in zip(self.children, self.children[1:]):
@@ -131,8 +131,9 @@ class SymbolStatus:
         self.selected = node.selected
         self.node = node.node
         self.parent = node.parent
-        self.node.update_info(self.name, self.kind, self.position[0] + 1,
-                              self.status, self.selected)
+        self.node.update_info(
+            self.name, self.kind, self.position[0] + 1, self.status, self.selected
+        )
         self.node.ref = self
 
         for child in self.children:
@@ -142,23 +143,31 @@ class SymbolStatus:
             self.parent.replace_node(self.index, self)
 
     def refresh(self):
-        self.node.update_info(self.name, self.kind, self.position[0] + 1,
-                              self.status, self.selected)
+        self.node.update_info(
+            self.name, self.kind, self.position[0] + 1, self.status, self.selected
+        )
 
     def replace_node(self, index, node):
         self.children[index] = node
 
     def create_node(self):
-        self.node = SymbolItem(None, self, self.name, self.kind,
-                               self.position[0] + 1, self.status,
-                               self.selected)
+        self.node = SymbolItem(
+            None,
+            self,
+            self.name,
+            self.kind,
+            self.position[0] + 1,
+            self.status,
+            self.selected,
+        )
 
     def __repr__(self):
         return str(self)
 
     def __str__(self):
-        return '({0}, {1}, {2}, {3})'.format(
-            self.position, self.name, self.id, self.status)
+        return "({0}, {1}, {2}, {3})".format(
+            self.position, self.name, self.id, self.status
+        )
 
 
 # ---- Items
@@ -181,8 +190,7 @@ class FileRootItem(BaseTreeItem):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
         self.ref = ref
-        self.setIcon(
-            0, ima.icon('python') if is_python else ima.icon('TextFileIcon'))
+        self.setIcon(0, ima.icon("python") if is_python else ima.icon("TextFileIcon"))
         self.setToolTip(0, path)
         set_item_user_text(self, path)
 
@@ -196,6 +204,7 @@ class FileRootItem(BaseTreeItem):
 
 class SymbolItem(BaseTreeItem):
     """Generic symbol tree item."""
+
     def __init__(self, parent, ref, name, kind, position, status, selected):
         QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
         self.parent = parent
@@ -204,11 +213,12 @@ class SymbolItem(BaseTreeItem):
         self.update_info(name, kind, position, status, selected)
 
     def update_info(self, name, kind, position, status, selected):
-        self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
-        identifier = SYMBOL_NAME_MAP.get(kind, '')
-        identifier = identifier.replace('_', ' ').capitalize()
-        self.setToolTip(0, '{3} {2}: {0} {1}'.format(
-            identifier, name, position, _('Line')))
+        self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, "no_match")))
+        identifier = SYMBOL_NAME_MAP.get(kind, "")
+        identifier = identifier.replace("_", " ").capitalize()
+        self.setToolTip(
+            0, "{3} {2}: {0} {1}".format(identifier, name, position, _("Line"))
+        )
         set_item_user_text(self, name)
         self.setText(0, name)
         self.setExpanded(status)
@@ -217,6 +227,7 @@ class SymbolItem(BaseTreeItem):
 
 class TreeItem(QTreeWidgetItem):
     """Class browser item base class."""
+
     def __init__(self, oedata, parent, preceding):
         if preceding is None:
             QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
@@ -231,8 +242,7 @@ class TreeItem(QTreeWidgetItem):
             if preceding is None:
                 QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
             else:
-                QTreeWidgetItem.__init__(self, parent, preceding,
-                                         QTreeWidgetItem.Type)
+                QTreeWidgetItem.__init__(self, parent, preceding, QTreeWidgetItem.Type)
         self.parent_item = parent
         self.oedata = oedata
         oedata.sig_update.connect(self.update)
@@ -264,9 +274,10 @@ class TreeItem(QTreeWidgetItem):
         """Update the tree element."""
         name = self.get_name()
         self.setText(0, name)
-        parent_text = from_qvariant(self.parent_item.data(0, Qt.UserRole),
-                                    to_text_string)
-        set_item_user_text(self, parent_text + '/' + name)
+        parent_text = from_qvariant(
+            self.parent_item.data(0, Qt.UserRole), to_text_string
+        )
+        set_item_user_text(self, parent_text + "/" + name)
         self.setup()
 
 
@@ -279,20 +290,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     sig_hide_spinner = Signal()
     sig_update_configuration = Signal()
 
-    CONF_SECTION = 'outline_explorer'
+    CONF_SECTION = "outline_explorer"
 
     def __init__(self, parent):
-        if hasattr(parent, 'CONTEXT_NAME'):
+        if hasattr(parent, "CONTEXT_NAME"):
             self.CONTEXT_NAME = parent.CONTEXT_NAME
 
-        self.show_fullpath = self.get_conf('show_fullpath')
-        self.show_all_files = self.get_conf('show_all_files')
-        self.group_cells = self.get_conf('group_cells')
-        self.show_comments = self.get_conf('show_comments')
-        self.sort_files_alphabetically = self.get_conf(
-            'sort_files_alphabetically')
-        self.follow_cursor = self.get_conf('follow_cursor')
-        self.display_variables = self.get_conf('display_variables')
+        self.show_fullpath = self.get_conf("show_fullpath")
+        self.show_all_files = self.get_conf("show_all_files")
+        self.group_cells = self.get_conf("group_cells")
+        self.show_comments = self.get_conf("show_comments")
+        self.sort_files_alphabetically = self.get_conf("sort_files_alphabetically")
+        self.follow_cursor = self.get_conf("follow_cursor")
+        self.display_variables = self.get_conf("display_variables")
 
         super().__init__(parent)
 
@@ -337,14 +347,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for _it in self.get_top_level_items():
             _it.setHidden(_it is not item and not self.show_all_files)
 
-    @on_conf_change(option='show_fullpath')
+    @on_conf_change(option="show_fullpath")
     def toggle_fullpath_mode(self, state):
         self.show_fullpath = state
         self.setTextElideMode(Qt.ElideMiddle if state else Qt.ElideRight)
         for index in range(self.topLevelItemCount()):
             self.topLevelItem(index).set_text(fullpath=self.show_fullpath)
 
-    @on_conf_change(option='show_all_files')
+    @on_conf_change(option="show_all_files")
     def toggle_show_all_files(self, state):
         self.show_all_files = state
         current_editor = self.current_editor
@@ -355,33 +365,34 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.__sort_toplevel_items()
             if self.show_all_files is False:
                 self.root_item_selected(
-                    self.editor_items[self.editor_ids[current_editor]])
+                    self.editor_items[self.editor_ids[current_editor]]
+                )
             self.do_follow_cursor()
 
-    @on_conf_change(option='show_comments')
+    @on_conf_change(option="show_comments")
     def toggle_show_comments(self, state):
         self.show_comments = state
         self.sig_update_configuration.emit()
-        self.update_editors(language='python')
+        self.update_editors(language="python")
 
-    @on_conf_change(option='group_cells')
+    @on_conf_change(option="group_cells")
     def toggle_group_cells(self, state):
         self.group_cells = state
         self.sig_update_configuration.emit()
-        self.update_editors(language='python')
+        self.update_editors(language="python")
 
-    @on_conf_change(option='display_variables')
+    @on_conf_change(option="display_variables")
     def toggle_variables(self, state):
         self.display_variables = state
         for editor in self.editor_ids.keys():
             self.update_editor(editor.info, editor)
 
-    @on_conf_change(option='sort_files_alphabetically')
+    @on_conf_change(option="sort_files_alphabetically")
     def toggle_sort_files_alphabetically(self, state):
         self.sort_files_alphabetically = state
         self.__sort_toplevel_items()
 
-    @on_conf_change(option='follow_cursor')
+    @on_conf_change(option="follow_cursor")
     def toggle_follow_cursor(self, state):
         """Follow the cursor."""
         self.follow_cursor = state
@@ -450,7 +461,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def clear(self):
         """Reimplemented Qt method"""
-        self.set_title('')
+        self.set_title("")
         OneColumnTree.clear(self)
 
     def set_current_editor(self, editor, update):
@@ -476,8 +487,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Update tree with currently stored info or require symbols if
         # necessary.
-        if (editor.get_language().lower() in self._languages and
-                len(self.editor_tree_cache[editor_id]) == 0):
+        if (
+            editor.get_language().lower() in self._languages
+            and len(self.editor_tree_cache[editor_id]) == 0
+        ):
             if editor.info is not None:
                 self.update_editor(editor.info)
             elif editor.is_cloned:
@@ -495,8 +508,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         this_root = SymbolStatus(editor.fname, None, None, editor.fname)
         self.editor_items[editor_id] = this_root
 
-        root_item = FileRootItem(editor.fname, this_root,
-                                 self, editor.is_python())
+        root_item = FileRootItem(editor.fname, this_root, self, editor.is_python())
         this_root.node = root_item
         root_item.set_text(fullpath=self.show_fullpath)
         self.resizeColumnToContents(0)
@@ -597,23 +609,22 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         current_tree = self.editor_tree_cache[editor_id]
         tree_info = []
         for symbol in items:
-            symbol_name = symbol['name']
-            symbol_kind = symbol['kind']
-            if language.lower() == 'python':
+            symbol_name = symbol["name"]
+            symbol_kind = symbol["kind"]
+            if language.lower() == "python":
                 if symbol_kind == SymbolKind.MODULE:
                     continue
-                if (symbol_kind == SymbolKind.VARIABLE and
-                        not self.display_variables):
+                if symbol_kind == SymbolKind.VARIABLE and not self.display_variables:
                     continue
-                if (symbol_kind == SymbolKind.FIELD and
-                        not self.display_variables):
+                if symbol_kind == SymbolKind.FIELD and not self.display_variables:
                     continue
             # NOTE: This could be also a DocumentSymbol
-            symbol_range = symbol['location']['range']
-            symbol_start = symbol_range['start']['line']
-            symbol_end = symbol_range['end']['line']
-            symbol_repr = SymbolStatus(symbol_name, symbol_kind,
-                                       (symbol_start, symbol_end), None)
+            symbol_range = symbol["location"]["range"]
+            symbol_start = symbol_range["start"]["line"]
+            symbol_end = symbol_range["end"]["line"]
+            symbol_repr = SymbolStatus(
+                symbol_name, symbol_kind, (symbol_start, symbol_end), None
+            )
             tree_info.append((symbol_start, symbol_end + 1, symbol_repr))
 
         tree = IntervalTree.from_tuples(tree_info)
@@ -673,7 +684,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         tree_copy = IntervalTree(tree)
         tree_copy.merge_overlaps(
-            data_reducer=self.merge_interval, data_initializer=root)
+            data_reducer=self.merge_interval, data_initializer=root
+        )
 
         self.editor_tree_cache[editor_id] = tree
         self.sig_tree_updated.emit()
@@ -691,8 +703,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
                 try:
-                    self.takeTopLevelItem(
-                        self.indexOfTopLevelItem(root_item.node))
+                    self.takeTopLevelItem(self.indexOfTopLevelItem(root_item.node))
                 except RuntimeError:
                     # item has already been removed
                     pass
@@ -716,24 +727,28 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if self.show_all_files is False:
             return
 
-        current_ordered_items = [self.topLevelItem(index) for index in
-                                 range(self.topLevelItemCount())]
+        current_ordered_items = [
+            self.topLevelItem(index) for index in range(self.topLevelItemCount())
+        ]
 
         # Convert list to a dictionary in order to remove duplicated entries
         # when having multiple editors (splitted or in new windows).
         # See spyder-ide/spyder#14646
         current_ordered_items_dict = {
-            item.path.lower(): item for item in current_ordered_items}
+            item.path.lower(): item for item in current_ordered_items
+        }
 
         if self.sort_files_alphabetically:
             new_ordered_items = sorted(
                 current_ordered_items_dict.values(),
-                key=lambda item: osp.basename(item.path.lower()))
+                key=lambda item: osp.basename(item.path.lower()),
+            )
         else:
             new_ordered_items = [
-                self.editor_items.get(e_id).node for e_id in
-                self.ordered_editor_ids if
-                self.editor_items.get(e_id) is not None]
+                self.editor_items.get(e_id).node
+                for e_id in self.ordered_editor_ids
+                if self.editor_items.get(e_id) is not None
+            ]
 
         # PySide <= 5.15.0 doesn’t support == and != comparison for the data
         # types inside the compared lists (see [1], [2])
@@ -741,9 +756,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # [1] https://bugreports.qt.io/browse/PYSIDE-74
         # [2] https://codereview.qt-project.org/c/pyside/pyside-setup/+/312945
         update = (
-            (PYSIDE2 and parse_version(PYSIDE_VERSION) <= parse_version("5.15.0"))
-            or (current_ordered_items != new_ordered_items)
-        )
+            PYSIDE2 and parse_version(PYSIDE_VERSION) <= parse_version("5.15.0")
+        ) or (current_ordered_items != new_ordered_items)
         if update:
             selected_items = self.selectedItems()
             self.save_expanded_state()
@@ -797,10 +811,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def activated(self, item):
         """Double-click event"""
-        editor_root = self.editor_items.get(
-            self.editor_ids.get(self.current_editor))
+        editor_root = self.editor_items.get(self.editor_ids.get(self.current_editor))
         root_item = editor_root.node
-        text = ''
+        text = ""
         if isinstance(item, FileRootItem):
             line = None
             if id(root_item) != id(item):

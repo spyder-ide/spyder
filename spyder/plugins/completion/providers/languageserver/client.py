@@ -28,32 +28,43 @@ import psutil
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, is_pynsist, running_under_pytest)
+    DEV,
+    get_conf_path,
+    get_debug_level,
+    is_pynsist,
+    running_under_pytest,
+)
 from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
-    CLIENT_CAPABILITES, SERVER_CAPABILITES,
-    TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
-    ClientConstants)
+    CLIENT_CAPABILITES,
+    SERVER_CAPABILITES,
+    TEXT_DOCUMENT_SYNC_OPTIONS,
+    CompletionRequestTypes,
+    ClientConstants,
+)
 from spyder.plugins.completion.providers.languageserver.decorators import (
-    send_request, send_notification, class_register, handles)
-from spyder.plugins.completion.providers.languageserver.transport import (
-    MessageKind)
+    send_request,
+    send_notification,
+    class_register,
+    handles,
+)
+from spyder.plugins.completion.providers.languageserver.transport import MessageKind
 from spyder.plugins.completion.providers.languageserver.providers import (
-    LSPMethodProviderMixIn)
+    LSPMethodProviderMixIn,
+)
 from spyder.utils.misc import getcwd_or_home, select_port
 
 
 # Main constants
-LOCATION = osp.realpath(osp.join(os.getcwd(),
-                                 osp.dirname(__file__)))
-PENDING = 'pending'
-SERVER_READY = 'server_ready'
-LOCALHOST = '127.0.0.1'
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
+PENDING = "pending"
+SERVER_READY = "server_ready"
+LOCALHOST = "127.0.0.1"
 
 # Language server communication verbosity at server logs.
-TRACE = 'messages'
+TRACE = "messages"
 if DEV:
-    TRACE = 'verbose'
+    TRACE = "verbose"
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +72,7 @@ logger = logging.getLogger(__name__)
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     """Language Server Protocol v3.0 client implementation."""
+
     #: Signal to inform the editor plugin that the client has
     #  started properly and it's ready to be used.
     sig_initialize = Signal(dict, str)
@@ -73,10 +85,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     #  server went down
     sig_went_down = Signal(str)
 
-    def __init__(self, parent,
-                 server_settings={},
-                 folder=getcwd_or_home(),
-                 language='python'):
+    def __init__(
+        self, parent, server_settings={}, folder=getcwd_or_home(), language="python"
+    ):
         QObject.__init__(self)
         self.manager = parent
         self.zmq_in_socket = None
@@ -105,32 +116,33 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         # change in the config settings of the server. Else a server
         # restart would be generated when doing a
         # workspace/didChangeConfiguration request.
-        if not server_settings['external']:
-            self.server_port = select_port(
-                default_port=server_settings['port'])
+        if not server_settings["external"]:
+            self.server_port = select_port(default_port=server_settings["port"])
         else:
-            self.server_port = server_settings['port']
-        self.server_host = server_settings['host']
+            self.server_port = server_settings["port"]
+        self.server_host = server_settings["host"]
 
-        self.external_server = server_settings.get('external', False)
-        self.stdio = server_settings.get('stdio', False)
+        self.external_server = server_settings.get("external", False)
+        self.stdio = server_settings.get("stdio", False)
 
         # Setting stdio on implies that external_server is off
         if self.stdio and self.external_server:
-            error = ('If server is set to use stdio communication, '
-                     'then it cannot be an external server')
+            error = (
+                "If server is set to use stdio communication, "
+                "then it cannot be an external server"
+            )
             logger.error(error)
             raise AssertionError(error)
 
         self.folder = folder
-        self.configurations = server_settings.get('configurations', {})
+        self.configurations = server_settings.get("configurations", {})
         self.client_capabilites = CLIENT_CAPABILITES
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
         # To set server args
-        self._server_args = server_settings.get('args', '')
-        self._server_cmd = server_settings['cmd']
+        self._server_args = server_settings.get("args", "")
+        self._server_cmd = server_settings["cmd"]
 
         # Save requests name and id. This is only necessary for testing.
         self._requests = []
@@ -148,8 +160,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         if get_debug_level() == 0:
             return None
 
-        fname = '{0}_{1}_{2}.log'.format(kind, self.language, os.getpid())
-        location = get_conf_path(osp.join('lsp_logs', fname))
+        fname = "{0}_{1}_{2}.log".format(kind, self.language, os.getpid())
+        location = get_conf_path(osp.join("lsp_logs", fname))
 
         # Create directory that contains the file, in case it doesn't
         # exist
@@ -166,9 +178,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         and are not needed for the transport layer.
         """
         spyder_pythonpath = self.get_conf(
-            'spyder_pythonpath',
-            section='main',
-            default=[]
+            "spyder_pythonpath", section="main", default=[]
         )
 
         sys_path = sys.path[:]
@@ -183,7 +193,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         """
         Filename to redirect the server process stdout/stderr output.
         """
-        return self._get_log_filename('server')
+        return self._get_log_filename("server")
 
     @property
     def transport_log_file(self):
@@ -191,29 +201,29 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         Filename to redirect the transport process stdout/stderr
         output.
         """
-        return self._get_log_filename('transport')
+        return self._get_log_filename("transport")
 
     @property
     def server_args(self):
         """Arguments for the server process."""
         args = []
-        if self.language == 'python':
-            args += [sys.executable, '-m']
+        if self.language == "python":
+            args += [sys.executable, "-m"]
         args += [self._server_cmd]
 
         # Replace host and port placeholders
         host_and_port = self._server_args.format(
-            host=self.server_host,
-            port=self.server_port)
+            host=self.server_host, port=self.server_port
+        )
         if len(host_and_port) > 0:
-            args += host_and_port.split(' ')
+            args += host_and_port.split(" ")
 
-        if self.language == 'python' and get_debug_level() > 0:
-            args += ['--log-file', self.server_log_file]
+        if self.language == "python" and get_debug_level() > 0:
+            args += ["--log-file", self.server_log_file]
             if get_debug_level() == 2:
-                args.append('-v')
+                args.append("-v")
             elif get_debug_level() == 3:
-                args.append('-vv')
+                args.append("-vv")
 
         return args
 
@@ -222,30 +232,36 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         """Arguments for the transport process."""
         args = [
             sys.executable,
-            '-u',
-            osp.join(LOCATION, 'transport', 'main.py'),
-            '--folder', self.folder,
-            '--transport-debug', str(get_debug_level())
+            "-u",
+            osp.join(LOCATION, "transport", "main.py"),
+            "--folder",
+            self.folder,
+            "--transport-debug",
+            str(get_debug_level()),
         ]
 
         # Replace host and port placeholders
-        host_and_port = '--server-host {host} --server-port {port} '.format(
-            host=self.server_host,
-            port=self.server_port)
-        args += host_and_port.split(' ')
+        host_and_port = "--server-host {host} --server-port {port} ".format(
+            host=self.server_host, port=self.server_port
+        )
+        args += host_and_port.split(" ")
 
         # Add socket ports
-        args += ['--zmq-in-port', str(self.zmq_out_port),
-                 '--zmq-out-port', str(self.zmq_in_port)]
+        args += [
+            "--zmq-in-port",
+            str(self.zmq_out_port),
+            "--zmq-out-port",
+            str(self.zmq_in_port),
+        ]
 
         # Adjustments for stdio/tcp
         if self.stdio:
-            args += ['--stdio-server']
+            args += ["--stdio-server"]
             if get_debug_level() > 0:
-                args += ['--server-log-file', self.server_log_file]
+                args += ["--server-log-file", self.server_log_file]
             args += self.server_args
         else:
-            args += ['--external-server']
+            args += ["--external-server"]
 
         return args
 
@@ -253,11 +269,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         """Create PyZMQ sockets for transport."""
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
         self.zmq_out_port = self.zmq_out_socket.bind_to_random_port(
-            'tcp://{}'.format(LOCALHOST))
+            "tcp://{}".format(LOCALHOST)
+        )
         self.zmq_in_socket = self.context.socket(zmq.PAIR)
         self.zmq_in_socket.set_hwm(0)
         self.zmq_in_port = self.zmq_in_socket.bind_to_random_port(
-            'tcp://{}'.format(LOCALHOST))
+            "tcp://{}".format(LOCALHOST)
+        )
 
     @Slot(QProcess.ProcessError)
     def handle_process_errors(self, error):
@@ -271,19 +289,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         if self.external_server or self.stdio:
             return
 
-        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
+        logger.info("Starting server: {0}".format(" ".join(self.server_args)))
 
         # Create server process
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
         # Adjustments for the Python language server.
-        if self.language == 'python':
+        if self.language == "python":
             # Set the PyLS current working to an empty dir inside
             # our config one. This avoids the server to pick up user
             # files such as random.py or string.py instead of the
             # standard library modules named the same.
-            cwd = osp.join(get_conf_path(), 'lsp_paths', 'cwd')
+            cwd = osp.join(get_conf_path(), "lsp_paths", "cwd")
             if not osp.exists(cwd):
                 os.makedirs(cwd)
 
@@ -299,10 +317,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 # is missing and the user has installed their packages on
                 # that directory.
                 # Fixes spyder-ide/spyder#17661
-                if (
-                    not (is_anaconda() or is_pynsist())
-                    and "APPDATA" in os.environ
-                ):
+                if not (is_anaconda() or is_pynsist()) and "APPDATA" in os.environ:
                     env.insert("APPDATA", os.environ["APPDATA"])
         else:
             # There's no need to define a cwd for other servers.
@@ -312,7 +327,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             # some environment variables.
             for var in os.environ:
                 env.insert(var, os.environ[var])
-            logger.info('Server process env variables: {0}'.format(env.keys()))
+            logger.info("Server process env variables: {0}".format(env.keys()))
 
         # Setup server
         self.server.setProcessEnvironment(env)
@@ -327,8 +342,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
     def start_transport(self):
         """Start transport layer."""
-        logger.info('Starting transport for {1}: {0}'
-                    .format(' '.join(self.transport_args), self.language))
+        logger.info(
+            "Starting transport for {1}: {0}".format(
+                " ".join(self.transport_args), self.language
+            )
+        )
 
         # Create transport process
         self.transport = QProcess(self)
@@ -336,11 +354,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         # Most LSP servers spawn other processes other than Python, which may
         # require some environment variables
-        if self.language != 'python' and self.stdio:
+        if self.language != "python" and self.stdio:
             for var in os.environ:
                 env.insert(var, os.environ[var])
-            logger.info('Transport process env variables: {0}'.format(
-                env.keys()))
+            logger.info("Transport process env variables: {0}".format(env.keys()))
 
         self.transport.setProcessEnvironment(env)
 
@@ -371,11 +388,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.notifier.activated.connect(self.on_msg_received)
 
         # This is necessary for tests to pass locally!
-        logger.debug('LSP {} client started!'.format(self.language))
+        logger.debug("LSP {} client started!".format(self.language))
 
     def stop(self):
         """Stop transport and server."""
-        logger.info('Stopping {} client...'.format(self.language))
+        logger.info("Stopping {} client...".format(self.language))
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
@@ -407,7 +424,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             try:
                 pid_status = psutil.Process(self.stdio_pid).status()
             except psutil.NoSuchProcess:
-                pid_status = ''
+                pid_status = ""
             if pid_status == psutil.STATUS_ZOMBIE:
                 alive = False
         return alive
@@ -424,8 +441,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         """
         is_down = False
         if self.transport and not self.is_transport_alive():
-            logger.debug(
-                "Transport layer for {} is down!!".format(self.language))
+            logger.debug("Transport layer for {} is down!!".format(self.language))
             if not self.transport_unresponsive:
                 self.transport_unresponsive = True
                 self.sig_went_down.emit(self.language)
@@ -453,31 +469,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             return
 
         # Don't send requests to the server before it's been initialized.
-        if not self.initialized and method != 'initialize':
+        if not self.initialized and method != "initialize":
             return
 
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq
         if kind == MessageKind.REQUEST:
-            msg = {
-                'id': self.request_seq,
-                'method': method,
-                'params': params
-            }
+            msg = {"id": self.request_seq, "method": method, "params": params}
             self.req_status[self.request_seq] = method
         elif kind == MessageKind.RESPONSE:
-            msg = {
-                'id': self.request_seq,
-                'result': params
-            }
+            msg = {"id": self.request_seq, "result": params}
         elif kind == MessageKind.NOTIFICATION:
-            msg = {
-                'method': method,
-                'params': params
-            }
+            msg = {"method": method, "params": params}
 
-        logger.debug('Perform request {0} with id {1}'.format(method, _id))
+        logger.debug("Perform request {0} with id {1}".format(method, _id))
 
         # Save requests to check their ordering.
         if running_under_pytest():
@@ -500,7 +506,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 # The send queue is full! wait 0.1 seconds before retrying.
                 if self.initialized:
                     logger.warning("The send queue is full! Retrying...")
-                time.sleep(.1)
+                time.sleep(0.1)
 
     @Slot()
     def on_msg_received(self):
@@ -512,47 +518,47 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 resp = self.zmq_in_socket.recv_pyobj(flags=zmq.NOBLOCK)
 
                 try:
-                    method = resp['method']
-                    logger.debug(
-                        '{} response: {}'.format(self.language, method))
+                    method = resp["method"]
+                    logger.debug("{} response: {}".format(self.language, method))
                 except KeyError:
                     pass
 
-                if 'error' in resp:
-                    logger.debug('{} Response error: {}'
-                                 .format(self.language, repr(resp['error'])))
-                    if self.language == 'python':
+                if "error" in resp:
+                    logger.debug(
+                        "{} Response error: {}".format(
+                            self.language, repr(resp["error"])
+                        )
+                    )
+                    if self.language == "python":
                         # Show PyLS errors in our error report dialog only in
                         # debug or development modes
                         if get_debug_level() > 0 or DEV:
-                            message = resp['error'].get('message', '')
-                            traceback = (resp['error'].get('data', {}).
-                                         get('traceback'))
+                            message = resp["error"].get("message", "")
+                            traceback = resp["error"].get("data", {}).get("traceback")
                             if traceback is not None:
-                                traceback = ''.join(traceback)
-                                traceback = traceback + '\n' + message
+                                traceback = "".join(traceback)
+                                traceback = traceback + "\n" + message
                                 self.sig_server_error.emit(traceback)
-                        req_id = resp['id']
+                        req_id = resp["id"]
                         if req_id in self.req_reply:
-                            self.req_reply[req_id](None, {'params': []})
-                elif 'method' in resp:
-                    if resp['method'][0] != '$':
-                        if 'id' in resp:
-                            self.request_seq = int(resp['id'])
-                        if resp['method'] in self.handler_registry:
-                            handler_name = (
-                                self.handler_registry[resp['method']])
+                            self.req_reply[req_id](None, {"params": []})
+                elif "method" in resp:
+                    if resp["method"][0] != "$":
+                        if "id" in resp:
+                            self.request_seq = int(resp["id"])
+                        if resp["method"] in self.handler_registry:
+                            handler_name = self.handler_registry[resp["method"]]
                             handler = getattr(self, handler_name)
-                            handler(resp['params'])
-                elif 'result' in resp:
-                    if resp['result'] is not None:
-                        req_id = resp['id']
+                            handler(resp["params"])
+                elif "result" in resp:
+                    if resp["result"] is not None:
+                        req_id = resp["id"]
                         if req_id in self.req_status:
                             req_type = self.req_status[req_id]
                             if req_type in self.handler_registry:
                                 handler_name = self.handler_registry[req_type]
                                 handler = getattr(self, handler_name)
-                                handler(resp['result'], req_id)
+                                handler(resp["result"], req_id)
                                 self.req_status.pop(req_id)
                                 if req_id in self.req_reply:
                                     self.req_reply.pop(req_id)
@@ -569,22 +575,22 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
             _id = handler(params)
-            if 'response_callback' in params:
-                if params['requires_response']:
-                    self.req_reply[_id] = params['response_callback']
+            if "response_callback" in params:
+                if params["requires_response"]:
+                    self.req_reply[_id] = params["response_callback"]
             return _id
 
     # ------ LSP initialization methods --------------------------------
     @handles(SERVER_READY)
     @send_request(method=CompletionRequestTypes.INITIALIZE)
     def initialize(self, params, *args, **kwargs):
-        self.stdio_pid = params['pid']
+        self.stdio_pid = params["pid"]
         pid = self.transport.processId() if not self.external_server else None
         params = {
-            'processId': pid,
-            'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
-            'capabilities': self.client_capabilites,
-            'trace': TRACE
+            "processId": pid,
+            "rootUri": pathlib.Path(osp.abspath(self.folder)).as_uri(),
+            "capabilities": self.client_capabilites,
+            "trace": TRACE,
         }
         return params
 
@@ -609,14 +615,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         available.
         """
         # Update server capabilities with the info sent by the server.
-        server_capabilites = server_capabilites['capabilities']
+        server_capabilites = server_capabilites["capabilities"]
 
-        if isinstance(server_capabilites['textDocumentSync'], int):
-            kind = server_capabilites['textDocumentSync']
-            server_capabilites['textDocumentSync'] = TEXT_DOCUMENT_SYNC_OPTIONS
-            server_capabilites['textDocumentSync']['change'] = kind
-        if server_capabilites['textDocumentSync'] is None:
-            server_capabilites.pop('textDocumentSync')
+        if isinstance(server_capabilites["textDocumentSync"], int):
+            kind = server_capabilites["textDocumentSync"]
+            server_capabilites["textDocumentSync"] = TEXT_DOCUMENT_SYNC_OPTIONS
+            server_capabilites["textDocumentSync"]["change"] = kind
+        if server_capabilites["textDocumentSync"] is None:
+            server_capabilites.pop("textDocumentSync")
 
         self.server_capabilites.update(server_capabilites)
 
@@ -640,21 +646,22 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     # ------ Settings queries --------------------------------
     @property
     def support_multiple_workspaces(self):
-        workspace_settings = self.server_capabilites['workspace']
-        return workspace_settings['workspaceFolders']['supported']
+        workspace_settings = self.server_capabilites["workspace"]
+        return workspace_settings["workspaceFolders"]["supported"]
 
     @property
     def support_workspace_update(self):
-        workspace_settings = self.server_capabilites['workspace']
-        return workspace_settings['workspaceFolders']['changeNotifications']
+        workspace_settings = self.server_capabilites["workspace"]
+        return workspace_settings["workspaceFolders"]["changeNotifications"]
 
 
 def test():
     """Test LSP client."""
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication(test_time=8)
-    server_args_fmt = '--host %(host)s --port %(port)s --tcp'
-    server_settings = {'host': '127.0.0.1', 'port': 2087, 'cmd': 'pyls'}
+    server_args_fmt = "--host %(host)s --port %(port)s --tcp"
+    server_settings = {"host": "127.0.0.1", "port": 2087, "cmd": "pyls"}
     lsp = LSPClient(app, server_args_fmt, server_settings)
     lsp.start()
 

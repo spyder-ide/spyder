@@ -33,8 +33,9 @@ class SpyderKernelManager(QtKernelManager):
         return QtKernelManager.__init__(self, *args, **kwargs)
 
     @staticmethod
-    async def kill_proc_tree(pid, sig=signal.SIGTERM, include_parent=True,
-                             timeout=None, on_terminate=None):
+    async def kill_proc_tree(
+        pid, sig=signal.SIGTERM, include_parent=True, timeout=None, on_terminate=None
+    ):
         """
         Kill a process tree (including grandchildren) with sig and return a
         (gone, still_alive) tuple.
@@ -93,13 +94,15 @@ class SpyderKernelManager(QtKernelManager):
 
             # Wait until the kernel terminates.
             import asyncio
+
             try:
                 await asyncio.wait_for(self._async_wait(), timeout=5.0)
             except asyncio.TimeoutError:
                 # Wait timed out, just log warning but continue
                 #  - not much more we can do.
-                self.log.warning("Wait for final termination of kernel timed"
-                                 " out - continuing...")
+                self.log.warning(
+                    "Wait for final termination of kernel timed" " out - continuing..."
+                )
                 pass
             else:
                 # Process is no longer alive, wait and clear

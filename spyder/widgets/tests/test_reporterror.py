@@ -16,8 +16,11 @@ from qtpy.QtCore import Qt, QUrl
 
 # Local imports
 from spyder import __project_url__
-from spyder.widgets.reporterror import (DESC_MIN_CHARS, TITLE_MIN_CHARS,
-                                        SpyderErrorDialog)
+from spyder.widgets.reporterror import (
+    DESC_MIN_CHARS,
+    TITLE_MIN_CHARS,
+    SpyderErrorDialog,
+)
 
 # =============================================================================
 # Fixtures
@@ -62,7 +65,7 @@ def test_dialog(error_dialog, qtbot):
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
     # Assert delete doesn't remove characters on the header
-    ini_pos = dlg.input_description.get_position('sof')
+    ini_pos = dlg.input_description.get_position("sof")
     dlg.input_description.set_cursor_position(ini_pos)
     dlg.input_description.delete()
     assert dlg.input_description.toPlainText() == dlg.input_description.header
@@ -76,38 +79,39 @@ def test_dialog(error_dialog, qtbot):
     qtbot.keyPress(dlg.input_description, Qt.Key_Backspace)
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
-    ini_pos = dlg.input_description.get_position('sof')
+    ini_pos = dlg.input_description.get_position("sof")
     dlg.input_description.set_cursor_position(ini_pos)
-    dlg.input_description.set_cursor_position('eol')
+    dlg.input_description.set_cursor_position("eol")
     qtbot.keyPress(dlg.input_description, Qt.Key_Backspace)
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
     # Assert chars label works as expected
-    assert dlg.desc_chars_label.text() == '{} more characters to go...'.format(DESC_MIN_CHARS)
+    assert dlg.desc_chars_label.text() == "{} more characters to go...".format(
+        DESC_MIN_CHARS
+    )
     qtbot.keyClicks(dlg.input_description, desc_text)
-    assert dlg.desc_chars_label.text() == 'Description complete; thanks!'
+    assert dlg.desc_chars_label.text() == "Description complete; thanks!"
 
 
 def test_report_issue_url(monkeypatch):
     """Test that report_issue sends the data, and to correct url."""
-    body = 'This is an example error report body text.'
-    title = 'Uncreative issue title here'
-    target_url_base = __project_url__ + '/issues/new'
+    body = "This is an example error report body text."
+    title = "Uncreative issue title here"
+    target_url_base = __project_url__ + "/issues/new"
 
     MockQDesktopServices = MagicMock()
     mockQDesktopServices_instance = MockQDesktopServices()
-    attr_to_patch = ('spyder.widgets.reporterror.QDesktopServices')
+    attr_to_patch = "spyder.widgets.reporterror.QDesktopServices"
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
     # Test when body != None, i.e. when auto-submitting error to Github
-    target_url = QUrl(target_url_base + '?body=' + body)
+    target_url = QUrl(target_url_base + "?body=" + body)
     SpyderErrorDialog.open_web_report(body=body, title=None)
     assert MockQDesktopServices.openUrl.call_count == 1
     mockQDesktopServices_instance.openUrl.called_with(target_url)
 
     # Test when body != None and title != None
-    target_url = QUrl(target_url_base + '?body=' + body
-                      + "&title=" + title)
+    target_url = QUrl(target_url_base + "?body=" + body + "&title=" + title)
     SpyderErrorDialog.open_web_report(body=body, title=None)
     assert MockQDesktopServices.openUrl.call_count == 2
     mockQDesktopServices_instance.openUrl.called_with(target_url)
@@ -124,8 +128,7 @@ def test_render_issue():
     assert len(test_issue_1) > 100
 
     # Test when description and traceback are provided
-    test_issue_2 = SpyderErrorDialog.render_issue(
-        test_description, test_traceback)
+    test_issue_2 = SpyderErrorDialog.render_issue(test_description, test_traceback)
     assert type(test_issue_2) == str
     assert len(test_issue_2) > 100
     assert test_description in test_issue_2

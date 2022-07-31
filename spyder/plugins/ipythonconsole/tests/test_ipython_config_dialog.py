@@ -26,10 +26,11 @@ class MainWindowMock(QMainWindow):
 
 
 @pytest.mark.parametrize(
-    'config_dialog',
+    "config_dialog",
     # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
     [[MainWindowMock, [], [IPythonConsole]]],
-    indirect=True)
+    indirect=True,
+)
 def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()
     assert configpage

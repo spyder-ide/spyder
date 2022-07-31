@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # Copyright © Spyder Project Contributors
@@ -62,13 +61,13 @@ class SnippetsActor(QObject):
 
     def started(self):
         """Thread started."""
-        logger.debug('Snippets plugin starting...')
+        logger.debug("Snippets plugin starting...")
         self.sig_snippets_ready.emit()
 
     @Slot(dict)
     def update_snippets(self, snippets):
         """Update available snippets."""
-        logger.debug('Updating snippets...')
+        logger.debug("Updating snippets...")
         for language in snippets:
             lang_snippets = snippets[language]
             lang_trie = Trie()
@@ -80,16 +79,15 @@ class SnippetsActor(QObject):
     @Slot(dict)
     def handle_msg(self, message):
         """Handle one message"""
-        msg_type, _id, file, msg = [
-            message[k] for k in ('type', 'id', 'file', 'msg')]
-        logger.debug(u'Perform request {0} with id {1}'.format(msg_type, _id))
+        msg_type, _id, file, msg = [message[k] for k in ("type", "id", "file", "msg")]
+        logger.debug("Perform request {0} with id {1}".format(msg_type, _id))
         if msg_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
-            language = msg['language']
-            current_word = msg['current_word']
+            language = msg["language"]
+            current_word = msg["current_word"]
             snippets = []
 
             if current_word is None:
-                snippets = {'params': snippets}
+                snippets = {"params": snippets}
                 self.sig_snippets_response.emit(_id, snippets)
                 return
 
@@ -100,19 +98,20 @@ class SnippetsActor(QObject):
                         trigger, info = node.value
                         for description in info:
                             description_snippet = info[description]
-                            text = description_snippet['text']
-                            remove_trigger = description_snippet[
-                                'remove_trigger']
-                            snippets.append({
-                                'kind': CompletionItemKind.SNIPPET,
-                                'insertText': text,
-                                'label': f'{trigger} ({description})',
-                                'sortText': f'zzz{trigger}',
-                                'filterText': trigger,
-                                'documentation': '',
-                                'provider': SNIPPETS_COMPLETION,
-                                'remove_trigger': remove_trigger
-                            })
+                            text = description_snippet["text"]
+                            remove_trigger = description_snippet["remove_trigger"]
+                            snippets.append(
+                                {
+                                    "kind": CompletionItemKind.SNIPPET,
+                                    "insertText": text,
+                                    "label": f"{trigger} ({description})",
+                                    "sortText": f"zzz{trigger}",
+                                    "filterText": trigger,
+                                    "documentation": "",
+                                    "provider": SNIPPETS_COMPLETION,
+                                    "remove_trigger": remove_trigger,
+                                }
+                            )
 
-            snippets = {'params': snippets}
+            snippets = {"params": snippets}
             self.sig_snippets_response.emit(_id, snippets)

@@ -18,8 +18,7 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         super(OutlineExplorerProxyEditor, self).__init__()
         self._editor = editor
         self.fname = fname
-        editor.sig_cursor_position_changed.connect(
-            self.sig_cursor_position_changed)
+        editor.sig_cursor_position_changed.connect(self.sig_cursor_position_changed)
 
         # This saves the symbols info that comes from the server.
         self.info = None

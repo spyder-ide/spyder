@@ -26,6 +26,7 @@ from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
 
 # ---- Qt Test Fixtures
 
+
 def editor_stack():
     editor_stack = EditorStack(None, [])
     editor_stack.set_find_widget(Mock())
@@ -48,43 +49,44 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
     text = """
     import sys
     """
-    completions, capabilities  = completion_plugin_all_started
+    completions, capabilities = completion_plugin_all_started
 
     def report_file_open(options):
-        filename = options['filename']
-        language = options['language']
-        callback = options['codeeditor']
-        completions.register_file(
-            language.lower(), filename, callback)
+        filename = options["filename"]
+        language = options["language"]
+        callback = options["codeeditor"]
+        completions.register_file(language.lower(), filename, callback)
         callback.start_completion_services()
         callback.register_completion_capabilities(capabilities)
 
         with qtbot_module.waitSignal(
-                callback.completions_response_signal, timeout=30000):
+            callback.completions_response_signal, timeout=30000
+        ):
             callback.document_did_open()
 
     def register_editorstack(editorstack):
-        editorstack.sig_perform_completion_request.connect(
-            completions.send_request)
+        editorstack.sig_perform_completion_request.connect(completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
-        editorstack.register_completion_capabilities(capabilities, 'python')
+        editorstack.register_completion_capabilities(capabilities, "python")
 
     def clone(editorstack, template=None):
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         # Emulate "cloning"
-        editorstack.new('test.py', 'utf-8', text)
+        editorstack.new("test.py", "utf-8", text)
 
     mock_plugin = Mock()
     editorsplitter = EditorSplitter(
-        None, mock_plugin, [], register_editorstack_cb=register_editorstack)
+        None, mock_plugin, [], register_editorstack_cb=register_editorstack
+    )
 
     editorsplitter.editorstack.set_find_widget(Mock())
     editorsplitter.editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
-    editorsplitter.editorstack.new('test.py', 'utf-8', text)
+    editorsplitter.editorstack.new("test.py", "utf-8", text)
 
     mock_plugin.clone_editorstack.side_effect = partial(
-        clone, template=editorsplitter.editorstack)
+        clone, template=editorsplitter.editorstack
+    )
     qtbot_module.addWidget(editorsplitter)
     editorsplitter.resize(640, 480)
     editorsplitter.show()
@@ -94,7 +96,7 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
         editorsplitter.close()
 
     request.addfinalizer(teardown)
-    lsp = completions.get_provider('lsp')
+    lsp = completions.get_provider("lsp")
     return editorsplitter, lsp
 
 
@@ -108,11 +110,11 @@ def editor_splitter_layout_bot(editor_splitter_bot):
         editorstack.close_action.setEnabled(False)
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
-        editorstack.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')
-        editorstack.new('layout_test.py', 'utf-8', 'print(spam)')
+        editorstack.new("foo.py", "utf-8", "a = 1\nprint(a)\n\nx = 2")
+        editorstack.new("layout_test.py", "utf-8", "print(spam)")
         with open(__file__) as f:
             text = f.read()
-        editorstack.new(__file__, 'utf-8', text)
+        editorstack.new(__file__, "utf-8", text)
 
     es.plugin.clone_editorstack.side_effect = clone
 
@@ -123,7 +125,7 @@ def editor_splitter_layout_bot(editor_splitter_bot):
 
 # ---- Tests
 def test_init(editor_splitter_bot):
-    """"Test __init__."""
+    """ "Test __init__."""
     es = editor_splitter_bot
     assert es.orientation() == Qt.Horizontal
     assert es.testAttribute(Qt.WA_DeleteOnClose)
@@ -241,7 +243,8 @@ def test_split(editor_splitter_layout_bot):
     assert es.widget(1).count() == 1
     assert es.widget(1).editorstack == es.widget(1).widget(0)
     es.widget(1).plugin.clone_editorstack.assert_called_with(
-                                    editorstack=es.widget(1).editorstack)
+        editorstack=es.widget(1).editorstack
+    )
 
     # Create a horizontal split on original widget.
     es.editorstack.sig_split_horizontally.emit()  # Call from signal.
@@ -278,20 +281,26 @@ def test_iter_editorstacks(editor_splitter_bot):
     # Split once.
     es.split(Qt.Vertical)
     esw1 = es.widget(1)
-    assert es_iter() == [(es.editorstack, es.orientation()),
-                         (esw1.editorstack, esw1.orientation())]
+    assert es_iter() == [
+        (es.editorstack, es.orientation()),
+        (esw1.editorstack, esw1.orientation()),
+    ]
 
     # Second splitter on base isn't iterated.
     es.split(Qt.Horizontal)
-    assert es_iter() == [(es.editorstack, es.orientation()),
-                         (esw1.editorstack, esw1.orientation())]
+    assert es_iter() == [
+        (es.editorstack, es.orientation()),
+        (esw1.editorstack, esw1.orientation()),
+    ]
 
     # Split a child.
     esw1.split(Qt.Vertical)
     esw1w1 = es.widget(1).widget(1)
-    assert es_iter() == [(es.editorstack, es.orientation()),
-                         (esw1.editorstack, esw1.orientation()),
-                         (esw1w1.editorstack, esw1w1.orientation())]
+    assert es_iter() == [
+        (es.editorstack, es.orientation()),
+        (esw1.editorstack, esw1.orientation()),
+        (esw1w1.editorstack, esw1w1.orientation()),
+    ]
 
 
 def test_get_layout_settings(editor_splitter_bot, qtbot, mocker):
@@ -300,25 +309,29 @@ def test_get_layout_settings(editor_splitter_bot, qtbot, mocker):
 
     # Initial settings from setup.
     setting = es.get_layout_settings()
-    assert setting['splitsettings'] == [(False, None, [])]
+    assert setting["splitsettings"] == [(False, None, [])]
 
     # Add some editors to patch output of iter_editorstacks.
     stack1 = editor_stack()
-    stack1.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')
-    stack1.new('layout_test.py', 'utf-8', 'spam egg\n')
+    stack1.new("foo.py", "utf-8", "a = 1\nprint(a)\n\nx = 2")
+    stack1.new("layout_test.py", "utf-8", "spam egg\n")
 
     stack2 = editor_stack()
-    stack2.new('test.py', 'utf-8', 'test text')
+    stack2.new("test.py", "utf-8", "test text")
 
     mocker.patch.object(EditorSplitter, "iter_editorstacks")
-    EditorSplitter.iter_editorstacks.return_value = (
-        [(stack1, Qt.Vertical), (stack2, Qt.Horizontal)])
+    EditorSplitter.iter_editorstacks.return_value = [
+        (stack1, Qt.Vertical),
+        (stack2, Qt.Horizontal),
+    ]
 
     setting = es.get_layout_settings()
-    assert setting['hexstate']
-    assert setting['sizes'] == es.sizes()
-    assert setting['splitsettings'] == [(False, 'foo.py', [5, 3]),
-                                        (False, 'test.py', [2])]
+    assert setting["hexstate"]
+    assert setting["sizes"] == es.sizes()
+    assert setting["splitsettings"] == [
+        (False, "foo.py", [5, 3]),
+        (False, "test.py", [2]),
+    ]
 
 
 def test_set_layout_settings_dont_goto(editor_splitter_layout_bot):
@@ -327,24 +340,24 @@ def test_set_layout_settings_dont_goto(editor_splitter_layout_bot):
     linecount = es.editorstack.data[2].editor.get_cursor_line_number()
 
     # New layout to restore.
-    state = '000000ff000000010000000200000231000001ff00ffffffff010000000200'
+    state = "000000ff000000010000000200000231000001ff00ffffffff010000000200"
     sizes = [561, 511]
-    splitsettings = [(False, 'layout_test.py', [2, 1, 52]),
-                     (False, 'foo.py', [3, 2, 125]),
-                     (False, __file__, [1, 1, 1])]
+    splitsettings = [
+        (False, "layout_test.py", [2, 1, 52]),
+        (False, "foo.py", [3, 2, 125]),
+        (False, __file__, [1, 1, 1]),
+    ]
 
-    new_settings = {'hexstate': state,
-                    'sizes': sizes,
-                    'splitsettings': splitsettings}
+    new_settings = {"hexstate": state, "sizes": sizes, "splitsettings": splitsettings}
 
     # Current widget doesn't have saved settings applied.
     get_settings = es.get_layout_settings()
     assert es.count() == 1
-    assert get_settings['hexstate'] != state
-    assert get_settings['splitsettings'] != splitsettings
+    assert get_settings["hexstate"] != state
+    assert get_settings["splitsettings"] != splitsettings
 
     # Invalid settings value.
-    assert es.set_layout_settings({'spam': 'test'}) is None
+    assert es.set_layout_settings({"spam": "test"}) is None
 
     # Restore layout with dont_goto set.
     es.set_layout_settings(new_settings, dont_goto=True)
@@ -354,12 +367,14 @@ def test_set_layout_settings_dont_goto(editor_splitter_layout_bot):
     assert es.count() == 2  # One EditorStack and one EditorSplitter.
     assert es.widget(1).count() == 2  # One EditorStack and one EditorSplitter.
     assert es.widget(1).widget(1).count() == 1  # One EditorStack.
-    assert get_settings['hexstate'] == state
+    assert get_settings["hexstate"] == state
 
     # All the lines for each tab and split are at the last line number.
-    assert get_settings['splitsettings'] == [(False, 'foo.py', [5, 2, linecount]),
-                                             (False, 'foo.py', [5, 2, linecount]),
-                                             (False, 'foo.py', [5, 2, linecount])]
+    assert get_settings["splitsettings"] == [
+        (False, "foo.py", [5, 2, linecount]),
+        (False, "foo.py", [5, 2, linecount]),
+        (False, "foo.py", [5, 2, linecount]),
+    ]
 
 
 def test_set_layout_settings_goto(editor_splitter_layout_bot):
@@ -367,15 +382,15 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
     es = editor_splitter_layout_bot
 
     # New layout to restore.
-    state = '000000ff000000010000000200000231000001ff00ffffffff010000000200'
+    state = "000000ff000000010000000200000231000001ff00ffffffff010000000200"
     sizes = [561, 511]
-    splitsettings = [(False, 'layout_test.py', [2, 1, 52]),
-                     (False, 'foo.py', [3, 2, 125]),
-                     (False, __file__, [1, 1, 1])]
+    splitsettings = [
+        (False, "layout_test.py", [2, 1, 52]),
+        (False, "foo.py", [3, 2, 125]),
+        (False, __file__, [1, 1, 1]),
+    ]
 
-    new_settings = {'hexstate': state,
-                    'sizes': sizes,
-                    'splitsettings': splitsettings}
+    new_settings = {"hexstate": state, "sizes": sizes, "splitsettings": splitsettings}
 
     # Restore layout without dont_goto, meaning it should position to the lines.
     es.set_layout_settings(new_settings, dont_goto=None)
@@ -384,21 +399,22 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
     # selected, the current tab isn't restored in set_layout_settings().
     # However, this shows that the current line was positioned for each tab
     # and each split.
-    assert get_settings['splitsettings'] == [(False, 'foo.py', [2, 1, 52]),
-                                             (False, 'foo.py', [3, 2, 125]),
-                                             (False, 'foo.py', [1, 1, 1])]
+    assert get_settings["splitsettings"] == [
+        (False, "foo.py", [2, 1, 52]),
+        (False, "foo.py", [3, 2, 125]),
+        (False, "foo.py", [1, 1, 1]),
+    ]
 
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.name == 'nt',
-                    reason="Makes other tests fail on Windows")
+@pytest.mark.skipif(os.name == "nt", reason="Makes other tests fail on Windows")
 def test_lsp_splitter_close(editor_splitter_lsp):
     """Test for spyder-ide/spyder#9341."""
     editorsplitter, lsp_manager = editor_splitter_lsp
 
     editorsplitter.split()
-    lsp_files = lsp_manager.clients['python']['instance'].watched_files
+    lsp_files = lsp_manager.clients["python"]["instance"].watched_files
     editor = editorsplitter.editorstack.get_current_editor()
     path = pathlib.Path(osp.abspath(editor.filename)).as_uri()
     assert len(lsp_files[path]) == 2
@@ -408,10 +424,11 @@ def test_lsp_splitter_close(editor_splitter_lsp):
 
     last_editorstack = editorstacks[0][0]
     last_editorstack.close()
-    lsp_files = lsp_manager.clients['python']['instance'].watched_files
+    lsp_files = lsp_manager.clients["python"]["instance"].watched_files
     assert len(lsp_files[path]) == 1
 
 
 if __name__ == "__main__":
     import os.path as osp
-    pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])
+
+    pytest.main(["-x", osp.basename(__file__), "-v", "-rw"])

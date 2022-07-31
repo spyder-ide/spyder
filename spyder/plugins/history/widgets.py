@@ -28,7 +28,7 @@ from spyder.widgets.tabs import Tabs
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # --- Constants
@@ -36,17 +36,18 @@ _ = get_translation('spyder')
 # Maximum number of lines to show
 MAX_LINES = 1000
 
+
 class HistoryWidgetActions:
     # Triggers
-    MaximumHistoryEntries = 'maximum_history_entries_action'
+    MaximumHistoryEntries = "maximum_history_entries_action"
 
     # Toggles
-    ToggleWrap = 'toggle_wrap_action'
-    ToggleLineNumbers = 'toggle_line_numbers_action'
+    ToggleWrap = "toggle_wrap_action"
+    ToggleLineNumbers = "toggle_line_numbers_action"
 
 
 class HistoryWidgetOptionsMenuSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 # --- Widgets
@@ -88,9 +89,9 @@ class HistoryWidget(PluginMainWidget):
         layout = QVBoxLayout()
 
         # TODO: Move this to the tab container directly
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             tab_container = QWidget(self)
-            tab_container.setObjectName('tab-container')
+            tab_container.setObjectName("tab-container")
             tab_layout = QVBoxLayout(tab_container)
             tab_layout.setContentsMargins(0, 0, 0, 0)
             tab_layout.addWidget(self.tabwidget)
@@ -108,7 +109,7 @@ class HistoryWidget(PluginMainWidget):
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return _('History')
+        return _("History")
 
     def get_focus_widget(self):
         return self.tabwidget.currentWidget()
@@ -119,15 +120,15 @@ class HistoryWidget(PluginMainWidget):
             HistoryWidgetActions.ToggleWrap,
             text=_("Wrap lines"),
             toggled=True,
-            initial=self.get_conf('wrap'),
-            option='wrap'
+            initial=self.get_conf("wrap"),
+            option="wrap",
         )
         self.linenumbers_action = self.create_action(
             HistoryWidgetActions.ToggleLineNumbers,
             text=_("Show line numbers"),
             toggled=True,
-            initial=self.get_conf('line_numbers'),
-            option='line_numbers'
+            initial=self.get_conf("line_numbers"),
+            option="line_numbers",
         )
 
         # Menu
@@ -142,17 +143,17 @@ class HistoryWidget(PluginMainWidget):
     def update_actions(self):
         pass
 
-    @on_conf_change(option='wrap')
+    @on_conf_change(option="wrap")
     def on_wrap_update(self, value):
         for editor in self.editors:
             editor.toggle_wrap_mode(value)
 
-    @on_conf_change(option='line_numbers')
+    @on_conf_change(option="line_numbers")
     def on_line_numbers_update(self, value):
         for editor in self.editors:
             editor.toggle_line_numbers(value)
 
-    @on_conf_change(option='selected', section='appearance')
+    @on_conf_change(option="selected", section="appearance")
     def on_color_scheme_change(self, value):
         for editor in self.editors:
             editor.set_color_scheme(value)
@@ -219,10 +220,10 @@ class HistoryWidget(PluginMainWidget):
             text = "# Previous history could not be read from disk, sorry\n\n"
 
         text = normalize_eols(text)
-        linebreaks = [m.start() for m in re.finditer('\n', text)]
+        linebreaks = [m.start() for m in re.finditer("\n", text)]
 
         if len(linebreaks) > MAX_LINES:
-            text = text[linebreaks[-MAX_LINES - 1] + 1:]
+            text = text[linebreaks[-MAX_LINES - 1] + 1 :]
             # Avoid an error when trying to write the trimmed text to disk.
             # See spyder-ide/spyder#9093.
             try:
@@ -250,17 +251,17 @@ class HistoryWidget(PluginMainWidget):
         editor = SimpleCodeEditor(self)
 
         # Setup
-        language = 'py' if osp.splitext(filename)[1] == '.py' else 'bat'
+        language = "py" if osp.splitext(filename)[1] == ".py" else "bat"
         editor.setup_editor(
-            linenumbers=self.get_conf('line_numbers'),
+            linenumbers=self.get_conf("line_numbers"),
             language=language,
-            color_scheme=self.get_conf('selected', section='appearance'),
+            color_scheme=self.get_conf("selected", section="appearance"),
             font=self.font,
-            wrap=self.get_conf('wrap'),
+            wrap=self.get_conf("wrap"),
         )
         editor.setReadOnly(True)
         editor.set_text(self.get_filename_text(filename))
-        editor.set_cursor_position('eof')
+        editor.set_cursor_position("eof")
         self.find_widget.set_editor(editor)
 
         index = self.tabwidget.addTab(editor, osp.basename(filename))
@@ -285,14 +286,14 @@ class HistoryWidget(PluginMainWidget):
             Command to append to history file.
         """
         if not is_text_string(filename):  # filename is a QString
-            filename = to_text_string(filename.toUtf8(), 'utf-8')
+            filename = to_text_string(filename.toUtf8(), "utf-8")
 
         index = self.filenames.index(filename)
         command = to_text_string(command)
         self.editors[index].append(command)
 
-        if self.get_conf('go_to_eof'):
-            self.editors[index].set_cursor_position('eof')
+        if self.get_conf("go_to_eof"):
+            self.editors[index].set_cursor_position("eof")
 
         self.tabwidget.setCurrentIndex(index)
 
@@ -313,18 +314,13 @@ class HistoryWidget(PluginMainWidget):
         tabs_stylesheet = PANES_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
 
-        css['QTabBar::tab'].setValues(
-            marginTop='1.0em',
-            padding='4px'
+        css["QTabBar::tab"].setValues(marginTop="1.0em", padding="4px")
+
+        css["QTabWidget::left-corner"].setValues(
+            left="0px",
         )
 
-        css['QTabWidget::left-corner'].setValues(
-            left='0px',
-        )
-
-        css['QTabWidget::right-corner'].setValues(
-            right='0px'
-        )
+        css["QTabWidget::right-corner"].setValues(right="0px")
 
         return str(tabs_stylesheet)
 
@@ -335,15 +331,15 @@ def test():
     from unittest.mock import MagicMock
 
     plugin_mock = MagicMock()
-    plugin_mock.CONF_SECTION = 'historylog'
+    plugin_mock.CONF_SECTION = "historylog"
 
     app = qapplication(test_time=8)
-    widget = HistoryWidget('historylog', plugin_mock, None)
+    widget = HistoryWidget("historylog", plugin_mock, None)
     widget._setup()
     widget.setup()
     widget.show()
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

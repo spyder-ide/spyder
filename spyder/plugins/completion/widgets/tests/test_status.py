@@ -26,8 +26,8 @@ def test_status_bar_completion_status(status_bar, qtbot):
     w = CompletionStatus(window)
     plugin.add_status_widget(w)
 
-    value = 'env_type(env_name)'
-    tool_tip = os.path.join('path', 'to', 'env_type', 'env_name')
+    value = "env_type(env_name)"
+    tool_tip = os.path.join("path", "to", "env_type", "env_name")
 
     # Update status
     w.update_status(value, tool_tip)

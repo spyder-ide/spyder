@@ -37,14 +37,14 @@ spyder_terminal :
 
 # Packages that cannot be in the zip folder
 PACKAGES = [
-    'humanfriendly',
-    'pkg_resources',
-    'pyls_spyder',
-    'pylsp_black',
-    'setuptools',
-    'spyder',
-    'spyder_kernels',
-    'spyder_terminal',
+    "humanfriendly",
+    "pkg_resources",
+    "pyls_spyder",
+    "pylsp_black",
+    "setuptools",
+    "spyder",
+    "spyder_kernels",
+    "spyder_terminal",
 ]
 
 # Packages to exclude
@@ -52,16 +52,16 @@ EXCLUDES = []
 
 # modules that py2app misses
 INCLUDES = [
-    'jellyfish',
-    'pylsp',
+    "jellyfish",
+    "pylsp",
 ]
 
 SCIENTIFIC = [
-    'cython',
-    'matplotlib',
-    'numpy',
-    'openpyxl',
-    'pandas',
-    'scipy',
-    'sympy',
+    "cython",
+    "matplotlib",
+    "numpy",
+    "openpyxl",
+    "pandas",
+    "scipy",
+    "sympy",
 ]

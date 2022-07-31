@@ -24,13 +24,13 @@ from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 
 
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
-    elif os.name == 'nt':
+    elif os.name == "nt":
         if os.path.exists(filename):
             subprocess.call(["explorer", "/select,", filename])
         else:
@@ -54,7 +54,7 @@ def show_in_external_file_explorer(fnames=None):
 
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
-    norm = osp.normcase if os.name == 'nt' else osp.normpath
+    norm = osp.normcase if os.name == "nt" else osp.normpath
     return norm(osp.abspath(osp.realpath(path)))
 
 
@@ -62,15 +62,16 @@ def create_script(fname):
     """Create a new Python script"""
     text = os.linesep.join(["# -*- coding: utf-8 -*-", "", ""])
     try:
-        encoding.write(str(text), fname, 'utf-8')
+        encoding.write(str(text), fname, "utf-8")
     except EnvironmentError as error:
-        QMessageBox.critical(_("Save Error"),
-                             _("<b>Unable to save file '%s'</b>"
-                               "<br><br>Error message:<br>%s"
-                               ) % (osp.basename(fname), str(error)))
+        QMessageBox.critical(
+            _("Save Error"),
+            _("<b>Unable to save file '%s'</b>" "<br><br>Error message:<br>%s")
+            % (osp.basename(fname), str(error)),
+        )
 
 
-def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', folders_only=False):
+def listdir(path, include=r".", exclude=r"\.pyc$|^\.", folders_only=False):
     """List files and directories"""
     namelist = []
     dirlist = [str(osp.pardir)]
@@ -112,8 +113,7 @@ class IconProvider(QFileIconProvider):
             qfileinfo = icontype_or_qfileinfo
             fname = osp.normpath(str(qfileinfo.absoluteFilePath()))
             if osp.isfile(fname) or osp.isdir(fname):
-                icon = ima.get_icon_by_extension_or_type(fname,
-                                                         scale_factor=1.0)
+                icon = ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
             else:
-                icon = ima.icon('binary')
+                icon = ima.icon("binary")
             return icon

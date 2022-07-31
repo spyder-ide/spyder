@@ -20,7 +20,10 @@ from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespaceBrowser, NamespacesBrowserFinder, VALID_VARIABLE_CHARS)
+    NamespaceBrowser,
+    NamespacesBrowserFinder,
+    VALID_VARIABLE_CHARS,
+)
 from spyder.widgets.collectionseditor import ROWS_TO_LOAD
 from spyder.widgets.tests.test_collectioneditor import data, data_table
 
@@ -47,18 +50,34 @@ def test_automatic_column_width(namespacebrowser):
     browser = namespacebrowser
 
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
-    browser.set_data({'a_variable':
-        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
-         'numpy_type': 'Unknown'}})
+    browser.set_data(
+        {
+            "a_variable": {
+                "type": "int",
+                "size": 1,
+                "view": "1",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            }
+        }
+    )
     new_col_width = [browser.editor.columnWidth(i) for i in range(4)]
     assert browser.editor.automatic_column_width
     assert col_width != new_col_width  # Automatic col width is on
     browser.editor.horizontalHeader()._handle_section_is_pressed = True
     browser.editor.setColumnWidth(0, 100)  # Simulate user changing col width
     assert browser.editor.automatic_column_width == False
-    browser.set_data({'a_lengthy_variable_name_which_should_change_width':
-        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
-         'numpy_type': 'Unknown'}})
+    browser.set_data(
+        {
+            "a_lengthy_variable_name_which_should_change_width": {
+                "type": "int",
+                "size": 1,
+                "view": "1",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            }
+        }
+    )
     assert browser.editor.columnWidth(0) == 100  # Automatic col width is off
 
 
@@ -70,12 +89,22 @@ def test_sort_by_column(namespacebrowser, qtbot):
     browser = namespacebrowser
 
     browser.set_data(
-        {'a_variable':
-            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
-             'numpy_type': 'Unknown'},
-         'b_variable':
-            {'type': 'int', 'size': 1, 'view': '2', 'python_type': 'int',
-             'numpy_type': 'Unknown'}}
+        {
+            "a_variable": {
+                "type": "int",
+                "size": 1,
+                "view": "1",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            },
+            "b_variable": {
+                "type": "int",
+                "size": 1,
+                "view": "2",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            },
+        }
     )
 
     header = browser.editor.horizontalHeader()
@@ -88,20 +117,24 @@ def test_sort_by_column(namespacebrowser, qtbot):
     # Base check of the model
     assert model.rowCount() == 2
     assert model.columnCount() == 5
-    assert data_table(model, 2, 4) == [['a_variable', 'b_variable'],
-                                       ['int', 'int'],
-                                       [1, 1],
-                                       ['1', '2']]
+    assert data_table(model, 2, 4) == [
+        ["a_variable", "b_variable"],
+        ["int", "int"],
+        [1, 1],
+        ["1", "2"],
+    ]
 
     with qtbot.waitSignal(header.sectionClicked):
         browser.show()
         qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
 
     # Check sort effect
-    assert data_table(model, 2, 4) == [['b_variable', 'a_variable'],
-                                       ['int', 'int'],
-                                       [1, 1],
-                                       ['2', '1']]
+    assert data_table(model, 2, 4) == [
+        ["b_variable", "a_variable"],
+        ["int", "int"],
+        [1, 1],
+        ["2", "1"],
+    ]
 
 
 def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
@@ -115,20 +148,26 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
 
     # Create variables.
     variables = {}
-    variables['i'] = (
-        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
-         'numpy_type': 'Unknown'}
-    )
+    variables["i"] = {
+        "type": "int",
+        "size": 1,
+        "view": "1",
+        "python_type": "int",
+        "numpy_type": "Unknown",
+    }
 
     for i in range(100):
         if i < 10:
-            var = 'd_0' + str(i)
+            var = "d_0" + str(i)
         else:
-            var = 'd_' + str(i)
-        variables[var] = (
-            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
-             'numpy_type': 'Unknown'}
-        )
+            var = "d_" + str(i)
+        variables[var] = {
+            "type": "int",
+            "size": 1,
+            "view": "1",
+            "python_type": "int",
+            "numpy_type": "Unknown",
+        }
 
     # Set data
     browser.set_data(variables)
@@ -140,7 +179,7 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
     assert model.canFetchMore(QModelIndex())
 
     # Assert keys are sorted
-    assert data(model, 49, 0) == 'd_49'
+    assert data(model, 49, 0) == "d_49"
 
     # Sort
     header = browser.editor.horizontalHeader()
@@ -148,7 +187,7 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
         qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
 
     # Assert we loaded all data before performing the sort.
-    assert data(model, 0, 0) == 'i'
+    assert data(model, 0, 0) == "i"
 
 
 def test_filtering_with_large_rows(namespacebrowser, qtbot):
@@ -159,9 +198,10 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
 
     text_finder = NamespacesBrowserFinder(
         browser.editor,
-        callback=browser .editor.set_regex,
+        callback=browser.editor.set_regex,
         main=browser,
-        regex_base=VALID_VARIABLE_CHARS)
+        regex_base=VALID_VARIABLE_CHARS,
+    )
     browser.set_text_finder(text_finder)
 
     # Create data
@@ -169,10 +209,13 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
     for i in range(200):
         letter = string.ascii_lowercase[i // 10]
         var = letter + str(i)
-        variables[var] = (
-            {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
-             'numpy_type': 'Unknown'}
-        )
+        variables[var] = {
+            "type": "int",
+            "size": 1,
+            "view": "1",
+            "python_type": "int",
+            "numpy_type": "Unknown",
+        }
 
     # Set data
     browser.set_data(variables)
@@ -182,7 +225,7 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
     model = browser.editor.model
     assert model.rowCount() == ROWS_TO_LOAD
     assert model.canFetchMore(QModelIndex())
-    assert data(model, 49, 0) == 'e49'
+    assert data(model, 49, 0) == "e49"
 
     # Assert we can filter variables not loaded yet.
     qtbot.keyClicks(text_finder, "t19")
@@ -190,18 +233,21 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
 
     # Assert all variables effectively start with 't19'.
     for i in range(10):
-        assert data(model, i, 0) == 't19{}'.format(i)
+        assert data(model, i, 0) == "t19{}".format(i)
 
     # Reset text_finder widget.
-    text_finder.setText('')
+    text_finder.setText("")
 
     # Create a new variable that starts with a different letter than
     # the rest.
     new_variables = variables.copy()
-    new_variables['z'] = (
-        {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
-         'numpy_type': 'Unknown'}
-    )
+    new_variables["z"] = {
+        "type": "int",
+        "size": 1,
+        "view": "1",
+        "python_type": "int",
+        "numpy_type": "Unknown",
+    }
 
     # Emulate the process of loading those variables after the
     # namespace view is sent from the kernel.

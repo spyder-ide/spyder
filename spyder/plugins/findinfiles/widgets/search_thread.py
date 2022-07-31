@@ -23,12 +23,12 @@ from spyder.utils.palette import SpyderPalette
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # ---- Constants
 # ----------------------------------------------------------------------------
-ELLIPSIS = '...'
+ELLIPSIS = "..."
 MAX_RESULT_LENGTH = 80
 MAX_NUM_CHAR_FRAGMENT = 40
 
@@ -37,15 +37,35 @@ MAX_NUM_CHAR_FRAGMENT = 40
 # ----------------------------------------------------------------------------
 class SearchThread(QThread):
     """Find in files search thread."""
-    PYTHON_EXTENSIONS = ['.py', '.pyw', '.pyx', '.ipy', '.pyi', '.pyt']
+
+    PYTHON_EXTENSIONS = [".py", ".pyw", ".pyx", ".ipy", ".pyi", ".pyt"]
 
     USEFUL_EXTENSIONS = [
-        '.ipynb', '.md',  '.c', '.cpp', '.h', '.cxx', '.f', '.f03', '.f90',
-        '.json', '.dat', '.csv', '.tsv', '.txt', '.md', '.rst', '.yml',
-        '.yaml', '.ini', '.bat', '.sh', '.ui'
+        ".ipynb",
+        ".md",
+        ".c",
+        ".cpp",
+        ".h",
+        ".cxx",
+        ".f",
+        ".f03",
+        ".f90",
+        ".json",
+        ".dat",
+        ".csv",
+        ".tsv",
+        ".txt",
+        ".md",
+        ".rst",
+        ".yml",
+        ".yaml",
+        ".ini",
+        ".bat",
+        ".sh",
+        ".ui",
     ]
 
-    SKIPPED_EXTENSIONS = ['.svg']
+    SKIPPED_EXTENSIONS = [".svg"]
 
     sig_finished = Signal(bool)
     sig_current_file = Signal(str)
@@ -55,8 +75,8 @@ class SearchThread(QThread):
     sig_out_print = Signal(object)
 
     # Batch power sizes (2**power)
-    power = 0       # 0**1 = 1
-    max_power = 9   # 2**9 = 512
+    power = 0  # 0**1 = 1
+    max_power = 9  # 2**9 = 512
 
     def __init__(self, parent, search_text, text_color):
         super().__init__(parent)
@@ -81,8 +101,7 @@ class SearchThread(QThread):
         self.files = []
         self.partial_results = []
 
-    def initialize(self, path, is_file, exclude,
-                   texts, text_re, case_sensitive):
+    def initialize(self, path, is_file, exclude, texts, text_re, case_sensitive):
         self.rootpath = path
         if exclude:
             self.exclude = re.compile(exclude)
@@ -135,11 +154,10 @@ class SearchThread(QThread):
                     if not stat.S_ISDIR(st_dir_mode):
                         dirs.remove(d)
 
-                    if (self.exclude and
-                            re.search(self.exclude, dirname + os.sep)):
+                    if self.exclude and re.search(self.exclude, dirname + os.sep):
                         # Exclude patterns defined by the user
                         dirs.remove(d)
-                    elif d.startswith('.'):
+                    elif d.startswith("."):
                         # Exclude all dot dirs.
                         dirs.remove(d)
 
@@ -168,9 +186,11 @@ class SearchThread(QThread):
 
                     # It's much faster to check for extension first before
                     # validating if the file is plain text.
-                    if (ext in self.PYTHON_EXTENSIONS or
-                            ext in self.USEFUL_EXTENSIONS or
-                            is_text_file(filename)):
+                    if (
+                        ext in self.PYTHON_EXTENSIONS
+                        or ext in self.USEFUL_EXTENSIONS
+                        or is_text_file(filename)
+                    ):
                         self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")
@@ -188,7 +208,7 @@ class SearchThread(QThread):
         self.error_flag = False
         self.sig_current_file.emit(fname)
         try:
-            for lineno, line in enumerate(open(fname, 'rb')):
+            for lineno, line in enumerate(open(fname, "rb")):
                 for text, enc in self.texts:
                     with QMutexLocker(self.mutex):
                         if self.stopped:
@@ -226,11 +246,9 @@ class SearchThread(QThread):
                         except UnicodeDecodeError:
                             start = bstart
                             end = bend
-                        self.partial_results.append((osp.abspath(fname),
-                                                     lineno + 1,
-                                                     start,
-                                                     end,
-                                                     line_dec))
+                        self.partial_results.append(
+                            (osp.abspath(fname), lineno + 1, start, end, line_dec)
+                        )
                         if len(self.partial_results) > (2**self.power):
                             self.process_results()
                             if self.power < self.max_power:
@@ -250,11 +268,9 @@ class SearchThread(QThread):
                             start = found
                             end = found + len(text)
 
-                        self.partial_results.append((osp.abspath(fname),
-                                                     lineno + 1,
-                                                     start,
-                                                     end,
-                                                     line_dec))
+                        self.partial_results.append(
+                            (osp.abspath(fname), lineno + 1, start, end, line_dec)
+                        )
                         if len(self.partial_results) > (2**self.power):
                             self.process_results()
                             if self.power < self.max_power:
@@ -301,14 +317,13 @@ class SearchThread(QThread):
         title = "'%s' - " % self.search_text
         nb_files = self.num_files
         if nb_files == 0:
-            text = _('String not found')
+            text = _("String not found")
         else:
-            text_matches = _('matches in')
-            text_files = _('file')
+            text_matches = _("matches in")
+            text_files = _("file")
             if nb_files > 1:
-                text_files += 's'
-            text = "%d %s %d %s" % (num_matches, text_matches,
-                                    nb_files, text_files)
+                text_files += "s"
+            text = "%d %s %d %s" % (num_matches, text_matches, nb_files, text_files)
         title = title + text
 
         self.partial_results = []
@@ -336,7 +351,7 @@ class SearchThread(QThread):
         if len(line) > MAX_RESULT_LENGTH:
             offset = (len(line) - len(match)) // 2
 
-            left = left.split(' ')
+            left = left.split(" ")
             num_left_words = len(left)
 
             if num_left_words == 1:
@@ -345,7 +360,7 @@ class SearchThread(QThread):
                     left = ELLIPSIS + left[-offset:]
                 left = [left]
 
-            right = right.split(' ')
+            right = right.split(" ")
             num_right_words = len(right)
 
             if num_right_words == 1:
@@ -363,8 +378,8 @@ class SearchThread(QThread):
             if len(right) < num_right_words:
                 right = right + [ELLIPSIS]
 
-            left = ' '.join(left)
-            right = ' '.join(right)
+            left = " ".join(left)
+            right = " ".join(right)
 
             if len(left) > MAX_NUM_CHAR_FRAGMENT:
                 left = ELLIPSIS + left[-30:]
@@ -374,16 +389,16 @@ class SearchThread(QThread):
 
         match_color = SpyderPalette.COLOR_OCCURRENCE_4
         trunc_line = dict(
-            text=''.join([left, match, right]),
+            text="".join([left, match, right]),
             formatted_text=(
                 f'<span style="color:{self.text_color}">'
-                f'{html_escape(left)}'
+                f"{html_escape(left)}"
                 f'<span style="background-color:{match_color}">'
-                f'{html_escape(match)}'
-                f'</span>'
-                f'{html_escape(right)}'
-                f'</span>'
-            )
+                f"{html_escape(match)}"
+                f"</span>"
+                f"{html_escape(right)}"
+                f"</span>"
+            ),
         )
 
         return trunc_line

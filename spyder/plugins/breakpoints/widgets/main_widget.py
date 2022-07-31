@@ -25,14 +25,13 @@ from qtpy.QtWidgets import QItemDelegate, QTableView, QVBoxLayout
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets.main_widget import (PluginMainWidgetMenus,
-                                            PluginMainWidget)
+from spyder.api.widgets.main_widget import PluginMainWidgetMenus, PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.sourcecode import disambiguate_fname
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # --- Constants
@@ -40,15 +39,16 @@ _ = get_translation('spyder')
 COLUMN_COUNT = 4
 EXTRA_COLUMNS = 1
 COL_FILE, COL_LINE, COL_CONDITION, COL_BLANK, COL_FULL = list(
-    range(COLUMN_COUNT + EXTRA_COLUMNS))
+    range(COLUMN_COUNT + EXTRA_COLUMNS)
+)
 COLUMN_HEADERS = (_("File"), _("Line"), _("Condition"), (""))
 
 
 class BreakpointTableViewActions:
     # Triggers
-    ClearAllBreakpoints = 'clear_all_breakpoints_action'
-    ClearBreakpoint = 'clear_breakpoint_action'
-    EditBreakpoint = 'edit_breakpoint_action'
+    ClearAllBreakpoints = "clear_all_breakpoints_action"
+    ClearBreakpoint = "clear_breakpoint_action"
+    EditBreakpoint = "edit_breakpoint_action"
 
 
 # --- Widgets
@@ -87,8 +87,9 @@ class BreakpointTableModel(QAbstractTableModel):
         for key in files:
             for item in data[key]:
                 # Store full file name in last position, which is not shown
-                self.breakpoints.append((disambiguate_fname(files, key),
-                                         item[0], item[1], "", key))
+                self.breakpoints.append(
+                    (disambiguate_fname(files, key), item[0], item[1], "", key)
+                )
         self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
@@ -168,7 +169,6 @@ class BreakpointTableModel(QAbstractTableModel):
 
 
 class BreakpointDelegate(QItemDelegate):
-
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -236,10 +236,8 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         """
         c_row = self.indexAt(event.pos()).row()
         enabled = bool(self.model.breakpoints) and c_row is not None
-        clear_action = self.get_action(
-            BreakpointTableViewActions.ClearBreakpoint)
-        edit_action = self.get_action(
-            BreakpointTableViewActions.EditBreakpoint)
+        clear_action = self.get_action(BreakpointTableViewActions.ClearBreakpoint)
+        edit_action = self.get_action(BreakpointTableViewActions.EditBreakpoint)
         clear_action.setEnabled(enabled)
         edit_action.setEnabled(enabled)
 
@@ -256,8 +254,7 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
             filename = self.model.breakpoints[c_row][COL_FULL]
             line_number_str = self.model.breakpoints[c_row][COL_LINE]
 
-            self.sig_edit_goto_requested.emit(
-                filename, int(line_number_str), '')
+            self.sig_edit_goto_requested.emit(filename, int(line_number_str), "")
 
         if index_clicked.column() == COL_CONDITION:
             self.sig_conditional_breakpoint_requested.emit()
@@ -306,7 +303,7 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
             filename = self.model.breakpoints[c_row][COL_FULL]
             lineno = int(self.model.breakpoints[c_row][COL_LINE])
 
-            self.sig_edit_goto_requested.emit(filename, lineno, '')
+            self.sig_edit_goto_requested.emit(filename, lineno, "")
             self.sig_conditional_breakpoint_requested.emit()
 
 
@@ -368,17 +365,18 @@ class BreakpointWidget(PluginMainWidget):
         # Signals
         bpt = self.breakpoints_table
         bpt.sig_clear_all_breakpoints_requested.connect(
-            self.sig_clear_all_breakpoints_requested)
-        bpt.sig_clear_breakpoint_requested.connect(
-            self.sig_clear_breakpoint_requested)
+            self.sig_clear_all_breakpoints_requested
+        )
+        bpt.sig_clear_breakpoint_requested.connect(self.sig_clear_breakpoint_requested)
         bpt.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         bpt.sig_conditional_breakpoint_requested.connect(
-            self.sig_conditional_breakpoint_requested)
+            self.sig_conditional_breakpoint_requested
+        )
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return _('Breakpoints')
+        return _("Breakpoints")
 
     def get_focus_widget(self):
         return self.breakpoints_table
@@ -390,12 +388,9 @@ class BreakpointWidget(PluginMainWidget):
         rows = self.breakpoints_table.selectionModel().selectedRows()
         c_row = rows[0] if rows else None
 
-        enabled = (bool(self.breakpoints_table.model.breakpoints)
-                   and c_row is not None)
-        clear_action = self.get_action(
-            BreakpointTableViewActions.ClearBreakpoint)
-        edit_action = self.get_action(
-            BreakpointTableViewActions.EditBreakpoint)
+        enabled = bool(self.breakpoints_table.model.breakpoints) and c_row is not None
+        clear_action = self.get_action(BreakpointTableViewActions.ClearBreakpoint)
+        edit_action = self.get_action(BreakpointTableViewActions.EditBreakpoint)
         clear_action.setEnabled(enabled)
         edit_action.setEnabled(enabled)
 
@@ -426,5 +421,5 @@ def test():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

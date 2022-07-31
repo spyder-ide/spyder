@@ -126,8 +126,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
             self.menu,
             section=OneColumnTreeContextMenuSections.Restore,
         )
-        for item in [self.collapse_selection_action,
-                     self.expand_selection_action]:
+        for item in [self.collapse_selection_action, self.expand_selection_action]:
             self.add_item_to_menu(
                 item,
                 self.menu,
@@ -151,8 +150,12 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
 
     def setup_common_actions(self):
         """Setup context menu common actions"""
-        return [self.collapse_all_action, self.expand_all_action,
-                self.collapse_selection_action, self.expand_selection_action]
+        return [
+            self.collapse_all_action,
+            self.expand_all_action,
+            self.collapse_selection_action,
+            self.expand_selection_action,
+        ]
 
     def get_menu_actions(self):
         """Returns a list of menu actions"""
@@ -226,18 +229,19 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     def get_items(self):
         """Return items (excluding top level items)"""
         itemlist = []
+
         def add_to_itemlist(item):
             for index in range(item.childCount()):
                 citem = item.child(index)
                 itemlist.append(citem)
                 add_to_itemlist(citem)
+
         for tlitem in self.get_top_level_items():
             add_to_itemlist(tlitem)
         return itemlist
 
     def get_scrollbar_position(self):
-        return (self.horizontalScrollBar().value(),
-                self.verticalScrollBar().value())
+        return (self.horizontalScrollBar().value(), self.verticalScrollBar().value())
 
     def set_scrollbar_position(self, position):
         hor, ver = position
@@ -255,9 +259,11 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     def save_expanded_state(self):
         """Save all items expanded state"""
         self.__expanded_state = {}
+
         def add_to_state(item):
             user_text = get_item_user_text(item)
             self.__expanded_state[hash(user_text)] = item.isExpanded()
+
         def browse_children(item):
             add_to_state(item)
             for index in range(item.childCount()):
@@ -265,6 +271,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
                 user_text = get_item_user_text(citem)
                 self.__expanded_state[hash(user_text)] = citem.isExpanded()
                 browse_children(citem)
+
         for tlitem in self.get_top_level_items():
             browse_children(tlitem)
 
@@ -272,7 +279,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
         """Restore all items expanded state"""
         if self.__expanded_state is None:
             return
-        for item in self.get_items()+self.get_top_level_items():
+        for item in self.get_items() + self.get_top_level_items():
             user_text = get_item_user_text(item)
             is_expanded = self.__expanded_state.get(hash(user_text))
             if is_expanded is not None:
@@ -281,8 +288,10 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     def sort_top_level_items(self, key):
         """Sorting tree wrt top level items"""
         self.save_expanded_state()
-        items = sorted([self.takeTopLevelItem(0)
-                        for index in range(self.topLevelItemCount())], key=key)
+        items = sorted(
+            [self.takeTopLevelItem(0) for index in range(self.topLevelItemCount())],
+            key=key,
+        )
         for index, item in enumerate(items):
             self.insertTopLevelItem(index, item)
         self.restore_expanded_state()

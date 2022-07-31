@@ -14,20 +14,22 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.utils.misc import getcwd_or_home
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # --- Constants
 # ----------------------------------------------------------------------------
 class FindInFilesActions:
-    FindInFiles = 'find in files'
+    FindInFiles = "find in files"
 
 
 # --- Plugin
@@ -36,7 +38,8 @@ class FindInFiles(SpyderDockablePlugin):
     """
     Find in files DockWidget.
     """
-    NAME = 'find_in_files'
+
+    NAME = "find_in_files"
     REQUIRES = []
     OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.MainMenu]
     TABIFY = [Plugins.VariableExplorer]
@@ -55,7 +58,7 @@ class FindInFiles(SpyderDockablePlugin):
         return _("Search for strings of text in files.")
 
     def get_icon(self):
-        return self.create_icon('findf')
+        return self.create_icon("findf")
 
     def on_initialize(self):
         self.create_action(
@@ -64,7 +67,7 @@ class FindInFiles(SpyderDockablePlugin):
             tip=_("Search text in multiple files"),
             triggered=self.find,
             register_shortcut=True,
-            context=Qt.WindowShortcut
+            context=Qt.WindowShortcut,
         )
         self.refresh_search_directory()
 
@@ -74,9 +77,10 @@ class FindInFiles(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         widget.sig_edit_goto_requested.connect(
             lambda filename, lineno, search_text, colno, colend: editor.load(
-                filename, lineno, start_column=colno, end_column=colend))
-        editor.sig_file_opened_closed_or_updated.connect(
-            self.set_current_opened_file)
+                filename, lineno, start_column=colno, end_column=colend
+            )
+        )
+        editor.sig_file_opened_closed_or_updated.connect(self.set_current_opened_file)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -100,7 +104,8 @@ class FindInFiles(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         widget.sig_edit_goto_requested.disconnect()
         editor.sig_file_opened_closed_or_updated.disconnect(
-            self.set_current_opened_file)
+            self.set_current_opened_file
+        )
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardon_plugin_teardown(self):
@@ -180,7 +185,7 @@ class FindInFiles(SpyderDockablePlugin):
         Find in files using the currently selected text of the focused widget.
         """
         focus_widget = QApplication.focusWidget()
-        text = ''
+        text = ""
         try:
             if focus_widget.has_selected_text():
                 text = focus_widget.get_selected_text()
@@ -209,5 +214,5 @@ def test():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

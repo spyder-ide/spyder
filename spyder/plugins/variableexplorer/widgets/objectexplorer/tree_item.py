@@ -17,8 +17,7 @@ import logging
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
-    cut_off_str)
+from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import cut_off_str
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +29,13 @@ MAX_OBJ_STR_LEN = 50
 # Utility functions
 def name_is_special(method_name):
     """Returns true if the method name starts and ends with two underscores."""
-    return method_name.startswith('__') and method_name.endswith('__')
+    return method_name.startswith("__") and method_name.endswith("__")
 
 
 # TreeWidget Elements
 class TreeItem(object):
     """Tree node class that can be used to build trees of objects."""
+
     def __init__(self, obj, name, obj_path, is_attribute, parent=None):
         self.parent_item = parent
         self.obj = obj
@@ -50,19 +50,18 @@ class TreeItem(object):
         n_children = len(self.child_items)
         if n_children == 0:
             return _("<TreeItem(0x{:x}): {} = {}>").format(
-                id(self.obj),
-                self.obj_path,
-                cut_off_str(self.obj, MAX_OBJ_STR_LEN))
+                id(self.obj), self.obj_path, cut_off_str(self.obj, MAX_OBJ_STR_LEN)
+            )
         else:
             return _("<TreeItem(0x{:x}): {} ({:d} children)>").format(
-                id(self.obj),
-                self.obj_path,
-                len(self.child_items))
+                id(self.obj), self.obj_path, len(self.child_items)
+            )
 
     def __repr__(self):
         n_children = len(self.child_items)
-        return _("<TreeItem(0x{:x}): {} ({:d} children)>") \
-            .format(id(self.obj), self.obj_path, n_children)
+        return _("<TreeItem(0x{:x}): {} ({:d} children)>").format(
+            id(self.obj), self.obj_path, n_children
+        )
 
     @property
     def is_special_attribute(self):

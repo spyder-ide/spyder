@@ -10,15 +10,13 @@ Language Server Protocol configuration tabs.
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel,
-                            QPushButton, QVBoxLayout)
+from qtpy.QtWidgets import QGroupBox, QGridLayout, QLabel, QPushButton, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
 from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
-from spyder.plugins.completion.providers.languageserver.widgets import (
-    LSPServerTable)
+from spyder.plugins.completion.providers.languageserver.widgets import LSPServerTable
 from spyder.utils.icon_manager import ima
 
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
@@ -27,24 +25,26 @@ LSP_URL = "https://microsoft.github.io/language-server-protocol"
 class OtherLanguagesConfigTab(SpyderPreferencesTab):
     """LSP server configuration for other languages."""
 
-    TITLE = _('Other languages')
+    TITLE = _("Other languages")
 
     def __init__(self, parent):
         super().__init__(parent)
 
         servers_label = QLabel(
-            _("Spyder uses the <a href=\"{lsp_url}\">Language Server "
-              "Protocol</a> to provide code completion and linting "
-              "for its Editor. Here, you can setup and configure LSP servers "
-              "for languages other than Python, so Spyder can provide such "
-              "features for those languages as well."
-              ).format(lsp_url=LSP_URL))
+            _(
+                'Spyder uses the <a href="{lsp_url}">Language Server '
+                "Protocol</a> to provide code completion and linting "
+                "for its Editor. Here, you can setup and configure LSP servers "
+                "for languages other than Python, so Spyder can provide such "
+                "features for those languages as well."
+            ).format(lsp_url=LSP_URL)
+        )
         servers_label.setOpenExternalLinks(True)
         servers_label.setWordWrap(True)
         servers_label.setAlignment(Qt.AlignJustify)
 
         # Servers table
-        table_group = QGroupBox(_('Available servers:'))
+        table_group = QGroupBox(_("Available servers:"))
         self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
         self.table.setMaximumHeight(150)
         table_layout = QVBoxLayout()

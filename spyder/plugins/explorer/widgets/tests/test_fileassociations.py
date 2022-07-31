@@ -19,12 +19,14 @@ import pytest
 
 # Local imports
 from spyder.plugins.explorer.widgets.fileassociations import (
-    ApplicationsDialog, InputTextDialog)
+    ApplicationsDialog,
+    InputTextDialog,
+)
 from spyder.py3compat import PY2
 
 
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
+@pytest.mark.skipif(os.name == "nt" and PY2, reason="Fails on win and py2!")
 def test_input_text_dialog(qtbot):
     widget = InputTextDialog()
     qtbot.addWidget(widget)
@@ -35,49 +37,49 @@ def test_input_text_dialog(qtbot):
     assert not widget.button_ok.isEnabled()
 
     # Test text
-    widget.set_text('hello')
+    widget.set_text("hello")
     widget.validate()
     assert widget.button_ok.isEnabled()
 
     # Test regex ok enabled
-    widget.set_text('')
-    widget.set_regex_validation('hello')
-    qtbot.keyClicks(widget.lineedit, 'hello world!')
-    assert widget.text() == 'hello'
+    widget.set_text("")
+    widget.set_regex_validation("hello")
+    qtbot.keyClicks(widget.lineedit, "hello world!")
+    assert widget.text() == "hello"
     assert widget.button_ok.isEnabled()
     widget.validate()
 
     # Test regex ok disabled
-    widget.set_text('')
-    widget.set_regex_validation('hello')
-    qtbot.keyClicks(widget.lineedit, 'hell')
+    widget.set_text("")
+    widget.set_regex_validation("hello")
+    qtbot.keyClicks(widget.lineedit, "hell")
     assert not widget.button_ok.isEnabled()
     widget.validate()
 
 
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
+@pytest.mark.skipif(os.name == "nt" and PY2, reason="Fails on win and py2!")
 def test_apps_dialog(qtbot, tmp_path):
     widget = ApplicationsDialog()
     qtbot.addWidget(widget)
     widget.show()
 
-    if os.name == 'nt':
-        ext = '.exe'
-    elif sys.platform == 'darwin':
-        ext = '.app'
+    if os.name == "nt":
+        ext = ".exe"
+    elif sys.platform == "darwin":
+        ext = ".app"
     else:
-        ext = '.desktop'
+        ext = ".desktop"
 
     mock_apps = {
-        'some app 1': '/some/fake/some app 1' + ext,
-        'some app 2': '/some/fake/path/some app 2' + ext,
-        'some app 3': '/some/fake/path/some app 3' + ext,
+        "some app 1": "/some/fake/some app 1" + ext,
+        "some app 2": "/some/fake/path/some app 2" + ext,
+        "some app 3": "/some/fake/path/some app 3" + ext,
     }
     widget.setup(mock_apps)
 
     # Test filter
-    qtbot.keyClicks(widget.edit_filter, '1')
+    qtbot.keyClicks(widget.edit_filter, "1")
     count_hidden = 0
     for row in range(widget.list.count()):
         item = widget.list.item(row)
@@ -86,15 +88,15 @@ def test_apps_dialog(qtbot, tmp_path):
 
     # Test selected app
     widget.list.setCurrentItem(widget.list.item(0))
-    assert widget.application_name == 'some app 1'
-    assert widget.application_path == '/some/fake/some app 1' + ext
+    assert widget.application_name == "some app 1"
+    assert widget.application_path == "/some/fake/some app 1" + ext
 
     # Test extension label
-    widget.set_extension('.hello')
-    assert '.hello' in widget.label.text()
+    widget.set_extension(".hello")
+    assert ".hello" in widget.label.text()
 
     # Test reset filter
-    widget.edit_filter.setText('')
+    widget.edit_filter.setText("")
     count_hidden = 0
     for row in range(widget.list.count()):
         item = widget.list.item(row)
@@ -102,28 +104,30 @@ def test_apps_dialog(qtbot, tmp_path):
     assert count_hidden == 0
 
     # Test browse invalid
-    fpath = '/some/other/path'
+    fpath = "/some/other/path"
     widget.browse(fpath)
     assert widget.list.count() == 3
 
     # Test browse valid
-    if os.name == 'nt':
+    if os.name == "nt":
         path_obj = tmp_path / ("some-new-app" + ext)
-        path_obj.write_bytes(b'\x00\x00')
+        path_obj.write_bytes(b"\x00\x00")
         fpath = str(path_obj)
-    elif sys.platform == 'darwin':
+    elif sys.platform == "darwin":
         path_obj = tmp_path / ("some-new-app" + ext)
         path_obj.mkdir()
         fpath = str(path_obj)
     else:
         path_obj = tmp_path / ("some-new-app" + ext)
-        path_obj.write_text(u'''
+        path_obj.write_text(
+            """
 [Desktop Entry]
 Name=Suer app
 Type=Application
 Exec=/something/bleerp
 Icon=/blah/blah.xpm
-''')
+"""
+        )
         fpath = str(path_obj)
 
     widget.browse(fpath)
@@ -145,7 +149,7 @@ def create_timer(func, interval=500):
 
 
 @pytest.mark.order(1)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
+@pytest.mark.skipif(os.name == "nt" and PY2, reason="Fails on win and py2!")
 def test_file_assoc_widget(file_assoc_widget):
     qtbot, widget = file_assoc_widget
 
@@ -153,7 +157,7 @@ def test_file_assoc_widget(file_assoc_widget):
     assert widget.data == widget.test_data
 
     # Test add invalid associations
-    extension = 'blooper.foo,'
+    extension = "blooper.foo,"
 
     def interact_with_dialog_1():
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
@@ -165,7 +169,7 @@ def test_file_assoc_widget(file_assoc_widget):
     qtbot.mouseClick(widget.button_add, Qt.LeftButton)
 
     # Test add valid association
-    extension = '*.zpam,MANIFEST.in'
+    extension = "*.zpam,MANIFEST.in"
 
     def interact_with_dialog_2():
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
@@ -177,21 +181,21 @@ def test_file_assoc_widget(file_assoc_widget):
     assert widget.list_extensions.item(2).text() == extension
 
     # Test add invalid association programmatically
-    widget.add_association(value='mehh')
+    widget.add_association(value="mehh")
     assert widget.list_extensions.count() == 3
 
     # Test add valid association programmatically
-    widget.add_association(value='*.boom')
+    widget.add_association(value="*.boom")
     assert widget.list_extensions.count() == 4
 
     # Test add repeated association programmatically
-    widget.add_association(value='*.csv')
+    widget.add_association(value="*.csv")
     assert widget.list_extensions.count() == 4
-    widget._add_association(value='*.csv')
+    widget._add_association(value="*.csv")
     assert widget.list_extensions.count() == 4
 
     # Test edit association
-    extension = '*.zpam'
+    extension = "*.zpam"
 
     def interact_with_dialog_3():
         widget._dlg_input.lineedit.clear()
@@ -210,7 +214,7 @@ def test_file_assoc_widget(file_assoc_widget):
     # Test set default
     widget.list_applications.setCurrentRow(1)
     qtbot.mouseClick(widget.button_default, Qt.LeftButton)
-    assert 'App name 2' in widget.list_applications.item(0).text()
+    assert "App name 2" in widget.list_applications.item(0).text()
 
     # Test add application
     def interact_with_dialog_4():
@@ -220,8 +224,7 @@ def test_file_assoc_widget(file_assoc_widget):
             widget._dlg_applications.list.setCurrentRow(count - 1)
             qtbot.keyClick(widget._dlg_applications.button_ok, Qt.Key_Return)
         else:
-            qtbot.keyClick(widget._dlg_applications.button_cancel,
-                           Qt.Key_Return)
+            qtbot.keyClick(widget._dlg_applications.button_cancel, Qt.Key_Return)
 
     _ = create_timer(interact_with_dialog_4)
     qtbot.mouseClick(widget.button_add_application, Qt.LeftButton)
@@ -229,7 +232,7 @@ def test_file_assoc_widget(file_assoc_widget):
     assert count in [2, 3]
 
     # Test add repeated application programmatically
-    app_name, app_path = widget.test_data['*.csv'][0]
+    app_name, app_path = widget.test_data["*.csv"][0]
     widget._add_application(app_name, app_path)
     count = widget.list_applications.count()
     assert count in [2, 3]
@@ -239,4 +242,4 @@ def test_file_assoc_widget(file_assoc_widget):
     qtbot.mouseClick(widget.button_remove_application, Qt.LeftButton)
     count = widget.list_applications.count()
     assert count in [1, 2]
-    assert 'App name 1' in widget.list_applications.item(0).text()
+    assert "App name 1" in widget.list_applications.item(0).text()

@@ -31,6 +31,7 @@ class BasePlugin(BasePluginMixin):
 
     WARNING: Don't override any methods or attributes present here!
     """
+
     # Use this signal to display a message in the status bar.
     # str: The message you want to display
     # int: Amount of time to display the message
@@ -71,8 +72,7 @@ class BasePlugin(BasePluginMixin):
         super(BasePlugin, self)._show_status_message(message, timeout)
 
     @Slot(str, object)
-    def set_option(self, option, value, section=None,
-                   recursive_notification=True):
+    def set_option(self, option, value, section=None, recursive_notification=True):
         """
         Set an option in Spyder configuration file.
 
@@ -91,8 +91,11 @@ class BasePlugin(BasePluginMixin):
         * CONF_SECTION needs to be defined for this to work.
         """
         super(BasePlugin, self)._set_option(
-            option, value, section=section,
-            recursive_notification=recursive_notification)
+            option,
+            value,
+            section=section,
+            recursive_notification=recursive_notification,
+        )
 
     def get_option(self, option, default=NoDefault, section=None):
         """
@@ -108,8 +111,7 @@ class BasePlugin(BasePluginMixin):
         bool, int, str, tuple, list, dict
             Value associated with `option`.
         """
-        return super(BasePlugin, self)._get_option(option, default,
-                                                   section=section)
+        return super(BasePlugin, self)._get_option(option, default, section=section)
 
     def remove_option(self, option, section=None):
         """
@@ -157,6 +159,7 @@ class SpyderPlugin(BasePlugin):
 
     All plugins *must* inherit this class and reimplement its interface.
     """
+
     # ---------------------------- ATTRIBUTES ---------------------------------
 
     # Name of the configuration section that's going to be
@@ -218,7 +221,7 @@ class SpyderPlugin(BasePlugin):
             found to be incompatible (e.g. 'This plugin does not work
             with PyQt4'). It will be shown at startup in a QMessageBox.
         """
-        message = ''
+        message = ""
         valid = True
         return valid, message
 
@@ -297,8 +300,9 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
         """
         return super(BasePluginWidget, self)._get_font(rich_text)
 
-    def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_shortcut_to_tip=False):
+    def register_shortcut(
+        self, qaction_or_qshortcut, context, name, add_shortcut_to_tip=False
+    ):
         """
         Register a shortcut associated to a QAction or a QShortcut to
         Spyder main application.
@@ -322,14 +326,12 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
             users hover it to see what it does.
         """
         self.main.register_shortcut(
-            qaction_or_qshortcut,
-            context,
-            name,
-            add_shortcut_to_tip,
-            self.CONF_SECTION)
+            qaction_or_qshortcut, context, name, add_shortcut_to_tip, self.CONF_SECTION
+        )
 
-    def unregister_shortcut(self, qaction_or_qshortcut, context, name,
-                            add_shortcut_to_tip=False):
+    def unregister_shortcut(
+        self, qaction_or_qshortcut, context, name, add_shortcut_to_tip=False
+    ):
         """
         Unregister a shortcut associated to a QAction or a QShortcut to
         Spyder main application.
@@ -353,11 +355,8 @@ class BasePluginWidget(QWidget, BasePluginWidgetMixin):
             users hover it to see what it does.
         """
         self.main.unregister_shortcut(
-            qaction_or_qshortcut,
-            context,
-            name,
-            add_shortcut_to_tip,
-            self.CONF_SECTION)
+            qaction_or_qshortcut, context, name, add_shortcut_to_tip, self.CONF_SECTION
+        )
 
     def register_widget_shortcuts(self, widget):
         """
@@ -437,7 +436,7 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
 
     # Path for images relative to the plugin path
     # Status: Optional
-    IMG_PATH = 'images'
+    IMG_PATH = "images"
 
     # Control the size of the fonts used in the plugin
     # relative to the fonts defined in Spyder
@@ -478,7 +477,7 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
         QIcon
             QIcon instance
         """
-        return ima.icon('outline_explorer')
+        return ima.icon("outline_explorer")
 
     def get_focus_widget(self):
         """

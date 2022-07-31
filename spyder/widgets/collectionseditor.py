@@ -10,7 +10,7 @@
 Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 """
 
-#TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
+# TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
 #      at the same time
 
 # pylint: disable=C0103
@@ -28,18 +28,41 @@ import warnings
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (
-    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, Signal, Slot)
+    QAbstractTableModel,
+    QItemSelectionModel,
+    QModelIndex,
+    Qt,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
-    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit, QMenu,
-    QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
-from spyder_kernels.utils.lazymodules import (
-    FakeObject, numpy as np, pandas as pd, PIL)
+    QApplication,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QLineEdit,
+    QMenu,
+    QMessageBox,
+    QPushButton,
+    QTableView,
+    QVBoxLayout,
+    QWidget,
+)
+from spyder_kernels.utils.lazymodules import FakeObject, numpy as np, pandas as pd, PIL
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import (
-    display_to_value, get_human_readable_type, get_numeric_numpy_types,
-    get_numpy_type_string, get_object_attrs, get_size, get_type_string,
-    sort_against, try_to_eval, unsorted_unique, value_to_display
+    display_to_value,
+    get_human_readable_type,
+    get_numeric_numpy_types,
+    get_numpy_type_string,
+    get_object_attrs,
+    get_size,
+    get_type_string,
+    sort_against,
+    try_to_eval,
+    unsorted_unique,
+    value_to_display,
 )
 
 # Local imports
@@ -48,15 +71,26 @@ from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
-                              is_type_text_string, NUMERIC_TYPES)
+from spyder.py3compat import (
+    io,
+    is_binary_string,
+    PY3,
+    to_text_string,
+    is_type_text_string,
+    NUMERIC_TYPES,
+)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (
-    add_actions, create_action, MENU_SEPARATOR, mimedata2url)
+    add_actions,
+    create_action,
+    MENU_SEPARATOR,
+    mimedata2url,
+)
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
-    CollectionsDelegate)
+    CollectionsDelegate,
+)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
@@ -78,7 +112,7 @@ def natsort(s):
     """
     if not isinstance(s, (str, bytes)):
         return s
-    x = [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
+    x = [int(t) if t.isdigit() else t.lower() for t in re.split("([0-9]+)", s)]
     return x
 
 
@@ -129,8 +163,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     sig_setting_data = Signal()
 
-    def __init__(self, parent, data, title="", names=False,
-                 minmax=False, remote=False):
+    def __init__(self, parent, data, title="", names=False, minmax=False, remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
@@ -144,9 +177,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.total_rows = None
         self.showndata = None
         self.keys = None
-        self.title = to_text_string(title) # in case title is not a string
+        self.title = to_text_string(title)  # in case title is not a string
         if self.title:
-            self.title = self.title + ' - '
+            self.title = self.title + " - "
         self.sizes = []
         self.types = []
         self.set_data(data)
@@ -159,8 +192,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         """Set model data"""
         self._data = data
 
-        if (coll_filter is not None and not self.remote and
-                isinstance(data, (tuple, list, dict, set))):
+        if (
+            coll_filter is not None
+            and not self.remote
+            and isinstance(data, (tuple, list, dict, set))
+        ):
             data = coll_filter(data)
         self.showndata = data
 
@@ -198,7 +234,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 elements = _("elements")
             else:
                 elements = _("element")
-            self.title += (' (' + str(len(self.keys)) + ' ' + elements + ')')
+            self.title += " (" + str(len(self.keys)) + " " + elements + ")"
         else:
             data_type = get_type_string(data)
             self.title += data_type
@@ -229,18 +265,23 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         # and will be removed, since they will only be accessed if they exist.
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                "ignore", message=(r"^\w+\.\w+ is deprecated and "
-                                   "will be removed in a future version"))
+                "ignore",
+                message=(
+                    r"^\w+\.\w+ is deprecated and "
+                    "will be removed in a future version"
+                ),
+            )
             if self.remote:
-                sizes = [data[self.keys[index]]['size']
-                         for index in range(start, stop)]
-                types = [data[self.keys[index]]['type']
-                         for index in range(start, stop)]
+                sizes = [data[self.keys[index]]["size"] for index in range(start, stop)]
+                types = [data[self.keys[index]]["type"] for index in range(start, stop)]
             else:
-                sizes = [get_size(data[self.keys[index]])
-                         for index in range(start, stop)]
-                types = [get_human_readable_type(data[self.keys[index]])
-                         for index in range(start, stop)]
+                sizes = [
+                    get_size(data[self.keys[index]]) for index in range(start, stop)
+                ]
+                types = [
+                    get_human_readable_type(data[self.keys[index]])
+                    for index in range(start, stop)
+                ]
 
         if fetch_more:
             self.sizes = self.sizes + sizes
@@ -259,33 +300,33 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         def all_string(listlike):
             return all([isinstance(x, str) for x in listlike])
 
-        reverse = (order == Qt.DescendingOrder)
+        reverse = order == Qt.DescendingOrder
         sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:
-            self.sizes = sort_against(self.sizes, self.keys,
-                                      reverse=reverse,
-                                      sort_key=natsort)
-            self.types = sort_against(self.types, self.keys,
-                                      reverse=reverse,
-                                      sort_key=natsort)
+            self.sizes = sort_against(
+                self.sizes, self.keys, reverse=reverse, sort_key=natsort
+            )
+            self.types = sort_against(
+                self.types, self.keys, reverse=reverse, sort_key=natsort
+            )
             try:
                 self.keys.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column == 1:
-            self.keys[:self.rows_loaded] = sort_against(self.keys,
-                                                        self.types,
-                                                        reverse=reverse)
+            self.keys[: self.rows_loaded] = sort_against(
+                self.keys, self.types, reverse=reverse
+            )
             self.sizes = sort_against(self.sizes, self.types, reverse=reverse)
             try:
                 self.types.sort(reverse=reverse)
             except:
                 pass
         elif column == 2:
-            self.keys[:self.rows_loaded] = sort_against(self.keys,
-                                                        self.sizes,
-                                                        reverse=reverse)
+            self.keys[: self.rows_loaded] = sort_against(
+                self.keys, self.sizes, reverse=reverse
+            )
             self.types = sort_against(self.types, self.sizes, reverse=reverse)
             try:
                 self.sizes.sort(reverse=reverse)
@@ -325,10 +366,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             items_to_fetch = min(reminder, number_to_fetch)
         else:
             items_to_fetch = min(reminder, ROWS_TO_LOAD)
-        self.set_size_and_type(self.rows_loaded,
-                               self.rows_loaded + items_to_fetch)
-        self.beginInsertRows(QModelIndex(), self.rows_loaded,
-                             self.rows_loaded + items_to_fetch - 1)
+        self.set_size_and_type(self.rows_loaded, self.rows_loaded + items_to_fetch)
+        self.beginInsertRows(
+            QModelIndex(), self.rows_loaded, self.rows_loaded + items_to_fetch - 1
+        )
         self.rows_loaded += items_to_fetch
         self.endInsertRows()
 
@@ -345,32 +386,32 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def get_value(self, index):
         """Return current value"""
         if index.column() == 0:
-            return self.keys[ index.row() ]
+            return self.keys[index.row()]
         elif index.column() == 1:
-            return self.types[ index.row() ]
+            return self.types[index.row()]
         elif index.column() == 2:
-            return self.sizes[ index.row() ]
+            return self.sizes[index.row()]
         else:
-            return self._data[ self.keys[index.row()] ]
+            return self._data[self.keys[index.row()]]
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
         if index.column() == 0:
             color = QColor(Qt.lightGray)
-            color.setAlphaF(.05)
+            color.setAlphaF(0.05)
         elif index.column() < 3:
             color = QColor(Qt.lightGray)
-            color.setAlphaF(.2)
+            color.setAlphaF(0.2)
         else:
             color = QColor(Qt.lightGray)
-            color.setAlphaF(.3)
+            color.setAlphaF(0.3)
         return color
 
     def update_search_letters(self, text=""):
         """Update search letters with text input in search box."""
         self.letters = text
         names = [str(key) for key in self.keys]
-        results = get_search_scores(text, names, template='<b>{0}</b>')
+        results = get_search_scores(text, names, template="<b>{0}</b>")
         if results:
             self.normal_text, _, self.scores = zip(*results)
             self.reset()
@@ -402,15 +443,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             # hidden.
             return to_qvariant(self.scores[index.row()])
         if index.column() == 3 and self.remote:
-            value = value['view']
+            value = value["view"]
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            elif not isinstance(
-                value, NUMERIC_TYPES + get_numeric_numpy_types()
-            ):
+            elif not isinstance(value, NUMERIC_TYPES + get_numeric_numpy_types()):
                 display = to_text_string(value)
             else:
                 display = value
@@ -426,13 +465,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             if index.column() == 3:
                 if len(display.splitlines()) < 3:
-                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
                 else:
-                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignTop))
+                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignTop))
             else:
-                return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
-            return to_qvariant( self.get_bgcolor(index) )
+            return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
@@ -443,9 +482,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (self.header0, _("Type"), _("Size"), _("Value"),
-                       _("Score"))
-            return to_qvariant( headers[i_column] )
+            headers = (self.header0, _("Type"), _("Size"), _("Value"), _("Score"))
+            return to_qvariant(headers[i_column])
         else:
             return to_qvariant()
 
@@ -455,8 +493,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+        return Qt.ItemFlags(
+            int(QAbstractTableModel.flags(self, index) | Qt.ItemIsEditable)
+        )
 
     def reset(self):
         self.beginResetModel()
@@ -468,8 +507,8 @@ class CollectionsModel(ReadOnlyCollectionsModel):
 
     def set_value(self, index, value):
         """Set value"""
-        self._data[ self.keys[index.row()] ] = value
-        self.showndata[ self.keys[index.row()] ] = value
+        self._data[self.keys[index.row()]] = value
+        self.showndata[self.keys[index.row()]] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_human_readable_type(value)
         self.sig_setting_data.emit()
@@ -479,33 +518,32 @@ class CollectionsModel(ReadOnlyCollectionsModel):
         # Color for unknown types
         color = SpyderPalette.GROUP_12
 
-        if numpy_type != 'Unknown':
-            if numpy_type == 'Array':
+        if numpy_type != "Unknown":
+            if numpy_type == "Array":
                 color = SpyderPalette.GROUP_9
-            elif numpy_type == 'Scalar':
+            elif numpy_type == "Scalar":
                 color = SpyderPalette.GROUP_2
-        elif python_type == 'bool':
+        elif python_type == "bool":
             color = SpyderPalette.GROUP_1
-        elif python_type in ['int', 'float', 'complex']:
+        elif python_type in ["int", "float", "complex"]:
             color = SpyderPalette.GROUP_2
-        elif python_type in ['str', 'unicode']:
+        elif python_type in ["str", "unicode"]:
             color = SpyderPalette.GROUP_3
-        elif 'datetime' in python_type:
+        elif "datetime" in python_type:
             color = SpyderPalette.GROUP_4
-        elif python_type == 'list':
+        elif python_type == "list":
             color = SpyderPalette.GROUP_5
-        elif python_type == 'set':
+        elif python_type == "set":
             color = SpyderPalette.GROUP_6
-        elif python_type == 'tuple':
+        elif python_type == "tuple":
             color = SpyderPalette.GROUP_7
-        elif python_type == 'dict':
+        elif python_type == "dict":
             color = SpyderPalette.GROUP_8
-        elif python_type in ['MaskedArray', 'Matrix', 'NDArray']:
+        elif python_type in ["MaskedArray", "Matrix", "NDArray"]:
             color = SpyderPalette.GROUP_9
-        elif (python_type in ['DataFrame', 'Series'] or
-                'Index' in python_type):
+        elif python_type in ["DataFrame", "Series"] or "Index" in python_type:
             color = SpyderPalette.GROUP_10
-        elif python_type == 'PIL.Image.Image':
+        elif python_type == "PIL.Image.Image":
             color = SpyderPalette.GROUP_11
         else:
             color = SpyderPalette.GROUP_12
@@ -519,8 +557,8 @@ class CollectionsModel(ReadOnlyCollectionsModel):
             color = ReadOnlyCollectionsModel.get_bgcolor(self, index)
         else:
             if self.remote:
-                python_type = value['python_type']
-                numpy_type = value['numpy_type']
+                python_type = value["python_type"]
+                numpy_type = value["numpy_type"]
             else:
                 python_type = get_type_string(value)
                 numpy_type = get_numpy_type_string(value)
@@ -535,8 +573,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
             return False
         if index.column() < 3:
             return False
-        value = display_to_value(value, self.get_value(index),
-                                 ignore_errors=True)
+        value = display_to_value(value, self.get_value(index), ignore_errors=True)
         self.set_value(index, value)
         self.dataChanged.emit(index, index)
         return True
@@ -547,6 +584,7 @@ class BaseHeaderView(QHeaderView):
     A header view for the BaseTableView that emits a signal when the width of
     one of its sections is resized by the user.
     """
+
     sig_user_resized_section = Signal(int, int, int)
 
     def __init__(self, parent=None):
@@ -559,8 +597,7 @@ class BaseHeaderView(QHeaderView):
 
     def mousePressEvent(self, e):
         super(BaseHeaderView, self).mousePressEvent(e)
-        self._handle_section_is_pressed = (self.cursor().shape() ==
-                                           Qt.SplitHCursor)
+        self._handle_section_is_pressed = self.cursor().shape() == Qt.SplitHCursor
 
     def mouseReleaseEvent(self, e):
         super(BaseHeaderView, self).mouseReleaseEvent(e)
@@ -573,7 +610,8 @@ class BaseHeaderView(QHeaderView):
 
 class BaseTableView(QTableView, SpyderConfigurationAccessor):
     """Base collection editor table view"""
-    CONF_SECTION = 'variable_explorer'
+
+    CONF_SECTION = "variable_explorer"
 
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
@@ -602,7 +640,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.minmax_action = None
         self.rename_action = None
         self.duplicate_action = None
-        self.last_regex = ''
+        self.last_regex = ""
         self.view_action = None
         self.delegate = None
         self.proxy_model = None
@@ -611,7 +649,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.automatic_column_width = True
         self.setHorizontalHeader(BaseHeaderView(parent=self))
         self.horizontalHeader().sig_user_resized_section.connect(
-            self.user_resize_columns)
+            self.user_resize_columns
+        )
 
     def setup_table(self):
         """Setup table"""
@@ -625,68 +664,85 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
     def setup_menu(self):
         """Setup context menu"""
-        resize_action = create_action(self, _("Resize rows to contents"),
-                                      icon=ima.icon('collapse_row'),
-                                      triggered=self.resizeRowsToContents)
+        resize_action = create_action(
+            self,
+            _("Resize rows to contents"),
+            icon=ima.icon("collapse_row"),
+            triggered=self.resizeRowsToContents,
+        )
         resize_columns_action = create_action(
             self,
             _("Resize columns to contents"),
-            icon=ima.icon('collapse_column'),
-            triggered=self.resize_column_contents)
-        self.paste_action = create_action(self, _("Paste"),
-                                          icon=ima.icon('editpaste'),
-                                          triggered=self.paste)
-        self.copy_action = create_action(self, _("Copy"),
-                                         icon=ima.icon('editcopy'),
-                                         triggered=self.copy)
-        self.edit_action = create_action(self, _("Edit"),
-                                         icon=ima.icon('edit'),
-                                         triggered=self.edit_item)
-        self.plot_action = create_action(self, _("Plot"),
-                                    icon=ima.icon('plot'),
-                                    triggered=lambda: self.plot_item('plot'))
+            icon=ima.icon("collapse_column"),
+            triggered=self.resize_column_contents,
+        )
+        self.paste_action = create_action(
+            self, _("Paste"), icon=ima.icon("editpaste"), triggered=self.paste
+        )
+        self.copy_action = create_action(
+            self, _("Copy"), icon=ima.icon("editcopy"), triggered=self.copy
+        )
+        self.edit_action = create_action(
+            self, _("Edit"), icon=ima.icon("edit"), triggered=self.edit_item
+        )
+        self.plot_action = create_action(
+            self,
+            _("Plot"),
+            icon=ima.icon("plot"),
+            triggered=lambda: self.plot_item("plot"),
+        )
         self.plot_action.setVisible(False)
-        self.hist_action = create_action(self, _("Histogram"),
-                                    icon=ima.icon('hist'),
-                                    triggered=lambda: self.plot_item('hist'))
+        self.hist_action = create_action(
+            self,
+            _("Histogram"),
+            icon=ima.icon("hist"),
+            triggered=lambda: self.plot_item("hist"),
+        )
         self.hist_action.setVisible(False)
-        self.imshow_action = create_action(self, _("Show image"),
-                                           icon=ima.icon('imshow'),
-                                           triggered=self.imshow_item)
+        self.imshow_action = create_action(
+            self, _("Show image"), icon=ima.icon("imshow"), triggered=self.imshow_item
+        )
         self.imshow_action.setVisible(False)
-        self.save_array_action = create_action(self, _("Save array"),
-                                               icon=ima.icon('filesave'),
-                                               triggered=self.save_array)
+        self.save_array_action = create_action(
+            self, _("Save array"), icon=ima.icon("filesave"), triggered=self.save_array
+        )
         self.save_array_action.setVisible(False)
         self.insert_action = create_action(
-            self, _("Insert"),
-            icon=ima.icon('insert'),
-            triggered=lambda: self.insert_item(below=False)
+            self,
+            _("Insert"),
+            icon=ima.icon("insert"),
+            triggered=lambda: self.insert_item(below=False),
         )
         self.insert_action_above = create_action(
-            self, _("Insert above"),
-            icon=ima.icon('insert_above'),
-            triggered=lambda: self.insert_item(below=False)
+            self,
+            _("Insert above"),
+            icon=ima.icon("insert_above"),
+            triggered=lambda: self.insert_item(below=False),
         )
         self.insert_action_below = create_action(
-            self, _("Insert below"),
-            icon=ima.icon('insert_below'),
-            triggered=lambda: self.insert_item(below=True)
+            self,
+            _("Insert below"),
+            icon=ima.icon("insert_below"),
+            triggered=lambda: self.insert_item(below=True),
         )
-        self.remove_action = create_action(self, _("Remove"),
-                                           icon=ima.icon('editdelete'),
-                                           triggered=self.remove_item)
-        self.rename_action = create_action(self, _("Rename"),
-                                           icon=ima.icon('rename'),
-                                           triggered=self.rename_item)
-        self.duplicate_action = create_action(self, _("Duplicate"),
-                                              icon=ima.icon('edit_add'),
-                                              triggered=self.duplicate_item)
+        self.remove_action = create_action(
+            self, _("Remove"), icon=ima.icon("editdelete"), triggered=self.remove_item
+        )
+        self.rename_action = create_action(
+            self, _("Rename"), icon=ima.icon("rename"), triggered=self.rename_item
+        )
+        self.duplicate_action = create_action(
+            self,
+            _("Duplicate"),
+            icon=ima.icon("edit_add"),
+            triggered=self.duplicate_item,
+        )
         self.view_action = create_action(
             self,
             _("View with the Object Explorer"),
-            icon=ima.icon('outline_explorer'),
-            triggered=self.view_item)
+            icon=ima.icon("outline_explorer"),
+            triggered=self.view_item,
+        )
 
         menu = QMenu(self)
         self.menu_actions = [
@@ -708,18 +764,14 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.imshow_action,
             MENU_SEPARATOR,
             resize_action,
-            resize_columns_action
+            resize_columns_action,
         ]
         add_actions(menu, self.menu_actions)
 
         self.empty_ws_menu = QMenu(self)
-        add_actions(
-            self.empty_ws_menu,
-            [self.insert_action, self.paste_action]
-        )
+        add_actions(self.empty_ws_menu, [self.insert_action, self.paste_action])
 
         return menu
-
 
     # ------ Remote/local API -------------------------------------------------
     def remove_values(self, keys):
@@ -777,7 +829,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         raise NotImplementedError
-    #--------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
 
     def refresh_menu(self):
         """Refresh context menu"""
@@ -796,11 +849,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         # Enable/disable actions
         condition_edit = (
-            (not isinstance(data, (tuple, set))) and
-            index.isValid() and
-            (len(self.selectedIndexes()) > 0) and
-            indexes_in_same_row() and
-            not self.readonly
+            (not isinstance(data, (tuple, set)))
+            and index.isValid()
+            and (len(self.selectedIndexes()) > 0)
+            and indexes_in_same_row()
+            and not self.readonly
         )
         self.edit_action.setEnabled(condition_edit)
         self.insert_action_above.setEnabled(condition_edit)
@@ -812,26 +865,20 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.imshow_action.setEnabled(condition_edit)
         self.save_array_action.setEnabled(condition_edit)
 
-        condition_select = (
-            index.isValid() and
-            (len(self.selectedIndexes()) > 0)
-        )
-        self.view_action.setEnabled(
-            condition_select and indexes_in_same_row())
+        condition_select = index.isValid() and (len(self.selectedIndexes()) > 0)
+        self.view_action.setEnabled(condition_select and indexes_in_same_row())
         self.copy_action.setEnabled(condition_select)
 
         condition_remove = (
-            (not isinstance(data, (tuple, set))) and
-            index.isValid() and
-            (len(self.selectedIndexes()) > 0) and
-            not self.readonly
+            (not isinstance(data, (tuple, set)))
+            and index.isValid()
+            and (len(self.selectedIndexes()) > 0)
+            and not self.readonly
         )
         self.remove_action.setEnabled(condition_remove)
 
-        self.insert_action.setEnabled(
-            is_dict_instance and not self.readonly)
-        self.paste_action.setEnabled(
-            is_dict_instance and not self.readonly)
+        self.insert_action.setEnabled(is_dict_instance and not self.readonly)
+        self.paste_action.setEnabled(is_dict_instance and not self.readonly)
 
         # Hide/show actions
         if index.isValid():
@@ -841,13 +888,14 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                 key = self.source_model.get_key(index)
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
-            condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
-            condition_hist = (is_array and self.get_array_ndim(key) == 1)
+            condition_plot = is_array and len(self.get_array_shape(key)) <= 2
+            condition_hist = is_array and self.get_array_ndim(key) == 1
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
             condition_imshow = condition_imshow or self.is_image(key)
         else:
-            is_array = condition_plot = condition_imshow = is_list \
-                     = condition_hist = False
+            is_array = (
+                condition_plot
+            ) = condition_imshow = is_list = condition_hist = False
 
         self.plot_action.setVisible(condition_plot or is_list)
         self.hist_action.setVisible(condition_hist or is_list)
@@ -888,8 +936,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             return
         index_clicked = self.indexAt(event.pos())
         if index_clicked.isValid():
-            if index_clicked == self.currentIndex() \
-               and index_clicked in self.selectedIndexes():
+            if (
+                index_clicked == self.currentIndex()
+                and index_clicked in self.selectedIndexes()
+            ):
                 self.clearSelection()
             else:
                 QTableView.mousePressEvent(self, event)
@@ -997,15 +1047,18 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         if not force:
             one = _("Do you want to remove the selected item?")
             more = _("Do you want to remove all selected items?")
-            answer = QMessageBox.question(self, _("Remove"),
-                                          one if len(indexes) == 1 else more,
-                                          QMessageBox.Yes | QMessageBox.No)
+            answer = QMessageBox.question(
+                self,
+                _("Remove"),
+                one if len(indexes) == 1 else more,
+                QMessageBox.Yes | QMessageBox.No,
+            )
 
         if force or answer == QMessageBox.Yes:
             if self.proxy_model:
                 idx_rows = unsorted_unique(
-                    [self.proxy_model.mapToSource(idx).row()
-                     for idx in indexes])
+                    [self.proxy_model.mapToSource(idx).row() for idx in indexes]
+                )
             else:
                 idx_rows = unsorted_unique([idx.row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
@@ -1026,7 +1079,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         if self.proxy_model:
             idx_rows = unsorted_unique(
-                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
+                [self.proxy_model.mapToSource(idx).row() for idx in indexes]
+            )
         else:
             idx_rows = unsorted_unique([idx.row() for idx in indexes])
 
@@ -1037,17 +1091,15 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         if erase_original:
             if not isinstance(orig_key, str):
                 QMessageBox.warning(
-                    self,
-                    _("Warning"),
-                    _("You can only rename keys that are strings")
+                    self, _("Warning"), _("You can only rename keys that are strings")
                 )
                 return
 
-            title = _('Rename')
-            field_text = _('New variable name:')
+            title = _("Rename")
+            field_text = _("New variable name:")
         else:
-            title = _('Duplicate')
-            field_text = _('Variable name:')
+            title = _("Duplicate")
+            field_text = _("Variable name:")
 
         data = self.source_model.get_data()
         if isinstance(data, (list, set)):
@@ -1055,8 +1107,9 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         elif new_name is not None:
             new_key, valid = new_name, True
         else:
-            new_key, valid = QInputDialog.getText(self, title, field_text,
-                                                  QLineEdit.Normal, orig_key)
+            new_key, valid = QInputDialog.getText(
+                self, title, field_text, QLineEdit.Normal, orig_key
+            )
 
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
@@ -1099,10 +1152,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
         if isinstance(data, list):
             key = row
-            data.insert(row, '')
+            data.insert(row, "")
         elif isinstance(data, dict):
-            key, valid = QInputDialog.getText(self, _('Insert'), _('Key:'),
-                                              QLineEdit.Normal)
+            key, valid = QInputDialog.getText(
+                self, _("Insert"), _("Key:"), QLineEdit.Normal
+            )
             if valid and to_text_string(key):
                 key = try_to_eval(to_text_string(key))
             else:
@@ -1110,8 +1164,9 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             return
 
-        value, valid = QInputDialog.getText(self, _('Insert'), _('Value:'),
-                                            QLineEdit.Normal)
+        value, valid = QInputDialog.getText(
+            self, _("Insert"), _("Value:"), QLineEdit.Normal
+        )
 
         if valid and to_text_string(value):
             self.new_value(key, try_to_eval(to_text_string(value)))
@@ -1128,34 +1183,38 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
     def __prepare_plot(self):
         try:
-            import guiqwt.pyplot   #analysis:ignore
+            import guiqwt.pyplot  # analysis:ignore
+
             return True
         except:
             try:
-                if 'matplotlib' not in sys.modules:
+                if "matplotlib" not in sys.modules:
                     import matplotlib
                 return True
             except Exception:
-                QMessageBox.warning(self, _("Import error"),
-                                    _("Please install <b>matplotlib</b>"
-                                      " or <b>guiqwt</b>."))
+                QMessageBox.warning(
+                    self,
+                    _("Import error"),
+                    _("Please install <b>matplotlib</b>" " or <b>guiqwt</b>."),
+                )
 
     def plot_item(self, funcname):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
             if self.proxy_model:
-                key = self.source_model.get_key(
-                    self.proxy_model.mapToSource(index))
+                key = self.source_model.get_key(self.proxy_model.mapToSource(index))
             else:
                 key = self.source_model.get_key(index)
             try:
                 self.plot(key, funcname)
             except (ValueError, TypeError) as error:
-                QMessageBox.critical(self, _( "Plot"),
-                                     _("<b>Unable to plot data.</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % str(error))
+                QMessageBox.critical(
+                    self,
+                    _("Plot"),
+                    _("<b>Unable to plot data.</b>" "<br><br>Error message:<br>%s")
+                    % str(error),
+                )
 
     @Slot()
     def imshow_item(self):
@@ -1163,8 +1222,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         index = self.currentIndex()
         if self.__prepare_plot():
             if self.proxy_model:
-                key = self.source_model.get_key(
-                    self.proxy_model.mapToSource(index))
+                key = self.source_model.get_key(self.proxy_model.mapToSource(index))
             else:
                 key = self.source_model.get_key(index)
             try:
@@ -1173,33 +1231,38 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                 else:
                     self.imshow(key)
             except (ValueError, TypeError) as error:
-                QMessageBox.critical(self, _( "Plot"),
-                                     _("<b>Unable to show image.</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % str(error))
+                QMessageBox.critical(
+                    self,
+                    _("Plot"),
+                    _("<b>Unable to show image.</b>" "<br><br>Error message:<br>%s")
+                    % str(error),
+                )
 
     @Slot()
     def save_array(self):
         """Save array"""
-        title = _( "Save array")
+        title = _("Save array")
         if self.array_filename is None:
             self.array_filename = getcwd_or_home()
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getsavefilename(self, title,
-                                               self.array_filename,
-                                               _("NumPy arrays")+" (*.npy)")
+        filename, _selfilter = getsavefilename(
+            self, title, self.array_filename, _("NumPy arrays") + " (*.npy)"
+        )
         self.redirect_stdio.emit(True)
         if filename:
             self.array_filename = filename
-            data = self.delegate.get_value( self.currentIndex() )
+            data = self.delegate.get_value(self.currentIndex())
             try:
                 import numpy as np
+
                 np.save(self.array_filename, data)
             except Exception as error:
-                QMessageBox.critical(self, title,
-                                     _("<b>Unable to save array</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % str(error))
+                QMessageBox.critical(
+                    self,
+                    title,
+                    _("<b>Unable to save array</b>" "<br><br>Error message:<br>%s")
+                    % str(error),
+                )
 
     @Slot()
     def copy(self):
@@ -1212,42 +1275,50 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             obj = self.delegate.get_value(idx)
             # Check if we are trying to copy a numpy array, and if so make sure
             # to copy the whole thing in a tab separated format
-            if (isinstance(obj, (np.ndarray, np.ma.MaskedArray)) and
-                    np.ndarray is not FakeObject):
+            if (
+                isinstance(obj, (np.ndarray, np.ma.MaskedArray))
+                and np.ndarray is not FakeObject
+            ):
                 if PY3:
                     output = io.BytesIO()
                 else:
                     output = io.StringIO()
                 try:
-                    np.savetxt(output, obj, delimiter='\t')
+                    np.savetxt(output, obj, delimiter="\t")
                 except Exception:
-                    QMessageBox.warning(self, _("Warning"),
-                                        _("It was not possible to copy "
-                                          "this array"))
+                    QMessageBox.warning(
+                        self,
+                        _("Warning"),
+                        _("It was not possible to copy " "this array"),
+                    )
                     return
-                obj = output.getvalue().decode('utf-8')
+                obj = output.getvalue().decode("utf-8")
                 output.close()
-            elif (isinstance(obj, (pd.DataFrame, pd.Series)) and
-                    pd.DataFrame is not FakeObject):
+            elif (
+                isinstance(obj, (pd.DataFrame, pd.Series))
+                and pd.DataFrame is not FakeObject
+            ):
                 output = io.StringIO()
                 try:
-                    obj.to_csv(output, sep='\t', index=True, header=True)
+                    obj.to_csv(output, sep="\t", index=True, header=True)
                 except Exception:
-                    QMessageBox.warning(self, _("Warning"),
-                                        _("It was not possible to copy "
-                                          "this dataframe"))
+                    QMessageBox.warning(
+                        self,
+                        _("Warning"),
+                        _("It was not possible to copy " "this dataframe"),
+                    )
                     return
                 if PY3:
                     obj = output.getvalue()
                 else:
-                    obj = output.getvalue().decode('utf-8')
+                    obj = output.getvalue().decode("utf-8")
                 output.close()
             elif is_binary_string(obj):
-                obj = to_text_string(obj, 'utf8')
+                obj = to_text_string(obj, "utf8")
             else:
                 obj = to_text_string(obj)
             clipl.append(obj)
-        clipboard.setText('\n'.join(clipl))
+        clipboard.setText("\n".join(clipl))
 
     def import_from_string(self, text, title=None):
         """Import data from string"""
@@ -1256,8 +1327,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         if not hasattr(data, "keys"):
             return
         editor = ImportWizard(
-            self, text, title=title, contents_title=_("Clipboard contents"),
-            varname=fix_reference_name("data", blacklist=list(data.keys())))
+            self,
+            text,
+            title=title,
+            contents_title=_("Clipboard contents"),
+            varname=fix_reference_name("data", blacklist=list(data.keys())),
+        )
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
@@ -1266,31 +1341,29 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     def paste(self):
         """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
-        cliptext = ''
+        cliptext = ""
         if clipboard.mimeData().hasText():
             cliptext = to_text_string(clipboard.text())
         if cliptext.strip():
             self.import_from_string(cliptext, title=_("Import from clipboard"))
         else:
-            QMessageBox.warning(self, _( "Empty clipboard"),
-                                _("Nothing to be imported from clipboard."))
+            QMessageBox.warning(
+                self, _("Empty clipboard"), _("Nothing to be imported from clipboard.")
+            )
 
 
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
-    def __init__(self, parent, data, readonly=False, title="",
-                 names=False):
+
+    def __init__(self, parent, data, readonly=False, title="", names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, (tuple, set))
-        CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
-                                 else CollectionsModel)
+        CollectionsModelClass = (
+            ReadOnlyCollectionsModel if self.readonly else CollectionsModel
+        )
         self.source_model = CollectionsModelClass(
-            self,
-            data,
-            title,
-            names=names,
-            minmax=self.get_conf('minmax')
+            self, data, title, names=names, minmax=self.get_conf("minmax")
         )
         self.model = self.source_model
         self.setModel(self.source_model)
@@ -1302,7 +1375,7 @@ class CollectionsEditorTableView(BaseTableView):
         if isinstance(data, set):
             self.horizontalHeader().hideSection(0)
 
-    #------ Remote/local API --------------------------------------------------
+    # ------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
         data = self.source_model.get_data()
@@ -1372,14 +1445,15 @@ class CollectionsEditorTableView(BaseTableView):
     def oedit(self, key):
         """Edit item"""
         data = self.source_model.get_data()
-        from spyder.plugins.variableexplorer.widgets.objecteditor import (
-                oedit)
+        from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
+
         oedit(data[key])
 
     def plot(self, key, funcname):
         """Plot item"""
         data = self.source_model.get_data()
         import spyder.pyplot as plt
+
         plt.figure()
         getattr(plt, funcname)(data[key])
         plt.show()
@@ -1388,6 +1462,7 @@ class CollectionsEditorTableView(BaseTableView):
         """Show item's image"""
         data = self.source_model.get_data()
         import spyder.pyplot as plt
+
         plt.figure()
         plt.imshow(data[key])
         plt.show()
@@ -1396,7 +1471,8 @@ class CollectionsEditorTableView(BaseTableView):
         """Show image (item is a PIL image)"""
         data = self.source_model.get_data()
         data[key].show()
-    #--------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
 
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
@@ -1405,15 +1481,15 @@ class CollectionsEditorTableView(BaseTableView):
 
 class CollectionsEditorWidget(QWidget):
     """Dictionary Editor Widget"""
+
     def __init__(self, parent, data, readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
             self.editor = RemoteCollectionsEditorTableView(self, data, readonly)
         else:
-            self.editor = CollectionsEditorTableView(self, data, readonly,
-                                                     title)
+            self.editor = CollectionsEditorTableView(self, data, readonly, title)
 
-        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
+        toolbar = SpyderToolbar(parent=None, title="Editor toolbar")
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
 
         for item in self.editor.menu_actions:
@@ -1438,6 +1514,7 @@ class CollectionsEditorWidget(QWidget):
 
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -1452,8 +1529,9 @@ class CollectionsEditor(BaseDialog):
         self.btn_save_and_close = None
         self.btn_close = None
 
-    def setup(self, data, title='', readonly=False, remote=False,
-              icon=None, parent=None):
+    def setup(
+        self, data, title="", readonly=False, remote=False, icon=None, parent=None
+    ):
         """Setup editor."""
         if isinstance(data, (dict, set)):
             # dictionary, set
@@ -1466,6 +1544,7 @@ class CollectionsEditor(BaseDialog):
         else:
             # unknown object
             import copy
+
             try:
                 self.data_copy = copy.deepcopy(data)
             except NotImplementedError:
@@ -1480,11 +1559,12 @@ class CollectionsEditor(BaseDialog):
         if type(self.data_copy) != type(data):
             readonly = True
 
-        self.widget = CollectionsEditorWidget(self, self.data_copy,
-                                              title=title, readonly=readonly,
-                                              remote=remote)
+        self.widget = CollectionsEditorWidget(
+            self, self.data_copy, title=title, readonly=readonly, remote=remote
+        )
         self.widget.editor.source_model.sig_setting_data.connect(
-            self.save_and_close_enable)
+            self.save_and_close_enable
+        )
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
@@ -1495,12 +1575,12 @@ class CollectionsEditor(BaseDialog):
         btn_layout.addStretch()
 
         if not readonly:
-            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close = QPushButton(_("Save and Close"))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
             btn_layout.addWidget(self.btn_save_and_close)
 
-        self.btn_close = QPushButton(_('Close'))
+        self.btn_close = QPushButton(_("Close"))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
@@ -1510,9 +1590,9 @@ class CollectionsEditor(BaseDialog):
 
         self.setWindowTitle(self.widget.get_title())
         if icon is None:
-            self.setWindowIcon(ima.icon('dictedit'))
+            self.setWindowIcon(ima.icon("dictedit"))
 
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             # See spyder-ide/spyder#9051
             self.setWindowFlags(Qt.Tool)
         else:
@@ -1534,11 +1614,12 @@ class CollectionsEditor(BaseDialog):
         return self.data_copy
 
 
-#==============================================================================
+# ==============================================================================
 # Remote versions of CollectionsDelegate and CollectionsEditorTableView
-#==============================================================================
+# ==============================================================================
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
+
     def __init__(self, parent=None):
         CollectionsDelegate.__init__(self, parent)
 
@@ -1557,8 +1638,10 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, shellwidget=None, remote_editing=False,
-                 create_menu=False):
+
+    def __init__(
+        self, parent, data, shellwidget=None, remote_editing=False, create_menu=False
+    ):
         BaseTableView.__init__(self, parent)
 
         self.shellwidget = shellwidget
@@ -1569,12 +1652,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.finder = None
 
         self.source_model = CollectionsModel(
-            self, data, names=True,
-            minmax=self.get_conf('minmax'),
-            remote=True)
+            self, data, names=True, minmax=self.get_conf("minmax"), remote=True
+        )
 
-        self.horizontalHeader().sectionClicked.connect(
-            self.source_model.load_all)
+        self.horizontalHeader().sectionClicked.connect(self.source_model.load_all)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
         self.model = self.proxy_model
@@ -1589,10 +1670,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.hideColumn(4)  # Column 4 for Score
 
         self.delegate = RemoteCollectionsDelegate(self)
-        self.delegate.sig_free_memory_requested.connect(
-            self.sig_free_memory_requested)
+        self.delegate.sig_free_memory_requested.connect(self.sig_free_memory_requested)
         self.delegate.sig_editor_creation_started.connect(
-            self.sig_editor_creation_started)
+            self.sig_editor_creation_started
+        )
         self.delegate.sig_editor_shown.connect(self.sig_editor_shown)
         self.setItemDelegate(self.delegate)
 
@@ -1612,8 +1693,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         try:
             self.shellwidget.set_value(name, value)
         except TypeError as e:
-            QMessageBox.critical(self, _("Error"),
-                                 "TypeError: %s" % to_text_string(e))
+            QMessageBox.critical(self, _("Error"), "TypeError: %s" % to_text_string(e))
         self.shellwidget.refresh_namespacebrowser()
 
     def remove_values(self, names):
@@ -1629,39 +1709,39 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     def is_list(self, name):
         """Return True if variable is a list, a tuple or a set"""
-        return self.var_properties[name]['is_list']
+        return self.var_properties[name]["is_list"]
 
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
-        return self.var_properties[name]['is_dict']
+        return self.var_properties[name]["is_dict"]
 
     def get_len(self, name):
         """Return sequence length"""
-        return self.var_properties[name]['len']
+        return self.var_properties[name]["len"]
 
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
-        return self.var_properties[name]['is_array']
+        return self.var_properties[name]["is_array"]
 
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
-        return self.var_properties[name]['is_image']
+        return self.var_properties[name]["is_image"]
 
     def is_data_frame(self, name):
         """Return True if variable is a DataFrame"""
-        return self.var_properties[name]['is_data_frame']
+        return self.var_properties[name]["is_data_frame"]
 
     def is_series(self, name):
         """Return True if variable is a Series"""
-        return self.var_properties[name]['is_series']
+        return self.var_properties[name]["is_series"]
 
     def get_array_shape(self, name):
         """Return array's shape"""
-        return self.var_properties[name]['array_shape']
+        return self.var_properties[name]["array_shape"]
 
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        return self.var_properties[name]['array_ndim']
+        return self.var_properties[name]["array_ndim"]
 
     def plot(self, name, funcname):
         """Plot item"""
@@ -1692,9 +1772,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def set_regex(self, regex=None, reset=False):
         """Update the regex text for the variable finder."""
         if reset or self.finder is None or not self.finder.text():
-            text = ''
+            text = ""
         else:
-            text = self.finder.text().replace(' ', '').lower()
+            text = self.finder.text().replace(" ", "").lower()
 
         self.proxy_model.set_filter(text)
         self.source_model.update_search_letters(text)
@@ -1802,9 +1882,8 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
 # =============================================================================
 def get_test_data():
     """Create test data."""
-    image = PIL.Image.fromarray(np.random.randint(256, size=(100, 100)),
-                                mode='P')
-    testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
+    image = PIL.Image.fromarray(np.random.randint(256, size=(100, 100)), mode="P")
+    testdict = {"d": 1, "a": np.random.rand(10, 10), "b": [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
 
@@ -1816,68 +1895,72 @@ def get_test_data():
     else:
         test_timestamp = pd.Timestamp("1945-05-08T23:01:00.12345")
         test_pd_td = pd.Timedelta(days=2193, hours=12)
-        test_dtindex = pd.date_range(start="1939-09-01T",
-                                     end="1939-10-06",
-                                     freq="12H")
+        test_dtindex = pd.date_range(start="1939-09-01T", end="1939-10-06", freq="12H")
         test_series = pd.Series({"series_name": [0, 1, 2, 3, 4, 5]})
-        test_df = pd.DataFrame({"string_col": ["a", "b", "c", "d"],
-                                "int_col": [0, 1, 2, 3],
-                                "float_col": [1.1, 2.2, 3.3, 4.4],
-                                "bool_col": [True, False, False, True]})
+        test_df = pd.DataFrame(
+            {
+                "string_col": ["a", "b", "c", "d"],
+                "int_col": [0, 1, 2, 3],
+                "float_col": [1.1, 2.2, 3.3, 4.4],
+                "bool_col": [True, False, False, True],
+            }
+        )
 
     class Foobar(object):
-
         def __init__(self):
             self.text = "toto"
             self.testdict = testdict
             self.testdate = testdate
 
     foobar = Foobar()
-    return {'object': foobar,
-            'module': np,
-            'str': 'kjkj kj k j j kj k jkj',
-            'unicode': to_text_string('éù', 'utf-8'),
-            'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
-            'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
-            'tuple': ([1, testdate, testdict, test_timedelta], 'kjkj', None),
-            'dict': testdict,
-            'float': 1.2233,
-            'int': 223,
-            'bool': True,
-            'array': np.random.rand(10, 10).astype(np.int64),
-            'masked_array': np.ma.array([[1, 0], [1, 0]],
-                                        mask=[[True, False], [False, False]]),
-            '1D-array': np.linspace(-10, 10).astype(np.float16),
-            '3D-array': np.random.randint(2, size=(5, 5, 5)).astype(np.bool_),
-            'empty_array': np.array([]),
-            'image': image,
-            'date': testdate,
-            'datetime': datetime.datetime(1945, 5, 8, 23, 1, 0, int(1.5e5)),
-            'timedelta': test_timedelta,
-            'complex': 2+1j,
-            'complex64': np.complex64(2+1j),
-            'complex128': np.complex128(9j),
-            'int8_scalar': np.int8(8),
-            'int16_scalar': np.int16(16),
-            'int32_scalar': np.int32(32),
-            'int64_scalar': np.int64(64),
-            'float16_scalar': np.float16(16),
-            'float32_scalar': np.float32(32),
-            'float64_scalar': np.float64(64),
-            'bool_scalar': np.bool(8),
-            'bool__scalar': np.bool_(8),
-            'timestamp': test_timestamp,
-            'timedelta_pd': test_pd_td,
-            'datetimeindex': test_dtindex,
-            'series': test_series,
-            'ddataframe': test_df,
-            'None': None,
-            'unsupported1': np.arccos,
-            'unsupported2': np.cast,
-            # Test for spyder-ide/spyder#3518.
-            'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
-                                                      ('param1', 'f8', 5000)]),
-            }
+    return {
+        "object": foobar,
+        "module": np,
+        "str": "kjkj kj k j j kj k jkj",
+        "unicode": to_text_string("éù", "utf-8"),
+        "list": [1, 3, [sorted, 5, 6], "kjkj", None],
+        "set": {1, 2, 1, 3, None, "A", "B", "C", True, False},
+        "tuple": ([1, testdate, testdict, test_timedelta], "kjkj", None),
+        "dict": testdict,
+        "float": 1.2233,
+        "int": 223,
+        "bool": True,
+        "array": np.random.rand(10, 10).astype(np.int64),
+        "masked_array": np.ma.array(
+            [[1, 0], [1, 0]], mask=[[True, False], [False, False]]
+        ),
+        "1D-array": np.linspace(-10, 10).astype(np.float16),
+        "3D-array": np.random.randint(2, size=(5, 5, 5)).astype(np.bool_),
+        "empty_array": np.array([]),
+        "image": image,
+        "date": testdate,
+        "datetime": datetime.datetime(1945, 5, 8, 23, 1, 0, int(1.5e5)),
+        "timedelta": test_timedelta,
+        "complex": 2 + 1j,
+        "complex64": np.complex64(2 + 1j),
+        "complex128": np.complex128(9j),
+        "int8_scalar": np.int8(8),
+        "int16_scalar": np.int16(16),
+        "int32_scalar": np.int32(32),
+        "int64_scalar": np.int64(64),
+        "float16_scalar": np.float16(16),
+        "float32_scalar": np.float32(32),
+        "float64_scalar": np.float64(64),
+        "bool_scalar": np.bool(8),
+        "bool__scalar": np.bool_(8),
+        "timestamp": test_timestamp,
+        "timedelta_pd": test_pd_td,
+        "datetimeindex": test_dtindex,
+        "series": test_series,
+        "ddataframe": test_df,
+        "None": None,
+        "unsupported1": np.arccos,
+        "unsupported2": np.cast,
+        # Test for spyder-ide/spyder#3518.
+        "big_struct_array": np.zeros(
+            1000, dtype=[("ID", "f8"), ("param1", "f8", 5000)]
+        ),
+    }
 
 
 def editor_test():
@@ -1890,12 +1973,11 @@ def editor_test():
 def remote_editor_test():
     """Test remote collections editor."""
     from spyder.config.manager import CONF
-    from spyder_kernels.utils.nsview import (make_remote_view,
-                                             REMOTE_SETTINGS)
+    from spyder_kernels.utils.nsview import make_remote_view, REMOTE_SETTINGS
 
     settings = {}
     for name in REMOTE_SETTINGS:
-        settings[name] = CONF.get('variable_explorer', name)
+        settings[name] = CONF.get("variable_explorer", name)
 
     remote = make_remote_view(get_test_data(), settings)
     dialog = CollectionsEditor()

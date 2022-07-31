@@ -16,8 +16,7 @@ from qtpy.QtWidgets import QDialogButtonBox
 
 # Local imports
 from spyder.config.base import running_in_ci
-from spyder.plugins.ipythonconsole.widgets.kernelconnect import (
-    KernelConnectionDialog)
+from spyder.plugins.ipythonconsole.widgets.kernelconnect import KernelConnectionDialog
 from spyder.config.manager import CONF
 
 
@@ -27,6 +26,7 @@ from spyder.config.manager import CONF
 @pytest.fixture
 def connection_dialog_factory(qtbot, request):
     """Set up kernel connection dialog."""
+
     class DialogFactory(object):
         def get_default_dialog(self):
             dialog = KernelConnectionDialog()
@@ -83,10 +83,9 @@ def connection_dialog_factory(qtbot, request):
 
         try:
             import keyring
-            keyring.set_password("spyder_remote_kernel",
-                                 "ssh_key_passphrase", "")
-            keyring.set_password("spyder_remote_kernel",
-                                 "ssh_password", "")
+
+            keyring.set_password("spyder_remote_kernel", "ssh_key_passphrase", "")
+            keyring.set_password("spyder_remote_kernel", "ssh_password", "")
         except Exception:
             pass
 
@@ -107,19 +106,20 @@ def connection_dialog_factory(qtbot, request):
 # Tests
 # =============================================================================
 def test_connection_dialog_remembers_input_with_ssh_passphrase(
-        qtbot, connection_dialog_factory):
+    qtbot, connection_dialog_factory
+):
     """
     Test that the dialog remembers the user's kernel connection
     settings and ssh key passphrase when the user checks the
     save checkbox.
     """
 
-    dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
-                                                         save_settings=True)
+    dlg = connection_dialog_factory.submit_filled_dialog(
+        use_keyfile=True, save_settings=True
+    )
 
     # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok), Qt.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -134,19 +134,20 @@ def test_connection_dialog_remembers_input_with_ssh_passphrase(
 
 
 def test_connection_dialog_doesnt_remember_input_with_ssh_passphrase(
-        qtbot, connection_dialog_factory):
+    qtbot, connection_dialog_factory
+):
     """
     Test that the dialog doesn't remember the user's kernel
     connection settings and ssh key passphrase when the user doesn't
     check the save checkbox.
     """
 
-    dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
-                                                         save_settings=False)
+    dlg = connection_dialog_factory.submit_filled_dialog(
+        use_keyfile=True, save_settings=False
+    )
 
     # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok), Qt.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -161,18 +162,19 @@ def test_connection_dialog_doesnt_remember_input_with_ssh_passphrase(
 
 
 def test_connection_dialog_remembers_input_with_password(
-        qtbot, connection_dialog_factory):
+    qtbot, connection_dialog_factory
+):
     """
     Test that the dialog remembers the user's kernel connection
     settings and ssh password when the user checks the save checkbox.
     """
 
-    dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
-                                                         save_settings=True)
+    dlg = connection_dialog_factory.submit_filled_dialog(
+        use_keyfile=False, save_settings=True
+    )
 
     # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok), Qt.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -186,19 +188,20 @@ def test_connection_dialog_remembers_input_with_password(
 
 
 def test_connection_dialog_doesnt_remember_input_with_password(
-        qtbot, connection_dialog_factory):
+    qtbot, connection_dialog_factory
+):
     """
     Test that the dialog doesn't remember the user's kernel
     connection settings and ssh password when the user doesn't
     check the save checkbox.
     """
 
-    dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
-                                                         save_settings=False)
+    dlg = connection_dialog_factory.submit_filled_dialog(
+        use_keyfile=False, save_settings=False
+    )
 
     # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok), Qt.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()

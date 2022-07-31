@@ -36,16 +36,16 @@ def test_site_config_load():
     clear_site_config()
 
     for i, path in enumerate(reversed(get_conf_paths())):
-        exp_value = 100*(1 + i)
-        content = '[main]\nmemory_usage/timeout = ' + str(exp_value) + '\n'
+        exp_value = 100 * (1 + i)
+        content = "[main]\nmemory_usage/timeout = " + str(exp_value) + "\n"
 
-        conf_fpath = os.path.join(path, 'spyder.ini')
-        with open(conf_fpath, 'w') as fh:
+        conf_fpath = os.path.join(path, "spyder.ini")
+        with open(conf_fpath, "w") as fh:
             fh.write(content)
 
         config = ConfigurationManager()
         config.reset_to_defaults()
-        value = config.get('main', 'memory_usage/timeout')
+        value = config.get("main", "memory_usage/timeout")
 
         print(path, value, exp_value)
         assert value == exp_value
@@ -73,8 +73,8 @@ foo/bar = Alt+1
 [ipython_console]
 startup/run_lines =
 """
-    conf_fpath = get_conf_path('spyder.ini')
-    with open(conf_fpath, 'w') as f:
+    conf_fpath = get_conf_path("spyder.ini")
+    with open(conf_fpath, "w") as f:
         f.write(spy3_config)
 
     # Create config manager
@@ -83,16 +83,17 @@ startup/run_lines =
     # Set default options for the internal console
     Console.CONF_FILE = True
     defaults = [
-        ('internal_console',
-         {
-            'max_line_count': 300,
-            'working_dir_history': 30,
-            'working_dir_adjusttocontents': False,
-            'wrap': True,
-            'codecompletion/auto': False,
-            'external_editor/path': 'SciTE',
-            'external_editor/gotoline': '-goto:'
-         }
+        (
+            "internal_console",
+            {
+                "max_line_count": 300,
+                "working_dir_history": 30,
+                "working_dir_adjusttocontents": False,
+                "wrap": True,
+                "codecompletion/auto": False,
+                "external_editor/path": "SciTE",
+                "external_editor/gotoline": "-goto:",
+            },
         ),
     ]
     Console.CONF_DEFAULTS = defaults
@@ -102,24 +103,24 @@ startup/run_lines =
 
     # Assert the dummy shortcut is not present in the plugin config
     with pytest.raises(configparser.NoSectionError):
-        manager.get_shortcut('foo', 'bar', plugin_name='internal_console')
+        manager.get_shortcut("foo", "bar", plugin_name="internal_console")
 
     # Change an option in the console
     console = Console(None, configuration=manager)
-    console.set_conf('max_line_count', 600)
+    console.set_conf("max_line_count", 600)
 
     # Read config filew directly
     user_path = manager.get_user_config_path()
-    with open(osp.join(user_path, 'spyder.ini'), 'r') as f:
+    with open(osp.join(user_path, "spyder.ini"), "r") as f:
         user_contents = f.read()
 
-    plugin_path = manager.get_plugin_config_path('internal_console')
-    with open(osp.join(plugin_path, 'spyder.ini'), 'r') as f:
+    plugin_path = manager.get_plugin_config_path("internal_console")
+    with open(osp.join(plugin_path, "spyder.ini"), "r") as f:
         plugin_contents = f.read()
 
     # Assert that the change was written to the right config file
-    assert 'max_line_count = 600' not in user_contents
-    assert 'max_line_count = 600' in plugin_contents
+    assert "max_line_count = 600" not in user_contents
+    assert "max_line_count = 600" in plugin_contents
 
     shutil.rmtree(plugin_path)
     Console.CONF_FILE = False

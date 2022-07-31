@@ -10,6 +10,7 @@
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMessageBox, QApplication
 
+
 def close_message_box(qtbot):
     """
     Closes QMessageBox's that can appear when testing.

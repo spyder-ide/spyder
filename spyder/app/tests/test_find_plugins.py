@@ -14,8 +14,7 @@ import pytest
 
 from spyder.api.plugins import Plugins
 from spyder.api.utils import get_class_values
-from spyder.app.find_plugins import (
-    find_internal_plugins, find_external_plugins)
+from spyder.app.find_plugins import find_internal_plugins, find_external_plugins
 from spyder.config.base import running_in_ci
 
 
@@ -40,12 +39,12 @@ def test_find_internal_plugins():
 def test_find_external_plugins():
     """Test that we return the external plugins installed when testing."""
     internal_names = get_class_values(Plugins)
-    expected_names = ['spyder_boilerplate']
+    expected_names = ["spyder_boilerplate"]
     expected_special_attrs = {
-        'spyder_boilerplate': [
-            'spyder_boilerplate.spyder.plugin',
-            'spyder-boilerplate',
-            '0.0.1'
+        "spyder_boilerplate": [
+            "spyder_boilerplate.spyder.plugin",
+            "spyder-boilerplate",
+            "0.0.1",
         ]
     }
 
@@ -68,7 +67,7 @@ def test_find_external_plugins():
         special_attrs = [
             plugin_class._spyder_module_name,
             plugin_class._spyder_package_name,
-            plugin_class._spyder_version
+            plugin_class._spyder_version,
         ]
 
         assert expected_special_attrs[name] == special_attrs

@@ -28,18 +28,18 @@ from spyder import __version__
 from spyder.py3compat import is_unicode, PY3, to_text_string, is_text_string
 from spyder.utils import encoding
 
-#==============================================================================
+# ==============================================================================
 # Only for development
-#==============================================================================
+# ==============================================================================
 # To activate/deactivate certain things for development
 # SPYDER_DEV is (and *only* has to be) set in bootstrap.py
-DEV = os.environ.get('SPYDER_DEV')
+DEV = os.environ.get("SPYDER_DEV")
 
 # Manually override whether the dev configuration directory is used.
-USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
+USE_DEV_CONFIG_DIR = os.environ.get("SPYDER_USE_DEV_CONFIG_DIR")
 
 # Get a random id for the safe-mode config dir
-CLEAN_DIR_ID = str(uuid.uuid4()).split('-')[-1]
+CLEAN_DIR_ID = str(uuid.uuid4()).split("-")[-1]
 
 
 def get_safe_mode():
@@ -47,7 +47,7 @@ def get_safe_mode():
     Make Spyder use a temp clean configuration directory for testing
     purposes SPYDER_SAFE_MODE can be set using the --safe-mode option.
     """
-    return bool(os.environ.get('SPYDER_SAFE_MODE'))
+    return bool(os.environ.get("SPYDER_SAFE_MODE"))
 
 
 def running_under_pytest():
@@ -57,17 +57,17 @@ def running_under_pytest():
     This function is used to do some adjustment for testing. The environment
     variable SPYDER_PYTEST is defined in conftest.py.
     """
-    return bool(os.environ.get('SPYDER_PYTEST'))
+    return bool(os.environ.get("SPYDER_PYTEST"))
 
 
 def running_in_ci():
     """Return True if currently running under CI."""
-    return bool(os.environ.get('CI'))
+    return bool(os.environ.get("CI"))
 
 
 def running_in_ci_with_conda():
     """Return True if currently running under CI with conda packages."""
-    return running_in_ci() and bool(os.environ.get('USE_CONDA'))
+    return running_in_ci() and bool(os.environ.get("USE_CONDA"))
 
 
 def is_stable_version(version):
@@ -78,10 +78,10 @@ def is_stable_version(version):
     Non-stable version examples: ``1.3.4beta``, ``0.1.0rc1``, ``3.0.0dev0``.
     """
     if not isinstance(version, tuple):
-        version = version.split('.')
+        version = version.split(".")
     last_part = version[-1]
 
-    if not re.search(r'[a-zA-Z]', last_part):
+    if not re.search(r"[a-zA-Z]", last_part):
         return True
     else:
         return False
@@ -90,7 +90,7 @@ def is_stable_version(version):
 def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
     """Return whether the dev configuration directory should used."""
     if use_dev_config_dir is not None:
-        if use_dev_config_dir.lower() in {'false', '0'}:
+        if use_dev_config_dir.lower() in {"false", "0"}:
             use_dev_config_dir = False
     else:
         use_dev_config_dir = DEV or not is_stable_version(__version__)
@@ -98,16 +98,16 @@ def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
     return use_dev_config_dir
 
 
-#==============================================================================
+# ==============================================================================
 # Debug helpers
-#==============================================================================
+# ==============================================================================
 # This is needed after restarting and using debug_print
-STDOUT = sys.stdout if PY3 else codecs.getwriter('utf-8')(sys.stdout)
+STDOUT = sys.stdout if PY3 else codecs.getwriter("utf-8")(sys.stdout)
 STDERR = sys.stderr
 
 
 def get_debug_level():
-    debug_env = os.environ.get('SPYDER_DEBUG', '')
+    debug_env = os.environ.get("SPYDER_DEBUG", "")
     if not debug_env.isdigit():
         debug_env = bool(debug_env)
     return int(debug_env)
@@ -121,15 +121,15 @@ def debug_print(*message):
         if PY3:
             # This is needed after restarting and using debug_print
             for m in message:
-                ss.buffer.write(str(m).encode('utf-8'))
-            print('', file=ss)
+                ss.buffer.write(str(m).encode("utf-8"))
+            print("", file=ss)
         else:
             print(*message, file=ss)
 
 
-#==============================================================================
+# ==============================================================================
 # Configuration paths
-#==============================================================================
+# ==============================================================================
 def get_conf_subfolder():
     """Return the configuration subfolder for different ooperating systems."""
     # Spyder settings dir
@@ -137,10 +137,10 @@ def get_conf_subfolder():
     # since 3.0+ we've reverted back to use .spyder to simplify major
     # updates in version (required when we change APIs by Linux
     # packagers)
-    if sys.platform.startswith('linux'):
-        SUBFOLDER = 'spyder'
+    if sys.platform.startswith("linux"):
+        SUBFOLDER = "spyder"
     else:
-        SUBFOLDER = '.spyder'
+        SUBFOLDER = ".spyder"
 
     # We can't have PY2 and PY3 settings in the same dir because:
     # 1. This leads to ugly crashes and freezes (e.g. by trying to
@@ -148,20 +148,20 @@ def get_conf_subfolder():
     # 2. We need to save the list of installed modules (for code
     #    completion) separately for each version
     if PY3:
-        SUBFOLDER = SUBFOLDER + '-py3'
+        SUBFOLDER = SUBFOLDER + "-py3"
 
     # If running a development/beta version, save config in a separate
     # directory to avoid wiping or contaiminating the user's saved stable
     # configuration.
     if use_dev_config_dir():
-        SUBFOLDER = SUBFOLDER + '-dev'
+        SUBFOLDER = SUBFOLDER + "-dev"
 
     return SUBFOLDER
 
 
 def get_project_config_folder():
     """Return the default project configuration folder."""
-    return '.spyproject'
+    return ".spyproject"
 
 
 def get_home_dir():
@@ -170,28 +170,30 @@ def get_home_dir():
         # expanduser() returns a raw byte string which needs to be
         # decoded with the codec that the OS is using to represent
         # file paths.
-        path = encoding.to_unicode_from_fs(osp.expanduser('~'))
+        path = encoding.to_unicode_from_fs(osp.expanduser("~"))
     except Exception:
-        path = ''
+        path = ""
 
     if osp.isdir(path):
         return path
     else:
         # Get home from alternative locations
-        for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+        for env_var in ("HOME", "USERPROFILE", "TMP"):
             # os.environ.get() returns a raw byte string which needs to be
             # decoded with the codec that the OS is using to represent
             # environment variables.
-            path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
+            path = encoding.to_unicode_from_fs(os.environ.get(env_var, ""))
             if osp.isdir(path):
                 return path
             else:
-                path = ''
+                path = ""
 
         if not path:
-            raise RuntimeError('Please set the environment variable HOME to '
-                               'your user/home directory path so Spyder can '
-                               'start properly.')
+            raise RuntimeError(
+                "Please set the environment variable HOME to "
+                "your user/home directory path so Spyder can "
+                "start properly."
+            )
 
 
 def get_clean_conf_dir():
@@ -200,7 +202,7 @@ def get_clean_conf_dir():
     """
     conf_dir = osp.join(
         tempfile.gettempdir(),
-        'spyder-clean-conf-dirs',
+        "spyder-clean-conf-dirs",
         CLEAN_DIR_ID,
     )
     return conf_dir
@@ -211,13 +213,13 @@ def get_custom_conf_dir():
     Use a custom configuration directory, passed through our command
     line options or by setting the env var below.
     """
-    custom_dir = os.environ.get('SPYDER_CONFDIR')
+    custom_dir = os.environ.get("SPYDER_CONFDIR")
     if custom_dir:
         custom_dir = osp.abspath(custom_dir)
 
         # Set env var to not lose its value in future calls when the cwd
         # is changed by Spyder.
-        os.environ['SPYDER_CONFDIR'] = custom_dir
+        os.environ["SPYDER_CONFDIR"] = custom_dir
         return custom_dir
 
 
@@ -231,12 +233,12 @@ def get_conf_path(filename=None):
         # Use a custom directory if the user decided to do it through
         # our command line options.
         conf_dir = get_custom_conf_dir()
-    elif sys.platform.startswith('linux'):
+    elif sys.platform.startswith("linux"):
         # This makes us follow the XDG standard to save our settings
         # on Linux, as it was requested on spyder-ide/spyder#2629.
-        xdg_config_home = os.environ.get('XDG_CONFIG_HOME', '')
+        xdg_config_home = os.environ.get("XDG_CONFIG_HOME", "")
         if not xdg_config_home:
-            xdg_config_home = osp.join(get_home_dir(), '.config')
+            xdg_config_home = osp.join(get_home_dir(), ".config")
 
         if not osp.isdir(xdg_config_home):
             os.makedirs(xdg_config_home)
@@ -260,33 +262,27 @@ def get_conf_path(filename=None):
 
 def get_conf_paths():
     """Return the files that can update system configuration defaults."""
-    CONDA_PREFIX = os.environ.get('CONDA_PREFIX', None)
+    CONDA_PREFIX = os.environ.get("CONDA_PREFIX", None)
 
-    if os.name == 'nt':
-        SEARCH_PATH = (
-            'C:/ProgramData/spyder',
-        )
+    if os.name == "nt":
+        SEARCH_PATH = ("C:/ProgramData/spyder",)
     else:
         SEARCH_PATH = (
-            '/etc/spyder',
-            '/usr/local/etc/spyder',
+            "/etc/spyder",
+            "/usr/local/etc/spyder",
         )
 
     if CONDA_PREFIX is not None:
-        CONDA_PREFIX = CONDA_PREFIX.replace('\\', '/')
-        SEARCH_PATH += (
-            '{}/etc/spyder'.format(CONDA_PREFIX),
-        )
+        CONDA_PREFIX = CONDA_PREFIX.replace("\\", "/")
+        SEARCH_PATH += ("{}/etc/spyder".format(CONDA_PREFIX),)
 
-    SEARCH_PATH += (
-        '{}/etc/spyder'.format(sys.prefix),
-    )
+    SEARCH_PATH += ("{}/etc/spyder".format(sys.prefix),)
 
     if running_under_pytest():
         search_paths = []
         tmpfolder = str(tempfile.gettempdir())
         for i in range(3):
-            path = os.path.join(tmpfolder, 'site-config-' + str(i))
+            path = os.path.join(tmpfolder, "site-config-" + str(i))
             if not os.path.isdir(path):
                 os.makedirs(path)
             search_paths.append(path)
@@ -300,12 +296,12 @@ def get_module_path(modname):
     return osp.abspath(osp.dirname(sys.modules[modname].__file__))
 
 
-def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
+def get_module_data_path(modname, relpath=None, attr_name="DATAPATH"):
     """Return module *modname* data path
     Note: relpath is ignored if module has an attribute named *attr_name*
 
     Handles py2exe/cx_Freeze distributions"""
-    datapath = getattr(sys.modules[modname], attr_name, '')
+    datapath = getattr(sys.modules[modname], attr_name, "")
     if datapath:
         return datapath
     else:
@@ -314,8 +310,7 @@ def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
         if osp.isfile(parentdir):
             # Parent directory is not a directory but the 'library.zip' file:
             # this is either a py2exe or a cx_Freeze distribution
-            datapath = osp.abspath(osp.join(osp.join(parentdir, osp.pardir),
-                                            modname))
+            datapath = osp.abspath(osp.join(osp.join(parentdir, osp.pardir), modname))
         if relpath is not None:
             datapath = osp.abspath(osp.join(datapath, relpath))
         return datapath
@@ -335,8 +330,7 @@ def get_module_source_path(modname, basename=None):
     if osp.isfile(parentdir):
         # Parent directory is not a directory but the 'library.zip' file:
         # this is either a py2exe or a cx_Freeze distribution
-        srcpath = osp.abspath(osp.join(osp.join(parentdir, osp.pardir),
-                                       modname))
+        srcpath = osp.abspath(osp.join(osp.join(parentdir, osp.pardir), modname))
     if basename is not None:
         srcpath = osp.abspath(osp.join(srcpath, basename))
     return srcpath
@@ -344,42 +338,41 @@ def get_module_source_path(modname, basename=None):
 
 def is_py2exe_or_cx_Freeze():
     """Return True if this is a py2exe/cx_Freeze distribution of Spyder"""
-    return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
+    return osp.isfile(osp.join(get_module_path("spyder"), osp.pardir))
 
 
 def is_pynsist():
     """Return True if this is a pynsist installation of Spyder."""
     base_path = osp.abspath(osp.dirname(__file__))
-    pkgs_path = osp.abspath(
-        osp.join(base_path, '..', '..', '..', 'pkgs'))
-    if os.environ.get('PYTHONPATH') is not None:
-        return pkgs_path in os.environ.get('PYTHONPATH')
+    pkgs_path = osp.abspath(osp.join(base_path, "..", "..", "..", "pkgs"))
+    if os.environ.get("PYTHONPATH") is not None:
+        return pkgs_path in os.environ.get("PYTHONPATH")
     return False
 
 
-#==============================================================================
+# ==============================================================================
 # Translations
-#==============================================================================
-LANG_FILE = get_conf_path('langconfig')
-DEFAULT_LANGUAGE = 'en'
+# ==============================================================================
+LANG_FILE = get_conf_path("langconfig")
+DEFAULT_LANGUAGE = "en"
 
 # This needs to be updated every time a new language is added to spyder, and is
 # used by the Preferences configuration to populate the Language QComboBox
 LANGUAGE_CODES = {
-    'en': u'English',
-    'fr': u'Français',
-    'es': u'Español',
-    'hu': u'Magyar',
-    'pt_BR': u'Português',
-    'ru': u'Русский',
-    'zh_CN': u'简体中文',
-    'ja': u'日本語',
-    'de': u'Deutsch',
-    'pl': u'Polski'
+    "en": "English",
+    "fr": "Français",
+    "es": "Español",
+    "hu": "Magyar",
+    "pt_BR": "Português",
+    "ru": "Русский",
+    "zh_CN": "简体中文",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "pl": "Polski",
 }
 
 # Disabled languages because their translations are outdated or incomplete
-DISABLED_LANGUAGES = ['hu', 'pl']
+DISABLED_LANGUAGES = ["hu", "pl"]
 
 
 def get_available_translations():
@@ -389,8 +382,9 @@ def get_available_translations():
     information that is found in the 'locale' folder to ensure that when a new
     language is added, LANGUAGE_CODES is updated.
     """
-    locale_path = get_module_data_path("spyder", relpath="locale",
-                                       attr_name='LOCALEPATH')
+    locale_path = get_module_data_path(
+        "spyder", relpath="locale", attr_name="LOCALEPATH"
+    )
     listdir = os.listdir(locale_path)
     langs = [d for d in listdir if osp.isdir(osp.join(locale_path, d))]
     langs = [DEFAULT_LANGUAGE] + langs
@@ -403,10 +397,12 @@ def get_available_translations():
     for lang in langs:
         if lang not in LANGUAGE_CODES:
             if DEV:
-                error = ('Update LANGUAGE_CODES (inside config/base.py) if a '
-                         'new translation has been added to Spyder')
+                error = (
+                    "Update LANGUAGE_CODES (inside config/base.py) if a "
+                    "new translation has been added to Spyder"
+                )
                 print(error)  # spyder: test-skip
-            return ['en']
+            return ["en"]
     return langs
 
 
@@ -442,8 +438,7 @@ def get_interface_language():
             if locale_language == lang:
                 language = locale_language
                 break
-            elif (locale_language.startswith(lang) or
-                    lang.startswith(locale_language)):
+            elif locale_language.startswith(lang) or lang.startswith(locale_language):
                 language = lang
                 break
 
@@ -456,7 +451,7 @@ def save_lang_conf(value):
     # but the operation fails for some reason.
     # See spyder-ide/spyder#8807.
     try:
-        with open(LANG_FILE, 'w') as f:
+        with open(LANG_FILE, "w") as f:
             f.write(value)
     except EnvironmentError:
         pass
@@ -469,14 +464,14 @@ def load_lang_conf():
     return the default if no translation provided.
     """
     if osp.isfile(LANG_FILE):
-        with open(LANG_FILE, 'r') as f:
+        with open(LANG_FILE, "r") as f:
             lang = f.read()
     else:
         lang = get_interface_language()
         save_lang_conf(lang)
 
     # Save language again if it's been disabled
-    if lang.strip('\n') in DISABLED_LANGUAGES:
+    if lang.strip("\n") in DISABLED_LANGUAGES:
         lang = DEFAULT_LANGUAGE
         save_lang_conf(lang)
 
@@ -494,24 +489,26 @@ def get_translation(modname, dirname=None):
             return to_text_string(x, "utf-8")
         return x
 
-    locale_path = get_module_data_path(dirname, relpath="locale",
-                                       attr_name='LOCALEPATH')
+    locale_path = get_module_data_path(
+        dirname, relpath="locale", attr_name="LOCALEPATH"
+    )
 
     # If LANG is defined in Ubuntu, a warning message is displayed,
     # so in Unix systems we define the LANGUAGE variable.
     language = load_lang_conf()
-    if os.name == 'nt':
+    if os.name == "nt":
         # Trying to set LANG on Windows can fail when Spyder is
         # run with admin privileges.
         # Fixes spyder-ide/spyder#6886.
         try:
-            os.environ["LANG"] = language      # Works on Windows
+            os.environ["LANG"] = language  # Works on Windows
         except Exception:
             return translate_dumb
     else:
         os.environ["LANGUAGE"] = language  # Works on Linux
 
     import gettext
+
     try:
         _trans = gettext.translation(modname, locale_path, codeset="utf-8")
         lgettext = _trans.lgettext
@@ -524,6 +521,7 @@ def get_translation(modname, dirname=None):
                 return y
             else:
                 return to_text_string(y, "utf-8")
+
         return translate_gettext
     except Exception:
         return translate_dumb
@@ -533,22 +531,39 @@ def get_translation(modname, dirname=None):
 _ = get_translation("spyder")
 
 
-#==============================================================================
+# ==============================================================================
 # Namespace Browser (Variable Explorer) configuration management
-#==============================================================================
+# ==============================================================================
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
 CHECK_ALL = False  # XXX: If True, this should take too much to compute...
 
-EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
-                  'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
-                  'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
-                  'sctypeNA', 'typeNA', 'False_', 'True_']
+EXCLUDED_NAMES = [
+    "nan",
+    "inf",
+    "infty",
+    "little_endian",
+    "colorbar_doc",
+    "typecodes",
+    "__builtins__",
+    "__main__",
+    "__doc__",
+    "NaN",
+    "Inf",
+    "Infinity",
+    "sctypes",
+    "rcParams",
+    "rcParamsDefault",
+    "sctypeNA",
+    "typeNA",
+    "False_",
+    "True_",
+]
 
 
-#==============================================================================
+# ==============================================================================
 # Mac application utilities
-#==============================================================================
+# ==============================================================================
 def running_in_mac_app(pyexec=None):
     """
     Check if Python executable is located inside a standalone Mac app.
@@ -564,7 +579,7 @@ def running_in_mac_app(pyexec=None):
 
     bpath = get_mac_app_bundle_path()
 
-    if bpath and pyexec == osp.join(bpath, 'Contents/MacOS/python'):
+    if bpath and pyexec == osp.join(bpath, "Contents/MacOS/python"):
         return True
     else:
         return False
@@ -578,7 +593,7 @@ def get_mac_app_bundle_path():
     bundle. In which case it will always end with
     "/<app name>.app/Conents/MacOS/Spyder".
     """
-    app_exe_path = os.environ.get('EXECUTABLEPATH', None)
+    app_exe_path = os.environ.get("EXECUTABLEPATH", None)
     if sys.platform == "darwin" and app_exe_path:
         return osp.dirname(osp.dirname(osp.dirname(osp.abspath(app_exe_path))))
     else:
@@ -591,29 +606,45 @@ def get_mac_app_bundle_path():
 def get_spyder_umamba_path():
     """Return the path to the Micromamba executable bundled with Spyder."""
     if running_in_mac_app():
-        path = osp.join(osp.dirname(osp.dirname(__file__)),
-                        'bin', 'micromamba')
+        path = osp.join(osp.dirname(osp.dirname(__file__)), "bin", "micromamba")
     elif is_pynsist():
-        path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
-                                    'bin', 'micromamba.exe'))
+        path = osp.abspath(
+            osp.join(osp.dirname(osp.dirname(__file__)), "bin", "micromamba.exe")
+        )
     else:
         path = None
 
     return path
 
 
-#==============================================================================
+# ==============================================================================
 # Reset config files
-#==============================================================================
-SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
-                      'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
-                      'history.py', 'history_internal.py', 'workingdir',
-                      '.projects', '.spyproject', '.ropeproject',
-                      'monitor.log', 'monitor_debug.log', 'rope.log',
-                      'langconfig', 'spyder.lock',
-                      'config{}spyder.ini'.format(os.sep),
-                      'config{}transient.ini'.format(os.sep),
-                      'lsp_root_path', 'plugins')
+# ==============================================================================
+SAVED_CONFIG_FILES = (
+    "help",
+    "onlinehelp",
+    "path",
+    "pylint.results",
+    "spyder.ini",
+    "temp.py",
+    "temp.spydata",
+    "template.py",
+    "history.py",
+    "history_internal.py",
+    "workingdir",
+    ".projects",
+    ".spyproject",
+    ".ropeproject",
+    "monitor.log",
+    "monitor_debug.log",
+    "rope.log",
+    "langconfig",
+    "spyder.lock",
+    "config{}spyder.ini".format(os.sep),
+    "config{}transient.ini".format(os.sep),
+    "lsp_root_path",
+    "plugins",
+)
 
 
 def reset_config_files():

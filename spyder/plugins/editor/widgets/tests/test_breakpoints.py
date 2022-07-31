@@ -25,7 +25,7 @@ from spyder.plugins.editor.utils import debugger
 # -----------------------------------------------------------------------------
 def reset_emits(editor):
     "Reset signal mocks."
-    if version_info > (4, ):
+    if version_info > (4,):
         editor.sig_flags_changed.reset_mock()
     editor.sig_breakpoints_changed_called = False
 
@@ -44,11 +44,11 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
     assert data.breakpoint == bp
     assert data.breakpoint_condition == bpc
     if emits:
-        if version_info > (4, ):
+        if version_info > (4,):
             editor.sig_flags_changed.emit.assert_called_with()
         assert editor.sig_breakpoints_changed_called
     else:
-        if version_info > (4, ):
+        if version_info > (4,):
             editor.sig_flags_changed.emit.assert_not_called()
         assert not editor.sig_breakpoints_changed_called
 
@@ -59,13 +59,16 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
 def code_editor_bot(qtbot):
     """Create code editor with default Python code."""
     editor = codeeditor.CodeEditor(parent=None)
-    indent_chars = ' ' * 4
+    indent_chars = " " * 4
     tab_stop_width_spaces = 4
-    editor.setup_editor(language='Python', indent_chars=indent_chars,
-                        tab_stop_width_spaces=tab_stop_width_spaces)
+    editor.setup_editor(
+        language="Python",
+        indent_chars=indent_chars,
+        tab_stop_width_spaces=tab_stop_width_spaces,
+    )
     # Mock the screen updates and signal emits to test when they've been
     # called.
-    if version_info > (4, ):
+    if version_info > (4,):
         editor.sig_flags_changed = Mock()
     else:
         editor.get_linenumberarea_width = Mock(return_value=1)
@@ -75,12 +78,13 @@ def code_editor_bot(qtbot):
 
     editor.sig_breakpoints_changed_called = False
     editor.sig_breakpoints_changed.connect(mark_called)
-    text = ('def f1(a, b):\n'
-            '"Double quote string."\n'
-            '\n'  # Blank line.
-            '    c = a * b\n'
-            '    return c\n'
-            )
+    text = (
+        "def f1(a, b):\n"
+        '"Double quote string."\n'
+        "\n"  # Blank line.
+        "    c = a * b\n"
+        "    return c\n"
+    )
     editor.set_text(text)
     return editor, qtbot
 
@@ -92,7 +96,7 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     editor, qtbot = code_editor_bot
     arb = editor.debugger.toogle_breakpoint
 
-    mocker.patch.object(debugger.QInputDialog, 'getText')
+    mocker.patch.object(debugger.QInputDialog, "getText")
 
     editor.go_to_line(1)
     block = editor.textCursor().block()
@@ -102,12 +106,12 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     reset_emits(editor)
     arb()
     assert block  # Block exists.
-    if version_info > (4, ):
+    if version_info > (4,):
         editor.sig_flags_changed.emit.assert_not_called()
     assert not editor.sig_breakpoints_changed_called
 
     # Reset language.
-    editor.set_language('Python')
+    editor.set_language("Python")
 
     # Test with default call on text line containing code.
     reset_emits(editor)
@@ -129,21 +133,21 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     # Test adding condition on line containing code.
     reset_emits(editor)
     block = editor.document().findBlockByNumber(3)  # Block is one less.
-    arb(line_number=4, condition='a > 50')
-    editor_assert_helper(editor, block, bp=True, bpc='a > 50', emits=True)
+    arb(line_number=4, condition="a > 50")
+    editor_assert_helper(editor, block, bp=True, bpc="a > 50", emits=True)
 
     # Call already set breakpoint with edit condition.
     reset_emits(editor)
-    debugger.QInputDialog.getText.return_value = ('a == 42', False)
+    debugger.QInputDialog.getText.return_value = ("a == 42", False)
     arb(line_number=4, edit_condition=True)
     # Condition not changed because edit was cancelled.
-    editor_assert_helper(editor, block, bp=True, bpc='a > 50', emits=False)
+    editor_assert_helper(editor, block, bp=True, bpc="a > 50", emits=False)
 
     # Condition changed.
-    debugger.QInputDialog.getText.return_value = ('a == 42', True)  # OK.
+    debugger.QInputDialog.getText.return_value = ("a == 42", True)  # OK.
     reset_emits(editor)
     arb(line_number=4, edit_condition=True)
-    editor_assert_helper(editor, block, bp=True, bpc='a == 42', emits=True)
+    editor_assert_helper(editor, block, bp=True, bpc="a == 42", emits=True)
 
 
 def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
@@ -152,7 +156,7 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
 
     editor, qtbot = code_editor_bot
     arb = editor.debugger.toogle_breakpoint
-    mocker.patch.object(debugger.QInputDialog, 'getText')
+    mocker.patch.object(debugger.QInputDialog, "getText")
 
     linenumber = 5
     block = editor.document().findBlockByNumber(linenumber - 1)
@@ -161,27 +165,27 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     # Once a line has a breakpoint set, it remains in userData(), which results
     # in a different behavior when calling the dialog box (tested below).
     reset_emits(editor)
-    debugger.QInputDialog.getText.return_value = ('b == 1', False)
+    debugger.QInputDialog.getText.return_value = ("b == 1", False)
     arb(line_number=linenumber, edit_condition=True)
     data = block.userData()
     assert not data  # Data isn't saved in this case.
     # Confirm scrollflag, and breakpoints not called.
-    if version_info > (4, ):
+    if version_info > (4,):
         editor.sig_flags_changed.emit.assert_not_called()
     assert not editor.sig_breakpoints_changed_called
 
     # Call as if 'OK' button pressed.
     reset_emits(editor)
-    debugger.QInputDialog.getText.return_value = ('b == 1', True)
+    debugger.QInputDialog.getText.return_value = ("b == 1", True)
     arb(line_number=linenumber, edit_condition=True)
-    editor_assert_helper(editor, block, bp=True, bpc='b == 1', emits=True)
+    editor_assert_helper(editor, block, bp=True, bpc="b == 1", emits=True)
 
     # Call again with dialog cancelled - breakpoint is already active.
     reset_emits(editor)
-    debugger.QInputDialog.getText.return_value = ('b == 9', False)
+    debugger.QInputDialog.getText.return_value = ("b == 9", False)
     arb(line_number=linenumber, edit_condition=True)
     # Breakpoint stays active, but signals aren't emitted.
-    editor_assert_helper(editor, block, bp=True, bpc='b == 1', emits=False)
+    editor_assert_helper(editor, block, bp=True, bpc="b == 1", emits=False)
 
     # Remove breakpoint and condition.
     reset_emits(editor)
@@ -190,7 +194,7 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
 
     # Call again with dialog cancelled.
     reset_emits(editor)
-    debugger.QInputDialog.getText.return_value = ('b == 9', False)
+    debugger.QInputDialog.getText.return_value = ("b == 9", False)
     arb(line_number=linenumber, edit_condition=True)
     editor_assert_helper(editor, block, bp=False, bpc=None, emits=False)
 
@@ -201,18 +205,18 @@ def test_get_breakpoints(code_editor_bot):
     arb = editor.debugger.toogle_breakpoint
     gb = editor.debugger.get_breakpoints
 
-    assert(gb() == [])
+    assert gb() == []
 
     # Add breakpoints.
-    bp = [(1, None), (3, None), (4, 'a > 1'), (5, 'c == 10')]
+    bp = [(1, None), (3, None), (4, "a > 1"), (5, "c == 10")]
     editor.debugger.set_breakpoints(bp)
-    assert(gb() == [(1, None), (4, 'a > 1'), (5, 'c == 10')])
+    assert gb() == [(1, None), (4, "a > 1"), (5, "c == 10")]
 
     # Only includes active breakpoints.  Calling add_remove turns the
     # status to inactive, even with a change to condition.
-    arb(line_number=1, condition='a < b')
+    arb(line_number=1, condition="a < b")
     arb(line_number=4)
-    assert(gb() == [(5, 'c == 10')])
+    assert gb() == [(5, "c == 10")]
 
 
 def test_clear_breakpoints(code_editor_bot):
@@ -242,12 +246,12 @@ def test_set_breakpoints(code_editor_bot):
     editor.debugger.set_breakpoints([])
     assert editor.debugger.get_breakpoints() == []
 
-    bp = [(1, 'a > b'), (4, None)]
+    bp = [(1, "a > b"), (4, None)]
     editor.debugger.set_breakpoints(bp)
     assert editor.debugger.get_breakpoints() == bp
     assert list(editor.blockuserdata_list())[0].breakpoint
 
-    bp = [(1, None), (5, 'c == 50')]
+    bp = [(1, None), (5, "c == 50")]
     editor.debugger.set_breakpoints(bp)
     assert editor.debugger.get_breakpoints() == bp
     assert list(editor.blockuserdata_list())[0].breakpoint

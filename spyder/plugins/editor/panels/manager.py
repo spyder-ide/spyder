@@ -35,6 +35,7 @@ class PanelsManager(Manager):
     Manage the list of panels and draw them inside the margins of
     CodeEditor widgets.
     """
+
     def __init__(self, editor):
         super(PanelsManager, self).__init__(editor)
         self._cached_cursor_pos = (-1, -1)
@@ -45,15 +46,14 @@ class PanelsManager(Manager):
             Panel.Position.LEFT: {},
             Panel.Position.RIGHT: {},
             Panel.Position.BOTTOM: {},
-            Panel.Position.FLOATING: {}
+            Panel.Position.FLOATING: {},
         }
         try:
             editor.blockCountChanged.connect(self._update_viewport_margins)
             editor.updateRequest.connect(self._update)
         except AttributeError:
             # QTextEdit
-            editor.document().blockCountChanged.connect(
-                self._update_viewport_margins)
+            editor.document().blockCountChanged.connect(self._update_viewport_margins)
 
     def register(self, panel, position=Panel.Position.LEFT):
         """
@@ -65,19 +65,18 @@ class PanelsManager(Manager):
         """
         assert panel is not None
         pos_to_string = {
-            Panel.Position.BOTTOM: 'bottom',
-            Panel.Position.LEFT: 'left',
-            Panel.Position.RIGHT: 'right',
-            Panel.Position.TOP: 'top',
-            Panel.Position.FLOATING: 'floating'
+            Panel.Position.BOTTOM: "bottom",
+            Panel.Position.LEFT: "left",
+            Panel.Position.RIGHT: "right",
+            Panel.Position.TOP: "top",
+            Panel.Position.FLOATING: "floating",
         }
-        logger.debug('adding panel %s at %s' % (panel.name,
-                                                pos_to_string[position]))
+        logger.debug("adding panel %s at %s" % (panel.name, pos_to_string[position]))
         panel.order_in_zone = len(self._panels[position])
         self._panels[position][panel.name] = panel
         panel.position = position
         panel.on_install(self.editor)
-        logger.debug('panel %s installed' % panel.name)
+        logger.debug("panel %s installed" % panel.name)
         return panel
 
     def remove(self, name_or_class):
@@ -87,7 +86,7 @@ class PanelsManager(Manager):
         :param name_or_class: Name or class of the panel to remove.
         :return: The removed panel
         """
-        logger.debug('Removing panel %s' % name_or_class)
+        logger.debug("Removing panel %s" % name_or_class)
         panel = self.get(name_or_class)
         panel.on_uninstall()
         panel.hide()
@@ -147,8 +146,7 @@ class PanelsManager(Manager):
     def refresh(self):
         """Refreshes the editor panels (resize and update margins)."""
         self.resize()
-        self._update(self.editor.contentsRect(), 0,
-                     force_update_margins=True)
+        self._update(self.editor.contentsRect(), 0, force_update_margins=True)
 
     def resize(self):
         """Resizes panels."""
@@ -167,10 +165,12 @@ class PanelsManager(Manager):
                 continue
             panel.adjustSize()
             size_hint = panel.sizeHint()
-            panel.setGeometry(crect.left() + left,
-                              crect.top() + s_top,
-                              size_hint.width(),
-                              crect.height() - s_bottom - s_top - h_offset)
+            panel.setGeometry(
+                crect.left() + left,
+                crect.top() + s_top,
+                size_hint.width(),
+                crect.height() - s_bottom - s_top - h_offset,
+            )
             left += size_hint.width()
         right = 0
         panels = self.panels_for_zone(Panel.Position.RIGHT)
@@ -183,7 +183,8 @@ class PanelsManager(Manager):
                 crect.right() - right - size_hint.width() - w_offset,
                 crect.top() + s_top,
                 size_hint.width(),
-                crect.height() - s_bottom - s_top - h_offset)
+                crect.height() - s_bottom - s_top - h_offset,
+            )
             right += size_hint.width()
         top = 0
         panels = self.panels_for_zone(Panel.Position.TOP)
@@ -192,10 +193,12 @@ class PanelsManager(Manager):
             if not panel.isVisible():
                 continue
             size_hint = panel.sizeHint()
-            panel.setGeometry(crect.left(),
-                              crect.top() + top,
-                              crect.width() - w_offset,
-                              size_hint.height())
+            panel.setGeometry(
+                crect.left(),
+                crect.top() + top,
+                crect.width() - w_offset,
+                size_hint.height(),
+            )
             top += size_hint.height()
         bottom = 0
         panels = self.panels_for_zone(Panel.Position.BOTTOM)
@@ -208,7 +211,8 @@ class PanelsManager(Manager):
                 crect.left(),
                 crect.bottom() - bottom - size_hint.height() - h_offset,
                 crect.width() - w_offset,
-                size_hint.height())
+                size_hint.height(),
+            )
             bottom += size_hint.height()
 
     def update_floating_panels(self):
@@ -227,8 +231,7 @@ class PanelsManager(Manager):
         line, col = self.editor.get_cursor_line_column()
         oline, ocol = self._cached_cursor_pos
         for zones_id, zone in self._panels.items():
-            if zones_id == Panel.Position.TOP or \
-               zones_id == Panel.Position.BOTTOM:
+            if zones_id == Panel.Position.TOP or zones_id == Panel.Position.BOTTOM:
                 continue
             panels = list(zone.values())
             for panel in panels:
@@ -237,8 +240,7 @@ class PanelsManager(Manager):
                 if line != oline or col != ocol or panel.scrollable:
                     panel.update(0, rect.y(), panel.width(), rect.height())
         self._cached_cursor_pos = line, col
-        if (rect.contains(self.editor.viewport().rect()) or
-                force_update_margins):
+        if rect.contains(self.editor.viewport().rect()) or force_update_margins:
             self._update_viewport_margins()
         self.update_floating_panels()
 
@@ -310,6 +312,5 @@ class PanelsManager(Manager):
                 continue
             size_hint = panel.sizeHint()
             bottom += size_hint.height()
-        self._top, self._left, self._right, self._bottom = (
-            top, left, right, bottom)
+        self._top, self._left, self._right, self._bottom = (top, left, right, bottom)
         return bottom, left, right, top

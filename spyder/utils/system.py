@@ -24,16 +24,20 @@ def windows_memory_usage():
     """
     from ctypes import windll, Structure, c_uint64, sizeof, byref
     from ctypes.wintypes import DWORD
+
     class MemoryStatus(Structure):
-        _fields_ = [('dwLength', DWORD),
-                    ('dwMemoryLoad',DWORD),
-                    ('ullTotalPhys', c_uint64),
-                    ('ullAvailPhys', c_uint64),
-                    ('ullTotalPageFile', c_uint64),
-                    ('ullAvailPageFile', c_uint64),
-                    ('ullTotalVirtual', c_uint64),
-                    ('ullAvailVirtual', c_uint64),
-                    ('ullAvailExtendedVirtual', c_uint64),]
+        _fields_ = [
+            ("dwLength", DWORD),
+            ("dwMemoryLoad", DWORD),
+            ("ullTotalPhys", c_uint64),
+            ("ullAvailPhys", c_uint64),
+            ("ullTotalPageFile", c_uint64),
+            ("ullAvailPageFile", c_uint64),
+            ("ullTotalVirtual", c_uint64),
+            ("ullAvailVirtual", c_uint64),
+            ("ullAvailExtendedVirtual", c_uint64),
+        ]
+
     memorystatus = MemoryStatus()
     # MSDN documentation states that dwLength must be set to MemoryStatus
     # size before calling GlobalMemoryStatusEx
@@ -54,12 +58,12 @@ def memory_usage():
     return percent
 
 
-if __name__ == '__main__':
-    print("*"*80)  # spyder: test-skip
+if __name__ == "__main__":
+    print("*" * 80)  # spyder: test-skip
     print(memory_usage.__doc__)  # spyder: test-skip
     print(memory_usage())  # spyder: test-skip
-    if os.name == 'nt':
+    if os.name == "nt":
         #  windll can only be imported if os.name = 'nt' or 'ce'
-        print("*"*80)  # spyder: test-skip
+        print("*" * 80)  # spyder: test-skip
         print(windows_memory_usage.__doc__)  # spyder: test-skip
         print(windows_memory_usage())  # spyder: test-skip

@@ -20,7 +20,7 @@ from spyder.config.gui import OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
 
-MAC = sys.platform == 'darwin'
+MAC = sys.platform == "darwin"
 
 # =============================================================================
 # ---- Base stylesheet class
@@ -96,93 +96,82 @@ class AppStylesheet(SpyderStyleSheet):
 
         # Remove padding and border for QStackedWidget (used in Plots
         # and the Variable Explorer)
-        css['QStackedWidget'].setValues(
-            border='0px',
-            padding='0px',
+        css["QStackedWidget"].setValues(
+            border="0px",
+            padding="0px",
         )
 
         # Remove margin when pressing buttons
-        css["QToolButton:pressed"].setValues(
-            margin='0px'
-        )
+        css["QToolButton:pressed"].setValues(margin="0px")
 
         # Remove padding when pressing main menus
-        css['QMenuBar::item:pressed'].setValues(
-            padding='0px'
-        )
+        css["QMenuBar::item:pressed"].setValues(padding="0px")
 
         # Remove border, padding and spacing for main toolbar
         css.QToolBar.setValues(
-            borderBottom='0px',
-            padding='0px',
-            spacing='0px',
+            borderBottom="0px",
+            padding="0px",
+            spacing="0px",
         )
 
         # Remove margins around separators
-        css['QMainWindow::separator:horizontal'].setValues(
-            marginTop='0px',
-            marginBottom='0px'
+        css["QMainWindow::separator:horizontal"].setValues(
+            marginTop="0px", marginBottom="0px"
         )
 
-        css['QMainWindow::separator:vertical'].setValues(
-            marginLeft='0px',
-            marginRight='0px',
-            height='3px'
+        css["QMainWindow::separator:vertical"].setValues(
+            marginLeft="0px", marginRight="0px", height="3px"
         )
 
         # Set menu item properties
         css["QMenu::item"].setValues(
-            height='1.4em',
-            fontSize='0.7em',
-            padding='4px 24px 4px 8px',
+            height="1.4em",
+            fontSize="0.7em",
+            padding="4px 24px 4px 8px",
             # TODO: This requires a fix in qstylizer
             # iconSize='0.8em'
         )
 
         if OLD_PYQT:
             css["QMenu::item"].setValues(
-                padding='4px 24px 4px 28px',
+                padding="4px 24px 4px 28px",
             )
 
         css["QMenu#checkbox-padding::item"].setValues(
-            padding='4px 24px 4px 28px',
+            padding="4px 24px 4px 28px",
         )
 
         # Increase padding for QPushButton's
         css.QPushButton.setValues(
-            padding='3px',
+            padding="3px",
         )
 
-        for state in ['disabled', 'checked', 'checked:disabled']:
-            css[f'QPushButton:{state}'].setValues(
-                padding='3px',
+        for state in ["disabled", "checked", "checked:disabled"]:
+            css[f"QPushButton:{state}"].setValues(
+                padding="3px",
             )
 
         # Adjust QToolButton style to our needs.
         # This affects not only the pane toolbars but also the
         # find/replace widget, the finder in the Variable Explorer,
         # and all QToolButton's that are not part of the main toolbar.
-        for element in ['QToolButton', 'QToolButton:disabled']:
-            css[f'{element}'].setValues(
-                backgroundColor='transparent'
-            )
+        for element in ["QToolButton", "QToolButton:disabled"]:
+            css[f"{element}"].setValues(backgroundColor="transparent")
 
-        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
-            if state == 'hover':
+        for state in ["hover", "pressed", "checked", "checked:hover"]:
+            if state == "hover":
                 color = QStylePalette.COLOR_BACKGROUND_2
             else:
                 color = QStylePalette.COLOR_BACKGROUND_3
-            css[f'QToolButton:{state}'].setValues(
-                backgroundColor=color
-            )
+            css[f"QToolButton:{state}"].setValues(backgroundColor=color)
 
         # Adjust padding of QPushButton's in QDialog's
         css["QDialog QPushButton"].setValues(
-            padding='3px 15px 3px 15px',
+            padding="3px 15px 3px 15px",
         )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
-            padding='3px 0px 3px 0px',
+            padding="3px 0px 3px 0px",
         )
 
 
@@ -194,18 +183,16 @@ APP_STYLESHEET = AppStylesheet()
 class ApplicationToolbarStylesheet(SpyderStyleSheet):
     """Stylesheet for application toolbars."""
 
-    BUTTON_WIDTH = '2.7em'
-    BUTTON_HEIGHT = '2.7em'
-    BUTTON_MARGIN_LEFT = '0.25em'
-    BUTTON_MARGIN_RIGHT = '0.25em'
+    BUTTON_WIDTH = "2.7em"
+    BUTTON_HEIGHT = "2.7em"
+    BUTTON_MARGIN_LEFT = "0.25em"
+    BUTTON_MARGIN_RIGHT = "0.25em"
 
     def set_stylesheet(self):
         css = self._stylesheet
 
         # Main background color
-        css.QToolBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-        )
+        css.QToolBar.setValues(backgroundColor=QStylePalette.COLOR_BACKGROUND_4)
 
         # Adjust QToolButton to follow the main toolbar style.
         css.QToolButton.setValues(
@@ -213,49 +200,41 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
             height=self.BUTTON_HEIGHT,
             marginLeft=self.BUTTON_MARGIN_RIGHT,
             marginRight=self.BUTTON_MARGIN_RIGHT,
-            border='0px',
-            padding='0px',
+            border="0px",
+            padding="0px",
         )
 
-        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
-            if state == 'hover':
+        for state in ["hover", "pressed", "checked", "checked:hover"]:
+            if state == "hover":
                 color = QStylePalette.COLOR_BACKGROUND_5
             else:
                 color = QStylePalette.COLOR_BACKGROUND_6
-            css[f'QToolBar QToolButton:{state}'].setValues(
-                backgroundColor=color
-            )
+            css[f"QToolBar QToolButton:{state}"].setValues(backgroundColor=color)
 
         # Remove indicator for popup mode
-        css['QToolBar QToolButton::menu-indicator'].setValues(
-            image='none'
-        )
+        css["QToolBar QToolButton::menu-indicator"].setValues(image="none")
 
 
 class PanesToolbarStyleSheet(SpyderStyleSheet):
     """Stylesheet for pane toolbars."""
 
-    BUTTON_WIDTH = '2.2em'
-    BUTTON_HEIGHT = '2.2em'
+    BUTTON_WIDTH = "2.2em"
+    BUTTON_HEIGHT = "2.2em"
 
     def set_stylesheet(self):
         css = self._stylesheet
 
-        css.QToolBar.setValues(
-            spacing='0.3em'
-        )
+        css.QToolBar.setValues(spacing="0.3em")
 
         css.QToolButton.setValues(
             height=self.BUTTON_HEIGHT,
             width=self.BUTTON_WIDTH,
-            border='0px',
-            margin='0px'
+            border="0px",
+            margin="0px",
         )
 
         # Remove indicator for popup mode
-        css['QToolButton::menu-indicator'].setValues(
-            image='none'
-        )
+        css["QToolButton::menu-indicator"].setValues(image="none")
 
 
 APP_TOOLBAR_STYLESHEET = ApplicationToolbarStylesheet()
@@ -270,96 +249,93 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
 
     # TODO: This needs to be changed to 1.0em when the IPython console
     # and the Editor are migrated.
-    TOP_MARGIN = '0.8em'
+    TOP_MARGIN = "0.8em"
 
     def set_stylesheet(self):
         super().set_stylesheet()
         css = self.get_stylesheet()
-        is_macos = sys.platform == 'darwin'
+        is_macos = sys.platform == "darwin"
 
         # QTabBar forces the corner widgets to be smaller than they should.
         # be. The added top margin allows the toolbuttons to expand to their
         # normal size.
         # See: spyder-ide/spyder#13600
-        css['QTabBar::tab'].setValues(
+        css["QTabBar::tab"].setValues(
             marginTop=self.TOP_MARGIN,
-            paddingTop='4px',
-            paddingBottom='4px',
-            paddingLeft='4px' if is_macos else '10px',
-            paddingRight='10px' if is_macos else '4px'
+            paddingTop="4px",
+            paddingBottom="4px",
+            paddingLeft="4px" if is_macos else "10px",
+            paddingRight="10px" if is_macos else "4px",
         )
 
         # Fix minor visual glitch when hovering tabs
         # See spyder-ide/spyder#15398
-        css['QTabBar::tab:hover'].setValues(
-            paddingTop='3px',
-            paddingBottom='3px',
-            paddingLeft='3px' if is_macos else '9px',
-            paddingRight='9px' if is_macos else '3px'
+        css["QTabBar::tab:hover"].setValues(
+            paddingTop="3px",
+            paddingBottom="3px",
+            paddingLeft="3px" if is_macos else "9px",
+            paddingRight="9px" if is_macos else "3px",
         )
 
-        for state in ['selected', 'selected:hover']:
-            css[f'QTabBar::tab:{state}'].setValues(
-                paddingTop='4px',
-                paddingBottom='3px',
-                paddingLeft='4px' if is_macos else '10px',
-                paddingRight='10px' if is_macos else '4px'
+        for state in ["selected", "selected:hover"]:
+            css[f"QTabBar::tab:{state}"].setValues(
+                paddingTop="4px",
+                paddingBottom="3px",
+                paddingLeft="4px" if is_macos else "10px",
+                paddingRight="10px" if is_macos else "4px",
             )
 
         # This crops the close button a bit at the bottom in order to
         # center it. But a bigger negative padding-bottom crops it even
         # more.
-        css['QTabBar::close-button'].setValues(
-            paddingBottom='-5px' if is_macos else '-6px',
+        css["QTabBar::close-button"].setValues(
+            paddingBottom="-5px" if is_macos else "-6px",
         )
 
         # Set style for scroller buttons
-        css['QTabBar#pane-tabbar QToolButton'].setValues(
+        css["QTabBar#pane-tabbar QToolButton"].setValues(
             background=QStylePalette.COLOR_BACKGROUND_1,
-            borderRadius='0px',
-            borderRight=f'0.3em solid {QStylePalette.COLOR_BACKGROUND_1}'
+            borderRadius="0px",
+            borderRight=f"0.3em solid {QStylePalette.COLOR_BACKGROUND_1}",
         )
 
-        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
-            if state == 'hover':
+        for state in ["hover", "pressed", "checked", "checked:hover"]:
+            if state == "hover":
                 color = QStylePalette.COLOR_BACKGROUND_2
             else:
                 color = QStylePalette.COLOR_BACKGROUND_3
-            css[f'QTabBar#pane-tabbar QToolButton:{state}'].setValues(
-                background=color
-            )
+            css[f"QTabBar#pane-tabbar QToolButton:{state}"].setValues(background=color)
 
         # This makes one button huge and the other very small in PyQt 5.9
         if not OLD_PYQT:
-            css['QTabBar::scroller'].setValues(
-                width='4.0em',
+            css["QTabBar::scroller"].setValues(
+                width="4.0em",
             )
 
         # Remove border between selected tab and pane below
-        css['QTabWidget::pane'].setValues(
-            borderTop='0px',
+        css["QTabWidget::pane"].setValues(
+            borderTop="0px",
         )
 
         # Adjust margins of corner widgets
-        css['QTabWidget::left-corner'].setValues(
-            top='-1px',
-            bottom='-2px',
-            left='1px',
+        css["QTabWidget::left-corner"].setValues(
+            top="-1px",
+            bottom="-2px",
+            left="1px",
         )
 
-        css['QTabWidget::right-corner'].setValues(
-            top='-1px',
-            bottom='-2px',
-            right='1px'
+        css["QTabWidget::right-corner"].setValues(
+            top="-1px", bottom="-2px", right="1px"
         )
 
     def to_string(self):
         css_string = self._stylesheet.toString()
 
         # TODO: We need to fix this in qstylizer
-        if sys.platform == 'darwin':
-            left_tabs = ("QTabWidget::tab-bar {alignment: left;}\n"
-                         "QTabBar {alignment: left;}")
+        if sys.platform == "darwin":
+            left_tabs = (
+                "QTabWidget::tab-bar {alignment: left;}\n" "QTabBar {alignment: left;}"
+            )
             css_string = css_string + left_tabs
 
         return css_string
@@ -375,7 +351,7 @@ class DialogStyle:
     """Style constants for tour, about and kite dialogs."""
 
     IconScaleFactor = 0.5
-    TitleFontSize = '19pt' if MAC else '14pt'
-    ContentFontSize = '15pt' if MAC else '12pt'
-    ButtonsFontSize = '15pt' if MAC else '13pt'
-    ButtonsPadding = '6px' if MAC else '4px 10px'
+    TitleFontSize = "19pt" if MAC else "14pt"
+    ContentFontSize = "15pt" if MAC else "12pt"
+    ButtonsFontSize = "15pt" if MAC else "13pt"
+    ButtonsPadding = "6px" if MAC else "4px 10px"

@@ -70,9 +70,7 @@ def document_cells(block, forward=True, cell_list=None):
     # If the cell_list was not provided, search the cells
     while block.isValid():
         data = block.userData()
-        if (data
-                and data.oedata
-                and data.oedata.def_type == OutlineExplorerData.CELL):
+        if data and data.oedata and data.oedata.def_type == OutlineExplorerData.CELL:
             yield data.oedata
         if forward:
             block = block.next()
@@ -85,9 +83,7 @@ def is_cell_header(block):
     if not block.isValid():
         return False
     data = block.userData()
-    return (data
-            and data.oedata
-            and data.oedata.def_type == OutlineExplorerData.CELL)
+    return data and data.oedata and data.oedata.def_type == OutlineExplorerData.CELL
 
 
 def cell_index(block):
@@ -173,14 +169,21 @@ class OutlineExplorerProxy(QObject):
 
 class OutlineExplorerData(QObject):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
-    FUNCTION_TOKEN = 'def'
-    CLASS_TOKEN = 'class'
+    FUNCTION_TOKEN = "def"
+    CLASS_TOKEN = "class"
 
     # Emitted if the OutlineExplorerData was changed
     sig_update = Signal()
 
-    def __init__(self, block, text=None, fold_level=None, def_type=None,
-                 def_name=None, color=None):
+    def __init__(
+        self,
+        block,
+        text=None,
+        fold_level=None,
+        def_type=None,
+        def_name=None,
+        color=None,
+    ):
         """
         Args:
             text (str)
@@ -237,7 +240,7 @@ class OutlineExplorerData(QObject):
         def get_name(oedata):
             name = oedata._def_name
             if not name:
-                name = _('Unnamed Cell')
+                name = _("Unnamed Cell")
             return name
 
         self_name = get_name(self)
@@ -247,7 +250,7 @@ class OutlineExplorerData(QObject):
         def check_match(oedata):
             # Look for "string"
             other_name = get_name(oedata)
-            pattern = '^' + re.escape(self_name) + r'(?:, #(\d+))?$'
+            pattern = "^" + re.escape(self_name) + r"(?:, #(\d+))?$"
             match = re.match(pattern, other_name)
             if match:
                 # Check if already has a number
@@ -270,13 +273,14 @@ class OutlineExplorerData(QObject):
                 N_next += 1
 
         # Get the remaining indexeswe can use
-        free_indexes = [idx for idx in range(N_prev + N_next + 1)
-                        if idx + 1 not in existing_numbers]
+        free_indexes = [
+            idx for idx in range(N_prev + N_next + 1) if idx + 1 not in existing_numbers
+        ]
 
         idx = free_indexes[N_prev - N_fix_previous]
 
         if N_prev + N_next > 0:
-            return self_name + ', #{}'.format(idx + 1)
+            return self_name + ", #{}".format(idx + 1)
 
         return self_name
 
@@ -287,8 +291,7 @@ class OutlineExplorerData(QObject):
 
     def update(self, other):
         """Try to update to avoid reloading everything."""
-        if (self.def_type == other.def_type and
-                self.fold_level == other.fold_level):
+        if self.def_type == other.def_type and self.fold_level == other.fold_level:
             self.text = other.text
             old_def_name = self._def_name
             self._def_name = other._def_name
@@ -310,7 +313,7 @@ class OutlineExplorerData(QObject):
         if not block or not block.isValid():
             return False
         user_data = block.userData()
-        if not user_data or not hasattr(user_data, 'oedata'):
+        if not user_data or not hasattr(user_data, "oedata"):
             return False
         return user_data.oedata == self
 

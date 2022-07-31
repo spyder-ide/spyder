@@ -18,12 +18,12 @@ from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class PreferencesActions:
-    Show = 'show_action'
-    Reset = 'reset_action'
+    Show = "show_action"
+    Reset = "reset_action"
 
 
 class PreferencesContainer(PluginMainContainer):
@@ -38,9 +38,7 @@ class PreferencesContainer(PluginMainContainer):
         self.dialog = None
         self.dialog_index = None
 
-    def create_dialog(self, config_pages, config_tabs, prefs_dialog_size,
-                      main_window):
-
+    def create_dialog(self, config_pages, config_tabs, prefs_dialog_size, main_window):
         def _dialog_finished(result_code):
             """Restore preferences dialog instance variable."""
             self.dialog.disconnect()
@@ -49,8 +47,7 @@ class PreferencesContainer(PluginMainContainer):
         if self.dialog is None:
             # TODO: Remove all references to main window
             dlg = ConfigDialog(main_window)
-            dlg.setStyleSheet("QTabWidget::tab-bar {"
-                                "alignment: left;}")
+            dlg.setStyleSheet("QTabWidget::tab-bar {" "alignment: left;}")
             self.dialog = dlg
 
             if prefs_dialog_size is not None:
@@ -58,7 +55,7 @@ class PreferencesContainer(PluginMainContainer):
 
             for page_name in config_pages:
                 (api, ConfigPage, plugin) = config_pages[page_name]
-                if api == 'new':
+                if api == "new":
                     page = ConfigPage(plugin, dlg)
                     page.initialize()
                     for Tab in config_tabs.get(page_name, []):
@@ -77,11 +74,11 @@ class PreferencesContainer(PluginMainContainer):
             dlg.check_all_settings()
 
             dlg.finished.connect(_dialog_finished)
-            dlg.pages_widget.currentChanged.connect(
-                self.__preference_page_changed)
+            dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
             dlg.size_change.connect(main_window.set_prefs_size)
             dlg.sig_reset_preferences_requested.connect(
-                self.sig_reset_preferences_requested)
+                self.sig_reset_preferences_requested
+            )
         else:
             self.dialog.show()
             self.dialog.activateWindow()
@@ -110,16 +107,16 @@ class PreferencesContainer(PluginMainContainer):
         self.show_action = self.create_action(
             PreferencesActions.Show,
             _("Preferences"),
-            icon=self.create_icon('configure'),
+            icon=self.create_icon("configure"),
             triggered=self.show_preferences,
-            menurole=QAction.PreferencesRole
+            menurole=QAction.PreferencesRole,
         )
 
         self.reset_action = self.create_action(
             PreferencesActions.Reset,
             _("Reset Spyder to factory defaults"),
             triggered=self.sig_reset_preferences_requested,
-            icon=self.create_icon('reset_factory_defaults'),
+            icon=self.create_icon("reset_factory_defaults"),
         )
 
     def update_actions(self):

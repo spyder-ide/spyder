@@ -18,10 +18,22 @@ import traceback
 # Third-party imports
 from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
-from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
-                            QDialog, QGroupBox, QHBoxLayout, QHeaderView,
-                            QMenu, QPushButton, QRadioButton, QSplitter,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QAction,
+    QButtonGroup,
+    QDialog,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QMenu,
+    QPushButton,
+    QRadioButton,
+    QSplitter,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -31,8 +43,13 @@ from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
-    DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
-    TreeItem, TreeModel, TreeProxyModel)
+    DEFAULT_ATTR_COLS,
+    DEFAULT_ATTR_DETAILS,
+    ToggleColumnTreeView,
+    TreeItem,
+    TreeModel,
+    TreeProxyModel,
+)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_toolbutton, qapplication
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
@@ -43,23 +60,26 @@ logger = logging.getLogger(__name__)
 
 
 # About message
-EDITOR_NAME = 'Object'
+EDITOR_NAME = "Object"
 
 
 class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
     """Object explorer main widget window."""
-    CONF_SECTION = 'variable_explorer'
 
-    def __init__(self,
-                 obj,
-                 name='',
-                 expanded=False,
-                 resize_to_contents=True,
-                 parent=None,
-                 attribute_columns=DEFAULT_ATTR_COLS,
-                 attribute_details=DEFAULT_ATTR_DETAILS,
-                 readonly=None,
-                 reset=False):
+    CONF_SECTION = "variable_explorer"
+
+    def __init__(
+        self,
+        obj,
+        name="",
+        expanded=False,
+        resize_to_contents=True,
+        parent=None,
+        attribute_columns=DEFAULT_ATTR_COLS,
+        attribute_details=DEFAULT_ATTR_DETAILS,
+        readonly=None,
+        reset=False,
+    ):
         """
         Constructor
 
@@ -79,8 +99,8 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # Options
-        show_callable_attributes = self.get_conf('show_callable_attributes')
-        show_special_attributes = self.get_conf('show_special_attributes')
+        show_callable_attributes = self.get_conf("show_callable_attributes")
+        show_special_attributes = self.get_conf("show_special_attributes")
 
         # Model
         self._attr_cols = attribute_columns
@@ -90,12 +110,11 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         self.btn_save_and_close = None
         self.btn_close = None
 
-        self._tree_model = TreeModel(obj, obj_name=name,
-                                     attr_cols=self._attr_cols)
+        self._tree_model = TreeModel(obj, obj_name=name, attr_cols=self._attr_cols)
 
         self._proxy_tree_model = TreeProxyModel(
             show_callable_attributes=show_callable_attributes,
-            show_special_attributes=show_special_attributes
+            show_special_attributes=show_special_attributes,
         )
 
         self._proxy_tree_model.setSourceModel(self._tree_model)
@@ -113,8 +132,10 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
 
         # Views
         self._setup_actions()
-        self._setup_menu(show_callable_attributes=show_callable_attributes,
-                         show_special_attributes=show_special_attributes)
+        self._setup_menu(
+            show_callable_attributes=show_callable_attributes,
+            show_special_attributes=show_special_attributes,
+        )
         self._setup_views()
         if name:
             name = "{} -".format(name)
@@ -125,8 +146,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         self._readViewSettings(reset=reset)
 
         # Update views with model
-        self.toggle_show_special_attribute_action.setChecked(
-            show_special_attributes)
+        self.toggle_show_special_attribute_action.setChecked(show_special_attributes)
         self.toggle_show_callable_action.setChecked(show_callable_attributes)
 
         # Select first row so that a hidden root node will not be selected.
@@ -142,7 +162,8 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
     def _make_show_column_function(self, column_idx):
         """Creates a function that shows or hides a column."""
         show_column = lambda checked: self.obj_tree.setColumnHidden(
-            column_idx, not checked)
+            column_idx, not checked
+        )
         return show_column
 
     def _setup_actions(self):
@@ -153,13 +174,16 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             self,
             checkable=True,
             shortcut=QKeySequence("Alt+C"),
-            statusTip=_("Shows/hides attributes that are callable "
-                        "(functions, methods, etc)")
+            statusTip=_(
+                "Shows/hides attributes that are callable " "(functions, methods, etc)"
+            ),
         )
         self.toggle_show_callable_action.toggled.connect(
-            self._proxy_tree_model.setShowCallables)
+            self._proxy_tree_model.setShowCallables
+        )
         self.toggle_show_callable_action.toggled.connect(
-            self.obj_tree.resize_columns_to_contents)
+            self.obj_tree.resize_columns_to_contents
+        )
 
         # Show/hide special attributes
         self.toggle_show_special_attribute_action = QAction(
@@ -167,31 +191,38 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             self,
             checkable=True,
             shortcut=QKeySequence("Alt+S"),
-            statusTip=_("Shows or hides __special__ attributes")
+            statusTip=_("Shows or hides __special__ attributes"),
         )
         self.toggle_show_special_attribute_action.toggled.connect(
-            self._proxy_tree_model.setShowSpecialAttributes)
+            self._proxy_tree_model.setShowSpecialAttributes
+        )
         self.toggle_show_special_attribute_action.toggled.connect(
-            self.obj_tree.resize_columns_to_contents)
+            self.obj_tree.resize_columns_to_contents
+        )
 
-    def _setup_menu(self, show_callable_attributes=False,
-                    show_special_attributes=False):
+    def _setup_menu(
+        self, show_callable_attributes=False, show_special_attributes=False
+    ):
         """Sets up the main menu."""
         self.tools_layout = QHBoxLayout()
 
         callable_attributes = create_toolbutton(
-            self, text=_("Show callable attributes"),
+            self,
+            text=_("Show callable attributes"),
             icon=ima.icon("class"),
-            toggled=self._toggle_show_callable_attributes_action)
+            toggled=self._toggle_show_callable_attributes_action,
+        )
         callable_attributes.setCheckable(True)
         callable_attributes.setChecked(show_callable_attributes)
         callable_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(callable_attributes)
 
         special_attributes = create_toolbutton(
-            self, text=_("Show __special__ attributes"),
+            self,
+            text=_("Show __special__ attributes"),
             icon=ima.icon("private2"),
-            toggled=self._toggle_show_special_attributes_action)
+            toggled=self._toggle_show_special_attributes_action,
+        )
         special_attributes.setCheckable(True)
         special_attributes.setChecked(show_special_attributes)
         special_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
@@ -201,12 +232,13 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         self.tools_layout.addStretch()
 
         self.options_button = create_toolbutton(
-                self, text=_('Options'), icon=ima.icon('tooloptions'))
+            self, text=_("Options"), icon=ima.icon("tooloptions")
+        )
         self.options_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
         self.show_cols_submenu = QMenu(self)
-        self.show_cols_submenu.setObjectName('checkbox-padding')
+        self.show_cols_submenu.setObjectName("checkbox-padding")
         self.options_button.setMenu(self.show_cols_submenu)
         self.show_cols_submenu.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(self.options_button)
@@ -216,15 +248,14 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         """Toggle show callable atributes action."""
         action_checked = not self.toggle_show_callable_action.isChecked()
         self.toggle_show_callable_action.setChecked(action_checked)
-        self.set_conf('show_callable_attributes', action_checked)
+        self.set_conf("show_callable_attributes", action_checked)
 
     @Slot()
     def _toggle_show_special_attributes_action(self):
         """Toggle show special attributes action."""
-        action_checked = (
-            not self.toggle_show_special_attribute_action.isChecked())
+        action_checked = not self.toggle_show_special_attribute_action.isChecked()
         self.toggle_show_special_attribute_action.setChecked(action_checked)
-        self.set_conf('show_special_attributes', action_checked)
+        self.set_conf("show_special_attributes", action_checked)
 
     def _setup_views(self):
         """Creates the UI widgets."""
@@ -242,8 +273,9 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         obj_tree_header = self.obj_tree.header()
         obj_tree_header.setSectionsMovable(True)
         obj_tree_header.setStretchLastSection(False)
-        add_actions(self.show_cols_submenu,
-                    self.obj_tree.toggle_column_actions_group.actions())
+        add_actions(
+            self.show_cols_submenu, self.obj_tree.toggle_column_actions_group.actions()
+        )
 
         self.central_splitter.addWidget(self.obj_tree)
 
@@ -276,8 +308,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             radio_layout.addWidget(radio_button)
             self.button_group.addButton(radio_button, button_id)
 
-        self.button_group.buttonClicked[int].connect(
-            self._change_details_field)
+        self.button_group.buttonClicked[int].connect(self._change_details_field)
         self.button_group.button(0).setChecked(True)
 
         radio_layout.addStretch(1)
@@ -295,12 +326,12 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         btn_layout.addStretch()
 
         if not self.readonly:
-            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close = QPushButton(_("Save and Close"))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
             btn_layout.addWidget(self.btn_save_and_close)
 
-        self.btn_close = QPushButton(_('Close'))
+        self.btn_close = QPushButton(_("Close"))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
@@ -320,11 +351,9 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         selection_model.currentChanged.connect(self._update_details)
 
         # Check if the values of the model have been changed
-        self._proxy_tree_model.sig_setting_data.connect(
-            self.save_and_close_enable)
+        self._proxy_tree_model.sig_setting_data.connect(self.save_and_close_enable)
 
-        self._proxy_tree_model.sig_update_details.connect(
-            self._update_details_for_item)
+        self._proxy_tree_model.sig_update_details.connect(self._update_details_for_item)
 
     # End of setup_methods
     def _readViewSettings(self, reset=False):
@@ -346,13 +375,13 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             pos = pos
             window_size = window_size
             details_button_idx = details_button_idx
-#            splitter_state = settings.value("central_splitter/state")
+            #            splitter_state = settings.value("central_splitter/state")
             splitter_state = None
             if splitter_state:
                 self.central_splitter.restoreState(splitter_state)
-#            header_restored = self.obj_tree.read_view_settings(
-#                'table/header_state',
-#                settings, reset)
+            #            header_restored = self.obj_tree.read_view_settings(
+            #                'table/header_state',
+            #                settings, reset)
             header_restored = False
 
         if not header_restored:
@@ -403,8 +432,9 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         try:
             # obj = tree_item.obj
             button_id = self.button_group.checkedId()
-            assert button_id >= 0, ("No radio button selected. "
-                                    "Please report this bug.")
+            assert button_id >= 0, (
+                "No radio button selected. " "Please report this bug."
+            )
             attr_details = self._attr_details[button_id]
             data = attr_details.data_fn(tree_item)
             self.editor.setPlainText(data)
@@ -412,22 +442,21 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             self.editor.setup_editor(
                 font=get_font(font_size_delta=DEFAULT_SMALL_DELTA),
                 show_blanks=False,
-                color_scheme=CONF.get('appearance', 'selected'),
+                color_scheme=CONF.get("appearance", "selected"),
                 scroll_past_end=False,
             )
             self.editor.set_text(data)
 
-            if attr_details.name == 'Source code':
-                self.editor.set_language('Python')
+            if attr_details.name == "Source code":
+                self.editor.set_language("Python")
             else:
-                self.editor.set_language('Rst')
+                self.editor.set_language("Rst")
 
         except Exception as ex:
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()
             self.editor.setPlainText("{}\n\n{}".format(ex, stack_trace))
-            self.editor.setWordWrapMode(
-                QTextOption.WrapAtWordBoundaryOrAnywhere)
+            self.editor.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
 
     @classmethod
     def create_explorer(cls, *args, **kwargs):
@@ -455,7 +484,7 @@ def test():
 
     app = qapplication()
 
-    data = np.random.randint(1, 256, size=(100, 100)).astype('uint8')
+    data = np.random.randint(1, 256, size=(100, 100)).astype("uint8")
     image = Image.fromarray(data)
 
     class Foobar(object):
@@ -464,18 +493,21 @@ def test():
 
         def get_text(self):
             return self.text
+
     foobar = Foobar()
-    example = {'str': 'kjkj kj k j j kj k jkj',
-               'list': [1, 3, 4, 'kjkj', None],
-               'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
-               'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
-               'float': 1.2233,
-               'array': np.random.rand(10, 10),
-               'image': image,
-               'date': datetime.date(1945, 5, 8),
-               'datetime': datetime.datetime(1945, 5, 8),
-               'foobar': foobar}
-    ObjectExplorer.create_explorer(example, 'Example')
+    example = {
+        "str": "kjkj kj k j j kj k jkj",
+        "list": [1, 3, 4, "kjkj", None],
+        "set": {1, 2, 1, 3, None, "A", "B", "C", True, False},
+        "dict": {"d": 1, "a": np.random.rand(10, 10), "b": [1, 2]},
+        "float": 1.2233,
+        "array": np.random.rand(10, 10),
+        "image": image,
+        "date": datetime.date(1945, 5, 8),
+        "datetime": datetime.datetime(1945, 5, 8),
+        "foobar": foobar,
+    }
+    ObjectExplorer.create_explorer(example, "Example")
 
 
 if __name__ == "__main__":

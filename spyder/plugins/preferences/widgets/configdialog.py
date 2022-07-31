@@ -9,10 +9,19 @@ from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
-                            QListView, QListWidget, QListWidgetItem,
-                            QPushButton, QScrollArea, QSplitter,
-                            QStackedWidget, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QListView,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QScrollArea,
+    QSplitter,
+    QStackedWidget,
+    QVBoxLayout,
+)
 
 
 class ConfigDialog(QDialog):
@@ -32,10 +41,11 @@ class ConfigDialog(QDialog):
         self.pages_widget = QStackedWidget()
         self.pages_widget.setMinimumWidth(600)
         self.contents_widget = QListWidget()
-        self.button_reset = QPushButton(_('Reset to defaults'))
+        self.button_reset = QPushButton(_("Reset to defaults"))
 
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
-                                QDialogButtonBox.Cancel)
+        bbox = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+        )
         self.apply_btn = bbox.button(QDialogButtonBox.Apply)
         self.ok_btn = bbox.button(QDialogButtonBox.Ok)
 
@@ -45,8 +55,8 @@ class ConfigDialog(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowTitle(_('Preferences'))
-        self.setWindowIcon(ima.icon('configure'))
+        self.setWindowTitle(_("Preferences"))
+        self.setWindowIcon(ima.icon("configure"))
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(1)
         self.contents_widget.setCurrentRow(0)
@@ -75,13 +85,14 @@ class ConfigDialog(QDialog):
         self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
-                                             self.pages_widget.setCurrentIndex)
+            self.pages_widget.setCurrentIndex
+        )
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         bbox.clicked.connect(self.button_clicked)
 
         # Ensures that the config is present on spyder first run
-        CONF.set('main', 'interface_language', load_lang_conf())
+        CONF.set("main", "interface_language", load_lang_conf())
 
     def get_current_index(self):
         """Return current page index"""
@@ -142,8 +153,11 @@ class ConfigDialog(QDialog):
 
     def add_page(self, widget):
         self.check_settings.connect(widget.check_settings)
-        widget.show_this_page.connect(lambda row=self.contents_widget.count():
-                                      self.contents_widget.setCurrentRow(row))
+        widget.show_this_page.connect(
+            lambda row=self.contents_widget.count(): self.contents_widget.setCurrentRow(
+                row
+            )
+        )
         widget.apply_button_enabled.connect(self.apply_btn.setEnabled)
         scrollarea = QScrollArea(self)
         scrollarea.setWidgetResizable(True)
@@ -155,7 +169,7 @@ class ConfigDialog(QDialog):
         except TypeError:
             pass
         item.setText(widget.get_name())
-        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
 
     def check_all_settings(self):

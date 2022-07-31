@@ -17,9 +17,19 @@ from jsonschema.exceptions import ValidationError
 from jsonschema import validate as json_validate
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
-from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
-                            QDialogButtonBox, QGroupBox, QGridLayout, QLabel,
-                            QLineEdit, QTableView, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QGroupBox,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QTableView,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.config.base import _
@@ -35,77 +45,74 @@ from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 LANGUAGE_NAMES = {x.lower(): x for x in SUPPORTED_LANGUAGES}
 LANGUAGE_SET = {lang.lower() for lang in SUPPORTED_LANGUAGES}
 
-PYTHON_POS = bisect.bisect_left(SUPPORTED_LANGUAGES, 'Python')
+PYTHON_POS = bisect.bisect_left(SUPPORTED_LANGUAGES, "Python")
 SUPPORTED_LANGUAGES_PY = list(SUPPORTED_LANGUAGES)
-SUPPORTED_LANGUAGES_PY.insert(PYTHON_POS, 'Python')
+SUPPORTED_LANGUAGES_PY.insert(PYTHON_POS, "Python")
 
 LANGUAGE, ADDR, CMD = [0, 1, 2]
 
 SNIPPETS_SCHEMA = {
-    'type': 'array',
-    'title': 'Snippets',
-    'items': {
-        'type': 'object',
-        'required': ['language', 'triggers'],
-        'properties': {
-            'language': {
-                'type': 'string',
-                'description': 'Programming language',
-                'enum': [lang.lower() for lang in SUPPORTED_LANGUAGES_PY]
+    "type": "array",
+    "title": "Snippets",
+    "items": {
+        "type": "object",
+        "required": ["language", "triggers"],
+        "properties": {
+            "language": {
+                "type": "string",
+                "description": "Programming language",
+                "enum": [lang.lower() for lang in SUPPORTED_LANGUAGES_PY],
             },
-            'triggers': {
-                'type': 'array',
-                'description': (
-                    'List of snippet triggers defined for this language'),
-                'items': {
-                    'type': 'object',
-                    'description': '',
-                    'required': ['trigger', 'descriptions'],
-                    'properties': {
-                        'trigger': {
-                            'type': 'string',
-                            'description': (
-                                'Text that triggers a snippet family'),
+            "triggers": {
+                "type": "array",
+                "description": ("List of snippet triggers defined for this language"),
+                "items": {
+                    "type": "object",
+                    "description": "",
+                    "required": ["trigger", "descriptions"],
+                    "properties": {
+                        "trigger": {
+                            "type": "string",
+                            "description": ("Text that triggers a snippet family"),
                         },
-                        'descriptions': {
-                            'type': 'array',
-                            'items': {
-                                'type': 'object',
-                                'description': 'Snippet information',
-                                'required': ['description', 'snippet'],
-                                'properties': {
-                                    'description': {
-                                        'type': 'string',
-                                        'description': (
-                                            'Description of the snippet')
+                        "descriptions": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "description": "Snippet information",
+                                "required": ["description", "snippet"],
+                                "properties": {
+                                    "description": {
+                                        "type": "string",
+                                        "description": ("Description of the snippet"),
                                     },
-                                    'snippet': {
-                                        'type': 'object',
-                                        'description': 'Snippet information',
-                                        'required': ['text', 'remove_trigger'],
-                                        'properties': {
-                                            'text': {
-                                                'type': 'string',
-                                                'description': (
-                                                    'Snippet to insert')
+                                    "snippet": {
+                                        "type": "object",
+                                        "description": "Snippet information",
+                                        "required": ["text", "remove_trigger"],
+                                        "properties": {
+                                            "text": {
+                                                "type": "string",
+                                                "description": ("Snippet to insert"),
                                             },
-                                            'remove_trigger': {
-                                                'type': 'boolean',
-                                                'description': (
-                                                    'If true, the snippet '
-                                                    'should remove the text '
-                                                    'that triggers it')
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                                            "remove_trigger": {
+                                                "type": "boolean",
+                                                "description": (
+                                                    "If true, the snippet "
+                                                    "should remove the text "
+                                                    "that triggers it"
+                                                ),
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 
@@ -118,22 +125,27 @@ def iter_snippets(language, get_option, set_option, snippets=None):
         trigger_descriptions = snippets[trigger]
         for description in trigger_descriptions:
             if load_snippets:
-                this_snippet = Snippet(language=language, trigger_text=trigger,
-                                       description=description,
-                                       get_option=get_option,
-                                       set_option=set_option)
+                this_snippet = Snippet(
+                    language=language,
+                    trigger_text=trigger,
+                    description=description,
+                    get_option=get_option,
+                    set_option=set_option,
+                )
                 this_snippet.load()
             else:
                 current_snippet = trigger_descriptions[description]
-                text = current_snippet['text']
-                remove_trigger = current_snippet['remove_trigger']
-                this_snippet = Snippet(language=language,
-                                       trigger_text=trigger,
-                                       description=description,
-                                       snippet_text=text,
-                                       remove_trigger=remove_trigger,
-                                       get_option=get_option,
-                                       set_option=set_option)
+                text = current_snippet["text"]
+                remove_trigger = current_snippet["remove_trigger"]
+                this_snippet = Snippet(
+                    language=language,
+                    trigger_text=trigger,
+                    description=description,
+                    snippet_text=text,
+                    remove_trigger=remove_trigger,
+                    get_option=get_option,
+                    set_option=set_option,
+                )
             language_snippets.append(this_snippet)
     return language_snippets
 
@@ -141,9 +153,16 @@ def iter_snippets(language, get_option, set_option, snippets=None):
 class Snippet:
     """Convenience class to store user snippets."""
 
-    def __init__(self, language=None, trigger_text="", description="",
-                 snippet_text="", remove_trigger=False, get_option=None,
-                 set_option=None):
+    def __init__(
+        self,
+        language=None,
+        trigger_text="",
+        description="",
+        snippet_text="",
+        remove_trigger=False,
+        get_option=None,
+        set_option=None,
+    ):
         self.index = 0
         self.language = language
         if self.language in LANGUAGE_NAMES:
@@ -159,38 +178,39 @@ class Snippet:
         self.get_option = get_option
 
     def __repr__(self):
-        return '[{0}] {1} ({2}): {3}'.format(
-            self.language, self.trigger_text, self.description,
-            repr(self.snippet_text))
+        return "[{0}] {1} ({2}): {3}".format(
+            self.language, self.trigger_text, self.description, repr(self.snippet_text)
+        )
 
     def __str__(self):
         return self.__repr__()
 
-    def update(self, trigger_text, description_text, snippet_text,
-               remove_trigger):
+    def update(self, trigger_text, description_text, snippet_text, remove_trigger):
         self.trigger_text = trigger_text
         self.description = description_text
         self.snippet_text = snippet_text
         self.remove_trigger = remove_trigger
 
     def load(self):
-        if self.language is not None and self.trigger_text != '':
+        if self.language is not None and self.trigger_text != "":
             state = self.get_option(self.language.lower())
             trigger_info = state[self.trigger_text]
             snippet_info = trigger_info[self.description]
-            self.snippet_text = snippet_info['text']
-            self.remove_trigger = snippet_info['remove_trigger']
+            self.snippet_text = snippet_info["text"]
+            self.remove_trigger = snippet_info["remove_trigger"]
 
     def save(self):
         if self.language is not None:
             language = self.language.lower()
             current_state = self.get_option(language, default={})
             new_state = {
-                'text': self.snippet_text,
-                'remove_trigger': self.remove_trigger
+                "text": self.snippet_text,
+                "remove_trigger": self.remove_trigger,
             }
-            if (self.initial_trigger_text != self.trigger_text or
-                    self.initial_description != self.description):
+            if (
+                self.initial_trigger_text != self.trigger_text
+                or self.initial_description != self.description
+            ):
                 # Delete previous entry
                 if self.initial_trigger_text in current_state:
                     trigger = current_state[self.initial_trigger_text]
@@ -200,8 +220,7 @@ class Snippet:
             trigger_info = current_state.get(self.trigger_text, {})
             trigger_info[self.description] = new_state
             current_state[self.trigger_text] = trigger_info
-            self.set_option(language, current_state,
-                            recursive_notification=False)
+            self.set_option(language, current_state, recursive_notification=False)
 
     def delete(self):
         if self.language is not None:
@@ -211,22 +230,31 @@ class Snippet:
             trigger.pop(self.description)
             if len(trigger) == 0:
                 current_state.pop(self.trigger_text)
-            self.set_option(language, current_state,
-                            recursive_notification=False)
+            self.set_option(language, current_state, recursive_notification=False)
 
 
 class SnippetEditor(QDialog):
-    SNIPPET_VALID = _('Valid snippet')
-    SNIPPET_INVALID = _('Invalid snippet')
+    SNIPPET_VALID = _("Valid snippet")
+    SNIPPET_INVALID = _("Invalid snippet")
     INVALID_CB_CSS = "QComboBox {border: 1px solid red;}"
     VALID_CB_CSS = "QComboBox {border: 1px solid green;}"
     INVALID_LINE_CSS = "QLineEdit {border: 1px solid red;}"
     VALID_LINE_CSS = "QLineEdit {border: 1px solid green;}"
     MIN_SIZE = QSize(850, 600)
 
-    def __init__(self, parent, language=None, trigger_text='', description='',
-                 snippet_text='', remove_trigger=False, trigger_texts=[],
-                 descriptions=[], get_option=None, set_option=None):
+    def __init__(
+        self,
+        parent,
+        language=None,
+        trigger_text="",
+        description="",
+        snippet_text="",
+        remove_trigger=False,
+        trigger_texts=[],
+        descriptions=[],
+        get_option=None,
+        set_option=None,
+    ):
         super(SnippetEditor, self).__init__(parent)
 
         snippet_description = _(
@@ -243,52 +271,57 @@ class SnippetEditor(QDialog):
         self.snippet_text = snippet_text
         self.descriptions = descriptions
         self.base_snippet = Snippet(
-            language=language, trigger_text=trigger_text,
-            snippet_text=snippet_text, description=description,
+            language=language,
+            trigger_text=trigger_text,
+            snippet_text=snippet_text,
+            description=description,
             remove_trigger=remove_trigger,
-            get_option=get_option, set_option=set_option)
+            get_option=get_option,
+            set_option=set_option,
+        )
 
         # Widgets
         self.snippet_settings_description = QLabel(snippet_description)
         self.snippet_settings_description.setFixedWidth(450)
 
         # Trigger text
-        self.trigger_text_label = QLabel(_('Trigger text:'))
+        self.trigger_text_label = QLabel(_("Trigger text:"))
         self.trigger_text_cb = QComboBox(self)
         self.trigger_text_cb.setEditable(True)
 
         # Description
-        self.description_label = QLabel(_('Description:'))
+        self.description_label = QLabel(_("Description:"))
         self.description_input = QLineEdit(self)
 
         # Remove trigger
-        self.remove_trigger_cb = QCheckBox(
-            _('Remove trigger text on insertion'), self)
-        self.remove_trigger_cb.setToolTip(_('Check if the text that triggers '
-                                            'this snippet should be removed '
-                                            'when inserting it'))
+        self.remove_trigger_cb = QCheckBox(_("Remove trigger text on insertion"), self)
+        self.remove_trigger_cb.setToolTip(
+            _(
+                "Check if the text that triggers "
+                "this snippet should be removed "
+                "when inserting it"
+            )
+        )
         self.remove_trigger_cb.setChecked(self.remove_trigger)
 
         # Snippet body input
-        self.snippet_label = QLabel(_('<b>Snippet text:</b>'))
+        self.snippet_label = QLabel(_("<b>Snippet text:</b>"))
         self.snippet_valid_label = QLabel(self.SNIPPET_INVALID, self)
         self.snippet_input = SimpleCodeEditor(None)
 
         # Dialog buttons
-        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
-                                     QDialogButtonBox.Cancel)
+        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
         self.button_cancel = self.bbox.button(QDialogButtonBox.Cancel)
 
         # Widget setup
-        self.setWindowTitle(_('Snippet editor'))
+        self.setWindowTitle(_("Snippet editor"))
 
         self.snippet_settings_description.setWordWrap(True)
-        self.trigger_text_cb.setToolTip(
-            _('Trigger text for the current snippet'))
+        self.trigger_text_cb.setToolTip(_("Trigger text for the current snippet"))
         self.trigger_text_cb.addItems(trigger_texts)
 
-        if self.trigger_text != '':
+        if self.trigger_text != "":
             idx = trigger_texts.index(self.trigger_text)
             self.trigger_text_cb.setCurrentIndex(idx)
 
@@ -296,26 +329,26 @@ class SnippetEditor(QDialog):
         self.description_input.textChanged.connect(lambda _x: self.validate())
 
         text_inputs = (self.trigger_text, self.description, self.snippet_text)
-        non_empty_text = all([x != '' for x in text_inputs])
+        non_empty_text = all([x != "" for x in text_inputs])
         if non_empty_text:
             self.button_ok.setEnabled(True)
 
         self.snippet_input.setup_editor(
             language=language,
-            color_scheme=get_option('selected', section='appearance'),
+            color_scheme=get_option("selected", section="appearance"),
             wrap=False,
             highlight_current_line=True,
-            font=get_font()
+            font=get_font(),
         )
         self.snippet_input.set_language(language)
-        self.snippet_input.setToolTip(_('Snippet text completion to insert'))
+        self.snippet_input.setToolTip(_("Snippet text completion to insert"))
         self.snippet_input.set_text(snippet_text)
 
         # Layout setup
         general_layout = QVBoxLayout()
         general_layout.addWidget(self.snippet_settings_description)
 
-        snippet_settings_group = QGroupBox(_('Trigger information'))
+        snippet_settings_group = QGroupBox(_("Trigger information"))
         settings_layout = QGridLayout()
         settings_layout.addWidget(self.trigger_text_label, 0, 0)
         settings_layout.addWidget(self.trigger_text_cb, 0, 1)
@@ -345,7 +378,7 @@ class SnippetEditor(QDialog):
         self.bbox.rejected.connect(self.reject)
 
         # Final setup
-        if trigger_text != '' or snippet_text != '':
+        if trigger_text != "" or snippet_text != "":
             self.validate()
 
     @Slot()
@@ -362,7 +395,7 @@ class SnippetEditor(QDialog):
             invalid = True
             self.snippet_valid_label.setText(self.SNIPPET_INVALID)
 
-        if trigger_text == '':
+        if trigger_text == "":
             invalid = True
             self.trigger_text_cb.setStyleSheet(self.INVALID_CB_CSS)
         else:
@@ -372,23 +405,18 @@ class SnippetEditor(QDialog):
             if self.trigger_text != trigger_text:
                 if description_text in self.descriptions[trigger_text]:
                     invalid = True
-                    self.description_input.setStyleSheet(
-                        self.INVALID_LINE_CSS)
+                    self.description_input.setStyleSheet(self.INVALID_LINE_CSS)
                 else:
-                    self.description_input.setStyleSheet(
-                        self.VALID_LINE_CSS)
+                    self.description_input.setStyleSheet(self.VALID_LINE_CSS)
             else:
                 if description_text != self.description:
                     if description_text in self.descriptions[trigger_text]:
                         invalid = True
-                        self.description_input.setStyleSheet(
-                            self.INVALID_LINE_CSS)
+                        self.description_input.setStyleSheet(self.INVALID_LINE_CSS)
                     else:
-                        self.description_input.setStyleSheet(
-                            self.VALID_LINE_CSS)
+                        self.description_input.setStyleSheet(self.VALID_LINE_CSS)
                 else:
-                    self.description_input.setStyleSheet(
-                        self.VALID_LINE_CSS)
+                    self.description_input.setStyleSheet(self.VALID_LINE_CSS)
 
         self.button_ok.setEnabled(not invalid)
 
@@ -398,7 +426,8 @@ class SnippetEditor(QDialog):
         snippet_text = self.snippet_input.toPlainText()
         remove_trigger = self.remove_trigger_cb.isChecked()
         self.base_snippet.update(
-            trigger_text, description_text, snippet_text, remove_trigger)
+            trigger_text, description_text, snippet_text, remove_trigger
+        )
         return self.base_snippet
 
 
@@ -415,7 +444,7 @@ class SnippetsModel(QAbstractTableModel):
         self.snippet_map = {}
         self.rich_text = []
         self.normal_text = []
-        self.letters = ''
+        self.letters = ""
         self.label = QLabel()
         self.widths = []
 
@@ -427,8 +456,7 @@ class SnippetsModel(QAbstractTableModel):
             self.text_color = text_color
 
         if text_color_highlight is None:
-            self.text_color_highlight = \
-                palette.highlightedText().color().name()
+            self.text_color_highlight = palette.highlightedText().color().name()
         else:
             self.text_color_highlight = text_color_highlight
 
@@ -469,9 +497,9 @@ class SnippetsModel(QAbstractTableModel):
             return to_qvariant()
         if orientation == Qt.Horizontal:
             if section == self.TRIGGER:
-                return to_qvariant(_('Trigger text'))
+                return to_qvariant(_("Trigger text"))
             elif section == self.DESCRIPTION:
-                return to_qvariant(_('Description'))
+                return to_qvariant(_("Description"))
         return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
@@ -510,14 +538,13 @@ class SnippetModelsProxy:
             self.load_snippets(language, model, defaults)
 
     def load_snippets(self, language, model, snippets=None, to_add=[]):
-        snippets = iter_snippets(language, self.parent.get_option,
-                                 self.parent.set_option,
-                                 snippets=snippets)
+        snippets = iter_snippets(
+            language, self.parent.get_option, self.parent.set_option, snippets=snippets
+        )
         for i, snippet in enumerate(snippets):
             snippet.index = i
 
-        snippet_map = {(x.trigger_text, x.description): x
-                       for x in snippets}
+        snippet_map = {(x.trigger_text, x.description): x for x in snippets}
 
         # Merge loaded snippets
         for snippet in to_add:
@@ -555,11 +582,14 @@ class SnippetModelsProxy:
 
     def update_or_enqueue(self, language, trigger, description, snippet):
         new_snippet = Snippet(
-            language=language, trigger_text=trigger, description=description,
-            snippet_text=snippet['text'],
-            remove_trigger=snippet['remove_trigger'],
+            language=language,
+            trigger_text=trigger,
+            description=description,
+            snippet_text=snippet["text"],
+            remove_trigger=snippet["remove_trigger"],
             get_option=self.parent.get_option,
-            set_option=self.parent.set_option)
+            set_option=self.parent.set_option,
+        )
 
         if language in self.models:
             language_model = self.models[language]
@@ -585,77 +615,72 @@ class SnippetModelsProxy:
         snippets = []
         for language in self.models:
             language_model = self.models[language]
-            language_snippets = {
-                'language': language,
-                'triggers': []
-            }
+            language_snippets = {"language": language, "triggers": []}
             triggers = {}
             for snippet in language_model.snippets:
-                default_trigger = {
-                    'trigger': snippet.trigger_text,
-                    'descriptions': []
-                }
-                snippet_info = triggers.get(
-                    snippet.trigger_text, default_trigger)
-                snippet_info['descriptions'].append({
-                    'description': snippet.description,
-                    'snippet': {
-                        'text': snippet.snippet_text,
-                        'remove_trigger': snippet.remove_trigger
+                default_trigger = {"trigger": snippet.trigger_text, "descriptions": []}
+                snippet_info = triggers.get(snippet.trigger_text, default_trigger)
+                snippet_info["descriptions"].append(
+                    {
+                        "description": snippet.description,
+                        "snippet": {
+                            "text": snippet.snippet_text,
+                            "remove_trigger": snippet.remove_trigger,
+                        },
                     }
-                })
+                )
                 triggers[snippet.trigger_text] = snippet_info
-            language_snippets['triggers'] = list(triggers.values())
+            language_snippets["triggers"] = list(triggers.values())
             snippets.append(language_snippets)
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(snippets, f)
 
     def import_snippets(self, filename):
         errors = {}
         total_snippets = 0
         valid_snippets = 0
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             try:
                 snippets = json.load(f)
             except ValueError as e:
-                errors['loading'] = e.msg
+                errors["loading"] = e.msg
 
         if len(errors) == 0:
             try:
                 json_validate(instance=snippets, schema=SNIPPETS_SCHEMA)
             except ValidationError as e:
-                index_path = ['snippets']
+                index_path = ["snippets"]
                 for part in e.absolute_path:
-                    index_path.append('[{0}]'.format(part))
-                full_message = '{0} on instance {1}:<br>{2}'.format(
-                    e.message, ''.join(index_path), e.instance
+                    index_path.append("[{0}]".format(part))
+                full_message = "{0} on instance {1}:<br>{2}".format(
+                    e.message, "".join(index_path), e.instance
                 )
-                errors['validation'] = full_message
+                errors["validation"] = full_message
 
         if len(errors) == 0:
             for language_info in snippets:
-                language = language_info['language']
-                triggers = language_info['triggers']
+                language = language_info["language"]
+                triggers = language_info["triggers"]
                 for trigger_info in triggers:
-                    trigger = trigger_info['trigger']
-                    descriptions = trigger_info['descriptions']
+                    trigger = trigger_info["trigger"]
+                    descriptions = trigger_info["descriptions"]
                     for description_info in descriptions:
-                        description = description_info['description']
-                        snippet = description_info['snippet']
-                        snippet_text = snippet['text']
+                        description = description_info["description"]
+                        snippet = description_info["snippet"]
+                        snippet_text = snippet["text"]
                         total_snippets += 1
                         try:
                             build_snippet_ast(snippet_text)
                             self.update_or_enqueue(
-                                language, trigger, description, snippet)
+                                language, trigger, description, snippet
+                            )
                             valid_snippets += 1
                         except SyntaxError as e:
-                            syntax_errors = errors.get('syntax', {})
-                            key = '{0}/{1}/{2}'.format(
-                                language, trigger, description)
+                            syntax_errors = errors.get("syntax", {})
+                            key = "{0}/{1}/{2}".format(language, trigger, description)
                             syntax_errors[key] = e.msg
-                            errors['syntax'] = syntax_errors
+                            errors["syntax"] = syntax_errors
 
         return valid_snippets, total_snippets, errors
 
@@ -667,7 +692,8 @@ class SnippetTable(QTableView):
         self.language = language
         self.proxy = proxy
         self.source_model = proxy.get_model(
-            self, language.lower(), text_color=text_color)
+            self, language.lower(), text_color=text_color
+        )
         self.setModel(self.source_model)
         self.setItemDelegateForColumn(CMD, ItemDelegate(self))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -720,15 +746,15 @@ class SnippetTable(QTableView):
     def delete_snippet(self, idx):
         snippet = self.source_model.snippets.pop(idx)
         self.source_model.delete_queue.append(snippet)
-        self.source_model.snippet_map.pop(
-            (snippet.trigger_text, snippet.description))
+        self.source_model.snippet_map.pop((snippet.trigger_text, snippet.description))
         self.source_model.reset()
         self.adjust_cells()
         self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
 
     def show_editor(self, new_snippet=False):
-        snippet = Snippet(get_option=self._parent.get_option,
-                          set_option=self._parent.set_option)
+        snippet = Snippet(
+            get_option=self._parent.get_option, set_option=self._parent.set_option
+        )
         if not new_snippet:
             idx = self.currentIndex().row()
             snippet = self.source_model.row(idx)
@@ -741,21 +767,23 @@ class SnippetTable(QTableView):
             trigger_descriptions |= {description}
             descriptions[trigger] = trigger_descriptions
 
-        dialog = SnippetEditor(self, language=self.language.lower(),
-                               trigger_text=snippet.trigger_text,
-                               description=snippet.description,
-                               remove_trigger=snippet.remove_trigger,
-                               snippet_text=snippet.snippet_text,
-                               trigger_texts=trigger_texts,
-                               descriptions=descriptions,
-                               get_option=self._parent.get_option,
-                               set_option=self._parent.set_option)
+        dialog = SnippetEditor(
+            self,
+            language=self.language.lower(),
+            trigger_text=snippet.trigger_text,
+            description=snippet.description,
+            remove_trigger=snippet.remove_trigger,
+            snippet_text=snippet.snippet_text,
+            trigger_texts=trigger_texts,
+            descriptions=descriptions,
+            get_option=self._parent.get_option,
+            set_option=self._parent.set_option,
+        )
         if dialog.exec_():
             snippet = dialog.get_options()
             key = (snippet.trigger_text, snippet.description)
             self.source_model.snippet_map[key] = snippet
-            self.source_model.snippets = list(
-                self.source_model.snippet_map.values())
+            self.source_model.snippets = list(self.source_model.snippet_map.values())
             self.source_model.reset()
             self.adjust_cells()
             self.sortByColumn(LANGUAGE, Qt.AscendingOrder)

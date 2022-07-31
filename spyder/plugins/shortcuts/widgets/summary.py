@@ -14,9 +14,17 @@ from itertools import groupby
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QKeySequence
-from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
-                            QVBoxLayout, QHBoxLayout, QDesktopWidget,
-                            QScrollArea, QWidget)
+from qtpy.QtWidgets import (
+    QDialog,
+    QLabel,
+    QGridLayout,
+    QGroupBox,
+    QVBoxLayout,
+    QHBoxLayout,
+    QDesktopWidget,
+    QScrollArea,
+    QWidget,
+)
 
 # Local imports
 from spyder.config.base import _
@@ -38,6 +46,7 @@ class ShortcutsSummaryDialog(QDialog):
     The shortcuts are dysplayed in different columns, and grouped by
     context (global, editor, console...)
     """
+
     def __init__(self, parent=None):
         QDialog.__init__(self, parent=parent)
         self._shortcuts_summary_title = SHORTCUTS_SUMMARY_TITLE
@@ -47,7 +56,7 @@ class ShortcutsSummaryDialog(QDialog):
         width, height = self.get_screen_resolution()
         font_size = int(round(height / 80))
         font_size = max(min(font_size, MAX_FONT_SIZE), MIN_FONT_SIZE)
-        shortcuts_column = (height - 8 * font_size) / (font_size +16)
+        shortcuts_column = (height - 8 * font_size) / (font_size + 16)
 
         # Widgets
         style = """
@@ -66,7 +75,7 @@ class ShortcutsSummaryDialog(QDialog):
         font_keystr.setPointSize(font_size)
 
         font_title = QFont()
-        font_title.setPointSize(font_size+2)
+        font_title.setPointSize(font_size + 2)
         font_title.setBold(True)
 
         title_label = QLabel(self._shortcuts_summary_title)
@@ -94,7 +103,8 @@ class ShortcutsSummaryDialog(QDialog):
 
                 # create group at start of column or context
                 if added_shortcuts == 0 or i == 0:
-                    if context == '_': context = 'Global'
+                    if context == "_":
+                        context = "Global"
 
                     group = QGroupBox(context.capitalize())
                     group.setFont(font_names)
@@ -106,7 +116,7 @@ class ShortcutsSummaryDialog(QDialog):
                     added_shortcuts += 1
 
                 # Widgets
-                label_name = QLabel(name.capitalize().replace('_', ' '))
+                label_name = QLabel(name.capitalize().replace("_", " "))
                 label_name.setFont(font_names)
 
                 keystr = QKeySequence(keystr).toString(QKeySequence.NativeText)
@@ -155,6 +165,7 @@ class ShortcutsSummaryDialog(QDialog):
 
 def test():  # pragma: no cover
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     dlg_shortcuts = ShortcutsSummaryDialog(None)
     dlg_shortcuts.show()

@@ -39,11 +39,11 @@ class LineNumberArea(Panel):
         self._markers_margin = True
 
         # Icons
-        self.error_icon = ima.icon('error')
-        self.warning_icon = ima.icon('warning')
-        self.info_icon = ima.icon('information')
-        self.hint_icon = ima.icon('hint')
-        self.todo_icon = ima.icon('todo')
+        self.error_icon = ima.icon("error")
+        self.warning_icon = ima.icon("warning")
+        self.info_icon = ima.icon("information")
+        self.hint_icon = ima.icon("hint")
+        self.todo_icon = ima.icon("todo")
 
         # Line number area management
         self._margin = True
@@ -77,9 +77,7 @@ class LineNumberArea(Panel):
             # Scale pixmap height to device independent pixels
             pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
             painter.drawPixmap(
-                xleft,
-                ceil(ytop + (font_height-pixmap_height) / 2),
-                pixmap
+                xleft, ceil(ytop + (font_height - pixmap_height) / 2), pixmap
             )
 
         size = self.get_markers_margin() - 2
@@ -112,8 +110,7 @@ class LineNumberArea(Panel):
                     if errors:
                         draw_pixmap(1, top, self.error_icon.pixmap(icon_size))
                     elif warnings:
-                        draw_pixmap(
-                            1, top, self.warning_icon.pixmap(icon_size))
+                        draw_pixmap(1, top, self.warning_icon.pixmap(icon_size))
                     elif infos:
                         draw_pixmap(1, top, self.info_icon.pixmap(icon_size))
                     elif hints:
@@ -167,8 +164,7 @@ class LineNumberArea(Panel):
         top = self.editor.visible_blocks[0][0]
         left = width - self._static_line_numbers.size().width()
 
-        painter.drawStaticText(
-            QPointF(left, top), self._static_line_numbers)
+        painter.drawStaticText(QPointF(left, top), self._static_line_numbers)
 
         if active_top is not None:
             font.setWeight(font.Bold)
@@ -189,13 +185,15 @@ class LineNumberArea(Panel):
 
             # Hide non-bold number
             painter.fillRect(
-                int(left), active_top, int(size.width()), int(size.height()),
-                self.editor.sideareas_color
+                int(left),
+                active_top,
+                int(size.width()),
+                int(size.height()),
+                self.editor.sideareas_color,
             )
 
             # Paint bold number
-            painter.drawStaticText(
-                QPointF(left, active_top), self._static_active_line)
+            painter.drawStaticText(QPointF(left, active_top), self._static_active_line)
 
     def draw_linenumbers_slow(self, painter):
         """
@@ -218,10 +216,14 @@ class LineNumberArea(Panel):
                     painter.setFont(font)
                     painter.setPen(self.linenumbers_color)
 
-                painter.drawText(0, top, self.width(),
-                                 font_height,
-                                 int(Qt.AlignRight | Qt.AlignBottom),
-                                 str(line_number))
+                painter.drawText(
+                    0,
+                    top,
+                    self.width(),
+                    font_height,
+                    int(Qt.AlignRight | Qt.AlignBottom),
+                    str(line_number),
+                )
 
     def leaveEvent(self, event):
         """Override Qt method."""
@@ -233,15 +235,14 @@ class LineNumberArea(Panel):
         Show code analisis, if left button pressed select lines.
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
-        block = self.editor.document().findBlockByNumber(line_number-1)
+        block = self.editor.document().findBlockByNumber(line_number - 1)
         data = block.userData()
 
         # this disables pyflakes messages if there is an active drag/selection
         # operation
         check = self._released == -1
         if data and data.code_analysis and check:
-            self.editor.show_code_analysis_results(line_number,
-                                                   data)
+            self.editor.show_code_analysis_results(line_number, data)
         else:
             self.editor.hide_tooltip()
 
@@ -257,8 +258,7 @@ class LineNumberArea(Panel):
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         self._pressed = line_number
         self._released = line_number
-        self.editor.select_lines(self._pressed,
-                                 self._released)
+        self.editor.select_lines(self._pressed, self._released)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
@@ -275,20 +275,18 @@ class LineNumberArea(Panel):
     def compute_width_digits(self):
         """Compute and return line number area width in digits."""
         number_lines = self.editor.blockCount()
-        return max(1, math.ceil(math.log10(
-             number_lines + 1)))
+        return max(1, math.ceil(math.log10(number_lines + 1)))
 
     def compute_width(self):
         """Compute and return line number area width."""
         if not self._enabled:
             return 0
         number_digits = self.compute_width_digits()
-        if (self._width_cache is not None and
-                self._width_cache[0] == number_digits):
+        if self._width_cache is not None and self._width_cache[0] == number_digits:
             return self._width_cache[1]
 
         if self._margin:
-            margin = 3 + self.editor.fontMetrics().width('9' * number_digits)
+            margin = 3 + self.editor.fontMetrics().width("9" * number_digits)
         else:
             margin = 0
         width = margin + self.get_markers_margin()

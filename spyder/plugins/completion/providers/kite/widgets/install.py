@@ -12,9 +12,17 @@ import sys
 # Third-party imports
 from qtpy.QtCore import QEvent, QObject, Qt, Signal
 from qtpy.QtGui import QPixmap
-from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
-                            QLabel, QProgressBar, QPushButton, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QDialog,
+    QHBoxLayout,
+    QMessageBox,
+    QLabel,
+    QProgressBar,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.config.base import _
@@ -22,17 +30,22 @@ from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.plugins.completion.providers.kite.utils.install import (
-    ERRORED, INSTALLING, FINISHED, CANCELLED)
+    ERRORED,
+    INSTALLING,
+    FINISHED,
+    CANCELLED,
+)
 from spyder.utils.stylesheet import DialogStyle
 
 
 KITE_SPYDER_URL = "https://kite.com/integrations/spyder"
 KITE_CONTACT_URL = "https://kite.com/contact/"
-MAC = sys.platform == 'darwin'
+MAC = sys.platform == "darwin"
 
 
 class KiteIntegrationInfo(QWidget):
     """Initial Widget with info about the integration with Kite."""
+
     # Signal triggered for the 'Install Kite' button
     sig_install_button_clicked = Signal()
     # Signal triggered for the 'Dismiss' button
@@ -42,15 +55,16 @@ class KiteIntegrationInfo(QWidget):
         super(KiteIntegrationInfo, self).__init__(parent)
         # Images
         images_layout = QHBoxLayout()
-        icon_filename = 'kite_completions'
+        icon_filename = "kite_completions"
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
         image_label = QLabel()
         image_height = int(image.height() * DialogStyle.IconScaleFactor)
         image_width = int(image.width() * DialogStyle.IconScaleFactor)
-        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                             Qt.SmoothTransformation)
+        image = image.scaled(
+            image_width, image_height, Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
         image_label.setPixmap(image)
 
         images_layout.addStretch()
@@ -61,20 +75,19 @@ class KiteIntegrationInfo(QWidget):
         ilayout.addLayout(images_layout)
 
         # Label
-        integration_label_title = QLabel(
-           "Get better code completions in Spyder")
-        integration_label_title.setStyleSheet(
-           f"font-size: {DialogStyle.TitleFontSize}")
+        integration_label_title = QLabel("Get better code completions in Spyder")
+        integration_label_title.setStyleSheet(f"font-size: {DialogStyle.TitleFontSize}")
         integration_label_title.setWordWrap(True)
         integration_label = QLabel(
-            _("Now Spyder can use Kite to provide better code "
-              "completions for key packages in the scientific Python "
-              "Ecosystem. Install Kite for a better editor experience in "
-              "Spyder. <br><br>Kite is free to use but is not open "
-              "source. <a href=\"{kite_url}\">Learn more about Kite </a>")
-            .format(kite_url=KITE_SPYDER_URL))
-        integration_label.setStyleSheet(
-            f"font-size: {DialogStyle.ContentFontSize}")
+            _(
+                "Now Spyder can use Kite to provide better code "
+                "completions for key packages in the scientific Python "
+                "Ecosystem. Install Kite for a better editor experience in "
+                "Spyder. <br><br>Kite is free to use but is not open "
+                'source. <a href="{kite_url}">Learn more about Kite </a>'
+            ).format(kite_url=KITE_SPYDER_URL)
+        )
+        integration_label.setStyleSheet(f"font-size: {DialogStyle.ContentFontSize}")
         integration_label.setOpenExternalLinks(True)
         integration_label.setWordWrap(True)
         integration_label.setFixedWidth(360)
@@ -91,46 +104,54 @@ class KiteIntegrationInfo(QWidget):
         dismiss_button_pressed = QStylePalette.COLOR_BACKGROUND_6
         font_color = QStylePalette.COLOR_TEXT_1
         buttons_layout = QHBoxLayout()
-        install_button = QPushButton(_('Install Kite'))
+        install_button = QPushButton(_("Install Kite"))
         install_button.setAutoDefault(False)
-        install_button.setStyleSheet((
-          "QPushButton {{ "
-          "background-color: {background_color};"
-          "border-color: {border_color};"
-          "font-size: {font_size};"
-          "color: {font_color};"
-          "padding: {padding}}}"
-          "QPushButton:hover:!pressed {{ "
-          "background-color: {color_hover}}}"
-          "QPushButton:pressed {{ "
-          "background-color: {color_pressed}}}"
-        ).format(background_color=install_button_color,
-                 border_color=install_button_color,
-                 font_size=DialogStyle.ButtonsFontSize,
-                 font_color=font_color,
-                 padding=DialogStyle.ButtonsPadding,
-                 color_hover=install_button_hover,
-                 color_pressed=install_button_pressed))
-        dismiss_button = QPushButton(_('Dismiss'))
+        install_button.setStyleSheet(
+            (
+                "QPushButton {{ "
+                "background-color: {background_color};"
+                "border-color: {border_color};"
+                "font-size: {font_size};"
+                "color: {font_color};"
+                "padding: {padding}}}"
+                "QPushButton:hover:!pressed {{ "
+                "background-color: {color_hover}}}"
+                "QPushButton:pressed {{ "
+                "background-color: {color_pressed}}}"
+            ).format(
+                background_color=install_button_color,
+                border_color=install_button_color,
+                font_size=DialogStyle.ButtonsFontSize,
+                font_color=font_color,
+                padding=DialogStyle.ButtonsPadding,
+                color_hover=install_button_hover,
+                color_pressed=install_button_pressed,
+            )
+        )
+        dismiss_button = QPushButton(_("Dismiss"))
         dismiss_button.setAutoDefault(False)
-        dismiss_button.setStyleSheet((
-          "QPushButton {{ "
-          "background-color: {background_color};"
-          "border-color: {border_color};"
-          "font-size: {font_size};"
-          "color: {font_color};"
-          "padding: {padding}}}"
-          "QPushButton:hover:!pressed {{ "
-          "background-color: {color_hover}}}"
-          "QPushButton:pressed {{ "
-          "background-color: {color_pressed}}}"
-        ).format(background_color=dismiss_button_color,
-                 border_color=dismiss_button_color,
-                 font_size=DialogStyle.ButtonsFontSize,
-                 font_color=font_color,
-                 padding=DialogStyle.ButtonsPadding,
-                 color_hover=dismiss_button_hover,
-                 color_pressed=dismiss_button_pressed))
+        dismiss_button.setStyleSheet(
+            (
+                "QPushButton {{ "
+                "background-color: {background_color};"
+                "border-color: {border_color};"
+                "font-size: {font_size};"
+                "color: {font_color};"
+                "padding: {padding}}}"
+                "QPushButton:hover:!pressed {{ "
+                "background-color: {color_hover}}}"
+                "QPushButton:pressed {{ "
+                "background-color: {color_pressed}}}"
+            ).format(
+                background_color=dismiss_button_color,
+                border_color=dismiss_button_color,
+                font_size=DialogStyle.ButtonsFontSize,
+                font_color=font_color,
+                padding=DialogStyle.ButtonsPadding,
+                color_hover=dismiss_button_hover,
+                color_pressed=dismiss_button_pressed,
+            )
+        )
         buttons_layout.addStretch()
         buttons_layout.addWidget(install_button)
         if not MAC:
@@ -162,8 +183,7 @@ class KiteIntegrationInfo(QWidget):
         install_button.clicked.connect(self.sig_install_button_clicked)
         dismiss_button.clicked.connect(self.sig_dismiss_button_clicked)
 
-        self.setStyleSheet(
-            f"background-color: {QStylePalette.COLOR_BACKGROUND_2}")
+        self.setStyleSheet(f"background-color: {QStylePalette.COLOR_BACKGROUND_2}")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(800, 350)
@@ -171,6 +191,7 @@ class KiteIntegrationInfo(QWidget):
 
 class HoverEventFilter(QObject):
     """QObject to handle event filtering."""
+
     # Signal to trigger on a HoverEnter event
     sig_hover_enter = Signal()
     # Signal to trigger on a HoverLeave event
@@ -202,23 +223,26 @@ class KiteInstallation(QWidget):
         self._progress_bar.setFixedWidth(180)
         self._progress_widget.installEventFilter(self._progress_filter)
         self.cancel_button = QPushButton()
-        self.cancel_button.setIcon(ima.icon('DialogCloseButton'))
+        self.cancel_button.setIcon(ima.icon("DialogCloseButton"))
         self.cancel_button.hide()
         progress_layout.addWidget(self._progress_bar, alignment=Qt.AlignLeft)
         progress_layout.addWidget(self.cancel_button)
         self._progress_widget.setLayout(progress_layout)
 
-        self._progress_label = QLabel(_('Downloading'))
+        self._progress_label = QLabel(_("Downloading"))
         install_info = QLabel(
-            _("Kite comes with a native app called the Copilot <br>"
-              "which provides you with real time <br>"
-              "documentation as you code.<br><br>"
-              "When Kite is done installing, the Copilot will <br>"
-              "launch automatically and guide you through the <br>"
-              "rest of the setup process."))
+            _(
+                "Kite comes with a native app called the Copilot <br>"
+                "which provides you with real time <br>"
+                "documentation as you code.<br><br>"
+                "When Kite is done installing, the Copilot will <br>"
+                "launch automatically and guide you through the <br>"
+                "rest of the setup process."
+            )
+        )
 
         button_layout = QHBoxLayout()
-        self.ok_button = QPushButton(_('OK'))
+        self.ok_button = QPushButton(_("OK"))
         button_layout.addStretch()
         button_layout.addWidget(self.ok_button)
         button_layout.addStretch()
@@ -232,7 +256,7 @@ class KiteInstallation(QWidget):
         action_layout.addStretch()
 
         # Right side
-        copilot_image_source = get_image_path('kite_copilot')
+        copilot_image_source = get_image_path("kite_copilot")
 
         copilot_image = QPixmap(copilot_image_source)
         copilot_label = QLabel()
@@ -245,9 +269,13 @@ class KiteInstallation(QWidget):
             image_height = int(copilot_image.height() * 0.4)
             image_width = int(copilot_image.width() * 0.4)
             copilot_label.setPixmap(
-                copilot_image.scaled(image_width, image_height,
-                                     Qt.KeepAspectRatio,
-                                     Qt.SmoothTransformation))
+                copilot_image.scaled(
+                    image_width,
+                    image_height,
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation,
+                )
+            )
 
         # Layout
         general_layout = QHBoxLayout()
@@ -257,10 +285,8 @@ class KiteInstallation(QWidget):
         self.setLayout(general_layout)
 
         # Signals
-        self._progress_filter.sig_hover_enter.connect(
-            lambda: self.cancel_button.show())
-        self._progress_filter.sig_hover_leave.connect(
-            lambda: self.cancel_button.hide())
+        self._progress_filter.sig_hover_enter.connect(lambda: self.cancel_button.show())
+        self._progress_filter.sig_hover_leave.connect(lambda: self.cancel_button.hide())
 
     def update_installation_status(self, status):
         """Update installation status (downloading, installing, finished)."""
@@ -279,11 +305,9 @@ class KiteInstallerDialog(QDialog):
 
     def __init__(self, parent, installation_thread):
         super(KiteInstallerDialog, self).__init__(parent)
-        self.setStyleSheet(
-            f"background-color: {QStylePalette.COLOR_BACKGROUND_2}")
-        if sys.platform == 'darwin':
-            self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint
-                                | Qt.Tool)
+        self.setStyleSheet(f"background-color: {QStylePalette.COLOR_BACKGROUND_2}")
+        if sys.platform == "darwin":
+            self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint | Qt.Tool)
         else:
             self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
@@ -300,20 +324,19 @@ class KiteInstallerDialog(QDialog):
 
         # Signals
         self._installation_thread.sig_download_progress.connect(
-            self._installation_widget.update_installation_progress)
+            self._installation_widget.update_installation_progress
+        )
         self._installation_thread.sig_installation_status.connect(
-            self._installation_widget.update_installation_status)
+            self._installation_widget.update_installation_status
+        )
         self._installation_thread.sig_installation_status.connect(
-            self.finished_installation)
+            self.finished_installation
+        )
         self._installation_thread.sig_error_msg.connect(self._handle_error_msg)
-        self._integration_widget.sig_install_button_clicked.connect(
-            self.install)
-        self._integration_widget.sig_dismiss_button_clicked.connect(
-            self.reject)
-        self._installation_widget.ok_button.clicked.connect(
-            self.close_installer)
-        self._installation_widget.cancel_button.clicked.connect(
-            self.cancel_install)
+        self._integration_widget.sig_install_button_clicked.connect(self.install)
+        self._integration_widget.sig_dismiss_button_clicked.connect(self.reject)
+        self._installation_widget.ok_button.clicked.connect(self.close_installer)
+        self._installation_widget.cancel_button.clicked.connect(self.cancel_install)
 
         # Show integration widget
         self.setup()
@@ -322,12 +345,14 @@ class KiteInstallerDialog(QDialog):
         """Handle error message with an error dialog."""
         QMessageBox.critical(
             self._parent,
-            _('Kite installation error'),
-            _("<b>An error ocurred while installing Kite!</b><br><br>"
-              "Please try to "
-              "<a href=\"{kite_url}\">install it manually</a> or "
-              "<a href=\"{kite_contact}\">contact Kite</a> for help")
-            .format(kite_url=KITE_SPYDER_URL, kite_contact=KITE_CONTACT_URL))
+            _("Kite installation error"),
+            _(
+                "<b>An error ocurred while installing Kite!</b><br><br>"
+                "Please try to "
+                '<a href="{kite_url}">install it manually</a> or '
+                '<a href="{kite_contact}">contact Kite</a> for help'
+            ).format(kite_url=KITE_SPYDER_URL, kite_contact=KITE_CONTACT_URL),
+        )
         self.accept()
 
     def setup(self, integration=True, installation=False):
@@ -345,9 +370,12 @@ class KiteInstallerDialog(QDialog):
     def cancel_install(self):
         """Cancel the installation in progress."""
         reply = QMessageBox.critical(
-            self._parent, 'Spyder',
-            _('Do you really want to cancel Kite installation?'),
-            QMessageBox.Yes, QMessageBox.No)
+            self._parent,
+            "Spyder",
+            _("Do you really want to cancel Kite installation?"),
+            QMessageBox.Yes,
+            QMessageBox.No,
+        )
         if reply == QMessageBox.Yes and self._installation_thread.isRunning():
             self._installation_thread.cancelled = True
             self._installation_thread.quit()
@@ -364,9 +392,11 @@ class KiteInstallerDialog(QDialog):
 
     def close_installer(self):
         """Close the installation dialog."""
-        if (self._installation_thread.status == ERRORED
-                or self._installation_thread.status == FINISHED
-                or self._installation_thread.status == CANCELLED):
+        if (
+            self._installation_thread.status == ERRORED
+            or self._installation_thread.status == FINISHED
+            or self._installation_thread.status == CANCELLED
+        ):
             self.setup()
             self.accept()
         else:
@@ -383,6 +413,7 @@ class KiteInstallerDialog(QDialog):
 
 if __name__ == "__main__":
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     install_progress = KiteInstallation(None)
     install_progress.show()

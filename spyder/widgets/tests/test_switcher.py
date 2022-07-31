@@ -19,30 +19,31 @@ from spyder.py3compat import to_text_string
 def dlg_switcher(qtbot):
     """Set up switcher widget."""
     # Local import need to run tests locally
-    from spyder.widgets.switcher import (Switcher,
-                                         create_options_example_switcher,
-                                         create_help_example_switcher,
-                                         create_line_example_switcher,
-                                         create_symbol_example_switcher,
-                                         create_vcs_example_switcher)
+    from spyder.widgets.switcher import (
+        Switcher,
+        create_options_example_switcher,
+        create_help_example_switcher,
+        create_line_example_switcher,
+        create_symbol_example_switcher,
+        create_vcs_example_switcher,
+    )
 
-    dlg_switcher = Switcher(None, item_styles=None,
-                            item_separator_styles=None)
-    dlg_switcher.add_mode('>', _('Commands'))
-    dlg_switcher.add_mode('?', _('Help'))
-    dlg_switcher.add_mode(':', _('Go to Line'))
-    dlg_switcher.add_mode('@', _('Go to Symbol in File'))
+    dlg_switcher = Switcher(None, item_styles=None, item_separator_styles=None)
+    dlg_switcher.add_mode(">", _("Commands"))
+    dlg_switcher.add_mode("?", _("Help"))
+    dlg_switcher.add_mode(":", _("Go to Line"))
+    dlg_switcher.add_mode("@", _("Go to Symbol in File"))
 
     def handle_modes(mode):
-        if mode == '>':
+        if mode == ">":
             create_options_example_switcher(dlg_switcher)
-        elif mode == '?':
+        elif mode == "?":
             create_help_example_switcher(dlg_switcher)
-        elif mode == ':':
+        elif mode == ":":
             create_line_example_switcher(dlg_switcher)
-        elif mode == '@':
+        elif mode == "@":
             create_symbol_example_switcher(dlg_switcher)
-        elif mode == '':
+        elif mode == "":
             create_vcs_example_switcher(dlg_switcher)
 
     def item_selected(item, mode, search_text):
@@ -113,6 +114,6 @@ def test_switcher_filter_unicode(dlg_switcher, qtbot):
     assert dlg_switcher.count() == 6
     dlg_switcher.show()
     # Match one row by name
-    edit.setText('试')
+    edit.setText("试")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 2

@@ -57,15 +57,15 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
     ]
     for external_path in expected_results:
         mocker.patch(
-            'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
-            return_value=external_path
+            "spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory",
+            return_value=external_path,
         )
         path_selection_combo.setCurrentIndex(SELECT_OTHER)
 
     assert path_selection_combo.get_external_paths() == expected_results
 
     findinfiles.on_close()
-    path_history = findinfiles.get_widget().get_conf('path_history')
+    path_history = findinfiles.get_widget().get_conf("path_history")
     assert path_history == expected_results
 
     # Close the plugin and assert that the external_path_history
@@ -75,4 +75,4 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
 
 
 if __name__ == "__main__":
-    pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])
+    pytest.main(["-x", osp.basename(__file__), "-v", "-rw"])

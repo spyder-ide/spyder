@@ -17,6 +17,7 @@ class ColorButton(QToolButton):
     """
     Color choosing push button
     """
+
     colorChanged = Signal(QColor)
 
     def __init__(self, parent=None):
@@ -27,9 +28,12 @@ class ColorButton(QToolButton):
         self._color = QColor()
 
     def choose_color(self):
-        color = QColorDialog.getColor(self._color, self.parentWidget(),
-                                      'Select Color',
-                                      QColorDialog.ShowAlphaChannel)
+        color = QColorDialog.getColor(
+            self._color,
+            self.parentWidget(),
+            "Select Color",
+            QColorDialog.ShowAlphaChannel,
+        )
         if color.isValid():
             self.set_color(color)
 
@@ -57,8 +61,8 @@ def text_to_qcolor(text):
     text = str(text)
     if not is_text_string(text):
         return color
-    if text.startswith('#') and len(text)==7:
-        correct = '#0123456789abcdef'
+    if text.startswith("#") and len(text) == 7:
+        correct = "#0123456789abcdef"
         for char in text:
             if char.lower() not in correct:
                 return color
@@ -70,6 +74,7 @@ def text_to_qcolor(text):
 
 class ColorLayout(QHBoxLayout):
     """Color-specialized QLineEdit layout"""
+
     def __init__(self, color, parent=None):
         QHBoxLayout.__init__(self)
         assert isinstance(color, QColor)

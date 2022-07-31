@@ -19,7 +19,7 @@ from spyder.plugins.editor.utils.editor import BlockUserData
 
 
 def _load_all_breakpoints():
-    bp_dict = CONF.get('run', 'breakpoints', {})
+    bp_dict = CONF.get("run", "breakpoints", {})
     for filename in list(bp_dict.keys()):
         # Make sure we don't have the same file under different names
         new_filename = osp.normcase(filename)
@@ -43,11 +43,11 @@ def load_breakpoints(filename):
 def save_breakpoints(filename, breakpoints):
     bp_dict = _load_all_breakpoints()
     bp_dict[osp.normcase(filename)] = breakpoints
-    CONF.set('run', 'breakpoints', bp_dict)
+    CONF.set("run", "breakpoints", bp_dict)
 
 
 def clear_all_breakpoints():
-    CONF.set('run', 'breakpoints', {})
+    CONF.set("run", "breakpoints", {})
 
 
 def clear_breakpoint(filename, lineno):
@@ -63,6 +63,7 @@ class DebuggerManager(Manager):
     """
     Manages adding/removing breakpoint from the editor.
     """
+
     def __init__(self, editor):
         super(DebuggerManager, self).__init__(editor)
         self.filename = None
@@ -81,15 +82,14 @@ class DebuggerManager(Manager):
                 save_breakpoints(old_filename, [])  # clear old breakpoints
                 self.save_breakpoints()
 
-    def toogle_breakpoint(self, line_number=None, condition=None,
-                          edit_condition=False):
+    def toogle_breakpoint(self, line_number=None, condition=None, edit_condition=False):
         """Add/remove breakpoint."""
         if not self.editor.is_python_like():
             return
         if line_number is None:
             block = self.editor.textCursor().block()
         else:
-            block = self.editor.document().findBlockByNumber(line_number-1)
+            block = self.editor.document().findBlockByNumber(line_number - 1)
         data = block.userData()
         if not data:
             data = BlockUserData(self.editor)
@@ -101,18 +101,20 @@ class DebuggerManager(Manager):
             data.breakpoint_condition = condition
         if edit_condition:
             condition = data.breakpoint_condition
-            condition, valid = QInputDialog.getText(self.editor,
-                                                    _('Breakpoint'),
-                                                    _("Condition:"),
-                                                    QLineEdit.Normal,
-                                                    condition)
+            condition, valid = QInputDialog.getText(
+                self.editor,
+                _("Breakpoint"),
+                _("Condition:"),
+                QLineEdit.Normal,
+                condition,
+            )
             if not valid:
                 return
             data.breakpoint = True
             data.breakpoint_condition = str(condition) if condition else None
         if data.breakpoint:
             text = to_text_string(block.text()).strip()
-            if len(text) == 0 or text.startswith(('#', '"', "'")):
+            if len(text) == 0 or text.startswith(("#", '"', "'")):
                 data.breakpoint = False
             else:
                 self._breakpoint_blocks[id(block)] = block
@@ -131,8 +133,7 @@ class DebuggerManager(Manager):
                 if data and data.breakpoint:
                     pruned_breakpoint_blocks[block_id] = block
                     line_number = block.blockNumber() + 1
-                    breakpoints.append(
-                        (line_number, data.breakpoint_condition))
+                    breakpoints.append((line_number, data.breakpoint_condition))
         self._breakpoint_blocks = pruned_breakpoint_blocks
         return breakpoints
 

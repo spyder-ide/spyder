@@ -7,14 +7,21 @@
 """Appearance entry in Preferences."""
 
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
-                            QHBoxLayout, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QVBoxLayout,
+    QWidget,
+)
 
 from spyder.api.translations import get_translation
 from spyder.utils import syntaxhighlighters
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class SchemeEditor(QDialog):
@@ -24,7 +31,7 @@ class SchemeEditor(QDialog):
         super(SchemeEditor, self).__init__(parent)
         self.parent = parent
         self.stack = stack
-        self.order = []    # Uses scheme names
+        self.order = []  # Uses scheme names
 
         # Needed for self.get_edited_color_scheme()
         self.widgets = {}
@@ -76,8 +83,7 @@ class SchemeEditor(QDialog):
                 value = items[0].text()
             else:
                 # ColorLayout + checkboxes
-                value = (items[0].text(), items[1].isChecked(),
-                         items[2].isChecked())
+                value = (items[0].text(), items[1].isChecked(), items[2].isChecked())
 
             color_scheme[key] = value
 
@@ -88,22 +94,43 @@ class SchemeEditor(QDialog):
     def add_color_scheme_stack(self, scheme_name, custom=False):
         """Add a stack for a given scheme and connects the CONF values."""
         color_scheme_groups = [
-            (_('Text'), ["normal", "comment", "string", "number", "keyword",
-                         "builtin", "definition", "instance", ]),
-            (_('Highlight'), ["currentcell", "currentline", "occurrence",
-                              "matched_p", "unmatched_p", "ctrlclick"]),
-            (_('Background'), ["background", "sideareas"])
-            ]
+            (
+                _("Text"),
+                [
+                    "normal",
+                    "comment",
+                    "string",
+                    "number",
+                    "keyword",
+                    "builtin",
+                    "definition",
+                    "instance",
+                ],
+            ),
+            (
+                _("Highlight"),
+                [
+                    "currentcell",
+                    "currentline",
+                    "occurrence",
+                    "matched_p",
+                    "unmatched_p",
+                    "ctrlclick",
+                ],
+            ),
+            (_("Background"), ["background", "sideareas"]),
+        ]
 
         parent = self.parent
-        line_edit = parent.create_lineedit(_("Scheme name:"),
-                                           '{0}/name'.format(scheme_name))
+        line_edit = parent.create_lineedit(
+            _("Scheme name:"), "{0}/name".format(scheme_name)
+        )
 
         self.widgets[scheme_name] = {}
 
         # Widget setup
         line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.setWindowTitle(_('Color scheme editor'))
+        self.setWindowTitle(_("Color scheme editor"))
 
         # Layout
         name_layout = QHBoxLayout()
@@ -136,10 +163,10 @@ class SchemeEditor(QDialog):
                         name,
                         option,
                         without_layout=True,
-                        )
+                    )
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                    group_layout.addWidget(label, row+1, 0)
-                    group_layout.addLayout(clayout, row+1, 1)
+                    group_layout.addWidget(label, row + 1, 0)
+                    group_layout.addLayout(clayout, row + 1, 1)
 
                     # Needed to update temp scheme to obtain instant preview
                     self.widgets[scheme_name][key] = [clayout]
@@ -148,16 +175,15 @@ class SchemeEditor(QDialog):
                         name,
                         option,
                         without_layout=True,
-                        )
+                    )
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                    group_layout.addWidget(label, row+1, 0)
-                    group_layout.addLayout(clayout, row+1, 1)
-                    group_layout.addWidget(cb_bold, row+1, 2)
-                    group_layout.addWidget(cb_italic, row+1, 3)
+                    group_layout.addWidget(label, row + 1, 0)
+                    group_layout.addLayout(clayout, row + 1, 1)
+                    group_layout.addWidget(cb_bold, row + 1, 2)
+                    group_layout.addWidget(cb_italic, row + 1, 3)
 
                     # Needed to update temp scheme to obtain instant preview
-                    self.widgets[scheme_name][key] = [clayout, cb_bold,
-                                                      cb_italic]
+                    self.widgets[scheme_name][key] = [clayout, cb_bold, cb_italic]
 
             group_box = QGroupBox(group_name)
             group_box.setLayout(group_layout)

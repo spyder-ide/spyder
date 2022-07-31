@@ -10,5 +10,8 @@ Profiler Plugin.
 # Local imports
 from spyder.plugins.profiler.plugin import ProfilerActions
 from spyder.plugins.profiler.widgets.main_widget import (
-    ProfilerWidgetActions, ProfilerWidgetInformationToolbarSections,
-    ProfilerWidgetMainToolbarSections, ProfilerWidgetToolbars)
+    ProfilerWidgetActions,
+    ProfilerWidgetInformationToolbarSections,
+    ProfilerWidgetMainToolbarSections,
+    ProfilerWidgetToolbars,
+)

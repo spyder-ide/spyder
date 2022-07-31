@@ -135,7 +135,8 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         Create actions, widgets, add to menu and other setup requirements.
         """
         raise NotImplementedError(
-            'A PluginMainContainer subclass must define a `setup` method!')
+            "A PluginMainContainer subclass must define a `setup` method!"
+        )
 
     def update_actions(self):
         """
@@ -144,5 +145,5 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         Exposed actions are actions created by the self.create_action method.
         """
         raise NotImplementedError(
-            'A PluginMainContainer subclass must define a `update_actions` '
-            'method!')
+            "A PluginMainContainer subclass must define a `update_actions` " "method!"
+        )

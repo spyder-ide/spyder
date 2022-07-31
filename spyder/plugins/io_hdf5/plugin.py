@@ -35,14 +35,17 @@ TODO: Check issues with valid python names vs valid h5f5 names
 from __future__ import print_function
 
 import importlib
+
 # Do not import h5py here because it will try to import IPython,
 # and this is freezing the Spyder GUI
 
 import numpy as np
 
-if importlib.util.find_spec('h5py'):
+if importlib.util.find_spec("h5py"):
+
     def load_hdf5(filename):
         import h5py
+
         def get_group(group):
             contents = {}
             for name, obj in list(group.items()):
@@ -55,7 +58,7 @@ if importlib.util.find_spec('h5py'):
             return contents
 
         try:
-            f = h5py.File(filename, 'r')
+            f = h5py.File(filename, "r")
             contents = get_group(f)
             f.close()
             return contents, None
@@ -64,19 +67,21 @@ if importlib.util.find_spec('h5py'):
 
     def save_hdf5(data, filename):
         import h5py
+
         try:
-            f = h5py.File(filename, 'w')
+            f = h5py.File(filename, "w")
             for key, value in list(data.items()):
                 f[key] = np.array(value)
             f.close()
         except Exception as error:
             return str(error)
+
 else:
     load_hdf5 = None
     save_hdf5 = None
 
 
 if __name__ == "__main__":
-    data = {'a' : [1, 2, 3, 4], 'b' : 4.5}
+    data = {"a": [1, 2, 3, 4], "b": 4.5}
     print(save_hdf5(data, "test.h5"))  # spyder: test-skip
     print(load_hdf5("test.h5"))  # spyder: test-skip

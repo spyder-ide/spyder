@@ -43,8 +43,8 @@ class ClassFunctionDropdown(Panel):
         self.method_cb = QComboBox()
 
         # Widget setup
-        self.class_cb.addItem(_('<None>'), 0)
-        self.method_cb.addItem(_('<None>'), 0)
+        self.class_cb.addItem(_("<None>"), 0)
+        self.method_cb.addItem(_("<None>"), 0)
 
         # The layout
         hbox = QHBoxLayout()
@@ -87,7 +87,7 @@ class ClassFunctionDropdown(Panel):
         item = sender.itemData(sender.currentIndex())
 
         if item:
-            line = item['location']['range']['start']['line'] + 1
+            line = item["location"]["range"]["start"]["line"] + 1
             self.editor.go_to_line(line)
 
         if sender == self.class_cb:
@@ -98,7 +98,7 @@ class ClassFunctionDropdown(Panel):
         possible_parents = list(sorted(self._tree[linenum]))
         for iv in possible_parents:
             item = iv.data
-            kind = item.get('kind')
+            kind = item.get("kind")
 
             if kind in [SymbolKind.CLASS]:
                 # Update class combobox
@@ -142,47 +142,46 @@ class ClassFunctionDropdown(Panel):
         None
         """
         combobox.clear()
-        combobox.addItem(_('<None>'), 0)
+        combobox.addItem(_("<None>"), 0)
         model = combobox.model()
         item = model.item(0)
         item.setFlags(Qt.NoItemFlags)
 
         cb_data = []
         for item in data:
-            fqn = item['name']
+            fqn = item["name"]
 
             # Create a list of fully-qualified names if requested
             if add_parents:
-                begin = item['location']['range']['start']['line']
-                end = item['location']['range']['end']['line']
-                possible_parents = sorted(self._tree.overlap(begin, end),
-                                          reverse=True)
+                begin = item["location"]["range"]["start"]["line"]
+                end = item["location"]["range"]["end"]["line"]
+                possible_parents = sorted(self._tree.overlap(begin, end), reverse=True)
                 for iv in possible_parents:
                     if iv.begin == begin and iv.end == end:
                         continue
 
                     # Check if it is a real parent
                     p_item = iv.data
-                    p_begin = p_item['location']['range']['start']['line']
-                    p_end = p_item['location']['range']['end']['line']
+                    p_begin = p_item["location"]["range"]["start"]["line"]
+                    p_end = p_item["location"]["range"]["end"]["line"]
                     if p_begin <= begin and p_end >= end:
-                        fqn = p_item['name'] + "." + fqn
+                        fqn = p_item["name"] + "." + fqn
 
             cb_data.append((fqn, item))
 
         for fqn, item in cb_data:
             # Set the icon (See: editortools.py)
             icon = None
-            name = item['name']
-            if item['kind'] in [SymbolKind.CLASS]:
-                icon = ima.icon('class')
+            name = item["name"]
+            if item["kind"] in [SymbolKind.CLASS]:
+                icon = ima.icon("class")
             else:
-                if name.startswith('__'):
-                    icon = ima.icon('private2')
-                elif name.startswith('_'):
-                    icon = ima.icon('private1')
+                if name.startswith("__"):
+                    icon = ima.icon("private2")
+                elif name.startswith("_"):
+                    icon = ima.icon("private1")
                 else:
-                    icon = ima.icon('method')
+                    icon = ima.icon("method")
 
             # Add the combobox item
             if icon is not None:
@@ -204,16 +203,16 @@ class ClassFunctionDropdown(Panel):
         self.funcs = []
 
         for item in data:
-            line_start = item['location']['range']['start']['line']
-            line_end = item['location']['range']['end']['line']
-            kind = item.get('kind')
+            line_start = item["location"]["range"]["start"]["line"]
+            line_end = item["location"]["range"]["end"]["line"]
+            kind = item.get("kind")
 
             block = self._editor.document().findBlockByLineNumber(line_start)
-            line_text = line_text = block.text() if block else ''
+            line_text = line_text = block.text() if block else ""
 
             # The symbol finder returns classes in import statements as well
             # so we filter them out
-            if line_start != line_end and ' import ' not in line_text:
+            if line_start != line_end and " import " not in line_text:
                 self._tree[line_start:line_end] = item
 
                 if kind in [SymbolKind.CLASS]:

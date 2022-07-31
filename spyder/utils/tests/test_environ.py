@@ -28,11 +28,13 @@ from spyder.utils.environ import clean_env
 def environ_dialog(qtbot):
     "Setup the Environment variables Dialog taking into account the os."
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
-    if os.name == 'nt':
+    if os.name == "nt":
         from spyder.utils.environ import WinUserEnvDialog
+
         dialog = WinUserEnvDialog()
     else:
         from spyder.utils.environ import EnvDialog
+
         dialog = EnvDialog()
     qtbot.addWidget(dialog)
 
@@ -46,18 +48,18 @@ def test_environ(environ_dialog, qtbot):
 
 
 @pytest.mark.skipif(
-    PY3 or os.name == 'nt',
+    PY3 or os.name == "nt",
     reason=("This tests only applies to Python 2."),
 )
 def test_clean_env():
     env = {
-        'foo': '/foo/bar/測試',
-        'bar': '/spam',
-        'PYTHONPATH': u'\u6e2c\u8a66',
+        "foo": "/foo/bar/測試",
+        "bar": "/spam",
+        "PYTHONPATH": "\u6e2c\u8a66",
     }
     new_env = clean_env(env)
-    assert new_env['foo'] == '/foo/bar/\xe6\xb8\xac\xe8\xa9\xa6'
-    assert new_env['PYTHONPATH'] == '\xe6\xb8\xac\xe8\xa9\xa6'
+    assert new_env["foo"] == "/foo/bar/\xe6\xb8\xac\xe8\xa9\xa6"
+    assert new_env["PYTHONPATH"] == "\xe6\xb8\xac\xe8\xa9\xa6"
 
 
 if __name__ == "__main__":

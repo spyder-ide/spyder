@@ -25,7 +25,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import misc
 from spyder.plugins.explorer.widgets.explorer import DirView
 
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class ProxyModel(QSortFilterProxyModel):
@@ -33,23 +33,21 @@ class ProxyModel(QSortFilterProxyModel):
 
     PATHS_TO_HIDE = [
         # Useful paths
-        '.spyproject',
-        '__pycache__',
-        '.ipynb_checkpoints',
+        ".spyproject",
+        "__pycache__",
+        ".ipynb_checkpoints",
         # VCS paths
-        '.git',
-        '.hg',
-        '.svn',
+        ".git",
+        ".hg",
+        ".svn",
         # Others
-        '.pytest_cache',
-        '.DS_Store',
-        'Thumbs.db',
-        '.directory'
+        ".pytest_cache",
+        ".DS_Store",
+        "Thumbs.db",
+        ".directory",
     ]
 
-    PATHS_TO_SHOW = [
-        '.github'
-    ]
+    PATHS_TO_SHOW = [".github"]
 
     def __init__(self, parent):
         """Initialize the proxy model."""
@@ -82,8 +80,7 @@ class ProxyModel(QSortFilterProxyModel):
         if self.root_path is None:
             return True
         index = self.sourceModel().index(row, 0, parent_index)
-        path = osp.normcase(osp.normpath(
-            str(self.sourceModel().filePath(index))))
+        path = osp.normcase(osp.normpath(str(self.sourceModel().filePath(index))))
 
         if osp.normcase(self.root_path).startswith(path):
             # This is necessary because parent folders need to be scanned
@@ -91,10 +88,8 @@ class ProxyModel(QSortFilterProxyModel):
         else:
             for p in [osp.normcase(p) for p in self.path_list]:
                 if path == p or path.startswith(p + os.sep):
-                    if not any([path.endswith(os.sep + d)
-                                for d in self.PATHS_TO_SHOW]):
-                        if any([path.endswith(os.sep + d)
-                                for d in self.PATHS_TO_HIDE]):
+                    if not any([path.endswith(os.sep + d) for d in self.PATHS_TO_SHOW]):
+                        if any([path.endswith(os.sep + d) for d in self.PATHS_TO_HIDE]):
                             return False
                         else:
                             return True
@@ -125,6 +120,7 @@ class ProxyModel(QSortFilterProxyModel):
 
 class FilteredDirView(DirView):
     """Filtered file/directory tree view."""
+
     def __init__(self, parent=None):
         """Initialize the filtered dir view."""
         super().__init__(parent)
@@ -181,8 +177,7 @@ class FilteredDirView(DirView):
             List with the folder names.
         """
         assert self.root_path is not None
-        path_list = [osp.join(self.root_path, dirname)
-                     for dirname in folder_names]
+        path_list = [osp.join(self.root_path, dirname) for dirname in folder_names]
         self.proxymodel.setup_filter(self.root_path, path_list)
 
     def get_filename(self, index):
@@ -207,7 +202,7 @@ class FilteredDirView(DirView):
     # ---- Events
     def directory_clicked(self, dirname, index):
         if index and index.isValid():
-            if self.get_conf('single_click_to_open'):
+            if self.get_conf("single_click_to_open"):
                 state = not self.isExpanded(index)
             else:
                 state = self.isExpanded(index)
@@ -233,7 +228,7 @@ class ProjectExplorerTreeWidget(FilteredDirView):
     @Slot(bool)
     def toggle_hscrollbar(self, checked):
         """Toggle horizontal scrollbar"""
-        self.set_conf('show_hscrollbar', checked)
+        self.set_conf("show_hscrollbar", checked)
         self.show_hscrollbar = checked
         self.header().setStretchLastSection(not checked)
         self.header().setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
@@ -264,12 +259,15 @@ class ProjectExplorerTreeWidget(FilteredDirView):
 
         dst = self.get_filename(self.indexAt(event.pos()))
         yes_to_all, no_to_all = None, None
-        src_list = [to_text_string(url.toString())
-                    for url in event.mimeData().urls()]
+        src_list = [to_text_string(url.toString()) for url in event.mimeData().urls()]
         if len(src_list) > 1:
-            buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
-                       QMessageBox.No | QMessageBox.NoToAll |
-                       QMessageBox.Cancel)
+            buttons = (
+                QMessageBox.Yes
+                | QMessageBox.YesToAll
+                | QMessageBox.No
+                | QMessageBox.NoToAll
+                | QMessageBox.Cancel
+            )
         else:
             buttons = QMessageBox.Yes | QMessageBox.No
         for src in src_list:
@@ -283,10 +281,13 @@ class ProjectExplorerTreeWidget(FilteredDirView):
                 elif osp.isfile(dst_fname):
                     answer = QMessageBox.warning(
                         self,
-                        _('Project explorer'),
-                        _('File <b>%s</b> already exists.<br>'
-                          'Do you want to overwrite it?') % dst_fname,
-                        buttons
+                        _("Project explorer"),
+                        _(
+                            "File <b>%s</b> already exists.<br>"
+                            "Do you want to overwrite it?"
+                        )
+                        % dst_fname,
+                        buttons,
                     )
 
                     if answer == QMessageBox.No:
@@ -301,9 +302,9 @@ class ProjectExplorerTreeWidget(FilteredDirView):
                 else:
                     QMessageBox.critical(
                         self,
-                        _('Project explorer'),
-                        _('Folder <b>%s</b> already exists.') % dst_fname,
-                        QMessageBox.Ok
+                        _("Project explorer"),
+                        _("Folder <b>%s</b> already exists.") % dst_fname,
+                        QMessageBox.Ok,
                     )
                     event.setDropAction(Qt.CopyAction)
                     return
@@ -321,15 +322,14 @@ class ProjectExplorerTreeWidget(FilteredDirView):
                     self.parent_widget.removed.emit(src)
             except EnvironmentError as error:
                 if action == Qt.CopyAction:
-                    action_str = _('copy')
+                    action_str = _("copy")
                 else:
-                    action_str = _('move')
+                    action_str = _("move")
                 QMessageBox.critical(
                     self,
                     _("Project Explorer"),
-                    _("<b>Unable to %s <i>%s</i></b>"
-                      "<br><br>Error message:<br>%s") % (action_str, src,
-                                                         str(error))
+                    _("<b>Unable to %s <i>%s</i></b>" "<br><br>Error message:<br>%s")
+                    % (action_str, src, str(error)),
                 )
 
     @Slot()

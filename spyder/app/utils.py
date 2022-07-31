@@ -23,8 +23,12 @@ from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, running_in_mac_app,
-    running_under_pytest)
+    DEV,
+    get_conf_path,
+    get_debug_level,
+    running_in_mac_app,
+    running_under_pytest,
+)
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
@@ -40,7 +44,7 @@ except Exception:
 
 
 root_logger = logging.getLogger()
-FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')
+FILTER_NAMES = os.environ.get("SPYDER_FILTER_LOG", "").split(",")
 FILTER_NAMES = [f.strip() for f in FILTER_NAMES]
 
 # Keeping a reference to the original sys.exit before patching it
@@ -56,13 +60,15 @@ class Spy:
         app       Reference to main QApplication object
         window    Reference to spyder.MainWindow widget
     """
+
     def __init__(self, app, window):
         self.app = app
         self.window = window
 
     def __dir__(self):
-        return (list(self.__dict__.keys()) +
-                [x for x in dir(self.__class__) if x[0] != '_'])
+        return list(self.__dict__.keys()) + [
+            x for x in dir(self.__class__) if x[0] != "_"
+        ]
 
 
 def get_python_doc_path():
@@ -70,17 +76,20 @@ def get_python_doc_path():
     Return Python documentation path
     (Windows: return the PythonXX.chm path if available)
     """
-    if os.name == 'nt':
+    if os.name == "nt":
         doc_path = osp.join(sys.prefix, "Doc")
         if not osp.isdir(doc_path):
             return
-        python_chm = [path for path in os.listdir(doc_path)
-                      if re.match(r"(?i)Python[0-9]{3,6}.chm", path)]
+        python_chm = [
+            path
+            for path in os.listdir(doc_path)
+            if re.match(r"(?i)Python[0-9]{3,6}.chm", path)
+        ]
         if python_chm:
             return file_uri(osp.join(doc_path, python_chm[0]))
     else:
         vinf = sys.version_info
-        doc_path = '/usr/share/doc/python%d.%d/html' % (vinf[0], vinf[1])
+        doc_path = "/usr/share/doc/python%d.%d/html" % (vinf[0], vinf[1])
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return file_uri(python_doc)
@@ -92,15 +101,15 @@ def set_opengl_implementation(option):
 
     See spyder-ide/spyder#7447 for the details.
     """
-    if option == 'software':
+    if option == "software":
         QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
         if QQuickWindow is not None:
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.Software)
-    elif option == 'desktop':
+    elif option == "desktop":
         QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
         if QQuickWindow is not None:
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
-    elif option == 'gles':
+    elif option == "gles":
         QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
         if QQuickWindow is not None:
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
@@ -111,24 +120,21 @@ def setup_logging(cli_options):
     if cli_options.debug_info or get_debug_level() > 0:
         levels = {2: logging.INFO, 3: logging.DEBUG}
         log_level = levels[get_debug_level()]
-        log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
+        log_format = "%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s"
 
-        console_filters = cli_options.filter_log.split(',')
+        console_filters = cli_options.filter_log.split(",")
         console_filters = [x.strip() for x in console_filters]
         console_filters = console_filters + FILTER_NAMES
-        console_filters = [x for x in console_filters if x != '']
+        console_filters = [x for x in console_filters if x != ""]
 
         handlers = [logging.StreamHandler()]
-        filepath = os.environ['SPYDER_DEBUG_FILE']
-        handlers.append(
-            logging.FileHandler(filename=filepath, mode='w+')
-        )
+        filepath = os.environ["SPYDER_DEBUG_FILE"]
+        handlers.append(logging.FileHandler(filename=filepath, mode="w+"))
 
         match_func = lambda x: True
-        if console_filters != [''] and len(console_filters) > 0:
+        if console_filters != [""] and len(console_filters) > 0:
             dafsa = DAFSA(console_filters)
-            match_func = lambda x: (dafsa.lookup(x, stop_on_prefix=True)
-                                    is not None)
+            match_func = lambda x: (dafsa.lookup(x, stop_on_prefix=True) is not None)
 
         formatter = logging.Formatter(log_format)
 
@@ -149,8 +155,8 @@ def setup_logging(cli_options):
 
 def delete_debug_log_files():
     """Delete previous debug log files."""
-    regex = re.compile(r'.*_.*_(\d+)[.]log')
-    files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
+    regex = re.compile(r".*_.*_(\d+)[.]log")
+    files = glob.glob(osp.join(get_conf_path("lsp_logs"), "*.log"))
     for f in files:
         match = regex.match(f)
         if match is not None:
@@ -158,7 +164,7 @@ def delete_debug_log_files():
             if not psutil.pid_exists(pid):
                 os.remove(f)
 
-    debug_file = os.environ['SPYDER_DEBUG_FILE']
+    debug_file = os.environ["SPYDER_DEBUG_FILE"]
     if osp.exists(debug_file):
         os.remove(debug_file)
 
@@ -175,7 +181,7 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
     In DEV mode, all messages are printed.
     """
     BLACKLIST = [
-        'QMainWidget::resizeDocks: all sizes need to be larger than 0',
+        "QMainWidget::resizeDocks: all sizes need to be larger than 0",
     ]
     if DEV or msg_string not in BLACKLIST:
         print(msg_string)  # spyder: test-skip
@@ -187,7 +193,7 @@ def create_splash_screen():
         image = QImage(500, 400, QImage.Format_ARGB32_Premultiplied)
         image.fill(0)
         painter = QPainter(image)
-        renderer = QSvgRenderer(get_image_path('splash'))
+        renderer = QSvgRenderer(get_image_path("splash"))
         renderer.render(painter)
         painter.end()
 
@@ -228,12 +234,13 @@ def create_application():
     app.setWindowIcon(app_icon)
 
     # Required for correct icon on GNOME/Wayland:
-    if hasattr(app, 'setDesktopFileName'):
-        app.setDesktopFileName('spyder')
+    if hasattr(app, "setDesktopFileName"):
+        app.setDesktopFileName("spyder")
 
     # ---- Monkey patching QApplication
     class FakeQApplication(QApplication):
         """Spyder's fake QApplication"""
+
         def __init__(self, args):
             self = app  # analysis:ignore
 
@@ -243,11 +250,13 @@ def create_application():
             pass
 
     from qtpy import QtWidgets
+
     QtWidgets.QApplication = FakeQApplication
 
     # ---- Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass
+
     sys.exit = fake_sys_exit
 
     # ---- Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
@@ -257,10 +266,11 @@ def create_application():
             # This will exit Spyder with exit code 1 without invoking
             # macOS system dialogue window.
             raise SystemExit(1)
+
     sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter
-    sys.argv = ['']
+    sys.argv = [""]
 
     return app
 
@@ -301,20 +311,20 @@ def create_window(WindowClass, app, splash, options, args):
 
     if main.console:
         main.console.start_interpreter(namespace={})
-        main.console.set_namespace_item('spy', Spy(app=app, window=main))
+        main.console.set_namespace_item("spy", Spy(app=app, window=main))
 
     # Propagate current configurations to all configuration observers
     CONF.notify_all_observers()
 
     # Don't show icons in menus for Mac
-    if sys.platform == 'darwin':
+    if sys.platform == "darwin":
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
-        if hasattr(app, '_pending_file_open'):
+        if hasattr(app, "_pending_file_open"):
             if args:
                 args = app._pending_file_open + args
             else:

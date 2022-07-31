@@ -17,51 +17,55 @@ from spyder.utils.system import memory_usage
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class MemoryStatus(BaseTimerStatus):
     """Status bar widget for system memory usage."""
-    ID = 'memory_status'
+
+    ID = "memory_status"
 
     def get_value(self):
         """Return memory usage."""
-        text = '%d%%' % memory_usage()
-        return 'Mem ' + text.rjust(3)
+        text = "%d%%" % memory_usage()
+        return "Mem " + text.rjust(3)
 
     def get_tooltip(self):
         """Return the widget tooltip text."""
-        return _('Global memory usage')
+        return _("Global memory usage")
 
 
 class CPUStatus(BaseTimerStatus):
     """Status bar widget for system cpu usage."""
-    ID = 'cpu_status'
+
+    ID = "cpu_status"
 
     def get_value(self):
         """Return CPU usage."""
-        text = '%d%%' % psutil.cpu_percent(interval=0)
-        return 'CPU ' + text.rjust(3)
+        text = "%d%%" % psutil.cpu_percent(interval=0)
+        return "CPU " + text.rjust(3)
 
     def get_tooltip(self):
         """Return the widget tooltip text."""
-        return _('CPU usage')
+        return _("CPU usage")
 
 
 class ClockStatus(BaseTimerStatus):
-    """"Add clock to statusbar in a fullscreen mode."""
-    ID = 'clock_status'
+    """ "Add clock to statusbar in a fullscreen mode."""
+
+    ID = "clock_status"
 
     def get_value(self):
         """Return the time."""
         from time import localtime, strftime
+
         text = strftime("%H:%M", localtime())
 
         return text.rjust(3)
 
     def get_tooltip(self):
         """Return the widget tooltip text."""
-        return _('Clock')
+        return _("Clock")
 
 
 def test():

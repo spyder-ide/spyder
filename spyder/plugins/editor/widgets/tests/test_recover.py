@@ -16,8 +16,7 @@ from qtpy.QtWidgets import QDialogButtonBox, QPushButton, QTableWidget
 
 # Local imports
 from spyder.py3compat import PY2
-from spyder.plugins.editor.widgets.recover import (make_temporary_files,
-                                                   RecoveryDialog)
+from spyder.plugins.editor.widgets.recover import make_temporary_files, RecoveryDialog
 
 
 @pytest.fixture
@@ -51,20 +50,20 @@ def test_recoverydialog_table_labels(qtbot, recovery_env):
         return table.cellWidget(i, j).text()
 
     # ham.py: Both original and autosave files exist, mentioned in mapping
-    assert osp.join(orig_dir, 'ham.py') in text(0, 0)
-    assert osp.join(autosave_dir, 'ham.py') in text(0, 1)
+    assert osp.join(orig_dir, "ham.py") in text(0, 0)
+    assert osp.join(autosave_dir, "ham.py") in text(0, 1)
 
     # spam.py: Only autosave file exists, mentioned in mapping
-    assert osp.join(orig_dir, 'spam.py') in text(1, 0)
-    assert 'no longer exists' in text(1, 0)
-    assert osp.join(autosave_dir, 'spam.py') in text(1, 1)
+    assert osp.join(orig_dir, "spam.py") in text(1, 0)
+    assert "no longer exists" in text(1, 0)
+    assert osp.join(autosave_dir, "spam.py") in text(1, 1)
 
     # eggs.py: Only original files exists, so cannot be recovered
     # It won't be in the table, so nothing to test
 
     # cheese.py: Only autosave file exists, not mentioned in mapping
-    assert 'not recorded' in text(2, 0)
-    assert osp.join(autosave_dir, 'cheese.py') in text(2, 1)
+    assert "not recorded" in text(2, 0)
+    assert osp.join(autosave_dir, "cheese.py") in text(2, 1)
 
     # Thus, there should be three rows in total
     assert table.rowCount() == 3
@@ -76,24 +75,24 @@ def test_recoverydialog_exec_if_nonempty_when_empty(qtbot, tmpdir, mocker):
 
     Specifically, test that it does not `exec_()` the dialog.
     """
-    dialog = RecoveryDialog([('ham', 'spam')])
-    mocker.patch.object(dialog, 'exec_')
+    dialog = RecoveryDialog([("ham", "spam")])
+    mocker.patch.object(dialog, "exec_")
     assert dialog.exec_if_nonempty() == dialog.Accepted
     dialog.exec_.assert_not_called()
 
 
-def test_recoverydialog_exec_if_nonempty_when_nonempty(
-        qtbot, recovery_env, mocker):
+def test_recoverydialog_exec_if_nonempty_when_nonempty(qtbot, recovery_env, mocker):
     """Test that exec_if_nonempty executes dialog if autosave dir not empty."""
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     dialog = RecoveryDialog(autosave_mapping)
-    mocker.patch.object(dialog, 'exec_', return_value='eggs')
-    assert dialog.exec_if_nonempty() == 'eggs'
+    mocker.patch.object(dialog, "exec_", return_value="eggs")
+    assert dialog.exec_if_nonempty() == "eggs"
     assert dialog.exec_.called
 
 
 def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
-        qtbot, recovery_env, mocker):
+    qtbot, recovery_env, mocker
+):
     """
     Test that exec_if_nonempty does nothing if autosave dir does not exist.
 
@@ -102,7 +101,7 @@ def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     shutil.rmtree(autosave_dir)
     dialog = RecoveryDialog(autosave_mapping)
-    mocker.patch.object(dialog, 'exec_')
+    mocker.patch.object(dialog, "exec_")
     assert dialog.exec_if_nonempty() == dialog.Accepted
     dialog.exec_.assert_not_called()
 
@@ -120,15 +119,14 @@ def test_recoverydialog_restore_button(qtbot, recovery_env):
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
-    with open(osp.join(orig_dir, 'ham.py')) as f:
+    with open(osp.join(orig_dir, "ham.py")) as f:
         assert f.read() == 'ham = "autosave"\n'
-    assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
+    assert not osp.isfile(osp.join(autosave_dir, "ham.py"))
     for col in range(table.columnCount()):
         assert not table.cellWidget(0, col).isEnabled()
 
 
-def test_recoverydialog_restore_when_original_does_not_exist(
-        qtbot, recovery_env):
+def test_recoverydialog_restore_when_original_does_not_exist(qtbot, recovery_env):
     """
     Test the `Restore` button when the original file does not exist.
 
@@ -141,15 +139,14 @@ def test_recoverydialog_restore_when_original_does_not_exist(
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(1, 2).findChildren(QPushButton)[0]
     button.click()
-    with open(osp.join(orig_dir, 'spam.py')) as f:
+    with open(osp.join(orig_dir, "spam.py")) as f:
         assert f.read() == 'spam = "autosave"\n'
-    assert not osp.isfile(osp.join(autosave_dir, 'spam.py'))
+    assert not osp.isfile(osp.join(autosave_dir, "spam.py"))
     for col in range(table.columnCount()):
         assert not table.cellWidget(1, col).isEnabled()
 
 
-def test_recoverydialog_restore_when_original_not_recorded(
-        qtbot, recovery_env, mocker):
+def test_recoverydialog_restore_when_original_not_recorded(qtbot, recovery_env, mocker):
     """
     Test the `Restore` button when the original file name is not known.
 
@@ -157,16 +154,18 @@ def test_recoverydialog_restore_when_original_not_recorded(
     to a location specified by the user and the row in the grid is deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    new_name = osp.join(orig_dir, 'monty.py')
-    mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
-                 return_value=(new_name, 'ignored'))
+    new_name = osp.join(orig_dir, "monty.py")
+    mocker.patch(
+        "spyder.plugins.editor.widgets.recover.getsavefilename",
+        return_value=(new_name, "ignored"),
+    )
     dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(2, 2).findChildren(QPushButton)[0]
     button.click()
     with open(new_name) as f:
         assert f.read() == 'cheese = "autosave"\n'
-    assert not osp.isfile(osp.join(autosave_dir, 'cheese.py'))
+    assert not osp.isfile(osp.join(autosave_dir, "cheese.py"))
     for col in range(table.columnCount()):
         assert not table.cellWidget(2, col).isEnabled()
 
@@ -181,15 +180,16 @@ def test_recoverydialog_restore_fallback(qtbot, recovery_env, mocker):
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     if not PY2:
-        mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
-                     side_effect=OSError)
+        mocker.patch(
+            "spyder.plugins.editor.widgets.recover.os.replace", side_effect=OSError
+        )
     dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
-    with open(osp.join(orig_dir, 'ham.py')) as f:
+    with open(osp.join(orig_dir, "ham.py")) as f:
         assert f.read() == 'ham = "autosave"\n'
-    assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
+    assert not osp.isfile(osp.join(autosave_dir, "ham.py"))
     for col in range(table.columnCount()):
         assert not table.cellWidget(0, col).isEnabled()
 
@@ -204,27 +204,27 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     if not PY2:
-        mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
-                     side_effect=OSError)
-    mocker.patch('spyder.plugins.editor.widgets.recover.shutil.copy2',
-                 side_effect=IOError)
-    mock_QMessageBox = mocker.patch(
-                'spyder.plugins.editor.widgets.recover.QMessageBox')
+        mocker.patch(
+            "spyder.plugins.editor.widgets.recover.os.replace", side_effect=OSError
+        )
+    mocker.patch(
+        "spyder.plugins.editor.widgets.recover.shutil.copy2", side_effect=IOError
+    )
+    mock_QMessageBox = mocker.patch("spyder.plugins.editor.widgets.recover.QMessageBox")
     dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
-    with open(osp.join(orig_dir, 'ham.py')) as f:
+    with open(osp.join(orig_dir, "ham.py")) as f:
         assert f.read() == 'ham = "original"\n'
-    with open(osp.join(autosave_dir, 'ham.py')) as f:
+    with open(osp.join(autosave_dir, "ham.py")) as f:
         assert f.read() == 'ham = "autosave"\n'
     assert mock_QMessageBox.called
     for col in range(table.columnCount()):
         assert table.cellWidget(0, col).isEnabled()
 
 
-def test_recoverydialog_accepted_after_all_restored(
-        qtbot, recovery_env, mocker):
+def test_recoverydialog_accepted_after_all_restored(qtbot, recovery_env, mocker):
     """
     Test that the recovery dialog is accepted after all files are restored.
 
@@ -232,9 +232,11 @@ def test_recoverydialog_accepted_after_all_restored(
     afterwards, but not before.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    new_name = osp.join(orig_dir, 'monty.py')
-    mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
-                 return_value=(new_name, 'ignored'))
+    new_name = osp.join(orig_dir, "monty.py")
+    mocker.patch(
+        "spyder.plugins.editor.widgets.recover.getsavefilename",
+        return_value=(new_name, "ignored"),
+    )
     dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     with qtbot.assertNotEmitted(dialog.accepted):
@@ -258,8 +260,8 @@ def test_recoverydialog_discard_button(qtbot, recovery_env):
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[1]
     button.click()
-    assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
-    with open(osp.join(orig_dir, 'ham.py')) as f:
+    assert not osp.isfile(osp.join(autosave_dir, "ham.py"))
+    with open(osp.join(orig_dir, "ham.py")) as f:
         assert f.read() == 'ham = "original"\n'
     for col in range(table.columnCount()):
         assert not table.cellWidget(0, col).isEnabled()
@@ -274,17 +276,15 @@ def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
     in the grid is not deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    mocker.patch('spyder.plugins.editor.widgets.recover.os.remove',
-                 side_effect=OSError)
-    mock_QMessageBox = mocker.patch(
-                'spyder.plugins.editor.widgets.recover.QMessageBox')
+    mocker.patch("spyder.plugins.editor.widgets.recover.os.remove", side_effect=OSError)
+    mock_QMessageBox = mocker.patch("spyder.plugins.editor.widgets.recover.QMessageBox")
     dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[1]
     button.click()
-    with open(osp.join(orig_dir, 'ham.py')) as f:
+    with open(osp.join(orig_dir, "ham.py")) as f:
         assert f.read() == 'ham = "original"\n'
-    with open(osp.join(autosave_dir, 'ham.py')) as f:
+    with open(osp.join(autosave_dir, "ham.py")) as f:
         assert f.read() == 'ham = "autosave"\n'
     assert mock_QMessageBox.called
     for col in range(table.columnCount()):
@@ -304,8 +304,10 @@ def test_recoverydialog_open_button(qtbot, recovery_env):
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[2]
     button.click()
-    assert dialog.files_to_open == [osp.join(orig_dir, 'ham.py'),
-                                    osp.join(autosave_dir, 'ham.py')]
+    assert dialog.files_to_open == [
+        osp.join(orig_dir, "ham.py"),
+        osp.join(autosave_dir, "ham.py"),
+    ]
     for col in range(table.columnCount()):
         assert not table.cellWidget(0, col).isEnabled()
 
@@ -323,6 +325,6 @@ def test_recoverydialog_open_when_no_original(qtbot, recovery_env):
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(2, 2).findChildren(QPushButton)[2]
     button.click()
-    assert dialog.files_to_open == [osp.join(autosave_dir, 'cheese.py')]
+    assert dialog.files_to_open == [osp.join(autosave_dir, "cheese.py")]
     for col in range(table.columnCount()):
         assert not table.cellWidget(2, col).isEnabled()

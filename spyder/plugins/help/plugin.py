@@ -18,7 +18,9 @@ from qtpy.QtCore import Signal
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
@@ -26,7 +28,7 @@ from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class HelpActions:
@@ -38,7 +40,8 @@ class Help(SpyderDockablePlugin):
     """
     Docstrings viewer widget.
     """
-    NAME = 'help'
+
+    NAME = "help"
     REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Editor]
     OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts, Plugins.MainMenu]
     TABIFY = Plugins.VariableExplorer
@@ -63,14 +66,13 @@ class Help(SpyderDockablePlugin):
     #  -----------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Help')
+        return _("Help")
 
     def get_description(self):
-        return _(
-            'Get rich text documentation from the editor and the console')
+        return _("Get rich text documentation from the editor and the console")
 
     def get_icon(self):
-        return self.create_icon('help')
+        return self.create_icon("help")
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -108,10 +110,8 @@ class Help(SpyderDockablePlugin):
 
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.connect(self.set_shellwidget)
-        ipyconsole.sig_render_plain_text_requested.connect(
-            self.show_plain_text)
-        ipyconsole.sig_render_rich_text_requested.connect(
-            self.show_rich_text)
+        ipyconsole.sig_render_plain_text_requested.connect(self.show_plain_text)
+        ipyconsole.sig_render_rich_text_requested.connect(self.show_rich_text)
 
         ipyconsole.sig_help_requested.connect(self.set_object_text)
 
@@ -155,12 +155,9 @@ class Help(SpyderDockablePlugin):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.disconnect(
-            self.set_shellwidget)
-        ipyconsole.sig_render_plain_text_requested.disconnect(
-            self.show_plain_text)
-        ipyconsole.sig_render_rich_text_requested.disconnect(
-            self.show_rich_text)
+        ipyconsole.sig_shellwidget_created.disconnect(self.set_shellwidget)
+        ipyconsole.sig_render_plain_text_requested.disconnect(self.show_plain_text)
+        ipyconsole.sig_render_rich_text_requested.disconnect(self.show_rich_text)
 
         ipyconsole.sig_help_requested.disconnect(self.set_object_text)
 
@@ -198,15 +195,15 @@ class Help(SpyderDockablePlugin):
         # To make auto-connection changes take place instantly
         try:
             editor = self.get_plugin(Plugins.Editor)
-            editor.apply_plugin_settings({'connect_to_oi'})
+            editor.apply_plugin_settings({"connect_to_oi"})
         except SpyderAPIError:
             pass
 
     def on_mainwindow_visible(self):
         # Raise plugin the first time Spyder starts
-        if self.get_conf('show_first_time', default=True):
+        if self.get_conf("show_first_time", default=True):
             self.dockwidget.raise_()
-            self.set_conf('show_first_time', False)
+            self.set_conf("show_first_time", False)
 
     # --- Private API
     # ------------------------------------------------------------------------
@@ -216,24 +213,27 @@ class Help(SpyderDockablePlugin):
         shortcuts_summary_action = None
         if shortcuts:
             from spyder.plugins.shortcuts.plugin import ShortcutActions
+
             shortcuts_summary_action = ShortcutActions.ShortcutSummaryAction
         if mainmenu:
-            from spyder.plugins.mainmenu.api import (
-                ApplicationMenus, HelpMenuSections)
+            from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
+
             # Documentation actions
             mainmenu.add_item_to_application_menu(
                 self.tutorial_action,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.Documentation,
                 before=shortcuts_summary_action,
-                before_section=HelpMenuSections.Support)
+                before_section=HelpMenuSections.Support,
+            )
 
     def _remove_menus(self):
         from spyder.plugins.mainmenu.api import ApplicationMenus
+
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            HelpActions.ShowSpyderTutorialAction,
-            menu_id=ApplicationMenus.Help)
+            HelpActions.ShowSpyderTutorialAction, menu_id=ApplicationMenus.Help
+        )
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -246,8 +246,7 @@ class Help(SpyderDockablePlugin):
         shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
             The shell widget that is going to be connected to Help.
         """
-        shellwidget._control.set_help_enabled(
-            self.get_conf('connect/ipython_console'))
+        shellwidget._control.set_help_enabled(self.get_conf("connect/ipython_console"))
         self.get_widget().set_shell(shellwidget)
 
     def load_history(self, obj=None):
@@ -255,10 +254,10 @@ class Help(SpyderDockablePlugin):
         Load history from a text file in the user configuration directory.
         """
         if os.path.isfile(self.LOG_PATH):
-            with open(self.LOG_PATH, 'r') as fh:
-                lines = fh.read().split('\n')
+            with open(self.LOG_PATH, "r") as fh:
+                lines = fh.read().split("\n")
 
-            history = [line.replace('\n', '') for line in lines]
+            history = [line.replace("\n", "") for line in lines]
         else:
             history = []
 
@@ -271,8 +270,8 @@ class Help(SpyderDockablePlugin):
         # Don't fail when saving search history to disk
         # See spyder-ide/spyder#8878 and spyder-ide/spyder#6864
         try:
-            search_history = '\n'.join(self.get_widget().get_history())
-            with open(self.LOG_PATH, 'w') as fh:
+            search_history = "\n".join(self.get_widget().get_history())
+            with open(self.LOG_PATH, "w") as fh:
                 fh.write(search_history)
         except (UnicodeEncodeError, UnicodeDecodeError, EnvironmentError):
             pass
@@ -286,7 +285,7 @@ class Help(SpyderDockablePlugin):
         """Show the IPython introduction message."""
         self.get_widget().show_intro_message()
 
-    def show_rich_text(self, text, collapse=False, img_path=''):
+    def show_rich_text(self, text, collapse=False, img_path=""):
         """
         Show help in rich mode.
 
@@ -301,8 +300,7 @@ class Help(SpyderDockablePlugin):
             display the rich text help. Default is ''.
         """
         self.switch_to_plugin()
-        self.get_widget().show_rich_text(text, collapse=collapse,
-                                         img_path=img_path)
+        self.get_widget().show_rich_text(text, collapse=collapse, img_path=img_path)
 
     def show_plain_text(self, text):
         """
@@ -338,8 +336,8 @@ class Help(SpyderDockablePlugin):
         """
         self.switch_to_plugin()
         self.get_widget().set_object_text(
-            options_dict['name'],
-            ignore_unknown=options_dict['ignore_unknown'],
+            options_dict["name"],
+            ignore_unknown=options_dict["ignore_unknown"],
         )
 
     def set_editor_doc(self, help_data):
@@ -367,7 +365,7 @@ class Help(SpyderDockablePlugin):
         --------
         :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
         """
-        force_refresh = help_data.pop('force_refresh', False)
+        force_refresh = help_data.pop("force_refresh", False)
         self.switch_to_plugin()
         self.get_widget().set_editor_doc(
             help_data,

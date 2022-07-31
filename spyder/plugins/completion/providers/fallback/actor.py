@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # Copyright © Spyder Project Contributors
@@ -27,7 +26,10 @@ from diff_match_patch import diff_match_patch
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.completion.api import CompletionRequestTypes
 from spyder.plugins.completion.providers.fallback.utils import (
-    get_keywords, get_words, is_prefix_valid)
+    get_keywords,
+    get_words,
+    is_prefix_valid,
+)
 
 
 FALLBACK_COMPLETION = "Fallback"
@@ -70,34 +72,41 @@ class FallbackActor(QObject):
         except Exception:
             keywords = []
         keyword_set = set(keywords)
-        keywords = [{'kind': CompletionItemKind.KEYWORD,
-                     'insertText': keyword,
-                     'label': keyword,
-                     'sortText': keyword,
-                     'filterText': keyword,
-                     'documentation': '',
-                     'provider': FALLBACK_COMPLETION}
-                    for keyword in keywords]
+        keywords = [
+            {
+                "kind": CompletionItemKind.KEYWORD,
+                "insertText": keyword,
+                "label": keyword,
+                "sortText": keyword,
+                "filterText": keyword,
+                "documentation": "",
+                "provider": FALLBACK_COMPLETION,
+            }
+            for keyword in keywords
+        ]
 
         # Get file tokens
         tokens = get_words(text, offset, language)
-        tokens = [{'kind': CompletionItemKind.TEXT,
-                   'insertText': token,
-                   'label': token,
-                   'sortText': token,
-                   'filterText': token,
-                   'documentation': '',
-                   'provider': FALLBACK_COMPLETION}
-                  for token in tokens]
+        tokens = [
+            {
+                "kind": CompletionItemKind.TEXT,
+                "insertText": token,
+                "label": token,
+                "sortText": token,
+                "filterText": token,
+                "documentation": "",
+                "provider": FALLBACK_COMPLETION,
+            }
+            for token in tokens
+        ]
         for token in tokens:
-            if token['insertText'] not in keyword_set:
+            if token["insertText"] not in keyword_set:
                 keywords.append(token)
 
         # Filter matching results
         if current_word is not None:
             current_word = current_word.lower()
-            keywords = [k for k in keywords
-                        if current_word in k['insertText'].lower()]
+            keywords = [k for k in keywords if current_word in k["insertText"].lower()]
 
         return keywords
 
@@ -113,34 +122,32 @@ class FallbackActor(QObject):
 
     def started(self):
         """Thread started."""
-        logger.debug('Fallback plugin starting...')
+        logger.debug("Fallback plugin starting...")
         self.sig_fallback_ready.emit()
 
     @Slot(dict)
     def handle_msg(self, message):
         """Handle one message"""
-        msg_type, _id, file, msg = [
-            message[k] for k in ('type', 'id', 'file', 'msg')]
-        logger.debug(u'Perform request {0} with id {1}'.format(msg_type, _id))
+        msg_type, _id, file, msg = [message[k] for k in ("type", "id", "file", "msg")]
+        logger.debug("Perform request {0} with id {1}".format(msg_type, _id))
         if msg_type == CompletionRequestTypes.DOCUMENT_DID_OPEN:
             self.file_tokens[file] = {
-                'text': msg['text'],
-                'offset': msg['offset'],
-                'language': msg['language'],
+                "text": msg["text"],
+                "offset": msg["offset"],
+                "language": msg["language"],
             }
         elif msg_type == CompletionRequestTypes.DOCUMENT_DID_CHANGE:
             if file not in self.file_tokens:
                 self.file_tokens[file] = {
-                    'text': '',
-                    'offset': msg['offset'],
-                    'language': msg['language'],
+                    "text": "",
+                    "offset": msg["offset"],
+                    "language": msg["language"],
                 }
-            diff = msg['diff']
+            diff = msg["diff"]
             text = self.file_tokens[file]
-            text['offset'] = msg['offset']
-            text, _ = self.diff_patch.patch_apply(
-                diff, text['text'])
-            self.file_tokens[file]['text'] = text
+            text["offset"] = msg["offset"]
+            text, _ = self.diff_patch.patch_apply(diff, text["text"])
+            self.file_tokens[file]["text"] = text
         elif msg_type == CompletionRequestTypes.DOCUMENT_DID_CLOSE:
             self.file_tokens.pop(file, {})
         elif msg_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
@@ -148,9 +155,10 @@ class FallbackActor(QObject):
             if file in self.file_tokens:
                 text_info = self.file_tokens[file]
                 tokens = self.tokenize(
-                    text_info['text'],
-                    text_info['offset'],
-                    text_info['language'],
-                    msg['current_word'])
-            tokens = {'params': tokens}
+                    text_info["text"],
+                    text_info["offset"],
+                    text_info["language"],
+                    msg["current_word"],
+                )
+            tokens = {"params": tokens}
             self.sig_set_tokens.emit(_id, tokens)

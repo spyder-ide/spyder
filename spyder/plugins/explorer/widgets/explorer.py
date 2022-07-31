@@ -25,10 +25,22 @@ from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QFileSystemModel, QInputDialog, QLabel, QLineEdit,
-                            QMessageBox, QProxyStyle, QStyle, QTextEdit,
-                            QToolTip, QTreeView, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFileSystemModel,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProxyStyle,
+    QStyle,
+    QTextEdit,
+    QToolTip,
+    QTreeView,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -37,7 +49,11 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.utils import (
-    create_script, fixpath, IconProvider, show_in_external_file_explorer)
+    create_script,
+    fixpath,
+    IconProvider,
+    show_in_external_file_explorer,
+)
 from spyder.py3compat import to_binary_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
@@ -48,11 +64,11 @@ from spyder.utils.qthelpers import file_uri, start_file
 try:
     from nbconvert import PythonExporter as nbexporter
 except:
-    nbexporter = None    # analysis:ignore
+    nbexporter = None  # analysis:ignore
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # ---- Constants
@@ -64,81 +80,80 @@ class DirViewColumns:
 
 
 class DirViewOpenWithSubMenuSections:
-    Main = 'Main'
+    Main = "Main"
 
 
 class DirViewActions:
     # Toggles
-    ToggleDateColumn = 'toggle_date_column_action'
-    ToggleSingleClick = 'toggle_single_click_to_open_action'
-    ToggleSizeColumn = 'toggle_size_column_action'
-    ToggleTypeColumn = 'toggle_type_column_action'
-    ToggleHiddenFiles = 'toggle_show_hidden_action'
+    ToggleDateColumn = "toggle_date_column_action"
+    ToggleSingleClick = "toggle_single_click_to_open_action"
+    ToggleSizeColumn = "toggle_size_column_action"
+    ToggleTypeColumn = "toggle_type_column_action"
+    ToggleHiddenFiles = "toggle_show_hidden_action"
 
     # Triggers
-    EditNameFilters = 'edit_name_filters_action'
-    NewFile = 'new_file_action'
-    NewModule = 'new_module_action'
-    NewFolder = 'new_folder_action'
-    NewPackage = 'new_package_action'
-    OpenWithSpyder = 'open_with_spyder_action'
-    OpenWithSystem = 'open_with_system_action'
-    OpenWithSystem2 = 'open_with_system_2_action'
-    Delete = 'delete_action'
-    Rename = 'rename_action'
-    Move = 'move_action'
-    Copy = 'copy_action'
-    Paste = 'paste_action'
-    CopyAbsolutePath = 'copy_absolute_path_action'
-    CopyRelativePath = 'copy_relative_path_action'
-    ShowInSystemExplorer = 'show_system_explorer_action'
-    VersionControlCommit = 'version_control_commit_action'
-    VersionControlBrowse = 'version_control_browse_action'
-    ConvertNotebook = 'convert_notebook_action'
+    EditNameFilters = "edit_name_filters_action"
+    NewFile = "new_file_action"
+    NewModule = "new_module_action"
+    NewFolder = "new_folder_action"
+    NewPackage = "new_package_action"
+    OpenWithSpyder = "open_with_spyder_action"
+    OpenWithSystem = "open_with_system_action"
+    OpenWithSystem2 = "open_with_system_2_action"
+    Delete = "delete_action"
+    Rename = "rename_action"
+    Move = "move_action"
+    Copy = "copy_action"
+    Paste = "paste_action"
+    CopyAbsolutePath = "copy_absolute_path_action"
+    CopyRelativePath = "copy_relative_path_action"
+    ShowInSystemExplorer = "show_system_explorer_action"
+    VersionControlCommit = "version_control_commit_action"
+    VersionControlBrowse = "version_control_browse_action"
+    ConvertNotebook = "convert_notebook_action"
 
     # TODO: Move this to the IPython Console
-    OpenInterpreter = 'open_interpreter_action'
-    Run = 'run_action'
+    OpenInterpreter = "open_interpreter_action"
+    Run = "run_action"
 
 
 class DirViewMenus:
-    Context = 'context_menu'
-    Header = 'header_menu'
-    New = 'new_menu'
-    OpenWith = 'open_with_menu'
+    Context = "context_menu"
+    Header = "header_menu"
+    New = "new_menu"
+    OpenWith = "open_with_menu"
 
 
 class DirViewHeaderMenuSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 class DirViewNewSubMenuSections:
-    General = 'general_section'
-    Language = 'language_section'
+    General = "general_section"
+    Language = "language_section"
 
 
 class DirViewContextMenuSections:
-    CopyPaste = 'copy_paste_section'
-    Extras = 'extras_section'
-    New = 'new_section'
-    System = 'system_section'
-    VersionControl = 'version_control_section'
+    CopyPaste = "copy_paste_section"
+    Extras = "extras_section"
+    New = "new_section"
+    System = "system_section"
+    VersionControl = "version_control_section"
 
 
 class ExplorerTreeWidgetActions:
     # Toggles
-    ToggleFilter = 'toggle_filter_files_action'
+    ToggleFilter = "toggle_filter_files_action"
 
     # Triggers
-    Next = 'next_action'
-    Parent = 'parent_action'
-    Previous = 'previous_action'
+    Next = "next_action"
+    Parent = "parent_action"
+    Previous = "previous_action"
 
 
 # ---- Styles
 # ----------------------------------------------------------------------------
 class DirViewStyle(QProxyStyle):
-
     def styleHint(self, hint, option=None, widget=None, return_data=None):
         """
         To show tooltips with longer delays.
@@ -321,28 +336,28 @@ class DirView(QTreeView, SpyderWidgetMixin):
         new_file_action = self.create_action(
             DirViewActions.NewFile,
             text=_("File..."),
-            icon=self.create_icon('TextFileIcon'),
+            icon=self.create_icon("TextFileIcon"),
             triggered=lambda: self.new_file(),
         )
 
         new_module_action = self.create_action(
             DirViewActions.NewModule,
             text=_("Python file..."),
-            icon=self.create_icon('python'),
+            icon=self.create_icon("python"),
             triggered=lambda: self.new_module(),
         )
 
         new_folder_action = self.create_action(
             DirViewActions.NewFolder,
             text=_("Folder..."),
-            icon=self.create_icon('folder_new'),
+            icon=self.create_icon("folder_new"),
             triggered=lambda: self.new_folder(),
         )
 
         new_package_action = self.create_action(
             DirViewActions.NewPackage,
             text=_("Python Package..."),
-            icon=self.create_icon('package_new'),
+            icon=self.create_icon("package_new"),
             triggered=lambda: self.new_package(),
         )
 
@@ -350,7 +365,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.open_with_spyder_action = self.create_action(
             DirViewActions.OpenWithSpyder,
             text=_("Open in Spyder"),
-            icon=self.create_icon('edit'),
+            icon=self.create_icon("edit"),
             triggered=lambda: self.open(),
         )
 
@@ -371,21 +386,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
         delete_action = self.create_action(
             DirViewActions.Delete,
             text=_("Delete..."),
-            icon=self.create_icon('editdelete'),
+            icon=self.create_icon("editdelete"),
             triggered=lambda: self.delete(),
         )
 
         rename_action = self.create_action(
             DirViewActions.Rename,
             text=_("Rename..."),
-            icon=self.create_icon('rename'),
+            icon=self.create_icon("rename"),
             triggered=lambda: self.rename(),
         )
 
         self.move_action = self.create_action(
             DirViewActions.Move,
             text=_("Move..."),
-            icon=self.create_icon('move'),
+            icon=self.create_icon("move"),
             triggered=lambda: self.move(),
         )
 
@@ -393,14 +408,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
         copy_action = self.create_action(
             DirViewActions.Copy,
             text=_("Copy"),
-            icon=self.create_icon('editcopy'),
+            icon=self.create_icon("editcopy"),
             triggered=lambda: self.copy_file_clipboard(),
         )
 
         self.paste_action = self.create_action(
             DirViewActions.Paste,
             text=_("Paste"),
-            icon=self.create_icon('editpaste'),
+            icon=self.create_icon("editpaste"),
             triggered=lambda: self.save_file_clipboard(),
         )
 
@@ -417,7 +432,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         )
 
         # Show actions
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             show_in_finder_text = _("Show in Finder")
         else:
             show_in_finder_text = _("Show in Folder")
@@ -432,14 +447,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.vcs_commit_action = self.create_action(
             DirViewActions.VersionControlCommit,
             text=_("Commit"),
-            icon=self.create_icon('vcs_commit'),
-            triggered=lambda: self.vcs_command('commit'),
+            icon=self.create_icon("vcs_commit"),
+            triggered=lambda: self.vcs_command("commit"),
         )
         self.vcs_log_action = self.create_action(
             DirViewActions.VersionControlBrowse,
             text=_("Browse repository"),
-            icon=self.create_icon('vcs_browse'),
-            triggered=lambda: self.vcs_command('browse'),
+            icon=self.create_icon("vcs_browse"),
+            triggered=lambda: self.vcs_command("browse"),
         )
 
         # Common actions
@@ -447,14 +462,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ToggleHiddenFiles,
             text=_("Show hidden files"),
             toggled=True,
-            initial=self.get_conf('show_hidden'),
-            option='show_hidden'
+            initial=self.get_conf("show_hidden"),
+            option="show_hidden",
         )
 
         self.filters_action = self.create_action(
             DirViewActions.EditNameFilters,
             text=_("Edit filter settings..."),
-            icon=self.create_icon('filter'),
+            icon=self.create_icon("filter"),
             triggered=lambda: self.edit_filter(),
         )
 
@@ -462,8 +477,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ToggleSingleClick,
             text=_("Single click to open"),
             toggled=True,
-            initial=self.get_conf('single_click_to_open'),
-            option='single_click_to_open'
+            initial=self.get_conf("single_click_to_open"),
+            option="single_click_to_open",
         )
 
         # IPython console actions
@@ -478,7 +493,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         run_action = self.create_action(
             DirViewActions.Run,
             text=_("Run"),
-            icon=self.create_icon('run'),
+            icon=self.create_icon("run"),
             triggered=lambda: self.run(),
         )
 
@@ -486,40 +501,39 @@ class DirView(QTreeView, SpyderWidgetMixin):
         ipynb_convert_action = self.create_action(
             DirViewActions.ConvertNotebook,
             _("Convert to Python file"),
-            icon=ima.icon('python'),
-            triggered=lambda: self.convert_notebooks()
+            icon=ima.icon("python"),
+            triggered=lambda: self.convert_notebooks(),
         )
 
         # Header Actions
         size_column_action = self.create_action(
             DirViewActions.ToggleSizeColumn,
-            text=_('Size'),
+            text=_("Size"),
             toggled=True,
-            initial=self.get_conf('size_column'),
+            initial=self.get_conf("size_column"),
             register_shortcut=False,
-            option='size_column'
+            option="size_column",
         )
         type_column_action = self.create_action(
             DirViewActions.ToggleTypeColumn,
-            text=_('Type') if sys.platform == 'darwin' else _('Type'),
+            text=_("Type") if sys.platform == "darwin" else _("Type"),
             toggled=True,
-            initial=self.get_conf('type_column'),
+            initial=self.get_conf("type_column"),
             register_shortcut=False,
-            option='type_column'
+            option="type_column",
         )
         date_column_action = self.create_action(
             DirViewActions.ToggleDateColumn,
             text=_("Date modified"),
             toggled=True,
-            initial=self.get_conf('date_column'),
+            initial=self.get_conf("date_column"),
             register_shortcut=False,
-            option='date_column'
+            option="date_column",
         )
 
         # Header Context Menu
         self.header_menu = self.create_menu(DirViewMenus.Header)
-        for item in [size_column_action, type_column_action,
-                     date_column_action]:
+        for item in [size_column_action, type_column_action, date_column_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.header_menu,
@@ -529,7 +543,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # New submenu
         new_submenu = self.create_menu(
             DirViewMenus.New,
-            _('New'),
+            _("New"),
         )
         for item in [new_file_action, new_folder_action]:
             self.add_item_to_menu(
@@ -548,16 +562,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Open with submenu
         self.open_with_submenu = self.create_menu(
             DirViewMenus.OpenWith,
-            _('Open with'),
+            _("Open with"),
         )
 
         # Context submenu
         self.context_menu = self.create_menu(DirViewMenus.Context)
-        for item in [new_submenu, run_action,
-                     self.open_with_spyder_action,
-                     self.open_with_submenu,
-                     self.open_external_action,
-                     delete_action, rename_action, self.move_action]:
+        for item in [
+            new_submenu,
+            run_action,
+            self.open_with_spyder_action,
+            self.open_with_submenu,
+            self.open_external_action,
+            delete_action,
+            rename_action,
+            self.move_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
@@ -565,8 +584,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
             )
 
         # Copy/Paste section
-        for item in [copy_action, self.paste_action, copy_absolute_path_action,
-                     copy_relative_path_action]:
+        for item in [
+            copy_action,
+            self.paste_action,
+            copy_absolute_path_action,
+            copy_relative_path_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
@@ -584,7 +607,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
-                section=DirViewContextMenuSections.VersionControl
+                section=DirViewContextMenuSections.VersionControl,
             )
 
         for item in [self.open_interpreter_action, ipynb_convert_action]:
@@ -597,22 +620,29 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Signals
         self.context_menu.aboutToShow.connect(self.update_actions)
 
-    @on_conf_change(option=['size_column', 'type_column', 'date_column',
-                            'name_filters', 'show_hidden',
-                            'single_click_to_open'])
+    @on_conf_change(
+        option=[
+            "size_column",
+            "type_column",
+            "date_column",
+            "name_filters",
+            "show_hidden",
+            "single_click_to_open",
+        ]
+    )
     def on_conf_update(self, option, value):
-        if option == 'size_column':
+        if option == "size_column":
             self.setColumnHidden(DirViewColumns.Size, not value)
-        elif option == 'type_column':
+        elif option == "type_column":
             self.setColumnHidden(DirViewColumns.Type, not value)
-        elif option == 'date_column':
+        elif option == "date_column":
             self.setColumnHidden(DirViewColumns.Date, not value)
-        elif option == 'name_filters':
+        elif option == "name_filters":
             if self.filter_on:
                 self.filter_files(value)
-        elif option == 'show_hidden':
+        elif option == "show_hidden":
             self.set_show_hidden(value)
-        elif option == 'single_click_to_open':
+        elif option == "single_click_to_open":
             self.set_single_click_to_open(value)
 
     def update_actions(self):
@@ -631,14 +661,15 @@ class DirView(QTreeView, SpyderWidgetMixin):
             only_files = False
             only_valid = False
             only_dirs = False
-            dirname = ''
-            basedir = ''
+            dirname = ""
+            basedir = ""
 
         vcs_visible = vcs.is_vcs_repository(dirname)
 
         # Make actions visible conditionally
         self.move_action.setVisible(
-            all([fixpath(osp.dirname(fname)) == basedir for fname in fnames]))
+            all([fixpath(osp.dirname(fname)) == basedir for fname in fnames])
+        )
         self.open_external_action.setVisible(False)
         self.open_interpreter_action.setVisible(only_dirs)
         self.open_with_spyder_action.setVisible(only_files and only_valid)
@@ -672,10 +703,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 self.open_external_action.setVisible(True)
 
         fnames = self.get_selected_filenames()
-        only_notebooks = all([osp.splitext(fname)[1] == '.ipynb'
-                              for fname in fnames])
-        only_modules = all([osp.splitext(fname)[1] in ('.py', '.pyw', '.ipy')
-                            for fname in fnames])
+        only_notebooks = all([osp.splitext(fname)[1] == ".ipynb" for fname in fnames])
+        only_modules = all(
+            [osp.splitext(fname)[1] in (".py", ".pyw", ".ipy") for fname in fnames]
+        )
 
         nb_visible = only_notebooks and nbexporter is not None
         self.get_action(DirViewActions.ConvertNotebook).setVisible(nb_visible)
@@ -700,7 +731,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 for app_name, fpath in assoc:
                     text = app_name
                     if not (os.path.isfile(fpath) or os.path.isdir(fpath)):
-                        text += _(' (Application not found!)')
+                        text += _(" (Application not found!)")
 
                     try:
                         # Action might have been created already
@@ -789,7 +820,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def mouseDoubleClickEvent(self, event):
         """Handle double clicks."""
         super().mouseDoubleClickEvent(event)
-        if not self.get_conf('single_click_to_open'):
+        if not self.get_conf("single_click_to_open"):
             self.clicked(index=self.indexAt(event.pos()))
 
     def mousePressEvent(self, event):
@@ -812,7 +843,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def mouseReleaseEvent(self, event):
         """Handle single clicks."""
         super().mouseReleaseEvent(event)
-        if self.get_conf('single_click_to_open'):
+        if self.get_conf("single_click_to_open"):
             self.clicked(index=self.indexAt(event.pos()))
 
     def mouseMoveEvent(self, event):
@@ -822,11 +853,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         index = self.indexAt(event.pos())
         if index.isValid():
-            if self.get_conf('single_click_to_open'):
+            if self.get_conf("single_click_to_open"):
                 vrect = self.visualRect(index)
-                item_identation = (
-                    vrect.x() - self.visualRect(self.rootIndex()).x()
-                )
+                item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
 
                 if event.pos().x() > item_identation:
                     # When hovering over directories or files
@@ -845,7 +874,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def dragMoveEvent(self, event):
         """Drag and Drop - Move event"""
-        if (event.mimeData().hasFormat("text/plain")):
+        if event.mimeData().hasFormat("text/plain"):
             event.setDropAction(Qt.MoveAction)
             event.accept()
         else:
@@ -873,8 +902,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def setup_view(self):
         """Setup view"""
         self.install_model()
-        self.fsmodel.directoryLoaded.connect(
-            lambda: self.resizeColumnToContents(0))
+        self.fsmodel.directoryLoaded.connect(lambda: self.resizeColumnToContents(0))
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
@@ -897,8 +925,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
         fnames = []
         if self.selectionMode() == self.ExtendedSelection:
             if self.selectionModel() is not None:
-                fnames = [self.get_filename(idx) for idx in
-                          self.selectionModel().selectedRows()]
+                fnames = [
+                    self.get_filename(idx)
+                    for idx in self.selectionModel().selectedRows()
+                ]
         else:
             fnames = [self.get_filename(self.currentIndex())]
 
@@ -961,7 +991,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         index: QModelIndex
             Index of the directory.
         """
-        raise NotImplementedError('To be implemented by subclasses')
+        raise NotImplementedError("To be implemented by subclasses")
 
     @Slot()
     def edit_filter(self):
@@ -969,36 +999,38 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Create Dialog
         dialog = QDialog(self)
         dialog.resize(500, 300)
-        dialog.setWindowTitle(_('Edit filter settings'))
+        dialog.setWindowTitle(_("Edit filter settings"))
 
         # Create dialog contents
         description_label = QLabel(
-            _('Filter files by name, extension, or more using '
-              '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob'
-              ' patterns.</a> Please enter the glob patterns of the files you '
-              'want to show, separated by commas.'))
+            _(
+                "Filter files by name, extension, or more using "
+                '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob'
+                " patterns.</a> Please enter the glob patterns of the files you "
+                "want to show, separated by commas."
+            )
+        )
         description_label.setOpenExternalLinks(True)
         description_label.setWordWrap(True)
-        filters = QTextEdit(", ".join(self.get_conf('name_filters')),
-                            parent=self)
+        filters = QTextEdit(", ".join(self.get_conf("name_filters")), parent=self)
         layout = QVBoxLayout()
         layout.addWidget(description_label)
         layout.addWidget(filters)
 
         def handle_ok():
             filter_text = filters.toPlainText()
-            filter_text = [f.strip() for f in str(filter_text).split(',')]
+            filter_text = [f.strip() for f in str(filter_text).split(",")]
             self.set_name_filters(filter_text)
             dialog.accept()
 
         def handle_reset():
             self.set_name_filters(NAME_FILTERS)
-            filters.setPlainText(", ".join(self.get_conf('name_filters')))
+            filters.setPlainText(", ".join(self.get_conf("name_filters")))
 
         # Dialog buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.Reset |
-                                      QDialogButtonBox.Ok |
-                                      QDialogButtonBox.Cancel)
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.Reset | QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         button_box.accepted.connect(handle_ok)
         button_box.rejected.connect(dialog.reject)
         button_box.button(QDialogButtonBox.Reset).clicked.connect(handle_reset)
@@ -1028,8 +1060,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         if app_path:
             fnames = self.get_selected_filenames()
-            return_codes = programs.open_files_with_application(app_path,
-                                                                fnames)
+            return_codes = programs.open_files_with_application(app_path, fnames)
         self.check_launch_error_codes(return_codes)
 
     @Slot()
@@ -1071,15 +1102,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
         if multiple:
-            buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
-                       QMessageBox.No | QMessageBox.Cancel)
+            buttons = (
+                QMessageBox.Yes
+                | QMessageBox.YesToAll
+                | QMessageBox.No
+                | QMessageBox.Cancel
+            )
         else:
             buttons = QMessageBox.Yes | QMessageBox.No
         if yes_to_all is None:
             answer = QMessageBox.warning(
-                self, _("Delete"),
-                _("Do you really want to delete <b>%s</b>?"
-                  ) % osp.basename(fname), buttons)
+                self,
+                _("Delete"),
+                _("Do you really want to delete <b>%s</b>?") % osp.basename(fname),
+                buttons,
+            )
             if answer == QMessageBox.No:
                 return yes_to_all
             elif answer == QMessageBox.Cancel:
@@ -1095,11 +1132,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 self.sig_tree_removed.emit(fname)
             return yes_to_all
         except EnvironmentError as error:
-            action_str = _('delete')
+            action_str = _("delete")
             QMessageBox.critical(
-                self, _("Project Explorer"),
-                _("<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
-                  ) % (action_str, fname, str(error)))
+                self,
+                _("Project Explorer"),
+                _("<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s")
+                % (action_str, fname, str(error)),
+            )
         return False
 
     @Slot()
@@ -1110,13 +1149,17 @@ class DirView(QTreeView, SpyderWidgetMixin):
         multiple = len(fnames) > 1
         yes_to_all = None
         for fname in fnames:
-            spyproject_path = osp.join(fname, '.spyproject')
+            spyproject_path = osp.join(fname, ".spyproject")
             if osp.isdir(fname) and osp.exists(spyproject_path):
                 QMessageBox.information(
-                    self, _('File Explorer'),
-                    _("The current directory contains a project.<br><br>"
-                      "If you want to delete the project, please go to "
-                      "<b>Projects</b> &raquo; <b>Delete Project</b>"))
+                    self,
+                    _("File Explorer"),
+                    _(
+                        "The current directory contains a project.<br><br>"
+                        "If you want to delete the project, please go to "
+                        "<b>Projects</b> &raquo; <b>Delete Project</b>"
+                    ),
+                )
             else:
                 yes_to_all = self.delete_file(fname, multiple, yes_to_all)
                 if yes_to_all is not None and not yes_to_all:
@@ -1126,8 +1169,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def rename_file(self, fname):
         """Rename file"""
         path, valid = QInputDialog.getText(
-            self, _('Rename'), _('New name:'), QLineEdit.Normal,
-            osp.basename(fname))
+            self, _("Rename"), _("New name:"), QLineEdit.Normal, osp.basename(fname)
+        )
 
         if valid:
             path = osp.join(osp.dirname(fname), str(path))
@@ -1135,11 +1178,15 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 return
             if osp.exists(path):
                 answer = QMessageBox.warning(
-                    self, _("Rename"),
-                    _("Do you really want to rename <b>%s</b> and "
-                      "overwrite the existing file <b>%s</b>?"
-                      ) % (osp.basename(fname), osp.basename(path)),
-                    QMessageBox.Yes | QMessageBox.No)
+                    self,
+                    _("Rename"),
+                    _(
+                        "Do you really want to rename <b>%s</b> and "
+                        "overwrite the existing file <b>%s</b>?"
+                    )
+                    % (osp.basename(fname), osp.basename(path)),
+                    QMessageBox.Yes | QMessageBox.No,
+                )
                 if answer == QMessageBox.No:
                     return
             try:
@@ -1151,10 +1198,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(
-                    self, _("Rename"),
-                    _("<b>Unable to rename file <i>%s</i></b>"
-                      "<br><br>Error message:<br>%s"
-                      ) % (osp.basename(fname), str(error)))
+                    self,
+                    _("Rename"),
+                    _(
+                        "<b>Unable to rename file <i>%s</i></b>"
+                        "<br><br>Error message:<br>%s"
+                    )
+                    % (osp.basename(fname), str(error)),
+                )
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -1182,8 +1233,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         while True:
             self.sig_redirect_stdio_requested.emit(False)
             if directory is None:
-                folder = getexistingdirectory(
-                    self, _("Select directory"), orig)
+                folder = getexistingdirectory(self, _("Select directory"), orig)
             else:
                 folder = directory
             self.sig_redirect_stdio_requested.emit(True)
@@ -1199,45 +1249,53 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 misc.move_file(fname, osp.join(folder, basename))
             except EnvironmentError as error:
                 QMessageBox.critical(
-                    self, _("Error"),
-                    _("<b>Unable to move <i>%s</i></b>"
-                      "<br><br>Error message:<br>%s"
-                      ) % (basename, str(error)))
+                    self,
+                    _("Error"),
+                    _("<b>Unable to move <i>%s</i></b>" "<br><br>Error message:<br>%s")
+                    % (basename, str(error)),
+                )
 
     def create_new_folder(self, current_path, title, subtitle, is_package):
         """Create new folder"""
         if current_path is None:
-            current_path = ''
+            current_path = ""
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        name, valid = QInputDialog.getText(self, title, subtitle,
-                                           QLineEdit.Normal, "")
+        name, valid = QInputDialog.getText(self, title, subtitle, QLineEdit.Normal, "")
         if valid:
             dirname = osp.join(current_path, str(name))
             try:
                 os.mkdir(dirname)
             except EnvironmentError as error:
                 QMessageBox.critical(
-                    self, title,
-                    _("<b>Unable to create folder <i>%s</i></b>"
-                      "<br><br>Error message:<br>%s"
-                      ) % (dirname, str(error)))
+                    self,
+                    title,
+                    _(
+                        "<b>Unable to create folder <i>%s</i></b>"
+                        "<br><br>Error message:<br>%s"
+                    )
+                    % (dirname, str(error)),
+                )
             finally:
                 if is_package:
-                    fname = osp.join(dirname, '__init__.py')
+                    fname = osp.join(dirname, "__init__.py")
                     try:
-                        with open(fname, 'wb') as f:
-                            f.write(to_binary_string('#'))
+                        with open(fname, "wb") as f:
+                            f.write(to_binary_string("#"))
                         return dirname
                     except EnvironmentError as error:
                         QMessageBox.critical(
-                            self, title,
-                            _("<b>Unable to create file <i>%s</i></b>"
-                              "<br><br>Error message:<br>%s"
-                              ) % (fname, str(error)))
+                            self,
+                            title,
+                            _(
+                                "<b>Unable to create file <i>%s</i></b>"
+                                "<br><br>Error message:<br>%s"
+                            )
+                            % (fname, str(error)),
+                        )
 
     def get_selected_dir(self):
-        """ Get selected dir
+        """Get selected dir
         If file is selected the directory containing file is returned.
         If multiple items are selected, first item is chosen.
         """
@@ -1252,15 +1310,15 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if basedir is None:
             basedir = self.get_selected_dir()
 
-        title = _('New folder')
-        subtitle = _('Folder name:')
+        title = _("New folder")
+        subtitle = _("Folder name:")
         self.create_new_folder(basedir, title, subtitle, is_package=False)
 
     def create_new_file(self, current_path, title, filters, create_func):
         """Create new file
         Returns True if successful"""
         if current_path is None:
-            current_path = ''
+            current_path = ""
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
         self.sig_redirect_stdio_requested.emit(False)
@@ -1272,10 +1330,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 return fname
             except EnvironmentError as error:
                 QMessageBox.critical(
-                    self, _("New file"),
-                    _("<b>Unable to create file <i>%s</i>"
-                      "</b><br><br>Error message:<br>%s"
-                      ) % (fname, str(error)))
+                    self,
+                    _("New file"),
+                    _(
+                        "<b>Unable to create file <i>%s</i>"
+                        "</b><br><br>Error message:<br>%s"
+                    )
+                    % (fname, str(error)),
+                )
 
     def new_file(self, basedir=None):
         """New file"""
@@ -1284,15 +1346,16 @@ class DirView(QTreeView, SpyderWidgetMixin):
             basedir = self.get_selected_dir()
 
         title = _("New file")
-        filters = _("All files")+" (*)"
+        filters = _("All files") + " (*)"
 
         def create_func(fname):
             """File creation callback"""
-            if osp.splitext(fname)[1] in ('.py', '.pyw', '.ipy'):
+            if osp.splitext(fname)[1] in (".py", ".pyw", ".ipy"):
                 create_script(fname)
             else:
-                with open(fname, 'wb') as f:
-                    f.write(to_binary_string(''))
+                with open(fname, "wb") as f:
+                    f.write(to_binary_string(""))
+
         fname = self.create_new_file(basedir, title, filters, create_func)
         if fname is not None:
             self.open([fname])
@@ -1316,27 +1379,29 @@ class DirView(QTreeView, SpyderWidgetMixin):
         fnames = [_fn.replace(os.sep, "/") for _fn in fnames]
         if len(fnames) > 1:
             if method == "absolute":
-                clipboard_files = ',\n'.join('"' + _fn + '"' for _fn in fnames)
+                clipboard_files = ",\n".join('"' + _fn + '"' for _fn in fnames)
             elif method == "relative":
-                clipboard_files = ',\n'.join('"' +
-                                             osp.relpath(_fn, explorer_dir).
-                                             replace(os.sep, "/") + '"'
-                                             for _fn in fnames)
+                clipboard_files = ",\n".join(
+                    '"' + osp.relpath(_fn, explorer_dir).replace(os.sep, "/") + '"'
+                    for _fn in fnames
+                )
         else:
             if method == "absolute":
                 clipboard_files = fnames[0]
             elif method == "relative":
-                clipboard_files = (osp.relpath(fnames[0], explorer_dir).
-                                   replace(os.sep, "/"))
+                clipboard_files = osp.relpath(fnames[0], explorer_dir).replace(
+                    os.sep, "/"
+                )
         copied_from = self._parent.__class__.__name__
-        if copied_from == 'ProjectExplorerWidget' and method == 'relative':
-            clipboard_files = [path.strip(',"') for path in
-                               clipboard_files.splitlines()]
-            clipboard_files = ['/'.join(path.strip('/').split('/')[1:]) for
-                               path in clipboard_files]
+        if copied_from == "ProjectExplorerWidget" and method == "relative":
+            clipboard_files = [
+                path.strip(',"') for path in clipboard_files.splitlines()
+            ]
+            clipboard_files = [
+                "/".join(path.strip("/").split("/")[1:]) for path in clipboard_files
+            ]
             if len(clipboard_files) > 1:
-                clipboard_files = ',\n'.join('"' + _fn + '"' for _fn in
-                                             clipboard_files)
+                clipboard_files = ",\n".join('"' + _fn + '"' for _fn in clipboard_files)
             else:
                 clipboard_files = clipboard_files[0]
         cb.setText(clipboard_files, mode=cb.Clipboard)
@@ -1365,9 +1430,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
             cb.setMimeData(file_content, mode=cb.Clipboard)
         except Exception as e:
             QMessageBox.critical(
-                self, _('File/Folder copy error'),
-                _("Cannot copy this type of file(s) or "
-                  "folder(s). The error was:\n\n") + str(e))
+                self,
+                _("File/Folder copy error"),
+                _(
+                    "Cannot copy this type of file(s) or "
+                    "folder(s). The error was:\n\n"
+                )
+                + str(e),
+            )
 
     @Slot()
     def save_file_clipboard(self, fnames=None):
@@ -1382,8 +1452,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             except AttributeError:
                 #  py2 does not have commonpath
                 if len(fnames) > 1:
-                    selected_item = osp.normpath(
-                            osp.dirname(osp.commonprefix(fnames)))
+                    selected_item = osp.normpath(osp.dirname(osp.commonprefix(fnames)))
                 else:
                     selected_item = fnames[0]
             if osp.isfile(selected_item):
@@ -1400,12 +1469,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
                         try:
                             while base_name in os.listdir(parent_path):
                                 file_no_ext, file_ext = osp.splitext(base_name)
-                                end_number = re.search(r'\d+$', file_no_ext)
+                                end_number = re.search(r"\d+$", file_no_ext)
                                 if end_number:
                                     new_number = int(end_number.group()) + 1
                                 else:
                                     new_number = 1
-                                left_string = re.sub(r'\d+$', '', file_no_ext)
+                                left_string = re.sub(r"\d+$", "", file_no_ext)
                                 left_string += str(new_number)
                                 base_name = left_string + file_ext
                                 destination = osp.join(parent_path, base_name)
@@ -1413,46 +1482,64 @@ class DirView(QTreeView, SpyderWidgetMixin):
                                 destination = osp.join(parent_path, base_name)
                             shutil.copy(source_name, destination)
                         except Exception as e:
-                            QMessageBox.critical(self, _('Error pasting file'),
-                                                 _("Unsupported copy operation"
-                                                   ". The error was:\n\n")
-                                                 + str(e))
+                            QMessageBox.critical(
+                                self,
+                                _("Error pasting file"),
+                                _("Unsupported copy operation" ". The error was:\n\n")
+                                + str(e),
+                            )
                     else:
                         try:
                             while base_name in os.listdir(parent_path):
-                                end_number = re.search(r'\d+$', base_name)
+                                end_number = re.search(r"\d+$", base_name)
                                 if end_number:
                                     new_number = int(end_number.group()) + 1
                                 else:
                                     new_number = 1
-                                left_string = re.sub(r'\d+$', '', base_name)
+                                left_string = re.sub(r"\d+$", "", base_name)
                                 base_name = left_string + str(new_number)
                                 destination = osp.join(parent_path, base_name)
                             else:
                                 destination = osp.join(parent_path, base_name)
                             if osp.realpath(destination).startswith(
-                                    osp.realpath(source_name) + os.sep):
-                                QMessageBox.critical(self,
-                                                     _('Recursive copy'),
-                                                     _("Source is an ancestor"
-                                                       " of destination"
-                                                       " folder."))
+                                osp.realpath(source_name) + os.sep
+                            ):
+                                QMessageBox.critical(
+                                    self,
+                                    _("Recursive copy"),
+                                    _(
+                                        "Source is an ancestor"
+                                        " of destination"
+                                        " folder."
+                                    ),
+                                )
                                 continue
                             shutil.copytree(source_name, destination)
                         except Exception as e:
-                            QMessageBox.critical(self,
-                                                 _('Error pasting folder'),
-                                                 _("Unsupported copy"
-                                                   " operation. The error was:"
-                                                   "\n\n") + str(e))
+                            QMessageBox.critical(
+                                self,
+                                _("Error pasting folder"),
+                                _(
+                                    "Unsupported copy"
+                                    " operation. The error was:"
+                                    "\n\n"
+                                )
+                                + str(e),
+                            )
             else:
-                QMessageBox.critical(self, _("No file in clipboard"),
-                                     _("No file in the clipboard. Please copy"
-                                       " a file to the clipboard first."))
+                QMessageBox.critical(
+                    self,
+                    _("No file in clipboard"),
+                    _(
+                        "No file in the clipboard. Please copy"
+                        " a file to the clipboard first."
+                    ),
+                )
         else:
             if QApplication.clipboard().mimeData().hasUrls():
-                QMessageBox.critical(self, _('Blank area'),
-                                     _("Cannot paste in the blank area."))
+                QMessageBox.critical(
+                    self, _("Blank area"), _("Cannot paste in the blank area.")
+                )
             else:
                 pass
 
@@ -1466,7 +1553,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def filter_files(self, name_filters=None):
         """Filter files given the defined list of filters."""
         if name_filters is None:
-            name_filters = self.get_conf('name_filters')
+            name_filters = self.get_conf("name_filters")
 
         if self.filter_on:
             self.fsmodel.setNameFilters(name_filters)
@@ -1491,8 +1578,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def get_file_associations(self, fname):
         """Return the list of matching file associations for `fname`."""
-        for exts, values in self.get_conf('file_associations', {}).items():
-            clean_exts = [ext.strip() for ext in exts.split(',')]
+        for exts, values in self.get_conf("file_associations", {}).items():
+            clean_exts = [ext.strip() for ext in exts.split(",")]
             for ext in clean_exts:
                 if fname.endswith((ext, ext[1:])):
                     values = values
@@ -1512,19 +1599,19 @@ class DirView(QTreeView, SpyderWidgetMixin):
         errors = [cmd for cmd, code in return_codes.items() if code != 0]
         if errors:
             if len(errors) == 1:
-                msg = _('The following command did not launch successfully:')
+                msg = _("The following command did not launch successfully:")
             else:
-                msg = _('The following commands did not launch successfully:')
+                msg = _("The following commands did not launch successfully:")
 
-            msg += '<br><br>' if len(errors) == 1 else '<br><br><ul>'
+            msg += "<br><br>" if len(errors) == 1 else "<br><br><ul>"
             for error in errors:
                 if len(errors) == 1:
-                    msg += '<code>{}</code>'.format(error)
+                    msg += "<code>{}</code>".format(error)
                 else:
-                    msg += '<li><code>{}</code></li>'.format(error)
-            msg += '' if len(errors) == 1 else '</ul>'
+                    msg += "<li><code>{}</code></li>".format(error)
+            msg += "" if len(errors) == 1 else "</ul>"
 
-            QMessageBox.warning(self, 'Application', msg, QMessageBox.Ok)
+            QMessageBox.warning(self, "Application", msg, QMessageBox.Ok)
 
         return not bool(errors)
 
@@ -1545,20 +1632,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
             for path in sorted(fnames):
                 vcs.run_vcs_tool(dirname, action)
         except vcs.ActionToolNotFound as error:
-            msg = _("For %s support, please install one of the<br/> "
-                    "following tools:<br/><br/>  %s")\
-                        % (error.vcsname, ', '.join(error.tools))
+            msg = _(
+                "For %s support, please install one of the<br/> "
+                "following tools:<br/><br/>  %s"
+            ) % (error.vcsname, ", ".join(error.tools))
             QMessageBox.critical(
-                self, _("Error"),
-                _("""<b>Unable to find external program.</b><br><br>%s"""
-                  ) % str(msg))
+                self,
+                _("Error"),
+                _("""<b>Unable to find external program.</b><br><br>%s""") % str(msg),
+            )
 
     # ---- Settings
     # ------------------------------------------------------------------------
     def get_scrollbar_position(self):
         """Return scrollbar positions"""
-        return (self.horizontalScrollBar().value(),
-                self.verticalScrollBar().value())
+        return (self.horizontalScrollBar().value(), self.verticalScrollBar().value())
 
     def set_scrollbar_position(self, position):
         """Set scrollbar positions"""
@@ -1609,8 +1697,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 self._to_be_loaded.append(path)
                 self.setExpanded(self.get_index(path), True)
         if not self.__expanded_state:
-            self.fsmodel.directoryLoaded.disconnect(
-                self.restore_directory_state)
+            self.fsmodel.directoryLoaded.disconnect(self.restore_directory_state)
 
     def follow_directories_loaded(self, fname):
         """Follow directories loaded during startup"""
@@ -1620,8 +1707,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
         if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
-            self.fsmodel.directoryLoaded.disconnect(
-                self.follow_directories_loaded)
+            self.fsmodel.directoryLoaded.disconnect(self.follow_directories_loaded)
             if self._scrollbar_positions is not None:
                 # The tree view need some time to render branches:
                 QTimer.singleShot(50, self.restore_scrollbar_positions)
@@ -1632,10 +1718,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
             # In the old project explorer, the expanded state was a
             # dictionary:
             if isinstance(self.__expanded_state, list):
-                self.fsmodel.directoryLoaded.connect(
-                    self.restore_directory_state)
-                self.fsmodel.directoryLoaded.connect(
-                    self.follow_directories_loaded)
+                self.fsmodel.directoryLoaded.connect(self.restore_directory_state)
+                self.fsmodel.directoryLoaded.connect(self.follow_directories_loaded)
 
     # ---- Options
     # ------------------------------------------------------------------------
@@ -1647,22 +1731,26 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def set_file_associations(self, value):
         """Set file associations open items."""
-        self.set_conf('file_associations', value)
+        self.set_conf("file_associations", value)
 
     def set_name_filters(self, name_filters):
         """Set name filters"""
-        if self.get_conf('name_filters') == ['']:
-            self.set_conf('name_filters', [])
+        if self.get_conf("name_filters") == [""]:
+            self.set_conf("name_filters", [])
         else:
-            self.set_conf('name_filters', name_filters)
+            self.set_conf("name_filters", name_filters)
 
     def set_show_hidden(self, state):
         """Toggle 'show hidden files' state"""
-        filters = (QDir.AllDirs | QDir.Files | QDir.Drives |
-                   QDir.NoDotAndDotDot)
+        filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
         if state:
-            filters = (QDir.AllDirs | QDir.Files | QDir.Drives |
-                       QDir.NoDotAndDotDot | QDir.Hidden)
+            filters = (
+                QDir.AllDirs
+                | QDir.Files
+                | QDir.Drives
+                | QDir.NoDotAndDotDot
+                | QDir.Hidden
+            )
         self.fsmodel.setFilter(filters)
 
     def reset_icon_provider(self):
@@ -1676,9 +1764,11 @@ class DirView(QTreeView, SpyderWidgetMixin):
             script = nbexporter().from_filename(fname)[0]
         except Exception as e:
             QMessageBox.critical(
-                self, _('Conversion error'),
-                _("It was not possible to convert this "
-                  "notebook. The error is:\n\n") + str(e))
+                self,
+                _("Conversion error"),
+                _("It was not possible to convert this " "notebook. The error is:\n\n")
+                + str(e),
+            )
             return
         self.sig_file_created.emit(script)
 
@@ -1696,8 +1786,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if basedir is None:
             basedir = self.get_selected_dir()
 
-        title = _('New package')
-        subtitle = _('Package name:')
+        title = _("New package")
+        subtitle = _("Package name:")
         self.create_new_folder(basedir, title, subtitle, is_package=True)
 
     def new_module(self, basedir=None):
@@ -1707,7 +1797,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             basedir = self.get_selected_dir()
 
         title = _("New module")
-        filters = _("Python files")+" (*.py *.pyw *.ipy)"
+        filters = _("Python files") + " (*.py *.pyw *.ipy)"
 
         def create_func(fname):
             self.sig_module_created.emit(fname)
@@ -1771,28 +1861,28 @@ class ExplorerTreeWidget(DirView):
         self.previous_action = self.create_action(
             ExplorerTreeWidgetActions.Previous,
             text=_("Previous"),
-            icon=self.create_icon('previous'),
+            icon=self.create_icon("previous"),
             triggered=self.go_to_previous_directory,
         )
         self.next_action = self.create_action(
             ExplorerTreeWidgetActions.Next,
             text=_("Next"),
-            icon=self.create_icon('next'),
+            icon=self.create_icon("next"),
             triggered=self.go_to_next_directory,
         )
         self.create_action(
             ExplorerTreeWidgetActions.Parent,
             text=_("Parent"),
-            icon=self.create_icon('up'),
-            triggered=self.go_to_parent_directory
+            icon=self.create_icon("up"),
+            triggered=self.go_to_parent_directory,
         )
 
         # Toolbuttons
         self.filter_button = self.create_action(
             ExplorerTreeWidgetActions.ToggleFilter,
             text="",
-            icon=ima.icon('filter'),
-            toggled=self.change_filter_state
+            icon=ima.icon("filter"),
+            toggled=self.change_filter_state,
         )
         self.filter_button.setCheckable(True)
 
@@ -1916,11 +2006,12 @@ class ExplorerTreeWidget(DirView):
             if self.histindex is None:
                 self.history = []
             else:
-                self.history = self.history[:self.histindex+1]
-            if len(self.history) == 0 or \
-               (self.history and self.history[-1] != directory):
+                self.history = self.history[: self.histindex + 1]
+            if len(self.history) == 0 or (
+                self.history and self.history[-1] != directory
+            ):
                 self.history.append(directory)
-            self.histindex = len(self.history)-1
+            self.histindex = len(self.history) - 1
         directory = str(directory)
 
         try:
@@ -1929,9 +2020,11 @@ class ExplorerTreeWidget(DirView):
             if emit:
                 self.sig_dir_opened.emit(directory)
         except PermissionError:
-            QMessageBox.critical(self._parent, "Error",
-                                 _("You don't have the right permissions to "
-                                   "open this directory"))
+            QMessageBox.critical(
+                self._parent,
+                "Error",
+                _("You don't have the right permissions to " "open this directory"),
+            )
         except FileNotFoundError:
             # Handle renaming directories on the fly.
             # See spyder-ide/spyder#5183

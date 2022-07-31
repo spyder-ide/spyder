@@ -18,10 +18,11 @@ import pytest
 # Local imports
 from spyder.plugins.projects.api import EmptyProject
 
+
 @pytest.fixture
 def project(qtbot):
     """Set up ProjectPreferences."""
-    project_dir = tempfile.mkdtemp() + osp.sep + '.spyproject'
+    project_dir = tempfile.mkdtemp() + osp.sep + ".spyproject"
     project = EmptyProject(project_dir, None)
     return project
 

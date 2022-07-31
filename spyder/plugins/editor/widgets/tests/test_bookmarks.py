@@ -52,18 +52,22 @@ def editor_assert_helper(editor, block=None, bm=None, emits=True):
 def code_editor_bookmarks(qtbot):
     """Create code editor with default Python code."""
     editor = codeeditor.CodeEditor(parent=None)
-    indent_chars = ' ' * 4
+    indent_chars = " " * 4
     tab_stop_width_spaces = 4
-    editor.setup_editor(language='Python', indent_chars=indent_chars,
-                        tab_stop_width_spaces=tab_stop_width_spaces)
+    editor.setup_editor(
+        language="Python",
+        indent_chars=indent_chars,
+        tab_stop_width_spaces=tab_stop_width_spaces,
+    )
     # Mock the signal emit to test when it's been called.
     editor.sig_bookmarks_changed = Mock()
-    text = ('def f1(a, b):\n'
-            '"Double quote string."\n'
-            '\n'  # Blank line.
-            '    c = a * b\n'
-            '    return c\n'
-            )
+    text = (
+        "def f1(a, b):\n"
+        '"Double quote string."\n'
+        "\n"  # Blank line.
+        "    c = a * b\n"
+        "    return c\n"
+    )
     editor.set_text(text)
     return editor, qtbot
 
@@ -100,12 +104,12 @@ def test_get_bookmarks(code_editor_bookmarks):
     editor, __ = code_editor_bookmarks
     gb = editor.get_bookmarks
 
-    assert(gb() == {})
+    assert gb() == {}
 
     # Add bookmarks.
-    bm = {1: ('filename', 1, 0), 2: ('filename', 3, 5), 3: ('filename', 4, 3)}
+    bm = {1: ("filename", 1, 0), 2: ("filename", 3, 5), 3: ("filename", 4, 3)}
     editor.set_bookmarks(bm)
-    assert(gb() == {1: [1, 0], 2: [3, 5], 3: [4, 3]})
+    assert gb() == {1: [1, 0], 2: [3, 5], 3: [4, 3]}
 
 
 def test_clear_bookmarks(code_editor_bookmarks):
@@ -114,7 +118,7 @@ def test_clear_bookmarks(code_editor_bookmarks):
 
     assert len(list(editor.blockuserdata_list())) == 1
 
-    bm = {1: ('filename', 1, 0), 2: ('filename', 3, 5)}
+    bm = {1: ("filename", 1, 0), 2: ("filename", 3, 5)}
     editor.set_bookmarks(bm)
     assert editor.get_bookmarks() == {1: [1, 0], 2: [3, 5]}
     assert len(list(editor.blockuserdata_list())) == 3

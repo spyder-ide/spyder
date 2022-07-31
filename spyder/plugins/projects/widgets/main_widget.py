@@ -21,15 +21,14 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.translations import get_translation
 from spyder.plugins.explorer.api import DirViewActions
-from spyder.plugins.projects.widgets.projectexplorer import (
-    ProjectExplorerTreeWidget)
+from spyder.plugins.projects.widgets.projectexplorer import ProjectExplorerTreeWidget
 
 
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class ProjectExplorerOptionsMenuSections:
-    Main = 'main'
+    Main = "main"
 
 
 class ProjectExplorerWidget(PluginMainWidget):
@@ -47,15 +46,14 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin=plugin, parent=parent)
-        self.name_filters = self.get_conf('name_filters')
-        self.show_hscrollbar = self.get_conf('show_hscrollbar')
+        self.name_filters = self.get_conf("name_filters")
+        self.show_hscrollbar = self.get_conf("show_hscrollbar")
 
         self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
         self.treewidget.setup()
         self.treewidget.setup_view()
         self.treewidget.hide()
-        self.treewidget.sig_open_file_requested.connect(
-            self.sig_open_file_requested)
+        self.treewidget.sig_open_file_requested.connect(self.sig_open_file_requested)
 
         self.emptywidget = ProjectExplorerTreeWidget(self)
 
@@ -74,9 +72,8 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         for action in [hidden_action, single_click_action]:
             self.add_item_to_menu(
-                action,
-                menu=menu,
-                section=ProjectExplorerOptionsMenuSections.Main)
+                action, menu=menu, section=ProjectExplorerOptionsMenuSections.Main
+            )
 
     def update_actions(self):
         pass
@@ -93,8 +90,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         index = self.treewidget.get_index(directory)
         if index is not None:
-            self.treewidget.setExpanded(self.treewidget.get_index(directory),
-                                        True)
+            self.treewidget.setExpanded(self.treewidget.get_index(directory), True)
 
     def clear(self):
         """Show an empty view"""
@@ -116,7 +112,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 class ProjectExplorerTest(QWidget):
     def __init__(self, directory=None):
         QWidget.__init__(self)
-        self.CONF_SECTION = 'project_explorer'
+        self.CONF_SECTION = "project_explorer"
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
 
@@ -148,6 +144,7 @@ class ProjectExplorerTest(QWidget):
 
 def test():
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     test = ProjectExplorerTest()
     test.resize(250, 480)

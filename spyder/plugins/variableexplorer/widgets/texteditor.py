@@ -14,21 +14,20 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
-                            QVBoxLayout)
+from qtpy.QtWidgets import QDialog, QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout
 
 # Local import
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import is_binary_string, to_binary_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 
 class TextEditor(BaseDialog):
     """Array Editor Dialog"""
-    def __init__(self, text, title='', font=None, parent=None, readonly=False):
+
+    def __init__(self, text, title="", font=None, parent=None, readonly=False):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -44,7 +43,7 @@ class TextEditor(BaseDialog):
         # its right representation
         if is_binary_string(text):
             self.is_binary = True
-            text = to_text_string(text, 'utf8')
+            text = to_text_string(text, "utf8")
         else:
             self.is_binary = False
 
@@ -65,12 +64,12 @@ class TextEditor(BaseDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         if not readonly:
-            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close = QPushButton(_("Save and Close"))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
             btn_layout.addWidget(self.btn_save_and_close)
 
-        self.btn_close = QPushButton(_('Close'))
+        self.btn_close = QPushButton(_("Close"))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
@@ -79,32 +78,32 @@ class TextEditor(BaseDialog):
         self.layout.addLayout(btn_layout)
 
         # Make the dialog act as a window
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             # See spyder-ide/spyder#12825
             self.setWindowFlags(Qt.Tool)
         else:
             # Make the dialog act as a window
             self.setWindowFlags(Qt.Window)
 
-        self.setWindowIcon(ima.icon('edit'))
+        self.setWindowIcon(ima.icon("edit"))
         if title:
             try:
                 unicode_title = to_text_string(title)
             except UnicodeEncodeError:
-                unicode_title = u''
+                unicode_title = ""
         else:
-            unicode_title = u''
+            unicode_title = ""
 
-        self.setWindowTitle(_("Text editor") + \
-                            u"%s" % (u" - " + unicode_title
-                                     if unicode_title else u""))
+        self.setWindowTitle(
+            _("Text editor") + "%s" % (" - " + unicode_title if unicode_title else "")
+        )
 
     @Slot()
     def text_changed(self):
         """Text has changed"""
         # Save text as bytes, if it was initially bytes
         if self.is_binary:
-            self.text = to_binary_string(self.edit.toPlainText(), 'utf8')
+            self.text = to_binary_string(self.edit.toPlainText(), "utf8")
         else:
             self.text = to_text_string(self.edit.toPlainText())
         if self.btn_save_and_close:
@@ -121,17 +120,19 @@ class TextEditor(BaseDialog):
     def setup_and_check(self, value):
         """Verify if TextEditor is able to display strings passed to it."""
         try:
-            to_text_string(value, 'utf8')
+            to_text_string(value, "utf8")
             return True
         except:
             return False
 
-#==============================================================================
+
+# ==============================================================================
 # Tests
-#==============================================================================
+# ==============================================================================
 def test():
     """Text editor demo"""
     from spyder.utils.qthelpers import qapplication
+
     _app = qapplication()  # analysis:ignore
 
     text = """01234567890123456789012345678901234567890123456789012345678901234567890123456789

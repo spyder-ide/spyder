@@ -29,6 +29,7 @@ class BaseThreadWrapper(watchdog.utils.BaseThread):
     Wrapper around watchdog BaseThread class.
     This is necessary for issue spyder-ide/spyder#11370
     """
+
     queue = None
 
     def __init__(self):
@@ -40,8 +41,7 @@ class BaseThreadWrapper(watchdog.utils.BaseThread):
         try:
             self._original_run()
         except OSError as e:
-            logger.exception('Watchdog thread exited with error %s',
-                             e.strerror)
+            logger.exception("Watchdog thread exited with error %s", e.strerror)
             self.queue.put(e)
 
 
@@ -68,35 +68,33 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
         FileSystemEventHandler.__init__(self)
 
     def fmt_is_dir(self, is_dir):
-        return 'directory' if is_dir else 'file'
+        return "directory" if is_dir else "file"
 
     def on_moved(self, event):
         src_path = event.src_path
         dest_path = event.dest_path
         is_dir = event.is_directory
-        logger.info("Moved {0}: {1} to {2}".format(
-            self.fmt_is_dir(is_dir), src_path, dest_path))
+        logger.info(
+            "Moved {0}: {1} to {2}".format(self.fmt_is_dir(is_dir), src_path, dest_path)
+        )
         self.sig_file_moved.emit(src_path, dest_path, is_dir)
 
     def on_created(self, event):
         src_path = event.src_path
         is_dir = event.is_directory
-        logger.info("Created {0}: {1}".format(
-            self.fmt_is_dir(is_dir), src_path))
+        logger.info("Created {0}: {1}".format(self.fmt_is_dir(is_dir), src_path))
         self.sig_file_created.emit(src_path, is_dir)
 
     def on_deleted(self, event):
         src_path = event.src_path
         is_dir = event.is_directory
-        logger.info("Deleted {0}: {1}".format(
-            self.fmt_is_dir(is_dir), src_path))
+        logger.info("Deleted {0}: {1}".format(self.fmt_is_dir(is_dir), src_path))
         self.sig_file_deleted.emit(src_path, is_dir)
 
     def on_modified(self, event):
         src_path = event.src_path
         is_dir = event.is_directory
-        logger.info("Modified {0}: {1}".format(
-            self.fmt_is_dir(is_dir), src_path))
+        logger.info("Modified {0}: {1}".format(self.fmt_is_dir(is_dir), src_path))
         self.sig_file_modified.emit(src_path, is_dir)
 
 
@@ -124,8 +122,7 @@ class WorkspaceWatcher(QObject):
         # See spyder-ide/spyder#10478
         try:
             self.observer = Observer()
-            self.observer.schedule(
-                self.event_handler, workspace_folder, recursive=True)
+            self.observer.schedule(self.event_handler, workspace_folder, recursive=True)
             try:
                 self.observer.start()
             except OSError:
@@ -133,27 +130,30 @@ class WorkspaceWatcher(QObject):
                 logger.debug("Watcher could not be started.")
         except OSError as e:
             self.observer = None
-            if u'inotify' in to_text_string(e):
+            if "inotify" in to_text_string(e):
                 QMessageBox.warning(
                     self.parent(),
                     "Spyder",
-                    _("File system changes for this project can't be tracked "
-                      "because it contains too many files. To fix this you "
-                      "need to increase the inotify limit in your system, "
-                      "with the following command:"
-                      "<br><br>"
-                      "<code>"
-                      "sudo sysctl -n -w fs.inotify.max_user_watches=524288"
-                      "</code>"
-                      "<br><br>For a permanent solution you need to add to"
-                      "<code>/etc/sysctl.conf</code>"
-                      "the following line:<br><br>"
-                      "<code>"
-                      "fs.inotify.max_user_watches=524288"
-                      "</code>"
-                      "<br><br>"
-                      "After doing that, you need to close and start Spyder "
-                      "again so those changes can take effect."))
+                    _(
+                        "File system changes for this project can't be tracked "
+                        "because it contains too many files. To fix this you "
+                        "need to increase the inotify limit in your system, "
+                        "with the following command:"
+                        "<br><br>"
+                        "<code>"
+                        "sudo sysctl -n -w fs.inotify.max_user_watches=524288"
+                        "</code>"
+                        "<br><br>For a permanent solution you need to add to"
+                        "<code>/etc/sysctl.conf</code>"
+                        "the following line:<br><br>"
+                        "<code>"
+                        "fs.inotify.max_user_watches=524288"
+                        "</code>"
+                        "<br><br>"
+                        "After doing that, you need to close and start Spyder "
+                        "again so those changes can take effect."
+                    ),
+                )
             else:
                 raise e
 

@@ -14,6 +14,7 @@ class KiteBloomFilter:
     KiteBloomFilter manages access to the set of fully qualified
     function paths whose semantics Kite understands.
     """
+
     _filter = None
 
     @classmethod

@@ -21,116 +21,88 @@ Notes:
 # Default json config for the lsp
 # =============================================================================
 PYTHON_CONFIG = {
-    'cmd': 'pylsp',
-    'args': '--host {host} --port {port} --tcp',
-    'host': '127.0.0.1',
-    'port': 2087,
-    'external': False,
-    'stdio': False,
-    'configurations': {
-        'pylsp': {
-            'configurationSources': [
-                "pycodestyle", "pyflakes"],
-            'plugins': {
-                'pycodestyle': {
-                    'enabled': False,
-                    'exclude': [],
-                    'filename': [],
-                    'select': [],
-                    'ignore': [],
-                    'hangClosing': False,
-                    'maxLineLength': 79
+    "cmd": "pylsp",
+    "args": "--host {host} --port {port} --tcp",
+    "host": "127.0.0.1",
+    "port": 2087,
+    "external": False,
+    "stdio": False,
+    "configurations": {
+        "pylsp": {
+            "configurationSources": ["pycodestyle", "pyflakes"],
+            "plugins": {
+                "pycodestyle": {
+                    "enabled": False,
+                    "exclude": [],
+                    "filename": [],
+                    "select": [],
+                    "ignore": [],
+                    "hangClosing": False,
+                    "maxLineLength": 79,
                 },
-                'pyflakes': {
-                    'enabled': True
+                "pyflakes": {"enabled": True},
+                "autopep8": {"enabled": True},
+                "pylsp_black": {"enabled": False},
+                "black": {
+                    "line_length": 79,
+                    "preview": False,
+                    "cache_config": False,
                 },
-                'autopep8': {
-                    'enabled': True
+                "yapf": {"enabled": False},
+                "pydocstyle": {
+                    "enabled": False,
+                    "convention": "pep257",
+                    "addIgnore": [],
+                    "addSelect": [],
+                    "ignore": [],
+                    "select": [],
+                    "match": "(?!test_).*\\.py",
+                    "matchDir": "[^\\.].*",
                 },
-                'pylsp_black': {
-                    'enabled': False
+                "rope": {
+                    "extensionModules": None,
+                    "ropeFolder": None,
                 },
-                'black': {
-                    'line_length': 79,
-                    'preview': False,
-                    'cache_config': False,
+                "rope_completion": {"enabled": False},
+                "jedi": {
+                    "environment": None,
+                    "extra_paths": None,
+                    "env_vars": None,
                 },
-                'yapf': {
-                    'enabled': False
+                "jedi_completion": {
+                    "enabled": True,
+                    "include_params": False,
+                    "include_class_objects": False,
+                    "fuzzy": False,
                 },
-                'pydocstyle': {
-                    'enabled': False,
-                    'convention': 'pep257',
-                    'addIgnore': [],
-                    'addSelect': [],
-                    'ignore': [],
-                    'select': [],
-                    'match': "(?!test_).*\\.py",
-                    'matchDir': '[^\\.].*',
+                "jedi_definition": {
+                    "enabled": True,
+                    "follow_imports": True,
+                    "follow_builtin_imports": True,
                 },
-                'rope': {
-                    'extensionModules': None,
-                    'ropeFolder': None,
-                },
-                'rope_completion': {
-                    'enabled': False
-                },
-                'jedi': {
-                    'environment': None,
-                    'extra_paths': None,
-                    'env_vars': None,
-                },
-                'jedi_completion': {
-                    'enabled': True,
-                    'include_params': False,
-                    'include_class_objects': False,
-                    'fuzzy': False
-                },
-                'jedi_definition': {
-                    'enabled': True,
-                    'follow_imports': True,
-                    'follow_builtin_imports': True
-                },
-                'jedi_hover': {
+                "jedi_hover": {
                     # This option always needs to be `True` so that we can
                     # request information for the Object Inspection Help Pane
-                    'enabled': True
+                    "enabled": True
                 },
-                'jedi_references': {
-                    'enabled': True
+                "jedi_references": {"enabled": True},
+                "jedi_signature_help": {"enabled": True},
+                "jedi_symbols": {
+                    "enabled": True,
+                    "all_scopes": True,
+                    "include_import_symbols": False,
                 },
-                'jedi_signature_help': {
-                    'enabled': True
+                "mccabe": {"enabled": False, "threshold": 15},
+                "preload": {"enabled": True, "modules": []},
+                "pylint": {"enabled": False, "args": []},
+                "flake8": {
+                    "enabled": False,
                 },
-                'jedi_symbols': {
-                    'enabled': True,
-                    'all_scopes': True,
-                    'include_import_symbols': False
+                "pyls_spyder": {"enable_block_comments": True, "group_cells": True},
+                "pyls_flake8": {
+                    "enabled": False,
                 },
-                'mccabe': {
-                    'enabled': False,
-                    'threshold': 15
-                },
-                'preload': {
-                    'enabled': True,
-                    'modules': []
-                },
-                'pylint': {
-                    'enabled': False,
-                    'args': []
-                },
-                'flake8': {
-                    'enabled': False,
-                },
-                'pyls_spyder': {
-                    'enable_block_comments': True,
-                    'group_cells': True
-                },
-                'pyls_flake8': {
-                    'enabled': False,
-                }
             },
-
         }
-    }
+    },
 }

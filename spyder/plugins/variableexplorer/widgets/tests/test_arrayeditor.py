@@ -24,8 +24,7 @@ from qtpy.QtCore import Qt
 from scipy.io import loadmat
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.arrayeditor import (
-    ArrayEditor, ArrayModel)
+from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor, ArrayModel
 
 
 # =============================================================================
@@ -64,12 +63,12 @@ def setup_arrayeditor(qtbot, data):
 # =============================================================================
 def test_object_arrays(qtbot):
     """Test that object arrays are working properly."""
-    arr = np.array([u'a', 1, [2]], dtype=object)
+    arr = np.array(["a", 1, [2]], dtype=object)
     assert_array_equal(arr, launch_arrayeditor(arr, "object array"))
 
 
 @pytest.mark.parametrize(
-    'data',
+    "data",
     [np.array([[np.array([1, 2])], 2], dtype=object)],
 )
 def test_object_arrays_display(setup_arrayeditor):
@@ -79,12 +78,12 @@ def test_object_arrays_display(setup_arrayeditor):
     """
     dlg = setup_arrayeditor
     idx = dlg.arraywidget.model.index(0, 0)
-    assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
+    assert "[Numpy array]" == dlg.arraywidget.model.data(idx)
 
 
 @pytest.mark.parametrize(
-    'data',
-    [loadmat(os.path.join(HERE, 'issue_11216.mat'))['S']],
+    "data",
+    [loadmat(os.path.join(HERE, "issue_11216.mat"))["S"]],
 )
 def test_attribute_errors(setup_arrayeditor):
     """
@@ -93,14 +92,14 @@ def test_attribute_errors(setup_arrayeditor):
     Fixes spyder-ide/spyder#11216 .
     """
     dlg = setup_arrayeditor
-    data = loadmat(os.path.join(HERE, 'issue_11216.mat'))
+    data = loadmat(os.path.join(HERE, "issue_11216.mat"))
     contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
-    assert_array_equal(contents, data['S'][0][0][0])
+    assert_array_equal(contents, data["S"][0][0][0])
 
 
 @pytest.mark.parametrize(
-    'data',
-    [np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])],
+    "data",
+    [np.ones(2, dtype=[("X", "f8", (2, 10)), ("S", "S10")])],
 )
 def test_type_errors(setup_arrayeditor, qtbot):
     """
@@ -114,10 +113,9 @@ def test_type_errors(setup_arrayeditor, qtbot):
     assert_array_equal(contents, np.ones(10))
 
 
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="Only works on Linux")
 @pytest.mark.parametrize(
-    'data',
+    "data",
     [np.array([1, 2, 3], dtype=np.float32)],
 )
 def test_arrayeditor_format(setup_arrayeditor, qtbot):
@@ -149,7 +147,7 @@ def test_arrayeditor_with_string_array(qtbot):
 
 
 def test_arrayeditor_with_unicode_array(qtbot):
-    arr = np.array([u"ñññéáíó"])
+    arr = np.array(["ñññéáíó"])
     assert arr == launch_arrayeditor(arr, "unicode array")
 
 
@@ -159,31 +157,43 @@ def test_arrayeditor_with_masked_array(qtbot):
 
 
 def test_arrayeditor_with_record_array(qtbot):
-    arr = np.zeros((2, 2), {'names': ('red', 'green', 'blue'),
-                            'formats': (np.float32, np.float32, np.float32)})
+    arr = np.zeros(
+        (2, 2),
+        {
+            "names": ("red", "green", "blue"),
+            "formats": (np.float32, np.float32, np.float32),
+        },
+    )
     assert_array_equal(arr, launch_arrayeditor(arr, "record array"))
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It segfaults sometimes on Linux")
+@pytest.mark.skipif(not os.name == "nt", reason="It segfaults sometimes on Linux")
 def test_arrayeditor_with_record_array_with_titles(qtbot):
-    arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
-                   dtype=[(('title 1', 'x'), '|i1'),
-                          (('title 2', 'y'), '>f4')])
+    arr = np.array(
+        [(0, 0.0), (0, 0.0), (0, 0.0)],
+        dtype=[(("title 1", "x"), "|i1"), (("title 2", "y"), ">f4")],
+    )
     assert_array_equal(arr, launch_arrayeditor(arr, "record array with titles"))
 
 
 def test_arrayeditor_with_float_array(qtbot):
     arr = np.random.rand(5, 5)
-    assert_array_equal(arr, launch_arrayeditor(arr, "float array",
-                                      xlabels=['a', 'b', 'c', 'd', 'e']))
+    assert_array_equal(
+        arr, launch_arrayeditor(arr, "float array", xlabels=["a", "b", "c", "d", "e"])
+    )
 
 
 def test_arrayeditor_with_complex_array(qtbot):
-    arr = np.round(np.random.rand(5, 5)*10)+\
-                   np.round(np.random.rand(5, 5)*10)*1j
-    assert_array_equal(arr, launch_arrayeditor(arr, "complex array",
-                                      xlabels=np.linspace(-12, 12, 5),
-                                      ylabels=np.linspace(-12, 12, 5)))
+    arr = np.round(np.random.rand(5, 5) * 10) + np.round(np.random.rand(5, 5) * 10) * 1j
+    assert_array_equal(
+        arr,
+        launch_arrayeditor(
+            arr,
+            "complex array",
+            xlabels=np.linspace(-12, 12, 5),
+            ylabels=np.linspace(-12, 12, 5),
+        ),
+    )
 
 
 def test_arrayeditor_with_bool_array(qtbot):
@@ -191,21 +201,22 @@ def test_arrayeditor_with_bool_array(qtbot):
     arr_out = launch_arrayeditor(arr_in, "bool array")
     assert arr_in is arr_out
 
+
 def test_arrayeditor_with_int8_array(qtbot):
     arr = np.array([1, 2, 3], dtype="int8")
     assert_array_equal(arr, launch_arrayeditor(arr, "int array"))
 
 
 def test_arrayeditor_with_float16_array(qtbot):
-    arr = np.zeros((5,5), dtype=np.float16)
+    arr = np.zeros((5, 5), dtype=np.float16)
     assert_array_equal(arr, launch_arrayeditor(arr, "float16 array"))
 
 
 def test_arrayeditor_with_3d_array(qtbot):
-    arr = np.zeros((3,3,4))
-    arr[0,0,0]=1
-    arr[0,0,1]=2
-    arr[0,0,2]=3
+    arr = np.zeros((3, 3, 4))
+    arr[0, 0, 0] = 1
+    arr[0, 0, 1] = 2
+    arr[0, 0, 2] = 3
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
 
 
@@ -220,37 +231,37 @@ def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
+    assert dlg.setup_and_check(arr, "1D array", xlabels=None, ylabels=None)
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
 
     qtbot.keyPress(view, Qt.Key_Down)
     qtbot.keyPress(view, Qt.Key_Up)
-    qtbot.keyClicks(view, '1')
+    qtbot.keyClicks(view, "1")
     qtbot.keyPress(view, Qt.Key_Down)
-    qtbot.keyClicks(view, '0')
+    qtbot.keyClicks(view, "0")
     qtbot.keyPress(view, Qt.Key_Down)
     qtbot.keyPress(view, Qt.Key_Return)
     assert np.sum(exp_arr == dlg.get_value()) == 5
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
+@pytest.mark.skipif(sys.platform == "darwin", reason="It fails on macOS")
 def test_arrayeditor_edit_2d_array(qtbot):
     arr = np.ones((3, 3))
     diff_arr = arr.copy()
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '2D array', xlabels=None, ylabels=None)
+    assert dlg.setup_and_check(arr, "2D array", xlabels=None, ylabels=None)
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
 
     qtbot.keyPress(view, Qt.Key_Down)
     qtbot.keyPress(view, Qt.Key_Right)
-    qtbot.keyClicks(view, '3')
+    qtbot.keyClicks(view, "3")
     qtbot.keyPress(view, Qt.Key_Down)
     qtbot.keyPress(view, Qt.Key_Right)
-    qtbot.keyClicks(view, '0')
+    qtbot.keyClicks(view, "0")
     qtbot.keyPress(view, Qt.Key_Left)
     qtbot.keyPress(view, Qt.Key_Return)
 
@@ -258,15 +269,14 @@ def test_arrayeditor_edit_2d_array(qtbot):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('linux'),
-    reason="Sometimes fails on Linux ")
+    sys.platform.startswith("linux"), reason="Sometimes fails on Linux "
+)
 def test_arrayeditor_edit_complex_array(qtbot):
     """See: spyder-ide/spyder#7848"""
-    cnum = -1+0.5j
+    cnum = -1 + 0.5j
     arr = (np.random.random((10, 10)) - 0.50) * cnum
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
-                               ylabels=None)
+    assert dlg.setup_and_check(arr, "2D complex array", xlabels=None, ylabels=None)
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
@@ -289,11 +299,11 @@ def test_arraymodel_set_data_overflow(monkeypatch):
     Unit regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
-    attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'
+    attr_to_patch = "spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox"
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
     # Numpy doesn't raise OverflowError on Linux for ints smaller than 64 bits
-    if not os.name == 'nt':
+    if not os.name == "nt":
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
@@ -303,14 +313,14 @@ def test_arraymodel_set_data_overflow(monkeypatch):
         test_array = np.array([[5], [6], [7], [3], [4]], dtype=int_type)
         model = ArrayModel(test_array.copy())
         index = model.createIndex(0, 2)
-        assert not model.setData(index, str(int(2 ** bit_exponent)))
+        assert not model.setData(index, str(int(2**bit_exponent)))
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         assert np.sum(test_array == model._data) == len(test_array)
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
+@pytest.mark.skipif(sys.platform == "darwin", reason="It fails on macOS")
 def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
@@ -318,11 +328,11 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     Integration regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
-    attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'
+    attr_to_patch = "spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox"
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
     # Numpy doesn't raise the OverflowError for ints smaller than 64 bits
-    if not os.name == 'nt':
+    if not os.name == "nt":
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
@@ -332,30 +342,30 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     for idx, int_type, bit_exponent in test_parameters:
         test_array = np.arange(0, 5).astype(int_type)
         dialog = ArrayEditor()
-        assert dialog.setup_and_check(test_array, '1D array',
-                                      xlabels=None, ylabels=None)
+        assert dialog.setup_and_check(
+            test_array, "1D array", xlabels=None, ylabels=None
+        )
         with qtbot.waitExposed(dialog):
             dialog.show()
         view = dialog.arraywidget.view
 
         qtbot.keyClick(view, Qt.Key_Down)
         qtbot.keyClick(view, Qt.Key_Up)
-        qtbot.keyClicks(view, '5')
+        qtbot.keyClicks(view, "5")
         qtbot.keyClick(view, Qt.Key_Down)
         qtbot.keyClick(view, Qt.Key_Space)
-        qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponent)))
+        qtbot.keyClicks(view.focusWidget(), str(int(2**bit_exponent)))
         qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
-        qtbot.keyClicks(view, '7')
+        qtbot.keyClicks(view, "7")
         qtbot.keyClick(view, Qt.Key_Up)
-        qtbot.keyClicks(view, '6')
+        qtbot.keyClicks(view, "6")
         qtbot.keyClick(view, Qt.Key_Down)
         qtbot.wait(200)
         dialog.accept()
         qtbot.wait(500)
-        assert np.sum(expected_array ==
-                      dialog.get_value()) == len(expected_array)
+        assert np.sum(expected_array == dialog.get_value()) == len(expected_array)
 
 
 if __name__ == "__main__":

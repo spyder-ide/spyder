@@ -23,6 +23,7 @@ _ = get_translation("spyder")
 
 class ReadWriteStatus(StatusBarWidget):
     """Status bar widget for current file read/write mode."""
+
     ID = "read_write_status"
 
     def update_readonly(self, readonly):
@@ -37,6 +38,7 @@ class ReadWriteStatus(StatusBarWidget):
 
 class EOLStatus(StatusBarWidget):
     """Status bar widget for the current file end of line."""
+
     ID = "eol_status"
 
     def update_eol(self, os_name):
@@ -52,6 +54,7 @@ class EOLStatus(StatusBarWidget):
 
 class EncodingStatus(StatusBarWidget):
     """Status bar widget for the current file encoding."""
+
     ID = "encoding_status"
 
     def update_encoding(self, encoding):
@@ -66,11 +69,12 @@ class EncodingStatus(StatusBarWidget):
 
 class CursorPositionStatus(StatusBarWidget):
     """Status bar widget for the current file cursor position."""
+
     ID = "cursor_position_status"
 
     def update_cursor_position(self, line, index):
         """Update cursor position."""
-        value = 'Line {}, Col {}'.format(line + 1, index + 1)
+        value = "Line {}, Col {}".format(line + 1, index + 1)
         self.set_value(value)
 
     def get_tooltip(self):
@@ -80,6 +84,7 @@ class CursorPositionStatus(StatusBarWidget):
 
 class VCSStatus(StatusBarWidget):
     """Status bar widget for system vcs."""
+
     ID = "vcs_status"
 
     def __init__(self, parent):
@@ -108,8 +113,7 @@ class VCSStatus(StatusBarWidget):
             self._git_job_queue = (fname, index)
         else:
             self._worker_manager.terminate_all()
-            worker = self._worker_manager.create_python_worker(
-                self.get_git_refs, fname)
+            worker = self._worker_manager.create_python_worker(self.get_git_refs, fname)
             worker.sig_finished.connect(self.process_git_data)
             self._last_git_job = (fname, index)
             self._git_job_queue = None
@@ -124,9 +128,9 @@ class VCSStatus(StatusBarWidget):
         """Receive data from git and update gui."""
         branches, branch, files_modified = output
 
-        text = branch if branch else ''
+        text = branch if branch else ""
         if len(files_modified):
-            text = text + ' [{}]'.format(len(files_modified))
+            text = text + " [{}]".format(len(files_modified))
         self.setVisible(bool(branch))
         self.set_value(text)
 
@@ -143,7 +147,7 @@ class VCSStatus(StatusBarWidget):
         return _("Git branch")
 
     def get_icon(self):
-        return self.create_icon('code_fork')
+        return self.create_icon("code_fork")
 
 
 def test():
@@ -156,8 +160,12 @@ def test():
     win.resize(900, 300)
     statusbar = win.statusBar()
     status_widgets = []
-    for status_class in (ReadWriteStatus, EOLStatus, EncodingStatus,
-                         CursorPositionStatus):
+    for status_class in (
+        ReadWriteStatus,
+        EOLStatus,
+        EncodingStatus,
+        CursorPositionStatus,
+    ):
         status_widget = status_class(win, statusbar)
         status_widgets.append(status_widget)
     win.show()

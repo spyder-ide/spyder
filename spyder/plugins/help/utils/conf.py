@@ -22,74 +22,74 @@ from sphinx import __version__ as sphinx_version
 from spyder.config.manager import CONF
 
 
-#==============================================================================
+# ==============================================================================
 # General configuration
-#==============================================================================
+# ==============================================================================
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath('.'))
+# sys.path.append(os.path.abspath('.'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 
 # We need jsmath to get pretty plain-text latex in docstrings
-math = CONF.get('help', 'math', '')
+math = CONF.get("help", "math", "")
 
 if sphinx_version < "1.1" or not math:
-    extensions = ['sphinx.ext.jsmath']
+    extensions = ["sphinx.ext.jsmath"]
 else:
-    extensions = ['sphinx.ext.mathjax']
+    extensions = ["sphinx.ext.mathjax"]
 
 # For scipy and matplotlib docstrings, which need this extension to
 # be rendered correctly. See spyder-ide/spyder#1138.
-extensions.append('sphinx.ext.autosummary')
+extensions.append("sphinx.ext.autosummary")
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['templates']
+templates_path = ["templates"]
 
 # MathJax load path (doesn't have effect for sphinx 1.0-)
-mathjax_path = 'MathJax/MathJax.js'
+mathjax_path = "MathJax/MathJax.js"
 
 # JsMath load path (doesn't have effect for sphinx 1.1+)
-jsmath_path = 'easy/load.js'
+jsmath_path = "easy/load.js"
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The master toctree document.
-master_doc = 'docstring'
+master_doc = "docstring"
 
 # General information about the project.
-project = u"Spyder Help plugin"
-copyright = u'The Spyder Project Contributors'
+project = "Spyder Help plugin"
+copyright = "The Spyder Project Contributors"
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = ['.build']
+exclude_trees = [".build"]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #
 # TODO: This role has to be set on a per project basis, i.e. numpy, sympy,
 # mpmath, etc, use different default_role's which give different rendered
 # docstrings. Setting this to None until it's solved.
-default_role = 'None'
+default_role = "None"
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
-#==============================================================================
+# ==============================================================================
 # Options for HTML output
-#==============================================================================
+# ==============================================================================
 
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'default.css'
+html_style = "default.css"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -101,7 +101,7 @@ html_short_title = None
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['static']
+html_static_path = ["static"]
 
 # A dictionary of values to pass into the template engine’s context for all
 # pages
@@ -127,4 +127,3 @@ html_split_index = False
 
 # If true, the reST sources are included in the HTML build as _sources/<name>.
 html_copy_source = False
-

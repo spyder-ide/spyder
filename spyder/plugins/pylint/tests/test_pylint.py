@@ -49,8 +49,9 @@ DIR_LIST = [SCRIPT_DIR, WORKING_DIR, PROJECT_DIR, HOME_DIR]
 DIR_LIST_ALL = [NO_DIR] + DIR_LIST + [ALL_DIR]
 
 PYLINT_TEST_SCRIPT = "import math\nimport os\nimport sys\n" + "\n".join(
-    [dir_name + " = " + str(idx) for idx, dir_name in enumerate(DIR_LIST_ALL)])
-PYLINT_TEST_SCRIPT = "\"\"\"Docstring.\"\"\"\n" + PYLINT_TEST_SCRIPT + "\n"
+    [dir_name + " = " + str(idx) for idx, dir_name in enumerate(DIR_LIST_ALL)]
+)
+PYLINT_TEST_SCRIPT = '"""Docstring."""\n' + PYLINT_TEST_SCRIPT + "\n"
 
 PYLINTRC_TEST_CONTENTS = """
 [MESSAGES CONTROL]
@@ -60,6 +61,7 @@ enable=blacklisted-name
 bad-names={bad_names}
 good-names=e
 """
+
 
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
@@ -71,8 +73,8 @@ class MainWindowMock(QMainWindow):
         self.projects = MagicMock()
 
         PLUGIN_REGISTRY.plugin_registry = {
-            'editor': self.editor,
-            'projects': self.projects
+            "editor": self.editor,
+            "projects": self.projects,
         }
 
     def get_plugin(self, plugin_name):
@@ -84,8 +86,7 @@ def pylint_plugin(mocker, qtbot):
     main_window = MainWindowMock()
     qtbot.addWidget(main_window)
     main_window.resize(640, 480)
-    main_window.projects.get_active_project_path = mocker.MagicMock(
-        return_value=None)
+    main_window.projects.get_active_project_path = mocker.MagicMock(return_value=None)
     main_window.show()
 
     plugin = Pylint(parent=main_window, configuration=CONF)
@@ -106,18 +107,17 @@ def pylint_plugin(mocker, qtbot):
 @pytest.fixture
 def pylintrc_search_paths(tmp_path_factory):
     """Construct temporary .pylintrc search paths."""
-    search_paths = {dir_name: str(tmp_path_factory.mktemp(dir_name))
-                    for dir_name in DIR_LIST}
+    search_paths = {
+        dir_name: str(tmp_path_factory.mktemp(dir_name)) for dir_name in DIR_LIST
+    }
     return search_paths
 
 
 @pytest.fixture
 def pylint_test_script(pylintrc_search_paths):
     """Write a script for testing Pylint to a temporary directory."""
-    script_path = osp.join(
-        pylintrc_search_paths[SCRIPT_DIR], "test_script.py")
-    with open(script_path, mode="w",
-              encoding="utf-8", newline="\n") as script_file:
+    script_path = osp.join(pylintrc_search_paths[SCRIPT_DIR], "test_script.py")
+    with open(script_path, mode="w", encoding="utf-8", newline="\n") as script_file:
         script_file.write(PYLINT_TEST_SCRIPT)
 
     return script_path
@@ -129,11 +129,11 @@ def pylint_test_scripts(pylintrc_search_paths):
         """Write scripts for testing Pylint to a temporary directory."""
         script_paths = []
         for filename in filenames:
-            script_path = osp.join(
-                pylintrc_search_paths[SCRIPT_DIR], filename)
+            script_path = osp.join(pylintrc_search_paths[SCRIPT_DIR], filename)
 
-            with open(script_path, mode="w",
-                      encoding="utf-8", newline="\n") as script_file:
+            with open(
+                script_path, mode="w", encoding="utf-8", newline="\n"
+            ) as script_file:
                 script_file.write(PYLINT_TEST_SCRIPT)
 
             script_paths.append(script_path)
@@ -150,11 +150,25 @@ def pylint_test_scripts(pylintrc_search_paths):
         [WORKING_DIR],
         [PROJECT_DIR],
         [HOME_DIR],
-        [SCRIPT_DIR, HOME_DIR], [WORKING_DIR, PROJECT_DIR],
-        [SCRIPT_DIR, PROJECT_DIR], [PROJECT_DIR, HOME_DIR],
-        [SCRIPT_DIR, WORKING_DIR, PROJECT_DIR, HOME_DIR]],
-    ids=["None", "Script", "Working", "Project", "Home", "Script & Home",
-         "Working & Project", "Script & Working", "Project & Home", "All"])
+        [SCRIPT_DIR, HOME_DIR],
+        [WORKING_DIR, PROJECT_DIR],
+        [SCRIPT_DIR, PROJECT_DIR],
+        [PROJECT_DIR, HOME_DIR],
+        [SCRIPT_DIR, WORKING_DIR, PROJECT_DIR, HOME_DIR],
+    ],
+    ids=[
+        "None",
+        "Script",
+        "Working",
+        "Project",
+        "Home",
+        "Script & Home",
+        "Working & Project",
+        "Script & Working",
+        "Project & Home",
+        "All",
+    ],
+)
 def pylintrc_files(pylintrc_search_paths, request):
     """Store test .pylintrc files at the paths and determine the result."""
     search_paths = pylintrc_search_paths
@@ -174,10 +188,10 @@ def pylintrc_files(pylintrc_search_paths, request):
     # Store the selected pylintrc files at the designated paths
     for location in pylintrc_locations:
         pylintrc_test_contents = PYLINTRC_TEST_CONTENTS.format(
-            bad_names=", ".join([location, ALL_DIR]))
+            bad_names=", ".join([location, ALL_DIR])
+        )
         pylintrc_path = osp.join(search_paths[location], PYLINTRC_FILENAME)
-        with open(pylintrc_path, mode="w",
-                  encoding="utf-8", newline="\n") as rc_file:
+        with open(pylintrc_path, mode="w", encoding="utf-8", newline="\n") as rc_file:
             rc_file.write(pylintrc_test_contents)
 
     print(search_paths)
@@ -190,24 +204,22 @@ def pylintrc_files(pylintrc_search_paths, request):
 def test_get_pylintrc_path(pylintrc_files, mocker):
     """Test that get_pylintrc_path finds the expected one in the hierarchy."""
     search_paths, expected_path, __ = pylintrc_files
-    mocker.patch("os.path.expanduser",
-                 return_value=search_paths[HOME_DIR])
+    mocker.patch("os.path.expanduser", return_value=search_paths[HOME_DIR])
     actual_path = get_pylintrc_path(
         search_paths=list(search_paths.values()),
         home_path=search_paths[HOME_DIR],
-        )
+    )
     assert actual_path == expected_path
 
 
-def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker,
-                                 qtbot):
+def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker, qtbot):
     """Test that pylint works without errors with no project open."""
     pylint_plugin.start_code_analysis(filename=pylint_test_script)
     pylint_widget = pylint_plugin.get_widget()
 
     qtbot.waitUntil(
-        lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
-        timeout=10000)
+        lambda: pylint_widget.get_data(pylint_test_script)[1] is not None, timeout=10000
+    )
     pylint_data = pylint_widget.get_data(filename=pylint_test_script)
 
     print(pylint_data)
@@ -219,22 +231,26 @@ def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker,
 
 @flaky(max_runs=3)
 def test_pylint_widget_pylintrc(
-        pylint_plugin, pylint_test_script, pylintrc_files, mocker, qtbot):
+    pylint_plugin, pylint_test_script, pylintrc_files, mocker, qtbot
+):
     """Test that entire pylint widget gets results depending on pylintrc."""
     search_paths, __, bad_names = pylintrc_files
-    mocker.patch("os.path.expanduser",
-                 return_value=search_paths[HOME_DIR])
-    mocker.patch("spyder.plugins.pylint.main_widget.getcwd_or_home",
-                 return_value=search_paths[WORKING_DIR])
-    mocker.patch("spyder.plugins.pylint.main_widget.osp.expanduser",
-                 return_value=search_paths[HOME_DIR])
+    mocker.patch("os.path.expanduser", return_value=search_paths[HOME_DIR])
+    mocker.patch(
+        "spyder.plugins.pylint.main_widget.getcwd_or_home",
+        return_value=search_paths[WORKING_DIR],
+    )
+    mocker.patch(
+        "spyder.plugins.pylint.main_widget.osp.expanduser",
+        return_value=search_paths[HOME_DIR],
+    )
     pylint_plugin.set_conf("project_dir", search_paths[PROJECT_DIR])
 
     pylint_widget = pylint_plugin.get_widget()
     pylint_plugin.start_code_analysis(filename=pylint_test_script)
     qtbot.waitUntil(
-        lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
-        timeout=5000)
+        lambda: pylint_widget.get_data(pylint_test_script)[1] is not None, timeout=5000
+    )
     pylint_data = pylint_widget.get_data(filename=pylint_test_script)
 
     print(pylint_data)
@@ -243,8 +259,12 @@ def test_pylint_widget_pylintrc(
     conventions = pylint_data[1][3]["C:"]
     assert conventions
     assert len(conventions) == len(bad_names)
-    assert all([sum([bad_name in message[2] for message in conventions]) == 1
-                for bad_name in bad_names])
+    assert all(
+        [
+            sum([bad_name in message[2] for message in conventions]) == 1
+            for bad_name in bad_names
+        ]
+    )
 
 
 def test_pylint_max_history_conf(pylint_plugin, pylint_test_scripts):
@@ -254,13 +274,14 @@ def test_pylint_max_history_conf(pylint_plugin, pylint_test_scripts):
     """
     pylint_widget = pylint_plugin.get_widget()
     script_0, script_1, script_2 = pylint_test_scripts(
-        ["test_script_{}.py".format(n) for n in range(3)])
+        ["test_script_{}.py".format(n) for n in range(3)]
+    )
 
     # Change the max_entry to 2
     assert pylint_widget.filecombo.count() == 0
     pylint_plugin.change_history_depth(2)
-    assert pylint_plugin.get_conf('max_entries') == 2
-    assert pylint_widget.get_conf('max_entries') == 2
+    assert pylint_plugin.get_conf("max_entries") == 2
+    assert pylint_widget.get_conf("max_entries") == 2
 
     # Call to set_filename
     pylint_widget.set_filename(filename=script_0)
@@ -272,15 +293,15 @@ def test_pylint_max_history_conf(pylint_plugin, pylint_test_scripts):
 
     assert pylint_widget.filecombo.count() == 2
 
-    assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
-    assert 'test_script_1.py' in pylint_widget.curr_filenames[1]
+    assert "test_script_2.py" in pylint_widget.curr_filenames[0]
+    assert "test_script_1.py" in pylint_widget.curr_filenames[1]
 
     # Change the max entry to 1
     pylint_plugin.change_history_depth(1)
 
     assert pylint_widget.filecombo.count() == 1
-    assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
+    assert "test_script_2.py" in pylint_widget.curr_filenames[0]
 
 
 if __name__ == "__main__":
-    pytest.main([osp.basename(__file__), '-vv', '-rw'])
+    pytest.main([osp.basename(__file__), "-vv", "-rw"])

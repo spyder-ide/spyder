@@ -10,8 +10,14 @@ Default layout definitions.
 
 # Third party imports
 from qtpy.QtCore import QRect, QRectF, Qt
-from qtpy.QtWidgets import (QApplication, QDockWidget, QGridLayout,
-                            QMainWindow, QPlainTextEdit, QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QDockWidget,
+    QGridLayout,
+    QMainWindow,
+    QPlainTextEdit,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.plugins import Plugins
@@ -58,18 +64,24 @@ class SpyderLayout(BaseGridLayoutType):
             visible=False,
         )
         self.add_area(
-            [Plugins.Help, Plugins.VariableExplorer, Plugins.Plots,
-             Plugins.OnlineHelp, Plugins.Explorer, Plugins.Find],
+            [
+                Plugins.Help,
+                Plugins.VariableExplorer,
+                Plugins.Plots,
+                Plugins.OnlineHelp,
+                Plugins.Explorer,
+                Plugins.Find,
+            ],
             row=0,
             column=3,
             default=True,
-            hidden_plugin_ids=[Plugins.OnlineHelp, Plugins.Find]
+            hidden_plugin_ids=[Plugins.OnlineHelp, Plugins.Find],
         )
         self.add_area(
             [Plugins.IPythonConsole, Plugins.History, Plugins.Console],
             row=1,
             column=3,
-            hidden_plugin_ids=[Plugins.Console]
+            hidden_plugin_ids=[Plugins.Console],
         )
 
         self.set_column_stretch(0, 1)
@@ -93,8 +105,14 @@ class HorizontalSplitLayout(BaseGridLayoutType):
             column=0,
         )
         self.add_area(
-            [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
-             Plugins.VariableExplorer, Plugins.Plots, Plugins.History],
+            [
+                Plugins.IPythonConsole,
+                Plugins.Explorer,
+                Plugins.Help,
+                Plugins.VariableExplorer,
+                Plugins.Plots,
+                Plugins.History,
+            ],
             row=0,
             column=1,
             default=True,
@@ -119,8 +137,14 @@ class VerticalSplitLayout(BaseGridLayoutType):
             column=0,
         )
         self.add_area(
-            [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
-             Plugins.VariableExplorer, Plugins.Plots, Plugins.History],
+            [
+                Plugins.IPythonConsole,
+                Plugins.Explorer,
+                Plugins.Help,
+                Plugins.VariableExplorer,
+                Plugins.Plots,
+                Plugins.History,
+            ],
             row=1,
             column=0,
             default=True,
@@ -148,22 +172,26 @@ class RLayout(BaseGridLayoutType):
             [Plugins.IPythonConsole, Plugins.Console],
             row=1,
             column=0,
-            hidden_plugin_ids=[Plugins.Console]
+            hidden_plugin_ids=[Plugins.Console],
         )
         self.add_area(
-            [Plugins.VariableExplorer, Plugins.Plots, Plugins.History,
-             Plugins.OutlineExplorer, Plugins.Find],
+            [
+                Plugins.VariableExplorer,
+                Plugins.Plots,
+                Plugins.History,
+                Plugins.OutlineExplorer,
+                Plugins.Find,
+            ],
             row=0,
             column=1,
             default=True,
-            hidden_plugin_ids=[Plugins.OutlineExplorer, Plugins.Find]
+            hidden_plugin_ids=[Plugins.OutlineExplorer, Plugins.Find],
         )
         self.add_area(
-            [Plugins.Explorer, Plugins.Projects, Plugins.Help,
-             Plugins.OnlineHelp],
+            [Plugins.Explorer, Plugins.Projects, Plugins.Help, Plugins.OnlineHelp],
             row=1,
             column=1,
-            hidden_plugin_ids=[Plugins.Projects, Plugins.OnlineHelp]
+            hidden_plugin_ids=[Plugins.Projects, Plugins.OnlineHelp],
         )
 
     def get_name(self):
@@ -180,7 +208,7 @@ class MatlabLayout(BaseGridLayoutType):
             [Plugins.Explorer, Plugins.Projects],
             row=0,
             column=0,
-            hidden_plugin_ids=[Plugins.Projects]
+            hidden_plugin_ids=[Plugins.Projects],
         )
         self.add_area(
             [Plugins.OutlineExplorer],
@@ -196,20 +224,20 @@ class MatlabLayout(BaseGridLayoutType):
             [Plugins.IPythonConsole, Plugins.Console],
             row=1,
             column=1,
-            hidden_plugin_ids=[Plugins.Console]
+            hidden_plugin_ids=[Plugins.Console],
         )
         self.add_area(
             [Plugins.VariableExplorer, Plugins.Plots, Plugins.Find],
             row=0,
             column=2,
             default=True,
-            hidden_plugin_ids=[Plugins.Find]
+            hidden_plugin_ids=[Plugins.Find],
         )
         self.add_area(
             [Plugins.History, Plugins.Help, Plugins.OnlineHelp],
             row=1,
             column=2,
-            hidden_plugin_ids=[Plugins.OnlineHelp]
+            hidden_plugin_ids=[Plugins.OnlineHelp],
         )
 
         self.set_column_stretch(0, 2)
@@ -234,8 +262,7 @@ class VerticalSplitLayout2(BaseGridLayoutType):
         self.add_area([Plugins.Explorer], 1, 1, default=True)
         self.add_area([Plugins.Help], 1, 2)
         self.add_area([Plugins.Console], 0, 3, row_span=2)
-        self.add_area(
-            [Plugins.VariableExplorer], 2, 0, col_span=4, visible=False)
+        self.add_area([Plugins.VariableExplorer], 2, 0, col_span=4, visible=False)
 
         self.set_column_stretch(0, 1)
         self.set_column_stretch(1, 4)
@@ -252,11 +279,11 @@ class VerticalSplitLayout2(BaseGridLayoutType):
 
 if __name__ == "__main__":
     for layout in [
-            # SpyderLayout(None),
-            # HorizontalSplitLayout(None),
-            # VerticalSplitLayout(None),
-            # RLayout(None),
-            # MatlabLayout(None),
-            VerticalSplitLayout2(None),
-            ]:
+        # SpyderLayout(None),
+        # HorizontalSplitLayout(None),
+        # VerticalSplitLayout(None),
+        # RLayout(None),
+        # MatlabLayout(None),
+        VerticalSplitLayout2(None),
+    ]:
         layout.preview_layout(show_hidden_areas=True)

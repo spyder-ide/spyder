@@ -25,7 +25,7 @@ def test_icon_mapping():
         try:
             assert isinstance(ima.icon(key), QIcon)
         except Exception as e:
-            print('Invalid icon name:', key)
+            print("Invalid icon name:", key)
             raise e
 
 

@@ -19,7 +19,10 @@ Adapted from binaryornot/check.py of
 
 import logging
 
-from spyder.utils.external.binaryornot.helpers import get_starting_chunk, is_binary_string
+from spyder.utils.external.binaryornot.helpers import (
+    get_starting_chunk,
+    is_binary_string,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -30,10 +33,10 @@ def is_binary(filename):
     :param filename: File to check.
     :returns: True if it's a binary file, otherwise False.
     """
-    logger.debug('is_binary: %(filename)r', locals())
+    logger.debug("is_binary: %(filename)r", locals())
 
     # Check if the file extension is in a list of known binary types
-    binary_extensions = ['pyc', 'iso', 'zip', 'pdf']
+    binary_extensions = ["pyc", "iso", "zip", "pdf"]
     for ext in binary_extensions:
         if filename.endswith(ext):
             return True

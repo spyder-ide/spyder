@@ -17,10 +17,11 @@ from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.plugins.findinfiles.widgets.results_browser import (
-    ON, ResultsBrowser)
+from spyder.plugins.findinfiles.widgets.results_browser import ON, ResultsBrowser
 from spyder.plugins.findinfiles.widgets.combobox import (
-    MAX_PATH_HISTORY, SearchInComboBox)
+    MAX_PATH_HISTORY,
+    SearchInComboBox,
+)
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
@@ -28,7 +29,7 @@ from spyder.widgets.comboboxes import PatternComboBox
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # ---- Constants
@@ -40,41 +41,41 @@ MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 # -----------------------------------------------------------------------------
 class FindInFilesWidgetActions:
     # Triggers
-    Find = 'find_action'
-    MaxResults = 'max_results_action'
+    Find = "find_action"
+    MaxResults = "max_results_action"
 
     # Toggles
-    ToggleCase = 'toggle_case_action'
-    ToggleExcludeCase = 'toggle_exclude_case_action'
-    ToggleExcludeRegex = 'togle_use_regex_on_exlude_action'
-    ToggleMoreOptions = 'toggle_more_options_action'
-    ToggleSearchRegex = 'toggle_use_regex_on_search_action'
+    ToggleCase = "toggle_case_action"
+    ToggleExcludeCase = "toggle_exclude_case_action"
+    ToggleExcludeRegex = "togle_use_regex_on_exlude_action"
+    ToggleMoreOptions = "toggle_more_options_action"
+    ToggleSearchRegex = "toggle_use_regex_on_search_action"
 
 
 class FindInFilesWidgetToolbars:
-    Exclude = 'exclude_toolbar'
-    Location = 'location_toolbar'
+    Exclude = "exclude_toolbar"
+    Location = "location_toolbar"
 
 
 class FindInFilesWidgetMainToolbarSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 class FindInFilesWidgetExcludeToolbarSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 class FindInFilesWidgetLocationToolbarSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 class FindInFilesWidgetToolbarItems:
-    SearchPatternCombo = 'pattern_combo'
-    SearchInLabel = 'search_in_label'
-    ExcludeLabel = 'exclude_label'
-    ExcludePatternCombo = 'exclude_pattern_combo'
-    Stretcher1 = 'stretcher_1'
-    SearchInCombo = 'search_in_combo'
+    SearchPatternCombo = "pattern_combo"
+    SearchInLabel = "search_in_label"
+    ExcludeLabel = "exclude_label"
+    ExcludePatternCombo = "exclude_pattern_combo"
+    Stretcher1 = "stretcher_1"
+    SearchInCombo = "search_in_combo"
 
 
 # ---- Main widget
@@ -121,20 +122,20 @@ class FindInFilesWidget(PluginMainWidget):
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent=parent)
-        self.set_conf('text_color', MAIN_TEXT_COLOR)
-        self.set_conf('hist_limit', MAX_PATH_HISTORY)
+        self.set_conf("text_color", MAIN_TEXT_COLOR)
+        self.set_conf("hist_limit", MAX_PATH_HISTORY)
 
         # Attributes
-        self.text_color = self.get_conf('text_color')
-        self.supported_encodings = self.get_conf('supported_encodings')
+        self.text_color = self.get_conf("text_color")
+        self.supported_encodings = self.get_conf("supported_encodings")
         self.search_thread = None
         self.running = False
         self.more_options_action = None
         self.extras_toolbar = None
 
-        search_text = self.get_conf('search_text', '')
-        path_history = self.get_conf('path_history', [])
-        exclude = self.get_conf('exclude')
+        search_text = self.get_conf("search_text", "")
+        path_history = self.get_conf("path_history", [])
+        exclude = self.get_conf("exclude")
 
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -147,47 +148,46 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Widgets
         self.search_text_edit = PatternComboBox(
-            self,
-            search_text,
-            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
+            self, search_text, id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
         )
 
-        self.search_text_edit.lineEdit().setPlaceholderText(
-            _('Write text to search'))
+        self.search_text_edit.lineEdit().setPlaceholderText(_("Write text to search"))
 
-        self.search_in_label = QLabel(_('Search in:'))
+        self.search_in_label = QLabel(_("Search in:"))
         self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
 
-        self.exclude_label = QLabel(_('Exclude:'))
+        self.exclude_label = QLabel(_("Exclude:"))
         self.exclude_label.ID = FindInFilesWidgetToolbarItems.ExcludeLabel
 
         self.path_selection_combo = SearchInComboBox(
-            path_history, self,
-            id_=FindInFilesWidgetToolbarItems.SearchInCombo)
+            path_history, self, id_=FindInFilesWidgetToolbarItems.SearchInCombo
+        )
 
         self.exclude_pattern_edit = PatternComboBox(
             self,
             exclude,
             _("Exclude pattern"),
-            id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo
+            id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo,
         )
 
         self.result_browser = ResultsBrowser(
             self,
             text_color=self.text_color,
-            max_results=self.get_conf('max_results'),
+            max_results=self.get_conf("max_results"),
         )
 
         # Setup
         self.exclude_label.setBuddy(self.exclude_pattern_edit)
-        exclude_idx = self.get_conf('exclude_index', None)
-        if (exclude_idx is not None and exclude_idx >= 0
-                and exclude_idx < self.exclude_pattern_edit.count()):
+        exclude_idx = self.get_conf("exclude_index", None)
+        if (
+            exclude_idx is not None
+            and exclude_idx >= 0
+            and exclude_idx < self.exclude_pattern_edit.count()
+        ):
             self.exclude_pattern_edit.setCurrentIndex(exclude_idx)
 
-        search_in_index = self.get_conf('search_in_index', None)
-        self.path_selection_combo.set_current_searchpath_index(
-            search_in_index)
+        search_in_index = self.get_conf("search_in_index", None)
+        self.path_selection_combo.set_current_searchpath_index(search_in_index)
 
         # Layout
         layout = QHBoxLayout()
@@ -196,15 +196,17 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Signals
         self.path_selection_combo.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
+            self.sig_redirect_stdio_requested
+        )
         self.search_text_edit.valid.connect(lambda valid: self.find())
         self.exclude_pattern_edit.valid.connect(lambda valid: self.find())
         self.result_browser.sig_edit_goto_requested.connect(
-            self.sig_edit_goto_requested)
+            self.sig_edit_goto_requested
+        )
         self.result_browser.sig_max_results_reached.connect(
-            self.sig_max_results_reached)
-        self.result_browser.sig_max_results_reached.connect(
-            self._stop_and_reset_thread)
+            self.sig_max_results_reached
+        )
+        self.result_browser.sig_max_results_reached.connect(self._stop_and_reset_thread)
         self.search_text_edit.sig_resized.connect(self._update_size)
 
     # --- PluginMainWidget API
@@ -218,12 +220,12 @@ class FindInFilesWidget(PluginMainWidget):
     def setup(self):
         self.search_regexp_action = self.create_action(
             FindInFilesWidgetActions.ToggleSearchRegex,
-            text=_('Regular expression'),
-            tip=_('Use regular expressions'),
-            icon=self.create_icon('regex'),
+            text=_("Regular expression"),
+            tip=_("Use regular expressions"),
+            icon=self.create_icon("regex"),
             toggled=True,
-            initial=self.get_conf('search_text_regexp'),
-            option='search_text_regexp'
+            initial=self.get_conf("search_text_regexp"),
+            option="search_text_regexp",
         )
         self.case_action = self.create_action(
             FindInFilesWidgetActions.ToggleExcludeCase,
@@ -231,25 +233,25 @@ class FindInFilesWidget(PluginMainWidget):
             tip=_("Case sensitive search"),
             icon=self.create_icon("format_letter_case"),
             toggled=True,
-            initial=self.get_conf('case_sensitive'),
-            option='case_sensitive'
+            initial=self.get_conf("case_sensitive"),
+            option="case_sensitive",
         )
         self.find_action = self.create_action(
             FindInFilesWidgetActions.Find,
             text=_("&Find in files"),
             tip=_("Search text"),
-            icon=self.create_icon('find'),
+            icon=self.create_icon("find"),
             triggered=self.find,
             register_shortcut=False,
         )
         self.exclude_regexp_action = self.create_action(
             FindInFilesWidgetActions.ToggleExcludeRegex,
-            text=_('Regular expression'),
-            tip=_('Use regular expressions'),
-            icon=self.create_icon('regex'),
+            text=_("Regular expression"),
+            tip=_("Use regular expressions"),
+            icon=self.create_icon("regex"),
             toggled=True,
-            initial=self.get_conf('exclude_regexp'),
-            option='exclude_regexp'
+            initial=self.get_conf("exclude_regexp"),
+            option="exclude_regexp",
         )
         self.exclude_case_action = self.create_action(
             FindInFilesWidgetActions.ToggleCase,
@@ -257,30 +259,34 @@ class FindInFilesWidget(PluginMainWidget):
             tip=_("Exclude case sensitive"),
             icon=self.create_icon("format_letter_case"),
             toggled=True,
-            initial=self.get_conf('exclude_case_sensitive'),
-            option='exclude_case_sensitive'
+            initial=self.get_conf("exclude_case_sensitive"),
+            option="exclude_case_sensitive",
         )
         self.more_options_action = self.create_action(
             FindInFilesWidgetActions.ToggleMoreOptions,
-            text=_('Show advanced options'),
-            tip=_('Show advanced options'),
+            text=_("Show advanced options"),
+            tip=_("Show advanced options"),
             icon=self.create_icon("options_more"),
             toggled=True,
-            initial=self.get_conf('more_options'),
-            option='more_options'
+            initial=self.get_conf("more_options"),
+            option="more_options",
         )
         self.set_max_results_action = self.create_action(
             FindInFilesWidgetActions.MaxResults,
-            text=_('Set maximum number of results'),
-            tip=_('Set maximum number of results'),
+            text=_("Set maximum number of results"),
+            tip=_("Set maximum number of results"),
             triggered=lambda x=None: self.set_max_results(),
         )
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.search_text_edit, self.find_action,
-                     self.search_regexp_action, self.case_action,
-                     self.more_options_action]:
+        for item in [
+            self.search_text_edit,
+            self.find_action,
+            self.search_regexp_action,
+            self.case_action,
+            self.more_options_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
@@ -288,13 +294,16 @@ class FindInFilesWidget(PluginMainWidget):
             )
 
         # Exclude Toolbar
-        self.extras_toolbar = self.create_toolbar(
-            FindInFilesWidgetToolbars.Exclude)
+        self.extras_toolbar = self.create_toolbar(FindInFilesWidgetToolbars.Exclude)
 
         stretcher = self.create_stretcher()
         stretcher.ID = FindInFilesWidgetToolbarItems.Stretcher1
-        for item in [self.exclude_label, self.exclude_pattern_edit,
-                     self.exclude_regexp_action, stretcher]:
+        for item in [
+            self.exclude_label,
+            self.exclude_pattern_edit,
+            self.exclude_regexp_action,
+            stretcher,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=self.extras_toolbar,
@@ -302,8 +311,7 @@ class FindInFilesWidget(PluginMainWidget):
             )
 
         # Location toolbar
-        location_toolbar = self.create_toolbar(
-            FindInFilesWidgetToolbars.Location)
+        location_toolbar = self.create_toolbar(FindInFilesWidgetToolbars.Location)
         for item in [self.search_in_label, self.path_selection_combo]:
             self.add_item_to_toolbar(
                 item,
@@ -318,24 +326,21 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
     def update_actions(self):
-        self.find_action.setIcon(self.create_icon(
-            'stop' if self.running else 'find'))
+        self.find_action.setIcon(self.create_icon("stop" if self.running else "find"))
 
         if self.extras_toolbar and self.more_options_action:
-            self.extras_toolbar.setVisible(
-                self.more_options_action.isChecked())
+            self.extras_toolbar.setVisible(self.more_options_action.isChecked())
 
-    @on_conf_change(option='more_options')
+    @on_conf_change(option="more_options")
     def on_more_options_update(self, value):
-        self.exclude_pattern_edit.setMinimumWidth(
-            self.search_text_edit.width())
+        self.exclude_pattern_edit.setMinimumWidth(self.search_text_edit.width())
 
         if value:
-            icon = self.create_icon('options_less')
-            tip = _('Hide advanced options')
+            icon = self.create_icon("options_less")
+            tip = _("Hide advanced options")
         else:
-            icon = self.create_icon('options_more')
-            tip = _('Show advanced options')
+            icon = self.create_icon("options_more")
+            tip = _("Show advanced options")
 
         if self.extras_toolbar:
             self.extras_toolbar.setVisible(value)
@@ -344,7 +349,7 @@ class FindInFilesWidget(PluginMainWidget):
             self.more_options_action.setIcon(icon)
             self.more_options_action.setToolTip(tip)
 
-    @on_conf_change(option='max_results')
+    @on_conf_change(option="max_results")
     def on_max_results_update(self, value):
         self.result_browser.set_max_results(value)
 
@@ -372,7 +377,7 @@ class FindInFilesWidget(PluginMainWidget):
             return
 
         try:
-            texts = [(utext.encode('utf-8'), 'utf-8')]
+            texts = [(utext.encode("utf-8"), "utf-8")]
         except UnicodeEncodeError:
             texts = []
             for enc in self.supported_encodings:
@@ -390,10 +395,12 @@ class FindInFilesWidget(PluginMainWidget):
         path = self.path_selection_combo.get_current_searchpath()
 
         if not exclude_re:
-            items = [fnmatch.translate(item.strip())
-                     for item in exclude.split(",")
-                     if item.strip() != '']
-            exclude = '|'.join(items)
+            items = [
+                fnmatch.translate(item.strip())
+                for item in exclude.split(",")
+                if item.strip() != ""
+            ]
+            exclude = "|".join(items)
 
         # Validate exclude regular expression
         if exclude:
@@ -401,7 +408,7 @@ class FindInFilesWidget(PluginMainWidget):
             if error_msg:
                 exclude_edit = self.exclude_pattern_edit.lineEdit()
                 exclude_edit.setStyleSheet(self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
+                tooltip = self.REGEX_ERROR + ": " + str(error_msg)
                 self.exclude_pattern_edit.setToolTip(tooltip)
                 return None
             else:
@@ -411,9 +418,8 @@ class FindInFilesWidget(PluginMainWidget):
         if text_re:
             error_msg = regexp_error_msg(texts[0][0])
             if error_msg:
-                self.search_text_edit.lineEdit().setStyleSheet(
-                    self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
+                self.search_text_edit.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                tooltip = self.REGEX_ERROR + ": " + str(error_msg)
                 self.search_text_edit.setToolTip(tooltip)
                 return None
             else:
@@ -425,21 +431,23 @@ class FindInFilesWidget(PluginMainWidget):
         """
         Extract search options from widgets and set the corresponding option.
         """
-        hist_limit = self.get_conf('hist_limit')
-        search_texts = [str(self.search_text_edit.itemText(index))
-                        for index in range(self.search_text_edit.count())]
-        excludes = [str(self.exclude_pattern_edit.itemText(index))
-                    for index in range(self.exclude_pattern_edit.count())]
+        hist_limit = self.get_conf("hist_limit")
+        search_texts = [
+            str(self.search_text_edit.itemText(index))
+            for index in range(self.search_text_edit.count())
+        ]
+        excludes = [
+            str(self.exclude_pattern_edit.itemText(index))
+            for index in range(self.exclude_pattern_edit.count())
+        ]
         path_history = self.path_selection_combo.get_external_paths()
 
-        self.set_conf('path_history', path_history)
-        self.set_conf('search_text', search_texts[:hist_limit])
-        self.set_conf('exclude', excludes[:hist_limit])
-        self.set_conf('path_history', path_history[-hist_limit:])
-        self.set_conf(
-            'exclude_index', self.exclude_pattern_edit.currentIndex())
-        self.set_conf(
-            'search_in_index', self.path_selection_combo.currentIndex())
+        self.set_conf("path_history", path_history)
+        self.set_conf("search_text", search_texts[:hist_limit])
+        self.set_conf("exclude", excludes[:hist_limit])
+        self.set_conf("path_history", path_history[-hist_limit:])
+        self.set_conf("exclude_index", self.exclude_pattern_edit.currentIndex())
+        self.set_conf("search_in_index", self.path_selection_combo.currentIndex())
 
     def _handle_search_complete(self, completed):
         """
@@ -465,8 +473,7 @@ class FindInFilesWidget(PluginMainWidget):
         if self.search_thread is not None:
             if self.search_thread.isRunning():
                 if ignore_results:
-                    self.search_thread.sig_finished.disconnect(
-                        self.search_complete)
+                    self.search_thread.sig_finished.disconnect(self.search_complete)
                 self.search_thread.stop()
                 self.search_thread.wait()
 
@@ -583,8 +590,8 @@ class FindInFilesWidget(PluginMainWidget):
 
         # Setup result_browser
         self.result_browser.set_path(options[0])
-        self.result_browser.longest_file_item = ''
-        self.result_browser.longest_line_item = ''
+        self.result_browser.longest_file_item = ""
+        self.result_browser.longest_line_item = ""
 
         # Start
         self.running = True
@@ -594,9 +601,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.search_thread.sig_file_match.connect(
             self.result_browser.append_file_result
         )
-        self.search_thread.sig_line_match.connect(
-            self.result_browser.append_result
-        )
+        self.search_thread.sig_line_match.connect(self.result_browser.append_result)
         self.result_browser.clear_title(search_text)
         self.search_thread.initialize(*self._get_options())
         self.search_thread.start()
@@ -627,20 +632,21 @@ class FindInFilesWidget(PluginMainWidget):
 
             # Set dialog properties
             dialog.setModal(False)
-            dialog.setWindowTitle(_('Max results'))
-            dialog.setLabelText(_('Set maximum number of results: '))
+            dialog.setWindowTitle(_("Max results"))
+            dialog.setLabelText(_("Set maximum number of results: "))
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(1, 10000)
             dialog.setIntStep(1)
-            dialog.setIntValue(self.get_conf('max_results'))
+            dialog.setIntValue(self.get_conf("max_results"))
 
             # Connect slot
             dialog.intValueSelected.connect(
-                lambda value: self.set_conf('max_results', value))
+                lambda value: self.set_conf("max_results", value)
+            )
 
             dialog.show()
         else:
-            self.set_conf('max_results', value)
+            self.set_conf("max_results", value)
 
 
 # ---- Test
@@ -659,9 +665,9 @@ def test():
 
     app = qapplication()
     plugin_mock = MagicMock()
-    plugin_mock.CONF_SECTION = 'find_in_files'
-    widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
-    widget.CONF_SECTION = 'find_in_files'
+    plugin_mock.CONF_SECTION = "find_in_files"
+    widget = FindInFilesWidget("find_in_files", plugin=plugin_mock)
+    widget.CONF_SECTION = "find_in_files"
     widget._setup()
     widget.setup()
     widget.resize(640, 480)
@@ -678,5 +684,5 @@ def test():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

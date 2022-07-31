@@ -60,8 +60,14 @@ def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
             continue
 
         # Skip names that end in certain suffixes
-        forbidden_suffixes = ['dist-info', 'egg.info', 'egg-info', 'egg-link',
-                              'kernels', 'boilerplate']
+        forbidden_suffixes = [
+            "dist-info",
+            "egg.info",
+            "egg-info",
+            "egg-link",
+            "kernels",
+            "boilerplate",
+        ]
         if any([name.endswith(s) for s in forbidden_suffixes]):
             continue
 
@@ -79,7 +85,7 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         # First add a mock module with the LOCALEPATH attribute so that the
         # helper method can find the locale on import
         mock = _ModuleMock()
-        mock.LOCALEPATH = osp.join(plugin_path, module_name, 'locale')
+        mock.LOCALEPATH = osp.join(plugin_path, module_name, "locale")
         sys.modules[module_name] = mock
 
         if osp.isdir(osp.join(plugin_path, module_name)):
@@ -88,13 +94,14 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
             module = None
 
         # Then restore the actual loaded module instead of the mock
-        if module and getattr(module, 'PLUGIN_CLASS', False):
+        if module and getattr(module, "PLUGIN_CLASS", False):
             sys.modules[module_name] = module
             modlist.append(module)
             modnames.append(module_name)
     except Exception as e:
-        sys.stderr.write("ERROR: 3rd party plugin import failed for "
-                         "`{0}`\n".format(module_name))
+        sys.stderr.write(
+            "ERROR: 3rd party plugin import failed for " "`{0}`\n".format(module_name)
+        )
         traceback.print_exc(file=sys.stderr)
 
 
@@ -105,24 +112,23 @@ def _import_module_from_path(module_name, plugin_path):
     """
     module = None
     try:
-        spec = importlib.machinery.PathFinder.find_spec(
-            module_name,
-            [plugin_path])
+        spec = importlib.machinery.PathFinder.find_spec(module_name, [plugin_path])
 
         if spec:
             module = spec.loader.load_module(module_name)
     except Exception as err:
-        debug_message = ("plugin: '{module_name}' load failed with `{err}`"
-                         "").format(module_name=module_name,
-                                    err=to_text_string(err))
+        debug_message = ("plugin: '{module_name}' load failed with `{err}`" "").format(
+            module_name=module_name, err=to_text_string(err)
+        )
         logger.debug(debug_message)
 
     return module
 
 
-class _ModuleMock():
+class _ModuleMock:
     """This mock module is added to sys.modules on plugin load to add the
     location of the LOCALEDATA so that the module loads succesfully.
     Once loaded the module is replaced by the actual loaded module object.
     """
+
     pass

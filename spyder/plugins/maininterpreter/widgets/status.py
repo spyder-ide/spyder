@@ -25,13 +25,14 @@ from spyder.utils.workers import WorkerManager
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class InterpreterStatus(BaseTimerStatus):
     """Status bar widget for displaying the current conda environment."""
-    ID = 'interpreter_status'
-    CONF_SECTION = 'main_interpreter'
+
+    ID = "interpreter_status"
+    CONF_SECTION = "main_interpreter"
 
     sig_open_preferences_requested = Signal()
     """
@@ -46,7 +47,7 @@ class InterpreterStatus(BaseTimerStatus):
         self.env_actions = []
         self.path_to_env = {}
         self.envs = {}
-        self.value = ''
+        self.value = ""
 
         # Worker to compute envs in a thread
         self._worker_manager = WorkerManager(max_threads=1)
@@ -74,7 +75,7 @@ class InterpreterStatus(BaseTimerStatus):
         elif not osp.isfile(self._interpreter):
             # This can happen on Windows because the interpreter was
             # renamed to .conda_trash
-            if not osp.isdir(osp.join(env_dir, 'conda-meta')):
+            if not osp.isdir(osp.join(env_dir, "conda-meta")):
                 # If conda-meta is missing, it means the env was removed
                 self._on_interpreter_removed()
             else:
@@ -98,7 +99,7 @@ class InterpreterStatus(BaseTimerStatus):
     # ---- Private API
     def _get_env_dir(self, interpreter):
         """Get env directory from interpreter executable."""
-        if os.name == 'nt':
+        if os.name == "nt":
             return osp.dirname(interpreter)
         else:
             return osp.dirname(osp.dirname(interpreter))
@@ -118,25 +119,24 @@ class InterpreterStatus(BaseTimerStatus):
 
     def _get_env_info(self, path):
         """Get environment information."""
-        path = path.lower() if os.name == 'nt' else path
+        path = path.lower() if os.name == "nt" else path
         try:
             name = self.path_to_env[path]
         except KeyError:
-            win_app_path = osp.join(
-                'AppData', 'Local', 'Programs', 'spyder')
-            if 'Spyder.app' in path or win_app_path in path:
-                name = 'internal'
-            elif 'conda' in path:
-                name = 'conda'
-            elif 'pyenv' in path:
-                name = 'pyenv'
+            win_app_path = osp.join("AppData", "Local", "Programs", "spyder")
+            if "Spyder.app" in path or win_app_path in path:
+                name = "internal"
+            elif "conda" in path:
+                name = "conda"
+            elif "pyenv" in path:
+                name = "pyenv"
             else:
-                name = 'custom'
+                name = "custom"
             version = get_interpreter_info(path)
             self.path_to_env[path] = name
             self.envs[name] = (path, version)
         __, version = self.envs[name]
-        return f'{name} ({version})'
+        return f"{name} ({version})"
 
     def _on_interpreter_removed(self):
         """
@@ -148,9 +148,9 @@ class InterpreterStatus(BaseTimerStatus):
         # generate a change in the 'executable' one in the container.
         # 2. *Do not* change the order in which these options are set or the
         # interpreter won't be updated correctly.
-        self.set_conf('custom_interpreter', ' ')
-        self.set_conf('custom', False)
-        self.set_conf('default', True)
+        self.set_conf("custom_interpreter", " ")
+        self.set_conf("custom", False)
+        self.set_conf("default", True)
 
     # ---- Public API
     def get_envs(self):
@@ -170,7 +170,7 @@ class InterpreterStatus(BaseTimerStatus):
             path, version = self.envs[env]
             # Save paths in lowercase on Windows to avoid issues with
             # capitalization.
-            path = path.lower() if os.name == 'nt' else path
+            path = path.lower() if os.name == "nt" else path
             self.path_to_env[path] = env
 
         self.update_interpreter()

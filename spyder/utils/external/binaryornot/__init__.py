@@ -15,6 +15,6 @@ Objects defined in this module were adapted from
 `BinaryOrNot <https://github.com/audreyr/binaryornot>`_.
 """
 
-__author__ = 'Audrey Roy'
-__email__ = 'audreyr@gmail.com'
-__version__ = '0.4.0'
+__author__ = "Audrey Roy"
+__email__ = "audreyr@gmail.com"
+__version__ = "0.4.0"

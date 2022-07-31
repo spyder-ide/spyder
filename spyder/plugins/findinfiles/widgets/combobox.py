@@ -18,7 +18,7 @@ from spyder.utils.encoding import to_unicode_from_fs
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # ---- Constants
@@ -46,10 +46,10 @@ class SearchInComboBox(QComboBox):
     def __init__(self, external_path_history=[], parent=None, id_=None):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setToolTip(_('Search directory'))
+        self.setToolTip(_("Search directory"))
         self.setEditable(False)
 
-        self.path = ''
+        self.path = ""
         self.project_path = None
         self.file_path = None
         self.external_path = None
@@ -58,17 +58,20 @@ class SearchInComboBox(QComboBox):
             self.ID = id_
 
         self.addItem(_("Current working directory"))
-        ttip = ("Search in all files and directories present on the current"
-                " Spyder path")
+        ttip = (
+            "Search in all files and directories present on the current" " Spyder path"
+        )
         self.setItemData(0, ttip, Qt.ToolTipRole)
 
         self.addItem(_("Project"))
-        ttip = _("Search in all files and directories present on the"
-                 " current project path (if opened)")
+        ttip = _(
+            "Search in all files and directories present on the"
+            " current project path (if opened)"
+        )
         self.setItemData(1, ttip, Qt.ToolTipRole)
         self.model().item(1, 0).setEnabled(False)
 
-        self.addItem(_("File").replace('&', ''))
+        self.addItem(_("File").replace("&", ""))
         ttip = _("Search in current opened file")
         self.setItemData(2, ttip, Qt.ToolTipRole)
 
@@ -107,8 +110,7 @@ class SearchInComboBox(QComboBox):
 
     def get_external_paths(self):
         """Returns a list of the external paths listed in the combobox."""
-        return [str(self.itemText(i))
-                for i in range(EXTERNAL_PATHS, self.count())]
+        return [str(self.itemText(i)) for i in range(EXTERNAL_PATHS, self.count())]
 
     def clear_external_paths(self):
         """Remove all the external paths listed in the combobox."""
@@ -160,9 +162,11 @@ class SearchInComboBox(QComboBox):
                 self.setCurrentIndex(CWD)
         elif idx == CLEAR_LIST:
             reply = QMessageBox.question(
-                    self, _("Clear other directories"),
-                    _("Do you want to clear the list of other directories?"),
-                    QMessageBox.Yes | QMessageBox.No)
+                self,
+                _("Clear other directories"),
+                _("Do you want to clear the list of other directories?"),
+                QMessageBox.Yes | QMessageBox.No,
+            )
             if reply == QMessageBox.Yes:
                 self.clear_external_paths()
             self.setCurrentIndex(CWD)

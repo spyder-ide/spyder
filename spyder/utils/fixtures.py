@@ -20,14 +20,14 @@ from spyder.config.main import CONF_VERSION, DEFAULTS
 def tmpconfig(tmpdir, request):
     path = str(tmpdir)
     default_kwargs = {
-        'name': 'spyder-test',
-        'path': path,
-        'defaults': DEFAULTS,
-        'load': True,
-        'version': CONF_VERSION,
-        'backup': True,
-        'raw_mode': True,
-        'remove_obsolete': False,
+        "name": "spyder-test",
+        "path": path,
+        "defaults": DEFAULTS,
+        "load": True,
+        "version": CONF_VERSION,
+        "backup": True,
+        "raw_mode": True,
+        "remove_obsolete": False,
     }
 
     conf = UserConfig(**default_kwargs)

@@ -38,6 +38,7 @@ class AnalysisThread(QThread):
 
 class ThreadManager(QObject):
     """Analysis thread manager."""
+
     def __init__(self, parent, max_simultaneous_threads=2):
         """Initialize the ThreadManager."""
         super(ThreadManager, self).__init__(parent)
@@ -57,9 +58,9 @@ class ThreadManager(QObject):
                 threadlist += threads
         else:
             parent_id = id(parent)
-            self.pending_threads = [(_th, _id) for (_th, _id)
-                                    in self.pending_threads
-                                    if _id != parent_id]
+            self.pending_threads = [
+                (_th, _id) for (_th, _id) in self.pending_threads if _id != parent_id
+            ]
             threadlist = self.started_threads.get(parent_id, [])
         for thread in threadlist:
             logger.debug("Waiting for thread %r to finish" % thread)
@@ -109,13 +110,14 @@ class ThreadManager(QObject):
             thread, parent_id = self.pending_threads.pop(0)
             thread.finished.connect(self.update_queue)
             threadlist = self.started_threads.get(parent_id, [])
-            self.started_threads[parent_id] = threadlist+[thread]
+            self.started_threads[parent_id] = threadlist + [thread]
             logger.debug("===>starting: %r" % thread)
             thread.start()
 
 
 class FileInfo(QObject):
     """File properties."""
+
     todo_results_changed = Signal()
     sig_save_bookmarks = Signal(str, str)
     text_changed_at = Signal(str, int)
@@ -131,7 +133,7 @@ class FileInfo(QObject):
         self.threadmanager = threadmanager
         self._filename = filename
         self.newly_created = new
-        self.default = False      # Default untitled file
+        self.default = False  # Default untitled file
         self.encoding = encoding
         self.editor = editor
         self.path = []
@@ -143,8 +145,7 @@ class FileInfo(QObject):
         self.editor.textChanged.connect(self.text_changed)
         self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
         self.editor.sig_show_object_info.connect(self.sig_show_object_info)
-        self.editor.sig_show_completion_object_info.connect(
-            self.sig_send_to_help)
+        self.editor.sig_show_completion_object_info.connect(self.sig_send_to_help)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -161,8 +162,7 @@ class FileInfo(QObject):
     def text_changed(self):
         """Editor's text has changed."""
         self.default = False
-        self.text_changed_at.emit(self.filename,
-                                  self.editor.get_position('cursor'))
+        self.text_changed_at.emit(self.filename, self.editor.get_position("cursor"))
 
     def get_source_code(self):
         """Return associated editor source code."""
@@ -171,9 +171,9 @@ class FileInfo(QObject):
     def run_todo_finder(self):
         """Run TODO finder."""
         if self.editor.is_python_or_ipython():
-            self.threadmanager.add_thread(find_tasks,
-                                          self.todo_finished,
-                                          self.get_source_code(), self)
+            self.threadmanager.add_thread(
+                find_tasks, self.todo_finished, self.get_source_code(), self
+            )
 
     def todo_finished(self, results):
         """Code analysis thread has finished."""
@@ -212,8 +212,9 @@ class StackHistory(MutableSequence):
 
     def _update_id_list(self):
         """Update list of corresponding ids and tabs."""
-        self.id_list = [id(self.editor.tabs.widget(_i))
-                        for _i in range(self.editor.tabs.count())]
+        self.id_list = [
+            id(self.editor.tabs.widget(_i)) for _i in range(self.editor.tabs.count())
+        ]
 
     def refresh(self):
         """Remove editors that are not longer open."""

@@ -16,7 +16,7 @@ from spyder.config.manager import CONF
 
 def _load_all_bookmarks():
     """Load all bookmarks from config."""
-    slots = CONF.get('editor', 'bookmarks', {})
+    slots = CONF.get("editor", "bookmarks", {})
     for slot_num in list(slots.keys()):
         if not osp.isfile(slots[slot_num][0]):
             slots.pop(slot_num)
@@ -42,4 +42,4 @@ def save_bookmarks(filename, bookmarks):
     slots = load_bookmarks_without_file(filename)
     for slot_num, content in bookmarks.items():
         slots[slot_num] = [filename, content[0], content[1]]
-    CONF.set('editor', 'bookmarks', slots)
+    CONF.set("editor", "bookmarks", slots)

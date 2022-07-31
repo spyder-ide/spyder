@@ -18,9 +18,9 @@ import sys
 import psutil
 import requests
 
-NOT_INSTALLED = 'not installed'
-RUNNING = 'ready'
-NOT_RUNNING = 'not running'
+NOT_INSTALLED = "not installed"
+RUNNING = "ready"
+NOT_RUNNING = "not running"
 
 # Installer URLs
 WINDOWS_URL = "https://release.kite.com/dls/windows/current"
@@ -32,12 +32,12 @@ logger = logging.getLogger(__name__)
 
 def check_if_kite_installed():
     """Detect if kite is installed and return the installation path."""
-    path = ''
-    if os.name == 'nt':
-        path = 'C:\\Program Files\\Kite\\kited.exe'
-    elif sys.platform.startswith('linux'):
-        path = osp.expanduser('~/.local/share/kite/kited')
-    elif sys.platform == 'darwin':
+    path = ""
+    if os.name == "nt":
+        path = "C:\\Program Files\\Kite\\kited.exe"
+    elif sys.platform.startswith("linux"):
+        path = osp.expanduser("~/.local/share/kite/kited")
+    elif sys.platform == "darwin":
         path = locate_kite_darwin()
     return osp.exists(osp.realpath(path)), path
 
@@ -46,11 +46,11 @@ def check_if_kite_running():
     """Detect if kite is running."""
     running = False
     try:
-        for proc in psutil.process_iter(attrs=['pid', 'name', 'username',
-                                               'status']):
+        for proc in psutil.process_iter(attrs=["pid", "name", "username", "status"]):
             if is_proc_kite(proc):
-                logger.debug('Kite process already '
-                             'running with PID {0}'.format(proc.pid))
+                logger.debug(
+                    "Kite process already " "running with PID {0}".format(proc.pid)
+                )
                 running = True
                 break
     except OSError:
@@ -66,14 +66,18 @@ def locate_kite_darwin():
     is checked first and if nothing is found or an error occurs, the
     default path is used.
     """
-    default_path = '/Applications/Kite.app'
-    path = ''
+    default_path = "/Applications/Kite.app"
+    path = ""
     try:
         out = subprocess.check_output(
-            ['mdfind', 'kMDItemCFBundleIdentifier="com.kite.Kite"'])
+            ["mdfind", 'kMDItemCFBundleIdentifier="com.kite.Kite"']
+        )
         installed = len(out) > 0
-        path = (out.decode('utf-8', 'replace').strip().split('\n')[0]
-                if installed else default_path)
+        path = (
+            out.decode("utf-8", "replace").strip().split("\n")[0]
+            if installed
+            else default_path
+        )
     except (subprocess.CalledProcessError, UnicodeDecodeError):
         # Use the default path
         path = default_path
@@ -87,17 +91,17 @@ def is_proc_kite(proc):
         # if kite is not running.
         name = proc.name()
     except Exception:
-        name = ''
+        name = ""
 
-    if os.name == 'nt' or sys.platform.startswith('linux'):
-        is_kite = 'kited' in name and proc.status() != 'zombie'
+    if os.name == "nt" or sys.platform.startswith("linux"):
+        is_kite = "kited" in name and proc.status() != "zombie"
     else:
-        is_kite = 'Kite' == name
+        is_kite = "Kite" == name
 
     return is_kite
 
 
-def status(extra_status=''):
+def status(extra_status=""):
     """Kite completions status: not installed, ready, not running."""
     kite_installed, _ = check_if_kite_installed()
     if not kite_installed:
@@ -111,9 +115,9 @@ def status(extra_status=''):
 def check_kite_installers_availability():
     """Check if Kite installers are available."""
     url = LINUX_URL
-    if os.name == 'nt':
+    if os.name == "nt":
         url = WINDOWS_URL
-    elif sys.platform == 'darwin':
+    elif sys.platform == "darwin":
         url = MAC_URL
 
     available = False
@@ -122,7 +126,7 @@ def check_kite_installers_availability():
         available = req.ok
         if req.ok:
             if req.is_redirect:
-                loc = req.headers['Location']
+                loc = req.headers["Location"]
                 req = requests.head(loc)
                 available = req.ok
     except Exception:

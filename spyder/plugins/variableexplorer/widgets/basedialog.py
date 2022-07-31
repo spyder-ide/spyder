@@ -14,19 +14,19 @@ import qstylizer.style
 
 
 class BaseDialog(QDialog):
-
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
         # Set style of all QPushButton's inside the dialog.
         css = qstylizer.style.StyleSheet()
         css.QPushButton.setValues(
-            padding='3px 15px 3px 15px',
+            padding="3px 15px 3px 15px",
         )
         self.setStyleSheet(css.toString())
 
-    def set_dynamic_width_and_height(self, screen_geometry, width_ratio=0.5,
-                                     height_ratio=0.5):
+    def set_dynamic_width_and_height(
+        self, screen_geometry, width_ratio=0.5, height_ratio=0.5
+    ):
         """
         Update width and height using an updated screen geometry.
         Use a ratio for the width and height of the dialog.

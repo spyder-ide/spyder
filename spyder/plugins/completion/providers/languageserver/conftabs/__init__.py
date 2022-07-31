@@ -21,5 +21,5 @@ TABS = [
     FormattingStyleConfigTab,
     DocstringConfigTab,
     AdvancedConfigTab,
-    OtherLanguagesConfigTab
+    OtherLanguagesConfigTab,
 ]

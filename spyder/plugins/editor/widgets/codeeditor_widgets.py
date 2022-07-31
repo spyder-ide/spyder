@@ -8,8 +8,15 @@ import time
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor, QIntValidator
 from qtpy.QtPrintSupport import QPrinter
-from qtpy.QtWidgets import (QDialog, QLabel, QLineEdit, QGridLayout,
-                            QDialogButtonBox, QVBoxLayout, QHBoxLayout)
+from qtpy.QtWidgets import (
+    QDialog,
+    QLabel,
+    QLineEdit,
+    QGridLayout,
+    QDialogButtonBox,
+    QVBoxLayout,
+    QHBoxLayout,
+)
 
 from spyder.config.base import _
 
@@ -30,14 +37,17 @@ class Printer(QPrinter):
     # <!> The following method is simply ignored by QPlainTextEdit
     #     (this is a copy from QsciEditor's Printer)
     def formatPage(self, painter, drawing, area, pagenr):
-        header = '%s - %s - Page %s' % (self.docName(), self.date, pagenr)
+        header = "%s - %s - Page %s" % (self.docName(), self.date, pagenr)
         painter.save()
         painter.setFont(self.header_font)
         painter.setPen(QColor(Qt.black))
         if drawing:
-            painter.drawText(area.right()-painter.fontMetrics().width(header),
-                             area.top()+painter.fontMetrics().ascent(), header)
-        area.setTop(area.top()+painter.fontMetrics().height()+5)
+            painter.drawText(
+                area.right() - painter.fontMetrics().width(header),
+                area.top() + painter.fontMetrics().ascent(),
+                header,
+            )
+        area.setTop(area.top() + painter.fontMetrics().height() + 5)
         painter.restore()
 
 
@@ -46,8 +56,7 @@ class Printer(QPrinter):
 # =============================================================================
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
-        QDialog.__init__(self, editor, Qt.WindowTitleHint
-                         | Qt.WindowCloseButtonHint)
+        QDialog.__init__(self, editor, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -80,8 +89,9 @@ class GoToLineDialog(QDialog):
         glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter | Qt.AlignRight)
         glayout.addWidget(last_label_v, 2, 1, Qt.AlignVCenter)
 
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-                                Qt.Vertical, self)
+        bbox = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Vertical, self
+        )
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         btnlayout = QVBoxLayout()
@@ -91,7 +101,8 @@ class GoToLineDialog(QDialog):
         ok_button = bbox.button(QDialogButtonBox.Ok)
         ok_button.setEnabled(False)
         self.lineedit.textChanged.connect(
-                     lambda text: ok_button.setEnabled(len(text) > 0))
+            lambda text: ok_button.setEnabled(len(text) > 0)
+        )
 
         layout = QHBoxLayout()
         layout.addLayout(glayout)

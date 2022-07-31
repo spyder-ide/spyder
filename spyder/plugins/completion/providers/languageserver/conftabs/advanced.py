@@ -13,8 +13,14 @@ import re
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel, QMessageBox,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QGroupBox,
+    QGridLayout,
+    QLabel,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
@@ -25,40 +31,48 @@ from spyder.utils.misc import check_connection_port
 class AdvancedConfigTab(SpyderPreferencesTab):
     """PyLS advanced configuration tab."""
 
-    TITLE = _('Advanced')
+    TITLE = _("Advanced")
 
     def __init__(self, parent):
         super().__init__(parent)
 
-        lsp_advanced_group = QGroupBox(_(
-            'Python Language Server configuration'))
+        lsp_advanced_group = QGroupBox(_("Python Language Server configuration"))
         advanced_label = QLabel(
-            _("<b>Warning</b>: Only modify these values if "
-              "you know what you're doing!"))
+            _(
+                "<b>Warning</b>: Only modify these values if "
+                "you know what you're doing!"
+            )
+        )
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
 
         # Advanced settings checkbox
         self.advanced_options_check = self.create_checkbox(
-            _("Enable advanced settings"), 'advanced/enabled')
+            _("Enable advanced settings"), "advanced/enabled"
+        )
 
         # Advanced options
         self.advanced_module = self.create_lineedit(
             _("Module for the Python language server: "),
-            'advanced/module', alignment=Qt.Horizontal,
-            word_wrap=False)
+            "advanced/module",
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+        )
         self.advanced_host = self.create_lineedit(
             _("IP Address and port to bind the server to: "),
-            'advanced/host', alignment=Qt.Horizontal,
-            word_wrap=False)
+            "advanced/host",
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+        )
         self.advanced_port = self.create_spinbox(
-            ":", "", 'advanced/port', min_=1, max_=65535, step=1)
+            ":", "", "advanced/port", min_=1, max_=65535, step=1
+        )
         self.external_server = self.create_checkbox(
-            _("This is an external server"),
-            'advanced/external')
+            _("This is an external server"), "advanced/external"
+        )
         self.use_stdio = self.create_checkbox(
-            _("Use stdio pipes to communicate with server"),
-            'advanced/stdio')
+            _("Use stdio pipes to communicate with server"), "advanced/stdio"
+        )
         self.use_stdio.stateChanged.connect(self.disable_tcp)
         self.external_server.stateChanged.connect(self.disable_stdio)
 
@@ -86,11 +100,9 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         # Set advanced options enabled/disabled
         advanced_options_widget = QWidget()
         advanced_options_widget.setLayout(advanced_options_layout)
-        advanced_options_widget.setEnabled(self.get_option('advanced/enabled'))
-        self.advanced_options_check.toggled.connect(
-            advanced_options_widget.setEnabled)
-        self.advanced_options_check.toggled.connect(
-            self.show_advanced_warning)
+        advanced_options_widget.setEnabled(self.get_option("advanced/enabled"))
+        self.advanced_options_check.toggled.connect(advanced_options_widget.setEnabled)
+        self.advanced_options_check.toggled.connect(self.show_advanced_warning)
 
         # Advanced options layout
         advanced_layout = QVBoxLayout()
@@ -143,7 +155,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         # Don't show warning if the option is already enabled.
         # This avoids showing it when the Preferences dialog
         # is created.
-        if self.get_option('advanced/enabled'):
+        if self.get_option("advanced/enabled"):
             return
 
         # Show warning when toggling the button state
@@ -151,14 +163,17 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             QMessageBox.warning(
                 self,
                 _("Warning"),
-                _("<b>Modifying these options can break code completion!!</b>"
-                  "<br><br>"
-                  "If that's the case, please reset your Spyder preferences "
-                  "by going to the menu"
-                  "<br><br>"
-                  "<tt>Tools > Reset Spyder to factory defaults</tt>"
-                  "<br><br>"
-                  "instead of reporting a bug."))
+                _(
+                    "<b>Modifying these options can break code completion!!</b>"
+                    "<br><br>"
+                    "If that's the case, please reset your Spyder preferences "
+                    "by going to the menu"
+                    "<br><br>"
+                    "<tt>Tools > Reset Spyder to factory defaults</tt>"
+                    "<br><br>"
+                    "instead of reporting a bug."
+                ),
+            )
 
     def is_valid(self):
         host = self.advanced_host.textbox.text()
@@ -166,7 +181,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         # If host is not local, the server must be external
         # and we need to automatically check the corresponding
         # option
-        if host not in ['127.0.0.1', 'localhost']:
+        if host not in ["127.0.0.1", "localhost"]:
             self.external_server.setChecked(True)
 
         # Checks for external PyLS
@@ -176,21 +191,19 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             # Check that host and port of the current server are
             # different from the new ones provided to connect to
             # an external server.
-            lsp = self.plugin.get_provider('lsp')
-            pyclient = lsp.clients.get('python')
+            lsp = self.plugin.get_provider("lsp")
+            pyclient = lsp.clients.get("python")
             if pyclient is not None:
-                instance = pyclient['instance']
-                if (instance is not None and
-                        not pyclient['config']['external']):
-                    if (instance.server_host == host and
-                            instance.server_port == port):
+                instance = pyclient["instance"]
+                if instance is not None and not pyclient["config"]["external"]:
+                    if instance.server_host == host and instance.server_port == port:
                         self.report_no_address_change()
                         return False
 
             # Check connection to LSP server using a TCP socket
             response = check_connection_port(host, port)
             if not response:
-                self.report_no_external_server(host, port, 'python')
+                self.report_no_external_server(host, port, "python")
                 return False
 
         return True
@@ -203,14 +216,15 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         QMessageBox.critical(
             self,
             _("Error"),
-            _("It appears there is no {language} language server listening "
-              "at address:"
-              "<br><br>"
-              "<tt>{host}:{port}</tt>"
-              "<br><br>"
-              "Please verify that the provided information is correct "
-              "and try again.").format(host=host, port=port,
-                                       language=language.capitalize())
+            _(
+                "It appears there is no {language} language server listening "
+                "at address:"
+                "<br><br>"
+                "<tt>{host}:{port}</tt>"
+                "<br><br>"
+                "Please verify that the provided information is correct "
+                "and try again."
+            ).format(host=host, port=port, language=language.capitalize()),
         )
 
     def report_no_address_change(self):
@@ -221,9 +235,11 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         QMessageBox.critical(
             self,
             _("Error"),
-            _("The address of the external server you are trying to connect "
-              "to is the same as the one of the current internal server "
-              "started by Spyder."
-              "<br><br>"
-              "Please provide a different address!")
+            _(
+                "The address of the external server you are trying to connect "
+                "to is the same as the one of the current internal server "
+                "started by Spyder."
+                "<br><br>"
+                "Please provide a different address!"
+            ),
         )

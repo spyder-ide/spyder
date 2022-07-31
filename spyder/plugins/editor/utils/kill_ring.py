@@ -25,25 +25,22 @@ from qtpy.QtWidgets import QTextEdit, QPlainTextEdit
 # Classes
 # ----------------------------------------------------------------------------
 class KillRing(object):
-    """ A generic Emacs-style kill ring.
-    """
+    """A generic Emacs-style kill ring."""
 
     def __init__(self):
         self.clear()
 
     def clear(self):
-        """ Clears the kill ring.
-        """
+        """Clears the kill ring."""
         self._index = -1
         self._ring = []
 
     def kill(self, text):
-        """ Adds some killed text to the ring.
-        """
+        """Adds some killed text to the ring."""
         self._ring.append(text)
 
     def yank(self):
-        """ Yank back the most recently killed text.
+        """Yank back the most recently killed text.
 
         Returns
         -------
@@ -53,7 +50,7 @@ class KillRing(object):
         return self.rotate()
 
     def rotate(self):
-        """ Rotate the kill ring, then yank back the new top.
+        """Rotate the kill ring, then yank back the new top.
 
         Returns
         -------
@@ -66,16 +63,14 @@ class KillRing(object):
 
 
 class QtKillRing(QObject):
-    """ A kill ring attached to Q[Plain]TextEdit.
-    """
+    """A kill ring attached to Q[Plain]TextEdit."""
 
     # -------------------------------------------------------------------------
     # QtKillRing interface
     # -------------------------------------------------------------------------
 
     def __init__(self, text_edit):
-        """ Create a kill ring attached to the specified Qt text edit.
-        """
+        """Create a kill ring attached to the specified Qt text edit."""
         assert isinstance(text_edit, (QTextEdit, QPlainTextEdit))
         super(QtKillRing, self).__init__()
 
@@ -87,27 +82,23 @@ class QtKillRing(QObject):
         text_edit.cursorPositionChanged.connect(self._cursor_position_changed)
 
     def clear(self):
-        """ Clears the kill ring.
-        """
+        """Clears the kill ring."""
         self._ring.clear()
         self._prev_yank = None
 
     def kill(self, text):
-        """ Adds some killed text to the ring.
-        """
+        """Adds some killed text to the ring."""
         self._ring.kill(text)
 
     def kill_cursor(self, cursor):
-        """ Kills the text selected by the give cursor.
-        """
+        """Kills the text selected by the give cursor."""
         text = cursor.selectedText()
         if text:
             cursor.removeSelectedText()
             self.kill(text)
 
     def yank(self):
-        """ Yank back the most recently killed text.
-        """
+        """Yank back the most recently killed text."""
         text = self._ring.yank()
         if text:
             self._skip_cursor = True
@@ -116,16 +107,15 @@ class QtKillRing(QObject):
             self._prev_yank = text
 
     def rotate(self):
-        """ Rotate the kill ring, then yank back the new top.
-        """
+        """Rotate the kill ring, then yank back the new top."""
         if self._prev_yank:
             text = self._ring.rotate()
             if text:
                 self._skip_cursor = True
                 cursor = self._text_edit.textCursor()
-                cursor.movePosition(QTextCursor.Left,
-                                    QTextCursor.KeepAnchor,
-                                    n=len(self._prev_yank))
+                cursor.movePosition(
+                    QTextCursor.Left, QTextCursor.KeepAnchor, n=len(self._prev_yank)
+                )
                 cursor.insertText(text)
                 self._prev_yank = text
 

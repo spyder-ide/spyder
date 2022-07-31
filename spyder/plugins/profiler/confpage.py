@@ -17,9 +17,13 @@ from spyder.plugins.profiler.widgets.main_widget import ProfilerWidget
 class ProfilerConfigPage(PluginConfigPage):
     def setup_page(self):
         results_group = QGroupBox(_("Results"))
-        results_label1 = QLabel(_("Profiler plugin results "
-                                  "(the output of python's profile/cProfile)\n"
-                                  "are stored here:"))
+        results_label1 = QLabel(
+            _(
+                "Profiler plugin results "
+                "(the output of python's profile/cProfile)\n"
+                "are stored here:"
+            )
+        )
         results_label1.setWordWrap(True)
 
         # Warning: do not try to regroup the following QLabel contents with

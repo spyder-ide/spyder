@@ -12,6 +12,7 @@ from .workspace import WorkspaceProvider
 from .client import ClientProvider
 
 
-class LSPMethodProviderMixIn(DocumentProvider, WindowProvider,
-                             WorkspaceProvider, ClientProvider):
+class LSPMethodProviderMixIn(
+    DocumentProvider, WindowProvider, WorkspaceProvider, ClientProvider
+):
     pass

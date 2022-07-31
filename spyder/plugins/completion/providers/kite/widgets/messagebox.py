@@ -32,11 +32,11 @@ class KiteInstallationErrorMessage(MessageCheckBox):
 
     def exec_(self):
         super().exec_()
-        self.set_conf(
-            'show_installation_error_message', not self.is_checked())
+        self.set_conf("show_installation_error_message", not self.is_checked())
 
     @classmethod
     def instance(cls, err_str, set_conf):
         def wrapper(parent):
             return cls(parent, err_str, set_conf)
+
         return wrapper

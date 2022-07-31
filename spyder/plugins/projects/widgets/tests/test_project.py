@@ -16,11 +16,10 @@ import pytest
 
 # Local imports
 from spyder.plugins.projects.api import EmptyProject
-from spyder.plugins.projects.utils.config import (CODESTYLE, ENCODING,
-                                                  VCS, WORKSPACE)
+from spyder.plugins.projects.utils.config import CODESTYLE, ENCODING, VCS, WORKSPACE
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def project_test(tmpdir_factory):
     """
     Fixture for create a temporary project.
@@ -42,10 +41,9 @@ def test_empty_project(project_test, qtbot):
     # Assert Project configs
     qtbot.wait(3000)
     for filename in [WORKSPACE, CODESTYLE, ENCODING, VCS]:
-        config_path = os.path.join(project.root_path, '.spyproject',
-                                   'config')
+        config_path = os.path.join(project.root_path, ".spyproject", "config")
         files = os.listdir(config_path)
-        assert filename + '.ini' in files
+        assert filename + ".ini" in files
 
 
 def test_set_load_recent_files(project_test):
@@ -57,9 +55,9 @@ def test_set_load_recent_files(project_test):
 
     # Create some files for testing
     files_paths = []
-    for f in ['a.py', 'b.py', 'c.py']:
+    for f in ["a.py", "b.py", "c.py"]:
         file_ = project_dir.join(f)
-        file_.write('# Some dummy content')
+        file_.write("# Some dummy content")
         files_paths.append(str(file_))
 
     # setting and loading

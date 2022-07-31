@@ -10,5 +10,8 @@ Variable Explorer Plugin API.
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.main_widget import (
-    VariableExplorerWidgetActions, VariableExplorerWidgetMainToolBarSections,
-    VariableExplorerWidgetMenus, VariableExplorerWidgetOptionsMenuSections)
+    VariableExplorerWidgetActions,
+    VariableExplorerWidgetMainToolBarSections,
+    VariableExplorerWidgetMenus,
+    VariableExplorerWidgetOptionsMenuSections,
+)

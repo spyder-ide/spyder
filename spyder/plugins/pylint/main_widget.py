@@ -22,10 +22,14 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
-                         Slot)
-from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QVBoxLayout)
+from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Signal, Slot
+from qtpy.QtWidgets import (
+    QInputDialog,
+    QLabel,
+    QMessageBox,
+    QTreeWidgetItem,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -37,8 +41,7 @@ from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home, get_home_dir
 from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.widgets.comboboxes import (PythonModulesComboBox,
-                                       is_module_or_package)
+from spyder.widgets.comboboxes import PythonModulesComboBox, is_module_or_package
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
 
 # Localization
@@ -61,7 +64,6 @@ MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 
 
-
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
     RunCodeAnalysis = "run_analysis_action"
@@ -80,11 +82,11 @@ class PylintWidgetMainToolbarSections:
 
 
 class PylintWidgetToolbarItems:
-    FileComboBox = 'file_combo'
-    RateLabel = 'rate_label'
-    DateLabel = 'date_label'
-    Stretcher1 = 'stretcher_1'
-    Stretcher2 = 'stretcher_2'
+    FileComboBox = "file_combo"
+    RateLabel = "rate_label"
+    DateLabel = "date_label"
+    Stretcher1 = "stretcher_1"
+    Stretcher2 = "stretcher_2"
 
 
 # ---- Items
@@ -99,38 +101,29 @@ class CategoryItem(QTreeWidgetItem):
 
     CATEGORIES = {
         "Convention": {
-            'translation_string': _("Convention"),
-            'icon': ima.icon("convention")
+            "translation_string": _("Convention"),
+            "icon": ima.icon("convention"),
         },
-        "Refactor": {
-            'translation_string': _("Refactor"),
-            'icon': ima.icon("refactor")
-        },
-        "Warning": {
-            'translation_string': _("Warning"),
-            'icon': ima.icon("warning")
-        },
-        "Error": {
-            'translation_string': _("Error"),
-            'icon': ima.icon("error")
-        }
+        "Refactor": {"translation_string": _("Refactor"), "icon": ima.icon("refactor")},
+        "Warning": {"translation_string": _("Warning"), "icon": ima.icon("warning")},
+        "Error": {"translation_string": _("Error"), "icon": ima.icon("error")},
     }
 
     def __init__(self, parent, category, number_of_messages):
         # Messages string to append to category.
         if number_of_messages > 1 or number_of_messages == 0:
-            messages = _('messages')
+            messages = _("messages")
         else:
-            messages = _('message')
+            messages = _("message")
 
         # Category title.
-        title = self.CATEGORIES[category]['translation_string']
+        title = self.CATEGORIES[category]["translation_string"]
         title += f" ({number_of_messages} {messages})"
 
         super().__init__(parent, [title], QTreeWidgetItem.Type)
 
         # Set icon
-        icon = self.CATEGORIES[category]['icon']
+        icon = self.CATEGORIES[category]["icon"]
         self.setIcon(0, icon)
 
 
@@ -230,15 +223,16 @@ class ResultsTree(OneColumnTree):
                     modname = osp.join(modname, "__init__")
 
                 for ext in (".py", ".pyw"):
-                    if osp.isfile(modname+ext):
+                    if osp.isfile(modname + ext):
                         modname = modname + ext
                         break
 
                 if osp.isdir(self.filename):
                     parent = modules.get(modname)
                     if parent is None:
-                        item = QTreeWidgetItem(title_item, [module],
-                                               QTreeWidgetItem.Type)
+                        item = QTreeWidgetItem(
+                            title_item, [module], QTreeWidgetItem.Type
+                        )
                         item.setIcon(0, ima.icon("python"))
                         modules[modname] = item
                         parent = item
@@ -253,10 +247,14 @@ class ResultsTree(OneColumnTree):
 
                 message_string += "line {lineno}: {message}"
                 message_string = message_string.format(
-                    msg_id=msg_id, message_name=message_name,
-                    lineno=lineno, message=message)
+                    msg_id=msg_id,
+                    message_name=message_name,
+                    lineno=lineno,
+                    message=message,
+                )
                 msg_item = QTreeWidgetItem(
-                    parent, [message_string], QTreeWidgetItem.Type)
+                    parent, [message_string], QTreeWidgetItem.Type
+                )
                 msg_item.setIcon(0, ima.icon("arrow"))
                 self.data[id(msg_item)] = (modname, lineno)
 
@@ -265,6 +263,7 @@ class PylintWidget(PluginMainWidget):
     """
     Pylint widget.
     """
+
     ENABLE_SPINNER = True
 
     DATAPATH = get_conf_path("pylint.results")
@@ -308,7 +307,8 @@ class PylintWidget(PluginMainWidget):
 
         # Widgets
         self.filecombo = PythonModulesComboBox(
-            self, id_=PylintWidgetToolbarItems.FileComboBox)
+            self, id_=PylintWidgetToolbarItems.FileComboBox
+        )
 
         self.ratelabel = QLabel(self)
         self.ratelabel.ID = PylintWidgetToolbarItems.RateLabel
@@ -340,8 +340,7 @@ class PylintWidget(PluginMainWidget):
 
         # Signals
         self.filecombo.valid.connect(self._check_new_file)
-        self.treewidget.sig_edit_goto_requested.connect(
-            self.sig_edit_goto_requested)
+        self.treewidget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
 
     def on_close(self):
         self.stop_code_analysis()
@@ -359,10 +358,10 @@ class PylintWidget(PluginMainWidget):
         process.setProcessChannelMode(QProcess.SeparateChannels)
         process.setWorkingDirectory(getcwd_or_home())
         process.readyReadStandardOutput.connect(self._read_output)
-        process.readyReadStandardError.connect(
-            lambda: self._read_output(error=True))
+        process.readyReadStandardError.connect(lambda: self._read_output(error=True))
         process.finished.connect(
-            lambda ec, es=QProcess.ExitStatus: self._finished(ec, es))
+            lambda ec, es=QProcess.ExitStatus: self._finished(ec, es)
+        )
 
         command_args = self.get_command(self.get_filename())
         processEnvironment = QProcessEnvironment()
@@ -370,7 +369,7 @@ class PylintWidget(PluginMainWidget):
 
         # Needed due to changes in Pylint 2.14.0
         # See spyder-ide/spyder#18175
-        if os.name == 'nt':
+        if os.name == "nt":
             home_dir = get_home_dir()
             user_profile = os.environ.get("USERPROFILE", home_dir)
             processEnvironment.insert("USERPROFILE", user_profile)
@@ -522,26 +521,22 @@ class PylintWidget(PluginMainWidget):
 
         options_menu = self.get_options_menu()
         self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.CollapseAllAction),
+            self.treewidget.get_action(OneColumnTreeActions.CollapseAllAction),
             menu=options_menu,
             section=PylintWidgetOptionsMenuSections.Global,
         )
         self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.ExpandAllAction),
+            self.treewidget.get_action(OneColumnTreeActions.ExpandAllAction),
             menu=options_menu,
             section=PylintWidgetOptionsMenuSections.Global,
         )
         self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.CollapseSelectionAction),
+            self.treewidget.get_action(OneColumnTreeActions.CollapseSelectionAction),
             menu=options_menu,
             section=PylintWidgetOptionsMenuSections.Section,
         )
         self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.ExpandSelectionAction),
+            self.treewidget.get_action(OneColumnTreeActions.ExpandSelectionAction),
             menu=options_menu,
             section=PylintWidgetOptionsMenuSections.Section,
         )
@@ -560,8 +555,7 @@ class PylintWidget(PluginMainWidget):
         self.treewidget.restore_action.setVisible(False)
 
         toolbar = self.get_main_toolbar()
-        for item in [self.filecombo, self.browse_action,
-                     self.code_analysis_action]:
+        for item in [self.filecombo, self.browse_action, self.code_analysis_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar,
@@ -569,13 +563,13 @@ class PylintWidget(PluginMainWidget):
             )
 
         secondary_toolbar = self.create_toolbar("secondary")
-        for item in [self.ratelabel,
-                     self.create_stretcher(
-                         id_=PylintWidgetToolbarItems.Stretcher1),
-                     self.datelabel,
-                     self.create_stretcher(
-                         id_=PylintWidgetToolbarItems.Stretcher2),
-                     self.log_action]:
+        for item in [
+            self.ratelabel,
+            self.create_stretcher(id_=PylintWidgetToolbarItems.Stretcher1),
+            self.datelabel,
+            self.create_stretcher(id_=PylintWidgetToolbarItems.Stretcher2),
+            self.log_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 secondary_toolbar,
@@ -594,7 +588,7 @@ class PylintWidget(PluginMainWidget):
         # Signals
         self.filecombo.valid.connect(self.code_analysis_action.setEnabled)
 
-    @on_conf_change(option=['max_entries', 'history_filenames'])
+    @on_conf_change(option=["max_entries", "history_filenames"])
     def on_conf_update(self, option, value):
         if option == "max_entries":
             self._update_combobox_history()
@@ -641,7 +635,8 @@ class PylintWidget(PluginMainWidget):
 
             # Connect slot
             dialog.intValueSelected.connect(
-                lambda value: self.set_conf("max_entries", value))
+                lambda value: self.set_conf("max_entries", value)
+            )
 
             dialog.show()
         else:
@@ -724,8 +719,11 @@ class PylintWidget(PluginMainWidget):
         """
         Removing obsolete items.
         """
-        self.rdata = [(filename, data) for filename, data in self.rdata
-                      if is_module_or_package(filename)]
+        self.rdata = [
+            (filename, data)
+            for filename, data in self.rdata
+            if is_module_or_package(filename)
+        ]
 
     def get_filenames(self):
         """
@@ -771,8 +769,7 @@ class PylintWidget(PluginMainWidget):
         if not justanalyzed:
             self.output = None
 
-        self.log_action.setEnabled(self.output is not None
-                                   and len(self.output) > 0)
+        self.log_action.setEnabled(self.output is not None and len(self.output) > 0)
 
         if self._is_running():
             self._kill_process()
@@ -789,23 +786,23 @@ class PylintWidget(PluginMainWidget):
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
-                text = _("Analysis did not succeed "
-                         "(see output for more details).")
+                text = _("Analysis did not succeed " "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
-                text_style = "<span style=\"color: %s\"><b>%s </b></span>"
-                rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
-                prevrate_style = "<span style=\"color: %s\">%s</span>"
+                text_style = '<span style="color: %s"><b>%s </b></span>'
+                rate_style = '<span style="color: %s"><b>%s</b></span>'
+                prevrate_style = '<span style="color: %s">%s</span>'
                 color = DANGER_COLOR
-                if float(rate) > 5.:
+                if float(rate) > 5.0:
                     color = SUCCESS_COLOR
-                elif float(rate) > 3.:
+                elif float(rate) > 3.0:
                     color = WARNING_COLOR
 
                 text = _("Global evaluation:")
-                text = ((text_style % (text_color, text))
-                        + (rate_style % (color, ("%s/10" % rate))))
+                text = (text_style % (text_color, text)) + (
+                    rate_style % (color, ("%s/10" % rate))
+                )
                 if previous_rate:
                     text_prun = _("previous run:")
                     text_prun = " (%s %s/10)" % (text_prun, previous_rate)
@@ -825,10 +822,7 @@ class PylintWidget(PluginMainWidget):
         """
         if self.output:
             output_dialog = TextEditor(
-                self.output,
-                title=_("Code analysis output"),
-                parent=self,
-                readonly=True
+                self.output, title=_("Code analysis output"), parent=self, readonly=True
             )
             output_dialog.resize(700, 500)
             output_dialog.exec_()
@@ -883,8 +877,7 @@ class PylintWidget(PluginMainWidget):
                 "-m",
                 "pylint",
                 "--output-format=text",
-                "--msg-template="
-                '{msg_id}:{symbol}:{line:3d},{column}: {msg}"',
+                "--msg-template=" '{msg_id}:{symbol}:{line:3d},{column}: {msg}"',
             ]
 
         pylintrc_path = self.get_pylintrc_path(filename=filename)
@@ -906,7 +899,7 @@ class PylintWidget(PluginMainWidget):
         for line in output.splitlines():
             if line.startswith(txt_module):
                 # New module
-                module = line[len(txt_module):]
+                module = line[len(txt_module) :]
                 continue
             # Supporting option include-ids: ("R3873:" instead of "R:")
             if not re.match(r"^[CRWE]+([0-9]{4})?:", line):
@@ -935,8 +928,13 @@ class PylintWidget(PluginMainWidget):
                 items[key_name] = item
                 idx_0 = idx_1 + 1
             else:
-                pylint_item = (module, items["line_nb"], items["message"],
-                               items["msg_id"], items["message_name"])
+                pylint_item = (
+                    module,
+                    items["line_nb"],
+                    items["message"],
+                    items["msg_id"],
+                    items["message_name"],
+                )
                 results[line[0] + ":"].append(pylint_item)
 
         # Rate
@@ -946,7 +944,7 @@ class PylintWidget(PluginMainWidget):
         if i_rate > 0:
             i_rate_end = output.find("/10", i_rate)
             if i_rate_end > 0:
-                rate = output[i_rate+len(txt_rate):i_rate_end]
+                rate = output[i_rate + len(txt_rate) : i_rate_end]
 
         # Previous run
         previous = ""
@@ -955,7 +953,7 @@ class PylintWidget(PluginMainWidget):
             i_prun = output.find(txt_prun, i_rate_end)
             if i_prun > 0:
                 i_prun_end = output.find("/10", i_prun)
-                previous = output[i_prun+len(txt_prun):i_prun_end]
+                previous = output[i_prun + len(txt_prun) : i_prun_end]
 
         return rate, previous, results
 
@@ -969,7 +967,7 @@ def test():
     from unittest.mock import MagicMock
 
     plugin_mock = MagicMock()
-    plugin_mock.CONF_SECTION = 'pylint'
+    plugin_mock.CONF_SECTION = "pylint"
 
     app = qapplication(test_time=20)
     widget = PylintWidget(name="pylint", plugin=plugin_mock)

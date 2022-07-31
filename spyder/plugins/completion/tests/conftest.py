@@ -16,11 +16,13 @@ from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 from spyder.plugins.completion.plugin import CompletionPlugin
 from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed)
+    check_if_kite_installed,
+)
 
 # This is needed to avoid an error because QtAwesome
 # needs a QApplication to work correctly.
 from spyder.utils.qthelpers import qapplication
+
 app = qapplication()
 
 # PyTest imports
@@ -48,11 +50,11 @@ class MainWindowMock(QMainWindow):
         for context, name, __ in CONF.iter_shortcuts():
             self.shortcut_data.append((None, context, name, None, None))
 
-        for attr in ['mem_status', 'cpu_status']:
+        for attr in ["mem_status", "cpu_status"]:
             mock_attr = Mock()
-            setattr(mock_attr, 'toolTip', lambda: '')
-            setattr(mock_attr, 'setToolTip', lambda x: '')
-            setattr(mock_attr, 'prefs_dialog_instance', lambda: '')
+            setattr(mock_attr, "toolTip", lambda: "")
+            setattr(mock_attr, "setToolTip", lambda x: "")
+            setattr(mock_attr, "prefs_dialog_instance", lambda: "")
             setattr(self, attr, mock_attr)
 
     def register_plugin(self, plugin_name, external=False):
@@ -78,28 +80,28 @@ def qtbot_module(qapp, request):
 
 
 def create_completion_plugin():
-    @pytest.fixture(scope='module')
+    @pytest.fixture(scope="module")
     def completion_plugin_wrap(qtbot_module, request):
         main_window = MainWindowMock()
         completions = CompletionPlugin(main_window, CONF)
 
         # Remove Kite (In case it was registered via setup.py)
-        completions.providers.pop('kite', None)
+        completions.providers.pop("kite", None)
 
         return completions
+
     return completion_plugin_wrap
 
 
 completion_plugin_all = create_completion_plugin()
 
 
-@pytest.fixture(scope='function')
-def completion_plugin_all_started(request, qtbot_module,
-                                  completion_plugin_all):
+@pytest.fixture(scope="function")
+def completion_plugin_all_started(request, qtbot_module, completion_plugin_all):
 
     completion_plugin = completion_plugin_all
 
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+    os.environ["SPY_TEST_USE_INTROSPECTION"] = "True"
     completion_plugin.wait_for_ms = 20000
     completion_plugin.start_all_providers()
 
@@ -108,24 +110,24 @@ def completion_plugin_all_started(request, qtbot_module,
     def wait_until_all_started():
         all_started = True
         for provider in completion_plugin.providers:
-            if provider == 'kite' and not kite_installed:
+            if provider == "kite" and not kite_installed:
                 continue
 
             provider_info = completion_plugin.providers[provider]
-            all_started &= provider_info['status'] == completion_plugin.RUNNING
+            all_started &= provider_info["status"] == completion_plugin.RUNNING
         return all_started
 
     qtbot_module.waitUntil(wait_until_all_started, timeout=30000)
 
     with qtbot_module.waitSignal(
-            completion_plugin.sig_language_completions_available,
-            timeout=30000) as blocker:
-        completion_plugin.start_completion_services_for_language('python')
+        completion_plugin.sig_language_completions_available, timeout=30000
+    ) as blocker:
+        completion_plugin.start_completion_services_for_language("python")
 
     capabilities, _ = blocker.args
 
     def teardown():
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+        os.environ["SPY_TEST_USE_INTROSPECTION"] = "False"
         completion_plugin.stop_all_providers()
 
     request.addfinalizer(teardown)

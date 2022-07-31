@@ -8,5 +8,7 @@
 History Plugin API.
 """
 
-from spyder.plugins.history.widgets import (HistoryWidgetActions,
-                                            HistoryWidgetOptionsMenuSections)
+from spyder.plugins.history.widgets import (
+    HistoryWidgetActions,
+    HistoryWidgetOptionsMenuSections,
+)

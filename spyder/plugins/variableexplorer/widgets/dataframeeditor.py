@@ -36,14 +36,33 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
-                         QItemSelectionModel, QEvent)
+from qtpy.QtCore import (
+    QAbstractTableModel,
+    QModelIndex,
+    Qt,
+    Signal,
+    Slot,
+    QItemSelectionModel,
+    QEvent,
+)
 from qtpy.QtGui import QColor, QCursor
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
-                            QHBoxLayout, QInputDialog, QLineEdit, QMenu,
-                            QMessageBox, QPushButton, QTableView,
-                            QScrollBar, QTableWidget, QFrame,
-                            QItemDelegate)
+from qtpy.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QDialog,
+    QGridLayout,
+    QHBoxLayout,
+    QInputDialog,
+    QLineEdit,
+    QMenu,
+    QMessageBox,
+    QPushButton,
+    QTableView,
+    QScrollBar,
+    QTableWidget,
+    QFrame,
+    QItemDelegate,
+)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -51,11 +70,16 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
-                              to_text_string, perf_counter)
+from spyder.py3compat import (
+    io,
+    is_text_string,
+    is_type_text_string,
+    PY2,
+    to_text_string,
+    perf_counter,
+)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    keybinding, qapplication)
+from spyder.utils.qthelpers import add_actions, create_action, keybinding, qapplication
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
@@ -63,10 +87,10 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
-_bool_false = ['false', 'f', '0', '0.', '0.0', ' ']
+_bool_false = ["false", "f", "0", "0.", "0.0", " "]
 
 # Default format for data frames with floats
-DEFAULT_FORMAT = '%.6g'
+DEFAULT_FORMAT = "%.6g"
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
@@ -76,8 +100,8 @@ ROWS_TO_LOAD = 500
 COLS_TO_LOAD = 40
 
 # Background colours
-BACKGROUND_NUMBER_MINHUE = 0.66 # hue for largest number
-BACKGROUND_NUMBER_HUERANGE = 0.33 # (hue for smallest) minus (hue for largest)
+BACKGROUND_NUMBER_MINHUE = 0.66  # hue for largest number
+BACKGROUND_NUMBER_HUERANGE = 0.33  # (hue for smallest) minus (hue for largest)
 BACKGROUND_NUMBER_SATURATION = 0.7
 BACKGROUND_NUMBER_VALUE = 1.0
 BACKGROUND_NUMBER_ALPHA = 0.6
@@ -94,7 +118,7 @@ def bool_false_check(value):
     Needed since any string in bool('') will return True.
     """
     if value.lower() in _bool_false:
-        value = ''
+        value = ""
     return value
 
 
@@ -186,7 +210,7 @@ class DataFrameModel(QAbstractTableModel):
         Get the number of levels for the columns (0) or rows (1).
         """
         ax = self._axis(axis)
-        return 1 if not hasattr(ax, 'levels') else len(ax.levels)
+        return 1 if not hasattr(ax, "levels") else len(ax.levels)
 
     @property
     def shape(self):
@@ -211,7 +235,7 @@ class DataFrameModel(QAbstractTableModel):
         given level.
         """
         ax = self._axis(axis)
-        if not hasattr(ax, 'levels'):
+        if not hasattr(ax, "levels"):
             ax = self._axis_list(axis)
             return ax[x]
         else:
@@ -220,7 +244,7 @@ class DataFrameModel(QAbstractTableModel):
     def name(self, axis, level):
         """Return the labels of the levels if any."""
         ax = self._axis(axis)
-        if hasattr(ax, 'levels'):
+        if hasattr(ax, "levels"):
             return ax.names[level]
         if ax.name:
             return ax.name
@@ -238,7 +262,7 @@ class DataFrameModel(QAbstractTableModel):
         minimum of the absolute values. If vmax equals vmin, then vmin is
         decreased by one.
         """
-        if self.df.shape[0] == 0: # If no rows to compute max/min then return
+        if self.df.shape[0] == 0:  # If no rows to compute max/min then return
             return
         self.max_min_col = []
         for __, col in self.df.iteritems():
@@ -319,14 +343,18 @@ class DataFrameModel(QAbstractTableModel):
             except TypeError:
                 return
 
-            hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
-                   (vmax - color_func(value)) / (vmax_vmin_diff))
+            hue = BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE * (
+                vmax - color_func(value)
+            ) / (vmax_vmin_diff)
             hue = float(abs(hue))
             if hue > 1:
                 hue = 1
-            color = QColor.fromHsvF(hue, BACKGROUND_NUMBER_SATURATION,
-                                    BACKGROUND_NUMBER_VALUE,
-                                    BACKGROUND_NUMBER_ALPHA)
+            color = QColor.fromHsvF(
+                hue,
+                BACKGROUND_NUMBER_SATURATION,
+                BACKGROUND_NUMBER_VALUE,
+                BACKGROUND_NUMBER_ALPHA,
+            )
 
         return color
 
@@ -368,15 +396,17 @@ class DataFrameModel(QAbstractTableModel):
                     return to_qvariant(to_text_string(value))
                 except Exception:
                     self.display_error_idxs.append(index)
-                    return u'Display Error!'
+                    return "Display Error!"
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:
-                return _("It is not possible to display this value because\n"
-                         "an error ocurred while trying to do it")
+                return _(
+                    "It is not possible to display this value because\n"
+                    "an error ocurred while trying to do it"
+                )
         return to_qvariant()
 
     def recalculate_index(self):
@@ -387,40 +417,50 @@ class DataFrameModel(QAbstractTableModel):
         """Overriding sort method"""
         if self.complex_intran is not None:
             if self.complex_intran.any(axis=0).iloc[column]:
-                QMessageBox.critical(self.dialog, "Error",
-                                     "TypeError error: no ordering "
-                                     "relation is defined for complex numbers")
+                QMessageBox.critical(
+                    self.dialog,
+                    "Error",
+                    "TypeError error: no ordering "
+                    "relation is defined for complex numbers",
+                )
                 return False
         try:
             ascending = order == Qt.AscendingOrder
             if column >= 0:
                 try:
-                    self.df.sort_values(by=self.df.columns[column],
-                                        ascending=ascending, inplace=True,
-                                        kind='mergesort')
+                    self.df.sort_values(
+                        by=self.df.columns[column],
+                        ascending=ascending,
+                        inplace=True,
+                        kind="mergesort",
+                    )
                 except AttributeError:
                     # for pandas version < 0.17
-                    self.df.sort(columns=self.df.columns[column],
-                                 ascending=ascending, inplace=True,
-                                 kind='mergesort')
+                    self.df.sort(
+                        columns=self.df.columns[column],
+                        ascending=ascending,
+                        inplace=True,
+                        kind="mergesort",
+                    )
                 except ValueError as e:
                     # Not possible to sort on duplicate columns
                     # See spyder-ide/spyder#5225.
-                    QMessageBox.critical(self.dialog, "Error",
-                                         "ValueError: %s" % to_text_string(e))
+                    QMessageBox.critical(
+                        self.dialog, "Error", "ValueError: %s" % to_text_string(e)
+                    )
                 except SystemError as e:
                     # Not possible to sort on category dtypes
                     # See spyder-ide/spyder#5361.
-                    QMessageBox.critical(self.dialog, "Error",
-                                         "SystemError: %s" % to_text_string(e))
+                    QMessageBox.critical(
+                        self.dialog, "Error", "SystemError: %s" % to_text_string(e)
+                    )
             else:
                 # Update index list
                 self.recalculate_index()
                 # To sort by index
                 self.df.sort_index(inplace=True, ascending=ascending)
         except TypeError as e:
-            QMessageBox.critical(self.dialog, "Error",
-                                 "TypeError error: %s" % str(e))
+            QMessageBox.critical(self.dialog, "Error", "TypeError error: %s" % str(e))
             return False
 
         self.reset()
@@ -428,8 +468,9 @@ class DataFrameModel(QAbstractTableModel):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+        return Qt.ItemFlags(
+            int(QAbstractTableModel.flags(self, index) | Qt.ItemIsEditable)
+        )
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""
@@ -446,25 +487,31 @@ class DataFrameModel(QAbstractTableModel):
                     val = bool_false_check(val)
                 self.df.iloc[row, column] = change_type(val)
             except ValueError:
-                self.df.iloc[row, column] = change_type('0')
+                self.df.iloc[row, column] = change_type("0")
         else:
             val = from_qvariant(value, str)
             current_value = self.get_value(row, column)
             if isinstance(current_value, (bool, np.bool_)):
                 val = bool_false_check(val)
             supported_types = (bool, np.bool_) + REAL_NUMBER_TYPES
-            if (isinstance(current_value, supported_types) or
-                    is_text_string(current_value)):
+            if isinstance(current_value, supported_types) or is_text_string(
+                current_value
+            ):
                 try:
                     self.df.iloc[row, column] = current_value.__class__(val)
                 except (ValueError, OverflowError) as e:
-                    QMessageBox.critical(self.dialog, "Error",
-                                         str(type(e).__name__) + ": " + str(e))
+                    QMessageBox.critical(
+                        self.dialog, "Error", str(type(e).__name__) + ": " + str(e)
+                    )
                     return False
             else:
-                QMessageBox.critical(self.dialog, "Error",
-                                     "Editing dtype {0!s} not yet supported."
-                                     .format(type(current_value).__name__))
+                QMessageBox.critical(
+                    self.dialog,
+                    "Error",
+                    "Editing dtype {0!s} not yet supported.".format(
+                        type(current_value).__name__
+                    ),
+                )
                 return False
         self.max_min_col_update()
         self.dataChanged.emit(index, index)
@@ -492,15 +539,17 @@ class DataFrameModel(QAbstractTableModel):
         if rows and self.total_rows > self.rows_loaded:
             reminder = self.total_rows - self.rows_loaded
             items_to_fetch = min(reminder, ROWS_TO_LOAD)
-            self.beginInsertRows(QModelIndex(), self.rows_loaded,
-                                 self.rows_loaded + items_to_fetch - 1)
+            self.beginInsertRows(
+                QModelIndex(), self.rows_loaded, self.rows_loaded + items_to_fetch - 1
+            )
             self.rows_loaded += items_to_fetch
             self.endInsertRows()
         if columns and self.total_cols > self.cols_loaded:
             reminder = self.total_cols - self.cols_loaded
             items_to_fetch = min(reminder, COLS_TO_LOAD)
-            self.beginInsertColumns(QModelIndex(), self.cols_loaded,
-                                    self.cols_loaded + items_to_fetch - 1)
+            self.beginInsertColumns(
+                QModelIndex(), self.cols_loaded, self.cols_loaded + items_to_fetch - 1
+            )
             self.cols_loaded += items_to_fetch
             self.endInsertColumns()
 
@@ -534,11 +583,12 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
     sig_sort_by_column(): Raised after more columns are fetched.
     sig_fetch_more_rows(): Raised after more rows are fetched.
     """
+
     sig_sort_by_column = Signal()
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
 
-    CONF_SECTION = 'variable_explorer'
+    CONF_SECTION = "variable_explorer"
 
     def __init__(self, parent, model, header, hscroll, vscroll):
         """Constructor."""
@@ -553,9 +603,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.header_class = header
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        self.config_shortcut(self.copy, 'copy', self)
-        self.horizontalScrollBar().valueChanged.connect(
-            self._load_more_columns)
+        self.config_shortcut(self.copy, "copy", self)
+        self.horizontalScrollBar().valueChanged.connect(self._load_more_columns)
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
 
     def _load_more_columns(self, value):
@@ -600,8 +649,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             if len(self.sort_old) != 2:
                 self.header_class.setSortIndicatorShown(False)
             else:
-                self.header_class.setSortIndicator(self.sort_old[0],
-                                                   self.sort_old[1])
+                self.header_class.setSortIndicator(self.sort_old[0], self.sort_old[1])
             return
         self.sort_old = [index, self.header_class.sortIndicatorOrder()]
         self.sig_sort_by_column.emit()
@@ -613,21 +661,30 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
     def setup_menu(self):
         """Setup context menu."""
-        copy_action = create_action(self, _('Copy'),
-                                    shortcut=keybinding('Copy'),
-                                    icon=ima.icon('editcopy'),
-                                    triggered=self.copy,
-                                    context=Qt.WidgetShortcut)
-        functions = ((_("To bool"), bool), (_("To complex"), complex),
-                     (_("To int"), int), (_("To float"), float),
-                     (_("To str"), to_text_string))
+        copy_action = create_action(
+            self,
+            _("Copy"),
+            shortcut=keybinding("Copy"),
+            icon=ima.icon("editcopy"),
+            triggered=self.copy,
+            context=Qt.WidgetShortcut,
+        )
+        functions = (
+            (_("To bool"), bool),
+            (_("To complex"), complex),
+            (_("To int"), int),
+            (_("To float"), float),
+            (_("To str"), to_text_string),
+        )
         types_in_menu = [copy_action]
         for name, func in functions:
+
             def slot():
                 self.change_type(func)
-            types_in_menu += [create_action(self, name,
-                                            triggered=slot,
-                                            context=Qt.WidgetShortcut)]
+
+            types_in_menu += [
+                create_action(self, name, triggered=slot, context=Qt.WidgetShortcut)
+            ]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)
         return menu
@@ -636,35 +693,30 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         """A function that changes types of cells."""
         model = self.model()
         index_list = self.selectedIndexes()
-        [model.setData(i, '', change_type=func) for i in index_list]
+        [model.setData(i, "", change_type=func) for i in index_list]
 
     @Slot()
     def copy(self):
         """Copy text to clipboard"""
         if not self.selectedIndexes():
             return
-        (row_min, row_max,
-         col_min, col_max) = get_idx_rect(self.selectedIndexes())
+        (row_min, row_max, col_min, col_max) = get_idx_rect(self.selectedIndexes())
         # Copy index and header too (equal True).
         # See spyder-ide/spyder#11096
         index = header = True
         df = self.model().df
-        obj = df.iloc[slice(row_min, row_max + 1),
-                      slice(col_min, col_max + 1)]
+        obj = df.iloc[slice(row_min, row_max + 1), slice(col_min, col_max + 1)]
         output = io.StringIO()
         try:
-            obj.to_csv(output, sep='\t', index=index, header=header)
+            obj.to_csv(output, sep="\t", index=index, header=header)
         except UnicodeEncodeError:
             # Needed to handle encoding errors in Python 2
             # See spyder-ide/spyder#4833
-            QMessageBox.critical(
-                self,
-                _("Error"),
-                _("Text can't be copied."))
+            QMessageBox.critical(self, _("Error"), _("Text can't be copied."))
         if not PY2:
             contents = output.getvalue()
         else:
-            contents = output.getvalue().decode('utf-8')
+            contents = output.getvalue().decode("utf-8")
         output.close()
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
@@ -741,18 +793,20 @@ class DataFrameHeaderModel(QAbstractTableModel):
 
     def fetch_more(self, rows=False, columns=False):
         """Get more columns or rows (based on axis)."""
-        if  self.axis == 1 and self.total_rows > self.rows_loaded:
+        if self.axis == 1 and self.total_rows > self.rows_loaded:
             reminder = self.total_rows - self.rows_loaded
             items_to_fetch = min(reminder, ROWS_TO_LOAD)
-            self.beginInsertRows(QModelIndex(), self.rows_loaded,
-                                 self.rows_loaded + items_to_fetch - 1)
+            self.beginInsertRows(
+                QModelIndex(), self.rows_loaded, self.rows_loaded + items_to_fetch - 1
+            )
             self.rows_loaded += items_to_fetch
             self.endInsertRows()
         if self.axis == 0 and self.total_cols > self.cols_loaded:
             reminder = self.total_cols - self.cols_loaded
             items_to_fetch = min(reminder, COLS_TO_LOAD)
-            self.beginInsertColumns(QModelIndex(), self.cols_loaded,
-                                    self.cols_loaded + items_to_fetch - 1)
+            self.beginInsertColumns(
+                QModelIndex(), self.cols_loaded, self.cols_loaded + items_to_fetch - 1
+            )
             self.cols_loaded += items_to_fetch
             self.endInsertColumns()
 
@@ -794,12 +848,17 @@ class DataFrameHeaderModel(QAbstractTableModel):
 
         This is used when a header has levels.
         """
-        if not index.isValid() or \
-           index.row() >= self._shape[0] or \
-           index.column() >= self._shape[1]:
+        if (
+            not index.isValid()
+            or index.row() >= self._shape[0]
+            or index.column() >= self._shape[1]
+        ):
             return None
-        row, col = ((index.row(), index.column()) if self.axis == 0
-                    else (index.column(), index.row()))
+        row, col = (
+            (index.row(), index.column())
+            if self.axis == 0
+            else (index.column(), index.row())
+        )
         if role != Qt.DisplayRole:
             return None
         if self.axis == 0 and self._shape[0] <= 1:
@@ -864,14 +923,14 @@ class DataFrameLevelModel(QAbstractTableModel):
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
-            if self.model.name(1,section):
-                return self.model.name(1,section)
-            return _('Index')
+            if self.model.name(1, section):
+                return self.model.name(1, section)
+            return _("Index")
         elif self.model.header_shape[0] <= 1:
             return None
         elif self.model.header_shape[1] <= 1 and orientation == Qt.Vertical:
             return None
-        return _('Index') + ' ' + to_text_string(section)
+        return _("Index") + " " + to_text_string(section)
 
     def data(self, index, role):
         """Get the information of the levels."""
@@ -879,7 +938,7 @@ class DataFrameLevelModel(QAbstractTableModel):
             return None
         if role == Qt.FontRole:
             return self._font
-        label = ''
+        label = ""
         if index.column() == self.model.header_shape[1] - 1:
             label = str(self.model.name(0, index.row()))
         elif index.row() == self.model.header_shape[0] - 1:
@@ -903,7 +962,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
-    CONF_SECTION = 'variable_explorer'
+
+    CONF_SECTION = "variable_explorer"
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -916,7 +976,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.is_series = False
         self.layout = None
 
-    def setup_and_check(self, data, title=''):
+    def setup_and_check(self, data, title=""):
         """
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise.
@@ -983,31 +1043,32 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         btn_layout.addWidget(btn_format)
         btn_format.clicked.connect(self.change_format)
 
-        btn_resize = QPushButton(_('Resize'))
+        btn_resize = QPushButton(_("Resize"))
         btn_layout.addWidget(btn_resize)
         btn_resize.clicked.connect(self.resize_to_contents)
 
-        bgcolor = QCheckBox(_('Background color'))
+        bgcolor = QCheckBox(_("Background color"))
         bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
         bgcolor.stateChanged.connect(self.change_bgcolor_enable)
         btn_layout.addWidget(bgcolor)
 
-        self.bgcolor_global = QCheckBox(_('Column min/max'))
+        self.bgcolor_global = QCheckBox(_("Column min/max"))
         self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
-        self.bgcolor_global.setEnabled(not self.is_series and
-                                       self.dataModel.bgcolor_enabled)
+        self.bgcolor_global.setEnabled(
+            not self.is_series and self.dataModel.bgcolor_enabled
+        )
         self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
 
-        self.btn_save_and_close = QPushButton(_('Save and Close'))
+        self.btn_save_and_close = QPushButton(_("Save and Close"))
         self.btn_save_and_close.setDisabled(True)
         self.btn_save_and_close.clicked.connect(self.accept)
         btn_layout.addWidget(self.btn_save_and_close)
 
-        self.btn_close = QPushButton(_('Close'))
+        self.btn_close = QPushButton(_("Close"))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
@@ -1018,7 +1079,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
-        format = '%' + self.get_conf('dataframe_format')
+        format = "%" + self.get_conf("dataframe_format")
         self.dataModel.set_format(format)
 
         return True
@@ -1037,15 +1098,12 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.table_level.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.table_level.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.table_level.setFrameStyle(QFrame.Plain)
-        self.table_level.horizontalHeader().sectionResized.connect(
-                                                        self._index_resized)
-        self.table_level.verticalHeader().sectionResized.connect(
-                                                        self._header_resized)
+        self.table_level.horizontalHeader().sectionResized.connect(self._index_resized)
+        self.table_level.verticalHeader().sectionResized.connect(self._header_resized)
         self.table_level.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_level, 0, 0)
         self.table_level.setContentsMargins(0, 0, 0, 0)
-        self.table_level.horizontalHeader().sectionClicked.connect(
-                                                            self.sortByIndex)
+        self.table_level.horizontalHeader().sectionClicked.connect(self.sortByIndex)
 
     def create_table_header(self):
         """Create the QTableView that will hold the header model."""
@@ -1058,7 +1116,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.table_header.setHorizontalScrollBar(self.hscroll)
         self.table_header.setFrameStyle(QFrame.Plain)
         self.table_header.horizontalHeader().sectionResized.connect(
-                                                        self._column_resized)
+            self._column_resized
+        )
         self.table_header.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_header, 0, 1)
 
@@ -1072,17 +1131,20 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.table_index.setVerticalScrollMode(QTableView.ScrollPerPixel)
         self.table_index.setVerticalScrollBar(self.vscroll)
         self.table_index.setFrameStyle(QFrame.Plain)
-        self.table_index.verticalHeader().sectionResized.connect(
-                                                            self._row_resized)
+        self.table_index.verticalHeader().sectionResized.connect(self._row_resized)
         self.table_index.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_index, 1, 0)
         self.table_index.setContentsMargins(0, 0, 0, 0)
 
     def create_data_table(self):
         """Create the QTableView that will hold the data model."""
-        self.dataTable = DataFrameView(self, self.dataModel,
-                                       self.table_header.horizontalHeader(),
-                                       self.hscroll, self.vscroll)
+        self.dataTable = DataFrameView(
+            self,
+            self.dataModel,
+            self.table_header.horizontalHeader(),
+            self.hscroll,
+            self.vscroll,
+        )
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
         self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -1130,8 +1192,10 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     def _update_layout(self):
         """Set the width and height of the QTableViews and hide rows."""
-        h_width = max(self.table_level.verticalHeader().sizeHint().width(),
-                      self.table_index.verticalHeader().sizeHint().width())
+        h_width = max(
+            self.table_level.verticalHeader().sizeHint().width(),
+            self.table_index.verticalHeader().sizeHint().width(),
+        )
         self.table_level.verticalHeader().setFixedWidth(h_width)
         self.table_index.verticalHeader().setFixedWidth(h_width)
 
@@ -1139,9 +1203,11 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         if last_row < 0:
             hdr_height = self.table_level.horizontalHeader().height()
         else:
-            hdr_height = self.table_level.rowViewportPosition(last_row) + \
-                         self.table_level.rowHeight(last_row) + \
-                         self.table_level.horizontalHeader().height()
+            hdr_height = (
+                self.table_level.rowViewportPosition(last_row)
+                + self.table_level.rowHeight(last_row)
+                + self.table_level.horizontalHeader().height()
+            )
             # Check if the header shape has only one row (which display the
             # same info than the horizontal header).
             if last_row == 0:
@@ -1154,9 +1220,11 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         if last_col < 0:
             idx_width = self.table_level.verticalHeader().width()
         else:
-            idx_width = self.table_level.columnViewportPosition(last_col) + \
-                        self.table_level.columnWidth(last_col) + \
-                        self.table_level.verticalHeader().width()
+            idx_width = (
+                self.table_level.columnViewportPosition(last_col)
+                + self.table_level.columnWidth(last_col)
+                + self.table_level.verticalHeader().width()
+            )
         self.table_index.setFixedWidth(idx_width)
         self.table_level.setFixedWidth(idx_width)
         self._resizeVisibleColumnsToContents()
@@ -1176,22 +1244,19 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         """Set the model for the data, header/index and level views."""
         self._model = model
         sel_model = self.dataTable.selectionModel()
-        sel_model.currentColumnChanged.connect(
-                self._resizeCurrentColumnToContents)
+        sel_model.currentColumnChanged.connect(self._resizeCurrentColumnToContents)
 
         # Asociate the models (level, vertical index and horizontal header)
         # with its corresponding view.
-        self._reset_model(self.table_level, DataFrameLevelModel(model,
-                                                                self.palette(),
-                                                                self.font()))
-        self._reset_model(self.table_header, DataFrameHeaderModel(
-                                                            model,
-                                                            0,
-                                                            self.palette()))
-        self._reset_model(self.table_index, DataFrameHeaderModel(
-                                                            model,
-                                                            1,
-                                                            self.palette()))
+        self._reset_model(
+            self.table_level, DataFrameLevelModel(model, self.palette(), self.font())
+        )
+        self._reset_model(
+            self.table_header, DataFrameHeaderModel(model, 0, self.palette())
+        )
+        self._reset_model(
+            self.table_index, DataFrameHeaderModel(model, 1, self.palette())
+        )
 
         # Needs to be called after setting all table models
         if relayout:
@@ -1200,8 +1265,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     def setCurrentIndex(self, y, x):
         """Set current selection."""
         self.dataTable.selectionModel().setCurrentIndex(
-            self.dataTable.model().index(y, x),
-            QItemSelectionModel.ClearAndSelect)
+            self.dataTable.model().index(y, x), QItemSelectionModel.ClearAndSelect
+        )
 
     def _sizeHintForColumn(self, table, col, limit_ms=None):
         """Get the size hint for a given column in a table."""
@@ -1227,8 +1292,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         if data_width > hdr_width:
             width = min(self.max_width, data_width)
         elif hdr_width > data_width * 2:
-            width = max(min(hdr_width, self.min_trunc), min(self.max_width,
-                        data_width))
+            width = max(min(hdr_width, self.min_trunc), min(self.max_width, data_width))
         else:
             width = max(min(self.max_width, hdr_width), self.min_trunc)
         header.setColumnWidth(col, width)
@@ -1265,8 +1329,9 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
             if col not in self._autosized_cols:
                 self._autosized_cols.add(col)
                 resized = True
-                self._resizeColumnToContents(self.table_header, self.dataTable,
-                                             col, max_col_ms)
+                self._resizeColumnToContents(
+                    self.table_header, self.dataTable, col, max_col_ms
+                )
             col += 1
             if resized:
                 # As we resize columns, the boundary will change
@@ -1286,8 +1351,9 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     def resizeColumnsToContents(self):
         """Resize the columns to its contents."""
         self._autosized_cols = set()
-        self._resizeColumnsToContents(self.table_level,
-                                      self.table_index, self._max_autosize_ms)
+        self._resizeColumnsToContents(
+            self.table_level, self.table_index, self._max_autosize_ms
+        )
         self._update_layout()
 
     def change_bgcolor_enable(self, state):
@@ -1301,10 +1367,13 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         """
         Ask user for display format for floats and use it.
         """
-        format, valid = QInputDialog.getText(self, _('Format'),
-                                             _("Float formatting"),
-                                             QLineEdit.Normal,
-                                             self.dataModel.get_format())
+        format, valid = QInputDialog.getText(
+            self,
+            _("Format"),
+            _("Float formatting"),
+            QLineEdit.Normal,
+            self.dataModel.get_format(),
+        )
         if valid:
             format = str(format)
             try:
@@ -1313,14 +1382,14 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
                 msg = _("Format ({}) is incorrect").format(format)
                 QMessageBox.critical(self, _("Error"), msg)
                 return
-            if not format.startswith('%'):
+            if not format.startswith("%"):
                 msg = _("Format ({}) should start with '%'").format(format)
                 QMessageBox.critical(self, _("Error"), msg)
                 return
             self.dataModel.set_format(format)
 
             format = format[1:]
-            self.set_conf('dataframe_format', format)
+            self.set_conf("dataframe_format", format)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
@@ -1374,9 +1443,9 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         QApplication.restoreOverrideCursor()
 
 
-#==============================================================================
+# ==============================================================================
 # Tests
-#==============================================================================
+# ==============================================================================
 def test_edit(data, title="", parent=None):
     """Test subroutine"""
     dlg = DataFrameEditor(parent=parent)
@@ -1386,6 +1455,7 @@ def test_edit(data, title="", parent=None):
         return dlg.get_value()
     else:
         import sys
+
         sys.exit(1)
 
 
@@ -1394,26 +1464,26 @@ def test():
     from numpy import nan
     from pandas.util.testing import assert_frame_equal, assert_series_equal
 
-    app = qapplication()                  # analysis:ignore
+    app = qapplication()  # analysis:ignore
 
     df1 = pd.DataFrame(
         [
             [True, "bool"],
-            [1+1j, "complex"],
-            ['test', "string"],
+            [1 + 1j, "complex"],
+            ["test", "string"],
             [1.11, "float"],
             [1, "int"],
             [np.random.rand(3, 3), "Unkown type"],
             ["Large value", 100],
-            ["áéí", "unicode"]
+            ["áéí", "unicode"],
         ],
-        index=['a', 'b', nan, nan, nan, 'c', "Test global max", 'd'],
-        columns=[nan, 'Type']
+        index=["a", "b", nan, nan, nan, "c", "Test global max", "d"],
+        columns=[nan, "Type"],
     )
     out = test_edit(df1)
     assert_frame_equal(df1, out)
 
-    result = pd.Series([True, "bool"], index=[nan, 'Type'], name='a')
+    result = pd.Series([True, "bool"], index=[nan, "Type"], name="a")
     out = test_edit(df1.iloc[0])
     assert_series_equal(result, out)
 
@@ -1426,5 +1496,5 @@ def test():
     assert_series_equal(series, out)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

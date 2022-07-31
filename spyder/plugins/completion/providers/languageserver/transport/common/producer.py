@@ -25,14 +25,15 @@ import logging
 import zmq
 
 TIMEOUT = 5000
-LOCALHOST = '127.0.0.1'
+LOCALHOST = "127.0.0.1"
 
 logger = logging.getLogger(__name__)
 
 
 class LanguageServerClient(object):
     """Base implementation of a v3.0 compilant language server client."""
-    CONTENT_LENGTH = 'Content-Length: {0}\r\n\r\n'
+
+    CONTENT_LENGTH = "Content-Length: {0}\r\n\r\n"
 
     def __init__(self, zmq_in_port=7000, zmq_out_port=7001):
         self.zmq_in_port = zmq_in_port
@@ -45,24 +46,29 @@ class LanguageServerClient(object):
         connected, connection_error, pid = self.is_server_alive()
 
         if not connected:
-            logger.error("The client was unable to establish a connection "
-                         "with the Language Server. The error was: "
-                         "{}".format(connection_error))
-            raise Exception("An error occurred while trying to create a "
-                            "client to connect to the Language Server! The "
-                            "error was\n\n{}".format(connection_error))
+            logger.error(
+                "The client was unable to establish a connection "
+                "with the Language Server. The error was: "
+                "{}".format(connection_error)
+            )
+            raise Exception(
+                "An error occurred while trying to create a "
+                "client to connect to the Language Server! The "
+                "error was\n\n{}".format(connection_error)
+            )
 
-        logger.info('Starting ZMQ connection...')
+        logger.info("Starting ZMQ connection...")
         self.context = zmq.Context()
         self.zmq_in_socket = self.context.socket(zmq.PAIR)
-        self.zmq_in_socket.connect("tcp://{0}:{1}".format(
-            LOCALHOST, self.zmq_in_port))
+        self.zmq_in_socket.connect("tcp://{0}:{1}".format(LOCALHOST, self.zmq_in_port))
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
-        self.zmq_out_socket.connect("tcp://{0}:{1}".format(
-            LOCALHOST, self.zmq_out_port))
-        logger.info('Sending server_ready...')
-        self.zmq_out_socket.send_pyobj({'id': 0, 'method': 'server_ready',
-                                        'params': {'pid': pid}})
+        self.zmq_out_socket.connect(
+            "tcp://{0}:{1}".format(LOCALHOST, self.zmq_out_port)
+        )
+        logger.info("Sending server_ready...")
+        self.zmq_out_socket.send_pyobj(
+            {"id": 0, "method": "server_ready", "params": {"pid": pid}}
+        )
 
     def listen(self):
         events = self.zmq_in_socket.poll(TIMEOUT)
@@ -76,28 +82,26 @@ class LanguageServerClient(object):
             events -= 1
 
     def __compose_request(self, request):
-        request['jsonrpc'] = '2.0'
+        request["jsonrpc"] = "2.0"
         return request
 
     def __send_request(self, request):
         json_req = json.dumps(request)
-        content = bytes(json_req.encode('utf-8'))
+        content = bytes(json_req.encode("utf-8"))
         content_length = len(content)
 
-        if 'method' in request:
-            if 'id' in request:
-                logger.debug(
-                    'Sending request of type: {0}'.format(request['method']))
+        if "method" in request:
+            if "id" in request:
+                logger.debug("Sending request of type: {0}".format(request["method"]))
             else:
                 logger.debug(
-                    'Sending notification of type: {0}'.format(
-                        request['method']))
+                    "Sending notification of type: {0}".format(request["method"])
+                )
         else:
-            logger.debug('Sending reply to server')
+            logger.debug("Sending reply to server")
         logger.debug(json_req)
 
-        content_length = self.CONTENT_LENGTH.format(
-            content_length).encode('utf-8')
+        content_length = self.CONTENT_LENGTH.format(content_length).encode("utf-8")
         self.transport_send(bytes(content_length), content)
 
     def transport_send(self, content_length, body):

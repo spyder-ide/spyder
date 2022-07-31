@@ -78,6 +78,7 @@ def pairwise(iterable):
 
     return zip(elem_a, elem_b)
 
+
 # comment on internal node_id, meaningless
 class DAFSANode:
     """
@@ -119,31 +120,31 @@ class DAFSANode:
 
     def __str__(self):
         """
-        Return a textual representation of the node.
+                Return a textual representation of the node.
 
-        The representation lists any edge, with ``id`` and ``attr``ibute. The
-        edge dictionary is sorted at every call, so that, even if
-        more expansive computationally, the function is guaranteed to be
-        idempotent in all implementations.
+                The representation lists any edge, with ``id`` and ``attr``ibute. The
+                edge dictionary is sorted at every call, so that, even if
+                more expansive computationally, the function is guaranteed to be
+                idempotent in all implementations.
 
-        Please note that, as counts and final state are not accounted for,
-        the value returned by this method might be ambiguous, with different
-        nodes returning the same value. For unambigous representation,
-        the ``.__repr__()`` method must be used.
+                Please note that, as counts and final state are not accounted for,
+                the value returned by this method might be ambiguous, with different
+                nodes returning the same value. For unambigous representation,
+                the ``.__repr__()`` method must be used.
 
-.. code:: python
-        >>> from dafsa import DAFSANode, DAFSAEdge
-        >>> node = DAFSANode(0)
-        >>> node.final = True
-        >>> node.edges["x"] = DAFSAEdge(DAFSANode(1), 1)
-        >>> str(node)
-        'x|1'
+        .. code:: python
+                >>> from dafsa import DAFSANode, DAFSAEdge
+                >>> node = DAFSANode(0)
+                >>> node.final = True
+                >>> node.edges["x"] = DAFSAEdge(DAFSANode(1), 1)
+                >>> str(node)
+                'x|1'
 
-        Returns
-        -------
-        string : str
-            The (potentially ambiguous) textual representation of the
-            current node.
+                Returns
+                -------
+                string : str
+                    The (potentially ambiguous) textual representation of the
+                    current node.
         """
 
         # Build the buffer; please note the differences in implementation
@@ -159,29 +160,29 @@ class DAFSANode:
 
     def __repr__(self):
         """
-        Return an unambigous textual representation of the node.
+                Return an unambigous textual representation of the node.
 
-        The representation lists any edge, with all properties. The
-        edge dictionary is sorted at every call, so that, even if
-        more expansive computationally, the function is guaranteed to be
-        idempotent in all implementations.
+                The representation lists any edge, with all properties. The
+                edge dictionary is sorted at every call, so that, even if
+                more expansive computationally, the function is guaranteed to be
+                idempotent in all implementations.
 
-        Please note that, as the return value includes information such as
-        edge weight, it cannot be used for minimization. For such purposes,
-        the potentially ambiguous ``.__str__()`` method must be used.
+                Please note that, as the return value includes information such as
+                edge weight, it cannot be used for minimization. For such purposes,
+                the potentially ambiguous ``.__str__()`` method must be used.
 
-.. code:: python
-        >>> from dafsa import DAFSANode, DAFSAEdge
-        >>> node = DAFSANode(0)
-        >>> node.final = True
-        >>> node.edges["x"] = DAFSAEdge(DAFSANode(1), 1)
-        >>> repr(node)
-        '0(#1/0:<x>/1)'
+        .. code:: python
+                >>> from dafsa import DAFSANode, DAFSAEdge
+                >>> node = DAFSANode(0)
+                >>> node.final = True
+                >>> node.edges["x"] = DAFSAEdge(DAFSANode(1), 1)
+                >>> repr(node)
+                '0(#1/0:<x>/1)'
 
-        Returns
-        -------
-        string : str
-            The unambiguous textual representation of the current node.
+                Returns
+                -------
+                string : str
+                    The unambiguous textual representation of the current node.
         """
 
         # Build the buffer; please note the differences in implementation
@@ -249,10 +250,7 @@ class DAFSANode:
             if label not in other.edges:
                 return False
 
-            if (
-                self.edges[label].node.node_id
-                != other.edges[label].node.node_id
-            ):
+            if self.edges[label].node.node_id != other.edges[label].node.node_id:
                 return False
 
         return True
@@ -740,9 +738,7 @@ class DAFSA:
             )
 
             # change the transition
-            self.nodes[transition["edge"]["source"]].edges[
-                new_label
-            ] = DAFSAEdge(
+            self.nodes[transition["edge"]["source"]].edges[new_label] = DAFSAEdge(
                 self.nodes[transition["edge"]["target"]]
                 .edges[transition["label_to"]]
                 .node,
@@ -750,9 +746,7 @@ class DAFSA:
                 .edges[transition["label_to"]]
                 .weight,
             )
-            self.nodes[transition["edge"]["source"]].edges.pop(
-                transition["label_from"]
-            )
+            self.nodes[transition["edge"]["source"]].edges.pop(transition["label_from"])
             self.nodes.pop(transition["edge"]["target"])
 
         # return number of transitions performed

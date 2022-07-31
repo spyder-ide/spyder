@@ -13,15 +13,13 @@ import datetime
 
 # Third party imports
 from qtpy.QtCore import QObject
-from spyder_kernels.utils.lazymodules import (
-    FakeObject, numpy as np, pandas as pd, PIL)
+from spyder_kernels.utils.lazymodules import FakeObject, numpy as np, pandas as pd, PIL
 from spyder_kernels.utils.nsview import is_known_type
 
 # Local imports
 from spyder.py3compat import is_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
-from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-    DataFrameEditor)
+from spyder.plugins.variableexplorer.widgets.dataframeeditor import DataFrameEditor
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.widgets.collectionseditor import CollectionsEditor
 
@@ -37,10 +35,8 @@ class DialogKeeper(QObject):
 
     def create_dialog(self, dialog, refname, func):
         self.dialogs[id(dialog)] = dialog, refname, func
-        dialog.accepted.connect(
-                     lambda eid=id(dialog): self.editor_accepted(eid))
-        dialog.rejected.connect(
-                     lambda eid=id(dialog): self.editor_rejected(eid))
+        dialog.accepted.connect(lambda eid=id(dialog): self.editor_accepted(eid))
+        dialog.rejected.connect(lambda eid=id(dialog): self.editor_rejected(eid))
         dialog.show()
         dialog.activateWindow()
         dialog.raise_()
@@ -52,6 +48,7 @@ class DialogKeeper(QObject):
 
     def editor_rejected(self, dialog_id):
         self.dialogs.pop(dialog_id)
+
 
 keeper = DialogKeeper()
 
@@ -70,19 +67,19 @@ def create_dialog(obj, obj_name):
     readonly = not is_known_type(obj)
     if isinstance(obj, np.ndarray) and np.ndarray is not FakeObject:
         dialog = ArrayEditor()
-        if not dialog.setup_and_check(obj, title=obj_name,
-                                      readonly=readonly):
+        if not dialog.setup_and_check(obj, title=obj_name, readonly=readonly):
             return
-    elif (isinstance(obj, PIL.Image.Image) and PIL.Image is not FakeObject
-            and np.ndarray is not FakeObject):
+    elif (
+        isinstance(obj, PIL.Image.Image)
+        and PIL.Image is not FakeObject
+        and np.ndarray is not FakeObject
+    ):
         dialog = ArrayEditor()
         data = np.array(obj)
-        if not dialog.setup_and_check(data, title=obj_name,
-                                      readonly=readonly):
+        if not dialog.setup_and_check(data, title=obj_name, readonly=readonly):
             return
         conv_func = lambda data: PIL.Image.fromarray(data, mode=obj.mode)
-    elif (isinstance(obj, (pd.DataFrame, pd.Series)) and
-            pd.DataFrame is not FakeObject):
+    elif isinstance(obj, (pd.DataFrame, pd.Series)) and pd.DataFrame is not FakeObject:
         dialog = DataFrameEditor()
         if not dialog.setup_and_check(obj):
             return
@@ -111,7 +108,7 @@ def oedit(obj, modal=True, namespace=None, app=None):
     so it can be called directly from the interpreter)
     """
     if modal:
-        obj_name = ''
+        obj_name = ""
     else:
         assert is_text_string(obj)
         obj_name = obj
@@ -120,7 +117,7 @@ def oedit(obj, modal=True, namespace=None, app=None):
         keeper.set_namespace(namespace)
         obj = namespace[obj_name]
         # keep QApplication reference alive in the Python interpreter:
-        namespace['__qapp__'] = app
+        namespace["__qapp__"] = app
 
     result = create_dialog(obj, obj_name)
     if result is None:
@@ -133,35 +130,40 @@ def oedit(obj, modal=True, namespace=None, app=None):
     else:
         keeper.create_dialog(dialog, obj_name, end_func)
         import os
-        if os.name == 'nt' and app:
+
+        if os.name == "nt" and app:
             app.exec_()
 
 
-#==============================================================================
+# ==============================================================================
 # Tests
-#==============================================================================
+# ==============================================================================
 def test():
     """Run object editor test"""
     # Local import
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()  # analysis:ignore
 
-    data = np.random.randint(1, 256, size=(100, 100)).astype('uint8')
+    data = np.random.randint(1, 256, size=(100, 100)).astype("uint8")
     image = PIL.Image.fromarray(data)
-    example = {'str': 'kjkj kj k j j kj k jkj',
-               'list': [1, 3, 4, 'kjkj', None],
-               'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
-               'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
-               'float': 1.2233,
-               'array': np.random.rand(10, 10),
-               'image': image,
-               'date': datetime.date(1945, 5, 8),
-               'datetime': datetime.datetime(1945, 5, 8),
-               }
+    example = {
+        "str": "kjkj kj k j j kj k jkj",
+        "list": [1, 3, 4, "kjkj", None],
+        "set": {1, 2, 1, 3, None, "A", "B", "C", True, False},
+        "dict": {"d": 1, "a": np.random.rand(10, 10), "b": [1, 2]},
+        "float": 1.2233,
+        "array": np.random.rand(10, 10),
+        "image": image,
+        "date": datetime.date(1945, 5, 8),
+        "datetime": datetime.datetime(1945, 5, 8),
+    }
     image = oedit(image)
+
     class Foobar(object):
         def __init__(self):
             self.text = "toto"
+
     foobar = Foobar()
 
     print(oedit(foobar, app=app))  # spyder: test-skip

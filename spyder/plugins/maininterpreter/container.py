@@ -41,30 +41,29 @@ class MainInterpreterContainer(PluginMainContainer):
     def setup(self):
 
         self.interpreter_status = InterpreterStatus(
-            parent=self,
-            interpreter=self.get_main_interpreter()
+            parent=self, interpreter=self.get_main_interpreter()
         )
 
         self.interpreter_status.sig_open_preferences_requested.connect(
-            self.sig_open_preferences_requested)
+            self.sig_open_preferences_requested
+        )
 
     def update_actions(self):
         pass
 
-    @on_conf_change(option=['default', 'custom_interpreter', 'custom'])
+    @on_conf_change(option=["default", "custom_interpreter", "custom"])
     def on_interpreter_changed(self, option, value):
-        if ((option == 'default' and value) or
-                (option == 'custom' and not value)):
+        if (option == "default" and value) or (option == "custom" and not value):
             executable = get_python_executable()
         else:
-            executable = osp.normpath(self.get_conf('custom_interpreter'))
+            executable = osp.normpath(self.get_conf("custom_interpreter"))
             self.sig_add_to_custom_interpreters_requested.emit(executable)
 
         # Setting executable option that will be used by other plugins in Spyder.
-        if executable != self.get_conf('executable'):
-            self.set_conf('executable', executable)
+        if executable != self.get_conf("executable"):
+            self.set_conf("executable", executable)
 
-    @on_conf_change(option=['executable'])
+    @on_conf_change(option=["executable"])
     def on_executable_changed(self, value):
         # announce update
         self._update_status()
@@ -75,10 +74,9 @@ class MainInterpreterContainer(PluginMainContainer):
 
     # ---- Public API
     def get_main_interpreter(self):
-        return self.get_conf('executable', get_python_executable())
+        return self.get_conf("executable", get_python_executable())
 
     # ---- Private API
     def _update_status(self):
         """Update status widget."""
-        self.interpreter_status.update_interpreter(
-            self.get_main_interpreter())
+        self.interpreter_status.update_interpreter(self.get_main_interpreter())

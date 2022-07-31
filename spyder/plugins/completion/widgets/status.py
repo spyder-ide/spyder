@@ -21,12 +21,13 @@ from spyder.utils.qthelpers import add_actions, create_action
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class CompletionStatus(StatusBarWidget):
     """Status bar widget for displaying the current conda environment."""
-    ID = 'completion_status'
+
+    ID = "completion_status"
 
     sig_open_preferences_requested = Signal()
     """
@@ -35,10 +36,10 @@ class CompletionStatus(StatusBarWidget):
 
     def __init__(self, parent, icon=None):
         """Status bar widget for displaying the current completions status."""
-        self._tool_tip = ''
+        self._tool_tip = ""
         super().__init__(parent)
         self.main = parent
-        self.value = ''
+        self.value = ""
 
         self.menu = QMenu(self)
         self.sig_clicked.connect(self.show_menu)
@@ -51,7 +52,7 @@ class CompletionStatus(StatusBarWidget):
 
     def get_tooltip(self):
         """Override api method."""
-        return self._tool_tip if self._tool_tip else ''
+        return self._tool_tip if self._tool_tip else ""
 
     def show_menu(self):
         """Display a menu when clicking on the widget."""
@@ -65,9 +66,8 @@ class CompletionStatus(StatusBarWidget):
         )
         add_actions(menu, [change_action])
         rect = self.contentsRect()
-        os_height = 7 if os.name == 'nt' else 12
-        pos = self.mapToGlobal(
-            rect.topLeft() + QPoint(-40, -rect.height() - os_height))
+        os_height = 7 if os.name == "nt" else 12
+        pos = self.mapToGlobal(rect.topLeft() + QPoint(-40, -rect.height() - os_height))
         menu.popup(pos)
 
     def open_interpreter_preferences(self):
@@ -75,4 +75,4 @@ class CompletionStatus(StatusBarWidget):
         self.sig_open_preferences_requested.emit()
 
     def get_icon(self):
-        return self.create_icon('completions')
+        return self.create_icon("completions")

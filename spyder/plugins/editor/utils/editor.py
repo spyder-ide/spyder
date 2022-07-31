@@ -22,8 +22,13 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QTimer, Qt
-from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
-                        QTextDocument)
+from qtpy.QtGui import (
+    QColor,
+    QTextBlockUserData,
+    QTextCursor,
+    QTextBlock,
+    QTextDocument,
+)
 
 # Local imports
 from spyder.py3compat import to_text_string
@@ -45,8 +50,8 @@ def drift_color(base_color, factor=110):
     if base_color.lightness() > 128:
         return base_color.darker(factor)
     else:
-        if base_color == QColor('#000000'):
-            return drift_color(QColor('#101010'), factor + 20)
+        if base_color == QColor("#000000"):
+            return drift_color(QColor("#101010"), factor + 20)
         else:
             return base_color.lighter(factor + 10)
 
@@ -70,15 +75,14 @@ def is_block_safe(block):
 
 
 class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor, color=None, selection_start=None,
-                 selection_end=None):
+    def __init__(self, editor, color=None, selection_start=None, selection_end=None):
         QTextBlockUserData.__init__(self)
         self.editor = editor
         self.breakpoint = False
         self.breakpoint_condition = None
         self.bookmarks = []
         self.code_analysis = []
-        self.todo = ''
+        self.todo = ""
         self.color = color
         self.oedata = None
         self.import_statement = None
@@ -95,19 +99,20 @@ class BlockUserData(QTextBlockUserData):
             return None
         document = self.editor.document()
         cursor = self.editor.textCursor()
-        block = document.findBlockByNumber(self.selection_start['line'])
+        block = document.findBlockByNumber(self.selection_start["line"])
         cursor.setPosition(block.position())
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.movePosition(
-            QTextCursor.NextCharacter, n=self.selection_start['character'])
-        block2 = document.findBlockByNumber(
-            self.selection_end['line'])
+            QTextCursor.NextCharacter, n=self.selection_start["character"]
+        )
+        block2 = document.findBlockByNumber(self.selection_end["line"])
         cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
+        cursor.movePosition(QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
         cursor.movePosition(
-            QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
-        cursor.movePosition(
-            QTextCursor.NextCharacter, n=self.selection_end['character'],
-            mode=QTextCursor.KeepAnchor)
+            QTextCursor.NextCharacter,
+            n=self.selection_end["character"],
+            mode=QTextCursor.KeepAnchor,
+        )
         return QTextCursor(cursor)
 
 
@@ -122,6 +127,7 @@ class DelayJobRunner(object):
 
     A job is a simple callable.
     """
+
     def __init__(self, delay=500):
         """
         :param delay: Delay to wait before running the job. This delay applies
@@ -180,6 +186,7 @@ class TextHelper(object):
     FIXME: Some of this methods are already implemented in CodeEditor, move
     and unify redundant methods.
     """
+
     @property
     def _editor(self):
         try:
@@ -194,7 +201,7 @@ class TextHelper(object):
         except TypeError:
             self._editor_ref = editor
 
-    def goto_line(self, line, column=0, end_column=0, move=True, word=''):
+    def goto_line(self, line, column=0, end_column=0, move=True, word=""):
         """
         Moves the text cursor to the specified position.
 
@@ -209,11 +216,11 @@ class TextHelper(object):
         line = min(line, self.line_count())
         text_cursor = self._move_cursor_to(line)
         if column:
-            text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
-                                     column)
+            text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor, column)
         if end_column:
-            text_cursor.movePosition(text_cursor.Right, text_cursor.KeepAnchor,
-                                     end_column)
+            text_cursor.movePosition(
+                text_cursor.Right, text_cursor.KeepAnchor, end_column
+            )
         if move:
             block = text_cursor.block()
             self.unfold_if_colapsed(text_cursor)
@@ -222,8 +229,7 @@ class TextHelper(object):
             if self._editor.isVisible():
                 self._editor.centerCursor()
             else:
-                self._editor.focus_in.connect(
-                    self._editor.center_cursor_on_next_focus)
+                self._editor.focus_in.connect(self._editor.center_cursor_on_next_focus)
             if word and to_text_string(word) in to_text_string(block.text()):
                 self._editor.find(word, QTextDocument.FindCaseSensitively)
         return text_cursor
@@ -235,7 +241,7 @@ class TextHelper(object):
         """
         block = cursor.block()
         try:
-            folding_panel = self._editor.panels.get('FoldingPanel')
+            folding_panel = self._editor.panels.get("FoldingPanel")
         except KeyError:
             pass
         else:
@@ -245,15 +251,15 @@ class TextHelper(object):
             fold_start_line = block.blockNumber()
 
             # Find the innermost code folding region for the current position
-            enclosing_regions = sorted(list(
-                folding_panel.current_tree[fold_start_line]))
+            enclosing_regions = sorted(
+                list(folding_panel.current_tree[fold_start_line])
+            )
 
             folding_status = folding_panel.folding_status
             if len(enclosing_regions) > 0:
                 for region in enclosing_regions:
                     fold_start_line = region.begin
-                    block = self._editor.document().findBlockByNumber(
-                        fold_start_line)
+                    block = self._editor.document().findBlockByNumber(fold_start_line)
                     if fold_start_line in folding_status:
                         fold_status = folding_status[fold_start_line]
                         if fold_status:
@@ -293,15 +299,16 @@ class TextHelper(object):
         end_pos = start_pos = text_cursor.position()
         # select char by char until we are at the original cursor position.
         while not text_cursor.atStart():
-            text_cursor.movePosition(
-                text_cursor.Left, text_cursor.KeepAnchor, 1)
+            text_cursor.movePosition(text_cursor.Left, text_cursor.KeepAnchor, 1)
             try:
                 char = text_cursor.selectedText()[0]
                 word_separators = editor.word_separators
                 selected_txt = text_cursor.selectedText()
-                if (selected_txt in word_separators and
-                        (selected_txt != "n" and selected_txt != "t") or
-                        char.isspace()):
+                if (
+                    selected_txt in word_separators
+                    and (selected_txt != "n" and selected_txt != "t")
+                    or char.isspace()
+                ):
                     break  # start boundary found
             except IndexError:
                 break  # nothing selectable
@@ -311,13 +318,14 @@ class TextHelper(object):
             # select the resot of the word
             text_cursor.setPosition(end_pos)
             while not text_cursor.atEnd():
-                text_cursor.movePosition(text_cursor.Right,
-                                         text_cursor.KeepAnchor, 1)
+                text_cursor.movePosition(text_cursor.Right, text_cursor.KeepAnchor, 1)
                 char = text_cursor.selectedText()[0]
                 selected_txt = text_cursor.selectedText()
-                if (selected_txt in word_separators and
-                        (selected_txt != "n" and selected_txt != "t") or
-                        char.isspace()):
+                if (
+                    selected_txt in word_separators
+                    and (selected_txt != "n" and selected_txt != "t")
+                    or char.isspace()
+                ):
                     break  # end boundary found
                 end_pos = text_cursor.position()
                 text_cursor.setPosition(end_pos)
@@ -344,8 +352,10 @@ class TextHelper(object):
 
         :return: tuple(line, column)
         """
-        return (self._editor.textCursor().blockNumber(),
-                self._editor.textCursor().columnNumber())
+        return (
+            self._editor.textCursor().blockNumber(),
+            self._editor.textCursor().columnNumber(),
+        )
 
     def current_line_nbr(self):
         """
@@ -391,7 +401,7 @@ class TextHelper(object):
         """
         if self.current_line_nbr():
             return self.line_text(self.current_line_nbr() - 1)
-        return ''
+        return ""
 
     def current_line_text(self):
         """
@@ -427,7 +437,7 @@ class TextHelper(object):
 
     def _move_cursor_to(self, line):
         cursor = self._editor.textCursor()
-        block = self._editor.document().findBlockByNumber(line-1)
+        block = self._editor.document().findBlockByNumber(line - 1)
         cursor.setPosition(block.position())
         return cursor
 
@@ -455,21 +465,19 @@ class TextHelper(object):
             start = 0
         text_cursor = self._move_cursor_to(start)
         if end > start:  # Going down
-            text_cursor.movePosition(text_cursor.Down,
-                                     text_cursor.KeepAnchor, end - start)
-            text_cursor.movePosition(text_cursor.EndOfLine,
-                                     text_cursor.KeepAnchor)
+            text_cursor.movePosition(
+                text_cursor.Down, text_cursor.KeepAnchor, end - start
+            )
+            text_cursor.movePosition(text_cursor.EndOfLine, text_cursor.KeepAnchor)
         elif end < start:  # going up
             # don't miss end of line !
-            text_cursor.movePosition(text_cursor.EndOfLine,
-                                     text_cursor.MoveAnchor)
-            text_cursor.movePosition(text_cursor.Up,
-                                     text_cursor.KeepAnchor, start - end)
-            text_cursor.movePosition(text_cursor.StartOfLine,
-                                     text_cursor.KeepAnchor)
+            text_cursor.movePosition(text_cursor.EndOfLine, text_cursor.MoveAnchor)
+            text_cursor.movePosition(
+                text_cursor.Up, text_cursor.KeepAnchor, start - end
+            )
+            text_cursor.movePosition(text_cursor.StartOfLine, text_cursor.KeepAnchor)
         else:
-            text_cursor.movePosition(text_cursor.EndOfLine,
-                                     text_cursor.KeepAnchor)
+            text_cursor.movePosition(text_cursor.EndOfLine, text_cursor.KeepAnchor)
         if apply_selection:
             editor.setTextCursor(text_cursor)
         return text_cursor
@@ -486,13 +494,19 @@ class TextHelper(object):
         editor = self._editor
         block = editor.document().findBlockByNumber(line_number)
         if block.isValid():
-            return int(editor.blockBoundingGeometry(block).translated(
-                editor.contentOffset()).top())
+            return int(
+                editor.blockBoundingGeometry(block)
+                .translated(editor.contentOffset())
+                .top()
+            )
         if line_number <= 0:
             return 0
         else:
-            return int(editor.blockBoundingGeometry(
-                block.previous()).translated(editor.contentOffset()).bottom())
+            return int(
+                editor.blockBoundingGeometry(block.previous())
+                .translated(editor.contentOffset())
+                .bottom()
+            )
 
     def line_nbr_from_position(self, y_pos):
         """
@@ -514,8 +528,9 @@ class TextHelper(object):
         """
         text_cursor = self._editor.textCursor()
         text_cursor.select(text_cursor.Document)
-        self._editor.document().markContentsDirty(text_cursor.selectionStart(),
-                                                  text_cursor.selectionEnd())
+        self._editor.document().markContentsDirty(
+            text_cursor.selectionStart(), text_cursor.selectionEnd()
+        )
 
     def insert_text(self, text, keep_position=True):
         """
@@ -547,6 +562,7 @@ class TextHelper(object):
         :rtype: tuple([], int)
 
         """
+
         def compare_cursors(cursor_a, cursor_b):
             """
             Compares two QTextCursor.
@@ -557,8 +573,10 @@ class TextHelper(object):
             :returns; True if both cursor are identical (same position, same
                 selection)
             """
-            return (cursor_b.selectionStart() >= cursor_a.selectionStart() and
-                    cursor_b.selectionEnd() <= cursor_a.selectionEnd())
+            return (
+                cursor_b.selectionStart() >= cursor_a.selectionStart()
+                and cursor_b.selectionEnd() <= cursor_a.selectionEnd()
+            )
 
         text_document = self._editor.document()
         occurrences = []
@@ -568,8 +586,7 @@ class TextHelper(object):
         while not cursor.isNull():
             if compare_cursors(cursor, original_cursor):
                 index = len(occurrences)
-            occurrences.append((cursor.selectionStart(),
-                                cursor.selectionEnd()))
+            occurrences.append((cursor.selectionStart(), cursor.selectionEnd()))
             cursor.setPosition(cursor.position() + 1)
             cursor = text_document.find(search_txt, cursor, search_flags)
         return occurrences, index
@@ -601,10 +618,8 @@ class TextHelper(object):
                 for r in additional_formats:
                     if r.start <= pos < (r.start + r.length):
                         for fmt_type in formats:
-                            is_user_obj = (r.format.objectType() ==
-                                           r.format.UserObject)
-                            if (ref_formats[fmt_type] == r.format and
-                                    is_user_obj):
+                            is_user_obj = r.format.objectType() == r.format.UserObject
+                            if ref_formats[fmt_type] == r.format and is_user_obj:
                                 return True
         return False
 
@@ -633,6 +648,7 @@ class TextBlockHelper(object):
         - bit27: 1 bit for the fold trigger state (expanded/collapsed)
 
     """
+
     @staticmethod
     def get_state(block):
         """
@@ -756,7 +772,7 @@ class TextBlockHelper(object):
 def get_file_language(filename, text=None):
     """Get file language from filename"""
     ext = osp.splitext(filename)[1]
-    if ext.startswith('.'):
+    if ext.startswith("."):
         ext = ext[1:]  # file extension with leading dot
     language = ext
     if not ext:
@@ -765,10 +781,10 @@ def get_file_language(filename, text=None):
         for line in text.splitlines():
             if not line.strip():
                 continue
-            if line.startswith('#!'):
+            if line.startswith("#!"):
                 shebang = line[2:]
-                if 'python' in shebang:
-                    language = 'python'
+                if "python" in shebang:
+                    language = "python"
             else:
                 break
     return language

@@ -16,19 +16,21 @@ from spyder.config.manager import CONF
 from spyder.plugins.completion.api import SERVER_CAPABILITES
 from spyder.plugins.completion.tests.conftest import qtbot_module
 from spyder.plugins.completion.providers.languageserver.provider import (
-    LanguageServerProvider)
+    LanguageServerProvider,
+)
 
 
 class CompletionPluginMock(QObject, MagicMock):
     """Mock for the completion plugin."""
-    CONF_SECTION = 'completions'
+
+    CONF_SECTION = "completions"
 
     def __init__(self, conf):
         super().__init__()
         self.conf = conf
 
     def get_conf(self, option, default=None, section=None):
-        if section == 'completions':
+        if section == "completions":
             option = option[-1]
             return self.conf.get(option, default)
         else:
@@ -36,34 +38,34 @@ class CompletionPluginMock(QObject, MagicMock):
 
 
 def lsp_context(is_stdio):
-    @pytest.fixture(scope='module')
+    @pytest.fixture(scope="module")
     def wrapper(qtbot_module, request):
         # Activate pycodestyle and pydocstyle
         conf = dict(LanguageServerProvider.CONF_DEFAULTS)
-        conf['pycodestyle'] = True
-        conf['pydocstyle'] = True
-        conf['stdio'] = is_stdio
+        conf["pycodestyle"] = True
+        conf["pydocstyle"] = True
+        conf["stdio"] = is_stdio
 
         # Create the manager
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+        os.environ["SPY_TEST_USE_INTROSPECTION"] = "True"
         provider = LanguageServerProvider(CompletionPluginMock(conf), conf)
 
         # Wait for the client to be started
         with qtbot_module.waitSignal(
-                provider.sig_language_completions_available,
-                timeout=30000) as block:
-            provider.start_completion_services_for_language('python')
+            provider.sig_language_completions_available, timeout=30000
+        ) as block:
+            provider.start_completion_services_for_language("python")
 
         capabilities, _ = block.args
-        assert all(
-            [option in SERVER_CAPABILITES for option in capabilities.keys()])
+        assert all([option in SERVER_CAPABILITES for option in capabilities.keys()])
 
         def teardown():
             provider.shutdown()
-            os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+            os.environ["SPY_TEST_USE_INTROSPECTION"] = "False"
 
         request.addfinalizer(teardown)
         return provider
+
     return wrapper
 
 

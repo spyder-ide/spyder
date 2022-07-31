@@ -74,7 +74,7 @@ class TrieNode:
 
 class Trie(TrieNode):
     def __init__(self):
-        super().__init__('')
+        super().__init__("")
         self.sequences = []
 
     def __getitem__(self, sequence):

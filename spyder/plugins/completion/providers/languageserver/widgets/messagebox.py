@@ -35,7 +35,7 @@ class ServerDisabledMessageBox(MessageCheckBox):
 
     def exec_(self):
         answer = super().exec_()
-        self.set_conf('show_lsp_down_warning', not self.is_checked())
+        self.set_conf("show_lsp_down_warning", not self.is_checked())
         if answer == QMessageBox.Yes:
             self.sig_restart_spyder.emit()
 
@@ -43,4 +43,5 @@ class ServerDisabledMessageBox(MessageCheckBox):
     def instance(cls, warn_str, set_conf):
         def wrapper(parent):
             return cls(parent, warn_str, set_conf)
+
         return wrapper

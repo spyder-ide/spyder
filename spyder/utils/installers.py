@@ -16,7 +16,7 @@ from spyder.config.base import get_conf_path
 
 def running_installer_test():
     """Return True if currently running installer test"""
-    return bool(int(os.environ.get('INSTALLER_TEST', '0')))
+    return bool(int(os.environ.get("INSTALLER_TEST", "0")))
 
 
 class SpyderInstallerError(object):
@@ -24,8 +24,10 @@ class SpyderInstallerError(object):
     Base class for installer error; do not use directly.
     Exit Spyder with code 1.
     """
-    logger = logging.getLogger('Installer')
+
+    logger = logging.getLogger("Installer")
     logger.setLevel(logging.DEBUG)
+
     def __init__(self, msg):
         if not running_installer_test():
             # Don't do anything
@@ -33,7 +35,7 @@ class SpyderInstallerError(object):
 
         msg = self._msg(msg)
 
-        self.logger.error(msg + '\n', stack_info=True)
+        self.logger.error(msg + "\n", stack_info=True)
 
         raise SystemExit(1)
 
@@ -43,41 +45,45 @@ class SpyderInstallerError(object):
 
 class InstallerMissingDependencies(SpyderInstallerError):
     """Error for missing dependencies"""
+
     def _msg(self, msg):
-        msg = msg.replace('<br>', '\n')
-        msg = 'Missing dependencies' + textwrap.indent(msg, '  ')
+        msg = msg.replace("<br>", "\n")
+        msg = "Missing dependencies" + textwrap.indent(msg, "  ")
 
         return msg
 
 
 class InstallerIPythonKernelError(SpyderInstallerError):
     """Error for IPython kernel issues"""
+
     def _msg(self, msg):
-        msg = msg.replace('<tt>', '').replace('</tt>', '')
-        msg = 'IPython kernel error\n' + textwrap.indent(msg, '  ')
+        msg = msg.replace("<tt>", "").replace("</tt>", "")
+        msg = "IPython kernel error\n" + textwrap.indent(msg, "  ")
 
         return msg
 
 
 class InstallerInternalError(SpyderInstallerError):
     """Error for internal issues"""
+
     def _msg(self, msg):
-        msg = 'Spyder internal error\n' + textwrap.indent(msg, '  ')
+        msg = "Spyder internal error\n" + textwrap.indent(msg, "  ")
 
         return msg
 
 
 class InstallerPylspError(SpyderInstallerError):
     """Error for PyLSP issues"""
+
     def _msg(self, msg):
 
-        files = glob.glob(os.path.join(get_conf_path('lsp_logs'), '*.log'))
-        cat = ''
+        files = glob.glob(os.path.join(get_conf_path("lsp_logs"), "*.log"))
+        cat = ""
         for file in files:
-            cat += f'{file}\n'
-            with open(file, 'r') as f:
-                cat += textwrap.indent(f.read(), '  ')
+            cat += f"{file}\n"
+            with open(file, "r") as f:
+                cat += textwrap.indent(f.read(), "  ")
 
-        msg = f'PyLSP Error: {msg}\n' + textwrap.indent(cat, '  ')
+        msg = f"PyLSP Error: {msg}\n" + textwrap.indent(cat, "  ")
 
         return msg

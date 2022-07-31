@@ -18,7 +18,12 @@ import weakref
 # Local imports
 from spyder.api.utils import PrefixedTuple
 from spyder.config.base import (
-    _, get_conf_paths, get_conf_path, get_home_dir, reset_config_files)
+    _,
+    get_conf_paths,
+    get_conf_path,
+    get_home_dir,
+    reset_config_files,
+)
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.types import ConfigurationKey, ConfigurationObserver
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault, cp
@@ -28,10 +33,10 @@ from spyder.utils.programs import check_version
 logger = logging.getLogger(__name__)
 
 EXTRA_VALID_SHORTCUT_CONTEXTS = [
-    '_',
-    'array_builder',
-    'console',
-    'find_replace',
+    "_",
+    "array_builder",
+    "console",
+    "find_replace",
 ]
 
 
@@ -40,8 +45,7 @@ class ConfigurationManager(object):
     Configuration manager to provide access to user/site/project config.
     """
 
-    def __init__(self, parent=None, active_project_callback=None,
-                 conf_path=None):
+    def __init__(self, parent=None, active_project_callback=None, conf_path=None):
         """
         Configuration manager to provide access to user/site/project config.
         """
@@ -54,10 +58,10 @@ class ConfigurationManager(object):
         conf_paths = get_conf_paths()
         site_defaults = DEFAULTS
         for conf_path in reversed(conf_paths):
-            conf_fpath = os.path.join(conf_path, 'spyder.ini')
+            conf_fpath = os.path.join(conf_path, "spyder.ini")
             if os.path.isfile(conf_fpath):
                 site_config = UserConfig(
-                    'spyder',
+                    "spyder",
                     path=conf_path,
                     defaults=site_defaults,
                     load=False,
@@ -83,8 +87,7 @@ class ConfigurationManager(object):
 
         # This is useful to know in order to execute certain operations when
         # bumping CONF_VERSION
-        self.old_spyder_version = (
-            self._user_config._configs_map['spyder']._old_version)
+        self.old_spyder_version = self._user_config._configs_map["spyder"]._old_version
 
         # Store plugin configurations when CONF_FILE = True
         self._plugin_configs = {}
@@ -121,14 +124,15 @@ class ConfigurationManager(object):
         if plugin_class.CONF_FILE and conf_section:
             path = self.get_plugin_config_path(conf_section)
             version = plugin_class.CONF_VERSION
-            version = version if version else '0.0.0'
+            version = version if version else "0.0.0"
             name_map = plugin_class._CONF_NAME_MAP
-            name_map = name_map if name_map else {'spyder': []}
+            name_map = name_map if name_map else {"spyder": []}
             defaults = plugin_class.CONF_DEFAULTS
 
             if conf_section in self._plugin_configs:
-                raise RuntimeError('A plugin with section "{}" already '
-                                   'exists!'.format(conf_section))
+                raise RuntimeError(
+                    'A plugin with section "{}" already ' "exists!".format(conf_section)
+                )
 
             plugin_config = MultiUserConfig(
                 name_map,
@@ -139,12 +143,12 @@ class ConfigurationManager(object):
                 backup=True,
                 raw_mode=True,
                 remove_obsolete=False,
-                external_plugin=True
+                external_plugin=True,
             )
 
             # Recreate external plugin configs to deal with part two
             # (the shortcut conflicts) of spyder-ide/spyder#11132
-            if check_version(self.old_spyder_version, '54.0.0', '<'):
+            if check_version(self.old_spyder_version, "54.0.0", "<"):
                 # Remove all previous .ini files
                 try:
                     plugin_config.cleanup()
@@ -161,14 +165,14 @@ class ConfigurationManager(object):
                     backup=True,
                     raw_mode=True,
                     remove_obsolete=False,
-                    external_plugin=True
+                    external_plugin=True,
                 )
 
             self._plugin_configs[conf_section] = (plugin_class, plugin_config)
 
     def remove_deprecated_config_locations(self):
         """Removing old .spyder.ini location."""
-        old_location = osp.join(get_home_dir(), '.spyder.ini')
+        old_location = osp.join(get_home_dir(), ".spyder.ini")
         if osp.isfile(old_location):
             os.remove(old_location)
 
@@ -190,7 +194,7 @@ class ConfigurationManager(object):
     def get_user_config_path(self):
         """Return the user configuration path."""
         base_path = get_conf_path()
-        path = osp.join(base_path, 'config')
+        path = osp.join(base_path, "config")
         if not osp.isdir(path):
             os.makedirs(path)
 
@@ -199,10 +203,10 @@ class ConfigurationManager(object):
     def get_plugin_config_path(self, plugin_folder):
         """Return the plugin configuration path."""
         base_path = get_conf_path()
-        path = osp.join(base_path, 'plugins')
+        path = osp.join(base_path, "plugins")
         if plugin_folder is None:
-            raise RuntimeError('Plugin needs to define `CONF_SECTION`!')
-        path = osp.join(base_path, 'plugins', plugin_folder)
+            raise RuntimeError("Plugin needs to define `CONF_SECTION`!")
+        path = osp.join(base_path, "plugins", plugin_folder)
         if not osp.isdir(path):
             os.makedirs(path)
 
@@ -210,10 +214,12 @@ class ConfigurationManager(object):
 
     # --- Observer pattern
     # ------------------------------------------------------------------------
-    def observe_configuration(self,
-                              observer: ConfigurationObserver,
-                              section: str,
-                              option: Optional[ConfigurationKey] = None):
+    def observe_configuration(
+        self,
+        observer: ConfigurationObserver,
+        section: str,
+        option: Optional[ConfigurationKey] = None,
+    ):
         """
         Register an `observer` object to listen for changes in the option
         `option` on the configuration `section`.
@@ -232,7 +238,7 @@ class ConfigurationManager(object):
             section.
         """
         section_sets = self._observers.get(section, {})
-        option = option if option is not None else '__section'
+        option = option if option is not None else "__section"
 
         option_set = section_sets.get(option, weakref.WeakSet())
         option_set |= {observer}
@@ -247,10 +253,12 @@ class ConfigurationManager(object):
         observer_section_sets[section] = section_set
         self._observer_map_keys[observer] = observer_section_sets
 
-    def unobserve_configuration(self,
-                                observer: ConfigurationObserver,
-                                section: Optional[str] = None,
-                                option: Optional[ConfigurationKey] = None):
+    def unobserve_configuration(
+        self,
+        observer: ConfigurationObserver,
+        section: Optional[str] = None,
+        option: Optional[ConfigurationKey] = None,
+    ):
         """
         Remove an observer to prevent it to receive further changes
         on the values of the option `option` of the configuration section
@@ -301,10 +309,12 @@ class ConfigurationManager(object):
         for section in self._observers:
             self.notify_section_all_observers(section)
 
-    def notify_observers(self,
-                         section: str,
-                         option: ConfigurationKey,
-                         recursive_notification: bool = True):
+    def notify_observers(
+        self,
+        section: str,
+        option: ConfigurationKey,
+        recursive_notification: bool = True,
+    ):
         """
         Notify observers of a change in the option `option` of configuration
         section `section`.
@@ -341,19 +351,20 @@ class ConfigurationManager(object):
                 self._notify_option(section, tuple_option, value)
                 option_list.pop(-1)
         else:
-            if option == '__section':
+            if option == "__section":
                 self._notify_section(section)
             else:
                 value = self.get(section, option)
                 self._notify_option(section, option, value)
 
-    def _notify_option(self, section: str, option: ConfigurationKey,
-                       value: Any):
+    def _notify_option(self, section: str, option: ConfigurationKey, value: Any):
         section_observers = self._observers.get(section, {})
         option_observers = section_observers.get(option, set({}))
         if len(option_observers) > 0:
-            logger.debug('Sending notification to observers of '
-                         f'{option} in configuration section {section}')
+            logger.debug(
+                "Sending notification to observers of "
+                f"{option} in configuration section {section}"
+            )
         for observer in list(option_observers):
             try:
                 observer.on_configuration_change(option, section, value)
@@ -363,14 +374,14 @@ class ConfigurationManager(object):
 
     def _notify_section(self, section: str):
         section_values = dict(self.items(section) or [])
-        self._notify_option(section, '__section', section_values)
+        self._notify_option(section, "__section", section_values)
 
     def notify_section_all_observers(self, section: str):
         """Notify all the observers subscribed to any option of a section."""
         option_observers = self._observers[section]
         section_prefix = PrefixedTuple()
         # Notify section observers
-        CONF.notify_observers(section, '__section')
+        CONF.notify_observers(section, "__section")
         for option in option_observers:
             if isinstance(option, tuple):
                 section_prefix.add_path(option)
@@ -416,7 +427,7 @@ class ConfigurationManager(object):
 
     def get_project_config_path(self, project_root):
         """Return the project configuration path."""
-        path = osp.join(project_root, '.spyproj', 'config')
+        path = osp.join(project_root, ".spyproj", "config")
         if not osp.isdir(path):
             os.makedirs(path)
 
@@ -447,8 +458,7 @@ class ConfigurationManager(object):
             intermediate_options = option[1:-1]
             last_option = option[-1]
 
-            base_conf = config.get(
-                section=section, option=base_option, default={})
+            base_conf = config.get(section=section, option=base_option, default={})
             next_ptr = base_conf
             for opt in intermediate_options:
                 next_ptr = next_ptr.get(opt, {})
@@ -462,8 +472,16 @@ class ConfigurationManager(object):
             value = config.get(section=section, option=option, default=default)
         return value
 
-    def set(self, section, option, value, verbose=False, save=True,
-            recursive_notification=True, notification=True):
+    def set(
+        self,
+        section,
+        option,
+        value,
+        verbose=False,
+        save=True,
+        recursive_notification=True,
+        notification=True,
+    ):
         """
         Set an `option` on a given `section`.
 
@@ -487,11 +505,11 @@ class ConfigurationManager(object):
             option = base_option
 
         config = self.get_active_conf(section)
-        config.set(section=section, option=option, value=value,
-                   verbose=verbose, save=save)
+        config.set(
+            section=section, option=option, value=value, verbose=verbose, save=save
+        )
         if notification:
-            self.notify_observers(
-                section, original_option, recursive_notification)
+            self.notify_observers(section, original_option, recursive_notification)
 
     def get_default(self, section, option):
         """
@@ -572,12 +590,12 @@ class ConfigurationManager(object):
             if not plugin_class.CONF_FILE:
                 config = self._user_config
 
-        elif context in (self._user_config.sections()
-                         + EXTRA_VALID_SHORTCUT_CONTEXTS):
+        elif context in (self._user_config.sections() + EXTRA_VALID_SHORTCUT_CONTEXTS):
             config = self._user_config
         else:
-            raise ValueError(_("Shortcut context must match '_' or the "
-                               "plugin `CONF_SECTION`!"))
+            raise ValueError(
+                _("Shortcut context must match '_' or the " "plugin `CONF_SECTION`!")
+            )
 
         return config
 
@@ -588,7 +606,7 @@ class ConfigurationManager(object):
         Context must be either '_' for global or the name of a plugin.
         """
         config = self._get_shortcut_config(context, plugin_name)
-        return config.get('shortcuts', context + '/' + name.lower())
+        return config.get("shortcuts", context + "/" + name.lower())
 
     def set_shortcut(self, context, name, keystr, plugin_name=None):
         """
@@ -597,7 +615,7 @@ class ConfigurationManager(object):
         Context must be either '_' for global or the name of a plugin.
         """
         config = self._get_shortcut_config(context, plugin_name)
-        config.set('shortcuts', context + '/' + name, keystr)
+        config.set("shortcuts", context + "/" + name, keystr)
 
     def config_shortcut(self, action, context, name, parent):
         """
@@ -615,27 +633,27 @@ class ConfigurationManager(object):
 
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
-        for context_name, keystr in self._user_config.items('shortcuts'):
-            if context_name == 'enable':
+        for context_name, keystr in self._user_config.items("shortcuts"):
+            if context_name == "enable":
                 continue
 
-            if 'additional_configuration' not in context_name:
-                context, name = context_name.split('/', 1)
+            if "additional_configuration" not in context_name:
+                context, name = context_name.split("/", 1)
                 yield context, name, keystr
 
         for _, (_, plugin_config) in self._plugin_configs.items():
-            items = plugin_config.items('shortcuts')
+            items = plugin_config.items("shortcuts")
             if items:
                 for context_name, keystr in items:
-                    context, name = context_name.split('/', 1)
+                    context, name = context_name.split("/", 1)
                     yield context, name, keystr
 
     def reset_shortcuts(self):
         """Reset keyboard shortcuts to default values."""
-        self._user_config.reset_to_defaults(section='shortcuts')
+        self._user_config.reset_to_defaults(section="shortcuts")
         for _, (_, plugin_config) in self._plugin_configs.items():
             # TODO: check if the section exists?
-            plugin_config.reset_to_defaults(section='shortcuts')
+            plugin_config.reset_to_defaults(section="shortcuts")
 
 
 try:
@@ -652,18 +670,23 @@ except Exception:
     # fallback fail.
     # See issue spyder-ide/spyder#17889
     if app is None:
-        app = QApplication(['Spyder'])
-        app.setApplicationName('Spyder')
+        app = QApplication(["Spyder"])
+        app.setApplicationName("Spyder")
 
     reset_reply = QMessageBox.critical(
-        None, 'Spyder',
-        _("There was an error while loading Spyder configuration options. "
-          "You need to reset them for Spyder to be able to launch.\n\n"
-          "Do you want to proceed?"),
-        QMessageBox.Yes, QMessageBox.No)
+        None,
+        "Spyder",
+        _(
+            "There was an error while loading Spyder configuration options. "
+            "You need to reset them for Spyder to be able to launch.\n\n"
+            "Do you want to proceed?"
+        ),
+        QMessageBox.Yes,
+        QMessageBox.No,
+    )
     if reset_reply == QMessageBox.Yes:
         reset_config_files()
         QMessageBox.information(
-            None, 'Spyder',
-            _("Spyder configuration files resetted!"))
+            None, "Spyder", _("Spyder configuration files resetted!")
+        )
     os._exit(0)

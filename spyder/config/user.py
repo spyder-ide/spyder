@@ -66,27 +66,27 @@ class DefaultsConfig(cp.ConfigParser, object):
         The one from configparser fails for non-ascii Windows accounts.
         """
         if self._defaults:
-            fp.write('[{}]\n'.format(cp.DEFAULTSECT))
+            fp.write("[{}]\n".format(cp.DEFAULTSECT))
             for (key, value) in self._defaults.items():
-                value_plus_end_of_line = str(value).replace('\n', '\n\t')
-                fp.write('{} = {}\n'.format(key, value_plus_end_of_line))
+                value_plus_end_of_line = str(value).replace("\n", "\n\t")
+                fp.write("{} = {}\n".format(key, value_plus_end_of_line))
 
-            fp.write('\n')
+            fp.write("\n")
 
         for section in self._sections:
-            fp.write('[{}]\n'.format(section))
+            fp.write("[{}]\n".format(section))
             for (key, value) in self._sections[section].items():
-                if key == '__name__':
+                if key == "__name__":
                     continue
 
                 if (value is not None) or (self._optcre == self.OPTCRE):
                     value = to_text_string(value)
-                    value_plus_end_of_line = value.replace('\n', '\n\t')
-                    key = ' = '.join((key, value_plus_end_of_line))
+                    value_plus_end_of_line = value.replace("\n", "\n\t")
+                    key = " = ".join((key, value_plus_end_of_line))
 
-                fp.write('{}\n'.format(key))
+                fp.write("{}\n".format(key))
 
-            fp.write('\n')
+            fp.write("\n")
 
     def _set(self, section, option, value, verbose):
         """Set method."""
@@ -97,7 +97,7 @@ class DefaultsConfig(cp.ConfigParser, object):
             value = repr(value)
 
         if verbose:
-            text = '[{}][{}] = {}'.format(section, option, value)
+            text = "[{}][{}] = {}".format(section, option, value)
             print(text)  # spyder: test-skip
 
         super(DefaultsConfig, self).set(section, option, value)
@@ -107,7 +107,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         fpath = self.get_config_fpath()
 
         def _write_file(fpath):
-            with io.open(fpath, 'w', encoding='utf-8') as configfile:
+            with io.open(fpath, "w", encoding="utf-8") as configfile:
                 if PY2:
                     self._write(configfile)
                 else:
@@ -127,14 +127,16 @@ class DefaultsConfig(cp.ConfigParser, object):
                 time.sleep(0.05)
                 _write_file(fpath)
             except Exception as e:
-                print('Failed to write user configuration file to disk, with '
-                      'the exception shown below')  # spyder: test-skip
+                print(
+                    "Failed to write user configuration file to disk, with "
+                    "the exception shown below"
+                )  # spyder: test-skip
                 print(e)  # spyder: test-skip
 
     def get_config_fpath(self):
         """Return the ini file where this configuration is stored."""
         path = self._path
-        config_file = osp.join(path, '{}.ini'.format(self._name))
+        config_file = osp.join(path, "{}.ini".format(self._name))
         return config_file
 
     def set_defaults(self, defaults):
@@ -179,11 +181,21 @@ class UserConfig(DefaultsConfig):
     The 'get' and 'set' arguments number and type differ from the overriden
     methods. 'defaults' is an attribute and not a method.
     """
-    DEFAULT_SECTION_NAME = 'main'
 
-    def __init__(self, name, path, defaults=None, load=True, version=None,
-                 backup=False, raw_mode=False, remove_obsolete=False,
-                 external_plugin=False):
+    DEFAULT_SECTION_NAME = "main"
+
+    def __init__(
+        self,
+        name,
+        path,
+        defaults=None,
+        load=True,
+        version=None,
+        backup=False,
+        raw_mode=False,
+        remove_obsolete=False,
+        external_plugin=False,
+    ):
         """UserConfig class, based on ConfigParser."""
         super(UserConfig, self).__init__(name=name, path=path)
 
@@ -194,11 +206,11 @@ class UserConfig(DefaultsConfig):
         self._remove_obsolete = remove_obsolete
         self._external_plugin = external_plugin
 
-        self._module_source_path = get_module_source_path('spyder')
-        self._defaults_folder = 'defaults'
-        self._backup_folder = 'backups'
-        self._backup_suffix = '.bak'
-        self._defaults_name_prefix = 'defaults'
+        self._module_source_path = get_module_source_path("spyder")
+        self._defaults_folder = "defaults"
+        self._backup_folder = "backups"
+        self._backup_suffix = ".bak"
+        self._defaults_name_prefix = "defaults"
 
         # This attribute is overriding a method from cp.ConfigParser
         self.defaults = self._check_defaults(defaults)
@@ -217,8 +229,7 @@ class UserConfig(DefaultsConfig):
             self._save_new_defaults(self.defaults)
 
             # Updating defaults only if major/minor version is different
-            if (self._get_minor_version(version)
-                    != self._get_minor_version(old_version)):
+            if self._get_minor_version(version) != self._get_minor_version(old_version):
 
                 if backup:
                     self._make_backup(version=old_version)
@@ -241,20 +252,22 @@ class UserConfig(DefaultsConfig):
     @staticmethod
     def _get_minor_version(version):
         """Return the 'major.minor' components of the version."""
-        return version[:version.rfind('.')]
+        return version[: version.rfind(".")]
 
     @staticmethod
     def _get_major_version(version):
         """Return the 'major' component of the version."""
-        return version[:version.find('.')]
+        return version[: version.find(".")]
 
     @staticmethod
     def _check_version(version):
         """Check version is compliant with format."""
-        regex_check = re.match(r'^(\d+).(\d+).(\d+)$', version)
+        regex_check = re.match(r"^(\d+).(\d+).(\d+)$", version)
         if version is not None and regex_check is None:
-            raise ValueError('Version number {} is incorrect - must be in '
-                             'major.minor.micro format'.format(version))
+            raise ValueError(
+                "Version number {} is incorrect - must be in "
+                "major.minor.micro format".format(version)
+            )
 
         return version
 
@@ -272,7 +285,7 @@ class UserConfig(DefaultsConfig):
                 for opt, _ in options.items():
                     assert is_text_string(opt)
         else:
-            raise ValueError('`defaults` must be a dict or a list of tuples!')
+            raise ValueError("`defaults` must be a dict or a list of tuples!")
 
         # This attribute is overriding a method from cp.ConfigParser
         self.defaults = defaults
@@ -305,7 +318,8 @@ class UserConfig(DefaultsConfig):
         """
         fpath = self.get_config_fpath()
         fpath_backup = self.get_backup_fpath_from_version(
-            version=version, old_version=old_version)
+            version=version, old_version=old_version
+        )
         path = os.path.dirname(fpath_backup)
 
         if not osp.isdir(path):
@@ -323,23 +337,23 @@ class UserConfig(DefaultsConfig):
                 # Python 2
                 if osp.isfile(fpath):
                     try:
-                        with io.open(fpath, encoding='utf-8') as configfile:
+                        with io.open(fpath, encoding="utf-8") as configfile:
                             self.readfp(configfile)
                     except IOError:
                         error_text = "Failed reading file", fpath
                         print(error_text)  # spyder: test-skip
             else:
                 # Python 3
-                self.read(fpath, encoding='utf-8')
+                self.read(fpath, encoding="utf-8")
         except cp.MissingSectionHeaderError:
-            error_text = 'Warning: File contains no section headers.'
+            error_text = "Warning: File contains no section headers."
             print(error_text)  # spyder: test-skip
 
     def _load_old_defaults(self, old_version):
         """Read old defaults."""
         old_defaults = cp.ConfigParser()
         path, name = self.get_defaults_path_name_from_version(old_version)
-        old_defaults.read(osp.join(path, name + '.ini'))
+        old_defaults.read(osp.join(path, name + ".ini"))
         return old_defaults
 
     def _save_new_defaults(self, defaults):
@@ -406,10 +420,9 @@ class UserConfig(DefaultsConfig):
         path = osp.join(osp.dirname(fpath), self._backup_folder)
         new_fpath = osp.join(path, osp.basename(fpath))
         if version is None:
-            backup_fpath = '{}{}'.format(new_fpath, self._backup_suffix)
+            backup_fpath = "{}{}".format(new_fpath, self._backup_suffix)
         else:
-            backup_fpath = "{}-{}{}".format(new_fpath, version,
-                                            self._backup_suffix)
+            backup_fpath = "{}-{}{}".format(new_fpath, version, self._backup_suffix)
         return backup_fpath
 
     def get_defaults_path_name_from_version(self, old_version=None):
@@ -419,9 +432,10 @@ class UserConfig(DefaultsConfig):
         To be overridden if versions changed defaults location.
         """
         version = old_version if old_version else self._version
-        defaults_path = osp.join(osp.dirname(self.get_config_fpath()),
-                                 self._defaults_folder)
-        name = '{}-{}-{}'.format(
+        defaults_path = osp.join(
+            osp.dirname(self.get_config_fpath()), self._defaults_folder
+        )
+        name = "{}-{}-{}".format(
             self._defaults_name_prefix,
             self._name,
             version,
@@ -441,14 +455,14 @@ class UserConfig(DefaultsConfig):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def get_version(self, version='0.0.0'):
+    def get_version(self, version="0.0.0"):
         """Return configuration (not application!) version."""
-        return self.get(self.DEFAULT_SECTION_NAME, 'version', version)
+        return self.get(self.DEFAULT_SECTION_NAME, "version", version)
 
-    def set_version(self, version='0.0.0', save=True):
+    def set_version(self, version="0.0.0", save=True):
         """Set configuration (not application!) version."""
         version = self._check_version(version)
-        self.set(self.DEFAULT_SECTION_NAME, 'version', version, save=save)
+        self.set(self.DEFAULT_SECTION_NAME, "version", version, save=save)
 
     def reset_to_defaults(self, save=True, verbose=False, section=None):
         """Reset config to Default values."""
@@ -531,7 +545,7 @@ class UserConfig(DefaultsConfig):
         elif is_text_string(default_value):
             if PY2:
                 try:
-                    value = value.decode('utf-8')
+                    value = value.decode("utf-8")
                     try:
                         # Some str config values expect to be eval after
                         # decoding
@@ -629,7 +643,6 @@ class UserConfig(DefaultsConfig):
 
 
 class SpyderUserConfig(UserConfig):
-
     def get_previous_config_fpath(self):
         """
         Override method.
@@ -649,7 +662,7 @@ class SpyderUserConfig(UserConfig):
                 # >= 51.0.0
                 fpath,
                 # < 51.0.0
-                os.path.join(get_conf_path(), 'spyder.ini'),
+                os.path.join(get_conf_path(), "spyder.ini"),
             ]
 
         for fpath in previous_paths:
@@ -668,8 +681,8 @@ class SpyderUserConfig(UserConfig):
         """
         if version is None or self._external_plugin:
             fpath = self.get_config_fpath()
-        elif check_version(version, '51.0.0', '<'):
-            fpath = osp.join(get_conf_path(), 'spyder.ini')
+        elif check_version(version, "51.0.0", "<"):
+            fpath = osp.join(get_conf_path(), "spyder.ini")
         else:
             fpath = self.get_config_fpath()
 
@@ -681,18 +694,18 @@ class SpyderUserConfig(UserConfig):
 
         Make a backup of the configuration file.
         """
-        if old_version and check_version(old_version, '51.0.0', '<'):
-            name = 'spyder.ini'
+        if old_version and check_version(old_version, "51.0.0", "<"):
+            name = "spyder.ini"
             fpath = os.path.join(get_conf_path(), name)
             if version is None:
                 backup_fpath = "{}{}".format(fpath, self._backup_suffix)
             else:
-                backup_fpath = "{}-{}{}".format(fpath, version,
-                                                self._backup_suffix)
+                backup_fpath = "{}-{}{}".format(fpath, version, self._backup_suffix)
         else:
             super_class = super(SpyderUserConfig, self)
             backup_fpath = super_class.get_backup_fpath_from_version(
-                version, old_version)
+                version, old_version
+            )
 
         return backup_fpath
 
@@ -703,13 +716,14 @@ class SpyderUserConfig(UserConfig):
         Get defaults location based on version.
         """
         if old_version:
-            if check_version(old_version, '51.0.0', '<'):
-                name = '{}-{}'.format(self._defaults_name_prefix, old_version)
-                path = osp.join(get_conf_path(), 'defaults')
+            if check_version(old_version, "51.0.0", "<"):
+                name = "{}-{}".format(self._defaults_name_prefix, old_version)
+                path = osp.join(get_conf_path(), "defaults")
             else:
                 super_class = super(SpyderUserConfig, self)
                 path, name = super_class.get_defaults_path_name_from_version(
-                    old_version)
+                    old_version
+                )
         else:
             super_class = super(SpyderUserConfig, self)
             path, name = super_class.get_defaults_path_name_from_version()
@@ -726,12 +740,11 @@ class SpyderUserConfig(UserConfig):
 
         if self._external_plugin:
             return
-        if old_version and check_version(old_version, '44.1.0', '<'):
-            run_lines = to_text_string(self.get('ipython_console',
-                                                'startup/run_lines'))
+        if old_version and check_version(old_version, "44.1.0", "<"):
+            run_lines = to_text_string(self.get("ipython_console", "startup/run_lines"))
             if run_lines is not NoDefault:
-                run_lines = run_lines.replace(',', '; ')
-                self.set('ipython_console', 'startup/run_lines', run_lines)
+                run_lines = run_lines.replace(",", "; ")
+                self.set("ipython_console", "startup/run_lines", run_lines)
 
 
 class MultiUserConfig(object):
@@ -744,11 +757,21 @@ class MultiUserConfig(object):
     The `name` is now a `name_map` where the sections and options per file name
     are defined.
     """
-    DEFAULT_FILE_NAME = 'spyder'
 
-    def __init__(self, name_map, path, defaults=None, load=True, version=None,
-                 backup=False, raw_mode=False, remove_obsolete=False,
-                 external_plugin=False):
+    DEFAULT_FILE_NAME = "spyder"
+
+    def __init__(
+        self,
+        name_map,
+        path,
+        defaults=None,
+        load=True,
+        version=None,
+        backup=False,
+        raw_mode=False,
+        remove_obsolete=False,
+        external_plugin=False,
+    ):
         """Multi user config class based on UserConfig class."""
         self._name_map = self._check_name_map(name_map)
         self._path = path
@@ -761,24 +784,23 @@ class MultiUserConfig(object):
         self._external_plugin = external_plugin
 
         self._configs_map = {}
-        self._config_defaults_map = self._get_defaults_for_name_map(defaults,
-                                                                    name_map)
+        self._config_defaults_map = self._get_defaults_for_name_map(defaults, name_map)
         self._config_kwargs = {
-            'path': path,
-            'defaults': defaults,
-            'load': load,
-            'version': version,
-            'backup': backup,
-            'raw_mode': raw_mode,
-            'remove_obsolete': False,  # This will be handled later on if True
-            'external_plugin': external_plugin
+            "path": path,
+            "defaults": defaults,
+            "load": load,
+            "version": version,
+            "backup": backup,
+            "raw_mode": raw_mode,
+            "remove_obsolete": False,  # This will be handled later on if True
+            "external_plugin": external_plugin,
         }
 
         for name in name_map:
             defaults = self._config_defaults_map.get(name)
             mod_kwargs = {
-                'name': name,
-                'defaults': defaults,
+                "name": name,
+                "defaults": defaults,
             }
             new_kwargs = self._config_kwargs.copy()
             new_kwargs.update(mod_kwargs)
@@ -788,8 +810,7 @@ class MultiUserConfig(object):
         # Remove deprecated options if major version has changed
         default_config = self._configs_map.get(self.DEFAULT_FILE_NAME)
         major_ver = default_config._get_major_version(version)
-        major_old_ver = default_config._get_major_version(
-            default_config._old_version)
+        major_old_ver = default_config._get_major_version(default_config._old_version)
 
         # Now we can apply remove_obsolete
         if remove_obsolete or major_ver != major_old_ver:
@@ -818,7 +839,7 @@ class MultiUserConfig(object):
                         sections_options.append(sec_opt)
                     else:
                         error_msg = (
-                            'Different files are holding the same '
+                            "Different files are holding the same "
                             'section/option: "{}/{}"!'.format(section, option)
                         )
                         raise ValueError(error_msg)
@@ -899,25 +920,25 @@ class MultiUserConfig(object):
                 for section, options in sec_opts:
                     if len(options) == 0:
                         # Use all on section
-                        sec = cls._get_section_from_defaults(defaults_copy,
-                                                             section)
+                        sec = cls._get_section_from_defaults(defaults_copy, section)
 
                         # Remove section from defaults
-                        cls._remove_section_from_defaults(defaults_copy,
-                                                          section)
+                        cls._remove_section_from_defaults(defaults_copy, section)
 
                     else:
                         # Iterate and pop!
                         sec = {}
                         for opt in options:
-                            val = cls._get_option_from_defaults(defaults_copy,
-                                                                section, opt)
+                            val = cls._get_option_from_defaults(
+                                defaults_copy, section, opt
+                            )
                             if val is not NoDefault:
                                 sec[opt] = val
 
                             # Remove option from defaults
-                            cls._remove_option_from_defaults(defaults_copy,
-                                                             section, opt)
+                            cls._remove_option_from_defaults(
+                                defaults_copy, section, opt
+                            )
 
                     # Add to config map
                     default_map_for_name.append((section, sec))
@@ -986,8 +1007,9 @@ class MultiUserConfig(object):
         If section is None, the `option` is added to the default section.
         """
         config = self._get_config(section, option)
-        config.set(section=section, option=option, value=value,
-                   verbose=verbose, save=save)
+        config.set(
+            section=section, option=option, value=value, verbose=verbose, save=save
+        )
 
     def reset_to_defaults(self, section=None):
         """Reset configuration to Default values."""

@@ -23,8 +23,14 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.config.manager import CONF
 from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
 from spyder.plugins.findinfiles.widgets.combobox import (
-    CWD, CLEAR_LIST, EXTERNAL_PATHS, FILE_PATH, PROJECT, SearchInComboBox,
-    SELECT_OTHER)
+    CWD,
+    CLEAR_LIST,
+    EXTERNAL_PATHS,
+    FILE_PATH,
+    PROJECT,
+    SearchInComboBox,
+    SELECT_OTHER,
+)
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.palette import QStylePalette, SpyderPalette
 
@@ -54,32 +60,32 @@ def process_search_results(results):
 @pytest.fixture
 def findinfiles(qtbot, request):
     """Set up find in files widget."""
-    if getattr(request, 'param', False):
+    if getattr(request, "param", False):
         param = request.param
     else:
         param = None
 
     plugin_mock = MagicMock()
-    plugin_mock.CONF_SECTION = 'find_in_files'
+    plugin_mock.CONF_SECTION = "find_in_files"
     if param:
         prev_values = {}
         for param_name in param:
             value = param[param_name]
-            prev_values[param_name] = CONF.get('find_in_files', param_name)
-            CONF.set('find_in_files', param_name, value)
+            prev_values[param_name] = CONF.get("find_in_files", param_name)
+            CONF.set("find_in_files", param_name, value)
 
-        widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
+        widget = FindInFilesWidget("find_in_files", plugin=plugin_mock)
         widget._setup()
         widget.setup()
 
         def teardown():
             for param_name in prev_values:
                 value = prev_values[param_name]
-                CONF.set('find_in_files', param_name, value)
+                CONF.set("find_in_files", param_name, value)
 
         request.addfinalizer(teardown)
     else:
-        widget = FindInFilesWidget('find_in_files', plugin=plugin_mock)
+        widget = FindInFilesWidget("find_in_files", plugin=plugin_mock)
         widget._setup()
         widget.setup()
 
@@ -94,21 +100,21 @@ def searchin_combobox(qtbot, request):
     """Set up SearchInComboBox combobox."""
     from spyder.plugins.findinfiles.widgets import combobox
 
-    if getattr(request, 'param', False):
+    if getattr(request, "param", False):
         param = request.param
     else:
         param = None
 
-    if param and param.get('max_history_path'):
-        combobox.MAX_PATH_HISTORY = param.get('max_history_path')
+    if param and param.get("max_history_path"):
+        combobox.MAX_PATH_HISTORY = param.get("max_history_path")
 
     external_path_history = [
-            LOCATION,
-            osp.dirname(LOCATION),
-            osp.dirname(osp.dirname(LOCATION)),
-            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
-            osp.dirname(LOCATION),
-            osp.join(LOCATION, 'path_that_does_not_exist')
+        LOCATION,
+        osp.dirname(LOCATION),
+        osp.dirname(osp.dirname(LOCATION)),
+        osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+        osp.dirname(LOCATION),
+        osp.join(LOCATION, "path_that_does_not_exist"),
     ]
     searchin_combobox = SearchInComboBox(external_path_history)
     qtbot.addWidget(searchin_combobox)
@@ -116,18 +122,19 @@ def searchin_combobox(qtbot, request):
 
 
 def expected_results():
-    results = {'spam.txt': [(1, 0), (1, 5), (3, 22)],
-               'spam.py': [(2, 7), (5, 1), (7, 12)],
-               'spam.cpp': [(2, 9), (6, 15), (8, 2), (11, 4),
-                            (11, 10), (13, 12)]
-               }
+    results = {
+        "spam.txt": [(1, 0), (1, 5), (3, 22)],
+        "spam.py": [(2, 7), (5, 1), (7, 12)],
+        "spam.cpp": [(2, 9), (6, 15), (8, 2), (11, 4), (11, 10), (13, 12)],
+    }
     return results
 
 
 def expected_case_unsensitive_results():
-    results = {'spam.txt': [(1, 10)],
-               'ham.txt': [(1, 0), (1, 10), (3, 0), (4, 0),
-                           (5, 4), (9, 0), (10, 0)]}
+    results = {
+        "spam.txt": [(1, 10)],
+        "ham.txt": [(1, 0), (1, 10), (3, 0), (4, 0), (5, 4), (9, 0), (10, 0)],
+    }
     return results
 
 
@@ -149,9 +156,9 @@ def test_find_in_files_search(findinfiles, qtbot):
     assert expected_results() == matches
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'exclude': r"\.py$", 'exclude_regexp': True}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    "findinfiles", [{"exclude": r"\.py$", "exclude_regexp": True}], indirect=True
+)
 def test_exclude_extension_regex(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
@@ -162,15 +169,15 @@ def test_exclude_extension_regex(findinfiles, qtbot):
     files_filtered = True
     for file in matches:
         filename, ext = osp.splitext(file)
-        if ext == '.py':
+        if ext == ".py":
             files_filtered = False
             break
     assert files_filtered
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'exclude': "*.py", 'exclude_regexp': False}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    "findinfiles", [{"exclude": "*.py", "exclude_regexp": False}], indirect=True
+)
 def test_exclude_extension_string(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
@@ -181,15 +188,15 @@ def test_exclude_extension_string(findinfiles, qtbot):
     files_filtered = True
     for file in matches:
         filename, ext = osp.splitext(file)
-        if ext == '.py':
+        if ext == ".py":
             files_filtered = False
             break
     assert files_filtered
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'exclude': "", 'exclude_regexp': True}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    "findinfiles", [{"exclude": "", "exclude_regexp": True}], indirect=True
+)
 def test_exclude_extension_empty_regex(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
@@ -200,9 +207,9 @@ def test_exclude_extension_empty_regex(findinfiles, qtbot):
     assert expected_results() == matches
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'exclude': "", 'exclude_regexp': False}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    "findinfiles", [{"exclude": "", "exclude_regexp": False}], indirect=True
+)
 def test_exclude_extension_string_no_regexp(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
@@ -213,9 +220,9 @@ def test_exclude_extension_string_no_regexp(findinfiles, qtbot):
     assert expected_results() == matches
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'exclude': "*.py, *.cpp", 'exclude_regexp': False}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    "findinfiles", [{"exclude": "*.py, *.cpp", "exclude_regexp": False}], indirect=True
+)
 def test_exclude_extension_multiple_string(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
@@ -226,13 +233,13 @@ def test_exclude_extension_multiple_string(findinfiles, qtbot):
     files_filtered = True
     for file in matches:
         filename, ext = osp.splitext(file)
-        if ext in ['.py', '.cpp']:
+        if ext in [".py", ".cpp"]:
             files_filtered = False
             break
     assert files_filtered
 
 
-@pytest.mark.parametrize("line_input", ['nnnnn', 'ñandú'])
+@pytest.mark.parametrize("line_input", ["nnnnn", "ñandú"])
 def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
     """
     Issue: 6218 - checking if truncate_result raise UnicodeDecodeError
@@ -246,25 +253,22 @@ def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
 
     expected_result = (
         f'<span style="color:{QStylePalette.COLOR_TEXT_1}">'
-        f'{line_input_expected[:slice_start]}'
+        f"{line_input_expected[:slice_start]}"
         f'<span style="background-color:{SpyderPalette.COLOR_OCCURRENCE_4}">'
-        f'{line_input_expected[slice_start:slice_end]}</span>'
-        f'{line_input_expected[slice_end:]}</span>'
+        f"{line_input_expected[slice_start:slice_end]}</span>"
+        f"{line_input_expected[slice_end:]}</span>"
     )
 
     # when
-    thread = SearchThread(None, '', text_color=QStylePalette.COLOR_TEXT_1)
-    truncated_line = thread.truncate_result(line_input, slice_start,
-                                            slice_end)
+    thread = SearchThread(None, "", text_color=QStylePalette.COLOR_TEXT_1)
+    truncated_line = thread.truncate_result(line_input, slice_start, slice_end)
     # then
-    assert truncated_line['formatted_text'] == expected_result
+    assert truncated_line["formatted_text"] == expected_result
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'case_sensitive': False}],
-                         indirect=True)
+@pytest.mark.parametrize("findinfiles", [{"case_sensitive": False}], indirect=True)
 def test_case_unsensitive_search(findinfiles, qtbot):
-    findinfiles.set_search_text('ham')
+    findinfiles.set_search_text("ham")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
@@ -274,23 +278,19 @@ def test_case_unsensitive_search(findinfiles, qtbot):
     assert expected_case_unsensitive_results() == matches
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'case_sensitive': True}],
-                         indirect=True)
+@pytest.mark.parametrize("findinfiles", [{"case_sensitive": True}], indirect=True)
 def test_case_sensitive_search(findinfiles, qtbot):
-    findinfiles.set_search_text('HaM')
+    findinfiles.set_search_text("HaM")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
     matches = process_search_results(findinfiles.result_browser.data)
     print(matches)
-    assert matches == {'ham.txt': [(9, 0)]}
+    assert matches == {"ham.txt": [(9, 0)]}
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'search_text_regexp': True}],
-                         indirect=True)
+@pytest.mark.parametrize("findinfiles", [{"search_text_regexp": True}], indirect=True)
 def test_search_regexp_error(findinfiles, qtbot):
     findinfiles.set_search_text("\\")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
@@ -299,9 +299,9 @@ def test_search_regexp_error(findinfiles, qtbot):
     assert findinfiles.REGEX_ERROR in tooltip
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'exclude': "\\", 'exclude_regexp': True}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    "findinfiles", [{"exclude": "\\", "exclude_regexp": True}], indirect=True
+)
 def test_exclude_regexp_error(findinfiles, qtbot):
     findinfiles.set_search_text("foo")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
@@ -311,6 +311,7 @@ def test_exclude_regexp_error(findinfiles, qtbot):
 
 
 # ---- Tests for SearchInComboBox
+
 
 def test_add_external_paths(searchin_combobox, mocker):
     """
@@ -323,54 +324,54 @@ def test_add_external_paths(searchin_combobox, mocker):
     # Assert that the external_path_history was added correctly to the
     # combobox
     expected_results = [
-            LOCATION,
-            osp.dirname(osp.dirname(LOCATION)),
-            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
-            osp.dirname(LOCATION)
-            ]
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+        LOCATION,
+        osp.dirname(osp.dirname(LOCATION)),
+        osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+        osp.dirname(LOCATION),
+    ]
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
     for i, expected_result in enumerate(expected_results):
-        assert expected_result == searchin_combobox.itemText(i+EXTERNAL_PATHS)
+        assert expected_result == searchin_combobox.itemText(i + EXTERNAL_PATHS)
 
     # Add a new external path to the combobox. The new path is added at the
     # end of the combobox.
     new_path = NONASCII_DIR
     mocker.patch(
-        'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
-        return_value=new_path
+        "spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory",
+        return_value=new_path,
     )
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
 
     expected_results.append(new_path)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == searchin_combobox.count()-1
+    assert searchin_combobox.currentIndex() == searchin_combobox.count() - 1
 
     # Add an external path that is already listed in the combobox. In this
     # case, the new path is removed from the list and is added back at the end.
     new_path = LOCATION
     mocker.patch(
-        'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
-        return_value=new_path
+        "spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory",
+        return_value=new_path,
     )
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
 
     expected_results.pop(0)
     expected_results.append(new_path)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == searchin_combobox.count()-1
+    assert searchin_combobox.currentIndex() == searchin_combobox.count() - 1
 
     # Cancel the action of adding a new external path. In this case, the
     # expected results do not change.
     mocker.patch(
-        'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
-        return_value=''
+        "spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory",
+        return_value="",
     )
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
 
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == CWD
 
@@ -383,22 +384,22 @@ def test_clear_this_list(searchin_combobox, mocker):
     searchin_combobox.show()
 
     # Cancel the Clear the list action and assert the result.
-    mocker.patch.object(QMessageBox, 'question', return_value=QMessageBox.No)
+    mocker.patch.object(QMessageBox, "question", return_value=QMessageBox.No)
     searchin_combobox.setCurrentIndex(CLEAR_LIST)
 
     expected_results = [
-            LOCATION,
-            osp.dirname(osp.dirname(LOCATION)),
-            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
-            osp.dirname(LOCATION)
-            ]
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+        LOCATION,
+        osp.dirname(osp.dirname(LOCATION)),
+        osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+        osp.dirname(LOCATION),
+    ]
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == CWD
 
     # Clear the list of external paths and assert that the list of
     # external paths is empty.
-    mocker.patch.object(QMessageBox, 'question', return_value=QMessageBox.Yes)
+    mocker.patch.object(QMessageBox, "question", return_value=QMessageBox.Yes)
     searchin_combobox.setCurrentIndex(CLEAR_LIST)
 
     assert searchin_combobox.count() == EXTERNAL_PATHS
@@ -414,11 +415,11 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     searchin_combobox.show()
 
     expected_results = [
-            LOCATION,
-            osp.dirname(osp.dirname(LOCATION)),
-            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
-            osp.dirname(LOCATION)
-            ]
+        LOCATION,
+        osp.dirname(osp.dirname(LOCATION)),
+        osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+        osp.dirname(LOCATION),
+    ]
 
     searchin_combobox.showPopup()
     assert searchin_combobox.currentIndex() == CWD
@@ -427,51 +428,55 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     # Assert that the delete action does nothing when the selected item in
     # the combobox view is not an external path.
     for i in range(EXTERNAL_PATHS):
-        searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(i, 0))
+        searchin_combobox.view().setCurrentIndex(searchin_combobox.model().index(i, 0))
         qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == CWD
 
     # Delete the first external path in the list.
     searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(EXTERNAL_PATHS, 0))
+        searchin_combobox.model().index(EXTERNAL_PATHS, 0)
+    )
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
     expected_results.pop(0)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == EXTERNAL_PATHS
     assert searchin_combobox.view().currentIndex().row() == EXTERNAL_PATHS
 
     # Delete the second external path in the remaining list.
     searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(EXTERNAL_PATHS+1, 0))
+        searchin_combobox.model().index(EXTERNAL_PATHS + 1, 0)
+    )
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
     expected_results.pop(1)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == EXTERNAL_PATHS+1
-    assert searchin_combobox.view().currentIndex().row() == EXTERNAL_PATHS+1
+    assert searchin_combobox.currentIndex() == EXTERNAL_PATHS + 1
+    assert searchin_combobox.view().currentIndex().row() == EXTERNAL_PATHS + 1
 
     # Delete the last external path in the list.
     searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(searchin_combobox.count()-1, 0))
+        searchin_combobox.model().index(searchin_combobox.count() - 1, 0)
+    )
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
     expected_results.pop()
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == searchin_combobox.count()-1
-    assert (searchin_combobox.view().currentIndex().row() ==
-            searchin_combobox.count()-1)
+    assert searchin_combobox.currentIndex() == searchin_combobox.count() - 1
+    assert (
+        searchin_combobox.view().currentIndex().row() == searchin_combobox.count() - 1
+    )
 
     # Delete the last remaining external path in the list.
     searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(EXTERNAL_PATHS, 0))
+        searchin_combobox.model().index(EXTERNAL_PATHS, 0)
+    )
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
     assert searchin_combobox.count() == EXTERNAL_PATHS
@@ -509,13 +514,20 @@ def test_set_project_path(findinfiles, qtbot):
     assert path_selection_combo.currentIndex() == CWD
 
 
-@pytest.mark.parametrize('findinfiles',
-                         [{'path_history': [
-                             LOCATION,
-                             osp.dirname(LOCATION),
-                             osp.dirname(osp.dirname(LOCATION)),
-                             NONASCII_DIR]}],
-                         indirect=True)
+@pytest.mark.parametrize(
+    "findinfiles",
+    [
+        {
+            "path_history": [
+                LOCATION,
+                osp.dirname(LOCATION),
+                osp.dirname(osp.dirname(LOCATION)),
+                NONASCII_DIR,
+            ]
+        }
+    ],
+    indirect=True,
+)
 def test_current_search_path(findinfiles, qtbot):
     """
     Test that the expected search path is returned for the corresponding
@@ -526,7 +538,7 @@ def test_current_search_path(findinfiles, qtbot):
         LOCATION,
         osp.dirname(LOCATION),
         osp.dirname(osp.dirname(LOCATION)),
-        NONASCII_DIR
+        NONASCII_DIR,
     ]
 
     path_selection_combo = findinfiles.path_selection_combo
@@ -568,14 +580,12 @@ def test_current_search_path(findinfiles, qtbot):
     assert path_selection_combo.is_file_search() is True
     # Test for the external file path :
     for i, path in enumerate(external_paths):
-        path_selection_combo.setCurrentIndex(EXTERNAL_PATHS+i)
+        path_selection_combo.setCurrentIndex(EXTERNAL_PATHS + i)
         assert path_selection_combo.get_current_searchpath() == path
         assert path_selection_combo.is_file_search() is False
 
 
-@pytest.mark.parametrize('searchin_combobox',
-                         [{'max_history_path': 3}],
-                         indirect=True)
+@pytest.mark.parametrize("searchin_combobox", [{"max_history_path": 3}], indirect=True)
 def test_max_history(searchin_combobox):
     """
     Test that the specified maximum number of external path is observed.
@@ -585,9 +595,9 @@ def test_max_history(searchin_combobox):
     # In this case, the first path of the external_path_history was removed to
     # respect the MAX_PATH_HISTORY of 3.
     expected_results = [
-            osp.dirname(osp.dirname(LOCATION)),
-            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
-            osp.dirname(LOCATION)
+        osp.dirname(osp.dirname(LOCATION)),
+        osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+        osp.dirname(LOCATION),
     ]
     assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
@@ -612,4 +622,4 @@ def test_max_results(findinfiles, qtbot):
 
 
 if __name__ == "__main__":
-    pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])
+    pytest.main(["-x", osp.basename(__file__), "-v", "-rw"])

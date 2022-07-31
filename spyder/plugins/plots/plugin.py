@@ -15,14 +15,15 @@ from spyder.api.translations import get_translation
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class Plots(SpyderDockablePlugin, ShellConnectMixin):
     """
     Plots plugin.
     """
-    NAME = 'plots'
+
+    NAME = "plots"
     REQUIRES = [Plugins.IPythonConsole]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = PlotsWidget
@@ -34,13 +35,13 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Plots')
+        return _("Plots")
 
     def get_description(self):
-        return _('Display, explore and save console generated plots.')
+        return _("Display, explore and save console generated plots.")
 
     def get_icon(self):
-        return self.create_icon('hist')
+        return self.create_icon("hist")
 
     def on_initialize(self):
         # If a figure is loaded, raise the dockwidget the first time
@@ -60,7 +61,6 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
         """
         return self.get_widget().current_widget()
 
-
     # ---- Private API
     # ------------------------------------------------------------------------
     def _on_first_plot(self):
@@ -69,7 +69,7 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
         # showing the plugin when users want to only see plots in
         # the IPython console.
         # Fixes spyder-ide/spyder#15467
-        if self.get_conf('mute_inline_plotting'):
+        if self.get_conf("mute_inline_plotting"):
             self.switch_to_plugin(force_focus=False)
 
         # We only give raise to the plugin once per session, to let users

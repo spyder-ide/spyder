@@ -18,7 +18,7 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class ShellConnectMainWidget(PluginMainWidget):
@@ -32,6 +32,7 @@ class ShellConnectMainWidget(PluginMainWidget):
     * The current widget in the stack will display the content associated to
       the console with focus.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

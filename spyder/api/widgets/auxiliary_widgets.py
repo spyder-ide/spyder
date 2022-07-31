@@ -67,7 +67,7 @@ class MainCornerWidget(QToolBar):
         if widget_id in self._widgets:
             raise SpyderAPIError(
                 'Wigdet with name "{}" already added. Current names are: {}'
-                ''.format(widget_id, list(self._widgets.keys()))
+                "".format(widget_id, list(self._widgets.keys()))
             )
 
         widget.ID = widget_id

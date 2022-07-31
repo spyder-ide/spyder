@@ -13,16 +13,16 @@ from struct import unpack, pack, calcsize
 try:
     from qtpy.QtCore import QBitArray, QFile, QDataStream, QIODevice
 except ImportError:
-    raise ImportError('pybloom_pyqt requires QtCore.QBitArray')
+    raise ImportError("pybloom_pyqt requires QtCore.QBitArray")
 
 
 def make_hashfuncs(num_slices, num_bits):
     if num_bits >= (1 << 31):
-        fmt_code, chunk_size = 'Q', 8
+        fmt_code, chunk_size = "Q", 8
     elif num_bits >= (1 << 15):
-        fmt_code, chunk_size = 'I', 4
+        fmt_code, chunk_size = "I", 4
     else:
-        fmt_code, chunk_size = 'H', 2
+        fmt_code, chunk_size = "H", 2
     total_hash_bits = 8 * num_slices * chunk_size
     if total_hash_bits > 384:
         hashfn = hashlib.sha512
@@ -39,18 +39,17 @@ def make_hashfuncs(num_slices, num_bits):
     num_salts, extra = divmod(num_slices, len(fmt))
     if extra:
         num_salts += 1
-    salts = tuple(hashfn(hashfn(pack('I', i)).digest())
-                  for i in range_fn(0, num_salts))
+    salts = tuple(hashfn(hashfn(pack("I", i)).digest()) for i in range_fn(0, num_salts))
 
     def _hash_maker(key):
         if running_python_3:
             if isinstance(key, str):
-                key = key.encode('utf-8')
+                key = key.encode("utf-8")
             else:
-                key = str(key).encode('utf-8')
+                key = str(key).encode("utf-8")
         else:
             if isinstance(key, unicode):
-                key = key.encode('utf-8')
+                key = key.encode("utf-8")
             else:
                 key = str(key)
         i = 0
@@ -67,7 +66,7 @@ def make_hashfuncs(num_slices, num_bits):
 
 
 class BloomFilter(object):
-    FILE_FMT = b'<dQQQQ'
+    FILE_FMT = b"<dQQQQ"
 
     def __init__(self, capacity, error_rate=0.001):
         """Implements a space-efficient probabilistic data structure
@@ -92,9 +91,12 @@ class BloomFilter(object):
         # n ~= (k * m) * ((ln(2) ** 2) / abs(ln(P)))
         # m ~= n * abs(ln(P)) / (k * (ln(2) ** 2))
         num_slices = int(math.ceil(math.log(1.0 / error_rate, 2)))
-        bits_per_slice = int(math.ceil(
-            (capacity * abs(math.log(error_rate))) /
-            (num_slices * (math.log(2) ** 2))))
+        bits_per_slice = int(
+            math.ceil(
+                (capacity * abs(math.log(error_rate)))
+                / (num_slices * (math.log(2) ** 2))
+            )
+        )
         self._setup(error_rate, num_slices, bits_per_slice, capacity, 0)
         self.bitarray = QBitArray(self.num_bits)
 
@@ -105,12 +107,12 @@ class BloomFilter(object):
         self.capacity = capacity
         self.num_bits = num_slices * bits_per_slice
         self.count = count
-        self.make_hashes, self.hashfn = make_hashfuncs(self.num_slices,
-                                                       self.bits_per_slice)
+        self.make_hashes, self.hashfn = make_hashfuncs(
+            self.num_slices, self.bits_per_slice
+        )
 
     def __contains__(self, key):
-        """Tests a key's membership in this bloom filter.
-        """
+        """Tests a key's membership in this bloom filter."""
         bits_per_slice = self.bits_per_slice
         bitarray = self.bitarray
         hashes = self.make_hashes(key)
@@ -126,7 +128,7 @@ class BloomFilter(object):
         return self.count
 
     def add(self, key, skip_check=False):
-        """ Adds a key to this bloom filter. If the key already exists in this
+        """Adds a key to this bloom filter. If the key already exists in this
         filter it will return True. Otherwise False.
         """
         bitarray = self.bitarray
@@ -152,19 +154,19 @@ class BloomFilter(object):
             return True
 
     def copy(self):
-        """Return a copy of this bloom filter.
-        """
+        """Return a copy of this bloom filter."""
         new_filter = BloomFilter(self.capacity, self.error_rate)
         new_filter.bitarray = QBitArray(self.bitarray)
         return new_filter
 
     def union(self, other):
-        """ Calculates the union of the two underlying bitarrays and returns
+        """Calculates the union of the two underlying bitarrays and returns
         a new bloom filter object."""
-        if self.capacity != other.capacity or \
-                self.error_rate != other.error_rate:
-            raise ValueError("Unioning filters requires both filters to have "
-                             "both the same capacity and error rate")
+        if self.capacity != other.capacity or self.error_rate != other.error_rate:
+            raise ValueError(
+                "Unioning filters requires both filters to have "
+                "both the same capacity and error rate"
+            )
         new_bloom = self.copy()
         new_bloom.bitarray = new_bloom.bitarray | other.bitarray
         return new_bloom
@@ -173,12 +175,13 @@ class BloomFilter(object):
         return self.union(other)
 
     def intersection(self, other):
-        """ Calculates the intersection of the two underlying bitarrays and
+        """Calculates the intersection of the two underlying bitarrays and
         returns a new bloom filter object."""
-        if self.capacity != other.capacity or \
-                self.error_rate != other.error_rate:
-            raise ValueError("Intersecting filters requires both filters to "
-                             "have equal capacity and error rate")
+        if self.capacity != other.capacity or self.error_rate != other.error_rate:
+            raise ValueError(
+                "Intersecting filters requires both filters to "
+                "have equal capacity and error rate"
+            )
         new_bloom = self.copy()
         new_bloom.bitarray = new_bloom.bitarray & other.bitarray
         return new_bloom
@@ -209,7 +212,7 @@ class BloomFilter(object):
     @classmethod
     def fromfile(cls, path):
         """Read a bloom filter from file-object `f' serialized with
-        ``BloomFilter.tofile''. """
+        ``BloomFilter.tofile''."""
         f = QFile(path)
         if not f.open(QIODevice.ReadOnly):
             raise ValueError("unable to open file " + path)
@@ -217,7 +220,7 @@ class BloomFilter(object):
         data = QDataStream(f)
         file_fmt = data.readBytes()
         if file_fmt != cls.FILE_FMT:
-            raise ValueError('unexpected file format')
+            raise ValueError("unexpected file format")
 
         error_rate = data.readFloat()
         num_slices = data.readInt()
@@ -235,22 +238,22 @@ class BloomFilter(object):
 
     def __getstate__(self):
         d = self.__dict__.copy()
-        del d['make_hashes']
+        del d["make_hashes"]
         return d
 
     def __setstate__(self, d):
         self.__dict__.update(d)
-        self.make_hashes, self.hashfn = make_hashfuncs(self.num_slices,
-                                                       self.bits_per_slice)
+        self.make_hashes, self.hashfn = make_hashfuncs(
+            self.num_slices, self.bits_per_slice
+        )
 
 
 class ScalableBloomFilter(object):
     SMALL_SET_GROWTH = 2  # slower, but takes up less memory
     LARGE_SET_GROWTH = 4  # faster, but takes up more memory faster
-    FILE_FMT = '<idQd'
+    FILE_FMT = "<idQd"
 
-    def __init__(self, initial_capacity=100, error_rate=0.001,
-                 mode=LARGE_SET_GROWTH):
+    def __init__(self, initial_capacity=100, error_rate=0.001, mode=LARGE_SET_GROWTH):
         """Implements a space-efficient probabilistic data structure that
         grows as more items are added while maintaining a steady false
         positive rate
@@ -279,8 +282,7 @@ class ScalableBloomFilter(object):
         self.error_rate = error_rate
 
     def __contains__(self, key):
-        """Tests a key's membership in this bloom filter.
-        """
+        """Tests a key's membership in this bloom filter."""
         for f in reversed(self.filters):
             if key in f:
                 return True
@@ -295,40 +297,43 @@ class ScalableBloomFilter(object):
             return True
         if not self.filters:
             filter = BloomFilter(
-                capacity=self.initial_capacity,
-                error_rate=self.error_rate * self.ratio)
+                capacity=self.initial_capacity, error_rate=self.error_rate * self.ratio
+            )
             self.filters.append(filter)
         else:
             filter = self.filters[-1]
             if filter.count >= filter.capacity:
                 filter = BloomFilter(
                     capacity=filter.capacity * self.scale,
-                    error_rate=filter.error_rate * self.ratio)
+                    error_rate=filter.error_rate * self.ratio,
+                )
                 self.filters.append(filter)
         filter.add(key, skip_check=True)
         return False
 
     def copy(self):
-        """ Returns a clone of this instance.
+        """Returns a clone of this instance.
         This is used instead of copy.deepcopy because QBitArray
-        is not pickle-able (error can't pickle QBitArray objects) """
-        cloned = ScalableBloomFilter(self.initial_capacity,
-                                     self.error_rate,
-                                     self.scale)
+        is not pickle-able (error can't pickle QBitArray objects)"""
+        cloned = ScalableBloomFilter(self.initial_capacity, self.error_rate, self.scale)
         for f in self.filters:
             cloned.filters.append(f.copy())
         return cloned
 
     def union(self, other):
-        """ Calculates the union of the underlying classic bloom filters and
+        """Calculates the union of the underlying classic bloom filters and
         returns a new scalable bloom filter object."""
 
-        if self.scale != other.scale or \
-                self.initial_capacity != other.initial_capacity or \
-                self.error_rate != other.error_rate:
-            raise ValueError("Unioning two scalable bloom filters requires "
-                             "both filters to have both the same mode, "
-                             "initial capacity and error rate")
+        if (
+            self.scale != other.scale
+            or self.initial_capacity != other.initial_capacity
+            or self.error_rate != other.error_rate
+        ):
+            raise ValueError(
+                "Unioning two scalable bloom filters requires "
+                "both filters to have both the same mode, "
+                "initial capacity and error rate"
+            )
         if len(self.filters) > len(other.filters):
             larger_sbf = self.copy()
             smaller_sbf = other
@@ -360,18 +365,25 @@ class ScalableBloomFilter(object):
     def tofile(self, f):
         """Serialize this ScalableBloomFilter into the file-object
         `f'."""
-        f.write(pack(self.FILE_FMT, self.scale, self.ratio,
-                     self.initial_capacity, self.error_rate))
+        f.write(
+            pack(
+                self.FILE_FMT,
+                self.scale,
+                self.ratio,
+                self.initial_capacity,
+                self.error_rate,
+            )
+        )
 
         # Write #-of-filters
-        f.write(pack(b'<l', len(self.filters)))
+        f.write(pack(b"<l", len(self.filters)))
 
         if len(self.filters) > 0:
             # Then each filter directly, with a header describing
             # their lengths.
             headerpos = f.tell()
-            headerfmt = b'<' + b'Q' * (len(self.filters))
-            f.write(b'.' * calcsize(headerfmt))
+            headerfmt = b"<" + b"Q" * (len(self.filters))
+            f.write(b"." * calcsize(headerfmt))
             filter_sizes = []
             for filter in self.filters:
                 begin = f.tell()
@@ -386,9 +398,9 @@ class ScalableBloomFilter(object):
         """Deserialize the ScalableBloomFilter in file object `f'."""
         filter = cls()
         filter._setup(*unpack(cls.FILE_FMT, f.read(calcsize(cls.FILE_FMT))))
-        nfilters, = unpack(b'<l', f.read(calcsize(b'<l')))
+        (nfilters,) = unpack(b"<l", f.read(calcsize(b"<l")))
         if nfilters > 0:
-            header_fmt = b'<' + b'Q' * nfilters
+            header_fmt = b"<" + b"Q" * nfilters
             bytes = f.read(calcsize(header_fmt))
             filter_lengths = unpack(header_fmt, bytes)
             for fl in filter_lengths:

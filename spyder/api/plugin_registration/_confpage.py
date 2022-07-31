@@ -7,8 +7,7 @@
 """Plugin registry configuration page."""
 
 # Third party imports
-from qtpy.QtWidgets import (QGroupBox, QVBoxLayout, QCheckBox,
-                            QGridLayout, QLabel)
+from qtpy.QtWidgets import QGroupBox, QVBoxLayout, QCheckBox, QGridLayout, QLabel
 
 # Local imports
 from spyder.api.plugins import SpyderPlugin
@@ -23,10 +22,13 @@ class PluginsConfigPage(PluginConfigPage):
         self.plugins_checkboxes = {}
 
         header_label = QLabel(
-            _("Here you can turn on/off any internal or external Spyder plugin "
-              "to disable functionality that is not desired or to have a lighter "
-              "experience. Unchecked plugins in this page will be unloaded "
-              "immediately and will not be loaded the next time Spyder starts."))
+            _(
+                "Here you can turn on/off any internal or external Spyder plugin "
+                "to disable functionality that is not desired or to have a lighter "
+                "experience. Unchecked plugins in this page will be unloaded "
+                "immediately and will not be loaded the next time Spyder starts."
+            )
+        )
         header_label.setWordWrap(True)
 
         # ------------------ Internal plugin status group ---------------------
@@ -35,22 +37,28 @@ class PluginsConfigPage(PluginConfigPage):
 
         i = 0
         for plugin_name in self.plugin.all_internal_plugins:
-            (conf_section_name,
-             PluginClass) = self.plugin.all_internal_plugins[plugin_name]
+            (conf_section_name, PluginClass) = self.plugin.all_internal_plugins[
+                plugin_name
+            ]
 
-            if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
+            if not getattr(PluginClass, "CAN_BE_DISABLED", True):
                 # Do not list core plugins that can not be disabled
                 continue
 
             plugin_loc_name = None
-            if hasattr(PluginClass, 'get_name'):
+            if hasattr(PluginClass, "get_name"):
                 plugin_loc_name = PluginClass.get_name()
-            elif hasattr(PluginClass, 'get_plugin_title'):
+            elif hasattr(PluginClass, "get_plugin_title"):
                 plugin_loc_name = PluginClass.get_plugin_title()
 
-            plugin_state = CONF.get(conf_section_name, 'enable', True)
-            cb = newcb(plugin_loc_name, 'enable', default=True,
-                       section=conf_section_name, restart=True)
+            plugin_state = CONF.get(conf_section_name, "enable", True)
+            cb = newcb(
+                plugin_loc_name,
+                "enable",
+                default=True,
+                section=conf_section_name,
+                restart=True,
+            )
             internal_layout.addWidget(cb, i // 2, i % 2)
             self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
             i += 1
@@ -66,23 +74,29 @@ class PluginsConfigPage(PluginConfigPage):
         # for more info see spyder#17464
         show_external_plugins_group = False
         for i, plugin_name in enumerate(self.plugin.all_external_plugins):
-            (conf_section_name,
-             PluginClass) = self.plugin.all_external_plugins[plugin_name]
+            (conf_section_name, PluginClass) = self.plugin.all_external_plugins[
+                plugin_name
+            ]
 
-            if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
+            if not getattr(PluginClass, "CAN_BE_DISABLED", True):
                 # Do not list external plugins that can not be disabled
                 continue
 
             plugin_loc_name = None
-            if hasattr(PluginClass, 'get_name'):
+            if hasattr(PluginClass, "get_name"):
                 plugin_loc_name = PluginClass.get_name()
-            elif hasattr(PluginClass, 'get_plugin_title'):
+            elif hasattr(PluginClass, "get_plugin_title"):
                 plugin_loc_name = PluginClass.get_plugin_title()
 
-            cb = newcb(plugin_loc_name, 'enable', default=True,
-                       section=conf_section_name, restart=True)
+            cb = newcb(
+                plugin_loc_name,
+                "enable",
+                default=True,
+                section=conf_section_name,
+                restart=True,
+            )
             external_layout.addWidget(cb, i // 2, i % 2)
-            plugin_state = CONF.get(conf_section_name, 'enable', True)
+            plugin_state = CONF.get(conf_section_name, "enable", True)
             self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
             i += 1
 
@@ -104,11 +118,9 @@ class PluginsConfigPage(PluginConfigPage):
                 PluginClass = None
                 external = False
                 if plugin_name in self.plugin.all_internal_plugins:
-                    (__,
-                     PluginClass) = self.plugin.all_internal_plugins[plugin_name]
+                    (__, PluginClass) = self.plugin.all_internal_plugins[plugin_name]
                 elif plugin_name in self.plugin.all_external_plugins:
-                    (__,
-                     PluginClass) = self.plugin.all_external_plugins[plugin_name]
+                    (__, PluginClass) = self.plugin.all_external_plugins[plugin_name]
                     external = True
 
                 # TODO: Once we can test that all plugins can be restarted

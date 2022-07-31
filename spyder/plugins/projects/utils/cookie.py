@@ -14,8 +14,7 @@ import os
 from cookiecutter.main import cookiecutter
 
 
-def generate_cookiecutter_project(cookiecutter_path, output_path,
-                                  extra_content=None):
+def generate_cookiecutter_project(cookiecutter_path, output_path, extra_content=None):
     """
     Generate a cookicutter project programmatically.
     """
@@ -46,11 +45,11 @@ def load_cookiecutter_project(project_path):
 
     if os.path.isdir(project_path):
         if os.path.isfile(cookiepath):
-            with open(cookiepath, 'r') as fh:
+            with open(cookiepath, "r") as fh:
                 options = json.loads(fh.read())
 
         if os.path.isfile(pre_gen_path):
-            with open(pre_gen_path, 'r') as fh:
+            with open(pre_gen_path, "r") as fh:
                 pre_gen_code = fh.read()
 
     return options, pre_gen_code

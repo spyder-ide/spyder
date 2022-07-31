@@ -25,22 +25,22 @@ from spyder.widgets.mixins import BaseEditMixin
 
 # Constants
 LANGUAGE_EXTENSIONS = {
-    'Python': ('py', 'pyw', 'python', 'ipy'),
-    'Cython': ('pyx', 'pxi', 'pxd'),
-    'Enaml': ('enaml',),
-    'Fortran77': ('f', 'for', 'f77'),
-    'Fortran': ('f90', 'f95', 'f2k', 'f03', 'f08'),
-    'Idl': ('pro',),
-    'Diff': ('diff', 'patch', 'rej'),
-    'GetText': ('po', 'pot'),
-    'Nsis': ('nsi', 'nsh'),
-    'Html': ('htm', 'html'),
-    'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
-    'OpenCL': ('cl',),
-    'Yaml': ('yaml', 'yml'),
-    'Markdown': ('md', 'mdw'),
+    "Python": ("py", "pyw", "python", "ipy"),
+    "Cython": ("pyx", "pxi", "pxd"),
+    "Enaml": ("enaml",),
+    "Fortran77": ("f", "for", "f77"),
+    "Fortran": ("f90", "f95", "f2k", "f03", "f08"),
+    "Idl": ("pro",),
+    "Diff": ("diff", "patch", "rej"),
+    "GetText": ("po", "pot"),
+    "Nsis": ("nsi", "nsh"),
+    "Html": ("htm", "html"),
+    "Cpp": ("c", "cc", "cpp", "cxx", "h", "hh", "hpp", "hxx"),
+    "OpenCL": ("cl",),
+    "Yaml": ("yaml", "yml"),
+    "Markdown": ("md", "mdw"),
     # Every other language
-    'None': ('', ),
+    "None": ("",),
 }
 
 
@@ -70,22 +70,22 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
     """Simple editor with highlight features."""
 
     LANGUAGE_HIGHLIGHTERS = {
-        'Python': (sh.PythonSH, '#'),
-        'Cython': (sh.CythonSH, '#'),
-        'Fortran77': (sh.Fortran77SH, 'c'),
-        'Fortran': (sh.FortranSH, '!'),
-        'Idl': (sh.IdlSH, ';'),
-        'Diff': (sh.DiffSH, ''),
-        'GetText': (sh.GetTextSH, '#'),
-        'Nsis': (sh.NsisSH, '#'),
-        'Html': (sh.HtmlSH, ''),
-        'Yaml': (sh.YamlSH, '#'),
-        'Cpp': (sh.CppSH, '//'),
-        'OpenCL': (sh.OpenCLSH, '//'),
-        'Enaml': (sh.EnamlSH, '#'),
-        'Markdown': (sh.MarkdownSH, '#'),
+        "Python": (sh.PythonSH, "#"),
+        "Cython": (sh.CythonSH, "#"),
+        "Fortran77": (sh.Fortran77SH, "c"),
+        "Fortran": (sh.FortranSH, "!"),
+        "Idl": (sh.IdlSH, ";"),
+        "Diff": (sh.DiffSH, ""),
+        "GetText": (sh.GetTextSH, "#"),
+        "Nsis": (sh.NsisSH, "#"),
+        "Html": (sh.HtmlSH, ""),
+        "Yaml": (sh.YamlSH, "#"),
+        "Cpp": (sh.CppSH, "//"),
+        "OpenCL": (sh.OpenCLSH, "//"),
+        "Enaml": (sh.EnamlSH, "#"),
+        "Markdown": (sh.MarkdownSH, "#"),
         # Every other language
-        'None': (sh.TextSH, ''),
+        "None": (sh.TextSH, ""),
     }
 
     # --- Signals
@@ -132,12 +132,17 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
             if self._color_scheme is not None:
                 hl.set_color_scheme(self._color_scheme)
 
-            self._set_palette(background=hl.get_background_color(),
-                              foreground=hl.get_foreground_color())
+            self._set_palette(
+                background=hl.get_background_color(),
+                foreground=hl.get_foreground_color(),
+            )
 
     def _set_palette(self, background, foreground):
-        style = ("QPlainTextEdit#%s {background: %s; color: %s;}" %
-                 (self.objectName(), background.name(), foreground.name()))
+        style = "QPlainTextEdit#%s {background: %s; color: %s;}" % (
+            self.objectName(),
+            background.name(),
+            foreground.name(),
+        )
         self.setStyleSheet(style)
         self.rehighlight()
 
@@ -181,15 +186,17 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def setup_editor(self,
-                     linenumbers=True,
-                     color_scheme="spyder/dark",
-                     language="py",
-                     font=None,
-                     show_blanks=False,
-                     wrap=False,
-                     highlight_current_line=True,
-                     scroll_past_end=False):
+    def setup_editor(
+        self,
+        linenumbers=True,
+        color_scheme="spyder/dark",
+        language="py",
+        font=None,
+        show_blanks=False,
+        wrap=False,
+        highlight_current_line=True,
+        scroll_past_end=False,
+    ):
         """
         Setup editor options.
 
@@ -259,13 +266,12 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         language = str(language).lower()
         self.supported_language = False
         for (key, value) in LANGUAGE_EXTENSIONS.items():
-            if language in (key.lower(), ) + value:
+            if language in (key.lower(),) + value:
                 sh_class, __ = self.LANGUAGE_HIGHLIGHTERS[key]
                 self._language = key
                 self.supported_language = True
 
-        self._highlighter = sh_class(
-            self.document(), self.font(), self._color_scheme)
+        self._highlighter = sh_class(self.document(), self.font(), self._color_scheme)
         self._apply_color_scheme()
 
     def toggle_line_numbers(self, state):
@@ -304,7 +310,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         state: bool
             Wrap state.
         """
-        self.set_wrap_mode('word' if state else None)
+        self.set_wrap_mode("word" if state else None)
 
     def set_wrap_mode(self, mode=None):
         """
@@ -315,9 +321,9 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         mode: str or None, optional
             "word", or "character". Default is None.
         """
-        if mode == 'word':
+        if mode == "word":
             wrap_mode = QTextOption.WrapAtWordBoundaryOrAnywhere
-        elif mode == 'character':
+        elif mode == "character":
             wrap_mode = QTextOption.WrapAnywhere
         else:
             wrap_mode = QTextOption.NoWrap
@@ -347,8 +353,9 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         self._blanks_enabled = state
         option = self.document().defaultTextOption()
-        option.setFlags(option.flags()
-                        | QTextOption.AddSpaceForLineAndParagraphSeparators)
+        option.setFlags(
+            option.flags() | QTextOption.AddSpaceForLineAndParagraphSeparators
+        )
 
         if self._blanks_enabled:
             option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
@@ -375,8 +382,9 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
 
             block = self.firstVisibleBlock()
             block_number = block.blockNumber()
-            top = round(self.blockBoundingGeometry(block).translated(
-                self.contentOffset()).top())
+            top = round(
+                self.blockBoundingGeometry(block).translated(self.contentOffset()).top()
+            )
             bottom = top + round(self.blockBoundingRect(block).height())
 
             font = self.font()
@@ -390,8 +398,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                     if number == active_line_number:
                         font.setWeight(font.Bold)
                         painter.setFont(font)
-                        painter.setPen(
-                            self._highlighter.get_foreground_color())
+                        painter.setPen(self._highlighter.get_foreground_color())
                     else:
                         font.setWeight(font.Normal)
                         painter.setFont(font)
@@ -402,7 +409,8 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                         top,
                         self.linenumberarea.width() - right_padding,
                         self.fontMetrics().height(),
-                        Qt.AlignRight, str(number),
+                        Qt.AlignRight,
+                        str(number),
                     )
 
                 block = block.next()
@@ -432,9 +440,11 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                 digits += 1
 
             fm = self.fontMetrics()
-            width = (self.linenumberarea._left_padding
-                     + self.linenumberarea._right_padding
-                     + fm.width('9') * digits)
+            width = (
+                self.linenumberarea._left_padding
+                + self.linenumberarea._right_padding
+                + fm.width("9") * digits
+            )
 
         return width
 
@@ -459,7 +469,8 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                 self.linenumberarea.scroll(0, dy)
             else:
                 self.linenumberarea.update(
-                    0, rect.y(), self.linenumberarea.width(), rect.height())
+                    0, rect.y(), self.linenumberarea.width(), rect.height()
+                )
 
             if rect.contains(self.viewport().rect()):
                 self.update_linenumberarea_width(0)
@@ -484,8 +495,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
 
     def stdkey_backspace(self):
         if not self.has_selected_text():
-            self.moveCursor(QTextCursor.PreviousCharacter,
-                            QTextCursor.KeepAnchor)
+            self.moveCursor(QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
         self.remove_selected_text()
 
     def restrict_cursor_position(self, position_from, position_to):
@@ -552,8 +562,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
     def get_visible_block_numbers(self):
         """Get the first and last visible block numbers."""
         first = self.firstVisibleBlock().blockNumber()
-        bottom_right = QPoint(self.viewport().width() - 1,
-                              self.viewport().height() - 1)
+        bottom_right = QPoint(self.viewport().width() - 1, self.viewport().height() - 1)
         last = self.cursorForPosition(bottom_right).blockNumber()
         return (first, last)
 

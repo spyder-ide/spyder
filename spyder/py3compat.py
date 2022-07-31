@@ -22,14 +22,14 @@ import operator
 import os
 import sys
 
-PY2 = sys.version[0] == '2'
-PY3 = sys.version[0] == '3'
+PY2 = sys.version[0] == "2"
+PY3 = sys.version[0] == "3"
 PY36_OR_MORE = sys.version_info[0] >= 3 and sys.version_info[1] >= 6
 PY38_OR_MORE = sys.version_info[0] >= 3 and sys.version_info[1] >= 8
 
-#==============================================================================
+# ==============================================================================
 # Data types
-#==============================================================================
+# ==============================================================================
 if PY2:
     # Python 2
     TEXT_TYPES = (str, unicode)
@@ -41,18 +41,20 @@ else:
 NUMERIC_TYPES = tuple(list(INT_TYPES) + [float])
 
 
-#==============================================================================
+# ==============================================================================
 # Renamed/Reorganized modules
-#==============================================================================
+# ==============================================================================
 if PY2:
     # Python 2
     import __builtin__ as builtins
     import ConfigParser as configparser
+
     try:
         import _winreg as winreg
     except ImportError:
         pass
     from sys import maxint as maxsize
+
     try:
         import CStringIO as io
     except ImportError:
@@ -72,6 +74,7 @@ else:
     # Python 3
     import builtins
     import configparser
+
     try:
         import winreg
     except ImportError:
@@ -87,9 +90,9 @@ else:
     from base64 import decodebytes
 
 
-#==============================================================================
+# ==============================================================================
 # Strings
-#==============================================================================
+# ==============================================================================
 def to_unichr(character_code):
     """
     Return the Unicode string of the character with the given Unicode code.
@@ -98,6 +101,7 @@ def to_unichr(character_code):
         return unichr(character_code)
     else:
         return chr(character_code)
+
 
 def is_type_text_string(obj):
     """Return True if `obj` is type text string, False if it is anything else,
@@ -109,6 +113,7 @@ def is_type_text_string(obj):
         # Python 3
         return type(obj) in [str, bytes]
 
+
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,
     like binary data (Python 3) or QString (Python 2, PyQt API #1)"""
@@ -119,6 +124,7 @@ def is_text_string(obj):
         # Python 3
         return isinstance(obj, str)
 
+
 def is_binary_string(obj):
     """Return True if `obj` is a binary string, False if it is anything else"""
     if PY2:
@@ -128,10 +134,12 @@ def is_binary_string(obj):
         # Python 3
         return isinstance(obj, bytes)
 
+
 def is_string(obj):
     """Return True if `obj` is a text or binary Python string object,
     False if it is anything else, like a QString (Python 2, PyQt API #1)"""
     return is_text_string(obj) or is_binary_string(obj)
+
 
 def is_unicode(obj):
     """Return True if `obj` is unicode"""
@@ -141,6 +149,7 @@ def is_unicode(obj):
     else:
         # Python 3
         return isinstance(obj, str)
+
 
 def to_text_string(obj, encoding=None):
     """Convert `obj` to (unicode) text string"""
@@ -162,6 +171,7 @@ def to_text_string(obj, encoding=None):
         else:
             return str(obj, encoding)
 
+
 def to_binary_string(obj, encoding=None):
     """Convert `obj` to binary string (bytes in Python 3, str in Python 2)"""
     if PY2:
@@ -172,12 +182,12 @@ def to_binary_string(obj, encoding=None):
             return obj.encode(encoding)
     else:
         # Python 3
-        return bytes(obj, 'utf-8' if encoding is None else encoding)
+        return bytes(obj, "utf-8" if encoding is None else encoding)
 
 
-#==============================================================================
+# ==============================================================================
 # Function attributes
-#==============================================================================
+# ==============================================================================
 def get_func_code(func):
     """Return function code object"""
     if PY2:
@@ -187,6 +197,7 @@ def get_func_code(func):
         # Python 3
         return func.__code__
 
+
 def get_func_name(func):
     """Return function name"""
     if PY2:
@@ -195,6 +206,7 @@ def get_func_name(func):
     else:
         # Python 3
         return func.__name__
+
 
 def get_func_defaults(func):
     """Return function default argument values"""
@@ -206,9 +218,9 @@ def get_func_defaults(func):
         return func.__defaults__
 
 
-#==============================================================================
+# ==============================================================================
 # Special method attributes
-#==============================================================================
+# ==============================================================================
 def get_meth_func(obj):
     """Return method function object"""
     if PY2:
@@ -218,6 +230,7 @@ def get_meth_func(obj):
         # Python 3
         return obj.__func__
 
+
 def get_meth_class_inst(obj):
     """Return method class instance"""
     if PY2:
@@ -226,6 +239,7 @@ def get_meth_class_inst(obj):
     else:
         # Python 3
         return obj.__self__
+
 
 def get_meth_class(obj):
     """Return method class"""
@@ -237,34 +251,40 @@ def get_meth_class(obj):
         return obj.__self__.__class__
 
 
-#==============================================================================
+# ==============================================================================
 # Misc.
-#==============================================================================
+# ==============================================================================
 if PY2:
     # Python 2
     input = raw_input
     getcwd = os.getcwdu
     cmp = cmp
     import string
+
     str_lower = string.lower
     from itertools import izip_longest as zip_longest
 else:
     # Python 3
     input = input
     getcwd = os.getcwd
+
     def cmp(a, b):
         return (a > b) - (a < b)
+
     str_lower = str.lower
     from itertools import zip_longest
+
 
 def qbytearray_to_str(qba):
     """Convert QByteArray object to str in a way compatible with Python 2/3"""
     return str(bytes(qba.toHex().data()).decode())
 
+
 # =============================================================================
 # Dict funcs
 # =============================================================================
 if PY3:
+
     def iterkeys(d, **kw):
         return iter(d.keys(**kw))
 
@@ -283,6 +303,7 @@ if PY3:
 
     viewitems = operator.methodcaller("items")
 else:
+
     def iterkeys(d, **kw):
         return d.iterkeys(**kw)
 
@@ -315,5 +336,5 @@ else:
     BrokenPipeError = BrokenPipeError
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

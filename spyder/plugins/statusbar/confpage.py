@@ -14,32 +14,39 @@ from spyder.api.translations import get_translation
 from spyder.api.preferences import PluginConfigPage
 
 
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class StatusBarConfigPage(PluginConfigPage):
-
     def setup_page(self):
         newcb = self.create_checkbox
 
         # --- Status bar
         sbar_group = QGroupBox(_("Display"))
 
-        memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
-                           tip=self.plugin.mem_status.toolTip())
-        memory_spin = self.create_spinbox("", _(" ms"), 'memory_usage/timeout',
-                                          min_=100, max_=1000000, step=100)
+        memory_box = newcb(
+            _("Show memory usage every"),
+            "memory_usage/enable",
+            tip=self.plugin.mem_status.toolTip(),
+        )
+        memory_spin = self.create_spinbox(
+            "", _(" ms"), "memory_usage/timeout", min_=100, max_=1000000, step=100
+        )
         memory_box.toggled.connect(memory_spin.setEnabled)
-        memory_spin.setEnabled(self.get_option('memory_usage/enable'))
+        memory_spin.setEnabled(self.get_option("memory_usage/enable"))
 
-        cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
-                        tip=self.plugin.cpu_status.toolTip())
-        cpu_spin = self.create_spinbox("", _(" ms"), 'cpu_usage/timeout',
-                                       min_=100, max_=1000000, step=100)
+        cpu_box = newcb(
+            _("Show CPU usage every"),
+            "cpu_usage/enable",
+            tip=self.plugin.cpu_status.toolTip(),
+        )
+        cpu_spin = self.create_spinbox(
+            "", _(" ms"), "cpu_usage/timeout", min_=100, max_=1000000, step=100
+        )
         cpu_box.toggled.connect(cpu_spin.setEnabled)
-        cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
+        cpu_spin.setEnabled(self.get_option("cpu_usage/enable"))
 
-        clock_box = newcb(_("Show clock"), 'clock/enable')
+        clock_box = newcb(_("Show clock"), "clock/enable")
 
         # Layout status bar
         cpu_memory_layout = QGridLayout()

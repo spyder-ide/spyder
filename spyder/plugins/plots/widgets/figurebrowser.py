@@ -21,9 +21,18 @@ from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
-from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
-                            QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QScrollArea,
+    QScrollBar,
+    QSplitter,
+    QStyle,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local library imports
 from spyder.api.translations import get_translation
@@ -37,20 +46,20 @@ from spyder.utils.palette import QStylePalette
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 def save_figure_tofile(fig, fmt, fname):
     """Save fig to fname in the format specified by fmt."""
     root, ext = osp.splitext(fname)
-    if ext == '.png' and fmt == 'image/svg+xml':
+    if ext == ".png" and fmt == "image/svg+xml":
         qimg = svg_to_image(fig)
         qimg.save(fname)
     else:
-        if fmt == 'image/svg+xml' and isinstance(fig, str):
-            fig = fig.encode('utf-8')
+        if fmt == "image/svg+xml" and isinstance(fig, str):
+            fig = fig.encode("utf-8")
 
-        with open(fname, 'wb') as f:
+        with open(fname, "wb") as f:
             f.write(fig)
 
 
@@ -60,14 +69,14 @@ def get_unique_figname(dirname, root, ext, start_at_zero=False):
     in "dirname".
     """
     i = 1
-    figname = '{}{}'.format(root, ext)
+    figname = "{}{}".format(root, ext)
     if start_at_zero:
         i = 0
-        figname = '{} ({}){}'.format(root, i, ext)
+        figname = "{} ({}){}".format(root, i, ext)
 
     while True:
         if osp.exists(osp.join(dirname, figname)):
-            figname = '{} ({}){}'.format(root, i, ext)
+            figname = "{} ({}){}".format(root, i, ext)
             i += 1
         else:
             return osp.join(dirname, figname)
@@ -153,10 +162,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.zoom_disp_value = None
 
         # Setup the figure viewer.
-        self.figviewer = FigureViewer(parent=self,
-                                      background_color=self.background_color)
+        self.figviewer = FigureViewer(
+            parent=self, background_color=self.background_color
+        )
         self.figviewer.sig_context_menu_requested.connect(
-            self.sig_figure_menu_requested)
+            self.sig_figure_menu_requested
+        )
         self.figviewer.sig_figure_loaded.connect(self.sig_figure_loaded)
         self.figviewer.sig_zoom_changed.connect(self.sig_zoom_changed)
         self.figviewer.sig_zoom_changed.connect(self._update_zoom_value)
@@ -168,11 +179,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             background_color=self.background_color,
         )
         self.thumbnails_sb.sig_context_menu_requested.connect(
-            self.sig_thumbnail_menu_requested)
-        self.thumbnails_sb.sig_save_dir_changed.connect(
-            self.sig_save_dir_changed)
+            self.sig_thumbnail_menu_requested
+        )
+        self.thumbnails_sb.sig_save_dir_changed.connect(self.sig_save_dir_changed)
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
+            self.sig_redirect_stdio_requested
+        )
 
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
@@ -198,13 +210,13 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Setup the figure browser with provided options."""
         self.splitter.setContentsMargins(0, 0, 0, 0)
         for option, value in options.items():
-            if option == 'auto_fit_plotting':
+            if option == "auto_fit_plotting":
                 self.change_auto_fit_plotting(value)
-            elif option == 'mute_inline_plotting':
+            elif option == "mute_inline_plotting":
                 self.mute_inline_plotting = value
-            elif option == 'show_plot_outline':
+            elif option == "show_plot_outline":
                 self.show_fig_outline_in_viewer(value)
-            elif option == 'save_dir':
+            elif option == "save_dir":
                 self.thumbnails_sb.save_dir = value
 
     def update_splitter_widths(self, base_width):
@@ -224,12 +236,10 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Draw a frame around the figure viewer if state is True."""
         if state is True:
             self.figviewer.figcanvas.setStyleSheet(
-                "FigureCanvas{border: 2px solid %s;}" %
-                QStylePalette.COLOR_BACKGROUND_4
+                "FigureCanvas{border: 2px solid %s;}" % QStylePalette.COLOR_BACKGROUND_4
             )
         else:
-            self.figviewer.figcanvas.setStyleSheet(
-                "FigureCanvas{border: 0px;}")
+            self.figviewer.figcanvas.setStyleSheet("FigureCanvas{border: 0px;}")
 
     def change_auto_fit_plotting(self, state):
         """Change the auto_fit_plotting option and scale images."""
@@ -332,7 +342,8 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         self.setAlignment(Qt.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
-            "#figviewport {background-color:" + str(background_color) + "}")
+            "#figviewport {background-color:" + str(background_color) + "}"
+        )
         self.setFrameStyle(0)
 
         self.background_color = background_color
@@ -370,11 +381,11 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
 
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
-        self.figcanvas = FigureCanvas(parent=self,
-                                      background_color=self.background_color)
+        self.figcanvas = FigureCanvas(
+            parent=self, background_color=self.background_color
+        )
         self.figcanvas.installEventFilter(self)
-        self.figcanvas.customContextMenuRequested.connect(
-            self.show_context_menu)
+        self.figcanvas.customContextMenuRequested.connect(self.show_context_menu)
         self.setWidget(self.figcanvas)
 
     def show_context_menu(self, qpoint):
@@ -454,7 +465,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         if self._scalefactor >= self._sfmin:
             self._scalefactor -= 1
             self.scale_image()
-            self._adjust_scrollbar(1/self._scalestep)
+            self._adjust_scrollbar(1 / self._scalestep)
 
     def scale_image(self):
         """Scale the image size."""
@@ -463,21 +474,25 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
 
         # Don't auto fit plotting
         if not self.auto_fit_plotting:
-            new_width = int(fwidth * self._scalestep ** self._scalefactor)
-            new_height = int(fheight * self._scalestep ** self._scalefactor)
+            new_width = int(fwidth * self._scalestep**self._scalefactor)
+            new_height = int(fheight * self._scalestep**self._scalefactor)
 
         # Auto fit plotting
         # Scale the image to fit the figviewer size while respecting the ratio.
         else:
             size = self.size()
             style = self.style()
-            width = (size.width() -
-                     style.pixelMetric(QStyle.PM_LayoutLeftMargin) -
-                     style.pixelMetric(QStyle.PM_LayoutRightMargin))
-            height = (size.height() -
-                      style.pixelMetric(QStyle.PM_LayoutTopMargin) -
-                      style.pixelMetric(QStyle.PM_LayoutBottomMargin))
-            self.figcanvas.setToolTip('')
+            width = (
+                size.width()
+                - style.pixelMetric(QStyle.PM_LayoutLeftMargin)
+                - style.pixelMetric(QStyle.PM_LayoutRightMargin)
+            )
+            height = (
+                size.height()
+                - style.pixelMetric(QStyle.PM_LayoutTopMargin)
+                - style.pixelMetric(QStyle.PM_LayoutBottomMargin)
+            )
+            self.figcanvas.setToolTip("")
             try:
                 if (fwidth / fheight) > (width / height):
                     new_width = int(width)
@@ -486,10 +501,11 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
                     new_height = int(height)
                     new_width = int(height / fheight * fwidth)
             except ZeroDivisionError:
-                icon = self.create_icon('broken_image')
+                icon = self.create_icon("broken_image")
                 self.figcanvas._qpix_orig = icon.pixmap(fwidth, fheight)
                 self.figcanvas.setToolTip(
-                    _('The image is broken, please try to generate it again'))
+                    _("The image is broken, please try to generate it again")
+                )
                 new_width = fwidth
                 new_height = fheight
 
@@ -518,11 +534,11 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         """
         # Adjust horizontal scrollbar :
         hb = self.horizontalScrollBar()
-        hb.setValue(int(f * hb.value() + ((f - 1) * hb.pageStep()/2)))
+        hb.setValue(int(f * hb.value() + ((f - 1) * hb.pageStep() / 2)))
 
         # Adjust the vertical scrollbar :
         vb = self.verticalScrollBar()
-        vb.setValue(int(f * vb.value() + ((f - 1) * vb.pageStep()/2)))
+        vb.setValue(int(f * vb.value() + ((f - 1) * vb.pageStep() / 2)))
 
 
 class ThumbnailScrollBar(QFrame):
@@ -531,6 +547,7 @@ class ThumbnailScrollBar(QFrame):
     created when a figure is sent to the IPython console by the kernel and
     that controls what is displayed in the FigureViewer.
     """
+
     _min_scrollbar_width = 100
 
     # Signals
@@ -586,7 +603,8 @@ class ThumbnailScrollBar(QFrame):
         # See spyder-ide/spyder#10914 for more details.
         self._new_thumbnail_added = False
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
-            self._scroll_to_newest_item)
+            self._scroll_to_newest_item
+        )
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
@@ -653,8 +671,7 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_as(self):
         """Save all the figures to a file."""
         self.sig_redirect_stdio_requested.emit(False)
-        dirname = getexistingdirectory(self, 'Save all figures',
-                                       self.save_dir)
+        dirname = getexistingdirectory(self, "Save all figures", self.save_dir)
         self.sig_redirect_stdio_requested.emit(True)
 
         if dirname:
@@ -664,17 +681,17 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_todir(self, dirname):
         """Save all figure in dirname."""
         fignames = []
-        figname_root = ('Figure ' +
-                        datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+        figname_root = "Figure " + datetime.datetime.now().strftime("%Y-%m-%d %H%M%S")
         for thumbnail in self._thumbnails:
             fig = thumbnail.canvas.fig
             fmt = thumbnail.canvas.fmt
-            fext = {'image/png': '.png',
-                    'image/jpeg': '.jpg',
-                    'image/svg+xml': '.svg'}[fmt]
+            fext = {"image/png": ".png", "image/jpeg": ".jpg", "image/svg+xml": ".svg"}[
+                fmt
+            ]
 
-            figname = get_unique_figname(dirname, figname_root, fext,
-                                         start_at_zero=True)
+            figname = get_unique_figname(
+                dirname, figname_root, fext, start_at_zero=True
+            )
             save_figure_tofile(fig, fmt, figname)
             fignames.append(figname)
         return fignames
@@ -682,8 +699,9 @@ class ThumbnailScrollBar(QFrame):
     def save_current_figure_as(self):
         """Save the currently selected figure."""
         if self.current_thumbnail is not None:
-            self.save_figure_as(self.current_thumbnail.canvas.fig,
-                                self.current_thumbnail.canvas.fmt)
+            self.save_figure_as(
+                self.current_thumbnail.canvas.fig, self.current_thumbnail.canvas.fmt
+            )
 
     def save_thumbnail_figure_as(self, thumbnail):
         """Save the currently selected figure."""
@@ -692,20 +710,26 @@ class ThumbnailScrollBar(QFrame):
     def save_figure_as(self, fig, fmt):
         """Save the figure to a file."""
         fext, ffilt = {
-            'image/png': ('.png', 'PNG (*.png)'),
-            'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
-            'image/svg+xml': ('.svg', 'SVG (*.svg);;PNG (*.png)')}[fmt]
+            "image/png": (".png", "PNG (*.png)"),
+            "image/jpeg": (".jpg", "JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)"),
+            "image/svg+xml": (".svg", "SVG (*.svg);;PNG (*.png)"),
+        }[fmt]
 
         figname = get_unique_figname(
             self.save_dir,
-            'Figure ' + datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'),
-            fext)
+            "Figure " + datetime.datetime.now().strftime("%Y-%m-%d %H%M%S"),
+            fext,
+        )
 
         self.sig_redirect_stdio_requested.emit(False)
         fname, fext = getsavefilename(
-            parent=self.parent(), caption='Save Figure',
-            basedir=figname, filters=ffilt,
-            selectedfilter='', options=None)
+            parent=self.parent(),
+            caption="Save Figure",
+            basedir=figname,
+            filters=ffilt,
+            selectedfilter="",
+            options=None,
+        )
         self.sig_redirect_stdio_requested.emit(True)
 
         if fname:
@@ -717,15 +741,15 @@ class ThumbnailScrollBar(QFrame):
         """
         Calculate the width the thumbnails need to have to fit the scrollarea.
         """
-        extra_padding = 10 if sys.platform == 'darwin' else 0
+        extra_padding = 10 if sys.platform == "darwin" else 0
         figure_canvas_width = (
-            self.scrollarea.width() -
-            2 * self.lineWidth() -
-            self.scrollarea.viewportMargins().left() -
-            self.scrollarea.viewportMargins().right() -
-            extra_padding -
-            self.scrollarea.verticalScrollBar().sizeHint().width()
-            )
+            self.scrollarea.width()
+            - 2 * self.lineWidth()
+            - self.scrollarea.viewportMargins().left()
+            - self.scrollarea.viewportMargins().right()
+            - extra_padding
+            - self.scrollarea.verticalScrollBar().sizeHint().width()
+        )
         figure_canvas_width = figure_canvas_width - 6
         return figure_canvas_width
 
@@ -765,14 +789,14 @@ class ThumbnailScrollBar(QFrame):
         """
         Add a new thumbnail to that thumbnail scrollbar.
         """
-        thumbnail = FigureThumbnail(
-            parent=self, background_color=self.background_color)
+        thumbnail = FigureThumbnail(parent=self, background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure_requested.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure_requested.connect(self.save_figure_as)
         thumbnail.sig_context_menu_requested.connect(
-            lambda point: self.show_context_menu(point, thumbnail))
+            lambda point: self.show_context_menu(point, thumbnail)
+        )
         self._thumbnails.append(thumbnail)
         self._new_thumbnail_added = True
 
@@ -823,9 +847,7 @@ class ThumbnailScrollBar(QFrame):
         # Select a new thumbnail if any :
         if thumbnail == self.current_thumbnail:
             if len(self._thumbnails) > 0:
-                self.set_current_index(
-                    min(index, len(self._thumbnails) - 1)
-                )
+                self.set_current_index(min(index, len(self._thumbnails) - 1))
             else:
                 self.figure_viewer.figcanvas.clear_canvas()
                 self.current_thumbnail = None
@@ -836,8 +858,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.close()
 
         # See: spyder-ide/spyder#12459
-        QTimer.singleShot(
-            150, lambda: self._remove_thumbnail_parent(thumbnail))
+        QTimer.singleShot(150, lambda: self._remove_thumbnail_parent(thumbnail))
 
     def _remove_thumbnail_parent(self, thumbnail):
         try:
@@ -864,8 +885,7 @@ class ThumbnailScrollBar(QFrame):
         if self.current_thumbnail is not None:
             self.current_thumbnail.highlight_canvas(False)
         self.current_thumbnail = thumbnail
-        self.figure_viewer.load_figure(
-            thumbnail.canvas.fig, thumbnail.canvas.fmt)
+        self.figure_viewer.load_figure(thumbnail.canvas.fig, thumbnail.canvas.fmt)
         self.current_thumbnail.highlight_canvas(True)
 
     def go_previous_thumbnail(self):
@@ -925,7 +945,6 @@ class ThumbnailScrollBar(QFrame):
         vsb.setValue(int(vsb.value() + vsb.singleStep()))
 
 
-
 class FigureThumbnail(QWidget):
     """
     A widget that consists of a FigureCanvas, a side toolbar, and a context
@@ -977,10 +996,8 @@ class FigureThumbnail(QWidget):
 
     def __init__(self, parent=None, background_color=None):
         super().__init__(parent)
-        self.canvas = FigureCanvas(parent=self,
-                                   background_color=background_color)
-        self.canvas.sig_context_menu_requested.connect(
-            self.sig_context_menu_requested)
+        self.canvas = FigureCanvas(parent=self, background_color=background_color)
+        self.canvas.sig_context_menu_requested.connect(self.sig_context_menu_requested)
         self.canvas.installEventFilter(self)
         self.setup_gui()
 
@@ -999,8 +1016,7 @@ class FigureThumbnail(QWidget):
             # Highlighted figure is not clear in dark mode with blue color.
             # See spyder-ide/spyder#10255.
             self.canvas.setStyleSheet(
-                "FigureCanvas{border: 2px solid %s;}" %
-                QStylePalette.COLOR_ACCENT_3
+                "FigureCanvas{border: 2px solid %s;}" % QStylePalette.COLOR_ACCENT_3
             )
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
@@ -1055,7 +1071,8 @@ class FigureCanvas(QFrame):
         self.setMidLineWidth(1)
         self.setObjectName("figcanvas")
         self.setStyleSheet(
-            "#figcanvas {background-color:" + str(background_color) + "}")
+            "#figcanvas {background-color:" + str(background_color) + "}"
+        )
 
         self.fig = None
         self.fmt = None
@@ -1063,17 +1080,16 @@ class FigureCanvas(QFrame):
         self._blink_flag = False
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(
-            self.sig_context_menu_requested)
+        self.customContextMenuRequested.connect(self.sig_context_menu_requested)
 
     @Slot()
     def copy_figure(self):
         """Copy figure to clipboard."""
-        if self.fmt in ['image/png', 'image/jpeg']:
+        if self.fmt in ["image/png", "image/jpeg"]:
             qpixmap = QPixmap()
             qpixmap.loadFromData(self.fig, self.fmt.upper())
             QApplication.clipboard().setImage(qpixmap.toImage())
-        elif self.fmt == 'image/svg+xml':
+        elif self.fmt == "image/svg+xml":
             svg_to_clipboard(self.fig)
         else:
             return
@@ -1104,10 +1120,10 @@ class FigureCanvas(QFrame):
         self.fig = fig
         self.fmt = fmt
 
-        if fmt in ['image/png', 'image/jpeg']:
+        if fmt in ["image/png", "image/jpeg"]:
             self._qpix_orig = QPixmap()
             self._qpix_orig.loadFromData(fig, fmt.upper())
-        elif fmt == 'image/svg+xml':
+        elif fmt == "image/svg+xml":
             self._qpix_orig = QPixmap(svg_to_image(fig))
 
         self._qpix_scaled = self._qpix_orig
@@ -1119,22 +1135,24 @@ class FigureCanvas(QFrame):
         super().paintEvent(event)
         # Prepare the rect on which the image is going to be painted.
         fw = self.frameWidth()
-        rect = QRect(0 + fw, 0 + fw,
-                     self.size().width() - 2 * fw,
-                     self.size().height() - 2 * fw)
+        rect = QRect(
+            0 + fw, 0 + fw, self.size().width() - 2 * fw, self.size().height() - 2 * fw
+        )
 
         if self.fig is None or self._blink_flag:
             return
 
         # Prepare the scaled qpixmap to paint on the widget.
-        if (self._qpix_scaled is None or
-                self._qpix_scaled.size().width() != rect.width()):
-            if self.fmt in ['image/png', 'image/jpeg']:
+        if (
+            self._qpix_scaled is None
+            or self._qpix_scaled.size().width() != rect.width()
+        ):
+            if self.fmt in ["image/png", "image/jpeg"]:
                 self._qpix_scaled = self._qpix_orig.scaledToWidth(
-                    rect.width(), mode=Qt.SmoothTransformation)
-            elif self.fmt == 'image/svg+xml':
-                self._qpix_scaled = QPixmap(svg_to_image(
-                    self.fig, rect.size()))
+                    rect.width(), mode=Qt.SmoothTransformation
+                )
+            elif self.fmt == "image/svg+xml":
+                self._qpix_scaled = QPixmap(svg_to_image(self.fig, rect.size()))
 
         if self._qpix_scaled is not None:
             # Paint the image on the widget.

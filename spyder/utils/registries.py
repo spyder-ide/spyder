@@ -27,25 +27,29 @@ def get_caller(func):
         if frame.code_context:
             code_context = frame.code_context[0]
         else:
-            code_context = ''
+            code_context = ""
         if func in code_context:
-            frames.append(f'{frame.filename}:{frame.lineno}')
-    frames = ', '.join(frames)
+            frames.append(f"{frame.filename}:{frame.lineno}")
+    frames = ", ".join(frames)
     return frames
 
 
 class SpyderRegistry:
     """General registry for global references (per plugin) in Spyder."""
 
-    def __init__(self, creation_func: str, obj_type: str = ''):
+    def __init__(self, creation_func: str, obj_type: str = ""):
         self.registry_map = {}
         self.obj_type = obj_type
         self.creation_func = creation_func
 
-    def register_reference(self, obj: Any, id_: str,
-                           plugin: Optional[str] = None,
-                           context: Optional[str] = None,
-                           overwrite: Optional[bool] = False):
+    def register_reference(
+        self,
+        obj: Any,
+        id_: str,
+        plugin: Optional[str] = None,
+        context: Optional[str] = None,
+        overwrite: Optional[bool] = False,
+    ):
         """
         Register a reference `obj` for a given plugin name on a given context.
 
@@ -67,38 +71,39 @@ class SpyderRegistry:
             If None, this context will default to the special `__global`
             identifier.
         """
-        plugin = plugin if plugin is not None else 'main'
-        context = context if context is not None else '__global'
+        plugin = plugin if plugin is not None else "main"
+        context = context if context is not None else "__global"
 
         plugin_contexts = self.registry_map.get(plugin, {})
-        context_references = plugin_contexts.get(
-            context, weakref.WeakValueDictionary())
+        context_references = plugin_contexts.get(context, weakref.WeakValueDictionary())
 
         if id_ in context_references:
             try:
                 frames = get_caller(self.creation_func)
                 if not overwrite:
                     warnings.warn(
-                        f'There already exists a '
-                        f'reference {context_references[id_]} '
-                        f'with id {id_} under the context {context} '
-                        f'of plugin {plugin}. The new reference {obj} will '
-                        f'overwrite the previous reference. Hint: {obj} '
-                        f'should have a different id_. See {frames}')
+                        f"There already exists a "
+                        f"reference {context_references[id_]} "
+                        f"with id {id_} under the context {context} "
+                        f"of plugin {plugin}. The new reference {obj} will "
+                        f"overwrite the previous reference. Hint: {obj} "
+                        f"should have a different id_. See {frames}"
+                    )
             except (RuntimeError, KeyError):
                 # Do not raise exception if a wrapped Qt Object was deleted.
                 # Or if the object reference dissapeared concurrently.
                 pass
 
-        logger.debug(f'Registering {obj} ({id_}) under context {context} for '
-                     f'plugin {plugin}')
+        logger.debug(
+            f"Registering {obj} ({id_}) under context {context} for " f"plugin {plugin}"
+        )
         context_references[id_] = obj
         plugin_contexts[context] = context_references
         self.registry_map[plugin] = plugin_contexts
 
-    def get_reference(self, id_: str,
-                      plugin: Optional[str] = None,
-                      context: Optional[str] = None) -> Any:
+    def get_reference(
+        self, id_: str, plugin: Optional[str] = None, context: Optional[str] = None
+    ) -> Any:
         """
         Retrieve a stored object reference under a given id of a specific
         context of a given plugin name.
@@ -130,15 +135,16 @@ class SpyderRegistry:
             If neither of `id_`, `plugin` or `context` were found in the
             registry.
         """
-        plugin = plugin if plugin is not None else 'main'
-        context = context if context is not None else '__global'
+        plugin = plugin if plugin is not None else "main"
+        context = context if context is not None else "__global"
 
         plugin_contexts = self.registry_map[plugin]
         context_references = plugin_contexts[context]
         return context_references[id_]
 
-    def get_references(self, plugin: Optional[str] = None,
-                       context: Optional[str] = None) -> Dict[str, Any]:
+    def get_references(
+        self, plugin: Optional[str] = None, context: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Retrieve all stored object references under the context of a
         given plugin name.
@@ -163,22 +169,21 @@ class SpyderRegistry:
             A dict that contains the actions mapped by their corresponding
             identifiers.
         """
-        plugin = plugin if plugin is not None else 'main'
-        context = context if context is not None else '__global'
+        plugin = plugin if plugin is not None else "main"
+        context = context if context is not None else "__global"
 
         plugin_contexts = self.registry_map.get(plugin, {})
-        context_references = plugin_contexts.get(
-            context, weakref.WeakValueDictionary())
+        context_references = plugin_contexts.get(context, weakref.WeakValueDictionary())
         return context_references
 
     def reset_registry(self):
         self.registry_map = {}
 
     def __str__(self) -> str:
-        return f'SpyderRegistry[{self.obj_type}, {self.registry_map}]'
+        return f"SpyderRegistry[{self.obj_type}, {self.registry_map}]"
 
 
-ACTION_REGISTRY = SpyderRegistry('create_action', 'SpyderAction')
-TOOLBUTTON_REGISTRY = SpyderRegistry('create_toolbutton', 'QToolButton')
-TOOLBAR_REGISTRY = SpyderRegistry('create_toolbar', 'QToolBar')
-MENU_REGISTRY = SpyderRegistry('create_menu', 'SpyderMenu')
+ACTION_REGISTRY = SpyderRegistry("create_action", "SpyderAction")
+TOOLBUTTON_REGISTRY = SpyderRegistry("create_toolbutton", "QToolButton")
+TOOLBAR_REGISTRY = SpyderRegistry("create_toolbar", "QToolBar")
+MENU_REGISTRY = SpyderRegistry("create_menu", "SpyderMenu")

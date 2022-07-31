@@ -19,8 +19,14 @@ from qtpy import PYQT5
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog,
-                            QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QInputDialog,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget,
+)
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
@@ -36,7 +42,7 @@ from spyder.widgets.helperwidgets import FinderLineEdit
 
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 # Constants
 VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
@@ -46,8 +52,9 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     """
     Namespace browser (global variables explorer widget).
     """
+
     # This is necessary to test the widget separately from its plugin
-    CONF_SECTION = 'variable_explorer'
+    CONF_SECTION = "variable_explorer"
 
     # Signals
     sig_free_memory_requested = Signal()
@@ -65,7 +72,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         # Attributes
         self.filename = None
         self.text_finder = None
-        self.last_find = ''
+        self.last_find = ""
         self.finder_is_visible = False
 
         # Widgets
@@ -93,11 +100,12 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             # Signals
             self.editor.sig_files_dropped.connect(self.import_data)
             self.editor.sig_free_memory_requested.connect(
-                self.sig_free_memory_requested)
+                self.sig_free_memory_requested
+            )
             self.editor.sig_editor_creation_started.connect(
-                self.sig_start_spinner_requested)
-            self.editor.sig_editor_shown.connect(
-                self.sig_stop_spinner_requested)
+                self.sig_start_spinner_requested
+            )
+            self.editor.sig_editor_shown.connect(self.sig_stop_spinner_requested)
 
             # Layout
             layout = QVBoxLayout()
@@ -170,8 +178,9 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 basedir = getcwd_or_home()
             else:
                 basedir = osp.dirname(self.filename)
-            filenames, _selfilter = getopenfilenames(self, title, basedir,
-                                                     iofunctions.load_filters)
+            filenames, _selfilter = getopenfilenames(
+                self, title, basedir, iofunctions.load_filters
+            )
             if not filenames:
                 return
         elif isinstance(filenames, str):
@@ -185,24 +194,30 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
             if extension not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
-                answer = QMessageBox.question(self, title,
-                            _("<b>Unsupported file extension '%s'</b><br><br>"
-                              "Would you like to import it anyway "
-                              "(by selecting a known file format)?"
-                              ) % extension, buttons)
+                answer = QMessageBox.question(
+                    self,
+                    title,
+                    _(
+                        "<b>Unsupported file extension '%s'</b><br><br>"
+                        "Would you like to import it anyway "
+                        "(by selecting a known file format)?"
+                    )
+                    % extension,
+                    buttons,
+                )
                 if answer == QMessageBox.Cancel:
                     return
                 formats = list(iofunctions.load_extensions.keys())
-                item, ok = QInputDialog.getItem(self, title,
-                                                _('Open file as:'),
-                                                formats, 0, False)
+                item, ok = QInputDialog.getItem(
+                    self, title, _("Open file as:"), formats, 0, False
+                )
                 if ok:
                     extension = iofunctions.load_extensions[str(item)]
                 else:
                     return
 
             load_func = iofunctions.load_funcs[extension]
-                
+
             # 'import_wizard' (self.setup_io)
             if isinstance(load_func, str):
                 # Import data with import wizard
@@ -210,8 +225,12 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 try:
                     text, _encoding = encoding.read(self.filename)
                     base_name = osp.basename(self.filename)
-                    editor = ImportWizard(self, text, title=base_name,
-                                  varname=fix_reference_name(base_name))
+                    editor = ImportWizard(
+                        self,
+                        text,
+                        title=base_name,
+                        varname=fix_reference_name(base_name),
+                    )
                     if editor.exec_():
                         var_name, clip_data = editor.get_data()
                         self.editor.new_value(var_name, clip_data)
@@ -220,23 +239,26 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                error_message = self.shellwidget.load_data(self.filename,
-                                                           extension)
+                error_message = self.shellwidget.load_data(self.filename, extension)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
-    
+
             if error_message is not None:
-                QMessageBox.critical(self, title,
-                                     _("<b>Unable to load '%s'</b>"
-                                       "<br><br>"
-                                       "The error message was:<br>%s"
-                                       ) % (self.filename, error_message))
+                QMessageBox.critical(
+                    self,
+                    title,
+                    _(
+                        "<b>Unable to load '%s'</b>"
+                        "<br><br>"
+                        "The error message was:<br>%s"
+                    )
+                    % (self.filename, error_message),
+                )
             self.refresh_table()
 
     def reset_namespace(self):
         warning = self.get_conf(
-            section='ipython_console',
-            option='show_reset_namespace_warning'
+            section="ipython_console", option="show_reset_namespace_warning"
         )
         self.shellwidget.reset_namespace(warning=warning, message=True)
         self.editor.automatic_column_width = True
@@ -250,10 +272,10 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         if not extension:
             # Needed to prevent trying to save a data file without extension
             # See spyder-ide/spyder#7196
-            filename = filename + '.spydata'
-        filename, _selfilter = getsavefilename(self, _("Save data"),
-                                               filename,
-                                               iofunctions.save_filters)
+            filename = filename + ".spydata"
+        filename, _selfilter = getsavefilename(
+            self, _("Save data"), filename, iofunctions.save_filters
+        )
         if filename:
             self.filename = filename
         else:
@@ -267,22 +289,28 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
-            if 'Some objects could not be saved:' in error_message:
-                save_data_message = (
-                    _("<b>Some objects could not be saved:</b>")
-                    + "<br><br><code>{obj_list}</code>".format(
-                        obj_list=error_message.split(': ')[1]))
-            else:
+            if "Some objects could not be saved:" in error_message:
                 save_data_message = _(
-                    "<b>Unable to save current workspace</b>"
-                    "<br><br>"
-                    "The error message was:<br>") + error_message
+                    "<b>Some objects could not be saved:</b>"
+                ) + "<br><br><code>{obj_list}</code>".format(
+                    obj_list=error_message.split(": ")[1]
+                )
+            else:
+                save_data_message = (
+                    _(
+                        "<b>Unable to save current workspace</b>"
+                        "<br><br>"
+                        "The error message was:<br>"
+                    )
+                    + error_message
+                )
 
             QMessageBox.critical(self, _("Save data"), save_data_message)
 
 
 class NamespacesBrowserFinder(FinderLineEdit):
     """Textbox for filtering listed variables in the table."""
+
     # To load all variables when filtering.
     load_all = False
 

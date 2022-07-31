@@ -19,22 +19,25 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.explorer.widgets.explorer import (
-    DirViewActions, ExplorerTreeWidget, ExplorerTreeWidgetActions)
+    DirViewActions,
+    ExplorerTreeWidget,
+    ExplorerTreeWidgetActions,
+)
 from spyder.utils.misc import getcwd_or_home
 
 
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # ---- Constants
 class ExplorerWidgetOptionsMenuSections:
-    Files = 'files_section'
-    Header = 'header_section'
-    Common = 'common_section'
+    Files = "files_section"
+    Header = "header_section"
+    Common = "common_section"
 
 
 class ExplorerWidgetMainToolbarSections:
-    Main = 'main_section'
+    Main = "main_section"
 
 
 # ---- Main widget
@@ -178,18 +181,19 @@ class ExplorerWidget(PluginMainWidget):
         # Signals
         self.treewidget.sig_dir_opened.connect(self.sig_dir_opened)
         self.treewidget.sig_file_created.connect(self.sig_file_created)
-        self.treewidget.sig_open_file_requested.connect(
-            self.sig_open_file_requested)
+        self.treewidget.sig_open_file_requested.connect(self.sig_open_file_requested)
         self.treewidget.sig_module_created.connect(self.sig_module_created)
         self.treewidget.sig_open_interpreter_requested.connect(
-            self.sig_open_interpreter_requested)
+            self.sig_open_interpreter_requested
+        )
         self.treewidget.sig_renamed.connect(self.sig_renamed)
         self.treewidget.sig_removed.connect(self.sig_removed)
         self.treewidget.sig_run_requested.connect(self.sig_run_requested)
         self.treewidget.sig_tree_removed.connect(self.sig_tree_removed)
         self.treewidget.sig_tree_renamed.connect(self.sig_tree_renamed)
         self.treewidget.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
+            self.sig_redirect_stdio_requested
+        )
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -206,33 +210,41 @@ class ExplorerWidget(PluginMainWidget):
         # Menu
         menu = self.get_options_menu()
 
-        for item in [self.get_action(DirViewActions.ToggleHiddenFiles),
-                     self.get_action(DirViewActions.EditNameFilters)]:
+        for item in [
+            self.get_action(DirViewActions.ToggleHiddenFiles),
+            self.get_action(DirViewActions.EditNameFilters),
+        ]:
             self.add_item_to_menu(
-                item, menu=menu,
-                section=ExplorerWidgetOptionsMenuSections.Common)
+                item, menu=menu, section=ExplorerWidgetOptionsMenuSections.Common
+            )
 
-        for item in [self.get_action(DirViewActions.ToggleSizeColumn),
-                     self.get_action(DirViewActions.ToggleTypeColumn),
-                     self.get_action(DirViewActions.ToggleDateColumn)]:
+        for item in [
+            self.get_action(DirViewActions.ToggleSizeColumn),
+            self.get_action(DirViewActions.ToggleTypeColumn),
+            self.get_action(DirViewActions.ToggleDateColumn),
+        ]:
             self.add_item_to_menu(
-                item, menu=menu,
-                section=ExplorerWidgetOptionsMenuSections.Header)
+                item, menu=menu, section=ExplorerWidgetOptionsMenuSections.Header
+            )
 
         single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
         self.add_item_to_menu(
             single_click_action,
-            menu=menu, section=ExplorerWidgetOptionsMenuSections.Files)
+            menu=menu,
+            section=ExplorerWidgetOptionsMenuSections.Files,
+        )
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.get_action(ExplorerTreeWidgetActions.Previous),
-                     self.get_action(ExplorerTreeWidgetActions.Next),
-                     self.get_action(ExplorerTreeWidgetActions.Parent),
-                     self.get_action(ExplorerTreeWidgetActions.ToggleFilter)]:
+        for item in [
+            self.get_action(ExplorerTreeWidgetActions.Previous),
+            self.get_action(ExplorerTreeWidgetActions.Next),
+            self.get_action(ExplorerTreeWidgetActions.Parent),
+            self.get_action(ExplorerTreeWidgetActions.ToggleFilter),
+        ]:
             self.add_item_to_toolbar(
-                item, toolbar=toolbar,
-                section=ExplorerWidgetMainToolbarSections.Main)
+                item, toolbar=toolbar, section=ExplorerWidgetMainToolbarSections.Main
+            )
 
     def update_actions(self):
         """Handle the update of actions of the plugin."""
@@ -310,7 +322,7 @@ class ExplorerWidget(PluginMainWidget):
 # =============================================================================
 class FileExplorerTest(QWidget):
     def __init__(self, directory=None, file_associations={}):
-        self.CONF_SECTION = 'explorer'
+        self.CONF_SECTION = "explorer"
         super().__init__()
 
         if directory is not None:
@@ -318,8 +330,8 @@ class FileExplorerTest(QWidget):
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
 
-        self.explorer = ExplorerWidget('explorer', self, parent=self)
-        self.explorer.set_conf('file_associations', file_associations)
+        self.explorer = ExplorerWidget("explorer", self, parent=self)
+        self.explorer.set_conf("file_associations", file_associations)
         self.explorer._setup()
         self.explorer.setup()
         self.label_dir = QLabel("<b>Open dir:</b>")
@@ -358,12 +370,14 @@ class FileExplorerTest(QWidget):
         # Signals
         self.explorer.sig_dir_opened.connect(self.label2.setText)
         self.explorer.sig_dir_opened.connect(
-            lambda: self.explorer.treewidget.refresh('..'))
+            lambda: self.explorer.treewidget.refresh("..")
+        )
         self.explorer.sig_open_file_requested.connect(self.label1.setText)
 
 
 def test():
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     test = FileExplorerTest()
     test.resize(640, 480)

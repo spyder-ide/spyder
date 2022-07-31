@@ -53,9 +53,11 @@ try:
     # For Pillow compatibility
     from PIL import Image
     import PIL
+
     PIL.Image = Image
 except ImportError:
     # For PIL
     import Image
     import PIL
+
     PIL.Image = Image

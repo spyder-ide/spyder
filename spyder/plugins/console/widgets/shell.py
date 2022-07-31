@@ -29,14 +29,28 @@ from qtpy.QtWidgets import QApplication, QMenu, QToolTip
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
-from spyder.py3compat import (builtins, is_string, is_text_string,
-                              PY3, str_lower, to_text_string)
+from spyder.py3compat import (
+    builtins,
+    is_string,
+    is_text_string,
+    PY3,
+    str_lower,
+    to_text_string,
+)
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
-                                    restore_keyevent)
-from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
-                                   TracebackLinksMixin, BrowseHistoryMixin)
+from spyder.utils.qthelpers import (
+    add_actions,
+    create_action,
+    keybinding,
+    restore_keyevent,
+)
+from spyder.widgets.mixins import (
+    GetHelpMixin,
+    SaveHistoryMixin,
+    TracebackLinksMixin,
+    BrowseHistoryMixin,
+)
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 
 
@@ -44,8 +58,7 @@ from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 MAX_LINES = 1000
 
 
-class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
-                      BrowseHistoryMixin):
+class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin, BrowseHistoryMixin):
     """
     Shell base widget
     """
@@ -55,10 +68,18 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     execute = Signal(str)
     sig_append_to_history_requested = Signal(str, str)
 
-    def __init__(self, parent, history_filename, profile=False,
-                 initial_message=None, default_foreground_color=None,
-                 error_foreground_color=None, traceback_foreground_color=None,
-                 prompt_foreground_color=None, background_color=None):
+    def __init__(
+        self,
+        parent,
+        history_filename,
+        profile=False,
+        initial_message=None,
+        default_foreground_color=None,
+        error_foreground_color=None,
+        traceback_foreground_color=None,
+        prompt_foreground_color=None,
+        background_color=None,
+    ):
         """
         parent : specifies the parent widget
         """
@@ -75,8 +96,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         self.history = self.load_history()
 
         # Session
-        self.historylog_filename = CONF.get('main', 'historylog_filename',
-                                            get_conf_path('history.log'))
+        self.historylog_filename = CONF.get(
+            "main", "historylog_filename", get_conf_path("history.log")
+        )
 
         # Context menu
         self.menu = None
@@ -99,14 +121,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         self.setFocus()
 
         # Cursor width
-        self.setCursorWidth(CONF.get('main', 'cursor/width'))
+        self.setCursorWidth(CONF.get("main", "cursor/width"))
 
         # Adjustments to completion_widget to use it here
         self.completion_widget.currentRowChanged.disconnect()
 
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""
-        self.set_wrap_mode('character' if enable else None)
+        self.set_wrap_mode("character" if enable else None)
 
     def set_font(self, font):
         """Set shell styles font"""
@@ -119,39 +141,68 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         charformat.setFontPointSize(font.pointSize())
         cursor.mergeCharFormat(charformat)
 
-
-    #------ Context menu
+    # ------ Context menu
     def setup_context_menu(self):
         """Setup shell context menu"""
         self.menu = QMenu(self)
-        self.cut_action = create_action(self, _("Cut"),
-                                        shortcut=keybinding('Cut'),
-                                        icon=ima.icon('editcut'),
-                                        triggered=self.cut)
-        self.copy_action = create_action(self, _("Copy"),
-                                         shortcut=keybinding('Copy'),
-                                         icon=ima.icon('editcopy'),
-                                         triggered=self.copy)
-        paste_action = create_action(self, _("Paste"),
-                                     shortcut=keybinding('Paste'),
-                                     icon=ima.icon('editpaste'),
-                                     triggered=self.paste)
-        save_action = create_action(self, _("Save history log..."),
-                                    icon=ima.icon('filesave'),
-                                    tip=_("Save current history log (i.e. all "
-                                          "inputs and outputs) in a text file"),
-                                    triggered=self.save_historylog)
-        self.delete_action = create_action(self, _("Delete"),
-                                    shortcut=keybinding('Delete'),
-                                    icon=ima.icon('editdelete'),
-                                    triggered=self.delete)
-        selectall_action = create_action(self, _("Select All"),
-                                    shortcut=keybinding('SelectAll'),
-                                    icon=ima.icon('selectall'),
-                                    triggered=self.selectAll)
-        add_actions(self.menu, (self.cut_action, self.copy_action,
-                                paste_action, self.delete_action, None,
-                                selectall_action, None, save_action) )
+        self.cut_action = create_action(
+            self,
+            _("Cut"),
+            shortcut=keybinding("Cut"),
+            icon=ima.icon("editcut"),
+            triggered=self.cut,
+        )
+        self.copy_action = create_action(
+            self,
+            _("Copy"),
+            shortcut=keybinding("Copy"),
+            icon=ima.icon("editcopy"),
+            triggered=self.copy,
+        )
+        paste_action = create_action(
+            self,
+            _("Paste"),
+            shortcut=keybinding("Paste"),
+            icon=ima.icon("editpaste"),
+            triggered=self.paste,
+        )
+        save_action = create_action(
+            self,
+            _("Save history log..."),
+            icon=ima.icon("filesave"),
+            tip=_(
+                "Save current history log (i.e. all "
+                "inputs and outputs) in a text file"
+            ),
+            triggered=self.save_historylog,
+        )
+        self.delete_action = create_action(
+            self,
+            _("Delete"),
+            shortcut=keybinding("Delete"),
+            icon=ima.icon("editdelete"),
+            triggered=self.delete,
+        )
+        selectall_action = create_action(
+            self,
+            _("Select All"),
+            shortcut=keybinding("SelectAll"),
+            icon=ima.icon("selectall"),
+            triggered=self.selectAll,
+        )
+        add_actions(
+            self.menu,
+            (
+                self.cut_action,
+                self.copy_action,
+                paste_action,
+                self.delete_action,
+                None,
+                selectall_action,
+                None,
+                save_action,
+            ),
+        )
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
@@ -162,14 +213,13 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         self.menu.popup(event.globalPos())
         event.accept()
 
-
-    #------ Input buffer
+    # ------ Input buffer
     def get_current_line_from_cursor(self):
-        return self.get_text('cursor', 'eof')
+        return self.get_text("cursor", "eof")
 
     def _select_input(self):
         """Select current line (without selecting console prompt)"""
-        line, index = self.get_position('eof')
+        line, index = self.get_position("eof")
         if self.current_prompt_pos is None:
             pline, pindex = line, index
         else:
@@ -188,32 +238,31 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def _set_input_buffer(self, text):
         """Set input buffer"""
         if self.current_prompt_pos is not None:
-            self.replace_text(self.current_prompt_pos, 'eol', text)
+            self.replace_text(self.current_prompt_pos, "eol", text)
         else:
             self.insert(text)
-        self.set_cursor_position('eof')
+        self.set_cursor_position("eof")
 
     def _get_input_buffer(self):
         """Return input buffer"""
-        input_buffer = ''
+        input_buffer = ""
         if self.current_prompt_pos is not None:
-            input_buffer = self.get_text(self.current_prompt_pos, 'eol')
-            input_buffer = input_buffer.replace(os.linesep, '\n')
+            input_buffer = self.get_text(self.current_prompt_pos, "eol")
+            input_buffer = input_buffer.replace(os.linesep, "\n")
         return input_buffer
 
     input_buffer = Property("QString", _get_input_buffer, _set_input_buffer)
 
-
-    #------ Prompt
+    # ------ Prompt
     def new_prompt(self, prompt):
         """
         Print a new prompt and save its (line, index) position
         """
         if self.get_cursor_line_column()[1] != 0:
-            self.write('\n')
+            self.write("\n")
         self.write(prompt, prompt=True)
         # now we update our cursor giving end of prompt
-        self.current_prompt_pos = self.get_position('cursor')
+        self.current_prompt_pos = self.get_position("cursor")
         self.ensureCursorVisible()
         self.new_input_line = False
 
@@ -223,18 +272,17 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         otherwise remove read-only parts of selection
         """
         if self.current_prompt_pos is None:
-            self.set_cursor_position('eof')
+            self.set_cursor_position("eof")
         else:
             self.truncate_selection(self.current_prompt_pos)
 
-
-    #------ Copy / Keyboard interrupt
+    # ------ Copy / Keyboard interrupt
     @Slot()
     def copy(self):
         """Copy text to clipboard... or keyboard interrupt"""
         if self.has_selected_text():
             ConsoleBaseWidget.copy(self)
-        elif not sys.platform == 'darwin':
+        elif not sys.platform == "darwin":
             self.interrupt()
 
     def interrupt(self):
@@ -260,20 +308,20 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         """Save current history log (all text in console)"""
         title = _("Save history log")
         self.sig_redirect_stdio_requested.emit(False)
-        filename, _selfilter = getsavefilename(self, title,
-                    self.historylog_filename, "%s (*.log)" % _("History logs"))
+        filename, _selfilter = getsavefilename(
+            self, title, self.historylog_filename, "%s (*.log)" % _("History logs")
+        )
         self.sig_redirect_stdio_requested.emit(True)
         if filename:
             filename = osp.normpath(filename)
             try:
-                encoding.write(to_text_string(self.get_text_with_eol()),
-                               filename)
+                encoding.write(to_text_string(self.get_text_with_eol()), filename)
                 self.historylog_filename = filename
-                CONF.set('main', 'historylog_filename', filename)
+                CONF.set("main", "historylog_filename", filename)
             except EnvironmentError:
                 pass
 
-    #------ Basic keypress event handler
+    # ------ Basic keypress event handler
     def on_enter(self, command):
         """on_enter"""
         self.execute_command(command)
@@ -285,8 +333,8 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
     def on_new_line(self):
         """On new input line"""
-        self.set_cursor_position('eof')
-        self.current_prompt_pos = self.get_position('cursor')
+        self.set_cursor_position("eof")
+        self.current_prompt_pos = self.get_position("cursor")
         self.new_input_line = False
 
     @Slot()
@@ -314,18 +362,21 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         # (otherwise, right below, we would remove selection
         #  if not on current line)
         ctrl = event.modifiers() & Qt.ControlModifier
-        meta = event.modifiers() & Qt.MetaModifier    # meta=ctrl in OSX
-        if event.key() == Qt.Key_C and \
-          ((Qt.MetaModifier | Qt.ControlModifier) & event.modifiers()):
-            if meta and sys.platform == 'darwin':
+        meta = event.modifiers() & Qt.MetaModifier  # meta=ctrl in OSX
+        if event.key() == Qt.Key_C and (
+            (Qt.MetaModifier | Qt.ControlModifier) & event.modifiers()
+        ):
+            if meta and sys.platform == "darwin":
                 self.interrupt()
             elif ctrl:
                 self.copy()
             event.accept()
             return True
 
-        if self.new_input_line and ( len(event.text()) or event.key() in \
-           (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right) ):
+        if self.new_input_line and (
+            len(event.text())
+            or event.key() in (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right)
+        ):
             self.on_new_line()
 
         return False
@@ -337,12 +388,12 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
         # Is cursor on the last line? and after prompt?
         if len(text):
-            #XXX: Shouldn't it be: `if len(unicode(text).strip(os.linesep))` ?
+            # XXX: Shouldn't it be: `if len(unicode(text).strip(os.linesep))` ?
             if self.has_selected_text():
                 self.check_selection()
-            self.restrict_cursor_position(self.current_prompt_pos, 'eof')
+            self.restrict_cursor_position(self.current_prompt_pos, "eof")
 
-        cursor_position = self.get_position('cursor')
+        cursor_position = self.get_position("cursor")
 
         if key in (Qt.Key_Return, Qt.Key_Enter):
             if self.is_cursor_on_last_line():
@@ -374,16 +425,18 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             if self.current_prompt_pos == cursor_position:
                 # Avoid moving cursor on prompt
                 return
-            method = self.extend_selection_to_next if shift \
-                     else self.move_cursor_to_next
-            method('word' if ctrl else 'character', direction='left')
+            method = (
+                self.extend_selection_to_next if shift else self.move_cursor_to_next
+            )
+            method("word" if ctrl else "character", direction="left")
 
         elif key == Qt.Key_Right:
             if self.is_cursor_at_end():
                 return
-            method = self.extend_selection_to_next if shift \
-                     else self.move_cursor_to_next
-            method('word' if ctrl else 'character', direction='right')
+            method = (
+                self.extend_selection_to_next if shift else self.move_cursor_to_next
+            )
+            method("word" if ctrl else "character", direction="right")
 
         elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
             self._key_home(shift, ctrl)
@@ -393,7 +446,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
         elif key == Qt.Key_Up:
             if not self.is_cursor_on_last_line():
-                self.set_cursor_position('eof')
+                self.set_cursor_position("eof")
             y_cursor = self.get_coordinates(cursor_position)[1]
             y_prompt = self.get_coordinates(self.current_prompt_pos)[1]
             if y_cursor > y_prompt:
@@ -403,16 +456,16 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
         elif key == Qt.Key_Down:
             if not self.is_cursor_on_last_line():
-                self.set_cursor_position('eof')
+                self.set_cursor_position("eof")
             y_cursor = self.get_coordinates(cursor_position)[1]
-            y_end = self.get_coordinates('eol')[1]
+            y_end = self.get_coordinates("eol")[1]
             if y_cursor < y_end:
                 self.stdkey_down(shift)
             else:
                 self.browse_history(backward=False)
 
         elif key in (Qt.Key_PageUp, Qt.Key_PageDown):
-            #XXX: Find a way to do this programmatically instead of calling
+            # XXX: Find a way to do this programmatically instead of calling
             # widget keyhandler (this won't work if the *event* is coming from
             # the event queue - i.e. if the busy buffer is ever implemented)
             ConsoleBaseWidget.keyPressEvent(self, event)
@@ -459,58 +512,67 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             # Let the parent widget handle the key press event
             ConsoleBaseWidget.keyPressEvent(self, event)
 
-
-    #------ Key handlers
+    # ------ Key handlers
     def _key_enter(self):
         command = self.input_buffer
-        self.insert_text('\n', at_end=True)
+        self.insert_text("\n", at_end=True)
         self.on_enter(command)
         self.flush()
+
     def _key_other(self, text):
         raise NotImplementedError
+
     def _key_backspace(self, cursor_position):
         raise NotImplementedError
+
     def _key_tab(self):
         raise NotImplementedError
+
     def _key_ctrl_space(self):
         raise NotImplementedError
+
     def _key_home(self, shift, ctrl):
         if self.is_cursor_on_last_line():
             self.stdkey_home(shift, ctrl, self.current_prompt_pos)
+
     def _key_end(self, shift, ctrl):
         if self.is_cursor_on_last_line():
             self.stdkey_end(shift, ctrl)
+
     def _key_pageup(self):
         raise NotImplementedError
+
     def _key_pagedown(self):
         raise NotImplementedError
+
     def _key_escape(self):
         raise NotImplementedError
+
     def _key_question(self, text):
         raise NotImplementedError
+
     def _key_parenleft(self, text):
         raise NotImplementedError
+
     def _key_period(self, text):
         raise NotImplementedError
 
-
-    #------ History Management
+    # ------ History Management
     def load_history(self):
         """Load history from a .py file in user home directory"""
         if osp.isfile(self.history_filename):
             rawhistory, _ = encoding.readlines(self.history_filename)
-            rawhistory = [line.replace('\n', '') for line in rawhistory]
+            rawhistory = [line.replace("\n", "") for line in rawhistory]
             if rawhistory[1] != self.INITHISTORY[1]:
                 rawhistory[1] = self.INITHISTORY[1]
         else:
             rawhistory = self.INITHISTORY
-        history = [line for line in rawhistory \
-                   if line and not line.startswith('#')]
+        history = [line for line in rawhistory if line and not line.startswith("#")]
 
         # Truncating history to X entries:
         while len(history) >= MAX_LINES:
             del history[0]
-            while rawhistory[0].startswith('#'):
+            while rawhistory[0].startswith("#"):
                 del rawhistory[0]
             del rawhistory[0]
 
@@ -522,7 +584,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
         return history
 
-    #------ Simulation standards input/output
+    # ------ Simulation standards input/output
     def write_error(self, text):
         """Simulate stderr"""
         self.flush()
@@ -556,7 +618,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             except TypeError:
                 text = b"".join(self.__buffer)
                 try:
-                    text = text.decode( locale.getdefaultlocale()[1] )
+                    text = text.decode(locale.getdefaultlocale()[1])
                 except:
                     pass
         else:
@@ -576,8 +638,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         # Clear input buffer:
         self.new_input_line = True
 
-
-    #------ Text Insertion
+    # ------ Text Insertion
     def insert_text(self, text, at_end=False, error=False, prompt=False):
         """
         Insert text at the current cursor position
@@ -590,8 +651,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             # Insert text at current cursor position
             ConsoleBaseWidget.insert_text(self, text)
 
-
-    #------ Re-implemented Qt Methods
+    # ------ Re-implemented Qt Methods
     def focusNextPrevChild(self, next):
         """
         Reimplemented to stop Tab moving to the next window
@@ -600,15 +660,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             return False
         return ConsoleBaseWidget.focusNextPrevChild(self, next)
 
-
-    #------ Drag and drop
+    # ------ Drag and drop
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
         event.setAccepted(event.mimeData().hasFormat("text/plain"))
 
     def dragMoveEvent(self, event):
         """Drag and Drop - Move event"""
-        if (event.mimeData().hasFormat("text/plain")):
+        if event.mimeData().hasFormat("text/plain"):
             event.setDropAction(Qt.MoveAction)
             event.accept()
         else:
@@ -616,7 +675,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
     def dropEvent(self, event):
         """Drag and Drop - Drop event"""
-        if (event.mimeData().hasFormat("text/plain")):
+        if event.mimeData().hasFormat("text/plain"):
             text = to_text_string(event.mimeData().text())
             if self.new_input_line:
                 self.on_new_line()
@@ -637,13 +696,16 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 # from spyder.utils.debug import log_methods_calls
 # log_methods_calls('log.log', ShellBaseWidget)
 
-class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
-                        GetHelpMixin):
+
+class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget, GetHelpMixin):
     """Python shell widget"""
+
     QT_CLASS = ShellBaseWidget
-    INITHISTORY = ['# -*- coding: utf-8 -*-',
-                   '# *** Spyder Python Console History Log ***',]
-    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    INITHISTORY = [
+        "# -*- coding: utf-8 -*-",
+        "# *** Spyder Python Console History Log ***",
+    ]
+    SEPARATOR = "%s##---(%s)---" % (os.linesep * 2, time.ctime())
 
     # --- Signals
     # This signal emits a parsed error traceback text so we can then
@@ -662,9 +724,13 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     """
 
     def __init__(self, parent, history_filename, profile=False, initial_message=None):
-        ShellBaseWidget.__init__(self, parent, history_filename,
-                                 profile=profile,
-                                 initial_message=initial_message)
+        ShellBaseWidget.__init__(
+            self,
+            parent,
+            history_filename,
+            profile=profile,
+            initial_message=initial_message,
+        )
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
 
@@ -674,34 +740,36 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def create_shortcuts(self):
         array_inline = CONF.config_shortcut(
             lambda: self.enter_array_inline(),
-            context='array_builder',
-            name='enter array inline',
-            parent=self)
+            context="array_builder",
+            name="enter array inline",
+            parent=self,
+        )
         array_table = CONF.config_shortcut(
             lambda: self.enter_array_table(),
-            context='array_builder',
-            name='enter array table',
-            parent=self)
+            context="array_builder",
+            name="enter array table",
+            parent=self,
+        )
         inspectsc = CONF.config_shortcut(
             self.inspect_current_object,
-            context='Console',
-            name='Inspect current object',
-            parent=self)
+            context="Console",
+            name="Inspect current object",
+            parent=self,
+        )
         clear_line_sc = CONF.config_shortcut(
             self.clear_line,
-            context='Console',
+            context="Console",
             name="Clear line",
             parent=self,
         )
         clear_shell_sc = CONF.config_shortcut(
             self.clear_terminal,
-            context='Console',
+            context="Console",
             name="Clear shell",
             parent=self,
         )
 
-        return [inspectsc, array_inline, array_table, clear_line_sc,
-                clear_shell_sc]
+        return [inspectsc, array_inline, array_table, clear_line_sc, clear_shell_sc]
 
     def get_shortcut_data(self):
         """
@@ -712,34 +780,39 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         """
         return [sc.data for sc in self.shortcuts]
 
-    #------ Context menu
+    # ------ Context menu
     def setup_context_menu(self):
         """Reimplements ShellBaseWidget method"""
         ShellBaseWidget.setup_context_menu(self)
         self.copy_without_prompts_action = create_action(
             self,
             _("Copy without prompts"),
-            icon=ima.icon('copywop'),
-            triggered=self.copy_without_prompts)
+            icon=ima.icon("copywop"),
+            triggered=self.copy_without_prompts,
+        )
 
         clear_line_action = create_action(
             self,
             _("Clear line"),
-            QKeySequence(CONF.get_shortcut('console', 'Clear line')),
-            icon=ima.icon('editdelete'),
+            QKeySequence(CONF.get_shortcut("console", "Clear line")),
+            icon=ima.icon("editdelete"),
             tip=_("Clear line"),
-            triggered=self.clear_line)
+            triggered=self.clear_line,
+        )
 
         clear_action = create_action(
             self,
             _("Clear shell"),
-            QKeySequence(CONF.get_shortcut('console', 'Clear shell')),
-            icon=ima.icon('editclear'),
+            QKeySequence(CONF.get_shortcut("console", "Clear shell")),
+            icon=ima.icon("editclear"),
             tip=_("Clear shell contents ('cls' command)"),
-            triggered=self.clear_terminal)
+            triggered=self.clear_terminal,
+        )
 
-        add_actions(self.menu, (self.copy_without_prompts_action,
-                    clear_line_action, clear_action))
+        add_actions(
+            self.menu,
+            (self.copy_without_prompts_action, clear_line_action, clear_action),
+        )
 
     def contextMenuEvent(self, event):
         """Reimplements ShellBaseWidget method"""
@@ -753,13 +826,12 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         text = self.get_selected_text()
         lines = text.split(os.linesep)
         for index, line in enumerate(lines):
-            if line.startswith('>>> ') or line.startswith('... '):
+            if line.startswith(">>> ") or line.startswith("... "):
                 lines[index] = line[4:]
         text = os.linesep.join(lines)
         QApplication.clipboard().setText(text)
 
-
-    #------ Key handlers
+    # ------ Key handlers
     def postprocess_keyevent(self, event):
         """Process keypress event"""
         ShellBaseWidget.postprocess_keyevent(self, event)
@@ -820,7 +892,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         self.insert_text(text)
         # In case calltip and completion are shown at the same time:
         if self.is_completion_widget_visible():
-            self.completion_text += '?'
+            self.completion_text += "?"
 
     def _key_parenleft(self, text):
         """Action for '('"""
@@ -842,8 +914,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             if last_obj and not last_obj.isdigit():
                 self.show_code_completion()
 
-
-    #------ Paste
+    # ------ Paste
     def paste(self):
         """Reimplemented slot to handle multiline paste action"""
         text = to_text_string(QApplication.clipboard().text())
@@ -851,7 +922,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             # Multiline paste
             if self.new_input_line:
                 self.on_new_line()
-            self.remove_selected_text() # Remove selection, eventually
+            self.remove_selected_text()  # Remove selection, eventually
             end = self.get_current_line_from_cursor()
             lines = self.get_current_line_to_cursor() + text + end
             self.clear_line()
@@ -902,8 +973,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
 
     def show_completion_widget(self, textlist):
         """Show completion widget"""
-        self.completion_widget.show_list(
-            textlist, automatic=False, position=None)
+        self.completion_widget.show_list(textlist, automatic=False, position=None)
 
     def hide_completion_widget(self, focus_to_parent=True):
         """Hide completion widget"""
@@ -914,17 +984,19 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         if not completions:
             return
         if not isinstance(completions[0], tuple):
-            completions = [(c, '') for c in completions]
+            completions = [(c, "") for c in completions]
         if len(completions) == 1 and completions[0][0] == completion_text:
             return
         self.completion_text = completion_text
         # Sorting completion list (entries starting with underscore are
         # put at the end of the list):
-        underscore = set([(comp, t) for (comp, t) in completions
-                          if comp.startswith('_')])
+        underscore = set(
+            [(comp, t) for (comp, t) in completions if comp.startswith("_")]
+        )
 
-        completions = sorted(set(completions) - underscore,
-                             key=lambda x: str_lower(x[0]))
+        completions = sorted(
+            set(completions) - underscore, key=lambda x: str_lower(x[0])
+        )
         completions += sorted(underscore, key=lambda x: str_lower(x[0]))
         self.show_completion_widget(completions)
 
@@ -937,14 +1009,17 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             return
 
         obj_dir = self.get_dir(last_obj)
-        if last_obj and obj_dir and text.endswith('.'):
+        if last_obj and obj_dir and text.endswith("."):
             self.show_completion_list(obj_dir)
             return
 
         # Builtins and globals
-        if not text.endswith('.') and last_obj \
-           and re.match(r'[a-zA-Z_0-9]*$', last_obj):
-            b_k_g = dir(builtins)+self.get_globals_keys()+keyword.kwlist
+        if (
+            not text.endswith(".")
+            and last_obj
+            and re.match(r"[a-zA-Z_0-9]*$", last_obj)
+        ):
+            b_k_g = dir(builtins) + self.get_globals_keys() + keyword.kwlist
             for objname in b_k_g:
                 if objname.startswith(last_obj) and objname != last_obj:
                     self.show_completion_list(b_k_g, completion_text=last_obj)
@@ -955,17 +1030,16 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         # Looking for an incomplete completion
         if last_obj is None:
             last_obj = text
-        dot_pos = last_obj.rfind('.')
+        dot_pos = last_obj.rfind(".")
         if dot_pos != -1:
-            if dot_pos == len(last_obj)-1:
+            if dot_pos == len(last_obj) - 1:
                 completion_text = ""
             else:
-                completion_text = last_obj[dot_pos+1:]
+                completion_text = last_obj[dot_pos + 1 :]
                 last_obj = last_obj[:dot_pos]
             completions = self.get_dir(last_obj)
             if completions is not None:
-                self.show_completion_list(completions,
-                                          completion_text=completion_text)
+                self.show_completion_list(completions, completion_text=completion_text)
                 return
 
         # Looking for ' or ": filename completion
@@ -973,11 +1047,12 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         if q_pos != -1:
             completions = self.get_cdlistdir()
             if completions:
-                self.show_completion_list(completions,
-                                          completion_text=text[q_pos+1:])
+                self.show_completion_list(
+                    completions, completion_text=text[q_pos + 1 :]
+                )
             return
 
-    #------ Drag'n Drop
+    # ------ Drag'n Drop
     def drop_pathlist(self, pathlist):
         """Drop path list"""
         if pathlist:
@@ -996,9 +1071,13 @@ class TerminalWidget(ShellBaseWidget):
     """
     Terminal widget
     """
-    COM = 'rem' if os.name == 'nt' else '#'
-    INITHISTORY = ['%s *** Spyder Terminal History Log ***' % COM, COM,]
-    SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
+
+    COM = "rem" if os.name == "nt" else "#"
+    INITHISTORY = [
+        "%s *** Spyder Terminal History Log ***" % COM,
+        COM,
+    ]
+    SEPARATOR = "%s%s ---(%s)---" % (os.linesep * 2, COM, time.ctime())
 
     # This signal emits a parsed error traceback text so we can then
     # request opening the file that traceback comes from in the Editor.
@@ -1007,7 +1086,7 @@ class TerminalWidget(ShellBaseWidget):
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)
 
-    #------ Key handlers
+    # ------ Key handlers
     def _key_other(self, text):
         """1 character key"""
         pass
@@ -1048,8 +1127,7 @@ class TerminalWidget(ShellBaseWidget):
         """Action for '.'"""
         self.insert_text(text)
 
-
-    #------ Drag'n Drop
+    # ------ Drag'n Drop
     def drop_pathlist(self, pathlist):
         """Drop path list"""
         if pathlist:

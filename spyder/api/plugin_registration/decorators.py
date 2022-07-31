@@ -14,8 +14,7 @@ from typing import Callable, Optional
 import inspect
 
 
-def on_plugin_available(func: Callable = None,
-                        plugin: Optional[str] = None):
+def on_plugin_available(func: Callable = None, plugin: Optional[str] = None):
     """
     Method decorator used to handle plugin availability on Spyder.
 
@@ -42,14 +41,13 @@ def on_plugin_available(func: Callable = None,
     if plugin is None:
         # Use special __all identifier to signal that the function
         # observes all plugins listed as dependencies.
-        plugin = '__all'
+        plugin = "__all"
 
     func._plugin_listen = plugin
     return func
 
 
-def on_plugin_teardown(func: Callable = None,
-                       plugin: Optional[str] = None):
+def on_plugin_teardown(func: Callable = None, plugin: Optional[str] = None):
     """
     Method decorator used to handle plugin teardown on Spyder.
 
@@ -75,9 +73,11 @@ def on_plugin_teardown(func: Callable = None,
         return functools.partial(on_plugin_teardown, plugin=plugin)
 
     if plugin is None:
-        raise ValueError('on_plugin_teardown must have a well defined '
-                         'plugin keyword argument value, '
-                         'e.g., plugin=Plugins.Editor')
+        raise ValueError(
+            "on_plugin_teardown must have a well defined "
+            "plugin keyword argument value, "
+            "e.g., plugin=Plugins.Editor"
+        )
 
     func._plugin_teardown = plugin
     return func

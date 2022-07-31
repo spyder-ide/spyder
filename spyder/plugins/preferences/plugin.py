@@ -26,13 +26,17 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.config.base import _
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
 from spyder.plugins.preferences.widgets.container import (
-    PreferencesActions, PreferencesContainer)
+    PreferencesActions,
+    PreferencesContainer,
+)
 from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 
 logger = logging.getLogger(__name__)
@@ -51,16 +55,16 @@ class Preferences(SpyderPluginV2):
     to other sections.
     """
 
-    NAME = 'preferences'
-    CONF_SECTION = 'preferences'
+    NAME = "preferences"
+    CONF_SECTION = "preferences"
     REQUIRES = [Plugins.Application]
     OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
     CAN_BE_DISABLED = False
 
-    NEW_API = 'new'
-    OLD_API = 'old'
+    NEW_API = "new"
+    OLD_API = "old"
 
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
@@ -68,9 +72,12 @@ class Preferences(SpyderPluginV2):
         self.config_tabs = {}
 
     def register_plugin_preferences(
-            self, plugin: Union[SpyderPluginV2, SpyderPlugin]) -> None:
-        if (hasattr(plugin, 'CONF_WIDGET_CLASS') and
-                plugin.CONF_WIDGET_CLASS is not None):
+        self, plugin: Union[SpyderPluginV2, SpyderPlugin]
+    ) -> None:
+        if (
+            hasattr(plugin, "CONF_WIDGET_CLASS")
+            and plugin.CONF_WIDGET_CLASS is not None
+        ):
             # New API
             Widget = plugin.CONF_WIDGET_CLASS
 
@@ -87,8 +94,12 @@ class Preferences(SpyderPluginV2):
                     for conf_key in conf_keys:
                         new_value = conf_keys[conf_key]
                         self.check_version_and_merge(
-                            conf_section, conf_key, new_value,
-                            plugin_conf_version, plugin)
+                            conf_section,
+                            conf_key,
+                            new_value,
+                            plugin_conf_version,
+                            plugin,
+                        )
 
             # Check if the plugin declares any additional configuration tabs
             if plugin.ADDITIONAL_CONF_TABS is not None:
@@ -98,88 +109,94 @@ class Preferences(SpyderPluginV2):
                     plugin_tabs += tabs_to_add
                     self.config_tabs[plugin_name] = plugin_tabs
 
-        elif (hasattr(plugin, 'CONFIGWIDGET_CLASS') and
-                plugin.CONFIGWIDGET_CLASS is not None):
+        elif (
+            hasattr(plugin, "CONFIGWIDGET_CLASS")
+            and plugin.CONFIGWIDGET_CLASS is not None
+        ):
             # Old API
             Widget = plugin.CONFIGWIDGET_CLASS
 
-            self.config_pages[plugin.CONF_SECTION] = (
-                self.OLD_API, Widget, plugin)
+            self.config_pages[plugin.CONF_SECTION] = (self.OLD_API, Widget, plugin)
 
     def deregister_plugin_preferences(
-            self, plugin: Union[SpyderPluginV2, SpyderPlugin]):
+        self, plugin: Union[SpyderPluginV2, SpyderPlugin]
+    ):
         """Remove a plugin preference page and additional configuration tabs."""
-        name = (getattr(plugin, 'NAME', None) or
-                    getattr(plugin, 'CONF_SECTION', None))
+        name = getattr(plugin, "NAME", None) or getattr(plugin, "CONF_SECTION", None)
 
         # Remove configuration page for the plugin
         self.config_pages.pop(name)
 
         # Remove additional configuration tabs that the plugin did introduce
         if isinstance(plugin, SpyderPluginV2):
-            for plugin_name in (plugin.ADDITIONAL_CONF_TABS or []):
+            for plugin_name in plugin.ADDITIONAL_CONF_TABS or []:
                 tabs = plugin.ADDITIONAL_CONF_TABS[plugin_name]
                 for tab in tabs:
                     self.config_tabs[plugin_name].remove(tab)
 
-    def check_version_and_merge(self, conf_section: str, conf_key: str,
-                                new_value: BasicType,
-                                current_version: Version, plugin):
+    def check_version_and_merge(
+        self,
+        conf_section: str,
+        conf_key: str,
+        new_value: BasicType,
+        current_version: Version,
+        plugin,
+    ):
         """Add a versioned additional option to a configuration section."""
-        current_value = self.get_conf(
-            conf_key, section=conf_section, default=None)
-        section_additional = self.get_conf('additional_configuration',
-                                           section=conf_section,
-                                           default={})
+        current_value = self.get_conf(conf_key, section=conf_section, default=None)
+        section_additional = self.get_conf(
+            "additional_configuration", section=conf_section, default={}
+        )
         plugin_additional = section_additional.get(plugin.NAME, {})
 
         if conf_key in plugin_additional:
             conf_key_info = plugin_additional[conf_key]
-            prev_default = conf_key_info['default']
-            prev_version = parse_version(conf_key_info['version'])
+            prev_default = conf_key_info["default"]
+            prev_version = parse_version(conf_key_info["version"])
 
             allow_replacement = current_version > prev_version
             allow_deletions = current_version.major > prev_version.major
-            new_value = self.merge_defaults(prev_default, new_value,
-                                            allow_replacement, allow_deletions)
+            new_value = self.merge_defaults(
+                prev_default, new_value, allow_replacement, allow_deletions
+            )
             new_default = new_value
 
             if current_value != NoDefault:
                 new_value = self.merge_configurations(current_value, new_value)
 
-            self.set_conf(
-                conf_key, new_value, section=conf_section)
+            self.set_conf(conf_key, new_value, section=conf_section)
 
-            conf_key_info['version'] = str(current_version)
-            conf_key_info['default'] = new_default
+            conf_key_info["version"] = str(current_version)
+            conf_key_info["default"] = new_default
             plugin_additional[conf_key] = conf_key_info
             section_additional[plugin.NAME] = plugin_additional
 
             self.set_conf(
-                'additional_configuration', section_additional,
-                section=conf_section)
+                "additional_configuration", section_additional, section=conf_section
+            )
         else:
             plugin_additional[conf_key] = {
-                'version': str(current_version),
-                'default': new_value
+                "version": str(current_version),
+                "default": new_value,
             }
             section_additional[plugin.NAME] = plugin_additional
 
             self.set_conf(
-                'additional_configuration', section_additional,
-                section=conf_section)
+                "additional_configuration", section_additional, section=conf_section
+            )
 
             if current_value != NoDefault:
                 new_value = self.merge_configurations(current_value, new_value)
 
-            self.set_conf(
-                conf_key, new_value, section=conf_section)
+            self.set_conf(conf_key, new_value, section=conf_section)
 
-
-    def merge_defaults(self, prev_default: BasicType,
-                       new_default: BasicType,
-                       allow_replacement: bool = False,
-                       allow_deletions: bool = False) -> BasicType:
+    def merge_defaults(
+        self,
+        prev_default: BasicType,
+        new_default: BasicType,
+        allow_replacement: bool = False,
+        allow_deletions: bool = False,
+    ) -> BasicType:
         """Compare and merge two versioned values."""
         prev_type = type(prev_default)
         new_type = type(new_default)
@@ -191,8 +208,11 @@ class Preferences(SpyderPluginV2):
                     current_subvalue = prev_default[new_key]
                     new_subvalue = new_default[new_key]
                     prev_default[new_key] = self.merge_defaults(
-                        current_subvalue, new_subvalue,
-                        allow_replacement, allow_deletions)
+                        current_subvalue,
+                        new_subvalue,
+                        allow_replacement,
+                        allow_deletions,
+                    )
                 else:
                     # Additions are allowed everytime
                     prev_default[new_key] = new_default[new_key]
@@ -212,7 +232,8 @@ class Preferences(SpyderPluginV2):
             return prev_default
 
     def merge_configurations(
-            self, current_value: BasicType, new_value: BasicType) -> BasicType:
+        self, current_value: BasicType, new_value: BasicType
+    ) -> BasicType:
         """
         Recursively match and merge a new configuration value into a
         previous one.
@@ -229,15 +250,19 @@ class Preferences(SpyderPluginV2):
                     current_subvalue = current_value[new_key]
                     new_subvalue = new_value[new_key]
                     current_value[new_key] = self.merge_configurations(
-                        current_subvalue, new_subvalue)
+                        current_subvalue, new_subvalue
+                    )
                 else:
                     current_value[new_key] = new_value[new_key]
             return current_value
         elif current_type in iterable_types and new_type in iterable_types:
             # Merge two lists/tuples case
             return current_type(list(current_value) + list(new_value))
-        elif (current_type == new_type and
-                current_type in base_types and new_type in base_types):
+        elif (
+            current_type == new_type
+            and current_type in base_types
+            and new_type in base_types
+        ):
             # Replace the values directly
             return new_value
         elif current_type in iterable_types and new_type in base_types:
@@ -247,33 +272,35 @@ class Preferences(SpyderPluginV2):
             # Assigns the new value if it doesn't exist
             return new_value
         else:
-            logger.warning(f'The value {current_value} cannot be replaced'
-                           f'by {new_value}')
+            logger.warning(
+                f"The value {current_value} cannot be replaced" f"by {new_value}"
+            )
             return current_value
 
     def open_dialog(self, prefs_dialog_size):
         container = self.get_container()
         container.create_dialog(
-            self.config_pages, self.config_tabs, prefs_dialog_size,
-            self.get_main())
+            self.config_pages, self.config_tabs, prefs_dialog_size, self.get_main()
+        )
 
     # ---------------- Public Spyder API required methods ---------------------
     @staticmethod
     def get_name() -> str:
-        return _('Preferences')
+        return _("Preferences")
 
     def get_description(self) -> str:
-        return _('This plugin provides access to Spyder preferences page')
+        return _("This plugin provides access to Spyder preferences page")
 
     def get_icon(self) -> QIcon:
-        return self.create_icon('configure')
+        return self.create_icon("configure")
 
     def on_initialize(self):
         container = self.get_container()
         main = self.get_main()
 
         container.sig_show_preferences_requested.connect(
-            lambda: self.open_dialog(main.prefs_dialog_size))
+            lambda: self.open_dialog(main.prefs_dialog_size)
+        )
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -299,14 +326,13 @@ class Preferences(SpyderPluginV2):
         toolbar.add_item_to_application_toolbar(
             container.show_action,
             toolbar_id=ApplicationToolbars.Main,
-            section=MainToolbarSections.ApplicationSection
+            section=MainToolbarSections.ApplicationSection,
         )
 
     @on_plugin_available(plugin=Plugins.Application)
     def on_application_available(self):
         container = self.get_container()
         container.sig_reset_preferences_requested.connect(self.reset)
-
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -326,8 +352,7 @@ class Preferences(SpyderPluginV2):
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.remove_item_from_application_toolbar(
-            PreferencesActions.Show,
-            toolbar_id=ApplicationToolbars.Main
+            PreferencesActions.Show, toolbar_id=ApplicationToolbars.Main
         )
 
     @on_plugin_teardown(plugin=Plugins.Application)
@@ -337,12 +362,17 @@ class Preferences(SpyderPluginV2):
 
     @Slot()
     def reset(self):
-        answer = QMessageBox.warning(self.main, _("Warning"),
-             _("Spyder will restart and reset to default settings: <br><br>"
-               "Do you want to continue?"),
-             QMessageBox.Yes | QMessageBox.No)
+        answer = QMessageBox.warning(
+            self.main,
+            _("Warning"),
+            _(
+                "Spyder will restart and reset to default settings: <br><br>"
+                "Do you want to continue?"
+            ),
+            QMessageBox.Yes | QMessageBox.No,
+        )
         if answer == QMessageBox.Yes:
-            os.environ['SPYDER_RESET'] = 'True'
+            os.environ["SPYDER_RESET"] = "True"
             application = self.get_plugin(Plugins.Application)
             application.sig_restart_requested.emit()
 

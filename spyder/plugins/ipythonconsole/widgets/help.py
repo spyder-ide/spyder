@@ -22,8 +22,7 @@ from qtpy.QtCore import QEventLoop
 
 # Local imports
 from spyder.py3compat import TimeoutError
-from spyder_kernels.utils.dochelpers import (getargspecfromtext,
-                                             getsignaturefromtext)
+from spyder_kernels.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyder_kernels.comms.commbase import CommError
 
 
@@ -39,40 +38,43 @@ class HelpWidget(RichJupyterWidget):
 
         Taken from https://stackoverflow.com/a/3305731/438386
         """
-        return re.sub(r'\W|^(?=\d)', '_', var)
+        return re.sub(r"\W|^(?=\d)", "_", var)
 
     def get_documentation(self, content):
         """Get documentation from inspect reply content."""
-        data = content.get('data', {})
-        text = data.get('text/plain', '')
+        data = content.get("data", {})
+        text = data.get("text/plain", "")
         if text:
-            if (self.language_name is not None
-                    and self.language_name == 'python'):
-                text = re.compile(ANSI_PATTERN).sub('', text)
-                signature = self.get_signature(content).split('(')[-1]
+            if self.language_name is not None and self.language_name == "python":
+                text = re.compile(ANSI_PATTERN).sub("", text)
+                signature = self.get_signature(content).split("(")[-1]
 
                 # Base value for the documentation
-                documentation = (text.split('Docstring:')[-1].
-                                 split('Type:')[0].split('File:')[0])
+                documentation = (
+                    text.split("Docstring:")[-1].split("Type:")[0].split("File:")[0]
+                )
 
                 if signature:
                     # Check if the signature is in the Docstring
                     doc_from_signature = documentation.split(signature)
                     if len(doc_from_signature) > 1:
-                        return (doc_from_signature[-1].split('Docstring:')[-1].
-                                split('Type:')[0].
-                                split('File:')[0]).strip('\r\n')
+                        return (
+                            doc_from_signature[-1]
+                            .split("Docstring:")[-1]
+                            .split("Type:")[0]
+                            .split("File:")[0]
+                        ).strip("\r\n")
 
-                return documentation.strip('\r\n')
+                return documentation.strip("\r\n")
             else:
-                text = re.compile(ANSI_PATTERN).sub('', text)
-                return text.strip('\r\n')
+                text = re.compile(ANSI_PATTERN).sub("", text)
+                return text.strip("\r\n")
         else:
-            return ''
+            return ""
 
     def _get_signature(self, name, text):
         """Get signature from text using a given function name."""
-        signature = ''
+        signature = ""
         argspec = getargspecfromtext(text)
         if argspec:
             # This covers cases like np.abs, whose docstring is
@@ -85,15 +87,14 @@ class HelpWidget(RichJupyterWidget):
 
     def get_signature(self, content):
         """Get signature from inspect reply content"""
-        data = content.get('data', {})
-        text = data.get('text/plain', '')
+        data = content.get("data", {})
+        text = data.get("text/plain", "")
         if text:
-            if (self.language_name is not None
-                    and self.language_name == 'python'):
+            if self.language_name is not None and self.language_name == "python":
                 self._control.current_prompt_pos = self._prompt_pos
                 line = self._control.get_current_line_to_cursor()
-                name = line[:-1].split('(')[-1]   # Take last token after a (
-                name = name.split('.')[-1]   # Then take last token after a .
+                name = line[:-1].split("(")[-1]  # Take last token after a (
+                name = name.split(".")[-1]  # Then take last token after a .
 
                 # Clean name from invalid chars
                 try:
@@ -101,7 +102,7 @@ class HelpWidget(RichJupyterWidget):
                 except Exception:
                     pass
 
-                text = text.split('Docstring:')
+                text = text.split("Docstring:")
 
                 # Try signature from text before 'Docstring:'
                 before_text = text[0]
@@ -119,21 +120,21 @@ class HelpWidget(RichJupyterWidget):
 
                 # Prevent special characters. Applied here to ensure
                 # recognizing the signature in the logic above.
-                signature = ANSI_OR_SPECIAL_PATTERN.sub('', signature)
+                signature = ANSI_OR_SPECIAL_PATTERN.sub("", signature)
 
-                return signature.strip('\r\n')
+                return signature.strip("\r\n")
             else:
-                text = re.compile(ANSI_PATTERN).sub('', text)
-                return text.strip('\r\n')
+                text = re.compile(ANSI_PATTERN).sub("", text)
+                return text.strip("\r\n")
         else:
-            return ''
+            return ""
 
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         try:
-            return self.call_kernel(
-                blocking=True
-                ).is_defined(objtxt, force_import=force_import)
+            return self.call_kernel(blocking=True).is_defined(
+                objtxt, force_import=force_import
+            )
         except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
@@ -151,26 +152,30 @@ class HelpWidget(RichJupyterWidget):
         except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
-    #---- Private methods (overrode by us) ---------------------------------
+    # ---- Private methods (overrode by us) ---------------------------------
     def _handle_inspect_reply(self, rep):
         """
         Reimplement call tips to only show signatures, using the same
         style from our Editor and External Console too
         """
         cursor = self._get_cursor()
-        info = self._request_info.get('call_tip')
-        if (info and info.id == rep['parent_header']['msg_id'] and
-                info.pos == cursor.position()):
-            content = rep['content']
-            if content.get('status') == 'ok' and content.get('found', False):
+        info = self._request_info.get("call_tip")
+        if (
+            info
+            and info.id == rep["parent_header"]["msg_id"]
+            and info.pos == cursor.position()
+        ):
+            content = rep["content"]
+            if content.get("status") == "ok" and content.get("found", False):
                 signature = self.get_signature(content)
                 documentation = self.get_documentation(content)
-                new_line = (self.language_name is not None
-                            and self.language_name == 'python')
+                new_line = (
+                    self.language_name is not None and self.language_name == "python"
+                )
                 self._control.show_calltip(
                     signature,
                     documentation=documentation,
                     language=self.language_name,
                     max_lines=7,
-                    text_new_line=new_line
+                    text_new_line=new_line,
                 )

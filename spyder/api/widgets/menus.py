@@ -26,17 +26,17 @@ MENU_SEPARATOR = None
 
 
 # Generic type annotations
-T = TypeVar('T', bound='SpyderMenu')
+T = TypeVar("T", bound="SpyderMenu")
 
 
 class OptionsMenuSections:
-    Top = 'top_section'
-    Bottom = 'bottom_section'
+    Top = "top_section"
+    Bottom = "bottom_section"
 
 
 class PluginMainWidgetMenus:
-    Context = 'context_menu'
-    Options = 'options_menu'
+    Context = "context_menu"
+    Options = "options_menu"
 
 
 # --- Widgets
@@ -45,10 +45,10 @@ class SpyderMenu(QMenu):
     """
     A QMenu subclass to implement additional functionality for Spyder.
     """
+
     MENUS = []
 
-    def __init__(self, parent=None, title=None, dynamic=True,
-                 menu_id=None):
+    def __init__(self, parent=None, title=None, dynamic=True, menu_id=None):
         self._parent = parent
         self._title = title
         self._sections = []
@@ -65,7 +65,7 @@ class SpyderMenu(QMenu):
             super().__init__(title, parent)
 
         self.MENUS.append((parent, title, self))
-        if sys.platform == 'darwin' and dynamic:
+        if sys.platform == "darwin" and dynamic:
             # Needed to enable the dynamic population of actions in menus
             # in the aboutToShow signal
             # See spyder-ide/spyder#14612
@@ -87,13 +87,15 @@ class SpyderMenu(QMenu):
         self.unintroduced_actions = {}
         self.unintroduced_sections = []
 
-    def add_action(self: T,
-                   action: Union[SpyderAction, T],
-                   section: Optional[str] = None,
-                   before: Optional[str] = None,
-                   before_section: Optional[str] = None,
-                   check_before: bool = True,
-                   omit_id: bool = False):
+    def add_action(
+        self: T,
+        action: Union[SpyderAction, T],
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        check_before: bool = True,
+        omit_id: bool = False,
+    ):
         """
         Add action to a given menu section.
 
@@ -118,13 +120,13 @@ class SpyderMenu(QMenu):
             Spyder 4 plugins. Default: False
         """
         item_id = None
-        if isinstance(action, SpyderAction) or hasattr(action, 'action_id'):
+        if isinstance(action, SpyderAction) or hasattr(action, "action_id"):
             item_id = action.action_id
-        elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
+        elif isinstance(action, SpyderMenu) or hasattr(action, "menu_id"):
             item_id = action.menu_id
 
         if not omit_id and item_id is None and action is not None:
-            raise AttributeError(f'Item {action} must declare an id.')
+            raise AttributeError(f"Item {action} must declare an id.")
 
         if before is None:
             self._actions.append((section, action))
@@ -158,9 +160,7 @@ class SpyderMenu(QMenu):
                 # If `before_section` has not been introduced yet to the menu,
                 # we save `section` to introduce it when the menu is rendered.
                 if (section, before_section) not in self.unintroduced_sections:
-                    self.unintroduced_sections.append(
-                        (section, before_section)
-                    )
+                    self.unintroduced_sections.append((section, before_section))
         elif section not in self._sections:
             self._sections.append(section)
 
@@ -228,9 +228,7 @@ class SpyderMenu(QMenu):
                     # If section was introduced, remove it from the list and
                     # update iterator.
                     if section in self._sections:
-                        self.unintroduced_sections.remove(
-                            (section, before_section)
-                        )
+                        self.unintroduced_sections.remove((section, before_section))
                         iter_sections = iter(self.unintroduced_sections)
             except StopIteration:
                 # Internally, this should only happen in the Tools menu because
@@ -238,10 +236,10 @@ class SpyderMenu(QMenu):
                 # Fixes spyder-ide/spyder#16287
                 # Note: We can't use the ToolsMenuSections enum here to prevent
                 # a circular import.
-                left_sections = [('tools_section', 'external_section')]
+                left_sections = [("tools_section", "external_section")]
 
                 if self.unintroduced_sections == left_sections:
-                    self._update_sections('tools_section', 'extras_section')
+                    self._update_sections("tools_section", "extras_section")
                 else:
                     raise SpyderAPIError(
                         f"You're trying to introduce some sections before "
@@ -254,8 +252,9 @@ class SpyderMenu(QMenu):
             # a `before` action they required was not part of the menu yet.
             for before, actions in self.unintroduced_actions.items():
                 for section, action in actions:
-                    self.add_action(action, section=section,
-                                    before=before, check_before=False)
+                    self.add_action(
+                        action, section=section, before=before, check_before=False
+                    )
 
             actions = self.get_actions()
             add_actions(self, actions)

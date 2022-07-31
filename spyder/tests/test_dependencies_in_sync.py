@@ -17,35 +17,35 @@ from spyder.dependencies import DESCRIPTIONS, OPTIONAL
 # Constants
 HERE = osp.abspath(osp.dirname(__file__))
 ROOT_PATH = osp.dirname(osp.dirname(HERE))
-ENV_FPATH = osp.join(ROOT_PATH, 'binder', 'environment.yml')
-REQ_FPATH = osp.join(ROOT_PATH, 'requirements', 'main.yml')
-REQ_WINDOWS_FPATH = osp.join(ROOT_PATH, 'requirements', 'windows.yml')
-REQ_MAC_FPATH = osp.join(ROOT_PATH, 'requirements', 'macos.yml')
-REQ_LINUX_FPATH = osp.join(ROOT_PATH, 'requirements', 'linux.yml')
-REQ_TEST_FPATH = osp.join(ROOT_PATH, 'requirements', 'tests.yml')
-SETUP_FPATH = osp.join(ROOT_PATH, 'setup.py')
+ENV_FPATH = osp.join(ROOT_PATH, "binder", "environment.yml")
+REQ_FPATH = osp.join(ROOT_PATH, "requirements", "main.yml")
+REQ_WINDOWS_FPATH = osp.join(ROOT_PATH, "requirements", "windows.yml")
+REQ_MAC_FPATH = osp.join(ROOT_PATH, "requirements", "macos.yml")
+REQ_LINUX_FPATH = osp.join(ROOT_PATH, "requirements", "linux.yml")
+REQ_TEST_FPATH = osp.join(ROOT_PATH, "requirements", "tests.yml")
+SETUP_FPATH = osp.join(ROOT_PATH, "setup.py")
 
 
 def parse_environment_yaml(fpath):
     """
     Parse an environment yaml file and return a dict of deps and versions.
     """
-    with open(fpath, 'r') as fh:
+    with open(fpath, "r") as fh:
         data = yaml.load(fh, Loader=yaml.FullLoader)
 
     deps = {}
-    yaml_deps = data.get('dependencies')
+    yaml_deps = data.get("dependencies")
     for dep in yaml_deps:
         if isinstance(dep, dict):
             continue
-        elif dep == 'websockify':
+        elif dep == "websockify":
             continue
         else:
-            parts = dep.split(' ')
+            parts = dep.split(" ")
             if len(parts) > 1:
                 ver = parts[-1]
-                if ver[0] == '=':
-                    ver = '=' + ver
+                if ver[0] == "=":
+                    ver = "=" + ver
 
                 deps[parts[0]] = ver
             else:
@@ -60,17 +60,17 @@ def parse_spyder_dependencies():
     """
     deps = {}
     for dep in DESCRIPTIONS:
-        if dep.get('kind', None) == OPTIONAL:
+        if dep.get("kind", None) == OPTIONAL:
             continue
 
-        ver = dep['required_version']
+        ver = dep["required_version"]
         if ver:
-            if ';' in ver:
-                ver = ver.replace(';', ',')
-            elif ver[0] == '=':
-                ver = '=' + ver
+            if ";" in ver:
+                ver = ver.replace(";", ",")
+            elif ver[0] == "=":
+                ver = "=" + ver
 
-        deps[dep['package_name'].lower()] = ver
+        deps[dep["package_name"].lower()] = ver
 
     return deps
 
@@ -80,27 +80,27 @@ def parse_setup_install_requires(fpath):
     Parse Spyder setup.py and return a dict of deps and versions.
     """
     deps = {}
-    with open(fpath, 'r') as fh:
+    with open(fpath, "r") as fh:
         data = fh.read()
 
-    lines = data.split('\n')
+    lines = data.split("\n")
     start = None
     end = None
     for idx, line in enumerate(lines):
-        if line.startswith('install_requires = '):
+        if line.startswith("install_requires = "):
             start = idx + 1
 
-        if start is not None and line.startswith(']'):
+        if start is not None and line.startswith("]"):
             end = idx
             break
 
-    dep_list = literal_eval('[' + '\n'.join(lines[start:end + 1]))
-    dep_list = [item for item in dep_list if item[0] != '#']
+    dep_list = literal_eval("[" + "\n".join(lines[start : end + 1]))
+    dep_list = [item for item in dep_list if item[0] != "#"]
     for dep in dep_list:
-        dep = dep.split(';')[0]
+        dep = dep.split(";")[0]
         name, ver = None, None
 
-        for sep in ['>=', '==', '<=', '<', '>']:
+        for sep in [">=", "==", "<=", "<", ">"]:
             if sep in dep:
                 idx = dep.index(sep)
                 name = dep[:idx]
@@ -108,13 +108,13 @@ def parse_setup_install_requires(fpath):
                 break
 
         if name is not None:
-            name = name.split('[')[0]
+            name = name.split("[")[0]
         else:
-            name = dep.split('[')[0]
+            name = dep.split("[")[0]
 
         # Transform pypi to conda name
-        if name == 'pyqt5':
-            name = 'pyqt'
+        if name == "pyqt5":
+            name = "pyqt"
 
         deps[name] = ver
 
@@ -126,28 +126,28 @@ def parse_setup_extra_requires(fpath):
     Parse Spyder setup.py and return a dict of deps and versions.
     """
     deps = {}
-    with open(fpath, 'r') as fh:
+    with open(fpath, "r") as fh:
         data = fh.read()
 
-    lines = data.split('\n')
+    lines = data.split("\n")
     start = None
     end = None
     for idx, line in enumerate(lines):
-        if line.startswith('extras_require = '):
+        if line.startswith("extras_require = "):
             start = idx + 1
 
-        if start is not None and line.startswith('}'):
+        if start is not None and line.startswith("}"):
             end = idx
             break
 
-    dep_dict = literal_eval('{' + '\n'.join(lines[start:end + 1]))
-    dep_list = dep_dict.get('test')
-    dep_list = [item for item in dep_list if item[0] != '#']
+    dep_dict = literal_eval("{" + "\n".join(lines[start : end + 1]))
+    dep_list = dep_dict.get("test")
+    dep_list = [item for item in dep_list if item[0] != "#"]
     for dep in dep_list:
-        dep = dep.split(';')[0]
+        dep = dep.split(";")[0]
         name, ver = None, None
 
-        for sep in ['>=', '==', '<=', '<', '>']:
+        for sep in [">=", "==", "<=", "<", ">"]:
             if sep in dep:
                 idx = dep.index(sep)
                 name = dep[:idx]
@@ -155,13 +155,13 @@ def parse_setup_extra_requires(fpath):
                 break
 
         if name is not None:
-            name = name.split('[')[0]
+            name = name.split("[")[0]
         else:
-            name = dep.split('[')[0]
+            name = dep.split("[")[0]
 
         # Transform pypi to conda name
-        if name == 'pyqt5':
-            name = 'pyqt'
+        if name == "pyqt5":
+            name = "pyqt"
 
         deps[name] = ver
     print(deps)
@@ -204,7 +204,7 @@ def test_dependencies_for_spyder_dialog_in_sync():
     full_reqs.update(linux_reqs)
 
     # These packages are not declared in our dependencies dialog
-    for dep in ['pyqt', 'pyqtwebengine', 'python.app']:
+    for dep in ["pyqt", "pyqtwebengine", "python.app"]:
         full_reqs.pop(dep)
 
     assert spyder_deps == full_reqs
@@ -227,7 +227,7 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     full_reqs.update(linux_reqs)
 
     # We don't declare python.app as a dependency in other places
-    full_reqs.pop('python.app')
+    full_reqs.pop("python.app")
 
     assert spyder_setup == full_reqs
 

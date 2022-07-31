@@ -25,15 +25,15 @@ if SYS_PATH_0 in (Path(__file__).resolve().parent, Path.cwd()):
     sys.path.pop(0)
 
 DEVPATH = Path(__file__).resolve().parent
-DEPS_PATH = DEVPATH / 'external-deps'
-BASE_COMMAND = [sys.executable, '-m', 'pip', 'install', '--no-deps']
+DEPS_PATH = DEVPATH / "external-deps"
+BASE_COMMAND = [sys.executable, "-m", "pip", "install", "--no-deps"]
 
 REPOS = {}
 for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
     if (
-        p.name.startswith('.')
+        p.name.startswith(".")
         or not p.is_dir()
-        and not ((p / 'setup.py').exists() or (p / 'pyproject.toml').exists())
+        and not ((p / "setup.py").exists() or (p / "pyproject.toml").exists())
     ):
         continue
 
@@ -43,27 +43,27 @@ for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
         dist = None
         editable = None
     else:
-        editable = (p == dist or p in dist.parents)
+        editable = p == dist or p in dist.parents
 
-    REPOS[p.name] = {'repo': p, 'dist': dist, 'editable': editable}
+    REPOS[p.name] = {"repo": p, "dist": dist, "editable": editable}
 
 # ---- Setup logger
-fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
+fmt = Formatter("%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s")
 h = StreamHandler()
 h.setFormatter(fmt)
-logger = getLogger('InstallDevRepos')
+logger = getLogger("InstallDevRepos")
 logger.addHandler(h)
-logger.setLevel('INFO')
+logger.setLevel("INFO")
 
 
 def get_python_lsp_version():
     """Get current version to pass it to setuptools-scm."""
-    req_file = DEVPATH / 'requirements' / 'main.yml'
-    with open(req_file, 'r', encoding='utf-8') as f:
+    req_file = DEVPATH / "requirements" / "main.yml"
+    with open(req_file, "r", encoding="utf-8") as f:
         for line in f:
-            if 'python-lsp-server' not in line:
+            if "python-lsp-server" not in line:
                 continue
-            line = line.split('-')[-1]
+            line = line.split("-")[-1]
             specifiers = Requirement(line).specifier
             break
         else:
@@ -92,29 +92,29 @@ def install_repo(name, not_editable=False):
 
     """
     try:
-        repo_path = REPOS[name]['repo']
+        repo_path = REPOS[name]["repo"]
     except KeyError:
-        logger.warning('Distribution %r not valid. Must be one of %s',
-                       name, set(REPOS.keys()))
+        logger.warning(
+            "Distribution %r not valid. Must be one of %s", name, set(REPOS.keys())
+        )
         return
 
     install_cmd = BASE_COMMAND.copy()
 
     # PyLSP requires pretend version
     env = None
-    if name == 'python-lsp-server':
+    if name == "python-lsp-server":
         env = {**os.environ}
-        env.update(
-            {'SETUPTOOLS_SCM_PRETEND_VERSION': get_python_lsp_version()})
+        env.update({"SETUPTOOLS_SCM_PRETEND_VERSION": get_python_lsp_version()})
 
     if not_editable:
-        mode = 'standard'
+        mode = "standard"
     else:
         # Add edit flag to install command
-        install_cmd.append('-e')
-        mode = 'editable'
+        install_cmd.append("-e")
+        mode = "editable"
 
-    logger.info('Installing %r from source in %s mode.', name, mode)
+    logger.info("Installing %r from source in %s mode.", name, mode)
     install_cmd.append(repo_path.as_posix())
     check_output(install_cmd, env=env)
 
@@ -138,25 +138,29 @@ def main(install=tuple(REPOS.keys()), no_install=tuple(), **kwargs):
         install_repo(repo, **kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # ---- Parse command line
-    parser = argparse.ArgumentParser(
-        usage="python install_dev_repos.py [options]")
+    parser = argparse.ArgumentParser(usage="python install_dev_repos.py [options]")
     parser.add_argument(
-        '--install', nargs='+',
+        "--install",
+        nargs="+",
         default=REPOS.keys(),
         help="Space-separated list of distribution names to install, e.g. "
-             "qtconsole spyder-kernels. If option not provided, then all of "
-             "the repos in spyder/external-deps are installed"
+        "qtconsole spyder-kernels. If option not provided, then all of "
+        "the repos in spyder/external-deps are installed",
     )
     parser.add_argument(
-        '--no-install', nargs='+', default=[],
+        "--no-install",
+        nargs="+",
+        default=[],
         help="Space-separated list of distribution names to exclude from "
-             "install. Default is empty list."
+        "install. Default is empty list.",
     )
     parser.add_argument(
-        '--not-editable', action='store_true', default=False,
-        help="Install in standard mode, not editable mode."
+        "--not-editable",
+        action="store_true",
+        default=False,
+        help="Install in standard mode, not editable mode.",
     )
 
     args = parser.parse_args()

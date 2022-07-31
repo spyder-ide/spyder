@@ -29,12 +29,20 @@ from qtpy.QtWidgets import QWidget, QDateEdit
 # Local imports
 from spyder.config.manager import CONF
 from spyder.widgets.collectionseditor import (
-    RemoteCollectionsEditorTableView, CollectionsEditorTableView,
-    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
+    RemoteCollectionsEditorTableView,
+    CollectionsEditorTableView,
+    CollectionsModel,
+    CollectionsEditor,
+    LARGE_NROWS,
+    ROWS_TO_LOAD,
+    natsort,
+)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespacesBrowserFinder)
-from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
-    generate_pandas_indexes
+    NamespacesBrowserFinder,
+)
+from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import (
+    generate_pandas_indexes,
+)
 from spyder.py3compat import PY2, to_text_string
 from spyder_kernels.utils.nsview import get_size
 
@@ -58,7 +66,6 @@ def data_table(cm, n_rows, n_cols):
 
 
 class MockParent(QWidget):
-
     def __init__(self):
         super(QWidget, self).__init__(None)
         self.proxy_model = None
@@ -72,8 +79,7 @@ def nonsettable_objects_data():
     """Rturn Python objects with immutable attribs to test CollectionEditor."""
     test_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
     expected_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
-    keys_test = [["_typ", "day", "dayofyear", "hour"],
-                 ["_typ", "nbytes", "ndim"]]
+    keys_test = [["_typ", "day", "dayofyear", "hour"], ["_typ", "nbytes", "ndim"]]
     return zip(test_objs, expected_objs, keys_test)
 
 
@@ -82,60 +88,47 @@ def nonsettable_objects_data():
 # ============================================================================
 def test_rename_variable(qtbot):
     """Test renaming of the correct variable."""
-    variables = {'a': 1,
-                 'b': 2,
-                 'c': 3,
-                 'd': '4',
-                 'e': 5}
+    variables = {"a": 1, "b": 2, "c": 3, "d": "4", "e": 5}
     editor = CollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
     editor.setCurrentIndex(editor.model.index(1, 0))
 
-    editor.rename_item(new_name='b2')
+    editor.rename_item(new_name="b2")
     assert editor.model.rowCount() == 5
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'b2'
-    assert data(editor.model, 2, 0) == 'c'
-    assert data(editor.model, 3, 0) == 'd'
-    assert data(editor.model, 4, 0) == 'e'
+    assert data(editor.model, 0, 0) == "a"
+    assert data(editor.model, 1, 0) == "b2"
+    assert data(editor.model, 2, 0) == "c"
+    assert data(editor.model, 3, 0) == "d"
+    assert data(editor.model, 4, 0) == "e"
 
     # Reset variables and try renaming one again
-    new_variables = {'a': 1,
-                     'b': 2,
-                     'b2': 2,
-                     'c': 3,
-                     'd': '4',
-                     'e': 5}
+    new_variables = {"a": 1, "b": 2, "b2": 2, "c": 3, "d": "4", "e": 5}
     editor.set_data(new_variables.copy())
     editor.adjust_columns()
     editor.setCurrentIndex(editor.model.index(1, 0))
-    editor.rename_item(new_name='b3')
+    editor.rename_item(new_name="b3")
     assert editor.model.rowCount() == 6
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'b2'
-    assert data(editor.model, 2, 0) == 'b3'
-    assert data(editor.model, 3, 0) == 'c'
-    assert data(editor.model, 4, 0) == 'd'
-    assert data(editor.model, 5, 0) == 'e'
+    assert data(editor.model, 0, 0) == "a"
+    assert data(editor.model, 1, 0) == "b2"
+    assert data(editor.model, 2, 0) == "b3"
+    assert data(editor.model, 3, 0) == "c"
+    assert data(editor.model, 4, 0) == "d"
+    assert data(editor.model, 5, 0) == "e"
 
 
 def test_remove_variable(qtbot):
     """Test removing of the correct variable."""
-    variables = {'a': 1,
-                 'b': 2,
-                 'c': 3,
-                 'd': '4',
-                 'e': 5}
+    variables = {"a": 1, "b": 2, "c": 3, "d": "4", "e": 5}
     editor = CollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
     editor.setCurrentIndex(editor.model.index(1, 0))
 
     editor.remove_item(force=True)
     assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert data(editor.model, 0, 0) == "a"
+    assert data(editor.model, 1, 0) == "c"
+    assert data(editor.model, 2, 0) == "d"
+    assert data(editor.model, 3, 0) == "e"
 
     # Reset variables and try removing one again
     editor.set_data(variables.copy())
@@ -143,78 +136,102 @@ def test_remove_variable(qtbot):
     editor.setCurrentIndex(editor.model.index(1, 0))
     editor.remove_item(force=True)
     assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert data(editor.model, 0, 0) == "a"
+    assert data(editor.model, 1, 0) == "c"
+    assert data(editor.model, 2, 0) == "d"
+    assert data(editor.model, 3, 0) == "e"
 
 
 def test_remove_remote_variable(qtbot, monkeypatch):
     """Test the removing of the correct remote variable."""
-    variables = {'a': {'type': 'int',
-                       'size': 1,
-                       'view': '1',
-                       'python_type': 'int',
-                       'numpy_type': 'Unknown'},
-                 'b': {'type': 'int',
-                       'size': 1,
-                       'view': '2',
-                       'python_type': 'int',
-                       'numpy_type': 'Unknown'},
-                 'c': {'type': 'int',
-                       'size': 1,
-                       'view': '3',
-                       'python_type': 'int',
-                       'numpy_type': 'Unknown'},
-                 'd': {'type': 'str',
-                       'size': 1,
-                       'view': '4',
-                       'python_type': 'int',
-                       'numpy_type': 'Unknown'},
-                 'e': {'type': 'int',
-                       'size': 1,
-                       'view': '5',
-                       'python_type': 'int',
-                       'numpy_type': 'Unknown'}}
+    variables = {
+        "a": {
+            "type": "int",
+            "size": 1,
+            "view": "1",
+            "python_type": "int",
+            "numpy_type": "Unknown",
+        },
+        "b": {
+            "type": "int",
+            "size": 1,
+            "view": "2",
+            "python_type": "int",
+            "numpy_type": "Unknown",
+        },
+        "c": {
+            "type": "int",
+            "size": 1,
+            "view": "3",
+            "python_type": "int",
+            "numpy_type": "Unknown",
+        },
+        "d": {
+            "type": "str",
+            "size": 1,
+            "view": "4",
+            "python_type": "int",
+            "numpy_type": "Unknown",
+        },
+        "e": {
+            "type": "int",
+            "size": 1,
+            "view": "5",
+            "python_type": "int",
+            "numpy_type": "Unknown",
+        },
+    }
     editor = RemoteCollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
     editor.setCurrentIndex(editor.model.index(1, 0))
 
     # Monkey patch remove variables
     def remove_values(ins, names):
-        assert names == ['b']
-        data = {'a': {'type': 'int',
-                      'size': 1,
-                      'view': '1',
-                      'python_type': 'int',
-                      'numpy_type': 'Unknown'},
-                'c': {'type': 'int',
-                      'size': 1,
-                      'view': '3',
-                      'python_type': 'int',
-                      'numpy_type': 'Unknown'},
-                'd': {'type': 'str',
-                      'size': 1,
-                      'view': '4',
-                      'python_type': 'int',
-                      'numpy_type': 'Unknown'},
-                'e': {'type': 'int',
-                      'size': 1,
-                      'view': '5',
-                      'python_type': 'int',
-                      'numpy_type': 'Unknown'}}
+        assert names == ["b"]
+        data = {
+            "a": {
+                "type": "int",
+                "size": 1,
+                "view": "1",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            },
+            "c": {
+                "type": "int",
+                "size": 1,
+                "view": "3",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            },
+            "d": {
+                "type": "str",
+                "size": 1,
+                "view": "4",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            },
+            "e": {
+                "type": "int",
+                "size": 1,
+                "view": "5",
+                "python_type": "int",
+                "numpy_type": "Unknown",
+            },
+        }
         editor.set_data(data)
+
     monkeypatch.setattr(
-        'spyder.widgets'
-        '.collectionseditor.RemoteCollectionsEditorTableView.remove_values',
-        remove_values)
+        "spyder.widgets"
+        ".collectionseditor.RemoteCollectionsEditorTableView.remove_values",
+        remove_values,
+    )
 
     editor.remove_item(force=True)
     assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert data(editor.model, 0, 0) == "a"
+    assert data(editor.model, 1, 0) == "c"
+    assert data(editor.model, 2, 0) == "d"
+    assert data(editor.model, 3, 0) == "e"
 
     # Reset variables and try removing one again
     editor.set_data(variables.copy())
@@ -222,31 +239,32 @@ def test_remove_remote_variable(qtbot, monkeypatch):
     editor.setCurrentIndex(editor.model.index(1, 0))
     editor.remove_item(force=True)
     assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert data(editor.model, 0, 0) == "a"
+    assert data(editor.model, 1, 0) == "c"
+    assert data(editor.model, 2, 0) == "d"
+    assert data(editor.model, 3, 0) == "e"
 
 
 def test_filter_rows(qtbot):
     """Test rows filtering."""
-    data = (
-        {'dfa':
-            {'type': 'DataFrame',
-             'size': (2, 1),
-             'view': 'Column names: 0',
-             'python_type': 'DataFrame',
-             'numpy_type': 'Unknown'},
-         'dfb':
-            {'type': 'DataFrame',
-             'size': (2, 1),
-             'view': 'Column names: 0',
-             'python_type': 'DataFrame',
-             'numpy_type': 'Unknown'}}
-    )
+    data = {
+        "dfa": {
+            "type": "DataFrame",
+            "size": (2, 1),
+            "view": "Column names: 0",
+            "python_type": "DataFrame",
+            "numpy_type": "Unknown",
+        },
+        "dfb": {
+            "type": "DataFrame",
+            "size": (2, 1),
+            "view": "Column names: 0",
+            "python_type": "DataFrame",
+            "numpy_type": "Unknown",
+        },
+    }
     editor = RemoteCollectionsEditorTableView(None, data)
-    editor.finder = NamespacesBrowserFinder(
-        editor, editor.set_regex)
+    editor.finder = NamespacesBrowserFinder(editor, editor.set_regex)
     qtbot.addWidget(editor)
 
     # Initially two rows
@@ -270,49 +288,48 @@ def test_filter_rows(qtbot):
 
 
 def test_create_dataframeeditor_with_correct_format(qtbot):
-    df = pandas.DataFrame(['foo', 'bar'])
-    editor = CollectionsEditorTableView(None, {'df': df})
+    df = pandas.DataFrame(["foo", "bar"])
+    editor = CollectionsEditorTableView(None, {"df": df})
     qtbot.addWidget(editor)
-    CONF.set('variable_explorer', 'dataframe_format', '10d')
+    CONF.set("variable_explorer", "dataframe_format", "10d")
     editor.delegate.createEditor(None, None, editor.model.index(0, 3))
-    dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
+    dataframe_editor = next(iter(editor.delegate._editors.values()))["editor"]
     qtbot.addWidget(dataframe_editor)
-    dataframe_editor.dataModel._format == '%10d'
+    dataframe_editor.dataModel._format == "%10d"
 
 
 def test_collectionsmodel_with_two_ints():
-    coll = {'x': 1, 'y': 2}
+    coll = {"x": 1, "y": 2}
     cm = CollectionsModel(MockParent(), coll)
 
     assert cm.rowCount() == 2
     assert cm.columnCount() == 4
     # dict is unordered, so first row might be x or y
-    assert data(cm, 0, 0) in {'x',
-                              'y'}
-    if data(cm, 0, 0) == 'x':
+    assert data(cm, 0, 0) in {"x", "y"}
+    if data(cm, 0, 0) == "x":
         row_with_x = 0
         row_with_y = 1
     else:
         row_with_x = 1
         row_with_y = 0
-    assert data(cm, row_with_x, 1) == 'int'
+    assert data(cm, row_with_x, 1) == "int"
     assert data(cm, row_with_x, 2) == 1
-    assert data(cm, row_with_x, 3) == '1'
-    assert data(cm, row_with_y, 0) == 'y'
-    assert data(cm, row_with_y, 1) == 'int'
+    assert data(cm, row_with_x, 3) == "1"
+    assert data(cm, row_with_y, 0) == "y"
+    assert data(cm, row_with_y, 1) == "int"
     assert data(cm, row_with_y, 2) == 1
-    assert data(cm, row_with_y, 3) == '2'
+    assert data(cm, row_with_y, 3) == "2"
 
 
 def test_collectionsmodel_with_index():
     # Regression test for spyder-ide/spyder#3380,
     # modified for spyder-ide/spyder#3758.
     for rng_name, rng in generate_pandas_indexes().items():
-        coll = {'rng': rng}
+        coll = {"rng": rng}
         cm = CollectionsModel(MockParent(), coll)
-        assert data(cm, 0, 0) == 'rng'
+        assert data(cm, 0, 0) == "rng"
         assert data(cm, 0, 1) == rng_name
-        assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
+        assert data(cm, 0, 2) == "(20,)" or data(cm, 0, 2) == "(20L,)"
     try:
         assert data(cm, 0, 3) == rng._summary()
     except AttributeError:
@@ -323,67 +340,126 @@ def test_shows_dataframeeditor_when_editing_index(monkeypatch):
     for __, rng in generate_pandas_indexes().items():
         MockDataFrameEditor = Mock()
         mockDataFrameEditor_instance = MockDataFrameEditor()
-        attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
-                                'dataframeeditor.DataFrameEditor')
+        attr_to_patch_dfedit = (
+            "spyder.plugins.variableexplorer.widgets."
+            + "dataframeeditor.DataFrameEditor"
+        )
         monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
-        coll = {'rng': rng}
+        coll = {"rng": rng}
         editor = CollectionsEditorTableView(None, coll)
-        editor.delegate.createEditor(None, None,
-                                     editor.model.index(0, 3))
+        editor.delegate.createEditor(None, None, editor.model.index(0, 3))
         mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
 def test_sort_numpy_numeric_collectionsmodel():
     var_list = [
-        numpy.float64(1e16), numpy.float64(10), numpy.float64(1),
-        numpy.float64(0.1), numpy.float64(1e-6),
-        numpy.float64(0), numpy.float64(-1e-6), numpy.float64(-1),
-        numpy.float64(-10), numpy.float64(-1e16)
-        ]
+        numpy.float64(1e16),
+        numpy.float64(10),
+        numpy.float64(1),
+        numpy.float64(0.1),
+        numpy.float64(1e-6),
+        numpy.float64(0),
+        numpy.float64(-1e-6),
+        numpy.float64(-1),
+        numpy.float64(-10),
+        numpy.float64(-1e16),
+    ]
     cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
     assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
-    assert data_table(cm, 10, 4) == [list(range(0, 10)),
-                                     [u'float64']*10,
-                                     [1]*10,
-                                     ['1e+16', '10.0', '1.0', '0.1',
-                                      '1e-06', '0.0', '-1e-06',
-                                      '-1.0', '-10.0', '-1e+16']]
+    assert data_table(cm, 10, 4) == [
+        list(range(0, 10)),
+        ["float64"] * 10,
+        [1] * 10,
+        [
+            "1e+16",
+            "10.0",
+            "1.0",
+            "0.1",
+            "1e-06",
+            "0.0",
+            "-1e-06",
+            "-1.0",
+            "-10.0",
+            "-1e+16",
+        ],
+    ]
     cm.sort(3)  # sort by value
-    assert data_table(cm, 10, 4) == [list(range(9, -1, -1)),
-                                     [u'float64']*10,
-                                     [1]*10,
-                                     ['-1e+16', '-10.0', '-1.0',
-                                      '-1e-06', '0.0', '1e-06',
-                                      '0.1', '1.0', '10.0', '1e+16']]
+    assert data_table(cm, 10, 4) == [
+        list(range(9, -1, -1)),
+        ["float64"] * 10,
+        [1] * 10,
+        [
+            "-1e+16",
+            "-10.0",
+            "-1.0",
+            "-1e-06",
+            "0.0",
+            "1e-06",
+            "0.1",
+            "1.0",
+            "10.0",
+            "1e+16",
+        ],
+    ]
 
 
 def test_sort_float_collectionsmodel():
     var_list = [
-        float(1e16), float(10), float(1), float(0.1), float(1e-6),
-        float(0), float(-1e-6), float(-1), float(-10), float(-1e16)
-        ]
+        float(1e16),
+        float(10),
+        float(1),
+        float(0.1),
+        float(1e-6),
+        float(0),
+        float(-1e-6),
+        float(-1),
+        float(-10),
+        float(-1e16),
+    ]
     cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
     assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
-    assert data_table(cm, 10, 4) == [list(range(0, 10)),
-                                     [u'float']*10,
-                                     [1]*10,
-                                     ['1e+16', '10.0', '1.0', '0.1',
-                                      '1e-06', '0.0', '-1e-06',
-                                      '-1.0', '-10.0', '-1e+16']]
+    assert data_table(cm, 10, 4) == [
+        list(range(0, 10)),
+        ["float"] * 10,
+        [1] * 10,
+        [
+            "1e+16",
+            "10.0",
+            "1.0",
+            "0.1",
+            "1e-06",
+            "0.0",
+            "-1e-06",
+            "-1.0",
+            "-10.0",
+            "-1e+16",
+        ],
+    ]
     cm.sort(3)  # sort by value
-    assert data_table(cm, 10, 4) == [list(range(9, -1, -1)),
-                                     [u'float']*10,
-                                     [1]*10,
-                                     ['-1e+16', '-10.0', '-1.0',
-                                      '-1e-06', '0.0', '1e-06',
-                                      '0.1', '1.0', '10.0', '1e+16']]
+    assert data_table(cm, 10, 4) == [
+        list(range(9, -1, -1)),
+        ["float"] * 10,
+        [1] * 10,
+        [
+            "-1e+16",
+            "-10.0",
+            "-1.0",
+            "-1e-06",
+            "0.0",
+            "1e-06",
+            "0.1",
+            "1.0",
+            "10.0",
+            "1e+16",
+        ],
+    ]
 
 
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win and py2')
+@pytest.mark.skipif(os.name == "nt" and PY2, reason="Fails on Win and py2")
 def test_sort_collectionsmodel():
     var_list1 = [0, 1, 2]
     var_list2 = [3, 4, 5, 6]
@@ -397,18 +473,29 @@ def test_sort_collectionsmodel():
     assert cm.rowCount() == 3
     assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
-    assert data_table(cm, 3, 4) == [[0, 1, 2],
-                                    ['int', 'int', 'int'],
-                                    [1, 1, 1],
-                                    ['1', '3', '2']]
+    assert data_table(cm, 3, 4) == [
+        [0, 1, 2],
+        ["int", "int", "int"],
+        [1, 1, 1],
+        ["1", "3", "2"],
+    ]
     cm.sort(3)  # sort by value
-    assert data_table(cm, 3, 4) == [[0, 2, 1],
-                                    ['int', 'int', 'int'],
-                                    [1, 1, 1],
-                                    ['1', '2', '3']]
+    assert data_table(cm, 3, 4) == [
+        [0, 2, 1],
+        ["int", "int", "int"],
+        [1, 1, 1],
+        ["1", "2", "3"],
+    ]
 
-    coll = [1, var_list1, var_list2, var_dataframe1, var_dataframe2,
-            var_series1, var_series2]
+    coll = [
+        1,
+        var_list1,
+        var_list2,
+        var_dataframe1,
+        var_dataframe2,
+        var_series1,
+        var_series2,
+    ]
     cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == 7
     assert cm.columnCount() == 4
@@ -416,44 +503,51 @@ def test_sort_collectionsmodel():
     cm.sort(1)  # sort by type
     assert data_table(cm, 7, 4) == [
         [3, 4, 5, 6, 0, 1, 2],
-        ['DataFrame', 'DataFrame', 'Series', 'Series', 'int', 'list', 'list'],
-        ['(3, 3)', '(2, 3)', '(3,)', '(4,)', 1, 3, 4],
-        ['Column names: 0, 1, 2',
-         'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
-         'Series object of pandas.core.series module',
-         '1',
-         '[0, 1, 2]',
-         '[3, 4, 5, 6]']]
+        ["DataFrame", "DataFrame", "Series", "Series", "int", "list", "list"],
+        ["(3, 3)", "(2, 3)", "(3,)", "(4,)", 1, 3, 4],
+        [
+            "Column names: 0, 1, 2",
+            "Column names: 0, 1, 2",
+            "Series object of pandas.core.series module",
+            "Series object of pandas.core.series module",
+            "1",
+            "[0, 1, 2]",
+            "[3, 4, 5, 6]",
+        ],
+    ]
 
     cm.sort(2)  # sort by size
     assert data_table(cm, 7, 4) == [
         [3, 4, 5, 6, 0, 1, 2],
-        ['DataFrame', 'DataFrame', 'Series', 'Series', 'int', 'list', 'list'],
-        ['(2, 3)', '(3,)', '(3, 3)', '(4,)', 1, 3, 4],
-        ['Column names: 0, 1, 2',
-         'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
-         'Series object of pandas.core.series module',
-         '1',
-         '[0, 1, 2]',
-         '[3, 4, 5, 6]']] or data_table(cm, 7, 4) == [
+        ["DataFrame", "DataFrame", "Series", "Series", "int", "list", "list"],
+        ["(2, 3)", "(3,)", "(3, 3)", "(4,)", 1, 3, 4],
+        [
+            "Column names: 0, 1, 2",
+            "Column names: 0, 1, 2",
+            "Series object of pandas.core.series module",
+            "Series object of pandas.core.series module",
+            "1",
+            "[0, 1, 2]",
+            "[3, 4, 5, 6]",
+        ],
+    ] or data_table(cm, 7, 4) == [
         [0, 1, 2, 4, 5, 3, 6],
-        [u'int', u'list', u'list', u'DataFrame', u'Series', u'DataFrame',
-         u'Series'],
-        [1, 3, 4, u'(2, 3)', u'(3,)', u'(3, 3)', u'(4,)'],
-        ['1',
-         '[0, 1, 2]',
-         '[3, 4, 5, 6]',
-         'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
-         'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
-         ]]
+        ["int", "list", "list", "DataFrame", "Series", "DataFrame", "Series"],
+        [1, 3, 4, "(2, 3)", "(3,)", "(3, 3)", "(4,)"],
+        [
+            "1",
+            "[0, 1, 2]",
+            "[3, 4, 5, 6]",
+            "Column names: 0, 1, 2",
+            "Series object of pandas.core.series module",
+            "Column names: 0, 1, 2",
+            "Series object of pandas.core.series module",
+        ],
+    ]
 
 
 def test_sort_and_fetch_collectionsmodel_with_many_rows():
-    coll = list(range(2*LARGE_NROWS))
+    coll = list(range(2 * LARGE_NROWS))
     cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == cm.rows_loaded == ROWS_TO_LOAD
     assert cm.columnCount() == 4
@@ -466,9 +560,11 @@ def test_sort_and_fetch_collectionsmodel_with_many_rows():
 
 
 def test_rename_and_duplicate_item_in_collection_editor():
-    collections = {'list': ([1, 2, 3], False, True),
-                   'tuple': ((1, 2, 3), False, False),
-                   'dict': ({'a': 1, 'b': 2}, True, True)}
+    collections = {
+        "list": ([1, 2, 3], False, True),
+        "tuple": ((1, 2, 3), False, False),
+        "dict": ({"a": 1, "b": 2}, True, True),
+    }
     for coll, rename_enabled, duplicate_enabled in collections.values():
         coll_copy = copy.copy(coll)
         editor = CollectionsEditorTableView(None, coll)
@@ -494,12 +590,14 @@ def test_edit_datetime(monkeypatch):
 
     # Test that the NaT value cannot be edited on the variable explorer
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(0, 3))
+        None, None, editor_list.model.index(0, 3)
+    )
     assert editor_list_value is None
 
     # Test that a date can be edited on the variable explorer
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(1, 3))
+        None, None, editor_list.model.index(1, 3)
+    )
     assert isinstance(editor_list_value, QDateEdit)
 
 
@@ -510,28 +608,35 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     Regression test for spyder-ide/spyder#5991.
     """
     MockQLineEdit = Mock()
-    attr_to_patch_qlineedit = ('spyder.plugins.variableexplorer.widgets.' +
-                               'collectionsdelegate.QLineEdit')
+    attr_to_patch_qlineedit = (
+        "spyder.plugins.variableexplorer.widgets." + "collectionsdelegate.QLineEdit"
+    )
     monkeypatch.setattr(attr_to_patch_qlineedit, MockQLineEdit)
 
     MockTextEditor = Mock()
-    attr_to_patch_textedit = ('spyder.plugins.variableexplorer.widgets.' +
-                              'collectionsdelegate.TextEditor')
+    attr_to_patch_textedit = (
+        "spyder.plugins.variableexplorer.widgets." + "collectionsdelegate.TextEditor"
+    )
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
     MockQDateTimeEdit = Mock()
-    attr_to_patch_qdatetimeedit = ('spyder.plugins.variableexplorer.widgets.' +
-                                   'collectionsdelegate.QDateTimeEdit')
+    attr_to_patch_qdatetimeedit = (
+        "spyder.plugins.variableexplorer.widgets." + "collectionsdelegate.QDateTimeEdit"
+    )
     monkeypatch.setattr(attr_to_patch_qdatetimeedit, MockQDateTimeEdit)
 
     MockCollectionsEditor = Mock()
     mockCollectionsEditor_instance = MockCollectionsEditor()
-    attr_to_patch_coledit = ('spyder.widgets.' +
-                             'collectionseditor.CollectionsEditor')
+    attr_to_patch_coledit = "spyder.widgets." + "collectionseditor.CollectionsEditor"
     monkeypatch.setattr(attr_to_patch_coledit, MockCollectionsEditor)
 
-    list_test = [1, "012345678901234567901234567890123456789012",
-                 datetime.datetime(2017, 12, 24, 7, 9), [1, 2, 3], (2, "eggs")]
+    list_test = [
+        1,
+        "012345678901234567901234567890123456789012",
+        datetime.datetime(2017, 12, 24, 7, 9),
+        [1, 2, 3],
+        (2, "eggs"),
+    ]
     tup_test = tuple(list_test)
 
     # Tests for mutable type (list) #
@@ -539,31 +644,30 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside list
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(0, 3))
+        None, None, editor_list.model.index(0, 3)
+    )
     assert editor_list_value is not None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside list
-    editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.index(1, 3))
+    editor_list.delegate.createEditor(None, None, editor_list.model.index(1, 3))
     assert MockTextEditor.call_count == 2
     assert not MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside list
     editor_list_datetime = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(2, 3))
+        None, None, editor_list.model.index(2, 3)
+    )
     assert editor_list_datetime is not None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside list
-    editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.index(3, 3))
+    editor_list.delegate.createEditor(None, None, editor_list.model.index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 1
     assert not mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside list
-    editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.index(4, 3))
+    editor_list.delegate.createEditor(None, None, editor_list.model.index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 2
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
@@ -572,31 +676,30 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside tuple
     editor_tup_value = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model.index(0, 3))
+        None, None, editor_tup.model.index(0, 3)
+    )
     assert editor_tup_value is None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside tuple
-    editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.index(1, 3))
+    editor_tup.delegate.createEditor(None, None, editor_tup.model.index(1, 3))
     assert MockTextEditor.call_count == 4
     assert MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside tuple
     editor_tup_datetime = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model.index(2, 3))
+        None, None, editor_tup.model.index(2, 3)
+    )
     assert editor_tup_datetime is None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside tuple
-    editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.index(3, 3))
+    editor_tup.delegate.createEditor(None, None, editor_tup.model.index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 3
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside tuple
-    editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.index(4, 3))
+    editor_tup.delegate.createEditor(None, None, editor_tup.model.index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 4
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
@@ -620,10 +723,10 @@ def test_notimplementederror_multiindex():
 
     Regression test for spyder-ide/spyder#6284.
     """
-    time_deltas = [pandas.Timedelta(minutes=minute)
-                   for minute in range(5, 35, 5)]
-    time_delta_multiindex = pandas.MultiIndex.from_product([[0, 1, 2, 3, 4],
-                                                            time_deltas])
+    time_deltas = [pandas.Timedelta(minutes=minute) for minute in range(5, 35, 5)]
+    time_delta_multiindex = pandas.MultiIndex.from_product(
+        [[0, 1, 2, 3, 4], time_deltas]
+    )
     col_model = CollectionsModel(MockParent(), time_delta_multiindex)
     assert col_model.rowCount() == col_model.rows_loaded == ROWS_TO_LOAD
     assert col_model.columnCount() == 4
@@ -644,45 +747,55 @@ def test_editor_parent_set(monkeypatch):
     test_parent = QWidget()
 
     MockCollectionsEditor = Mock()
-    attr_to_patch_coledit = ('spyder.widgets.' +
-                             'collectionseditor.CollectionsEditor')
+    attr_to_patch_coledit = "spyder.widgets." + "collectionseditor.CollectionsEditor"
     monkeypatch.setattr(attr_to_patch_coledit, MockCollectionsEditor)
 
     MockArrayEditor = Mock()
-    attr_to_patch_arredit = ('spyder.plugins.variableexplorer.widgets.' +
-                             'arrayeditor.ArrayEditor')
+    attr_to_patch_arredit = (
+        "spyder.plugins.variableexplorer.widgets." + "arrayeditor.ArrayEditor"
+    )
     monkeypatch.setattr(attr_to_patch_arredit, MockArrayEditor)
 
     MockDataFrameEditor = Mock()
-    attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
-                            'dataframeeditor.DataFrameEditor')
+    attr_to_patch_dfedit = (
+        "spyder.plugins.variableexplorer.widgets." + "dataframeeditor.DataFrameEditor"
+    )
     monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
 
     MockTextEditor = Mock()
-    attr_to_patch_textedit = ('spyder.plugins.variableexplorer.widgets.' +
-                              'collectionsdelegate.TextEditor')
+    attr_to_patch_textedit = (
+        "spyder.plugins.variableexplorer.widgets." + "collectionsdelegate.TextEditor"
+    )
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
     MockObjectExplorer = Mock()
-    attr_to_patch_objectexplorer = ('spyder.plugins.variableexplorer.widgets.'
-                                    + 'objectexplorer.ObjectExplorer')
+    attr_to_patch_objectexplorer = (
+        "spyder.plugins.variableexplorer.widgets." + "objectexplorer.ObjectExplorer"
+    )
     monkeypatch.setattr(attr_to_patch_objectexplorer, MockObjectExplorer)
 
-    editor_data = [[0, 1, 2, 3, 4],
-                   numpy.array([1.0, 42.0, 1337.0]),
-                   pandas.DataFrame([[1, 2, 3], [20, 30, 40]]),
-                   os,
-                   "012345678901234567890123456789012345678901234567890123456"]
+    editor_data = [
+        [0, 1, 2, 3, 4],
+        numpy.array([1.0, 42.0, 1337.0]),
+        pandas.DataFrame([[1, 2, 3], [20, 30, 40]]),
+        os,
+        "012345678901234567890123456789012345678901234567890123456",
+    ]
     col_editor = CollectionsEditorTableView(test_parent, editor_data)
     assert col_editor.parent() is test_parent
 
-    for idx, mock_class in enumerate([MockCollectionsEditor,
-                                      MockArrayEditor,
-                                      MockDataFrameEditor,
-                                      MockObjectExplorer,
-                                      MockTextEditor]):
-        col_editor.delegate.createEditor(col_editor.parent(), None,
-                                         col_editor.model.index(idx, 3))
+    for idx, mock_class in enumerate(
+        [
+            MockCollectionsEditor,
+            MockArrayEditor,
+            MockDataFrameEditor,
+            MockObjectExplorer,
+            MockTextEditor,
+        ]
+    ):
+        col_editor.delegate.createEditor(
+            col_editor.parent(), None, col_editor.model.index(idx, 3)
+        )
         assert mock_class.call_count == 1 + (idx // 4)
         assert mock_class.call_args[1]["parent"] is test_parent
 
@@ -693,7 +806,7 @@ def test_xml_dom_element_view():
 
     Regression test for spyder-ide/spyder#5642.
     """
-    xml_path = path.join(LOCATION, 'dom_element_test.xml')
+    xml_path = path.join(LOCATION, "dom_element_test.xml")
     with open(xml_path) as xml_file:
         xml_data = xml_file.read()
 
@@ -735,9 +848,16 @@ def test_set_nonsettable_objects(nonsettable_objects_data):
         for idx in indicies:
             assert not col_model.set_value(idx, "2")
             # Due to numpy's deliberate breakage of __eq__ comparison
-            assert all([key == "_typ" or
-                        (getattr(col_model.get_data().__obj__, key)
-                         == getattr(expected_obj, key)) for key in keys])
+            assert all(
+                [
+                    key == "_typ"
+                    or (
+                        getattr(col_model.get_data().__obj__, key)
+                        == getattr(expected_obj, key)
+                    )
+                    for key in keys
+                ]
+            )
 
 
 @flaky(max_runs=3)
@@ -773,21 +893,32 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
         qtbot.wait(100)
 
         # Due to numpy's deliberate breakage of __eq__ comparison
-        assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
-                    == getattr(expected_obj, key)) for key in keys])
+        assert all(
+            [
+                key == "_typ"
+                or (getattr(col_editor.get_value(), key) == getattr(expected_obj, key))
+                for key in keys
+            ]
+        )
 
         col_editor.accept()
         qtbot.wait(200)
 
         # Same reason as above
-        assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
-                    == getattr(expected_obj, key)) for key in keys])
+        assert all(
+            [
+                key == "_typ"
+                or (getattr(col_editor.get_value(), key) == getattr(expected_obj, key))
+                for key in keys
+            ]
+        )
 
         if getattr(test_obj, "_typ", None) is None:
             keys.remove("_typ")
 
-        assert all([getattr(test_obj, key)
-                    == getattr(expected_obj, key) for key in keys])
+        assert all(
+            [getattr(test_obj, key) == getattr(expected_obj, key) for key in keys]
+        )
 
 
 def test_collectionseditor_with_class_having_buggy_copy(qtbot):
@@ -795,6 +926,7 @@ def test_collectionseditor_with_class_having_buggy_copy(qtbot):
     Test that editor for object whose .copy() returns a different type is
     readonly; cf. spyder-ide/spyder#6936.
     """
+
     class MyDictWithBuggyCopy(dict):
         pass
 
@@ -809,6 +941,7 @@ def test_collectionseditor_with_class_having_correct_copy(qtbot):
     Test that editor for object whose .copy() returns the same type is not
     readonly; cf. spyder-ide/spyder#6936.
     """
+
     class MyDictWithCorrectCopy(dict):
         def copy(self):
             return MyDictWithCorrectCopy(self)
@@ -848,10 +981,10 @@ def test_dicts_with_mixed_types_as_key(qtbot):
 
     This is a regression for spyder-ide/spyder#13481.
     """
-    colors = {1: 'red', 'Y': 'yellow'}
+    colors = {1: "red", "Y": "yellow"}
     editor = CollectionsEditor()
     editor.setup(colors)
-    assert editor.widget.editor.source_model.keys == [1, 'Y']
+    assert editor.widget.editor.source_model.keys == [1, "Y"]
 
 
 def test_dicts_natural_sorting(qtbot):
@@ -859,20 +992,20 @@ def test_dicts_natural_sorting(qtbot):
     Test that natural sorting actually does what it should do
     """
     import random
+
     numbers = list(range(100))
     random.shuffle(numbers)
-    dictionary = {'test{}'.format(i): None for i in numbers}
+    dictionary = {"test{}".format(i): None for i in numbers}
     data_sorted = sorted(list(dictionary.keys()), key=natsort)
     # numbers should be as a human would sort, e.g. test3 before test100
     # regular sort would sort test1, test10, test11,..., test2, test20,...
-    expected = ['test{}'.format(i) for i in list(range(100))]
+    expected = ["test{}".format(i) for i in list(range(100))]
     editor = CollectionsEditor()
     editor.setup(dictionary)
     editor.widget.editor.source_model.sort(0)
 
-    assert data_sorted == expected, 'Function failed'
-    assert editor.widget.editor.source_model.keys == expected, \
-        'GUI sorting fail'
+    assert data_sorted == expected, "Function failed"
+    assert editor.widget.editor.source_model.keys == expected, "GUI sorting fail"
 
 
 def test_dicts_natural_sorting_mixed_types():
@@ -883,11 +1016,15 @@ def test_dicts_natural_sorting_mixed_types():
     Sorting for other columns will be tested as well.
     """
     import pandas as pd
-    dictionary = {'DSeries': pd.Series(dtype=int), 'aStr': 'algName',
-                  'kDict': {2: 'asd', 3: 2}}
+
+    dictionary = {
+        "DSeries": pd.Series(dtype=int),
+        "aStr": "algName",
+        "kDict": {2: "asd", 3: 2},
+    }
 
     # put this here variable, as it might change later to reflect string length
-    str_size = get_size(dictionary['aStr'])
+    str_size = get_size(dictionary["aStr"])
 
     editor = CollectionsEditor()
     editor.setup(dictionary)
@@ -897,35 +1034,45 @@ def test_dicts_natural_sorting_mixed_types():
     types = cm.types
     sizes = cm.sizes
 
-    assert keys == ['aStr', 'DSeries', 'kDict']
-    assert types == ['str', 'Series', 'dict']
+    assert keys == ["aStr", "DSeries", "kDict"]
+    assert types == ["str", "Series", "dict"]
     assert sizes == [str_size, (0,), 2]
 
-    assert data_table(cm, 3, 3) == [['aStr', 'DSeries', 'kDict'],
-                                    ['str', 'Series', 'dict'],
-                                    [str_size, '(0,)', 2]]
+    assert data_table(cm, 3, 3) == [
+        ["aStr", "DSeries", "kDict"],
+        ["str", "Series", "dict"],
+        [str_size, "(0,)", 2],
+    ]
 
     # insert an item and check that it is still sorted correctly
-    editor.widget.editor.new_value('List', [1, 2, 3])
-    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
-                                    ['str', 'Series', 'dict', 'list'],
-                                    [str_size, '(0,)', 2, 3]]
+    editor.widget.editor.new_value("List", [1, 2, 3])
+    assert data_table(cm, 4, 3) == [
+        ["aStr", "DSeries", "kDict", "List"],
+        ["str", "Series", "dict", "list"],
+        [str_size, "(0,)", 2, 3],
+    ]
     cm.sort(0)
-    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
-                                    ['str', 'Series', 'dict', 'list'],
-                                    [str_size, '(0,)', 2, 3]]
+    assert data_table(cm, 4, 3) == [
+        ["aStr", "DSeries", "kDict", "List"],
+        ["str", "Series", "dict", "list"],
+        [str_size, "(0,)", 2, 3],
+    ]
 
     # now sort for types
     cm.sort(1)
-    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
-                                    ['Series', 'dict', 'list', 'str'],
-                                    ['(0,)', 2, 3, str_size]]
+    assert data_table(cm, 4, 3) == [
+        ["DSeries", "kDict", "List", "aStr"],
+        ["Series", "dict", "list", "str"],
+        ["(0,)", 2, 3, str_size],
+    ]
 
     # now sort for sizes
     cm.sort(2)
-    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
-                                    ['Series', 'dict', 'list', 'str'],
-                                    ['(0,)', 2, 3, str_size]]
+    assert data_table(cm, 4, 3) == [
+        ["DSeries", "kDict", "List", "aStr"],
+        ["Series", "dict", "list", "str"],
+        ["(0,)", 2, 3, str_size],
+    ]
 
 
 if __name__ == "__main__":

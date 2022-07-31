@@ -50,7 +50,7 @@ class FoldingRegion:
         self.children.insert(new_index, node)
 
     def remove_node(self, node):
-        for child in self.children[node.index + 1:]:
+        for child in self.children[node.index + 1 :]:
             child.index -= 1
 
         try:
@@ -82,8 +82,9 @@ class FoldingRegion:
         return str(self)
 
     def __str__(self):
-        return '({0}, {1}, {2}, {3})'.format(
-            self.fold_range, self.text, self.id, self.status)
+        return "({0}, {1}, {2}, {3})".format(
+            self.fold_range, self.text, self.id, self.status
+        )
 
 
 class FoldingStatus(dict):
@@ -158,7 +159,8 @@ def merge_folding(ranges, current_tree, root):
         deleted_entry_i = deleted_entry.data
         changed_entry_i = changed_entry.data
         dist = textdistance.hamming.normalized_similarity(
-            deleted_entry_i.text, changed_entry_i.text)
+            deleted_entry_i.text, changed_entry_i.text
+        )
 
         if dist >= 0.80:
             # Copy folding status
@@ -191,9 +193,7 @@ def merge_folding(ranges, current_tree, root):
 
     if non_merged > 0:
         tree_copy = IntervalTree(tree)
-        tree_copy.merge_overlaps(
-            data_reducer=merge_interval,
-            data_initializer=root)
+        tree_copy.merge_overlaps(data_reducer=merge_interval, data_initializer=root)
     return tree, root
 
 

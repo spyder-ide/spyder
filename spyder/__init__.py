@@ -31,24 +31,25 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 version_info = (5, 4, 0, "dev0")
 
-__version__ = '.'.join(map(str, version_info))
+__version__ = ".".join(map(str, version_info))
 __installer_version__ = __version__
-__title__ = 'Spyder'
-__author__ = 'Spyder Project Contributors and others'
+__title__ = "Spyder"
+__author__ = "Spyder Project Contributors and others"
 __license__ = __doc__
-__project_url__ = 'https://github.com/spyder-ide/spyder'
-__forum_url__   = 'https://groups.google.com/group/spyderlib'
-__trouble_url__ = 'https://tinyurl.com/spyder-first-steps'
-__trouble_url_short__ = 'https://tinyurl.com/SpyderHelp'
-__website_url__ = 'https://www.spyder-ide.org/'
-__docs_url__ = 'https://docs.spyder-ide.org/'
+__project_url__ = "https://github.com/spyder-ide/spyder"
+__forum_url__ = "https://groups.google.com/group/spyderlib"
+__trouble_url__ = "https://tinyurl.com/spyder-first-steps"
+__trouble_url_short__ = "https://tinyurl.com/SpyderHelp"
+__website_url__ = "https://www.spyder-ide.org/"
+__docs_url__ = "https://docs.spyder-ide.org/"
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the
 # following path to module's data (images) and translations:
-DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = JQUERYPATH = ''
+DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = JQUERYPATH = ""
 
 
 import os
+
 # Directory of the current file
 __current_directory__ = os.path.dirname(os.path.abspath(__file__))
 
@@ -67,33 +68,36 @@ def get_versions(reporev=True):
     revision = branch = None
     if reporev:
         if running_in_mac_app():
-            revision = os.environ.get('SPY_COMMIT', None)
-            branch = os.environ.get('SPY_BRANCH', None)
+            revision = os.environ.get("SPY_COMMIT", None)
+            branch = os.environ.get("SPY_BRANCH", None)
         else:
             from spyder.utils import vcs
+
             revision, branch = vcs.get_git_revision(
-                os.path.dirname(__current_directory__))
+                os.path.dirname(__current_directory__)
+            )
 
     if is_pynsist() or running_in_mac_app():
-        installer = 'standalone'
+        installer = "standalone"
     elif is_conda_env(pyexec=sys.executable):
-        installer = 'conda'
+        installer = "conda"
     else:
-        installer = 'pip'
+        installer = "pip"
 
     return {
-        'spyder': __version__,
-        'installer': installer,
-        'python': platform.python_version(),  # "2.7.3"
-        'bitness': 64 if sys.maxsize > 2**32 else 32,
-        'qt': qtpy.QtCore.__version__,
-        'qt_api': qtpy.API_NAME,      # PyQt5
-        'qt_api_ver': (qtpy.PYSIDE_VERSION if qtpy.API == "pyside2"
-                       else qtpy.PYQT_VERSION),
-        'system': platform.system(),   # Linux, Windows, ...
-        'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
-        'revision': revision,  # '9fdf926eccce',
-        'branch': branch,  # '4.x' or master
+        "spyder": __version__,
+        "installer": installer,
+        "python": platform.python_version(),  # "2.7.3"
+        "bitness": 64 if sys.maxsize > 2**32 else 32,
+        "qt": qtpy.QtCore.__version__,
+        "qt_api": qtpy.API_NAME,  # PyQt5
+        "qt_api_ver": (
+            qtpy.PYSIDE_VERSION if qtpy.API == "pyside2" else qtpy.PYQT_VERSION
+        ),
+        "system": platform.system(),  # Linux, Windows, ...
+        "release": platform.release(),  # XP, 10.6, 2.2.0, etc.
+        "revision": revision,  # '9fdf926eccce',
+        "branch": branch,  # '4.x' or master
     }
 
 
@@ -102,7 +106,7 @@ def get_versions_text(reporev=True):
     versions = get_versions(reporev=reporev)
 
     # Get git revision for development version
-    revision = versions['revision'] or ''
+    revision = versions["revision"] or ""
 
     return f"""\
 * Spyder version: {versions['spyder']} {revision} ({versions['installer']})

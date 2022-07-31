@@ -32,38 +32,38 @@ def test_get_options():
     assert options.files == []
     assert args == []
 
-    options, args = getopt(['--new-instance'])
+    options, args = getopt(["--new-instance"])
     assert options.new_instance
 
-    options, args = getopt(['--defaults', '--reset'])
+    options, args = getopt(["--defaults", "--reset"])
     assert options.reset_to_defaults
     assert options.reset_config_files
 
-    options, args = getopt(['--optimize', '--workdir', 'test dir'])
+    options, args = getopt(["--optimize", "--workdir", "test dir"])
     assert options.optimize
-    assert options.working_directory == 'test dir'
+    assert options.working_directory == "test dir"
 
-    options, args = getopt('--window-title MyWindow'.split())
-    assert options.window_title == 'MyWindow'
+    options, args = getopt("--window-title MyWindow".split())
+    assert options.window_title == "MyWindow"
 
-    options, args = getopt('-p myproject test_file.py another_file.py'.split())
-    assert options.project == 'myproject'
-    assert options.files == ['test_file.py', 'another_file.py']
-    assert args == ['test_file.py', 'another_file.py']
+    options, args = getopt("-p myproject test_file.py another_file.py".split())
+    assert options.project == "myproject"
+    assert options.files == ["test_file.py", "another_file.py"]
+    assert args == ["test_file.py", "another_file.py"]
 
     with pytest.raises(SystemExit):
-        options, args = getopt(['--version'])
+        options, args = getopt(["--version"])
 
     # Requires string.
     with pytest.raises(SystemExit):
-        options, args = getopt(['-w'])
+        options, args = getopt(["-w"])
 
     # Requires string.
     with pytest.raises(SystemExit):
-        options, args = getopt(['-p'])
+        options, args = getopt(["-p"])
 
-    options, args = getopt('--opengl software'.split())
-    assert options.opengl_implementation == 'software'
+    options, args = getopt("--opengl software".split())
+    assert options.opengl_implementation == "software"
 
 
 if __name__ == "__main__":

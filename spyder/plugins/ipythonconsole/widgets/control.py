@@ -15,16 +15,15 @@ from qtpy.QtWidgets import QApplication, QTextEdit
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
-from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
-                                   TracebackLinksMixin)
+from spyder.widgets.mixins import BaseEditMixin, GetHelpMixin, TracebackLinksMixin
 
 
-class ControlWidget(TracebackLinksMixin, GetHelpMixin,
-                    QTextEdit, BaseEditMixin):
+class ControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit, BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
     control widget for IPython widgets
     """
+
     QT_CLASS = QTextEdit
     sig_visibility_changed = Signal(bool)
     sig_go_to_error_requested = Signal(str)
@@ -73,7 +72,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
 
     # ---- Private methods ---------------------------------------------------
     def _key_paren_left(self, text):
-        """ Action for '(' """
+        """Action for '('"""
         self.current_prompt_pos = self.parentWidget()._prompt_pos
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
@@ -89,8 +88,12 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
-        if (key == Qt.Key_ParenLeft and not self.has_selected_text()
-                and self.help_enabled and not self.parent()._reading):
+        if (
+            key == Qt.Key_ParenLeft
+            and not self.has_selected_text()
+            and self.help_enabled
+            and not self.parent()._reading
+        ):
             self._key_paren_left(text)
         else:
             # Let the parent widget handle the key press event
@@ -130,6 +133,7 @@ class PageControlWidget(QTextEdit, BaseEditMixin):
     Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
     use as the paging widget for IPython widgets
     """
+
     QT_CLASS = QTextEdit
     sig_visibility_changed = Signal(bool)
     sig_show_find_widget_requested = Signal()

@@ -30,13 +30,13 @@ from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 
 HERE = osp.dirname(osp.abspath(__file__))
-ASSETS = osp.join(HERE, 'assets')
+ASSETS = osp.join(HERE, "assets")
 
-AVAILABLE_CASES = ['text']
+AVAILABLE_CASES = ["text"]
 CASES = {
     case: {
-        'file': osp.join(ASSETS, '{0}.py'.format(case)),
-        'tree': osp.join(ASSETS, '{0}_trees.json'.format(case))
+        "file": osp.join(ASSETS, "{0}.py".format(case)),
+        "tree": osp.join(ASSETS, "{0}_trees.json".format(case)),
     }
     for case in AVAILABLE_CASES
 }
@@ -54,8 +54,7 @@ def get_tree_elements(treewidget):
         parent_tree, node = stack.pop(0)
         this_tree = {node.name: []}
         parent_tree.append(this_tree)
-        this_stack = [(this_tree[node.name], child)
-                        for child in node.children]
+        this_stack = [(this_tree[node.name], child) for child in node.children]
         stack = this_stack + stack
     return root_tree
 
@@ -66,21 +65,17 @@ def test_files(tmpdir_factory):
     """Create and save some python codes and text in temporary files."""
     tmpdir = tmpdir_factory.mktemp("files")
 
-    filename1 = osp.join(tmpdir.strpath, 'foo1.py')
-    with open(filename1, 'w') as f:
-        f.write("# -*- coding: utf-8 -*-\n"
-                "def foo:\n"
-                "    print(Hello World!)\n")
+    filename1 = osp.join(tmpdir.strpath, "foo1.py")
+    with open(filename1, "w") as f:
+        f.write("# -*- coding: utf-8 -*-\n" "def foo:\n" "    print(Hello World!)\n")
 
-    filename2 = osp.join(tmpdir.strpath, 'text1.txt')
-    with open(filename2, 'w') as f:
-        f.write("This is a simple text file for\n"
-                "testing the Outline Explorer.\n")
+    filename2 = osp.join(tmpdir.strpath, "text1.txt")
+    with open(filename2, "w") as f:
+        f.write("This is a simple text file for\n" "testing the Outline Explorer.\n")
 
-    filename3 = osp.join(tmpdir.strpath, 'foo2.py')
-    with open(filename3, 'w') as f:
-        f.write("# -*- coding: utf-8 -*-\n"
-                "# ---- a comment\n")
+    filename3 = osp.join(tmpdir.strpath, "foo2.py")
+    with open(filename3, "w") as f:
+        f.write("# -*- coding: utf-8 -*-\n" "# ---- a comment\n")
 
     return [filename1, filename2, filename3]
 
@@ -89,12 +84,12 @@ def test_files(tmpdir_factory):
 def outlineexplorer(qtbot):
     """Set up an OutlineExplorerWidget."""
     outlineexplorer = OutlineExplorerWidget(None, None, None)
-    outlineexplorer.set_conf('show_fullpath', False)
-    outlineexplorer.set_conf('show_all_files', True)
-    outlineexplorer.set_conf('group_cells', True)
-    outlineexplorer.set_conf('show_comments', True)
-    outlineexplorer.set_conf('sort_files_alphabetically', False)
-    outlineexplorer.set_conf('display_variables', True)
+    outlineexplorer.set_conf("show_fullpath", False)
+    outlineexplorer.set_conf("show_all_files", True)
+    outlineexplorer.set_conf("group_cells", True)
+    outlineexplorer.set_conf("show_comments", True)
+    outlineexplorer.set_conf("sort_files_alphabetically", False)
+    outlineexplorer.set_conf("display_variables", True)
 
     # Fix the size of the outline explorer to prevent an
     # 'Unable to set geometry ' warning if the test fails.
@@ -111,8 +106,7 @@ def completions_codeeditor_outline(completions_codeeditor, outlineexplorer):
     editor, _ = completions_codeeditor
     editor.oe_proxy = OutlineExplorerProxyEditor(editor, editor.filename)
     outlineexplorer.register_editor(editor.oe_proxy)
-    outlineexplorer.set_current_editor(
-        editor.oe_proxy, update=False, clear=False)
+    outlineexplorer.set_current_editor(editor.oe_proxy, update=False, clear=False)
     return editor, outlineexplorer
 
 
@@ -133,6 +127,7 @@ def editorstack(qtbot, outlineexplorer):
             focus = index == 0
             editorstack.load(file, set_current=focus)
         return editorstack
+
     return _create_editorstack
 
 
@@ -147,9 +142,11 @@ def test_load_files(editorstack, outlineexplorer, test_files):
 
     # Load the test files one by one and assert the content of the
     # outline explorer.
-    expected_result = [['foo1.py'],
-                       ['foo1.py', 'text1.txt'],
-                       ['foo1.py', 'text1.txt', 'foo2.py']]
+    expected_result = [
+        ["foo1.py"],
+        ["foo1.py", "text1.txt"],
+        ["foo1.py", "text1.txt", "foo2.py"],
+    ]
     for index, file in enumerate(test_files):
         editorstack.load(file)
         assert editorstack.get_current_filename() == file
@@ -190,7 +187,7 @@ def test_close_a_file(editorstack, outlineexplorer, test_files):
     # tree has been updated.
     editorstack.close_file(index=1)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo2.py']
+    assert results == ["foo1.py", "foo2.py"]
 
 
 def test_sort_file_alphabetically(editorstack, outlineexplorer, test_files):
@@ -203,12 +200,12 @@ def test_sort_file_alphabetically(editorstack, outlineexplorer, test_files):
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'text1.txt', 'foo2.py']
+    assert results == ["foo1.py", "text1.txt", "foo2.py"]
 
     # Set the option to sort files alphabetically to True.
     treewidget.toggle_sort_files_alphabetically(True)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo2.py', 'text1.txt']
+    assert results == ["foo1.py", "foo2.py", "text1.txt"]
 
 
 def test_sync_file_order(editorstack, outlineexplorer, test_files):
@@ -221,18 +218,17 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
     editorstack = editorstack(test_files)
     treewidget = outlineexplorer.treewidget
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'text1.txt', 'foo2.py']
+    assert results == ["foo1.py", "text1.txt", "foo2.py"]
 
     # Switch tab 1 with tab 2.
     editorstack.tabs.tabBar().moveTab(0, 1)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['text1.txt', 'foo1.py', 'foo2.py']
+    assert results == ["text1.txt", "foo1.py", "foo2.py"]
 
 
 # ---- Test single file mode
 @pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
-def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files,
-                                   qtbot):
+def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files, qtbot):
     """
     Test that toggling off the option to show all files in the Outline Explorer
     hide all root file items but the one corresponding to the currently
@@ -247,10 +243,10 @@ def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files,
     treewidget.toggle_show_all_files(False)
     qtbot.wait(500)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py']
+    assert results == ["foo1.py"]
 
 
-@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux")
+@pytest.mark.skipif(sys.platform.startswith("linux"), reason="Fails on Linux")
 def test_single_file_sync(editorstack, outlineexplorer, test_files, qtbot):
     """
     Test that the content of the Outline Explorer is updated correctly
@@ -265,7 +261,7 @@ def test_single_file_sync(editorstack, outlineexplorer, test_files, qtbot):
     with qtbot.waitSignal(editorstack.editor_focus_changed):
         editorstack.tabs.setCurrentIndex(2)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo2.py']
+    assert results == ["foo2.py"]
 
 
 def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
@@ -283,7 +279,7 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
     editorstack.tabs.tabBar().moveTab(0, 1)
     treewidget.toggle_show_all_files(True)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['text1.txt', 'foo1.py', 'foo2.py']
+    assert results == ["text1.txt", "foo1.py", "foo2.py"]
 
 
 @pytest.mark.slow
@@ -293,21 +289,21 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     code_editor, outlineexplorer = completions_codeeditor_outline
     treewidget = outlineexplorer.treewidget
 
-    case_info = CASES['text']
-    filename = case_info['file']
-    tree_file = case_info['tree']
+    case_info = CASES["text"]
+    filename = case_info["file"]
+    tree_file = case_info["tree"]
 
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         lines = f.read()
 
-    with open(tree_file, 'r') as f:
+    with open(tree_file, "r") as f:
         trees = json.load(f)
 
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
-    code_editor.set_text('')
+    code_editor.set_text("")
     code_editor.go_to_line(1)
 
     # Put example text in editor
@@ -337,8 +333,7 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     # Add "d" symbol elsewhere
     code_editor.go_to_line(36)
 
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
+    with qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_Return)
         qtbot.keyPress(code_editor, Qt.Key_Return)
 
@@ -369,8 +364,7 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     # Add method1
     code_editor.go_to_line(49)
 
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
+    with qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_Return)
         qtbot.keyPress(code_editor, Qt.Key_Return)
 
@@ -388,10 +382,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     cursor.movePosition(QTextCursor.EndOfBlock)
     code_editor.setTextCursor(cursor)
 
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
+    with qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_Return)
-        qtbot.keyClicks(code_editor, 'self.y = None')
+        qtbot.keyClicks(code_editor, "self.y = None")
         qtbot.keyPress(code_editor, Qt.Key_Return)
 
     with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
@@ -416,7 +409,7 @@ def test_empty_file(qtbot, completions_codeeditor_outline):
     code_editor.toggle_code_snippets(False)
 
     # Set empty contents
-    code_editor.set_text('')
+    code_editor.set_text("")
     code_editor.go_to_line(1)
     qtbot.wait(3000)
 
@@ -424,32 +417,34 @@ def test_empty_file(qtbot, completions_codeeditor_outline):
     assert not outlineexplorer._spinner.isSpinning()
 
     # Add some content
-    code_editor.set_text("""
+    code_editor.set_text(
+        """
 def foo():
     a = 10
     return a
-""")
+"""
+    )
     qtbot.wait(3000)
 
     root_tree = get_tree_elements(treewidget)
-    assert root_tree == {'test.py': [{'foo': [{'a': []}]}]}
+    assert root_tree == {"test.py": [{"foo": [{"a": []}]}]}
 
     # Remove content
     code_editor.selectAll()
     qtbot.keyPress(code_editor, Qt.Key_Delete)
 
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
+    with qtbot.waitSignal(code_editor.completions_response_signal, timeout=30000):
         code_editor.document_did_change()
 
     qtbot.wait(3000)
 
     # Assert the tree is empty and the spinner is not shown.
     root_tree = get_tree_elements(treewidget)
-    assert root_tree == {'test.py': []}
+    assert root_tree == {"test.py": []}
     assert not outlineexplorer._spinner.isSpinning()
 
 
 if __name__ == "__main__":
     import os
-    pytest.main([os.path.basename(__file__), '-vv', '-rw'])
+
+    pytest.main([os.path.basename(__file__), "-vv", "-rw"])

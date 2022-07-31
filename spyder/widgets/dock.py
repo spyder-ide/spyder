@@ -9,8 +9,14 @@ Dock widgets for plugins
 """
 
 from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
-from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
-                            QToolButton, QWidget)
+from qtpy.QtWidgets import (
+    QDockWidget,
+    QHBoxLayout,
+    QSizePolicy,
+    QTabBar,
+    QToolButton,
+    QWidget,
+)
 import qstylizer.style
 
 from spyder.api.translations import get_translation
@@ -20,7 +26,7 @@ from spyder.utils.stylesheet import PanesToolbarStyleSheet
 
 
 # For translations
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 # =============================================================================
@@ -28,6 +34,7 @@ _ = get_translation('spyder')
 # =============================================================================
 class TabFilter(QObject):
     """Filter event attached to each DockWidget QTabBar."""
+
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
         self.dock_tabbar = dock_tabbar
@@ -79,7 +86,8 @@ class TabFilter(QObject):
         #   See spyder-ide/spyder#9763
         # - Also add a border below selected tabs so they don't touch
         #   either the window separator or the status bar.
-        stylesheet = """
+        stylesheet = (
+            """
             QTabBar {
                 alignment: center;
             }
@@ -87,7 +95,9 @@ class TabFilter(QObject):
             QTabBar::tab:bottom:selected {
                 border-bottom: 2px solid %s;
             }
-        """ % QStylePalette.COLOR_BACKGROUND_1
+        """
+            % QStylePalette.COLOR_BACKGROUND_1
+        )
 
         return stylesheet
 
@@ -109,7 +119,7 @@ class DragButton(QToolButton):
         # Style
         self.setIconSize(button_size)
         self.setAutoRaise(True)
-        self.setIcon(ima.icon('drag_dock_widget'))
+        self.setIcon(ima.icon("drag_dock_widget"))
         self.setToolTip(_("Drag and drop pane to a different position"))
         self.setStyleSheet(self._stylesheet)
 
@@ -122,10 +132,7 @@ class DragButton(QToolButton):
     @property
     def _stylesheet(self):
         css = qstylizer.style.StyleSheet()
-        css.QToolButton.setValues(
-            borderRadius='0px',
-            border='0px'
-        )
+        css.QToolButton.setValues(borderRadius="0px", border="0px")
         return css.toString()
 
 
@@ -139,7 +146,7 @@ class CloseButton(QToolButton):
         # Style
         self.setIconSize(button_size)
         self.setAutoRaise(True)
-        self.setIcon(ima.icon('lock_open'))
+        self.setIcon(ima.icon("lock_open"))
         self.setToolTip(_("Lock pane"))
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
 
@@ -147,8 +154,8 @@ class CloseButton(QToolButton):
         css = qstylizer.style.StyleSheet()
         css.QToolButton.setValues(
             width=PanesToolbarStyleSheet.BUTTON_WIDTH,
-            borderRadius=f'{bradius}px',
-            border='0px',
+            borderRadius=f"{bradius}px",
+            border="0px",
             backgroundColor=bgcolor,
         )
 
@@ -158,7 +165,7 @@ class CloseButton(QToolButton):
         self.setCursor(Qt.ArrowCursor)
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5, 3)
         self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
-        self.setIcon(ima.icon('lock'))
+        self.setIcon(ima.icon("lock"))
         super().enterEvent(event)
 
     def mousePressEvent(self, event):
@@ -168,7 +175,7 @@ class CloseButton(QToolButton):
     def leaveEvent(self, event):
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
         self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
-        self.setIcon(ima.icon('lock_open'))
+        self.setIcon(ima.icon("lock_open"))
         super().leaveEvent(event)
 
 
@@ -233,8 +240,7 @@ class DockTitleBar(QWidget):
     def _apply_stylesheet(self, bgcolor):
         css = qstylizer.style.StyleSheet()
         css.QWidget.setValues(
-            height=PanesToolbarStyleSheet.BUTTON_HEIGHT,
-            backgroundColor=bgcolor
+            height=PanesToolbarStyleSheet.BUTTON_HEIGHT, backgroundColor=bgcolor
         )
         self.setStyleSheet(css.toString())
 
@@ -314,9 +320,8 @@ class SpyderDockWidget(QDockWidget):
         if dock_tabbar is not None:
             self.dock_tabbar = dock_tabbar
             # Install filter only once per QTabBar
-            if getattr(self.dock_tabbar, 'filter', None) is None:
-                self.dock_tabbar.filter = TabFilter(self.dock_tabbar,
-                                                    self.main)
+            if getattr(self.dock_tabbar, "filter", None) is None:
+                self.dock_tabbar.filter = TabFilter(self.dock_tabbar, self.main)
                 self.dock_tabbar.installEventFilter(self.dock_tabbar.filter)
 
     def remove_title_bar(self):

@@ -12,8 +12,7 @@ from qtpy.QtCore import QThread, Signal
 # Local Imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
-                                                 sphinxify)
+from spyder.plugins.help.utils.sphinxify import CSS_PATH, generate_context, sphinxify
 
 
 class SphinxThread(QThread):
@@ -33,11 +32,12 @@ class SphinxThread(QThread):
     math_option : bool
         Use LaTeX math rendering.
     """
+
     # Signals
     error_msg = Signal(str)
     html_ready = Signal(str)
 
-    def __init__(self, parent, html_text_no_doc='', css_path=CSS_PATH):
+    def __init__(self, parent, html_text_no_doc="", css_path=CSS_PATH):
         super(SphinxThread, self).__init__(parent)
         self.doc = None
         self.context = None
@@ -45,8 +45,9 @@ class SphinxThread(QThread):
         self.math_option = False
         self.css_path = css_path
 
-    def render(self, doc, context=None, math_option=False, img_path='',
-               css_path=CSS_PATH):
+    def render(
+        self, doc, context=None, math_option=False, img_path="", css_path=CSS_PATH
+    ):
         """Start thread to render a given documentation"""
         # If the thread is already running wait for it to finish before
         # starting it again.
@@ -63,17 +64,19 @@ class SphinxThread(QThread):
         html_text = self.html_text_no_doc
         doc = self.doc
         if doc is not None:
-            if type(doc) is dict and 'docstring' in doc.keys():
+            if type(doc) is dict and "docstring" in doc.keys():
                 try:
-                    context = generate_context(name=doc['name'],
-                                               argspec=doc['argspec'],
-                                               note=doc['note'],
-                                               math=self.math_option,
-                                               img_path=self.img_path,
-                                               css_path=self.css_path)
-                    html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '':
-                        if any([doc['name'], doc['argspec'], doc['note']]):
+                    context = generate_context(
+                        name=doc["name"],
+                        argspec=doc["argspec"],
+                        note=doc["note"],
+                        math=self.math_option,
+                        img_path=self.img_path,
+                        css_path=self.css_path,
+                    )
+                    html_text = sphinxify(doc["docstring"], context)
+                    if doc["docstring"] == "":
+                        if any([doc["name"], doc["argspec"], doc["note"]]):
                             msg = _("No further documentation available")
                             html_text += '<div class="hr"></div>'
                         else:

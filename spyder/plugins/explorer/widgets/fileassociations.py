@@ -19,22 +19,34 @@ import sys
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import QRegExp, QSize, Qt, Signal
 from qtpy.QtGui import QCursor, QRegExpValidator
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QLabel, QLineEdit,
-                            QListWidget, QListWidgetItem, QPushButton,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
 # Local imports
 from spyder.config.base import _
 from spyder.utils.encoding import is_text_file
-from spyder.utils.programs import (get_application_icon,
-                                   get_installed_applications,
-                                   parse_linux_desktop_entry)
+from spyder.utils.programs import (
+    get_application_icon,
+    get_installed_applications,
+    parse_linux_desktop_entry,
+)
 
 
 class InputTextDialog(QDialog):
     """Input text dialog with regex validation."""
 
-    def __init__(self, parent=None, title='', label=''):
+    def __init__(self, parent=None, title="", label=""):
         """Input text dialog with regex validation."""
         super(InputTextDialog, self).__init__(parent=parent)
         self._reg = None
@@ -43,8 +55,9 @@ class InputTextDialog(QDialog):
         # Widgets
         self.label = QLabel()
         self.lineedit = QLineEdit()
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok
-                                           | QDialogButtonBox.Cancel)
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
@@ -110,15 +123,16 @@ class ApplicationsDialog(QDialog):
         self.label_browse = QLabel()
         self.edit_filter = QLineEdit()
         self.list = QListWidget()
-        self.button_browse = QPushButton(_('Browse...'))
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok
-                                           | QDialogButtonBox.Cancel)
+        self.button_browse = QPushButton(_("Browse..."))
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
         # Widget setup
-        self.setWindowTitle(_('Applications'))
-        self.edit_filter.setPlaceholderText(_('Type to filter by name'))
+        self.setWindowTitle(_("Applications"))
+        self.edit_filter.setPlaceholderText(_("Type to filter by name"))
         self.list.setIconSize(QSize(16, 16))  # FIXME: Use metrics
 
         # Layout
@@ -175,34 +189,33 @@ class ApplicationsDialog(QDialog):
         app = None
         item = None
 
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             if fpath is None:
-                basedir = '/Applications/'
-                filters = _('Applications (*.app)')
-                title = _('Select application')
+                basedir = "/Applications/"
+                filters = _("Applications (*.app)")
+                title = _("Select application")
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
-            if fpath and fpath.endswith('.app') and os.path.isdir(fpath):
-                app = os.path.basename(fpath).split('.app')[0]
+            if fpath and fpath.endswith(".app") and os.path.isdir(fpath):
+                app = os.path.basename(fpath).split(".app")[0]
                 for row in range(self.list.count()):
                     item = self.list.item(row)
                     if app == item.text() and fpath == item.fpath:
                         break
                 else:
                     item = None
-        elif os.name == 'nt':
+        elif os.name == "nt":
             if fpath is None:
-                basedir = 'C:\\'
-                filters = _('Applications (*.exe *.bat *.com)')
-                title = _('Select application')
+                basedir = "C:\\"
+                filters = _("Applications (*.exe *.bat *.com)")
+                title = _("Select application")
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
             if fpath:
-                check_1 = fpath.endswith('.bat') and is_text_file(fpath)
-                check_2 = (fpath.endswith(('.exe', '.com'))
-                           and not is_text_file(fpath))
+                check_1 = fpath.endswith(".bat") and is_text_file(fpath)
+                check_2 = fpath.endswith((".exe", ".com")) and not is_text_file(fpath)
                 if check_1 or check_2:
-                    app = os.path.basename(fpath).capitalize().rsplit('.')[0]
+                    app = os.path.basename(fpath).capitalize().rsplit(".")[0]
                     for row in range(self.list.count()):
                         item = self.list.item(row)
                         if app == item.text() and fpath == item.fpath:
@@ -211,14 +224,14 @@ class ApplicationsDialog(QDialog):
                         item = None
         else:
             if fpath is None:
-                basedir = '/'
-                filters = _('Applications (*.desktop)')
-                title = _('Select application')
+                basedir = "/"
+                filters = _("Applications (*.desktop)")
+                title = _("Select application")
                 fpath, __ = getopenfilename(self, title, basedir, filters)
 
-            if fpath and fpath.endswith(('.desktop')) and is_text_file(fpath):
+            if fpath and fpath.endswith((".desktop")) and is_text_file(fpath):
                 entry_data = parse_linux_desktop_entry(fpath)
-                app = entry_data['name']
+                app = entry_data["name"]
                 for row in range(self.list.count()):
                     item = self.list.item(row)
                     if app == item.text() and fpath == item.fpath:
@@ -249,21 +262,20 @@ class ApplicationsDialog(QDialog):
 
     def set_extension(self, extension):
         """Set the extension on the label of the dialog."""
-        self.label.setText(_('Choose the application for files of type ')
-                           + extension)
+        self.label.setText(_("Choose the application for files of type ") + extension)
 
     @property
     def application_path(self):
         """Return the selected application path to executable."""
         item = self.list.currentItem()
-        path = item.fpath if item else ''
+        path = item.fpath if item else ""
         return path
 
     @property
     def application_name(self):
         """Return the selected application name."""
         item = self.list.currentItem()
-        text = item.text() if item else ''
+        text = item.text() if item else ""
         return text
 
 
@@ -272,8 +284,9 @@ class FileAssociationsWidget(QWidget):
 
     # This allows validating a single extension entry or a list of comma
     # separated values (eg `*.json` or `*.json,*.txt,MANIFEST.in`)
-    _EXTENSIONS_LIST_REGEX = (r'(?:(?:\*{1,1}|\w+)\.\w+)'
-                              r'(?:,(?:\*{1,1}|\w+)\.\w+){0,20}')
+    _EXTENSIONS_LIST_REGEX = (
+        r"(?:(?:\*{1,1}|\w+)\.\w+)" r"(?:,(?:\*{1,1}|\w+)\.\w+){0,20}"
+    )
     sig_data_changed = Signal(dict)
 
     def __init__(self, parent=None):
@@ -288,22 +301,24 @@ class FileAssociationsWidget(QWidget):
 
         # Widgets
         self.label = QLabel(
-            _("Here you can associate different external applications "
-              "to open specific file extensions (e.g. .txt "
-              "files with Notepad++ or .csv files with Excel).")
+            _(
+                "Here you can associate different external applications "
+                "to open specific file extensions (e.g. .txt "
+                "files with Notepad++ or .csv files with Excel)."
+            )
         )
         self.label.setWordWrap(True)
-        self.label_extensions = QLabel(_('File types:'))
+        self.label_extensions = QLabel(_("File types:"))
         self.list_extensions = QListWidget()
-        self.button_add = QPushButton(_('Add'))
-        self.button_remove = QPushButton(_('Remove'))
-        self.button_edit = QPushButton(_('Edit'))
+        self.button_add = QPushButton(_("Add"))
+        self.button_remove = QPushButton(_("Remove"))
+        self.button_edit = QPushButton(_("Edit"))
 
-        self.label_applications = QLabel(_('Associated applications:'))
+        self.label_applications = QLabel(_("Associated applications:"))
         self.list_applications = QListWidget()
-        self.button_add_application = QPushButton(_('Add'))
-        self.button_remove_application = QPushButton(_('Remove'))
-        self.button_default = QPushButton(_('Set default'))
+        self.button_add_application = QPushButton(_("Add"))
+        self.button_remove_application = QPushButton(_("Remove"))
+        self.button_default = QPushButton(_("Set default"))
 
         # Layout
         layout_extensions = QHBoxLayout()
@@ -341,28 +356,34 @@ class FileAssociationsWidget(QWidget):
         self.button_remove.clicked.connect(self.remove_association)
         self.button_edit.clicked.connect(self.edit_association)
         self.button_add_application.clicked.connect(self.add_application)
-        self.button_remove_application.clicked.connect(
-            self.remove_application)
+        self.button_remove_application.clicked.connect(self.remove_application)
         self.button_default.clicked.connect(self.set_default_application)
         self.list_extensions.currentRowChanged.connect(self.update_extensions)
         self.list_extensions.itemDoubleClicked.connect(self.edit_association)
-        self.list_applications.currentRowChanged.connect(
-            self.update_applications)
+        self.list_applications.currentRowChanged.connect(self.update_applications)
         self._refresh()
         self._create_association_dialog()
 
     def _refresh(self):
         """Refresh the status of buttons on widget."""
         self.setUpdatesEnabled(False)
-        for widget in [self.button_remove,  self.button_add_application,
-                       self.button_edit,
-                       self.button_remove_application, self.button_default]:
+        for widget in [
+            self.button_remove,
+            self.button_add_application,
+            self.button_edit,
+            self.button_remove_application,
+            self.button_default,
+        ]:
             widget.setDisabled(True)
 
         item = self.list_extensions.currentItem()
         if item:
-            for widget in [self.button_remove, self.button_add_application,
-                           self.button_remove_application, self.button_edit]:
+            for widget in [
+                self.button_remove,
+                self.button_add_application,
+                self.button_remove_application,
+                self.button_edit,
+            ]:
                 widget.setDisabled(False)
         self.update_applications()
         self.setUpdatesEnabled(True)
@@ -383,12 +404,12 @@ class FileAssociationsWidget(QWidget):
 
     def _add_application(self, app_name, fpath):
         """Add application helper."""
-        app_not_found_text = _(' (Application not found!)')
+        app_not_found_text = _(" (Application not found!)")
         for row in range(self.list_applications.count()):
             item = self.list_applications.item(row)
             # Ensure the actual name is checked without the `app not found`
             # additional text, in case app was not found
-            item_text = item.text().replace(app_not_found_text, '').strip()
+            item_text = item.text().replace(app_not_found_text, "").strip()
             if item and item_text == app_name:
                 break
         else:
@@ -402,7 +423,7 @@ class FileAssociationsWidget(QWidget):
             self.list_applications.setCurrentItem(item)
 
         if not (os.path.isfile(fpath) or os.path.isdir(fpath)):
-            item.setToolTip(_('Application not found!'))
+            item.setToolTip(_("Application not found!"))
 
     def _update_extensions(self):
         """Update extensions list."""
@@ -419,13 +440,15 @@ class FileAssociationsWidget(QWidget):
         """Create input extension dialog and save it to for reuse."""
         self._dlg_input = InputTextDialog(
             self,
-            title=_('File association'),
+            title=_("File association"),
             label=(
-                _('Enter new file extension. You can add several values '
-                  'separated by commas.<br>Examples include:')
-                + '<ul><li><code>*.txt</code></li>'
-                + '<li><code>*.json,*.csv</code></li>'
-                + '<li><code>*.json,README.md</code></li></ul>'
+                _(
+                    "Enter new file extension. You can add several values "
+                    "separated by commas.<br>Examples include:"
+                )
+                + "<ul><li><code>*.txt</code></li>"
+                + "<li><code>*.json,*.csv</code></li>"
+                + "<li><code>*.json,README.md</code></li></ul>"
             ),
         )
         self._dlg_input.set_regex_validation(self._EXTENSIONS_LIST_REGEX)
@@ -445,8 +468,8 @@ class FileAssociationsWidget(QWidget):
     def add_association(self, value=None):
         """Add extension file association."""
         if value is None:
-            text, ok_pressed = '', False
-            self._dlg_input.set_text('')
+            text, ok_pressed = "", False
+            self._dlg_input.set_text("")
 
             if self._dlg_input.exec_():
                 text = self._dlg_input.text()

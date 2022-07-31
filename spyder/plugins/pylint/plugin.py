@@ -18,13 +18,14 @@ from qtpy.QtCore import Qt, Signal, Slot
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.utils.programs import is_module_installed
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
-from spyder.plugins.pylint.main_widget import (PylintWidget,
-                                               PylintWidgetActions)
+from spyder.plugins.pylint.main_widget import PylintWidget, PylintWidgetActions
 
 
 # Localization
@@ -32,7 +33,7 @@ _ = get_translation("spyder")
 
 
 class PylintActions:
-    AnalyzeCurrentFile = 'run analysis'
+    AnalyzeCurrentFile = "run analysis"
 
 
 class Pylint(SpyderDockablePlugin):
@@ -77,10 +78,8 @@ class Pylint(SpyderDockablePlugin):
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
-        widget.sig_start_analysis_requested.connect(
-            lambda: self.start_code_analysis())
+        widget.sig_redirect_stdio_requested.connect(self.sig_redirect_stdio_requested)
+        widget.sig_start_analysis_requested.connect(lambda: self.start_code_analysis())
 
         # Add action to application menus
         pylint_act = self.create_action(
@@ -90,7 +89,7 @@ class Pylint(SpyderDockablePlugin):
             icon=self.create_icon("pylint"),
             triggered=lambda: self.start_code_analysis(),
             context=Qt.ApplicationShortcut,
-            register_shortcut=True
+            register_shortcut=True,
         )
         pylint_act.setEnabled(is_module_installed("pylint"))
 
@@ -129,7 +128,8 @@ class Pylint(SpyderDockablePlugin):
 
         pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
         mainmenu.add_item_to_application_menu(
-            pylint_act, menu_id=ApplicationMenus.Source)
+            pylint_act, menu_id=ApplicationMenus.Source
+        )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -162,8 +162,7 @@ class Pylint(SpyderDockablePlugin):
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            PylintActions.AnalyzeCurrentFile,
-            menu_id=ApplicationMenus.Source
+            PylintActions.AnalyzeCurrentFile, menu_id=ApplicationMenus.Source
         )
 
     # --- Private API

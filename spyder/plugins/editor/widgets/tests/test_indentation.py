@@ -38,6 +38,7 @@ def make_unindent(editor, single_line=True, start_line=1):
     text = editor.toPlainText()
     return to_text_string(text)
 
+
 # --- Fixtures
 # -----------------------------------------------------------------------------
 @pytest.fixture
@@ -55,16 +56,8 @@ def codeeditor_indent(codeeditor):
 def test_single_line_indent(codeeditor_indent):
     """Test indentation in a single line."""
     editor = codeeditor_indent
-    text = ("class a():\n"
-            "self.b = 1\n"
-            "print(self.b)\n"
-            "\n"
-            )
-    expected = ("class a():\n"
-                "  self.b = 1\n"
-                "print(self.b)\n"
-                "\n"
-                )
+    text = "class a():\n" "self.b = 1\n" "print(self.b)\n" "\n"
+    expected = "class a():\n" "  self.b = 1\n" "print(self.b)\n" "\n"
     editor.set_text(text)
     # Indent line without spaces
     new_text = make_indent(editor, start_line=2)
@@ -74,16 +67,8 @@ def test_single_line_indent(codeeditor_indent):
 def test_selection_indent(codeeditor_indent):
     """Test indentation with selection of more than one line."""
     editor = codeeditor_indent
-    text = ("class a():\n"
-            "self.b = 1\n"
-            "print(self.b)\n"
-            "\n"
-            )
-    expected = ("class a():\n"
-                "  self.b = 1\n"
-                "  print(self.b)\n"
-                "  \n"
-                )
+    text = "class a():\n" "self.b = 1\n" "print(self.b)\n" "\n"
+    expected = "class a():\n" "  self.b = 1\n" "  print(self.b)\n" "  \n"
 
     editor.set_text(text)
     # Toggle manually commented code
@@ -95,19 +80,9 @@ def test_fix_indentation(codeeditor_indent):
     """Test fix_indentation() method."""
     editor = codeeditor_indent
     # Contains tabs.
-    original = ("\t\n"
-                "class a():\t\n"
-                "\tself.b = 1\n"
-                "\tprint(self.b)\n"
-                "\n"
-                )
+    original = "\t\n" "class a():\t\n" "\tself.b = 1\n" "\tprint(self.b)\n" "\n"
     # Fix indentation replaces tabs with indent_chars spaces.
-    fixed = ("  \n"
-             "class a():  \n"
-             "  self.b = 1\n"
-             "  print(self.b)\n"
-             "\n"
-             )
+    fixed = "  \n" "class a():  \n" "  self.b = 1\n" "  print(self.b)\n" "\n"
     editor.set_text(original)
     editor.fix_indentation()
     assert to_text_string(editor.toPlainText()) == fixed
@@ -124,16 +99,8 @@ def test_fix_indentation(codeeditor_indent):
 def test_single_line_unindent(codeeditor_indent):
     """Test unindentation in a single line."""
     editor = codeeditor_indent
-    text = ("class a():\n"
-            "  self.b = 1\n"
-            "print(self.b)\n"
-            "\n"
-            )
-    expected = ("class a():\n"
-                "self.b = 1\n"
-                "print(self.b)\n"
-                "\n"
-                )
+    text = "class a():\n" "  self.b = 1\n" "print(self.b)\n" "\n"
+    expected = "class a():\n" "self.b = 1\n" "print(self.b)\n" "\n"
     editor.set_text(text)
     # Indent line without spaces
     new_text = make_unindent(editor, start_line=2)
@@ -143,16 +110,8 @@ def test_single_line_unindent(codeeditor_indent):
 def test_selection_unindent(codeeditor_indent):
     """Test unindentation with selection of more than one line."""
     editor = codeeditor_indent
-    text = ("class a():\n"
-            "  self.b = 1\n"
-            "  print(self.b)\n"
-            "  \n"
-            )
-    expected = ("class a():\n"
-                "self.b = 1\n"
-                "print(self.b)\n"
-                "\n"
-                )
+    text = "class a():\n" "  self.b = 1\n" "  print(self.b)\n" "  \n"
+    expected = "class a():\n" "self.b = 1\n" "print(self.b)\n" "\n"
     editor.set_text(text)
     # Toggle manually commented code
     new_text = make_unindent(editor, single_line=False, start_line=2)
@@ -162,26 +121,14 @@ def test_selection_unindent(codeeditor_indent):
 def test_single_line_unindent_to_grid(codeeditor_indent):
     """Test unindentation in a single line."""
     editor = codeeditor_indent
-    text = ("class a():\n"
-            "   self.b = 1\n"
-            "print(self.b)\n"
-            "\n"
-            )
-    expected = ("class a():\n"
-                "  self.b = 1\n"
-                "print(self.b)\n"
-                "\n"
-                )
+    text = "class a():\n" "   self.b = 1\n" "print(self.b)\n" "\n"
+    expected = "class a():\n" "  self.b = 1\n" "print(self.b)\n" "\n"
     editor.set_text(text)
     # Indent line without spaces
     new_text = make_unindent(editor, start_line=2)
     assert new_text == expected
 
-    expected2 = ("class a():\n"
-                 "self.b = 1\n"
-                 "print(self.b)\n"
-                 "\n"
-                 )
+    expected2 = "class a():\n" "self.b = 1\n" "print(self.b)\n" "\n"
     new_text2 = make_unindent(editor, start_line=2)
     assert new_text2 == expected2
 
@@ -189,26 +136,14 @@ def test_single_line_unindent_to_grid(codeeditor_indent):
 def test_selection_unindent_to_grid(codeeditor_indent):
     """Test unindentation with selection of more than one line."""
     editor = codeeditor_indent
-    text = ("class a():\n"
-            "   self.b = 1\n"
-            "   print(self.b)\n"
-            "\n"
-            )
-    expected = ("class a():\n"
-                "  self.b = 1\n"
-                "  print(self.b)\n"
-                "\n"
-                )
+    text = "class a():\n" "   self.b = 1\n" "   print(self.b)\n" "\n"
+    expected = "class a():\n" "  self.b = 1\n" "  print(self.b)\n" "\n"
     editor.set_text(text)
     # Toggle manually commented code
     new_text = make_unindent(editor, single_line=False, start_line=2)
     assert new_text == expected
 
-    expected2 = ("class a():\n"
-                 "self.b = 1\n"
-                 "print(self.b)\n"
-                 "\n"
-                 )
+    expected2 = "class a():\n" "self.b = 1\n" "print(self.b)\n" "\n"
     new_text2 = make_unindent(editor, single_line=False, start_line=2)
     assert new_text2 == expected2
 

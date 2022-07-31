@@ -12,9 +12,17 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QScrollArea, QTabWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QVBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QTabWidget,
+)
 
 # Local imports
 from spyder import (
@@ -22,7 +30,8 @@ from spyder import (
     __forum_url__ as forum_url,
     __trouble_url__ as trouble_url,
     __website_url__ as website_url,
-    get_versions, get_versions_text
+    get_versions,
+    get_versions_text,
 )
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
@@ -32,19 +41,19 @@ from spyder.utils.stylesheet import APP_STYLESHEET, DialogStyle
 
 
 class AboutDialog(QDialog):
-
     def __init__(self, parent):
         """Create About Spyder dialog with general information."""
         QDialog.__init__(self, parent)
-        self.setWindowFlags(
-            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         versions = get_versions()
         # Show Git revision for development version
-        revlink = ''
-        if versions['revision']:
-            rev = versions['revision']
-            revlink = ("<a href='https://github.com/spyder-ide/spyder/"
-                       "commit/%s'>%s</a>" % (rev, rev))
+        revlink = ""
+        if versions["revision"]:
+            rev = versions["revision"]
+            revlink = (
+                "<a href='https://github.com/spyder-ide/spyder/"
+                "commit/%s'>%s</a>" % (rev, rev)
+            )
 
         # Get current font properties
         font = self.font()
@@ -54,10 +63,10 @@ class AboutDialog(QDialog):
         font_size = DialogStyle.ContentFontSize
         dialog_background_color = QStylePalette.COLOR_BACKGROUND_2
 
-        twitter_url = "https://twitter.com/Spyder_IDE",
-        facebook_url = "https://www.facebook.com/SpyderIDE",
-        youtube_url = "https://www.youtube.com/Spyder-IDE",
-        instagram_url = "https://www.instagram.com/spyderide/",
+        twitter_url = ("https://twitter.com/Spyder_IDE",)
+        facebook_url = ("https://www.facebook.com/SpyderIDE",)
+        youtube_url = ("https://www.youtube.com/Spyder-IDE",)
+        instagram_url = ("https://www.instagram.com/spyderide/",)
         self.label_overview = QLabel(
             f"""
             <div style='font-family: "{font_family}";
@@ -84,7 +93,8 @@ class AboutDialog(QDialog):
             YouTube</a> |
             <a href="{instagram_url}">Instagram</a>
 
-            </div>""")
+            </div>"""
+        )
 
         self.label_community = QLabel(
             f"""
@@ -115,7 +125,8 @@ class AboutDialog(QDialog):
             <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
             </p>
-            </div>""")
+            </div>"""
+        )
 
         self.label_legal = QLabel(
             f"""
@@ -163,10 +174,10 @@ class AboutDialog(QDialog):
             file for full legal information.
             </p>
             </div>
-            """)
+            """
+        )
 
-        for label in [self.label_overview, self.label_community,
-                      self.label_legal]:
+        for label in [self.label_overview, self.label_community, self.label_legal]:
             label.setWordWrap(True)
             label.setAlignment(Qt.AlignTop)
             label.setOpenExternalLinks(True)
@@ -176,11 +187,11 @@ class AboutDialog(QDialog):
         icon_filename = "spyder_about"
         pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
-        self.label_pic.setPixmap(
-            pixmap.scaledToWidth(100, Qt.SmoothTransformation))
+        self.label_pic.setPixmap(pixmap.scaledToWidth(100, Qt.SmoothTransformation))
         self.label_pic.setAlignment(Qt.AlignBottom)
-        self.info = QLabel((
-            """
+        self.info = QLabel(
+            (
+                """
             <div style='font-family: "{font_family}";
                 font-size: {font_size};
                 font-weight: normal;
@@ -190,23 +201,30 @@ class AboutDialog(QDialog):
             <br>{spyder_ver}
             <br>{revision}
             <br>({installer})
-            <br>""").format(
-            spyder_ver=versions['spyder'],
-            revision=revlink,
-            installer=versions['installer'],
-            font_family=font_family,
-            font_size=font_size))
+            <br>"""
+            ).format(
+                spyder_ver=versions["spyder"],
+                revision=revlink,
+                installer=versions["installer"],
+                font_family=font_family,
+                font_size=font_size,
+            )
+        )
         self.info.setAlignment(Qt.AlignHCenter)
 
-        btn = QPushButton(_("Copy version info"), )
+        btn = QPushButton(
+            _("Copy version info"),
+        )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
-        bbox.setStyleSheet(f"font-size: {buttons_font_size};"
-                           f"padding: {buttons_padding}")
-        btn.setStyleSheet(f"font-size: {buttons_font_size};"
-                          f"padding: {buttons_padding}")
+        bbox.setStyleSheet(
+            f"font-size: {buttons_font_size};" f"padding: {buttons_padding}"
+        )
+        btn.setStyleSheet(
+            f"font-size: {buttons_font_size};" f"padding: {buttons_padding}"
+        )
 
         # Widget setup
-        self.setWindowIcon(ima.icon('MessageBoxInformation'))
+        self.setWindowIcon(ima.icon("MessageBoxInformation"))
         self.setModal(False)
 
         # Layout
@@ -228,11 +246,10 @@ class AboutDialog(QDialog):
         scroll_legal.setWidget(self.label_legal)
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(scroll_overview, _('Overview'))
-        self.tabs.addTab(scroll_community, _('Community'))
-        self.tabs.addTab(scroll_legal, _('Legal'))
-        self.tabs.setStyleSheet(
-            f"background-color: {dialog_background_color}")
+        self.tabs.addTab(scroll_overview, _("Overview"))
+        self.tabs.addTab(scroll_community, _("Community"))
+        self.tabs.addTab(scroll_legal, _("Legal"))
+        self.tabs.setStyleSheet(f"background-color: {dialog_background_color}")
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
@@ -275,11 +292,12 @@ def test():
     """Run about widget test"""
 
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()  # noqa
     abt = AboutDialog(None)
     abt.show()
     sys.exit(abt.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

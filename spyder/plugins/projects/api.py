@@ -15,11 +15,13 @@ from collections import OrderedDict
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.config.base import get_project_config_folder
-from spyder.plugins.projects.utils.config import (ProjectMultiConfig,
-                                                  PROJECT_NAME_MAP,
-                                                  PROJECT_DEFAULTS,
-                                                  PROJECT_CONF_VERSION,
-                                                  WORKSPACE)
+from spyder.plugins.projects.utils.config import (
+    ProjectMultiConfig,
+    PROJECT_NAME_MAP,
+    PROJECT_DEFAULTS,
+    PROJECT_CONF_VERSION,
+    WORKSPACE,
+)
 
 # Localization
 _ = get_translation("spyder")
@@ -32,6 +34,7 @@ class BaseProjectType:
     This base class must not be used directly, but inherited from. It does not
     assume that python is specific to this project.
     """
+
     ID = None
 
     def __init__(self, root_path, parent_plugin=None):
@@ -39,7 +42,7 @@ class BaseProjectType:
         self.root_path = root_path
         self.open_project_files = []
         self.open_non_project_files = []
-        path = osp.join(root_path, get_project_config_folder(), 'config')
+        path = osp.join(root_path, get_project_config_folder(), "config")
         self.config = ProjectMultiConfig(
             PROJECT_NAME_MAP,
             path=path,
@@ -70,8 +73,7 @@ class BaseProjectType:
         for recent_file in recent_files:
             if osp.isfile(recent_file):
                 try:
-                    relative_recent_file = osp.relpath(
-                        recent_file, self.root_path)
+                    relative_recent_file = osp.relpath(recent_file, self.root_path)
                     processed_recent_files.append(relative_recent_file)
                 except ValueError:
                     processed_recent_files.append(recent_file)
@@ -83,17 +85,20 @@ class BaseProjectType:
         """Return a list of files opened by the project."""
 
         # Check if recent_files in [main] (Spyder 4)
-        recent_files = self.get_option("recent_files", 'main', [])
+        recent_files = self.get_option("recent_files", "main", [])
         if recent_files:
             # Move to [workspace] (Spyder 5)
-            self.config.remove_option('main', 'recent_files')
+            self.config.remove_option("main", "recent_files")
             self.set_recent_files(recent_files)
         else:
             recent_files = self.get_option("recent_files", default=[])
 
-        recent_files = [recent_file if osp.isabs(recent_file)
-                        else osp.join(self.root_path, recent_file)
-                        for recent_file in recent_files]
+        recent_files = [
+            recent_file
+            if osp.isabs(recent_file)
+            else osp.join(self.root_path, recent_file)
+            for recent_file in recent_files
+        ]
         for recent_file in recent_files[:]:
             if not osp.isfile(recent_file):
                 recent_files.remove(recent_file)
@@ -164,7 +169,7 @@ class BaseProjectType:
 
 
 class EmptyProject(BaseProjectType):
-    ID = 'empty-project-type'
+    ID = "empty-project-type"
 
     @staticmethod
     def get_name():

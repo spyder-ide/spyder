@@ -20,9 +20,11 @@ ConfigurationKeyList = List[ConfigurationKey]
 ConfigurationKeyOrList = Union[ConfigurationKeyList, ConfigurationKey]
 
 
-def on_conf_change(func: Callable = None,
-                   section: Optional[str] = None,
-                   option: Optional[ConfigurationKeyOrList] = None) -> Callable:
+def on_conf_change(
+    func: Callable = None,
+    section: Optional[str] = None,
+    option: Optional[ConfigurationKeyOrList] = None,
+) -> Callable:
     """
     Method decorator used to handle changes on the configuration option
     `option` of the section `section`.
@@ -51,13 +53,12 @@ def on_conf_change(func: Callable = None,
         The same method that was given as input.
     """
     if func is None:
-        return functools.partial(
-            on_conf_change, section=section, option=option)
+        return functools.partial(on_conf_change, section=section, option=option)
 
     if option is None:
         # Use special __section identifier to signal that the function
         # observes any change on the section options.
-        option = '__section'
+        option = "__section"
 
     info = []
     if isinstance(option, list):

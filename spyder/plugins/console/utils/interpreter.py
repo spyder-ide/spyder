@@ -26,31 +26,35 @@ from spyder.py3compat import is_text_string
 from spyder.utils.misc import remove_backslashes, getcwd_or_home
 
 # Force Python to search modules in the current directory first:
-sys.path.insert(0, '')
+sys.path.insert(0, "")
 
 
 def guess_filename(filename):
     """Guess filename"""
     if osp.isfile(filename):
         return filename
-    if not filename.endswith('.py'):
-        filename += '.py'
+    if not filename.endswith(".py"):
+        filename += ".py"
     for path in [getcwd_or_home()] + sys.path:
         fname = osp.join(path, filename)
         if osp.isfile(fname):
             return fname
-        elif osp.isfile(fname+'.py'):
-            return fname+'.py'
-        elif osp.isfile(fname+'.pyw'):
-            return fname+'.pyw'
+        elif osp.isfile(fname + ".py"):
+            return fname + ".py"
+        elif osp.isfile(fname + ".pyw"):
+            return fname + ".pyw"
     return filename
+
 
 class Interpreter(InteractiveConsole, threading.Thread):
     """Interpreter, executed in a separate thread"""
+
     p1 = ">>> "
     p2 = "... "
-    def __init__(self, namespace=None, exitfunc=None,
-                 Output=None, WidgetProxy=None, debug=False):
+
+    def __init__(
+        self, namespace=None, exitfunc=None, Output=None, WidgetProxy=None, debug=False
+    ):
         """
         namespace: locals send to InteractiveConsole object
         commands: list of commands executed at startup
@@ -70,11 +74,11 @@ class Interpreter(InteractiveConsole, threading.Thread):
             atexit.register(exitfunc)
 
         self.namespace = self.locals
-        self.namespace['__name__'] = '__main__'
-        self.namespace['execfile'] = self.execfile
-        self.namespace['runfile'] = self.runfile
-        self.namespace['raw_input'] = self.raw_input_replacement
-        self.namespace['help'] = self.help_replacement
+        self.namespace["__name__"] = "__main__"
+        self.namespace["execfile"] = self.execfile
+        self.namespace["runfile"] = self.runfile
+        self.namespace["raw_input"] = self.raw_input_replacement
+        self.namespace["help"] = self.help_replacement
 
         # Capture all interactive input/output
         self.initial_stdout = sys.stdout
@@ -93,8 +97,7 @@ class Interpreter(InteractiveConsole, threading.Thread):
 
         self.redirect_stds()
 
-
-    #------ Standard input/output
+    # ------ Standard input/output
     def redirect_stds(self):
         """Redirects stds"""
         if not self.debug:
@@ -109,7 +112,7 @@ class Interpreter(InteractiveConsole, threading.Thread):
             sys.stderr = self.initial_stderr
             sys.stdin = self.initial_stdin
 
-    def raw_input_replacement(self, prompt=''):
+    def raw_input_replacement(self, prompt=""):
         """For raw_input builtin function emulation"""
         self.widget_proxy.wait_input(prompt)
         self.input_condition.acquire()
@@ -125,7 +128,8 @@ class Interpreter(InteractiveConsole, threading.Thread):
             return pydoc.help(text)
         elif text is None:
             pyver = "%d.%d" % (sys.version_info[0], sys.version_info[1])
-            self.write("""
+            self.write(
+                """
 Welcome to Python %s!  This is the online help utility.
 
 If this is your first time using Python, you should definitely check out
@@ -139,41 +143,47 @@ To get a list of available modules, keywords, or topics, type "modules",
 "keywords", or "topics".  Each module also comes with a one-line summary
 of what it does; to list the modules whose summaries contain a given word
 such as "spam", type "modules spam".
-""" % pyver)
+"""
+                % pyver
+            )
         else:
             text = text.strip()
             try:
                 eval("pydoc.help(%s)" % text)
             except (NameError, SyntaxError):
-                print("no Python documentation found for '%r'" % text) # spyder: test-skip
+                print(
+                    "no Python documentation found for '%r'" % text
+                )  # spyder: test-skip
         self.write(os.linesep)
         self.widget_proxy.new_prompt("help> ")
         inp = self.raw_input_replacement()
         if inp.strip():
             self.help_replacement(inp, interactive=True)
         else:
-            self.write("""
+            self.write(
+                """
 You are now leaving help and returning to the Python interpreter.
 If you want to ask for help on a particular object directly from the
 interpreter, you can type "help(object)".  Executing "help('string')"
 has the same effect as typing a particular string at the help> prompt.
-""")
+"""
+            )
 
     def run_command(self, cmd, new_prompt=True):
         """Run command in interpreter"""
-        if cmd == 'exit()':
+        if cmd == "exit()":
             self.exit_flag = True
-            self.write('\n')
+            self.write("\n")
             return
         # -- Special commands type I
         #    (transformed into commands executed in the interpreter)
         # ? command
         special_pattern = r"^%s (?:r\')?(?:u\')?\"?\'?([a-zA-Z0-9_\.]+)"
-        run_match = re.match(special_pattern % 'run', cmd)
-        help_match = re.match(r'^([a-zA-Z0-9_\.]+)\?$', cmd)
+        run_match = re.match(special_pattern % "run", cmd)
+        help_match = re.match(r"^([a-zA-Z0-9_\.]+)\?$", cmd)
         cd_match = re.match(r"^\!cd \"?\'?([a-zA-Z0-9_ \.]+)", cmd)
         if help_match:
-            cmd = 'help(%s)' % help_match.group(1)
+            cmd = "help(%s)" % help_match.group(1)
         # run command
         elif run_match:
             filename = guess_filename(run_match.groups()[0])
@@ -185,8 +195,8 @@ has the same effect as typing a particular string at the help> prompt.
 
         # -- Special commands type II
         #    (don't need code execution in interpreter)
-        xedit_match = re.match(special_pattern % 'xedit', cmd)
-        edit_match = re.match(special_pattern % 'edit', cmd)
+        xedit_match = re.match(special_pattern % "xedit", cmd)
+        edit_match = re.match(special_pattern % "edit", cmd)
         clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", cmd)
         # (external) edit command
         if xedit_match:
@@ -198,34 +208,33 @@ has the same effect as typing a particular string at the help> prompt.
             if osp.isfile(filename):
                 self.widget_proxy.edit(filename)
             else:
-                self.stderr_write.write(
-                                "No such file or directory: %s\n" % filename)
+                self.stderr_write.write("No such file or directory: %s\n" % filename)
         # remove reference (equivalent to MATLAB's clear command)
         elif clear_match:
-            varnames = clear_match.groups()[0].replace(' ', '').split(',')
+            varnames = clear_match.groups()[0].replace(" ", "").split(",")
             for varname in varnames:
                 try:
                     self.namespace.pop(varname)
                 except KeyError:
                     pass
         # Execute command
-        elif cmd.startswith('!'):
+        elif cmd.startswith("!"):
             # System ! command
             pipe = programs.run_shell_command(cmd[1:])
-            txt_out = encoding.transcode( pipe.stdout.read().decode() )
-            txt_err = encoding.transcode( pipe.stderr.read().decode().rstrip() )
+            txt_out = encoding.transcode(pipe.stdout.read().decode())
+            txt_err = encoding.transcode(pipe.stderr.read().decode().rstrip())
             if txt_err:
                 self.stderr_write.write(txt_err)
             if txt_out:
                 self.stdout_write.write(txt_out)
-            self.stdout_write.write('\n')
+            self.stdout_write.write("\n")
             self.more = False
         # -- End of Special commands type II
         else:
             # Command executed in the interpreter
-#            self.widget_proxy.set_readonly(True)
+            #            self.widget_proxy.set_readonly(True)
             self.more = self.push(cmd)
-#            self.widget_proxy.set_readonly(False)
+        #            self.widget_proxy.set_readonly(False)
 
         if new_prompt:
             self.widget_proxy.new_prompt(self.p2 if self.more else self.p1)
@@ -254,12 +263,12 @@ has the same effect as typing a particular string at the help> prompt.
 
     def raise_keyboard_interrupt(self):
         if self.isAlive():
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(self.get_thread_id(),
-                                           ctypes.py_object(KeyboardInterrupt))
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(
+                self.get_thread_id(), ctypes.py_object(KeyboardInterrupt)
+            )
             return True
         else:
             return False
-
 
     def closing(self):
         """Actions to be done before restarting this interpreter"""
@@ -267,12 +276,12 @@ has the same effect as typing a particular string at the help> prompt.
 
     def execfile(self, filename):
         """Exec filename"""
-        source = open(filename, 'r').read()
+        source = open(filename, "r").read()
         try:
             try:
-                name = filename.encode('ascii')
+                name = filename.encode("ascii")
             except UnicodeEncodeError:
-                name = '<executed_script>'
+                name = "<executed_script>"
             code = compile(source, name, "exec")
         except (OverflowError, SyntaxError):
             InteractiveConsole.showsyntaxerror(self, filename)
@@ -286,14 +295,14 @@ has the same effect as typing a particular string at the help> prompt.
         """
         if args is not None and not is_text_string(args):
             raise TypeError("expected a character buffer object")
-        self.namespace['__file__'] = filename
+        self.namespace["__file__"] = filename
         sys.argv = [filename]
         if args is not None:
             for arg in args.split():
                 sys.argv.append(arg)
         self.execfile(filename)
-        sys.argv = ['']
-        self.namespace.pop('__file__')
+        sys.argv = [""]
+        self.namespace.pop("__file__")
 
     def eval(self, text):
         """
@@ -309,12 +318,11 @@ has the same effect as typing a particular string at the help> prompt.
 
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
-        return isdefined(objtxt, force_import=force_import,
-                         namespace=self.locals)
+        return isdefined(objtxt, force_import=force_import, namespace=self.locals)
 
-    #===========================================================================
+    # ===========================================================================
     # InteractiveConsole API
-    #===========================================================================
+    # ===========================================================================
     def push(self, line):
         """
         Push a line of source text to the interpreter

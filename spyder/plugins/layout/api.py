@@ -13,7 +13,7 @@ import copy
 
 # Third party imports
 from qtpy.QtCore import QRectF, Qt
-from qtpy.QtWidgets import (QGridLayout, QPlainTextEdit, QWidget)
+from qtpy.QtWidgets import QGridLayout, QPlainTextEdit, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -62,8 +62,7 @@ class BaseGridLayoutType:
         self._visible_areas = []
         # Check ID
         if self.ID is None:
-            raise SpyderAPIError("A Layout must define an `ID` class "
-                                 "attribute!")
+            raise SpyderAPIError("A Layout must define an `ID` class " "attribute!")
 
         # Check name
         self.get_name()
@@ -84,7 +83,8 @@ class BaseGridLayoutType:
 
             if area_zero_zero and area["row"] == 0 and area["column"] == 0:
                 raise SpyderAPIError(
-                    "Multiple areas defined their row and column as 0!")
+                    "Multiple areas defined their row and column as 0!"
+                )
 
             if area["row"] == 0 and area["column"] == 0:
                 area_zero_zero = True
@@ -94,9 +94,10 @@ class BaseGridLayoutType:
                     "At least 1 hidden plugin id is not being specified "
                     "in the area plugin ids list!\n SpyderLayout: {}\n "
                     "hidden_plugin_ids: {}\n"
-                    "plugin_ids: {}".format(self.get_name(),
-                                            area["hidden_plugin_ids"],
-                                            area["plugin_ids"]))
+                    "plugin_ids: {}".format(
+                        self.get_name(), area["hidden_plugin_ids"], area["plugin_ids"]
+                    )
+                )
 
         # Check that there is at least 1 visible!
         if not any(self._visible_areas):
@@ -113,7 +114,8 @@ class BaseGridLayoutType:
         # Check one area has row zero and column zero
         if not area_zero_zero:
             raise SpyderAPIError(
-                "1 area needs to be specified with row 0 and column 0!")
+                "1 area needs to be specified with row 0 and column 0!"
+            )
 
         # Check Area
         self._check_area()
@@ -158,8 +160,10 @@ class BaseGridLayoutType:
                     if rect_1.intersects(rect_2):
                         raise SpyderAPIError(
                             "Area with plugins {0} is overlapping area "
-                            "with plugins {1}".format(rect_1.plugin_ids,
-                                                      rect_2.plugin_ids))
+                            "with plugins {1}".format(
+                                rect_1.plugin_ids, rect_2.plugin_ids
+                            )
+                        )
 
         # Check the total area (using corner points) versus the sum of areas
         total_area = 0
@@ -172,7 +176,7 @@ class BaseGridLayoutType:
             total_area += area
             self._areas[index]["area"] = area
 
-        if total_area != max(rights)*max(tops):
+        if total_area != max(rights) * max(tops):
             raise SpyderAPIError(
                 "Areas are not covering the entire section!\n"
                 "Either an area is missing or col_span/row_span are "
@@ -198,15 +202,17 @@ class BaseGridLayoutType:
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def add_area(self,
-                 plugin_ids,
-                 row,
-                 column,
-                 row_span=1,
-                 col_span=1,
-                 default=False,
-                 visible=True,
-                 hidden_plugin_ids=[]):
+    def add_area(
+        self,
+        plugin_ids,
+        row,
+        column,
+        row_span=1,
+        col_span=1,
+        default=False,
+        visible=True,
+        hidden_plugin_ids=[],
+    ):
         """
         Add a new area and `plugin_ids` that will populate it to the layout.
 
@@ -238,8 +244,7 @@ class BaseGridLayoutType:
         See: https://doc.qt.io/qt-5/qgridlayout.html
         """
         if self._default_added and default:
-            raise SpyderAPIError("A default location has already been "
-                                 "defined!")
+            raise SpyderAPIError("A default location has already been " "defined!")
 
         self._plugin_ids += plugin_ids
         self._rows = max(row, self._rows)
@@ -324,12 +329,10 @@ class BaseGridLayoutType:
 
             # label.setVisible(area["visible"])
             if area["default"]:
-                label.setStyleSheet(
-                    "QPlainTextEdit {background-color: #ff0000;}")
+                label.setStyleSheet("QPlainTextEdit {background-color: #ff0000;}")
 
             if not area["visible"]:
-                label.setStyleSheet(
-                    "QPlainTextEdit {background-color: #eeeeee;}")
+                label.setStyleSheet("QPlainTextEdit {background-color: #eeeeee;}")
 
         for row, stretch in self._row_stretchs.items():
             layout.setRowStretch(row, stretch)
@@ -362,14 +365,13 @@ class BaseGridLayoutType:
         # them hidden. Deep copy needed since test can run multiple times with
         # the same Mainwindow instance when using the 'main_window' fixture
         patched_default_area = copy.deepcopy(self._default_area)
-        unassgined_plugin_ids = list(
-            set(self._plugin_ids) ^ set(all_plugin_ids))
+        unassgined_plugin_ids = list(set(self._plugin_ids) ^ set(all_plugin_ids))
         patched_default_area["plugin_ids"] += unassgined_plugin_ids
         patched_default_area["hidden_plugin_ids"] += unassgined_plugin_ids
 
         patched_areas = [
-            patched_default_area if area["default"] else area
-            for area in self._areas]
+            patched_default_area if area["default"] else area for area in self._areas
+        ]
 
         # Define initial dock for each area
         docks = {}
@@ -400,15 +402,11 @@ class BaseGridLayoutType:
                         dock = docks[key]
                     else:
                         layout_data.append(
-                            (1/docks[key].area,
-                             key,
-                             dock,
-                             docks[key],
-                             direction))
+                            (1 / docks[key].area, key, dock, docks[key], direction)
+                        )
                         dock = docks[key]
 
-                    main_window.addDockWidget(
-                        Qt.LeftDockWidgetArea, dock, direction)
+                    main_window.addDockWidget(Qt.LeftDockWidgetArea, dock, direction)
 
         # Find dock splits in the vertical direction
         direction = Qt.Vertical
@@ -421,11 +419,8 @@ class BaseGridLayoutType:
                         dock = docks[key]
                     else:
                         layout_data.append(
-                            (1/docks[key].area,
-                             key,
-                             dock,
-                             docks[key],
-                             direction))
+                            (1 / docks[key].area, key, dock, docks[key], direction)
+                        )
                         dock = docks[key]
 
         # We sort based on the inverse of the area, then the row and then
@@ -437,22 +432,19 @@ class BaseGridLayoutType:
         plugins_to_tabify = []
         for area in patched_areas:
             area_visible = area["visible"]
-            base_plugin = main_window.get_plugin(
-                area["plugin_ids"][0], error=False)
+            base_plugin = main_window.get_plugin(area["plugin_ids"][0], error=False)
             if base_plugin:
                 plugin_ids = area["plugin_ids"][1:]
                 hidden_plugin_ids = area["hidden_plugin_ids"]
                 for plugin_id in plugin_ids:
-                    current_plugin = main_window.get_plugin(
-                        plugin_id, error=False)
+                    current_plugin = main_window.get_plugin(plugin_id, error=False)
                     if current_plugin:
-                        if (plugin_id in unassgined_plugin_ids and
-                                hasattr(current_plugin, 'TABIFY')):
-                            plugins_to_tabify.append(
-                                (current_plugin, base_plugin))
+                        if plugin_id in unassgined_plugin_ids and hasattr(
+                            current_plugin, "TABIFY"
+                        ):
+                            plugins_to_tabify.append((current_plugin, base_plugin))
                         else:
-                            main_window.tabify_plugins(
-                                base_plugin, current_plugin)
+                            main_window.tabify_plugins(base_plugin, current_plugin)
                             if plugin_id not in hidden_plugin_ids:
                                 current_plugin.toggle_view(area_visible)
                             else:

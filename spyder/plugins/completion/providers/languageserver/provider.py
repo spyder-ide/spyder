@@ -23,61 +23,71 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.utils.installers import InstallerPylspError
-from spyder.config.base import (_, get_conf_path, running_under_pytest,
-                                running_in_mac_app)
+from spyder.config.base import (
+    _,
+    get_conf_path,
+    running_under_pytest,
+    running_in_mac_app,
+)
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.utils.misc import check_connection_port
-from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
-                                           SpyderCompletionProvider,
-                                           WorkspaceUpdateKind)
+from spyder.plugins.completion.api import (
+    SUPPORTED_LANGUAGES,
+    SpyderCompletionProvider,
+    WorkspaceUpdateKind,
+)
 from spyder.plugins.completion.providers.languageserver.client import LSPClient
 from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 from spyder.plugins.completion.providers.languageserver.widgets import (
-    ClientStatus, LSPStatusWidget, ServerDisabledMessageBox)
+    ClientStatus,
+    LSPStatusWidget,
+    ServerDisabledMessageBox,
+)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 # Modules to be preloaded for Rope and Jedi
-PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
+PRELOAD_MDOULES = ", ".join(PREFERRED_MODULES)
 
 logger = logging.getLogger(__name__)
 
 
 class LanguageServerProvider(SpyderCompletionProvider):
     """Language Server Protocol manager."""
-    COMPLETION_PROVIDER_NAME = 'lsp'
+
+    COMPLETION_PROVIDER_NAME = "lsp"
     DEFAULT_ORDER = 1
     SLOW = True
     CONF_DEFAULTS = [
-        ('enable_hover_hints', True),
-        ('show_lsp_down_warning', True),
-        ('code_completion', True),
+        ("enable_hover_hints", True),
+        ("show_lsp_down_warning", True),
+        ("code_completion", True),
         # ('code_snippets', True),
-        ('jedi_definition', True),
-        ('jedi_definition/follow_imports', True),
-        ('jedi_signature_help', True),
-        ('preload_modules', PRELOAD_MDOULES),
-        ('pyflakes', True),
-        ('mccabe', False),
-        ('formatting', 'autopep8'),
-        ('format_on_save', False),
-        ('pycodestyle', False),
-        ('pycodestyle/filename', ''),
-        ('pycodestyle/exclude', ''),
-        ('pycodestyle/select', ''),
-        ('pycodestyle/ignore', ''),
-        ('pycodestyle/max_line_length', 79),
-        ('pydocstyle', False),
-        ('pydocstyle/convention', 'numpy'),
-        ('pydocstyle/select', ''),
-        ('pydocstyle/ignore', ''),
-        ('pydocstyle/match', '(?!test_).*\\.py'),
-        ('pydocstyle/match_dir', '[^\\.].*'),
-        ('advanced/enabled', False),
-        ('advanced/module', 'pylsp'),
-        ('advanced/host', '127.0.0.1'),
-        ('advanced/port', 2087),
-        ('advanced/external', False),
-        ('advanced/stdio', False)
+        ("jedi_definition", True),
+        ("jedi_definition/follow_imports", True),
+        ("jedi_signature_help", True),
+        ("preload_modules", PRELOAD_MDOULES),
+        ("pyflakes", True),
+        ("mccabe", False),
+        ("formatting", "autopep8"),
+        ("format_on_save", False),
+        ("pycodestyle", False),
+        ("pycodestyle/filename", ""),
+        ("pycodestyle/exclude", ""),
+        ("pycodestyle/select", ""),
+        ("pycodestyle/ignore", ""),
+        ("pycodestyle/max_line_length", 79),
+        ("pydocstyle", False),
+        ("pydocstyle/convention", "numpy"),
+        ("pydocstyle/select", ""),
+        ("pydocstyle/ignore", ""),
+        ("pydocstyle/match", "(?!test_).*\\.py"),
+        ("pydocstyle/match_dir", "[^\\.].*"),
+        ("advanced/enabled", False),
+        ("advanced/module", "pylsp"),
+        ("advanced/host", "127.0.0.1"),
+        ("advanced/port", 2087),
+        ("advanced/external", False),
+        ("advanced/stdio", False),
     ]
 
     # IMPORTANT NOTES:
@@ -90,9 +100,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
     CONF_VERSION = "0.2.0"
     CONF_TABS = TABS
 
-    STOPPED = 'stopped'
-    RUNNING = 'running'
-    LOCALHOST = ['127.0.0.1', 'localhost']
+    STOPPED = "stopped"
+    RUNNING = "running"
+    LOCALHOST = ["127.0.0.1", "localhost"]
 
     MAX_RESTART_ATTEMPTS = 5
     TIME_BETWEEN_RESTARTS = 10000  # ms
@@ -138,9 +148,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         self.current_project_path = None
 
         # Status bar widget
-        self.STATUS_BAR_CLASSES = [
-            self.create_statusbar
-        ]
+        self.STATUS_BAR_CLASSES = [self.create_statusbar]
 
     def __del__(self):
         """Stop all heartbeats"""
@@ -157,9 +165,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def restart_lsp(self, language: str, force=False):
         """Restart language server on failure."""
         client_config = {
-            'status': self.STOPPED,
-            'config': self.get_language_config(language),
-            'instance': None,
+            "status": self.STOPPED,
+            "config": self.get_language_config(language),
+            "instance": None,
         }
 
         if force:
@@ -168,10 +176,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
             self.restart_client(language, client_config)
 
         elif self.clients_restarting[language]:
-            attempt = (self.MAX_RESTART_ATTEMPTS
-                       - self.clients_restart_count[language] + 1)
-            logger.info("Automatic restart attempt {} for {}...".format(
-                attempt, language))
+            attempt = (
+                self.MAX_RESTART_ATTEMPTS - self.clients_restart_count[language] + 1
+            )
+            logger.info(
+                "Automatic restart attempt {} for {}...".format(attempt, language)
+            )
             self.update_status(language, ClientStatus.RESTARTING)
 
             self.clients_restart_count[language] -= 1
@@ -188,8 +198,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.clients_hearbeat[language].stop()
                     self.clients_hearbeat[language].setParent(None)
                     del self.clients_hearbeat[language]
-                    client['instance'].disconnect()
-                    client['instance'].stop()
+                    client["instance"].disconnect()
+                    client["instance"].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
                 self.report_lsp_down(language)
@@ -202,8 +212,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Check if a server restart was successful in order to stop
         further attempts.
         """
-        status = client['status']
-        instance = client['instance']
+        status = client["status"]
+        instance = client["instance"]
 
         # This check is only necessary for stdio servers
         check = True
@@ -224,12 +234,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         # This avoids an odd error when running our tests.
         if running_under_pytest():
-            if not getattr(self, 'clients', None):
+            if not getattr(self, "clients", None):
                 return
 
         client = self.clients[language]
-        status = client['status']
-        instance = client.get('instance', None)
+        status = client["status"]
+        instance = client.get("instance", None)
         if instance is not None:
             if instance.is_down() or status != self.RUNNING:
                 instance.sig_went_down.emit(language)
@@ -240,7 +250,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         self.clients_statusbar[language] = status
         self.sig_call_statusbar.emit(
-            LSPStatusWidget.ID, 'update_status', (language, status), {})
+            LSPStatusWidget.ID, "update_status", (language, status), {}
+        )
 
     def on_initialize(self, options, language):
         """
@@ -260,8 +271,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Handle automatic restart of client/server on failure.
         """
         InstallerPylspError(language)
-        if (not self.clients_restarting.get(language, False)
-                and not running_under_pytest()):
+        if (
+            not self.clients_restarting.get(language, False)
+            and not running_under_pytest()
+        ):
             try:
                 self.clients_hearbeat[language].stop()
                 self.clients_hearbeat[language].setParent(None)
@@ -283,11 +296,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     # ------------------ SpyderCompletionProvider methods ---------------------
     def get_name(self):
-        return _('Language Server Protocol (LSP)')
+        return _("Language Server Protocol (LSP)")
 
     def register_file(self, language, filename, codeeditor):
         if language in self.clients:
-            language_client = self.clients[language]['instance']
+            language_client = self.clients[language]["instance"]
             if language_client is None:
                 self.register_queue[language].append((filename, codeeditor))
             else:
@@ -298,7 +311,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Get the list of languages we need to start servers and create
         clients for.
         """
-        languages = ['python']
+        languages = ["python"]
         all_options = self.config
         for option in all_options:
             if option in [l.lower() for l in SUPPORTED_LANGUAGES]:
@@ -307,7 +320,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     def get_language_config(self, language):
         """Get language configuration options from our config system."""
-        if language == 'python':
+        if language == "python":
             return self.generate_python_config()
         else:
             return self.get_conf(language)
@@ -328,7 +341,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
             # and blocks the server.
             # Instead we use an empty directory inside our config one,
             # just like we did for Rope in Spyder 3.
-            path = osp.join(get_conf_path(), 'lsp_paths', 'root_path')
+            path = osp.join(get_conf_path(), "lsp_paths", "root_path")
             if not osp.exists(path):
                 os.makedirs(path)
 
@@ -349,15 +362,19 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         for language in self.clients:
             language_client = self.clients[language]
-            if language_client['status'] == self.RUNNING:
-                instance = language_client['instance']
-                if (instance.support_multiple_workspaces and
-                        instance.support_workspace_update):
-                    instance.send_workspace_folders_change({
-                        'folder': project_path,
-                        'instance': projects,
-                        'kind': update_kind
-                    })
+            if language_client["status"] == self.RUNNING:
+                instance = language_client["instance"]
+                if (
+                    instance.support_multiple_workspaces
+                    and instance.support_workspace_update
+                ):
+                    instance.send_workspace_folders_change(
+                        {
+                            "folder": project_path,
+                            "instance": projects,
+                            "kind": update_kind,
+                        }
+                    )
                 else:
                     logger.debug(
                         "{0}: LSP does not support multiple workspaces, "
@@ -368,7 +385,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.sig_stop_completions.emit(language)
                     self.stop_completion_services_for_language(language)
                     self.start_completion_services_for_language(language)
-
 
     @Slot(str)
     def report_server_error(self, error):
@@ -385,7 +401,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Report that connection couldn't be established with
         an external server.
         """
-        if os.name == 'nt':
+        if os.name == "nt":
             os_message = (
                 "<br><br>"
                 "To fix this, please verify that your firewall or antivirus "
@@ -401,14 +417,15 @@ class LanguageServerProvider(SpyderCompletionProvider):
             )
 
         warn_str = (
-            _("It appears there is no {language} language server listening "
-              "at address:"
-              "<br><br>"
-              "<tt>{host}:{port}</tt>"
-              "<br><br>"
-              "Therefore, completion and linting for {language} will not "
-              "work during this session.").format(
-                host=host, port=port, language=language.capitalize())
+            _(
+                "It appears there is no {language} language server listening "
+                "at address:"
+                "<br><br>"
+                "<tt>{host}:{port}</tt>"
+                "<br><br>"
+                "Therefore, completion and linting for {language} will not "
+                "work during this session."
+            ).format(host=host, port=port, language=language.capitalize())
             + os_message
         )
 
@@ -426,26 +443,26 @@ class LanguageServerProvider(SpyderCompletionProvider):
         """
         self.update_status(language, ClientStatus.DOWN)
 
-        if not self.get_conf('show_lsp_down_warning'):
+        if not self.get_conf("show_lsp_down_warning"):
             return
 
-        if os.name == 'nt':
+        if os.name == "nt":
             os_message = (
                 "To try to fix this, please verify that your firewall or "
                 "antivirus allows Python processes to open ports in your "
                 "system, or restart Spyder.<br><br>"
             )
         else:
-            os_message = (
-                "This problem could be fixed by restarting Spyder. "
-            )
+            os_message = "This problem could be fixed by restarting Spyder. "
 
         warn_str = (
-            _("Completion and linting in the editor for {language} files "
-              "will not work during the current session, or stopped working."
-              "<br><br>").format(language=language.capitalize())
-            + os_message +
-            _("Do you want to restart Spyder now?")
+            _(
+                "Completion and linting in the editor for {language} files "
+                "will not work during the current session, or stopped working."
+                "<br><br>"
+            ).format(language=language.capitalize())
+            + os_message
+            + _("Do you want to restart Spyder now?")
         )
 
         wrapper = ServerDisabledMessageBox.instance(warn_str, self.set_conf)
@@ -464,10 +481,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             # Don't start LSP services when testing unless we demand
             # them.
             if running_under_pytest():
-                if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+                if not os.environ.get("SPY_TEST_USE_INTROSPECTION"):
                     return started
 
-            started = language_client['status'] == self.RUNNING
+            started = language_client["status"] == self.RUNNING
 
             if language not in self.clients_hearbeat:
                 # completion_services for language is already running
@@ -475,43 +492,41 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 timer = QTimer(self)
                 self.clients_hearbeat[language] = timer
                 timer.setInterval(self.TIME_HEARTBEAT)
-                timer.timeout.connect(functools.partial(
-                    self.check_heartbeat, language))
+                timer.timeout.connect(functools.partial(self.check_heartbeat, language))
                 timer.start()
 
-            if language_client['status'] == self.STOPPED:
-                config = language_client['config']
+            if language_client["status"] == self.STOPPED:
+                config = language_client["config"]
 
                 # If we're trying to connect to an external server,
                 # verify that it's listening before creating a
                 # client for it.
-                if config['external']:
-                    host = config['host']
-                    port = config['port']
+                if config["external"]:
+                    host = config["host"]
+                    port = config["port"]
                     response = check_connection_port(host, port)
                     if not response:
                         if self.show_no_external_server_warning:
-                            self.report_no_external_server(
-                                host, port, language)
+                            self.report_no_external_server(host, port, language)
                         self.update_status(language, ClientStatus.DOWN)
                         return False
 
-                language_client['instance'] = LSPClient(
+                language_client["instance"] = LSPClient(
                     parent=self,
                     server_settings=config,
                     folder=self.get_root_path(language),
-                    language=language
+                    language=language,
                 )
 
-                self.register_client_instance(language_client['instance'])
+                self.register_client_instance(language_client["instance"])
 
                 # Register that a client was started.
                 logger.info("Starting LSP client for {}...".format(language))
-                language_client['instance'].start()
-                language_client['status'] = self.RUNNING
+                language_client["instance"].start()
+                language_client["status"] = self.RUNNING
                 started = True
                 for entry in queue:
-                    language_client['instance'].register_file(*entry)
+                    language_client["instance"].register_file(*entry)
                 self.register_queue[language] = []
 
         return started
@@ -521,8 +536,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         instance.sig_went_down.connect(self.handle_lsp_down)
         instance.sig_initialize.connect(self.on_initialize)
         instance.sig_server_error.connect(self.report_server_error)
-        instance.sig_initialize.connect(
-            self.sig_language_completions_available)
+        instance.sig_initialize.connect(self.sig_language_completions_available)
 
     def start(self):
         self.sig_provider_ready.emit(self.COMPLETION_PROVIDER_NAME)
@@ -559,43 +573,44 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     def file_opened_closed_or_updated(self, filename: str, language: str):
         self.sig_call_statusbar.emit(
-            LSPStatusWidget.ID, 'set_current_language', (language,), {})
+            LSPStatusWidget.ID, "set_current_language", (language,), {}
+        )
 
     @on_conf_change
     def update_configuration(self, config):
         self.config = config
         if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+            if not os.environ.get("SPY_TEST_USE_INTROSPECTION"):
                 return
         self.update_lsp_configuration()
 
-    @on_conf_change(section='outline_explorer',
-                    option=['group_cells', 'show_comments'])
+    @on_conf_change(section="outline_explorer", option=["group_cells", "show_comments"])
     def on_pyls_spyder_configuration_change(self, option, value):
         if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+            if not os.environ.get("SPY_TEST_USE_INTROSPECTION"):
                 return
         self.update_lsp_configuration()
 
-    @on_conf_change(section='completions', option='enable_code_snippets')
+    @on_conf_change(section="completions", option="enable_code_snippets")
     def on_code_snippets_enabled_disabled(self, value):
         if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+            if not os.environ.get("SPY_TEST_USE_INTROSPECTION"):
                 return
         self.update_lsp_configuration()
 
-    @on_conf_change(section='main', option='spyder_pythonpath')
+    @on_conf_change(section="main", option="spyder_pythonpath")
     def on_pythonpath_option_update(self, value):
         if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+            if not os.environ.get("SPY_TEST_USE_INTROSPECTION"):
                 return
         self.update_lsp_configuration(python_only=True)
 
-    @on_conf_change(section='main_interpreter',
-                    option=['default', 'custom_interpreter'])
+    @on_conf_change(
+        section="main_interpreter", option=["default", "custom_interpreter"]
+    )
     def on_main_interpreter_change(self, option, value):
         if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+            if not os.environ.get("SPY_TEST_USE_INTROSPECTION"):
                 return
         self.update_lsp_configuration()
 
@@ -608,40 +623,42 @@ class LanguageServerProvider(SpyderCompletionProvider):
             Perform an update only for the Python language server.
         """
         for language in self.get_languages():
-            if python_only and language != 'python':
+            if python_only and language != "python":
                 continue
 
-            client_config = {'status': self.STOPPED,
-                             'config': self.get_language_config(language),
-                             'instance': None}
+            client_config = {
+                "status": self.STOPPED,
+                "config": self.get_language_config(language),
+                "instance": None,
+            }
             if language not in self.clients:
                 self.clients[language] = client_config
                 self.register_queue[language] = []
             else:
-                current_lang_config = self.clients[language]['config']
-                new_lang_config = client_config['config']
-                restart_diff = ['cmd', 'args', 'host',
-                                'port', 'external', 'stdio']
-                restart = any([current_lang_config[x] != new_lang_config[x]
-                               for x in restart_diff])
+                current_lang_config = self.clients[language]["config"]
+                new_lang_config = client_config["config"]
+                restart_diff = ["cmd", "args", "host", "port", "external", "stdio"]
+                restart = any(
+                    [current_lang_config[x] != new_lang_config[x] for x in restart_diff]
+                )
                 if restart:
-                    logger.debug("Restart required for {} client!".format(
-                        language))
-                    if self.clients[language]['status'] == self.STOPPED:
+                    logger.debug("Restart required for {} client!".format(language))
+                    if self.clients[language]["status"] == self.STOPPED:
                         # If we move from an external non-working server to
                         # an internal one, we need to start a new client.
-                        if (current_lang_config['external'] and
-                                not new_lang_config['external']):
+                        if (
+                            current_lang_config["external"]
+                            and not new_lang_config["external"]
+                        ):
                             self.restart_client(language, client_config)
                         else:
                             self.clients[language] = client_config
-                    elif self.clients[language]['status'] == self.RUNNING:
+                    elif self.clients[language]["status"] == self.RUNNING:
                         self.restart_client(language, client_config)
                 else:
-                    if self.clients[language]['status'] == self.RUNNING:
-                        client = self.clients[language]['instance']
-                        client.send_configurations(
-                            new_lang_config['configurations'])
+                    if self.clients[language]["status"] == self.RUNNING:
+                        client = self.clients[language]["instance"]
+                        client.send_configurations(new_lang_config["configurations"])
 
     def restart_client(self, language, config):
         """Restart a client."""
@@ -658,10 +675,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def stop_completion_services_for_language(self, language):
         if language in self.clients:
             language_client = self.clients[language]
-            if language_client['status'] == self.RUNNING:
+            if language_client["status"] == self.RUNNING:
                 logger.info("Stopping LSP client for {}...".format(language))
                 try:
-                    language_client['instance'].disconnect()
+                    language_client["instance"].disconnect()
                 except TypeError:
                     pass
                 try:
@@ -671,39 +688,40 @@ class LanguageServerProvider(SpyderCompletionProvider):
                         del self.clients_hearbeat[language]
                 except (TypeError, KeyError, RuntimeError):
                     pass
-                language_client['instance'].stop()
-            language_client['status'] = self.STOPPED
+                language_client["instance"].stop()
+            language_client["status"] = self.STOPPED
             self.sig_stop_completions.emit(language)
 
     def receive_response(self, response_type, response, language, req_id):
         if req_id in self.requests:
             self.requests.discard(req_id)
             self.sig_response_ready.emit(
-                self.COMPLETION_PROVIDER_NAME, req_id, response)
+                self.COMPLETION_PROVIDER_NAME, req_id, response
+            )
 
     def send_request(self, language, request, params, req_id):
         if language in self.clients:
             language_client = self.clients[language]
-            if language_client['status'] == self.RUNNING:
+            if language_client["status"] == self.RUNNING:
                 self.requests.add(req_id)
-                client = self.clients[language]['instance']
-                params['response_callback'] = functools.partial(
-                    self.receive_response, language=language, req_id=req_id)
+                client = self.clients[language]["instance"]
+                params["response_callback"] = functools.partial(
+                    self.receive_response, language=language, req_id=req_id
+                )
                 client.perform_request(request, params)
                 return
-        self.sig_response_ready.emit(self.COMPLETION_PROVIDER_NAME,
-                                     req_id, {})
+        self.sig_response_ready.emit(self.COMPLETION_PROVIDER_NAME, req_id, {})
 
     def send_notification(self, language, request, params):
         if language in self.clients:
             language_client = self.clients[language]
-            if language_client['status'] == self.RUNNING:
-                client = self.clients[language]['instance']
+            if language_client["status"] == self.RUNNING:
+                client = self.clients[language]["instance"]
                 client.perform_request(request, params)
 
     def broadcast_notification(self, request, params):
         """Send notification/request to all available LSP servers."""
-        language = params.pop('language', None)
+        language = params.pop("language", None)
         if language:
             self.send_notification(language, request, params)
         else:
@@ -718,157 +736,143 @@ class LanguageServerProvider(SpyderCompletionProvider):
         python_config = PYTHON_CONFIG.copy()
 
         # Server options
-        cmd = self.get_conf('advanced/module', 'pylsp')
-        host = self.get_conf('advanced/host', '127.0.0.1')
-        port = self.get_conf('advanced/port', 2087)
+        cmd = self.get_conf("advanced/module", "pylsp")
+        host = self.get_conf("advanced/host", "127.0.0.1")
+        port = self.get_conf("advanced/port", 2087)
 
         # Pycodestyle
-        cs_exclude = self.get_conf('pycodestyle/exclude', '').split(',')
-        cs_filename = self.get_conf('pycodestyle/filename', '').split(',')
-        cs_select = self.get_conf('pycodestyle/select', '').split(',')
-        cs_ignore = self.get_conf('pycodestyle/ignore', '').split(',')
-        cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
+        cs_exclude = self.get_conf("pycodestyle/exclude", "").split(",")
+        cs_filename = self.get_conf("pycodestyle/filename", "").split(",")
+        cs_select = self.get_conf("pycodestyle/select", "").split(",")
+        cs_ignore = self.get_conf("pycodestyle/ignore", "").split(",")
+        cs_max_line_length = self.get_conf("pycodestyle/max_line_length", 79)
 
         pycodestyle = {
-            'enabled': self.get_conf('pycodestyle'),
-            'exclude': [exclude.strip() for exclude in cs_exclude if exclude],
-            'filename': [filename.strip()
-                         for filename in cs_filename if filename],
-            'select': [select.strip() for select in cs_select if select],
-            'ignore': [ignore.strip() for ignore in cs_ignore if ignore],
-            'hangClosing': False,
-            'maxLineLength': cs_max_line_length
+            "enabled": self.get_conf("pycodestyle"),
+            "exclude": [exclude.strip() for exclude in cs_exclude if exclude],
+            "filename": [filename.strip() for filename in cs_filename if filename],
+            "select": [select.strip() for select in cs_select if select],
+            "ignore": [ignore.strip() for ignore in cs_ignore if ignore],
+            "hangClosing": False,
+            "maxLineLength": cs_max_line_length,
         }
 
         # Linting - Pyflakes
-        pyflakes = {
-            'enabled': self.get_conf('pyflakes')
-        }
+        pyflakes = {"enabled": self.get_conf("pyflakes")}
 
         # Pydocstyle
-        convention = self.get_conf('pydocstyle/convention')
+        convention = self.get_conf("pydocstyle/convention")
 
-        if convention == 'Custom':
-            ds_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
-            ds_select = self.get_conf('pydocstyle/select', '').split(',')
+        if convention == "Custom":
+            ds_ignore = self.get_conf("pydocstyle/ignore", "").split(",")
+            ds_select = self.get_conf("pydocstyle/select", "").split(",")
             ds_add_ignore = []
             ds_add_select = []
         else:
             ds_ignore = []
             ds_select = []
-            ds_add_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
-            ds_add_select = self.get_conf('pydocstyle/select', '').split(',')
+            ds_add_ignore = self.get_conf("pydocstyle/ignore", "").split(",")
+            ds_add_select = self.get_conf("pydocstyle/select", "").split(",")
 
         pydocstyle = {
-            'enabled': self.get_conf('pydocstyle'),
-            'convention': convention,
-            'addIgnore': [ignore.strip()
-                          for ignore in ds_add_ignore if ignore],
-            'addSelect': [select.strip()
-                          for select in ds_add_select if select],
-            'ignore': [ignore.strip() for ignore in ds_ignore if ignore],
-            'select': [select.strip() for select in ds_select if select],
-            'match': self.get_conf('pydocstyle/match'),
-            'matchDir': self.get_conf('pydocstyle/match_dir')
+            "enabled": self.get_conf("pydocstyle"),
+            "convention": convention,
+            "addIgnore": [ignore.strip() for ignore in ds_add_ignore if ignore],
+            "addSelect": [select.strip() for select in ds_add_select if select],
+            "ignore": [ignore.strip() for ignore in ds_ignore if ignore],
+            "select": [select.strip() for select in ds_select if select],
+            "match": self.get_conf("pydocstyle/match"),
+            "matchDir": self.get_conf("pydocstyle/match_dir"),
         }
 
         # Autoformatting configuration
-        formatter = self.get_conf('formatting')
+        formatter = self.get_conf("formatting")
 
         # This is necessary because PyLSP third-party plugins can only be
         # disabled with their module name.
-        formatter = 'pylsp_black' if formatter == 'black' else formatter
+        formatter = "pylsp_black" if formatter == "black" else formatter
 
         # Enabling/disabling formatters
-        formatters = ['autopep8', 'yapf', 'pylsp_black']
-        formatter_options = {
-            fmt: {
-                'enabled': fmt == formatter
-            }
-            for fmt in formatters
-        }
+        formatters = ["autopep8", "yapf", "pylsp_black"]
+        formatter_options = {fmt: {"enabled": fmt == formatter} for fmt in formatters}
 
         # Setting max line length for formatters
         # The autopep8 plugin shares the same maxLineLength value with the
         # pycodestyle one. That's why it's not necessary to set it here.
         # NOTE: We need to use `black` and not `pylsp_black` because that's
         # the options' namespace of that plugin.
-        formatter_options['black'] = {'line_length': cs_max_line_length}
+        formatter_options["black"] = {"line_length": cs_max_line_length}
 
         # PyLS-Spyder configuration
-        group_cells = self.get_conf(
-            'group_cells',
-            section='outline_explorer'
-        )
+        group_cells = self.get_conf("group_cells", section="outline_explorer")
         display_block_comments = self.get_conf(
-            'show_comments',
-            section='outline_explorer'
+            "show_comments", section="outline_explorer"
         )
         pyls_spyder_options = {
-            'enable_block_comments': display_block_comments,
-            'group_cells': group_cells
+            "enable_block_comments": display_block_comments,
+            "group_cells": group_cells,
         }
 
         # Jedi configuration
         env_vars = os.environ.copy()  # Ensure env is indepependent of PyLSP's
-        env_vars.pop('PYTHONPATH', None)
-        if self.get_conf('default', section='main_interpreter'):
+        env_vars.pop("PYTHONPATH", None)
+        if self.get_conf("default", section="main_interpreter"):
             # If not explicitly set, jedi uses PyLSP's sys.path instead of
             # sys.executable's sys.path. This may be a bug in jedi.
             environment = sys.executable
         else:
-            environment = self.get_conf('executable',
-                                        section='main_interpreter')
+            environment = self.get_conf("executable", section="main_interpreter")
             # External interpreter cannot have PYTHONHOME
             if running_in_mac_app():
-                env_vars.pop('PYTHONHOME', None)
+                env_vars.pop("PYTHONHOME", None)
 
         jedi = {
-            'environment': environment,
-            'extra_paths': self.get_conf('spyder_pythonpath',
-                                         section='main', default=[]),
-            'env_vars': env_vars,
+            "environment": environment,
+            "extra_paths": self.get_conf(
+                "spyder_pythonpath", section="main", default=[]
+            ),
+            "env_vars": env_vars,
         }
         jedi_completion = {
-            'enabled': self.get_conf('code_completion'),
-            'include_params': self.get_conf('enable_code_snippets',
-                                            section='completions')
+            "enabled": self.get_conf("code_completion"),
+            "include_params": self.get_conf(
+                "enable_code_snippets", section="completions"
+            ),
         }
-        jedi_signature_help = {
-            'enabled': self.get_conf('jedi_signature_help')
-        }
+        jedi_signature_help = {"enabled": self.get_conf("jedi_signature_help")}
         jedi_definition = {
-            'enabled': self.get_conf('jedi_definition'),
-            'follow_imports': self.get_conf('jedi_definition/follow_imports')
+            "enabled": self.get_conf("jedi_definition"),
+            "follow_imports": self.get_conf("jedi_definition/follow_imports"),
         }
 
         # Advanced
-        external_server = self.get_conf('advanced/external')
-        stdio = self.get_conf('advanced/stdio')
+        external_server = self.get_conf("advanced/external")
+        stdio = self.get_conf("advanced/stdio")
 
         # Setup options in json
-        python_config['cmd'] = cmd
+        python_config["cmd"] = cmd
         if host in self.LOCALHOST and not stdio:
-            python_config['args'] = ('--host {host} --port {port} --tcp '
-                                     '--check-parent-process')
+            python_config["args"] = (
+                "--host {host} --port {port} --tcp " "--check-parent-process"
+            )
         else:
-            python_config['args'] = '--check-parent-process'
-        python_config['external'] = external_server
-        python_config['stdio'] = stdio
-        python_config['host'] = host
-        python_config['port'] = port
+            python_config["args"] = "--check-parent-process"
+        python_config["external"] = external_server
+        python_config["stdio"] = stdio
+        python_config["host"] = host
+        python_config["port"] = port
 
         # Updating options
-        plugins = python_config['configurations']['pylsp']['plugins']
-        plugins['pycodestyle'].update(pycodestyle)
-        plugins['pyflakes'].update(pyflakes)
-        plugins['pydocstyle'].update(pydocstyle)
-        plugins['pyls_spyder'].update(pyls_spyder_options)
-        plugins['jedi'].update(jedi)
-        plugins['jedi_completion'].update(jedi_completion)
-        plugins['jedi_signature_help'].update(jedi_signature_help)
-        plugins['jedi_definition'].update(jedi_definition)
-        plugins['preload']['modules'] = self.get_conf('preload_modules')
+        plugins = python_config["configurations"]["pylsp"]["plugins"]
+        plugins["pycodestyle"].update(pycodestyle)
+        plugins["pyflakes"].update(pyflakes)
+        plugins["pydocstyle"].update(pydocstyle)
+        plugins["pyls_spyder"].update(pyls_spyder_options)
+        plugins["jedi"].update(jedi)
+        plugins["jedi_completion"].update(jedi_completion)
+        plugins["jedi_signature_help"].update(jedi_signature_help)
+        plugins["jedi_definition"].update(jedi_definition)
+        plugins["preload"]["modules"] = self.get_conf("preload_modules")
         plugins.update(formatter_options)
 
         return python_config

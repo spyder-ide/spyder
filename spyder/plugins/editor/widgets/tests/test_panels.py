@@ -3,9 +3,9 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
-'''
+"""
 Tests for editor panels.
-'''
+"""
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt
@@ -53,11 +53,16 @@ class EmojiPanel(Panel):
         painter: QPainter
             QPainter instance
         """
-        painter.setPen(QColor('white'))
+        painter.setPen(QColor("white"))
         font_height = self.editor.fontMetrics().height()
-        painter.drawText(0, top, self.sizeHint().width(),
-                         font_height, int(Qt.AlignRight | Qt.AlignBottom),
-                         '👀')
+        painter.drawText(
+            0,
+            top,
+            self.sizeHint().width(),
+            font_height,
+            int(Qt.AlignRight | Qt.AlignBottom),
+            "👀",
+        )
 
     def paintEvent(self, event):
         """Override Qt method.
@@ -75,20 +80,23 @@ class EmojiPanel(Panel):
 def construct_editor(*args, **kwargs):
     app = qapplication()
     editor = CodeEditor(parent=None)
-    kwargs['language'] = 'Python'
+    kwargs["language"] = "Python"
     editor.setup_editor(*args, **kwargs)
     return editor
 
 
 # --- Tests
 # -----------------------------------------------------------------------------
-@pytest.mark.parametrize('state', [True, False])
-@pytest.mark.parametrize('setting, panelclass', [
-    ('linenumbers', LineNumberArea),
-    ('edge_line', EdgeLine),
-    ('scrollflagarea', ScrollFlagArea),
-    ('indent_guides', IndentationGuide),
-])
+@pytest.mark.parametrize("state", [True, False])
+@pytest.mark.parametrize(
+    "setting, panelclass",
+    [
+        ("linenumbers", LineNumberArea),
+        ("edge_line", EdgeLine),
+        ("scrollflagarea", ScrollFlagArea),
+        ("indent_guides", IndentationGuide),
+    ],
+)
 def test_activate_panels(setting, panelclass, state):
     """Test activate/deactivate of editors Panels.
 
@@ -106,9 +114,16 @@ def test_activate_panels(setting, panelclass, state):
     assert found
 
 
-@pytest.mark.parametrize('position', [
-    Panel.Position.LEFT, Panel.Position.RIGHT, Panel.Position.TOP,
-    Panel.Position.BOTTOM, Panel.Position.FLOATING])
+@pytest.mark.parametrize(
+    "position",
+    [
+        Panel.Position.LEFT,
+        Panel.Position.RIGHT,
+        Panel.Position.TOP,
+        Panel.Position.BOTTOM,
+        Panel.Position.FLOATING,
+    ],
+)
 def test_register_panel(setup_editor, position):
     """Test registering an example external panel in the editor."""
     editor_stack, editor = setup_editor
@@ -124,7 +139,7 @@ def test_register_panel(setup_editor, position):
     assert (EmojiPanel, (), {}, position) in editor_stack.external_panels
 
     # Verify that the panel is shown in new files
-    finfo = editor_stack.new('foo.py', 'utf-8', 'hola = 3\n')
+    finfo = editor_stack.new("foo.py", "utf-8", "hola = 3\n")
     editor2 = finfo.editor
 
     new_panel = editor2.panels.get(EmojiPanel)
@@ -136,5 +151,5 @@ def test_register_panel(setup_editor, position):
     editor2.panels.remove(EmojiPanel)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main()

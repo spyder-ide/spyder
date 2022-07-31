@@ -12,8 +12,7 @@ import pytest
 from qtpy.QtCore import QObject, Signal
 
 # Local imports
-from spyder.plugins.completion.providers.snippets.provider import (
-    SnippetsProvider)
+from spyder.plugins.completion.providers.snippets.provider import SnippetsProvider
 from spyder.plugins.completion.tests.conftest import qtbot_module
 
 
@@ -21,13 +20,13 @@ class CompletionManagerMock(QObject):
     sig_recv_snippets = Signal(list)
 
     def handle_response(self, client, req_id, response):
-        snippets = list(response['params'])
+        snippets = list(response["params"])
         self.sig_recv_snippets.emit(list(snippets))
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def snippets_completions(qtbot_module, request):
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+    os.environ["SPY_TEST_USE_INTROSPECTION"] = "True"
 
     snippets = SnippetsProvider(None, dict(SnippetsProvider.CONF_DEFAULTS))
     completions = CompletionManagerMock(None)
@@ -36,7 +35,7 @@ def snippets_completions(qtbot_module, request):
         snippets.start()
 
     def teardown():
-        os.environ.pop('SPY_TEST_USE_INTROSPECTION')
+        os.environ.pop("SPY_TEST_USE_INTROSPECTION")
         snippets.shutdown()
 
     request.addfinalizer(teardown)

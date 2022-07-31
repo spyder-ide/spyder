@@ -23,23 +23,25 @@ logger = logging.getLogger(__name__)
 
 
 class FallbackProvider(SpyderCompletionProvider):
-    COMPLETION_PROVIDER_NAME = 'fallback'
+    COMPLETION_PROVIDER_NAME = "fallback"
     DEFAULT_ORDER = 2
 
     def __init__(self, parent, config):
         SpyderCompletionProvider.__init__(self, parent, config)
         self.fallback_actor = FallbackActor(self)
         self.fallback_actor.sig_fallback_ready.connect(
-            lambda: self.sig_provider_ready.emit(
-                self.COMPLETION_PROVIDER_NAME))
+            lambda: self.sig_provider_ready.emit(self.COMPLETION_PROVIDER_NAME)
+        )
         self.fallback_actor.sig_set_tokens.connect(
             lambda _id, resp: self.sig_response_ready.emit(
-                self.COMPLETION_PROVIDER_NAME, _id, resp))
+                self.COMPLETION_PROVIDER_NAME, _id, resp
+            )
+        )
         self.started = False
         self.requests = {}
 
     def get_name(self):
-        return _('Fallback')
+        return _("Fallback")
 
     def start_completion_services_for_language(self, language):
         return self.started
@@ -55,13 +57,8 @@ class FallbackProvider(SpyderCompletionProvider):
             self.started = False
 
     def send_request(self, language, req_type, req, req_id=None):
-        request = {
-            'type': req_type,
-            'file': req['file'],
-            'id': req_id,
-            'msg': req
-        }
-        req['language'] = language
+        request = {"type": req_type, "file": req["file"], "id": req_id, "msg": req}
+        req["language"] = language
         self.fallback_actor.sig_mailbox.emit(request)
 
     def can_close(self):

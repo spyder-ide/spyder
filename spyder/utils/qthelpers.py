@@ -18,13 +18,35 @@ import types
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
-                         QTranslator, QUrl, Signal, Slot)
+from qtpy.QtCore import (
+    QEvent,
+    QLibraryInfo,
+    QLocale,
+    QObject,
+    Qt,
+    QTimer,
+    QTranslator,
+    QUrl,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QDesktopServices, QKeyEvent, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
-                            QLabel, QLineEdit, QMenu, QPlainTextEdit,
-                            QProxyStyle, QPushButton, QStyle,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QAction,
+    QApplication,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMenu,
+    QPlainTextEdit,
+    QProxyStyle,
+    QPushButton,
+    QStyle,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.config.base import running_in_mac_app
@@ -111,21 +133,23 @@ def qapplication(translate=True, test_time=3):
     if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
-        app = SpyderApplication(['Spyder'])
+        app = SpyderApplication(["Spyder"])
 
         # Set application name for KDE. See spyder-ide/spyder#2207.
-        app.setApplicationName('Spyder')
+        app.setApplicationName("Spyder")
 
-    if (sys.platform == "darwin"
-            and not running_in_mac_app()
-            and CONF.get('main', 'mac_open_file', False)):
+    if (
+        sys.platform == "darwin"
+        and not running_in_mac_app()
+        and CONF.get("main", "mac_open_file", False)
+    ):
         # Register app if setting is set
         register_app_launchservices()
 
     if translate:
         install_translator(app)
 
-    test_ci = os.environ.get('TEST_CI_WIDGETS', None)
+    test_ci = os.environ.get("TEST_CI_WIDGETS", None)
     if test_ci is not None:
         timer_shutdown = QTimer(app)
         timer_shutdown.timeout.connect(app.quit)
@@ -135,15 +159,15 @@ def qapplication(translate=True, test_time=3):
 
 def file_uri(fname):
     """Select the right file uri scheme according to the operating system"""
-    if os.name == 'nt':
+    if os.name == "nt":
         # Local file
-        if re.search(r'^[a-zA-Z]:', fname):
-            return 'file:///' + fname
+        if re.search(r"^[a-zA-Z]:", fname):
+            return "file:///" + fname
         # UNC based path
         else:
-            return 'file://' + fname
+            return "file://" + fname
     else:
-        return 'file://' + fname
+        return "file://" + fname
 
 
 QT_TRANSLATOR = None
@@ -155,8 +179,9 @@ def install_translator(qapp):
     if QT_TRANSLATOR is None:
         qt_translator = QTranslator()
         if qt_translator.load(
-                "qt_" + QLocale.system().name(),
-                QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+            "qt_" + QLocale.system().name(),
+            QLibraryInfo.location(QLibraryInfo.TranslationsPath),
+        ):
             QT_TRANSLATOR = qt_translator  # Keep reference alive
     if QT_TRANSLATOR is not None:
         qapp.installTranslator(QT_TRANSLATOR)
@@ -170,7 +195,7 @@ def keybinding(attr):
 
 def _process_mime_path(path, extlist):
     if path.startswith(r"file://"):
-        if os.name == 'nt':
+        if os.name == "nt":
             # On Windows platforms, a local path reads: file:///c:/...
             # and a UNC based path reads like: file://server/share
             if path.startswith(r"file:///"):  # this is a local path
@@ -179,7 +204,7 @@ def _process_mime_path(path, extlist):
                 path = path[5:]
         else:
             path = path[7:]
-    path = path.replace('\\', os.sep)  # Transforming backslashes
+    path = path.replace("\\", os.sep)  # Transforming backslashes
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path
@@ -193,8 +218,7 @@ def mimedata2url(source, extlist=None):
     pathlist = []
     if source.hasUrls():
         for url in source.urls():
-            path = _process_mime_path(
-                unquote(to_text_string(url.toString())), extlist)
+            path = _process_mime_path(unquote(to_text_string(url.toString())), extlist)
             if path is not None:
                 pathlist.append(path)
     elif source.hasText():
@@ -208,8 +232,14 @@ def mimedata2url(source, extlist=None):
 
 def keyevent2tuple(event):
     """Convert QKeyEvent instance into a tuple"""
-    return (event.type(), event.key(), event.modifiers(), event.text(),
-            event.isAutoRepeat(), event.count())
+    return (
+        event.type(),
+        event.key(),
+        event.modifiers(),
+        event.text(),
+        event.isAutoRepeat(),
+        event.count(),
+    )
 
 
 def tuple2keyevent(past_event):
@@ -230,11 +260,23 @@ def restore_keyevent(event):
     return event, text, key, ctrl, shift
 
 
-def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
-                      toggled=None, triggered=None,
-                      autoraise=True, text_beside_icon=False,
-                      section=None, option=None, id_=None, plugin=None,
-                      context_name=None, register_toolbutton=False):
+def create_toolbutton(
+    parent,
+    text=None,
+    shortcut=None,
+    icon=None,
+    tip=None,
+    toggled=None,
+    triggered=None,
+    autoraise=True,
+    text_beside_icon=False,
+    section=None,
+    option=None,
+    id_=None,
+    plugin=None,
+    context_name=None,
+    register_toolbutton=False,
+):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
@@ -258,8 +300,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         button.ID = id_
 
     if register_toolbutton:
-        TOOLBUTTON_REGISTRY.register_reference(
-            button, id_, plugin, context_name)
+        TOOLBUTTON_REGISTRY.register_reference(button, id_, plugin, context_name)
     return button
 
 
@@ -287,8 +328,9 @@ def create_waitspinner(size=32, n=11, parent=None):
     return spinner
 
 
-def action2button(action, autoraise=True, text_beside_icon=False, parent=None,
-                  icon=None):
+def action2button(
+    action, autoraise=True, text_beside_icon=False, parent=None, icon=None
+):
     """Create a QToolButton directly from a QAction object"""
     if parent is None:
         parent = action.parent()
@@ -310,11 +352,25 @@ def toggle_actions(actions, enable):
                 action.setEnabled(enable)
 
 
-def create_action(parent, text, shortcut=None, icon=None, tip=None,
-                  toggled=None, triggered=None, data=None, menurole=None,
-                  context=Qt.WindowShortcut, option=None, section=None,
-                  id_=None, plugin=None, context_name=None,
-                  register_action=False, overwrite=False):
+def create_action(
+    parent,
+    text,
+    shortcut=None,
+    icon=None,
+    tip=None,
+    toggled=None,
+    triggered=None,
+    data=None,
+    menurole=None,
+    context=Qt.WindowShortcut,
+    option=None,
+    section=None,
+    id_=None,
+    plugin=None,
+    context_name=None,
+    register_action=False,
+    overwrite=False,
+):
     """Create a QAction"""
     action = SpyderAction(text, parent, action_id=id_)
     if triggered is not None:
@@ -335,7 +391,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
     # Workround for Mac because setting context=Qt.WidgetShortcut
     # there doesn't have any effect
-    if sys.platform == 'darwin':
+    if sys.platform == "darwin":
         action._shown_shortcut = None
         if context == Qt.WidgetShortcut:
             if shortcut is not None:
@@ -343,7 +399,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
             else:
                 # This is going to be filled by
                 # main.register_shortcut
-                action._shown_shortcut = 'missing'
+                action._shown_shortcut = "missing"
         else:
             if shortcut is not None:
                 action.setShortcut(shortcut)
@@ -354,8 +410,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setShortcutContext(context)
 
     if register_action:
-        ACTION_REGISTRY.register_reference(
-            action, id_, plugin, context_name, overwrite)
+        ACTION_REGISTRY.register_reference(action, id_, plugin, context_name, overwrite)
     return action
 
 
@@ -375,10 +430,12 @@ def setup_toggled_action(action, toggled, section, option):
 def wrap_toggled(toggled, section, option):
     """Wrap a toggle function to set a value on a configuration option."""
     if section is not None and option is not None:
+
         @functools.wraps(toggled)
         def wrapped_toggled(value):
             CONF.set(section, option, value, recursive_notification=True)
             toggled(value)
+
         return wrapped_toggled
     return toggled
 
@@ -390,13 +447,14 @@ def add_configuration_update(action):
         self.blockSignals(True)
         self.setChecked(value)
         self.blockSignals(False)
+
     method = types.MethodType(on_configuration_change, action)
-    setattr(action, 'on_configuration_change', method)
+    setattr(action, "on_configuration_change", method)
 
 
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
-    if not hasattr(action, '_tooltip_backup'):
+    if not hasattr(action, "_tooltip_backup"):
         # We store the original tooltip of the action without its associated
         # shortcut so that we can update the tooltip properly if shortcuts
         # are changed by the user over the course of the current session.
@@ -413,7 +471,7 @@ def add_shortcut_to_tooltip(action, context, name):
         keyseq = QKeySequence(shortcut)
         # See: spyder-ide/spyder#12168
         string = keyseq.toString(QKeySequence.NativeText)
-        action.setToolTip(u'{0} ({1})'.format(action._tooltip_backup, string))
+        action.setToolTip("{0} ({1})".format(action._tooltip_backup, string))
 
 
 def add_actions(target, actions, insert_before=None):
@@ -466,8 +524,9 @@ def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     def open_url():
         return start_file(url)
 
-    return create_action( parent, title, shortcut=shortcut, icon=icon,
-                          triggered=open_url)
+    return create_action(
+        parent, title, shortcut=shortcut, icon=icon, triggered=open_url
+    )
 
 
 def create_module_bookmark_actions(parent, bookmarks):
@@ -480,7 +539,7 @@ def create_module_bookmark_actions(parent, bookmarks):
         # Create actions for scientific distros only if Spyder is installed
         # under them
         create_act = True
-        if key == 'winpython':
+        if key == "winpython":
             if not programs.is_module_installed(key):
                 create_act = False
         if create_act:
@@ -493,12 +552,13 @@ def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
     if is_text_string(icon):
         icon = ima.get_icon(icon)
-    if os.name == 'nt' and nt_name is not None:
+    if os.name == "nt" and nt_name is not None:
         name = nt_name
     path = programs.find_program(name)
     if path is not None:
-        return create_action(parent, text, icon=icon,
-                             triggered=lambda: programs.run_program(name))
+        return create_action(
+            parent, text, icon=icon, triggered=lambda: programs.run_program(name)
+        )
 
 
 def create_python_script_action(parent, text, icon, package, module, args=[]):
@@ -506,9 +566,12 @@ def create_python_script_action(parent, text, icon, package, module, args=[]):
     if is_text_string(icon):
         icon = ima.get_icon(icon)
     if programs.python_script_exists(package, module):
-        return create_action(parent, text, icon=icon,
-                             triggered=lambda:
-                             programs.run_python_script(package, module, args))
+        return create_action(
+            parent,
+            text,
+            icon=icon,
+            triggered=lambda: programs.run_python_script(package, module, args),
+        )
 
 
 class DialogManager(QObject):
@@ -525,18 +588,17 @@ class DialogManager(QObject):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
         for dlg in list(self.dialogs.values()):
-            if to_text_string(dlg.windowTitle()) \
-               == to_text_string(dialog.windowTitle()):
+            if to_text_string(dlg.windowTitle()) == to_text_string(
+                dialog.windowTitle()
+            ):
                 dlg.show()
                 dlg.raise_()
                 break
         else:
             dialog.show()
             self.dialogs[id(dialog)] = dialog
-            dialog.accepted.connect(
-                lambda eid=id(dialog): self.dialog_finished(eid))
-            dialog.rejected.connect(
-                lambda eid=id(dialog): self.dialog_finished(eid))
+            dialog.accepted.connect(lambda eid=id(dialog): self.dialog_finished(eid))
+            dialog.rejected.connect(lambda eid=id(dialog): self.dialog_finished(eid))
 
     def dialog_finished(self, dialog_id):
         """Manage non-modal dialog boxes"""
@@ -551,9 +613,9 @@ class DialogManager(QObject):
 def get_filetype_icon(fname):
     """Return file type icon"""
     ext = osp.splitext(fname)[1]
-    if ext.startswith('.'):
+    if ext.startswith("."):
         ext = ext[1:]
-    return ima.get_icon("%s.png" % ext, ima.icon('FileIcon'))
+    return ima.get_icon("%s.png" % ext, ima.icon("FileIcon"))
 
 
 class SpyderAction(QAction):
@@ -584,7 +646,7 @@ class ShowStdIcons(QWidget):
         row_nb = 14
         cindex = 0
         for child in dir(QStyle):
-            if child.startswith('SP_'):
+            if child.startswith("SP_"):
                 if cindex == 0:
                     col_layout = QVBoxLayout()
                 icon_layout = QHBoxLayout()
@@ -592,14 +654,14 @@ class ShowStdIcons(QWidget):
                 label = QLabel()
                 label.setPixmap(icon.pixmap(32, 32))
                 icon_layout.addWidget(label)
-                icon_layout.addWidget(QLineEdit(child.replace('SP_', '')))
+                icon_layout.addWidget(QLineEdit(child.replace("SP_", "")))
                 col_layout.addLayout(icon_layout)
                 cindex = (cindex + 1) % row_nb
                 if cindex == 0:
                     layout.addLayout(col_layout)
         self.setLayout(layout)
-        self.setWindowTitle('Standard Platform Icons')
-        self.setWindowIcon(ima.get_std_icon('TitleBarMenuButton'))
+        self.setWindowTitle("Standard Platform Icons")
+        self.setWindowIcon(ima.get_std_icon("TitleBarMenuButton"))
 
 
 def show_std_icons():
@@ -631,19 +693,19 @@ def calc_tools_spacing(tools_layout):
     caused by a still not understood element of the layout and style metrics.
     """
     metrics = {  # (tabbar_height, offset)
-        'nt.fusion': (32, 0),
-        'nt.windowsvista': (21, 3),
-        'nt.windowsxp': (24, 0),
-        'nt.windows': (21, 3),
-        'posix.breeze': (28, -1),
-        'posix.oxygen': (38, -2),
-        'posix.qtcurve': (27, 0),
-        'posix.windows': (26, 0),
-        'posix.fusion': (32, 0),
+        "nt.fusion": (32, 0),
+        "nt.windowsvista": (21, 3),
+        "nt.windowsxp": (24, 0),
+        "nt.windows": (21, 3),
+        "posix.breeze": (28, -1),
+        "posix.oxygen": (38, -2),
+        "posix.qtcurve": (27, 0),
+        "posix.windows": (26, 0),
+        "posix.fusion": (32, 0),
     }
 
-    style_name = qapplication().style().property('name')
-    key = '%s.%s' % (os.name, style_name)
+    style_name = qapplication().style().property("name")
+    key = "%s.%s" % (os.name, style_name)
 
     if key in metrics:
         tabbar_height, offset = metrics[key]
@@ -711,7 +773,7 @@ class QInputDialogMultiline(QDialog):
     Based on: https://stackoverflow.com/a/58823967
     """
 
-    def __init__(self, parent, title, label, text='', **kwargs):
+    def __init__(self, parent, title, label, text="", **kwargs):
         super(QInputDialogMultiline, self).__init__(parent, **kwargs)
         if title is not None:
             self.setWindowTitle(title)
@@ -723,9 +785,9 @@ class QInputDialogMultiline(QDialog):
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
-        ok_button = QPushButton('OK')
+        ok_button = QPushButton("OK")
         button_layout.addWidget(ok_button)
-        cancel_button = QPushButton('Cancel')
+        cancel_button = QPushButton("Cancel")
         button_layout.addWidget(cancel_button)
         self.layout().addLayout(button_layout)
 
@@ -739,6 +801,7 @@ class QInputDialogMultiline(QDialog):
 # =============================================================================
 class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
+
     sig_open_external_file = Signal(str)
 
     def __init__(self, *args):
@@ -771,8 +834,8 @@ def restore_launchservices():
 
 
 def register_app_launchservices(
-        uniform_type_identifier="public.python-script",
-        role='editor'):
+    uniform_type_identifier="public.python-script", role="editor"
+):
     """
     Register app to the Apple launch services so it can open Python files
     """
@@ -787,8 +850,7 @@ def register_app_launchservices(
 
     if not app._never_shown:
         bundle_identifier = als.get_bundle_identifier()
-        als.set_UTI_handler(
-            uniform_type_identifier, role, bundle_identifier)
+        als.set_UTI_handler(uniform_type_identifier, role, bundle_identifier)
         return
 
     # Wait to be visible to set ourselves as the UTI handler
@@ -796,8 +858,7 @@ def register_app_launchservices(
         if state == Qt.ApplicationActive and app._never_shown:
             app._never_shown = False
             bundle_identifier = als.get_bundle_identifier()
-            als.set_UTI_handler(
-                uniform_type_identifier, role, bundle_identifier)
+            als.set_UTI_handler(uniform_type_identifier, role, bundle_identifier)
 
     app.applicationStateChanged.connect(handle_applicationStateChanged)
 

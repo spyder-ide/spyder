@@ -16,10 +16,11 @@ from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
 @pytest.mark.parametrize(
-    'config_dialog',
+    "config_dialog",
     # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
     [[None, [], [HistoryLog]]],
-    indirect=True)
+    indirect=True,
+)
 def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()
     assert configpage

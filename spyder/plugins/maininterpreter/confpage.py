@@ -12,8 +12,16 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
-                            QLineEdit, QMessageBox, QPushButton, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QButtonGroup,
+    QGroupBox,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -25,11 +33,10 @@ from spyder.utils.misc import get_python_executable
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class MainInterpreterConfigPage(PluginConfigPage):
-
     def __init__(self, plugin, parent):
         super().__init__(plugin, parent)
         self.apply_callback = self.perform_adjustments
@@ -41,21 +48,21 @@ class MainInterpreterConfigPage(PluginConfigPage):
         conda_env = get_list_conda_envs_cache()
         pyenv_env = get_list_pyenv_envs_cache()
         envs = {**conda_env, **pyenv_env}
-        valid_custom_list = self.get_option('custom_interpreters_list')
+        valid_custom_list = self.get_option("custom_interpreters_list")
         for env in envs.keys():
             path, _ = envs[env]
             if path not in valid_custom_list:
                 valid_custom_list.append(path)
-        self.set_option('custom_interpreters_list', valid_custom_list)
+        self.set_option("custom_interpreters_list", valid_custom_list)
 
         # add custom_interpreter to executable selection
-        executable = self.get_option('executable')
+        executable = self.get_option("executable")
 
         # check if the executable is valid - use Spyder's if not
-        if self.get_option('default') or not osp.isfile(executable):
+        if self.get_option("default") or not osp.isfile(executable):
             executable = get_python_executable()
-        elif not self.get_option('custom_interpreter'):
-            self.set_option('custom_interpreter', ' ')
+        elif not self.get_option("custom_interpreter"):
+            self.set_option("custom_interpreter", " ")
 
         plugin._add_to_custom_interpreters(executable)
         self.validate_custom_interpreters_list()
@@ -69,21 +76,22 @@ class MainInterpreterConfigPage(PluginConfigPage):
         # Python executable Group
         pyexec_group = QGroupBox(_("Python interpreter"))
         pyexec_bg = QButtonGroup(pyexec_group)
-        pyexec_label = QLabel(_("Select the Python interpreter for all Spyder "
-                                "consoles"))
+        pyexec_label = QLabel(
+            _("Select the Python interpreter for all Spyder " "consoles")
+        )
         self.def_exec_radio = self.create_radiobutton(
             _("Default (i.e. the same as Spyder's)"),
-            'default',
+            "default",
             button_group=pyexec_bg,
         )
         self.cus_exec_radio = self.create_radiobutton(
             _("Use the following Python interpreter:"),
-            'custom',
+            "custom",
             button_group=pyexec_bg,
         )
 
-        if os.name == 'nt':
-            filters = _("Executables")+" (*.exe)"
+        if os.name == "nt":
+            filters = _("Executables") + " (*.exe)"
         else:
             filters = None
 
@@ -93,9 +101,9 @@ class MainInterpreterConfigPage(PluginConfigPage):
         pyexec_layout.addWidget(self.cus_exec_radio)
         self.validate_custom_interpreters_list()
         self.cus_exec_combo = self.create_file_combobox(
-            _('Recent custom interpreters'),
-            self.get_option('custom_interpreters_list'),
-            'custom_interpreter',
+            _("Recent custom interpreters"),
+            self.get_option("custom_interpreters_list"),
+            "custom_interpreter",
             filters=filters,
             default_line_edit=True,
             adjust_to_contents=True,
@@ -110,14 +118,18 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         # UMR Group
         umr_group = QGroupBox(_("User Module Reloader (UMR)"))
-        umr_label = QLabel(_("UMR forces Python to reload modules which were "
-                             "imported when executing a file in a Python or "
-                             "IPython console with the <i>runfile</i> "
-                             "function."))
+        umr_label = QLabel(
+            _(
+                "UMR forces Python to reload modules which were "
+                "imported when executing a file in a Python or "
+                "IPython console with the <i>runfile</i> "
+                "function."
+            )
+        )
         umr_label.setWordWrap(True)
         umr_enabled_box = newcb(
             _("Enable UMR"),
-            'umr/enabled',
+            "umr/enabled",
             msg_if_enabled=True,
             msg_warning=_(
                 "This option will enable the User Module Reloader (UMR) "
@@ -138,12 +150,12 @@ class MainInterpreterConfigPage(PluginConfigPage):
         )
         umr_verbose_box = newcb(
             _("Show reloaded modules list"),
-            'umr/verbose',
-            msg_info=_("Please note that these changes will "
-                       "be applied only to new consoles"),
+            "umr/verbose",
+            msg_info=_(
+                "Please note that these changes will " "be applied only to new consoles"
+            ),
         )
-        umr_namelist_btn = QPushButton(
-            _("Set UMR excluded (not reloaded) modules"))
+        umr_namelist_btn = QPushButton(_("Set UMR excluded (not reloaded) modules"))
         umr_namelist_btn.clicked.connect(self.set_umr_namelist)
 
         umr_layout = QVBoxLayout()
@@ -176,14 +188,16 @@ class MainInterpreterConfigPage(PluginConfigPage):
         if spyder_version != console_version:
             QMessageBox.warning(
                 self,
-                _('Warning'),
-                _("You selected a <b>Python %d</b> interpreter for the console "
-                  "but Spyder is running on <b>Python %d</b>!.<br><br>"
-                  "Although this is possible, we recommend you to install and "
-                  "run Spyder directly with your selected interpreter, to avoid "
-                  "seeing false warnings and errors due to the incompatible "
-                  "syntax between these two Python versions."
-                  ) % (console_version, spyder_version),
+                _("Warning"),
+                _(
+                    "You selected a <b>Python %d</b> interpreter for the console "
+                    "but Spyder is running on <b>Python %d</b>!.<br><br>"
+                    "Although this is possible, we recommend you to install and "
+                    "run Spyder directly with your selected interpreter, to avoid "
+                    "seeing false warnings and errors due to the incompatible "
+                    "syntax between these two Python versions."
+                )
+                % (console_version, spyder_version),
                 QMessageBox.Ok,
             )
 
@@ -193,16 +207,15 @@ class MainInterpreterConfigPage(PluginConfigPage):
         """Set UMR excluded modules name list"""
         arguments, valid = QInputDialog.getText(
             self,
-            _('UMR'),
-            _("Set the list of excluded modules as this: "
-              "<i>numpy, scipy</i>"),
+            _("UMR"),
+            _("Set the list of excluded modules as this: " "<i>numpy, scipy</i>"),
             QLineEdit.Normal,
-            ", ".join(self.get_option('umr/namelist')),
+            ", ".join(self.get_option("umr/namelist")),
         )
         if valid:
             arguments = to_text_string(arguments)
             if arguments:
-                namelist = arguments.replace(' ', '').split(',')
+                namelist = arguments.replace(" ", "").split(",")
                 fixed_namelist = []
                 non_ascii_namelist = []
                 for module_name in namelist:
@@ -213,47 +226,55 @@ class MainInterpreterConfigPage(PluginConfigPage):
                         else:
                             QMessageBox.warning(
                                 self,
-                                _('Warning'),
-                                _("You are working with Python 2, this means "
-                                  "that you can not import a module that "
-                                  "contains non-ascii characters."),
+                                _("Warning"),
+                                _(
+                                    "You are working with Python 2, this means "
+                                    "that you can not import a module that "
+                                    "contains non-ascii characters."
+                                ),
                                 QMessageBox.Ok,
                             )
                             non_ascii_namelist.append(module_name)
                     elif programs.is_module_installed(module_name):
                         fixed_namelist.append(module_name)
 
-                invalid = ", ".join(set(namelist)-set(fixed_namelist)-
-                                    set(non_ascii_namelist))
+                invalid = ", ".join(
+                    set(namelist) - set(fixed_namelist) - set(non_ascii_namelist)
+                )
                 if invalid:
                     QMessageBox.warning(
                         self,
-                        _('UMR'),
-                        _("The following modules are not "
-                          "installed on your machine:\n%s") % invalid,
+                        _("UMR"),
+                        _(
+                            "The following modules are not "
+                            "installed on your machine:\n%s"
+                        )
+                        % invalid,
                         QMessageBox.Ok,
                     )
                 QMessageBox.information(
                     self,
-                    _('UMR'),
-                    _("Please note that these changes will "
-                      "be applied only to new IPython consoles"),
+                    _("UMR"),
+                    _(
+                        "Please note that these changes will "
+                        "be applied only to new IPython consoles"
+                    ),
                     QMessageBox.Ok,
                 )
             else:
                 fixed_namelist = []
 
-            self.set_option('umr/namelist', fixed_namelist)
+            self.set_option("umr/namelist", fixed_namelist)
 
     def validate_custom_interpreters_list(self):
         """Check that the used custom interpreters are still valid."""
-        custom_list = self.get_option('custom_interpreters_list')
+        custom_list = self.get_option("custom_interpreters_list")
         valid_custom_list = []
         for value in custom_list:
             if osp.isfile(value):
                 valid_custom_list.append(value)
 
-        self.set_option('custom_interpreters_list', valid_custom_list)
+        self.set_option("custom_interpreters_list", valid_custom_list)
 
     def perform_adjustments(self):
         """Perform some adjustments to the page after applying preferences."""
@@ -261,7 +282,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             # Get current executable
             executable = self.pyexec_edit.text()
             executable = osp.normpath(executable)
-            if executable.endswith('pythonw.exe'):
+            if executable.endswith("pythonw.exe"):
                 executable = executable.replace("pythonw.exe", "python.exe")
 
             # Update combobox items.

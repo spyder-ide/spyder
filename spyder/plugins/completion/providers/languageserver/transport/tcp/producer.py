@@ -22,9 +22,11 @@ import time
 
 # Local imports
 from spyder.plugins.completion.providers.languageserver.transport.tcp.consumer import (
-    TCPIncomingMessageThread)
+    TCPIncomingMessageThread,
+)
 from spyder.plugins.completion.providers.languageserver.transport.common.producer import (
-    LanguageServerClient)
+    LanguageServerClient,
+)
 from spyder.py3compat import ConnectionError, BrokenPipeError
 
 
@@ -33,37 +35,41 @@ logger = logging.getLogger(__name__)
 
 class TCPLanguageServerClient(LanguageServerClient):
     """Implementation of a v3.0 compilant language server TCP client."""
+
     MAX_TIMEOUT_TIME = 20000
 
-    def __init__(self, host='127.0.0.1', port=2087, zmq_in_port=7000,
-                 zmq_out_port=7001):
+    def __init__(
+        self, host="127.0.0.1", port=2087, zmq_in_port=7000, zmq_out_port=7001
+    ):
         LanguageServerClient.__init__(self, zmq_in_port, zmq_out_port)
         self.req_status = {}
         self.host = host
         self.port = port
         self.socket = None
         # self.request_seq = 1
-        logger.info('Connecting to language server at {0}:{1}'.format(
-            self.host, self.port))
+        logger.info(
+            "Connecting to language server at {0}:{1}".format(self.host, self.port)
+        )
         super(TCPLanguageServerClient, self).finalize_initialization()
         self.socket.setblocking(True)
         self.reading_thread = TCPIncomingMessageThread()
-        self.reading_thread.initialize(self.socket, self.zmq_out_socket,
-                                       self.req_status)
+        self.reading_thread.initialize(
+            self.socket, self.zmq_out_socket, self.req_status
+        )
 
     def start(self):
         self.reading_thread.start()
-        logger.info('Ready to receive/attend requests and responses!')
+        logger.info("Ready to receive/attend requests and responses!")
 
     def stop(self):
-        logger.info('Closing TCP socket...')
+        logger.info("Closing TCP socket...")
         self.socket.close()
-        logger.info('Closing consumer thread...')
+        logger.info("Closing consumer thread...")
         self.reading_thread.stop()
-        logger.debug('Exit routine should be complete')
+        logger.debug("Exit routine should be complete")
 
     def transport_send(self, content_length, body):
-        logger.debug('Sending message via TCP')
+        logger.debug("Sending message via TCP")
         try:
             self.socket.send(content_length)
             self.socket.send(body)

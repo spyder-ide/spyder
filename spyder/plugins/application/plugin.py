@@ -22,43 +22,55 @@ from qtpy.QtWidgets import QMenu
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import get_translation
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import (DEV, get_module_path, get_debug_level,
-                                running_under_pytest)
+from spyder.config.base import (
+    DEV,
+    get_module_path,
+    get_debug_level,
+    running_under_pytest,
+)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, ApplicationPluginMenus,
-    WinUserEnvDialog)
+    ApplicationActions,
+    ApplicationContainer,
+    ApplicationPluginMenus,
+    WinUserEnvDialog,
+)
 from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
+    ApplicationMenus,
+    FileMenuSections,
+    HelpMenuSections,
+    ToolsMenuSections,
+)
 from spyder.utils.qthelpers import add_actions
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 
 class Application(SpyderPluginV2):
-    NAME = 'application'
+    NAME = "application"
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.Editor]
+    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts, Plugins.Editor]
     CONTAINER_CLASS = ApplicationContainer
-    CONF_SECTION = 'main'
+    CONF_SECTION = "main"
     CONF_FILE = False
     CONF_WIDGET_CLASS = ApplicationConfigPage
     CAN_BE_DISABLED = False
 
     @staticmethod
     def get_name():
-        return _('Application')
+        return _("Application")
 
     def get_icon(self):
-        return self.create_icon('genprefs')
+        return self.create_icon("genprefs")
 
     def get_description(self):
-        return _('Provide main application base actions.')
+        return _("Provide main application base actions.")
 
     def on_initialize(self):
         container = self.get_container()
@@ -138,7 +150,7 @@ class Application(SpyderPluginV2):
             container.compute_dependencies()
 
         # Check for updates
-        if DEV is None and self.get_conf('check_updates_on_startup'):
+        if DEV is None and self.get_conf("check_updates_on_startup"):
             container.give_updates_feedback = False
             container.check_updates(startup=True)
 
@@ -146,13 +158,12 @@ class Application(SpyderPluginV2):
         # Don't activate this functionality on macOS because it's being
         # triggered in the wrong situations.
         # See spyder-ide/spyder#11846
-        if not sys.platform == 'darwin':
+        if not sys.platform == "darwin":
             window = self._window.windowHandle()
             window.screenChanged.connect(container.handle_new_screen)
             screen = self._window.windowHandle().screen()
             container.current_dpi = screen.logicalDotsPerInch()
-            screen.logicalDotsPerInchChanged.connect(
-                container.show_dpi_change_message)
+            screen.logicalDotsPerInchChanged.connect(container.show_dpi_change_message)
 
     # ---- Private API
     # ------------------------------------------------------------------------
@@ -161,11 +172,13 @@ class Application(SpyderPluginV2):
         mainmenu.add_item_to_application_menu(
             self.restart_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart,
+        )
         mainmenu.add_item_to_application_menu(
             self.restart_debug_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart,
+        )
 
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -174,13 +187,15 @@ class Application(SpyderPluginV2):
             mainmenu.add_item_to_application_menu(
                 self.winenv_action,
                 menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools)
+                section=ToolsMenuSections.Tools,
+            )
 
         if get_debug_level() >= 2:
             mainmenu.add_item_to_application_menu(
                 self.debug_logs_menu,
                 menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Extras)
+                section=ToolsMenuSections.Extras,
+            )
 
     def _populate_help_menu(self):
         """Add base actions and menus to the Help menu."""
@@ -196,28 +211,33 @@ class Application(SpyderPluginV2):
 
         if shortcuts:
             from spyder.plugins.shortcuts.plugin import ShortcutActions
+
             shortcuts_summary_action = ShortcutActions.ShortcutSummaryAction
-        for documentation_action in [
-                self.documentation_action, self.video_action]:
+        for documentation_action in [self.documentation_action, self.video_action]:
             mainmenu.add_item_to_application_menu(
                 documentation_action,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.Documentation,
                 before=shortcuts_summary_action,
-                before_section=HelpMenuSections.Support)
+                before_section=HelpMenuSections.Support,
+            )
 
     def _populate_help_menu_support_section(self):
         """Add Spyder base support actions to the Help main menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for support_action in [
-                self.trouble_action, self.report_action,
-                self.dependencies_action, self.check_updates_action,
-                self.support_group_action]:
+            self.trouble_action,
+            self.report_action,
+            self.dependencies_action,
+            self.check_updates_action,
+            self.support_group_action,
+        ]:
             mainmenu.add_item_to_application_menu(
                 support_action,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.Support,
-                before_section=HelpMenuSections.ExternalDocumentation)
+                before_section=HelpMenuSections.ExternalDocumentation,
+            )
 
     def _populate_help_menu_about_section(self):
         """Create Spyder base about actions."""
@@ -225,7 +245,8 @@ class Application(SpyderPluginV2):
         mainmenu.add_item_to_application_menu(
             self.about_action,
             menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.About)
+            section=HelpMenuSections.About,
+        )
 
     @property
     def _window(self):
@@ -239,38 +260,42 @@ class Application(SpyderPluginV2):
     def _depopulate_help_menu_documentation_section(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for documentation_action in [
-                ApplicationActions.SpyderDocumentationAction,
-                ApplicationActions.SpyderDocumentationVideoAction]:
+            ApplicationActions.SpyderDocumentationAction,
+            ApplicationActions.SpyderDocumentationVideoAction,
+        ]:
             mainmenu.remove_item_from_application_menu(
-                documentation_action,
-                menu_id=ApplicationMenus.Help)
+                documentation_action, menu_id=ApplicationMenus.Help
+            )
 
     def _depopulate_help_menu_support_section(self):
         """Remove Spyder base support actions from the Help main menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for support_action in [
-                ApplicationActions.SpyderTroubleshootingAction,
-                ConsoleActions.SpyderReportAction,
-                ApplicationActions.SpyderDependenciesAction,
-                ApplicationActions.SpyderCheckUpdatesAction,
-                ApplicationActions.SpyderSupportAction]:
+            ApplicationActions.SpyderTroubleshootingAction,
+            ConsoleActions.SpyderReportAction,
+            ApplicationActions.SpyderDependenciesAction,
+            ApplicationActions.SpyderCheckUpdatesAction,
+            ApplicationActions.SpyderSupportAction,
+        ]:
             mainmenu.remove_item_from_application_menu(
-                support_action,
-                menu_id=ApplicationMenus.Help)
+                support_action, menu_id=ApplicationMenus.Help
+            )
 
     def _depopulate_help_menu_about_section(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            ApplicationActions.SpyderAbout,
-            menu_id=ApplicationMenus.Help)
+            ApplicationActions.SpyderAbout, menu_id=ApplicationMenus.Help
+        )
 
     def _depopulate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for action_id in [ApplicationActions.SpyderRestart,
-                          ApplicationActions.SpyderRestartDebug]:
+        for action_id in [
+            ApplicationActions.SpyderRestart,
+            ApplicationActions.SpyderRestartDebug,
+        ]:
             mainmenu.remove_item_from_application_menu(
-                action_id,
-                menu_id=ApplicationMenus.File)
+                action_id, menu_id=ApplicationMenus.File
+            )
 
     def _depopulate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -278,12 +303,13 @@ class Application(SpyderPluginV2):
         if WinUserEnvDialog is not None:
             mainmenu.remove_item_from_application_menu(
                 ApplicationActions.SpyderWindowsEnvVariables,
-                menu_id=ApplicationMenus.Tools)
+                menu_id=ApplicationMenus.Tools,
+            )
 
         if get_debug_level() >= 2:
             mainmenu.remove_item_from_application_menu(
-                ApplicationPluginMenus.DebugLogsMenu,
-                menu_id=ApplicationMenus.Tools)
+                ApplicationPluginMenus.DebugLogsMenu, menu_id=ApplicationMenus.Tools
+            )
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -301,14 +327,18 @@ class Application(SpyderPluginV2):
         # Help actions
         if help_plugin:
             from spyder.plugins.help.plugin import HelpActions
+
             tutorial_action = help_plugin.get_action(
-                HelpActions.ShowSpyderTutorialAction)
+                HelpActions.ShowSpyderTutorialAction
+            )
             actions += [tutorial_action]
         # Shortcuts actions
         if shortcuts:
             from spyder.plugins.shortcuts.plugin import ShortcutActions
+
             shortcuts_action = shortcuts.get_action(
-                ShortcutActions.ShortcutSummaryAction)
+                ShortcutActions.ShortcutSummaryAction
+            )
             actions.append(shortcuts_action)
         # Application actions
         actions += [MENU_SEPARATOR, self.about_action]
@@ -337,14 +367,14 @@ class Application(SpyderPluginV2):
         console = self.get_plugin(Plugins.Console)
 
         # Get start path to use in restart script
-        spyder_start_directory = get_module_path('spyder')
-        restart_script = osp.join(spyder_start_directory, 'app', 'restart.py')
+        spyder_start_directory = get_module_path("spyder")
+        restart_script = osp.join(spyder_start_directory, "app", "restart.py")
 
         # Get any initial argument passed when spyder was started
         # Note: Variables defined in bootstrap.py and spyder/app/start.py
         env = os.environ.copy()
-        bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
-        spyder_args = env.pop('SPYDER_ARGS')
+        bootstrap_args = env.pop("SPYDER_BOOTSTRAP_ARGS", None)
+        spyder_args = env.pop("SPYDER_ARGS")
 
         # Get current process and python running spyder
         pid = os.getpid()
@@ -358,12 +388,12 @@ class Application(SpyderPluginV2):
             is_bootstrap = False
 
         # Pass variables as environment variables (str) to restarter subprocess
-        env['SPYDER_ARGS'] = spyder_args
-        env['SPYDER_PID'] = str(pid)
-        env['SPYDER_IS_BOOTSTRAP'] = str(is_bootstrap)
+        env["SPYDER_ARGS"] = spyder_args
+        env["SPYDER_PID"] = str(pid)
+        env["SPYDER_IS_BOOTSTRAP"] = str(is_bootstrap)
 
         # Build the command and popen arguments depending on the OS
-        if os.name == 'nt':
+        if os.name == "nt":
             # Hide flashing command prompt
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -377,8 +407,7 @@ class Application(SpyderPluginV2):
 
         try:
             if self.main.closing(True, close_immediately=close_immediately):
-                subprocess.Popen(command, shell=shell, env=env,
-                                 startupinfo=startupinfo)
+                subprocess.Popen(command, shell=shell, env=env, startupinfo=startupinfo)
                 console.quit()
         except Exception as error:
             # If there is an error with subprocess, Spyder should not quit and
@@ -443,5 +472,4 @@ class Application(SpyderPluginV2):
 
     @property
     def debug_logs_menu(self):
-        return self.get_container().get_menu(
-            ApplicationPluginMenus.DebugLogsMenu)
+        return self.get_container().get_menu(ApplicationPluginMenus.DebugLogsMenu)

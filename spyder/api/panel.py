@@ -40,8 +40,10 @@ class Panel(QWidget, EditorExtension):
     .. note:: Use enabled to disable panel actions and setVisible to change the
         visibility of the panel.
     """
+
     class Position(object):
         """Enumerates the possible panel positions"""
+
         # Top margin
         TOP = 0
         # Left margin
@@ -55,7 +57,7 @@ class Panel(QWidget, EditorExtension):
 
         @classmethod
         def iterable(cls):
-            """ Returns possible positions as an iterable (list) """
+            """Returns possible positions as an iterable (list)"""
             return [cls.TOP, cls.LEFT, cls.RIGHT, cls.BOTTOM]
 
     @property
@@ -107,10 +109,8 @@ class Panel(QWidget, EditorExtension):
         self.setPalette(QApplication.instance().palette())
         self.setFont(QApplication.instance().font())
         self.editor.panels.refresh()
-        self._background_brush = QBrush(QColor(
-            self.palette().window().color()))
-        self._foreground_pen = QPen(QColor(
-            self.palette().windowText().color()))
+        self._background_brush = QBrush(QColor(self.palette().window().color()))
+        self._foreground_pen = QPen(QColor(self.palette().windowText().color()))
 
         if self.position == self.Position.FLOATING:
             self.setAttribute(Qt.WA_TransparentForMouseEvents)
@@ -126,14 +126,12 @@ class Panel(QWidget, EditorExtension):
         """
         if self.isVisible() and self.position != self.Position.FLOATING:
             # fill background
-            self._background_brush = QBrush(QColor(
-                self.editor.sideareas_color))
-            self._foreground_pen = QPen(QColor(
-                self.palette().windowText().color()))
+            self._background_brush = QBrush(QColor(self.editor.sideareas_color))
+            self._foreground_pen = QPen(QColor(self.palette().windowText().color()))
             painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
         else:
-            logger.debug(f'paintEvent method must be defined in {self}')
+            logger.debug(f"paintEvent method must be defined in {self}")
 
     def sizeHint(self):
         """
@@ -152,8 +150,7 @@ class Panel(QWidget, EditorExtension):
           IndentationGuide one as reference.
         """
         if self.position != self.Position.FLOATING:
-            raise NotImplementedError(
-                f'sizeHint method must be implemented in {self}')
+            raise NotImplementedError(f"sizeHint method must be implemented in {self}")
 
     def setVisible(self, visible):
         """
@@ -163,7 +160,7 @@ class Panel(QWidget, EditorExtension):
 
         :param visible: Visible state
         """
-        logger.debug('%s visibility changed', self.name)
+        logger.debug("%s visibility changed", self.name)
         super(Panel, self).setVisible(visible)
         if self.editor:
             self.editor.panels.refresh()
@@ -192,11 +189,13 @@ class Panel(QWidget, EditorExtension):
 
         # Calculate editor coordinates with their offsets
         offset = self.editor.contentOffset()
-        x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock())\
-            .translated(offset.x(), offset.y()).left() \
-            + self.editor.document().documentMargin() \
+        x = (
+            self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock())
+            .translated(offset.x(), offset.y())
+            .left()
+            + self.editor.document().documentMargin()
             + self.editor.panels.margin_size(Panel.Position.LEFT)
+        )
         y = crect.top() + self.editor.panels.margin_size(Panel.Position.TOP)
 
-        self.setGeometry(QRect(ceil(x+x0), ceil(y+y0),
-                               ceil(width), ceil(height)))
+        self.setGeometry(QRect(ceil(x + x0), ceil(y + y0), ceil(width), ceil(height)))

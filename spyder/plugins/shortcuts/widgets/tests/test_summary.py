@@ -45,24 +45,22 @@ def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
     for column_layout in sample(children, 3):
         for group_idx in range(column_layout.count()):
             try:
-                group_layout = (column_layout.itemAt(group_idx)
-                                .widget().layout())
+                group_layout = column_layout.itemAt(group_idx).widget().layout()
             except AttributeError:  # Since some groups are not present
                 continue
             for shortcut_idx in range(group_layout.rowCount()):
                 try:
                     shortcut_keystr = (
-                        group_layout.itemAtPosition(shortcut_idx, 1)
-                        .widget().text())
+                        group_layout.itemAtPosition(shortcut_idx, 1).widget().text()
+                    )
                 except AttributeError:  # Since some items are not present
                     continue
 
                 if not shortcut_keystr:
                     continue
 
-                if sys.platform.startswith('darwin'):
-                    keywords = [u'⇧', u'⌃', u'⌘', u'⌥', u'⌦',  u'⎋', 'F']
+                if sys.platform.startswith("darwin"):
+                    keywords = ["⇧", "⌃", "⌘", "⌥", "⌦", "⎋", "F"]
                 else:
-                    keywords = ['Alt', 'Ctrl', 'Del', 'Esc', 'F', 'Meta',
-                                'Shift']
+                    keywords = ["Alt", "Ctrl", "Del", "Esc", "F", "Meta", "Shift"]
                 assert any([key in shortcut_keystr for key in keywords])

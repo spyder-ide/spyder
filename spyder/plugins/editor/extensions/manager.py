@@ -41,7 +41,7 @@ class EditorExtensionsManager(Manager):
         :param extension: The extension instance to add.
 
         """
-        logger.debug('adding extension {}'.format(extension.name))
+        logger.debug("adding extension {}".format(extension.name))
         self._extensions[extension.name] = extension
         extension.on_install(self.editor)
         return extension
@@ -53,7 +53,7 @@ class EditorExtensionsManager(Manager):
         :param name_or_klass: The name (or class) of the extension to remove.
         :returns: The removed extension.
         """
-        logger.debug('removing extension {}'.format(name_or_klass))
+        logger.debug("removing extension {}".format(name_or_klass))
         extension = self.get(name_or_klass)
         extension.on_uninstall()
         self._extensions.pop(extension.name)

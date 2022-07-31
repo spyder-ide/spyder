@@ -130,7 +130,7 @@ class AutosaveForPlugin(object):
 
     def do_autosave(self):
         """Instruct current editorstack to autosave files where necessary."""
-        logger.debug('Autosave triggered')
+        logger.debug("Autosave triggered")
         stack = self.editor.get_current_editorstack()
         stack.autosave.autosave_all()
         self.start_autosave_timer()
@@ -147,7 +147,7 @@ class AutosaveForPlugin(object):
         the original file name set to `None`. The second entry, `pid_files`,
         is a list with the names of the pid files.
         """
-        autosave_dir = get_conf_path('autosave')
+        autosave_dir = get_conf_path("autosave")
         if not os.access(autosave_dir, os.R_OK):
             return [], []
 
@@ -159,25 +159,25 @@ class AutosaveForPlugin(object):
         # In Python 3, easier to use os.scandir()
         for name in os.listdir(autosave_dir):
             full_name = osp.join(autosave_dir, name)
-            match = re.match(r'pid([0-9]*)\.txt\Z', name)
+            match = re.match(r"pid([0-9]*)\.txt\Z", name)
             if match:
                 pid_files.append(full_name)
-                logger.debug('Reading pid file: {}'.format(full_name))
+                logger.debug("Reading pid file: {}".format(full_name))
                 with open(full_name) as pidfile:
                     txt = pidfile.read()
                     try:
                         txt_as_dict = ast.literal_eval(txt)
                     except (SyntaxError, ValueError):
                         # Pid file got corrupted, see spyder-ide/spyder#11375
-                        logger.error('Error parsing pid file {}'
-                                     .format(full_name))
-                        logger.error('Contents: {}'.format(repr(txt)))
+                        logger.error("Error parsing pid file {}".format(full_name))
+                        logger.error("Contents: {}".format(repr(txt)))
                         txt_as_dict = {}
-                    files_mentioned += [autosave for (orig, autosave)
-                                        in txt_as_dict.items()]
+                    files_mentioned += [
+                        autosave for (orig, autosave) in txt_as_dict.items()
+                    ]
                 pid = int(match.group(1))
                 if is_spyder_process(pid):
-                    logger.debug('Ignoring files in {}'.format(full_name))
+                    logger.debug("Ignoring files in {}".format(full_name))
                 else:
                     files_to_recover += list(txt_as_dict.items())
             else:
@@ -187,7 +187,7 @@ class AutosaveForPlugin(object):
         # the pid file somehow got corrupted.
         for filename in set(non_pid_files) - set(files_mentioned):
             files_to_recover.append((None, filename))
-            logger.debug('Added unmentioned file: {}'.format(filename))
+            logger.debug("Added unmentioned file: {}".format(filename))
 
         return files_to_recover, pid_files
 
@@ -262,14 +262,16 @@ class AutosaveForStack(object):
         """
         basename = osp.basename(filename)
         autosave_filename = osp.join(autosave_dir, basename)
-        if (autosave_filename in self.name_mapping.values()
-                or osp.exists(autosave_filename)):
+        if autosave_filename in self.name_mapping.values() or osp.exists(
+            autosave_filename
+        ):
             counter = 0
             root, ext = osp.splitext(basename)
-            while (autosave_filename in self.name_mapping.values()
-                   or osp.exists(autosave_filename)):
+            while autosave_filename in self.name_mapping.values() or osp.exists(
+                autosave_filename
+            ):
                 counter += 1
-                autosave_basename = '{}-{}{}'.format(root, counter, ext)
+                autosave_basename = "{}-{}{}".format(root, counter, ext)
                 autosave_filename = osp.join(autosave_dir, autosave_basename)
         return autosave_filename
 
@@ -281,11 +283,11 @@ class AutosaveForStack(object):
         The NNN in the file name is the pid of the Spyder process. If the
         current autosave mapping is empty, then delete the file if it exists.
         """
-        autosave_dir = get_conf_path('autosave')
+        autosave_dir = get_conf_path("autosave")
         my_pid = os.getpid()
-        pidfile_name = osp.join(autosave_dir, 'pid{}.txt'.format(my_pid))
+        pidfile_name = osp.join(autosave_dir, "pid{}.txt".format(my_pid))
         if self.name_mapping:
-            with open(pidfile_name, 'w') as pidfile:
+            with open(pidfile_name, "w") as pidfile:
                 if PY2:
                     pidfile.write(repr(self.name_mapping))
                 else:
@@ -310,14 +312,15 @@ class AutosaveForStack(object):
         try:
             os.remove(autosave_filename)
         except EnvironmentError as error:
-            action = (_('Error while removing autosave file {}')
-                      .format(autosave_filename))
+            action = _("Error while removing autosave file {}").format(
+                autosave_filename
+            )
             msgbox = AutosaveErrorDialog(action, error)
             msgbox.exec_if_enabled()
         del self.name_mapping[filename]
         del self.file_hashes[autosave_filename]
         self.save_autosave_mapping()
-        logger.debug('Removing autosave file %s', autosave_filename)
+        logger.debug("Removing autosave file %s", autosave_filename)
 
     def get_autosave_filename(self, filename):
         """
@@ -333,19 +336,20 @@ class AutosaveForStack(object):
         try:
             autosave_filename = self.name_mapping[filename]
         except KeyError:
-            autosave_dir = get_conf_path('autosave')
+            autosave_dir = get_conf_path("autosave")
             if not osp.isdir(autosave_dir):
                 try:
                     os.mkdir(autosave_dir)
                 except EnvironmentError as error:
-                    action = _('Error while creating autosave directory')
+                    action = _("Error while creating autosave directory")
                     msgbox = AutosaveErrorDialog(action, error)
                     msgbox.exec_if_enabled()
             autosave_filename = self.create_unique_autosave_filename(
-                    filename, autosave_dir)
+                filename, autosave_dir
+            )
             self.name_mapping[filename] = autosave_filename
             self.save_autosave_mapping()
-            logger.debug('New autosave file name')
+            logger.debug("New autosave file name")
         return autosave_filename
 
     def maybe_autosave(self, index):
@@ -373,7 +377,7 @@ class AutosaveForStack(object):
             # In this case, use an impossible value for the hash, so that
             # contents of buffer are considered different from contents of
             # original file.
-            logger.error('KeyError when retrieving hash of %s', orig_filename)
+            logger.error("KeyError when retrieving hash of %s", orig_filename)
             orig_hash = None
         new_hash = self.stack.compute_hash(finfo)
         if orig_filename in self.name_mapping:
@@ -400,14 +404,15 @@ class AutosaveForStack(object):
             fileinfo (FileInfo): file that is to be autosaved.
         """
         autosave_filename = self.get_autosave_filename(finfo.filename)
-        logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
+        logger.debug("Autosaving %s to %s", finfo.filename, autosave_filename)
         try:
             self.stack._write_to_file(finfo, autosave_filename)
             autosave_hash = self.stack.compute_hash(finfo)
             self.file_hashes[autosave_filename] = autosave_hash
         except EnvironmentError as error:
-            action = (_('Error while autosaving {} to {}')
-                      .format(finfo.filename, autosave_filename))
+            action = _("Error while autosaving {} to {}").format(
+                finfo.filename, autosave_filename
+            )
             msgbox = AutosaveErrorDialog(action, error)
             msgbox.exec_if_enabled()
 
@@ -428,8 +433,7 @@ class AutosaveForStack(object):
             old_hash = self.file_hashes[old_name]
         except KeyError:
             # This should not happen, but it does: spyder-ide/spyder#12396
-            logger.error('KeyError when handling rename %s -> %s',
-                         old_name, new_name)
+            logger.error("KeyError when handling rename %s -> %s", old_name, new_name)
             old_hash = None
         self.remove_autosave_file(old_name)
         if old_hash is not None:

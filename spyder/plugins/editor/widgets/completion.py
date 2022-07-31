@@ -13,8 +13,13 @@ import sys
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QFocusEvent
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
-                            QListWidgetItem, QToolTip)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QListWidget,
+    QListWidgetItem,
+    QToolTip,
+)
 
 # Local imports
 from spyder.utils.icon_manager import ima
@@ -29,25 +34,26 @@ DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 class CompletionWidget(QListWidget):
     """Completion list widget."""
+
     ITEM_TYPE_MAP = {
-        CompletionItemKind.TEXT: 'text',
-        CompletionItemKind.METHOD: 'method',
-        CompletionItemKind.FUNCTION: 'function',
-        CompletionItemKind.CONSTRUCTOR: 'constructor',
-        CompletionItemKind.FIELD: 'field',
-        CompletionItemKind.VARIABLE: 'variable',
-        CompletionItemKind.CLASS: 'class',
-        CompletionItemKind.INTERFACE: 'interface',
-        CompletionItemKind.MODULE: 'module',
-        CompletionItemKind.PROPERTY: 'property',
-        CompletionItemKind.UNIT: 'unit',
-        CompletionItemKind.VALUE: 'value',
-        CompletionItemKind.ENUM: 'enum',
-        CompletionItemKind.KEYWORD: 'keyword',
-        CompletionItemKind.SNIPPET: 'snippet',
-        CompletionItemKind.COLOR: 'color',
-        CompletionItemKind.FILE: 'file',
-        CompletionItemKind.REFERENCE: 'reference',
+        CompletionItemKind.TEXT: "text",
+        CompletionItemKind.METHOD: "method",
+        CompletionItemKind.FUNCTION: "function",
+        CompletionItemKind.CONSTRUCTOR: "constructor",
+        CompletionItemKind.FIELD: "field",
+        CompletionItemKind.VARIABLE: "variable",
+        CompletionItemKind.CLASS: "class",
+        CompletionItemKind.INTERFACE: "interface",
+        CompletionItemKind.MODULE: "module",
+        CompletionItemKind.PROPERTY: "property",
+        CompletionItemKind.UNIT: "unit",
+        CompletionItemKind.VALUE: "value",
+        CompletionItemKind.ENUM: "enum",
+        CompletionItemKind.KEYWORD: "keyword",
+        CompletionItemKind.SNIPPET: "snippet",
+        CompletionItemKind.COLOR: "color",
+        CompletionItemKind.FILE: "file",
+        CompletionItemKind.REFERENCE: "reference",
     }
     ICON_MAP = {}
 
@@ -152,7 +158,7 @@ class CompletionWidget(QListWidget):
 
             if self.completion_list is not None:
                 for completion in self.completion_list:
-                    completion['point'] = tooltip_point
+                    completion["point"] = tooltip_point
 
         # Show hint for first completion element
         self.setCurrentRow(0)
@@ -184,9 +190,9 @@ class CompletionWidget(QListWidget):
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
-                if not new and 'textEdit' in completion:
+                if not new and "textEdit" in completion:
                     continue
-                completion_label = completion['filterText']
+                completion_label = completion["filterText"]
             else:
                 completion_label = completion[0]
 
@@ -195,12 +201,12 @@ class CompletionWidget(QListWidget):
             item = QListWidgetItem()
 
             if not self.is_internal_console:
-                self.set_item_display(
-                    item, completion, height=height, width=width)
+                self.set_item_display(item, completion, height=height, width=width)
                 item.setData(Qt.UserRole, completion)
             else:
                 completion_text = self.get_html_item_representation(
-                    completion_label, '', height=height, width=width)
+                    completion_label, "", height=height, width=width
+                )
                 item.setData(Qt.UserRole, completion_label)
                 item.setText(completion_text)
 
@@ -217,26 +223,34 @@ class CompletionWidget(QListWidget):
 
     def set_item_display(self, item_widget, item_info, height, width):
         """Set item text & icons using the info available."""
-        item_provider = item_info['provider']
-        item_type = self.ITEM_TYPE_MAP.get(item_info['kind'], 'no_match')
-        item_label = item_info['label']
-        icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
-                         "EQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
+        item_provider = item_info["provider"]
+        item_type = self.ITEM_TYPE_MAP.get(item_info["kind"], "no_match")
+        item_label = item_info["label"]
+        icon_provider = (
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
+            "EQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        )
         img_height = height - 2
         img_width = img_height * 0.8
 
-        icon_provider, icon_scale = item_info.get('icon', (None, 1))
+        icon_provider, icon_scale = item_info.get("icon", (None, 1))
         if icon_provider is not None:
             icon_height = img_height
             icon_width = icon_scale * icon_height
             icon_provider = ima.icon(icon_provider)
             icon_provider = ima.base64_from_icon_obj(
-                icon_provider, icon_width, icon_height)
+                icon_provider, icon_width, icon_height
+            )
 
         item_text = self.get_html_item_representation(
-            item_label, item_type, icon_provider=icon_provider,
-            img_height=img_height, img_width=img_width, height=height,
-            width=width)
+            item_label,
+            item_type,
+            icon_provider=icon_provider,
+            img_height=img_height,
+            img_width=img_width,
+            height=height,
+            width=width,
+        )
 
         item_widget.setText(item_text)
         item_widget.setIcon(self._get_cached_icon(item_type))
@@ -245,12 +259,16 @@ class CompletionWidget(QListWidget):
         # https://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
         item_widget.setData(Qt.AccessibleTextRole, f"{item_label} {item_type}")
 
-    def get_html_item_representation(self, item_completion, item_type,
-                                     icon_provider=None,
-                                     img_height=0,
-                                     img_width=0,
-                                     height=DEFAULT_COMPLETION_ITEM_HEIGHT,
-                                     width=DEFAULT_COMPLETION_ITEM_WIDTH):
+    def get_html_item_representation(
+        self,
+        item_completion,
+        item_type,
+        icon_provider=None,
+        img_height=0,
+        img_width=0,
+        height=DEFAULT_COMPLETION_ITEM_HEIGHT,
+        width=DEFAULT_COMPLETION_ITEM_WIDTH,
+    ):
         """Get HTML representation of and item."""
         height = to_text_string(height)
         width = to_text_string(width)
@@ -262,33 +280,48 @@ class CompletionWidget(QListWidget):
         # compiling them into efficient string operations, but to be
         # compatible with old versions of Python, we manually join strings.
         parts = [
-            '<table width="', width, '" height="', height, '">', '<tr>',
-
+            '<table width="',
+            width,
+            '" height="',
+            height,
+            '">',
+            "<tr>",
             '<td valign="middle" style="color:' + ima.MAIN_FG_COLOR + '">',
-            html.escape(item_completion).replace(' ', '&nbsp;'),
-            '</td>',
-
+            html.escape(item_completion).replace(" ", "&nbsp;"),
+            "</td>",
             '<td valign="middle" align="right" float="right" style="color:',
-            ima.MAIN_FG_COLOR, '">',
+            ima.MAIN_FG_COLOR,
+            '">',
             item_type,
-            '</td>',
+            "</td>",
         ]
         if icon_provider is not None:
             img_height = to_text_string(img_height)
             img_width = to_text_string(img_width)
 
-            parts.extend([
-                '<td valign="top" align="right" float="right" width="',
-                img_width, '">',
-                '<img src="data:image/png;base64, ', icon_provider,
-                '" height="', img_height, '" width="', img_width, '"/>',
-                '</td>',
-            ])
-        parts.extend([
-            '</tr>', '</table>',
-        ])
+            parts.extend(
+                [
+                    '<td valign="top" align="right" float="right" width="',
+                    img_width,
+                    '">',
+                    '<img src="data:image/png;base64, ',
+                    icon_provider,
+                    '" height="',
+                    img_height,
+                    '" width="',
+                    img_width,
+                    '"/>',
+                    "</td>",
+                ]
+            )
+        parts.extend(
+            [
+                "</tr>",
+                "</table>",
+            ]
+        )
 
-        return ''.join(parts)
+        return "".join(parts)
 
     def hide(self, focus_to_parent=True):
         """Override Qt method."""
@@ -302,7 +335,7 @@ class CompletionWidget(QListWidget):
         if focus_to_parent:
             self.textedit.setFocus()
 
-        tooltip = getattr(self.textedit, 'tooltip_widget', None)
+        tooltip = getattr(self.textedit, "tooltip_widget", None)
         if tooltip:
             tooltip.hide()
 
@@ -318,7 +351,7 @@ class CompletionWidget(QListWidget):
         altgr = event.modifiers() and (key == Qt.Key_AltGr)
         # Needed to properly handle Neo2 and other keyboard layouts
         # See spyder-ide/spyder#11293
-        neo2_level4 = (key == 0)  # AltGr (ISO_Level5_Shift) in Neo2 on Linux
+        neo2_level4 = key == 0  # AltGr (ISO_Level5_Shift) in Neo2 on Linux
         modifier = shift or ctrl or alt or altgr or neo2_level4
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
@@ -334,15 +367,25 @@ class CompletionWidget(QListWidget):
                 self.textedit.keyPressEvent(event)
         elif key == Qt.Key_Escape:
             self.hide()
-        elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
+        elif key in (Qt.Key_Left, Qt.Key_Right) or text in (".", ":"):
             self.hide()
             self.textedit.keyPressEvent(event)
-        elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End) and not modifier:
+        elif (
+            key
+            in (
+                Qt.Key_Up,
+                Qt.Key_Down,
+                Qt.Key_PageUp,
+                Qt.Key_PageDown,
+                Qt.Key_Home,
+                Qt.Key_End,
+            )
+            and not modifier
+        ):
             self.textedit._completions_hint_idle = True
             if key == Qt.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
-            elif key == Qt.Key_Down and self.currentRow() == self.count()-1:
+            elif key == Qt.Key_Down and self.currentRow() == self.count() - 1:
                 self.setCurrentRow(0)
             else:
                 QListWidget.keyPressEvent(self, event)
@@ -368,7 +411,7 @@ class CompletionWidget(QListWidget):
         current_word = self.textedit.get_current_word(completion=True)
         completion = item.data(Qt.UserRole)
         if isinstance(completion, dict):
-            filter_text = completion['filterText']
+            filter_text = completion["filterText"]
         else:
             filter_text = completion
         return self.check_can_complete(filter_text, current_word)
@@ -381,8 +424,11 @@ class CompletionWidget(QListWidget):
         if not current_word:
             return True
 
-        return to_text_string(filter_text).lower().startswith(
-                to_text_string(current_word).lower())
+        return (
+            to_text_string(filter_text)
+            .lower()
+            .startswith(to_text_string(current_word).lower())
+        )
 
     def is_position_correct(self):
         """Check if the position is correct."""
@@ -396,8 +442,7 @@ class CompletionWidget(QListWidget):
         if cursor_position < self.completion_position:
             return False
 
-        completion_text = self.textedit.get_current_word_and_position(
-            completion=True)
+        completion_text = self.textedit.get_current_word_and_position(completion=True)
 
         # If no text found, we must be at self.completion_position
         if completion_text is None:
@@ -410,8 +455,11 @@ class CompletionWidget(QListWidget):
         completion_text = to_text_string(completion_text)
 
         # The position of text must compatible with completion_position
-        if not text_position <= self.completion_position <= (
-                text_position + len(completion_text)):
+        if (
+            not text_position
+            <= self.completion_position
+            <= (text_position + len(completion_text))
+        ):
             return False
 
         return True
@@ -456,20 +504,21 @@ class CompletionWidget(QListWidget):
             item = self.currentItem()
 
         if item is not None and self.completion_position is not None:
-            self.textedit.insert_completion(item.data(Qt.UserRole),
-                                            self.completion_position)
+            self.textedit.insert_completion(
+                item.data(Qt.UserRole), self.completion_position
+            )
         self.hide()
 
     def _get_insert_text(self, item):
-        if 'textEdit' in item:
-            insert_text = item['textEdit']['newText']
+        if "textEdit" in item:
+            insert_text = item["textEdit"]["newText"]
         else:
-            insert_text = item['insertText']
+            insert_text = item["insertText"]
 
             # Split by starting $ or language specific chars
-            chars = ['$']
-            if self._language == 'python':
-                chars.append('(')
+            chars = ["$"]
+            if self._language == "python":
+                chars.append("(")
 
             for ch in chars:
                 insert_text = insert_text.split(ch)[0]
@@ -487,36 +536,32 @@ class CompletionWidget(QListWidget):
             return
 
         item = self.completion_list[row]
-        if 'point' not in item:
+        if "point" not in item:
             return
 
-        self.current_selected_item_label = item['label']
-        self.current_selected_item_point = item['point']
+        self.current_selected_item_label = item["label"]
+        self.current_selected_item_point = item["point"]
 
         insert_text = self._get_insert_text(item)
 
-        if hasattr(self.textedit, 'resolve_completion_item'):
-            if item.get('resolve', False):
+        if hasattr(self.textedit, "resolve_completion_item"):
+            if item.get("resolve", False):
                 to_resolve = item.copy()
-                to_resolve.pop('point')
-                to_resolve.pop('resolve')
+                to_resolve.pop("point")
+                to_resolve.pop("resolve")
                 self.textedit.resolve_completion_item(to_resolve)
 
-        if isinstance(item['documentation'], dict):
-            item['documentation'] = item['documentation']['value']
+        if isinstance(item["documentation"], dict):
+            item["documentation"] = item["documentation"]["value"]
 
-        self.sig_completion_hint.emit(
-            insert_text,
-            item['documentation'],
-            item['point'])
+        self.sig_completion_hint.emit(insert_text, item["documentation"], item["point"])
 
     def augment_completion_info(self, item):
-        if self.current_selected_item_label == item['label']:
+        if self.current_selected_item_label == item["label"]:
             insert_text = self._get_insert_text(item)
             self.sig_completion_hint.emit(
-                insert_text,
-                item['documentation'],
-                self.current_selected_item_point)
+                insert_text, item["documentation"], self.current_selected_item_point
+            )
 
     @Slot(int)
     def row_changed(self, row):

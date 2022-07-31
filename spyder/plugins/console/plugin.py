@@ -18,15 +18,19 @@ from qtpy.QtGui import QIcon
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import get_translation
 from spyder.config.base import DEV
 from spyder.plugins.console.widgets.main_widget import (
-    ConsoleWidget, ConsoleWidgetActions)
+    ConsoleWidget,
+    ConsoleWidgetActions,
+)
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
 
 # Localization
-_ = get_translation('spyder')
+_ = get_translation("spyder")
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -36,7 +40,8 @@ class Console(SpyderDockablePlugin):
     """
     Console widget
     """
-    NAME = 'internal_console'
+
+    NAME = "internal_console"
     WIDGET_CLASS = ConsoleWidget
     OPTIONAL = [Plugins.MainMenu]
     CONF_SECTION = NAME
@@ -81,13 +86,13 @@ class Console(SpyderDockablePlugin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Internal console')
+        return _("Internal console")
 
     def get_icon(self):
         return QIcon()
 
     def get_description(self):
-        return _('Internal console running Spyder.')
+        return _("Internal console running Spyder.")
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -101,9 +106,9 @@ class Console(SpyderDockablePlugin):
 
         # Crash handling
         previous_crash = self.get_conf(
-            'previous_crash',
-            default='',
-            section='main',
+            "previous_crash",
+            default="",
+            section="main",
         )
 
         if previous_crash:
@@ -112,8 +117,10 @@ class Console(SpyderDockablePlugin):
                 is_traceback=True,
                 title="Segmentation fault crash",
                 label=_("<h3>Spyder crashed during last session</h3>"),
-                steps=_("Please provide any additional information you "
-                        "might have about the crash."),
+                steps=_(
+                    "Please provide any additional information you "
+                    "might have about the crash."
+                ),
             )
             widget.handle_exception(error_data)
 
@@ -126,14 +133,15 @@ class Console(SpyderDockablePlugin):
         mainmenu.add_item_to_application_menu(
             widget.quit_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart,
+        )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            ConsoleWidgetActions.Quit,
-            menu_id=ApplicationMenus.File)
+            ConsoleWidgetActions.Quit, menu_id=ApplicationMenus.File
+        )
 
     def update_font(self):
         font = self.get_font()
@@ -223,10 +231,7 @@ class Console(SpyderDockablePlugin):
         """
         if sender is None:
             sender = self.sender()
-        self.get_widget().handle_exception(
-            error_data,
-            sender=sender
-        )
+        self.get_widget().handle_exception(error_data, sender=sender)
 
     def quit(self):
         """

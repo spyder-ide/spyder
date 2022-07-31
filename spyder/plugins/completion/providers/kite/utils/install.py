@@ -25,7 +25,11 @@ from qtpy.QtCore import QThread, Signal
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed, WINDOWS_URL, LINUX_URL, MAC_URL)
+    check_if_kite_installed,
+    WINDOWS_URL,
+    LINUX_URL,
+    MAC_URL,
+)
 
 # Installation process statuses
 NO_STATUS = _("No status")
@@ -41,6 +45,7 @@ logger = logging.getLogger(__name__)
 
 class KiteInstallationCancelledException(Exception):
     """Kite installation was cancelled."""
+
     pass
 
 
@@ -65,15 +70,15 @@ class KiteInstallationThread(QThread):
         super(KiteInstallationThread, self).__init__()
         self.status = NO_STATUS
         self.cancelled = False
-        if os.name == 'nt':
+        if os.name == "nt":
             self._download_url = WINDOWS_URL
-            self._installer_name = 'kiteSetup.exe'
-        elif sys.platform == 'darwin':
+            self._installer_name = "kiteSetup.exe"
+        elif sys.platform == "darwin":
             self._download_url = MAC_URL
-            self._installer_name = 'Kite.dmg'
+            self._installer_name = "Kite.dmg"
         else:
             self._download_url = LINUX_URL
-            self._installer_name = 'kite_installer.sh'
+            self._installer_name = "kite_installer.sh"
 
     def _change_installation_status(self, status=NO_STATUS):
         """Set the installation status."""
@@ -93,38 +98,38 @@ class KiteInstallationThread(QThread):
         """Download the installer or installation script."""
         temp_dir = gettempdir()
         path = osp.join(temp_dir, self._installer_name)
-        if sys.platform.startswith('linux'):
+        if sys.platform.startswith("linux"):
             self._change_installation_status(status=DOWNLOADING_SCRIPT)
         else:
             self._change_installation_status(status=DOWNLOADING_INSTALLER)
 
-        return urlretrieve(
-            self._download_url,
-            path,
-            reporthook=self._progress_reporter)
+        return urlretrieve(self._download_url, path, reporthook=self._progress_reporter)
 
     def _execute_windows_installation(self, installer_path):
         """Installation on Windows."""
         self._change_installation_status(status=INSTALLING)
         install_command = [
             installer_path,
-            '--plugin-launch-with-copilot',
-            '--channel=spyder']
+            "--plugin-launch-with-copilot",
+            "--channel=spyder",
+        ]
         subprocess.check_call(install_command, shell=True)
 
     def _execute_mac_installation(self, installer_path):
         """Installation on MacOS."""
         self._change_installation_status(status=INSTALLING)
         install_commands = [
-            ['hdiutil', 'attach', '-nobrowse', installer_path],
-            ['cp', '-r', '/Volumes/Kite/Kite.app', '/Applications/'],
-            ['hdiutil', 'detach', '/Volumes/Kite/'],
-            ['open',
-             '-a',
-             '/Applications/Kite.app',
-             '--args',
-             '--plugin-launch-with-copilot',
-             '--channel=spyder']
+            ["hdiutil", "attach", "-nobrowse", installer_path],
+            ["cp", "-r", "/Volumes/Kite/Kite.app", "/Applications/"],
+            ["hdiutil", "detach", "/Volumes/Kite/"],
+            [
+                "open",
+                "-a",
+                "/Applications/Kite.app",
+                "--args",
+                "--plugin-launch-with-copilot",
+                "--channel=spyder",
+            ],
         ]
         for command in install_commands:
             subprocess.check_call(command)
@@ -134,22 +139,22 @@ class KiteInstallationThread(QThread):
         self._change_installation_status(status=DOWNLOADING_INSTALLER)
         stat_file = os.stat(installer_path)
         os.chmod(installer_path, stat_file.st_mode | stat.S_IEXEC)
-        download_command = '{} --download'.format(installer_path)
+        download_command = "{} --download".format(installer_path)
         download_process = subprocess.Popen(
             download_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            shell=True
-            )
+            shell=True,
+        )
         while not self.cancelled:
             progress = download_process.stdout.readline()
             progress = to_text_string(progress, "utf-8")
-            if progress == '' and download_process.poll() is not None:
+            if progress == "" and download_process.poll() is not None:
                 break
-            if re.match(r'Download: (\d+)/(\d+)', progress):
-                download_progress = progress.split(':')[-1].strip()
-                current_progress = download_progress.split('/')[0]
-                total_size = download_progress.split('/')[1]
+            if re.match(r"Download: (\d+)/(\d+)", progress):
+                download_progress = progress.split(":")[-1].strip()
+                current_progress = download_progress.split("/")[0]
+                total_size = download_progress.split("/")[1]
                 self.sig_download_progress.emit(current_progress, total_size)
 
         if self.cancelled:
@@ -160,11 +165,12 @@ class KiteInstallationThread(QThread):
         if return_code:
             raise subprocess.CalledProcessError(return_code, download_command)
 
-        install_command = [installer_path, '--install']
+        install_command = [installer_path, "--install"]
         run_command = [
-            '~/.local/share/kite/kited',
-            '--plugin-launch-with-copilot',
-            '--channel=spyder']
+            "~/.local/share/kite/kited",
+            "--plugin-launch-with-copilot",
+            "--channel=spyder",
+        ]
 
         self._change_installation_status(status=INSTALLING)
         subprocess.check_call(install_command)
@@ -172,9 +178,9 @@ class KiteInstallationThread(QThread):
 
     def _execute_installer_or_script(self, installer_path):
         """Execute the installer."""
-        if os.name == 'nt':
+        if os.name == "nt":
             self._execute_windows_installation(installer_path)
-        elif sys.platform == 'darwin':
+        elif sys.platform == "darwin":
             self._execute_mac_installation(installer_path)
         else:
             self._execute_linux_installation(installer_path)
@@ -198,8 +204,7 @@ class KiteInstallationThread(QThread):
                 self._change_installation_status(status=CANCELLED)
             except Exception as error:
                 self._change_installation_status(status=ERRORED)
-                logger.debug(
-                    "Installation error: {0}".format(to_text_string(error)))
+                logger.debug("Installation error: {0}".format(to_text_string(error)))
                 self.sig_error_msg.emit(to_text_string(error))
         return
 
@@ -214,16 +219,16 @@ class KiteInstallationThread(QThread):
         return self.status in [ERRORED, CANCELLED]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     install_manager = KiteInstallationThread(None)
-    install_manager.sig_installation_status.connect(
-        lambda status: print(status))
-    install_manager.sig_error_msg.connect(
-        lambda error: print(error))
+    install_manager.sig_installation_status.connect(lambda status: print(status))
+    install_manager.sig_error_msg.connect(lambda error: print(error))
     install_manager.sig_download_progress.connect(
-        lambda progress, total: print('{0}/{1}'.format(progress, total)))
+        lambda progress, total: print("{0}/{1}".format(progress, total))
+    )
     install_manager.install()
     install_manager.finished.connect(app.quit)
     app.exec_()
