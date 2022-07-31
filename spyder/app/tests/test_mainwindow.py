@@ -71,7 +71,7 @@ from spyder.widgets.dock import DockTitleBar
 # ---- Constants
 # =============================================================================
 # Location of this file
-LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
+LOCATION = osp.join(osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__))), "data")
 
 # Time to wait until the IPython console is ready to receive input
 # (in milliseconds)
