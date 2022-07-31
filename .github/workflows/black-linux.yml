@@ -1,0 +1,55 @@
+name: Black tests
+
+on:
+  push:
+    branches:
+      - master
+      - 5.*
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
+
+  pull_request:
+    branches:
+      - master
+      - 5.*
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers/**'
+      - '!.github/workflows/installer*.yml'
+
+jobs:
+  build:
+    name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout Pull Requests
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Push
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v2
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Install Black
+        run: pip install black
+      - name: Run Black
+        run: black . --exclude "((external-deps|build|rope_profiling)/.+|.+/tests/(data|assets)/.+)" --check
