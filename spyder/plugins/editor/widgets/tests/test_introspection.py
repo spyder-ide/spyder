@@ -219,11 +219,12 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@flaky(max_runs=5)
+@flaky(max_runs=10)
 def test_automatic_completions(completions_codeeditor, qtbot):
     """Test on-the-fly completions."""
     code_editor, _ = completions_codeeditor
     completion = code_editor.completion_widget
+    delay = code_editor.LSP_REQUESTS_TIMEOUT
     code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
@@ -231,8 +232,8 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     # Complete f -> from
     with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'f')
+                          timeout=3000) as sig:
+        qtbot.keyClicks(code_editor, 'f', delay=delay)
 
     assert "from" in [x['label'] for x in sig.args[0]]
     # qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -252,19 +253,19 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' n')
+        qtbot.keyClicks(code_editor, ' n', delay=delay)
 
     assert "ntpath" in [x['label'] for x in sig.args[0]]
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'ump')
+        qtbot.keyClicks(code_editor, 'ump', delay=delay)
 
     assert "numpy" in [x['label'] for x in sig.args[0]]
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'y')
+        qtbot.keyClicks(code_editor, 'y', delay=delay)
 
     # Due to automatic completion, the completion widget may appear before
     stop = False
@@ -279,7 +280,7 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' imp')
+        qtbot.keyClicks(code_editor, ' imp', delay=delay)
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -302,7 +303,7 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' r')
+        qtbot.keyClicks(code_editor, ' r', delay=delay)
 
     assert "random" in [x['label'] for x in sig.args[0]]
     code_editor.toggle_code_snippets(True)
@@ -366,7 +367,7 @@ def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
     Test on-the-fly completions.
@@ -378,11 +379,13 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
     code_editor, _ = completions_codeeditor
     completion = code_editor.completion_widget
+    delay = 200
     code_editor.toggle_code_snippets(False)
 
     # Parens:
     # Set cursor to start
     code_editor.set_text('my_list = [1, 2, 3]\nlist_copy = list((my))')
+    qtbot.wait(500)
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
@@ -394,13 +397,15 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Complete my_ -> my_list
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
-        qtbot.keyClicks(code_editor, '_')
+        qtbot.keyClicks(code_editor, '_', delay=delay)
 
     assert "my_list" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter)
 
     # Square braces:
     # Set cursor to start
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = my_dic[on]')
+    qtbot.wait(500)
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
@@ -411,13 +416,15 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Complete one -> onesee
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
-        qtbot.keyClicks(code_editor, 'e')
+        qtbot.keyClicks(code_editor, 'e', delay=delay)
 
     assert "onesee" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter)
 
     # Curly braces:
     # Set cursor to start
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = {on}')
+    qtbot.wait(500)
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
@@ -428,9 +435,10 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Complete one -> onesee
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
-        qtbot.keyClicks(code_editor, 'e')
+        qtbot.keyClicks(code_editor, 'e', delay=delay)
 
     assert "onesee" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter)
 
 
 @pytest.mark.slow
