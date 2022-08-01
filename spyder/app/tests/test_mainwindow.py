@@ -4042,12 +4042,18 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     assert len(nsb.editor.source_model._data) == 0
 
     # Wait a bit, refresh, and make sure we captured an in-between value
-    qtbot.wait(300)
+    qtbot.wait(700)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
     assert 0 < int(nsb.editor.source_model._data['j']['view']) < 9
 
     qtbot.waitSignal(shell.executed)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "del j"
+        )
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 0)
 
     # Run file inside a debugger
     with qtbot.waitSignal(shell.executed):
@@ -4055,14 +4061,11 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
             "debugfile(" + repr(str(file1)) + ")"
         )
 
-    # Verify that we are still on debugging
-    assert shell.is_waiting_pdb_input()
-
     # continue
     shell.execute("c")
-    qtbot.wait(300)
+    qtbot.wait(700)
     nsb.refresh_table()
-    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 2)
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
     assert nsb.editor.source_model._data['j']['view'] == '9'
     assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
 
