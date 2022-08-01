@@ -2211,6 +2211,47 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Times out sometimes")
+def test_varexp_magic_dbg_locals(main_window, qtbot):
+    """Test that %varexp is working while debugging locals."""
+    nsb = main_window.variableexplorer.current_widget()
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # create new file with function
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text('def f():\n    li = [1, 2]\n    return li\nf()')
+
+    # Give focus to the widget that's going to receive clicks
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+    control.setFocus()
+
+    # Click the debug button
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+
+    # Get to an object that can be plotted
+    for _ in range(4):
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(control, '!s')
+            qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Generate the plot from the Variable Explorer
+    nsb.editor.plot('li', 'plot')
+    qtbot.wait(1000)
+
+    # Assert that there's a plot in the console
+    assert shell._control.toHtml().count('img src') == 1
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(PY2, reason="It times out sometimes")
 @pytest.mark.parametrize(
     'main_window',
