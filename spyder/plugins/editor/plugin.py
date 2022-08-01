@@ -23,8 +23,7 @@ import time
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtGui import QTextCursor
-from qtpy.QtPrintSupport import (QAbstractPrintDialog, QPrintDialog, QPrinter,
-                                 QPrintPreviewDialog)
+from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
                             QToolBar, QVBoxLayout, QWidget)
@@ -47,11 +46,12 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
-from spyder.plugins.editor.widgets.codeeditor_widgets import Printer
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
                                                   EditorStack,)
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.printer import (
+    SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    save_bookmarks)
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
@@ -2320,8 +2320,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._print_editor.set_font(self.get_font())
 
         # Create printer
-        printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_font())
+        printer = SpyderPrinter(mode=QPrinter.HighResolution,
+                                header_font=self.get_font())
         print_dialog = QPrintDialog(printer, self._print_editor)
 
         # Adjust print options when user has selected text
@@ -2362,11 +2362,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._print_editor.set_font(self.get_font())
 
         # Create printer
-        printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_font())
+        printer = SpyderPrinter(mode=QPrinter.HighResolution,
+                                header_font=self.get_font())
 
         # Create preview
-        preview = QPrintPreviewDialog(printer, self)
+        preview = SpyderPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
         preview.paintRequested.connect(
             lambda printer: self._print_editor.print_(printer)
