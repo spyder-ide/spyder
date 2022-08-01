@@ -594,7 +594,7 @@ class SpyderKernel(IPythonKernel):
         both locals() and globals() for current frame when debugging
         """
         ns = {}
-        if self.shell.is_debugging() and self.shell.pdb_session.prompt_waiting:
+        if self.shell.is_debugging() and self.shell.pdb_session.curframe:
             # Stopped at a pdb prompt
             ns.update(self.shell.user_ns)
             ns.update(self.shell._pdb_locals)

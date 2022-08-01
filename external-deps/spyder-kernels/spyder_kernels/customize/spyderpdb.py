@@ -105,9 +105,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         # Keep track of remote filename
         self.remote_filename = None
 
-        # State of the prompt
-        self.prompt_waiting = False
-
         # Line received from the frontend
         self._cmd_input_line = None
 
@@ -660,11 +657,9 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 line = self.cmdqueue.pop(0)
             else:
                 try:
-                    self.prompt_waiting = True
                     line = self.cmd_input(self.prompt)
                 except EOFError:
                     line = 'EOF'
-            self.prompt_waiting = False
             line = self.precmd(line)
             stop = self.onecmd(line)
             stop = self.postcmd(stop, line)
