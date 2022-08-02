@@ -30,7 +30,7 @@ NO_STATUS = _("No status")
 DOWNLOADING_INSTALLER = _("Downloading installer")
 INSTALLING = _("Installing")
 FINISHED = _("Installation finished")
-PENDING = _("Update ready")
+PENDING = _("Pending update")
 CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled")
 

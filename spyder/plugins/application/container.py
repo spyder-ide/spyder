@@ -49,12 +49,12 @@ if os.name == 'nt':
 _ = get_translation('spyder')
 
 
-# Update Installation process statuses
+# Update Installation process statusesf
 NO_STATUS = _("No status")
 DOWNLOADING_INSTALLER = _("Downloading installer")
 INSTALLING = _("Installing")
 FINISHED = _("Installation finished")
-PENDING = _("Update ready")
+PENDING = _("Pending update")
 CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled")
 
@@ -285,7 +285,7 @@ class ApplicationContainer(PluginMainContainer):
         else:
             self.sig_download_progress.emit(progress, total_size)
 
-    def _cancell_thread_install_update(self):
+    def cancell_thread_install_update(self):
         self._change_update_installation_status(status=CANCELLED)
         self.thread_install_update.join()
 
@@ -306,7 +306,7 @@ class ApplicationContainer(PluginMainContainer):
         finally:
             self._change_update_installation_status(status=PENDING)
 
-    def _thread_launcher(self, option):
+    def installation_thread(self, option):
         if option.text() in ('&Yes'):
             self.cancelled = False
             self._change_update_installation_status(
@@ -392,7 +392,7 @@ class ApplicationContainer(PluginMainContainer):
                             "You want to download and install the latest "
                             "version of spyder?<br><br>"
                         )
-                        box.buttonClicked.connect(self._thread_launcher)
+                        box.buttonClicked.connect(self.installation_thread)
                     else:
                         content = _(
                             "Click <a href=\"{}\">this link</a> to "

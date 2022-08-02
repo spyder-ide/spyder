@@ -26,7 +26,7 @@ NO_STATUS = _("No status")
 DOWNLOADING_INSTALLER = _("Downloading installer")
 INSTALLING = _("Installing")
 FINISHED = _("Installation finished")
-PENDING = _("Update ready")
+PENDING = _("Pending update")
 CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled")
 
@@ -136,7 +136,7 @@ class UpdateInstallerDialog(QDialog):
             QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self._installation_thread.cancelled = True
-            self._installation_thread._cancell_thread_install_update()
+            self._installation_thread.cancell_thread_install_update()
             self.setup()
             self.accept()
             return True
@@ -145,13 +145,13 @@ class UpdateInstallerDialog(QDialog):
     def continue_install(self):
         """Cancel the installation in progress."""
         reply = QMessageBox(icon=QMessageBox.Question,
-                            text=_('Do you really want to cancel Update'
-                                   'installation?'),
-                            parent=self)
+                            text=_('Do you want to download and install the latest version of'
+                                   ' spyder?<br>'),
+                            parent=self._parent)
         reply.setWindowTitle("Spyder")
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        reply.buttonClicked.connect(self._installation_thread._thread_launcher)
+        reply.buttonClicked.connect(self._installation_thread.installation_thread)
         reply.show()
 
     def finished_installation(self, status):
