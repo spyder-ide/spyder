@@ -105,7 +105,7 @@ class SpyderShell(ZMQInteractiveShell):
             logger.debug("Could not send debugging state to the frontend.")
 
     def remove_pdb_session(self, pdb_obj):
-        """Remove a pdb object to the stack."""
+        """Remove a pdb object from the stack."""
         if self.pdb_session != pdb_obj:
             # Already removed
             return
