@@ -68,7 +68,13 @@ class ConfigPage(QWidget):
 
     def __init__(self, parent, apply_callback=None):
         QWidget.__init__(self, parent)
+
+        # Callback to call before saving settings to disk
+        self.pre_apply_callback = None
+
+        # Callback to call after saving settings to disk
         self.apply_callback = apply_callback
+
         self.is_modified = False
 
     def initialize(self):
@@ -103,7 +109,11 @@ class ConfigPage(QWidget):
     def apply_changes(self):
         """Apply changes callback"""
         if self.is_modified:
+            if self.pre_apply_callback is not None:
+                self.pre_apply_callback()
+
             self.save_to_conf()
+
             if self.apply_callback is not None:
                 self.apply_callback()
 
@@ -813,26 +823,19 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def prompt_restart_required(self):
         """Prompt the user with a request to restart."""
-        restart_opts = self.restart_options
-        changed_opts = self.changed_options
-        options = [restart_opts[o] for o in changed_opts if o in restart_opts]
+        message = _(
+            "One or more of the settings you changed requires a restart to be "
+            "applied.<br><br>"
+            "Do you wish to restart now?"
+        )
 
-        if len(options) == 1:
-            msg_start = _("Spyder needs to restart to change the following "
-                          "setting:")
-        else:
-            msg_start = _("Spyder needs to restart to change the following "
-                          "settings:")
-        msg_end = _("Do you wish to restart now?")
+        answer = QMessageBox.information(
+            self,
+            _("Information"),
+            message,
+            QMessageBox.Yes | QMessageBox.No
+        )
 
-        msg_options = u""
-        for option in options:
-            msg_options += u"<li>{0}</li>".format(option)
-
-        msg_title = _("Information")
-        msg = u"{0}<ul>{1}</ul><br>{2}".format(msg_start, msg_options, msg_end)
-        answer = QMessageBox.information(self, msg_title, msg,
-                                         QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.restart()
 
