@@ -4042,7 +4042,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     assert len(nsb.editor.source_model._data) == 0
 
     # Wait a bit, refresh, and make sure we captured an in-between value
-    qtbot.wait(700)
+    qtbot.wait(500)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
     assert 0 < int(nsb.editor.source_model._data['j']['view']) < 9
@@ -4063,7 +4063,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
 
     # continue
     shell.execute("c")
-    qtbot.wait(700)
+    qtbot.wait(500)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
     assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
