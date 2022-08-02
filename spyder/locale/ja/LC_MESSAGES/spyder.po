@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-07-01 10:40-0500\n"
-"PO-Revision-Date: 2022-07-06 16:23\n"
+"PO-Revision-Date: 2022-08-02 00:49\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -3113,7 +3113,7 @@ msgstr "ファイルエクスプローラー"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1117
 msgid "The current directory contains a project.<br><br>If you want to delete the project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
-msgstr "現在のディクショナリはプロジェクトを含んでいます。<br><br>プロジェクトを削除したい場合は<b>プロジェクト</b> &raquo; <b>プロジェクトの削除</b>を選択して下さい"
+msgstr "現在のディレクトリはプロジェクトを含んでいます。<br><br>プロジェクトを削除したい場合は<b>プロジェクト</b> &raquo; <b>プロジェクトの削除</b>を選択して下さい"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1129
 msgid "New name:"
@@ -5103,7 +5103,7 @@ msgstr "新しいSpyderプロジェクトを作成するために新規、ある
 
 #: spyder/plugins/projects/widgets/projectdialog.py:82
 msgid "New directory"
-msgstr "新規ディクショナリ"
+msgstr "新規ディレクトリ"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:83
 msgid "Existing directory"
@@ -6267,7 +6267,7 @@ msgstr "プロジェクト (開いていた場合) またはユーザーのホ�
 
 #: spyder/plugins/workingdirectory/confpage.py:43
 msgid "The startup working dir will be root of the current project if one is open, otherwise the user home directory"
-msgstr "スタートアプ時の作業ディレクトリは、プロジェクトを開いている場合はプロジェクトのルートに、そうでない場合はユーザーのホームディレクトリに設定されます"
+msgstr "スタートアップ時の作業ディレクトリは、プロジェクトを開いている場合はプロジェクトのルートに、そうでない場合はユーザーのホームディレクトリに設定されます"
 
 #: spyder/plugins/workingdirectory/confpage.py:51
 msgid "At startup, the current working directory will be the specified path"
