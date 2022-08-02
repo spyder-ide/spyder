@@ -144,6 +144,203 @@ class MainWindow(QMainWindow):
     sig_moved = Signal("QMoveEvent")
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
+    def __init__(self, splash=None, options=None):
+        QMainWindow.__init__(self)
+        qapp = QApplication.instance()
+
+        if running_under_pytest():
+            self._proxy_style = None
+        else:
+            from spyder.utils.qthelpers import SpyderProxyStyle
+            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
+            self._proxy_style = SpyderProxyStyle(None)
+
+        # Enabling scaling for high dpi
+        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+        # Set Windows app icon to use .ico file
+        if os.name == "nt":
+            qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
+
+        # Set default style
+        self.default_style = str(qapp.style().objectName())
+
+        # Save command line options for plugins to access them
+        self._cli_options = options
+
+        logger.info("Start of MainWindow constructor")
+
+        def signal_handler(signum, frame=None):
+            """Handler for signals."""
+            sys.stdout.write('Handling signal: %s\n' % signum)
+            sys.stdout.flush()
+            QApplication.quit()
+
+        if os.name == "nt":
+            try:
+                import win32api
+                win32api.SetConsoleCtrlHandler(signal_handler, True)
+            except ImportError:
+                pass
+        else:
+            signal.signal(signal.SIGTERM, signal_handler)
+            if not DEV:
+                # Make spyder quit when presing ctrl+C in the console
+                # In DEV Ctrl+C doesn't quit, because it helps to
+                # capture the traceback when spyder freezes
+                signal.signal(signal.SIGINT, signal_handler)
+
+        # Use a custom Qt stylesheet
+        if sys.platform == 'darwin':
+            spy_path = get_module_source_path('spyder')
+            img_path = osp.join(spy_path, 'images')
+            mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
+            mac_style = mac_style.replace('$IMAGE_PATH', img_path)
+            self.setStyleSheet(mac_style)
+
+        # Shortcut management data
+        self.shortcut_data = []
+        self.shortcut_queue = []
+
+        # Handle Spyder path
+        self.path = ()
+        self.not_active_path = ()
+        self.project_path = ()
+        self._path_manager = None
+
+        # New API
+        self._APPLICATION_TOOLBARS = OrderedDict()
+        self._STATUS_WIDGETS = OrderedDict()
+        # Mapping of new plugin identifiers vs old attributtes
+        # names given for plugins or to prevent collisions with other
+        # attributes, i.e layout (Qt) vs layout (SpyderPluginV2)
+        self._INTERNAL_PLUGINS_MAPPING = {
+            'console': Plugins.Console,
+            'maininterpreter': Plugins.MainInterpreter,
+            'outlineexplorer': Plugins.OutlineExplorer,
+            'variableexplorer': Plugins.VariableExplorer,
+            'ipyconsole': Plugins.IPythonConsole,
+            'workingdirectory': Plugins.WorkingDirectory,
+            'projects': Plugins.Projects,
+            'findinfiles': Plugins.Find,
+            'layouts': Plugins.Layout,
+        }
+
+        self.thirdparty_plugins = []
+
+        # File switcher
+        self.switcher = None
+
+        # Preferences
+        self.prefs_dialog_size = None
+        self.prefs_dialog_instance = None
+
+        # Actions
+        self.undo_action = None
+        self.redo_action = None
+        self.copy_action = None
+        self.cut_action = None
+        self.paste_action = None
+        self.selectall_action = None
+
+        # Menu bars
+        self.edit_menu = None
+        self.edit_menu_actions = []
+        self.search_menu = None
+        self.search_menu_actions = []
+        self.source_menu = None
+        self.source_menu_actions = []
+        self.run_menu = None
+        self.run_menu_actions = []
+        self.debug_menu = None
+        self.debug_menu_actions = []
+
+        # TODO: Move to corresponding Plugins
+        self.main_toolbar = None
+        self.main_toolbar_actions = []
+        self.file_toolbar = None
+        self.file_toolbar_actions = []
+        self.run_toolbar = None
+        self.run_toolbar_actions = []
+        self.debug_toolbar = None
+        self.debug_toolbar_actions = []
+
+        self.menus = []
+
+        if running_under_pytest():
+            # Show errors in internal console when testing.
+            CONF.set('main', 'show_internal_errors', False)
+
+        self.CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
+
+        if set_windows_appusermodelid != None:
+            res = set_windows_appusermodelid()
+            logger.info("appusermodelid: %s", res)
+
+        # Setting QTimer if running in travis
+        test_app = os.environ.get('TEST_CI_APP')
+        if test_app is not None:
+            app = qapplication()
+            timer_shutdown_time = 30000
+            self.timer_shutdown = QTimer(self)
+            self.timer_shutdown.timeout.connect(app.quit)
+            self.timer_shutdown.start(timer_shutdown_time)
+
+        # Showing splash screen
+        self.splash = splash
+        if CONF.get('main', 'current_version', '') != __version__:
+            CONF.set('main', 'current_version', __version__)
+            # Execute here the actions to be performed only once after
+            # each update (there is nothing there for now, but it could
+            # be useful some day...)
+
+        # List of satellite widgets (registered in add_dockwidget):
+        self.widgetlist = []
+
+        # Flags used if closing() is called by the exit() shell command
+        self.already_closed = False
+        self.is_starting_up = True
+        self.is_setting_up = True
+
+        self.window_size = None
+        self.window_position = None
+
+        # To keep track of the last focused widget
+        self.last_focused_widget = None
+        self.previous_focused_widget = None
+
+        # Server to open external files on a single instance
+        # This is needed in order to handle socket creation problems.
+        # See spyder-ide/spyder#4132.
+        if os.name == 'nt':
+            try:
+                self.open_files_server = socket.socket(socket.AF_INET,
+                                                       socket.SOCK_STREAM,
+                                                       socket.IPPROTO_TCP)
+            except OSError:
+                self.open_files_server = None
+                QMessageBox.warning(None, "Spyder",
+                         _("An error occurred while creating a socket needed "
+                           "by Spyder. Please, try to run as an Administrator "
+                           "from cmd.exe the following command and then "
+                           "restart your computer: <br><br><span "
+                           "style=\'color: {color}\'><b>netsh winsock reset "
+                           "</b></span><br>").format(
+                               color=QStylePalette.COLOR_BACKGROUND_4))
+        else:
+            self.open_files_server = socket.socket(socket.AF_INET,
+                                                   socket.SOCK_STREAM,
+                                                   socket.IPPROTO_TCP)
+
+        # Apply main window settings
+        self.apply_settings()
+
+        # To set all dockwidgets tabs to be on top (in case we want to do it
+        # in the future)
+        # self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
+
+        logger.info("End of MainWindow constructor")
+
     # ---- Plugin handling methods
     # ------------------------------------------------------------------------
     def get_plugin(self, plugin_name, error=True):
@@ -510,203 +707,6 @@ class MainWindow(QMainWindow):
         console = self.get_plugin(Plugins.Console, error=False)
         if console:
             console.handle_exception(error_data)
-
-    def __init__(self, splash=None, options=None):
-        QMainWindow.__init__(self)
-        qapp = QApplication.instance()
-
-        if running_under_pytest():
-            self._proxy_style = None
-        else:
-            from spyder.utils.qthelpers import SpyderProxyStyle
-            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
-            self._proxy_style = SpyderProxyStyle(None)
-
-        # Enabling scaling for high dpi
-        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
-
-        # Set Windows app icon to use .ico file
-        if os.name == "nt":
-            qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
-
-        # Set default style
-        self.default_style = str(qapp.style().objectName())
-
-        # Save command line options for plugins to access them
-        self._cli_options = options
-
-        logger.info("Start of MainWindow constructor")
-
-        def signal_handler(signum, frame=None):
-            """Handler for signals."""
-            sys.stdout.write('Handling signal: %s\n' % signum)
-            sys.stdout.flush()
-            QApplication.quit()
-
-        if os.name == "nt":
-            try:
-                import win32api
-                win32api.SetConsoleCtrlHandler(signal_handler, True)
-            except ImportError:
-                pass
-        else:
-            signal.signal(signal.SIGTERM, signal_handler)
-            if not DEV:
-                # Make spyder quit when presing ctrl+C in the console
-                # In DEV Ctrl+C doesn't quit, because it helps to
-                # capture the traceback when spyder freezes
-                signal.signal(signal.SIGINT, signal_handler)
-
-        # Use a custom Qt stylesheet
-        if sys.platform == 'darwin':
-            spy_path = get_module_source_path('spyder')
-            img_path = osp.join(spy_path, 'images')
-            mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
-            mac_style = mac_style.replace('$IMAGE_PATH', img_path)
-            self.setStyleSheet(mac_style)
-
-        # Shortcut management data
-        self.shortcut_data = []
-        self.shortcut_queue = []
-
-        # Handle Spyder path
-        self.path = ()
-        self.not_active_path = ()
-        self.project_path = ()
-        self._path_manager = None
-
-        # New API
-        self._APPLICATION_TOOLBARS = OrderedDict()
-        self._STATUS_WIDGETS = OrderedDict()
-        # Mapping of new plugin identifiers vs old attributtes
-        # names given for plugins or to prevent collisions with other
-        # attributes, i.e layout (Qt) vs layout (SpyderPluginV2)
-        self._INTERNAL_PLUGINS_MAPPING = {
-            'console': Plugins.Console,
-            'maininterpreter': Plugins.MainInterpreter,
-            'outlineexplorer': Plugins.OutlineExplorer,
-            'variableexplorer': Plugins.VariableExplorer,
-            'ipyconsole': Plugins.IPythonConsole,
-            'workingdirectory': Plugins.WorkingDirectory,
-            'projects': Plugins.Projects,
-            'findinfiles': Plugins.Find,
-            'layouts': Plugins.Layout,
-        }
-
-        self.thirdparty_plugins = []
-
-        # File switcher
-        self.switcher = None
-
-        # Preferences
-        self.prefs_dialog_size = None
-        self.prefs_dialog_instance = None
-
-        # Actions
-        self.undo_action = None
-        self.redo_action = None
-        self.copy_action = None
-        self.cut_action = None
-        self.paste_action = None
-        self.selectall_action = None
-
-        # Menu bars
-        self.edit_menu = None
-        self.edit_menu_actions = []
-        self.search_menu = None
-        self.search_menu_actions = []
-        self.source_menu = None
-        self.source_menu_actions = []
-        self.run_menu = None
-        self.run_menu_actions = []
-        self.debug_menu = None
-        self.debug_menu_actions = []
-
-        # TODO: Move to corresponding Plugins
-        self.main_toolbar = None
-        self.main_toolbar_actions = []
-        self.file_toolbar = None
-        self.file_toolbar_actions = []
-        self.run_toolbar = None
-        self.run_toolbar_actions = []
-        self.debug_toolbar = None
-        self.debug_toolbar_actions = []
-
-        self.menus = []
-
-        if running_under_pytest():
-            # Show errors in internal console when testing.
-            CONF.set('main', 'show_internal_errors', False)
-
-        self.CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
-
-        if set_windows_appusermodelid != None:
-            res = set_windows_appusermodelid()
-            logger.info("appusermodelid: %s", res)
-
-        # Setting QTimer if running in travis
-        test_app = os.environ.get('TEST_CI_APP')
-        if test_app is not None:
-            app = qapplication()
-            timer_shutdown_time = 30000
-            self.timer_shutdown = QTimer(self)
-            self.timer_shutdown.timeout.connect(app.quit)
-            self.timer_shutdown.start(timer_shutdown_time)
-
-        # Showing splash screen
-        self.splash = splash
-        if CONF.get('main', 'current_version', '') != __version__:
-            CONF.set('main', 'current_version', __version__)
-            # Execute here the actions to be performed only once after
-            # each update (there is nothing there for now, but it could
-            # be useful some day...)
-
-        # List of satellite widgets (registered in add_dockwidget):
-        self.widgetlist = []
-
-        # Flags used if closing() is called by the exit() shell command
-        self.already_closed = False
-        self.is_starting_up = True
-        self.is_setting_up = True
-
-        self.window_size = None
-        self.window_position = None
-
-        # To keep track of the last focused widget
-        self.last_focused_widget = None
-        self.previous_focused_widget = None
-
-        # Server to open external files on a single instance
-        # This is needed in order to handle socket creation problems.
-        # See spyder-ide/spyder#4132.
-        if os.name == 'nt':
-            try:
-                self.open_files_server = socket.socket(socket.AF_INET,
-                                                       socket.SOCK_STREAM,
-                                                       socket.IPPROTO_TCP)
-            except OSError:
-                self.open_files_server = None
-                QMessageBox.warning(None, "Spyder",
-                         _("An error occurred while creating a socket needed "
-                           "by Spyder. Please, try to run as an Administrator "
-                           "from cmd.exe the following command and then "
-                           "restart your computer: <br><br><span "
-                           "style=\'color: {color}\'><b>netsh winsock reset "
-                           "</b></span><br>").format(
-                               color=QStylePalette.COLOR_BACKGROUND_4))
-        else:
-            self.open_files_server = socket.socket(socket.AF_INET,
-                                                   socket.SOCK_STREAM,
-                                                   socket.IPPROTO_TCP)
-
-        # Apply main window settings
-        self.apply_settings()
-
-        # To set all dockwidgets tabs to be on top (in case we want to do it
-        # in the future)
-        # self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
-
-        logger.info("End of MainWindow constructor")
 
     # ---- Window setup
     def _update_shortcuts_in_panes_menu(self, show=True):
