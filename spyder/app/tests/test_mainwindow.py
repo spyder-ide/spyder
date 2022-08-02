@@ -21,6 +21,7 @@ import sys
 import tempfile
 from textwrap import dedent
 import threading
+import time
 import traceback
 from unittest.mock import Mock
 import uuid
@@ -2340,7 +2341,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
                           timeout=SHELL_TIMEOUT):
         client.restart_kernel()
     qtbot.waitUntil(lambda: 'In [1]:' in control.toPlainText(),
-                    timeout=SHELL_TIMEOUT)
+                    timeout=SHELL_TIMEOUT * 2)
 
     # Generate the same plot inline with bbox_inches='tight' and save the
     # figure with savefig.
@@ -5329,10 +5330,10 @@ def test_frames_explorer(main_window, qtbot):
 
     frames_explorer = main_window.framesexplorer.get_widget()
     frames_browser = frames_explorer.current_widget().results_browser
-    postmortem_debug_action = frames_explorer.get_action(
-        FramesExplorerWidgetActions.PostMortemDebug)
+    enter_debug_action = frames_explorer.get_action(
+        FramesExplorerWidgetActions.EnterDebug)
 
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     # create exception
     with qtbot.waitSignal(shell.executed):
@@ -5340,15 +5341,15 @@ def test_frames_explorer(main_window, qtbot):
 
     assert len(frames_browser.frames) == 1
     assert list(frames_browser.frames.keys())[0] == "ZeroDivisionError"
-    assert postmortem_debug_action.isEnabled()
+    assert enter_debug_action.isEnabled()
 
     # Test post mortem
     with qtbot.waitSignal(shell.executed):
-        frames_explorer.postmortem()
+        frames_explorer.enter_debug()
 
     assert len(frames_browser.frames) == 1
     assert list(frames_browser.frames.keys())[0] == "pdb"
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     # Test that executing a statement doesn't change the frames browser
     with qtbot.waitSignal(shell.executed):
@@ -5356,21 +5357,21 @@ def test_frames_explorer(main_window, qtbot):
 
     assert len(frames_browser.frames) == 1
     assert list(frames_browser.frames.keys())[0] == "pdb"
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute('w')
 
     assert len(frames_browser.frames) == 1
     assert list(frames_browser.frames.keys())[0] == "pdb"
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     # Test that quitting resets the explorer
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
 
     assert frames_browser.frames is None
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     # Test that quitting resets the explorer
     with qtbot.waitSignal(shell.executed):
@@ -5378,14 +5379,14 @@ def test_frames_explorer(main_window, qtbot):
 
     assert len(frames_browser.frames) == 1
     assert list(frames_browser.frames.keys())[0] == "pdb"
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     # Restart Kernel
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
         shell.ipyclient.restart_kernel()
 
     assert frames_browser.frames is None
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     if os.name == 'nt':
         # Do not test kernel crashes on window
@@ -5397,14 +5398,211 @@ def test_frames_explorer(main_window, qtbot):
 
     assert len(frames_browser.frames) == 1
     assert list(frames_browser.frames.keys())[0] == "pdb"
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
 
     # Crash Kernel
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
         shell.execute("import ctypes; ctypes.string_at(0)")
 
     assert frames_browser.frames is None
-    assert not postmortem_debug_action.isEnabled()
+    assert not enter_debug_action.isEnabled()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_enter_debugger(main_window, qtbot):
+    """
+    Test that we can enter the debugger while code is running in the kernel.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    from spyder.plugins.framesexplorer.widgets.main_widget import (
+        FramesExplorerWidgetActions)
+
+    frames_explorer = main_window.framesexplorer.get_widget()
+    enter_debug_action = frames_explorer.get_action(
+        FramesExplorerWidgetActions.EnterDebug)
+    inspect_action = frames_explorer.get_action(
+        FramesExplorerWidgetActions.Inspect)
+
+    # enter debugger and start a loop
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import time')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug for i in range(100): time.sleep(.1)')
+    assert not enter_debug_action.isEnabled()
+    assert not inspect_action.isEnabled()
+    shell.execute('c')
+    qtbot.wait(200)
+    assert enter_debug_action.isEnabled()
+    assert inspect_action.isEnabled()
+
+    # enter the debugger
+    with qtbot.waitSignal(shell.executed):
+        frames_explorer.enter_debug()
+    # make sure we are stopped somewhere in the middle
+    assert not enter_debug_action.isEnabled()
+    assert not inspect_action.isEnabled()
+    assert shell.is_debugging()
+    assert 0 < shell.get_value("i") < 99
+
+    # Finish debugging
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+    assert not shell.is_debugging()
+
+    if os.name == 'nt':
+        # SIGINT is not processed correctly on CI for Windows
+        return
+
+    # Check we can enter the debugger
+    assert not enter_debug_action.isEnabled()
+    assert not inspect_action.isEnabled()
+    shell.execute('for i in range(100): time.sleep(.1)')
+    qtbot.wait(200)
+
+    assert enter_debug_action.isEnabled()
+    assert inspect_action.isEnabled()
+
+    # enter the debugger
+    with qtbot.waitSignal(shell.executed):
+        frames_explorer.enter_debug()
+    assert shell.is_debugging()
+
+    # make sure we are stopped somewhere in the middle
+    assert not enter_debug_action.isEnabled()
+    assert not inspect_action.isEnabled()
+    assert 0 < shell.get_value("i") < 99
+
+    shell.execute('c')
+    qtbot.wait(200)
+    # enter the debugger
+    with qtbot.waitSignal(shell.executed):
+        frames_explorer.enter_debug()
+
+    # make sure we are stopped somewhere in the middle
+    assert not enter_debug_action.isEnabled()
+    assert not inspect_action.isEnabled()
+    assert 0 < shell.get_value("i") < 99
+
+    # Finish debugging
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_recursive_debug(main_window, qtbot):
+    """Test recurside debug."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    debugger = main_window.framesexplorer.get_widget()
+    frames_browser = debugger.current_widget().results_browser
+
+    # Setup two functions
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('def a():\n    return\ndef b():\n    return')
+
+    # start debuging
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug a()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('s')
+    # a in framesbrowser
+    assert frames_browser.frames['pdb'][2].name == 'a'
+
+    # Recursive debug
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('debug b()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('s')
+    # b in framesbrowser
+    assert frames_browser.frames['pdb'][2].name == 'b'
+
+    # Quit recursive debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+    # a in framesbrowser
+    assert frames_browser.frames['pdb'][2].name == 'a'
+
+    # quit debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="SIGINT is not processed correctly on CI for Windows")
+def test_interrupt(main_window, qtbot):
+    """Test interrupt."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    frames_explorer = main_window.framesexplorer.get_widget()
+    frames_browser = frames_explorer.current_widget().results_browser
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import time')
+
+    # Interrupt execution
+    shell.execute('for i in range(100): time.sleep(.1)')
+    qtbot.wait(200)
+    with qtbot.waitSignal(shell.executed):
+        shell.call_kernel(interrupt=True).raise_interrupt_signal()
+    assert 0 < shell.get_value("i") < 99
+    assert list(frames_browser.frames.keys())[0] == "KeyboardInterrupt"
+
+    # Interrupt debugging
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug for i in range(100): time.sleep(.1)')
+    shell.execute('c')
+    qtbot.wait(200)
+    with qtbot.waitSignal(shell.executed):
+        shell.call_kernel(interrupt=True).raise_interrupt_signal()
+    assert "Program interrupted" in shell._control.toPlainText()
+    assert 0 < shell.get_value("i") < 99
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+    # Interrupt while waiting for debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug time.sleep(20)')
+    shell.execute('c')
+    qtbot.wait(100)
+    shell.call_kernel(interrupt=True).request_pdb_stop()
+    qtbot.wait(100)
+    # Now we are waiting for the debugger. Interrupt should stop the wait
+    # instead of trying to enter the debugger again.
+    t0 = time.time()
+    with qtbot.waitSignal(shell.executed):
+        shell.interrupt_kernel()
+    assert time.time() - t0 < 10
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+    # Same with raise_interrupt_signal
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug time.sleep(20)')
+    shell.execute('c')
+    qtbot.wait(100)
+    shell.call_kernel(interrupt=True).request_pdb_stop()
+    qtbot.wait(100)
+    # Now we are waiting for the debugger. Interrupt should stop the wait
+    # instead of trying to enter the debugger again.
+    t0 = time.time()
+    with qtbot.waitSignal(shell.executed):
+        shell.call_kernel(interrupt=True).raise_interrupt_signal()
+    assert time.time() - t0 < 10
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 if __name__ == "__main__":

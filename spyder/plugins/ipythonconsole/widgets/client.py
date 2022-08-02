@@ -774,7 +774,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                         '\n' + fault, before_prompt=True)
 
             # Reset Pdb state and reopen comm
-            sw._pdb_in_loop = False
+            sw._pdb_recursion_level = 0
             sw.spyder_kernel_comm.remove()
             try:
                 sw.spyder_kernel_comm.open_comm(sw.kernel_client)
