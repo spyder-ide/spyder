@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Frames Explorer Main Plugin Widget.
+Debugger Main Plugin Widget.
 """
 
 # Third party imports
@@ -15,7 +15,7 @@ from qtpy.QtCore import Signal, Slot
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.config.gui import get_color_scheme
-from spyder.plugins.framesexplorer.widgets.framesbrowser import (
+from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 
@@ -26,7 +26,7 @@ _ = get_translation('spyder')
 # =============================================================================
 # ---- Constants
 # =============================================================================
-class FramesExplorerWidgetActions:
+class DebuggerWidgetActions:
     # Triggers
     Search = 'search'
     Inspect = 'inspect'
@@ -38,32 +38,32 @@ class FramesExplorerWidgetActions:
     ToggleLocalsOnClick = 'toggle_show_locals_on_click_action'
 
 
-class FramesExplorerWidgetOptionsMenuSections:
+class DebuggerWidgetOptionsMenuSections:
     Display = 'excludes_section'
     Highlight = 'highlight_section'
 
 
-class FramesExplorerWidgetMainToolBarSections:
+class DebuggerWidgetMainToolBarSections:
     Main = 'main_section'
 
 
-class FramesExplorerWidgetMenus:
+class DebuggerWidgetMenus:
     EmptyContextMenu = 'empty'
     PopulatedContextMenu = 'populated'
 
 
-class FramesExplorerContextMenuSections:
+class DebuggerContextMenuSections:
     Locals = 'locals_section'
 
 
-class FramesExplorerContextMenuActions:
+class DebuggerContextMenuActions:
     ViewLocalsAction = 'view_locals_action'
 
 
 # =============================================================================
 # ---- Widgets
 # =============================================================================
-class FramesExplorerWidget(ShellConnectMainWidget):
+class DebuggerWidget(ShellConnectMainWidget):
 
     # PluginMainWidget class constants
     ENABLE_SPINNER = True
@@ -82,7 +82,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return _('Frames Explorer')
+        return _('Debugger')
 
     def get_focus_widget(self):
         return self.current_widget()
@@ -91,7 +91,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         """Setup the widget."""
         # ---- Options menu actions
         exclude_internal_action = self.create_action(
-            FramesExplorerWidgetActions.ToggleExcludeInternal,
+            DebuggerWidgetActions.ToggleExcludeInternal,
             text=_("Exclude internal frames when inspecting execution"),
             tip=_("Exclude frames that are not part of the user code"),
             toggled=True,
@@ -99,7 +99,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         )
 
         capture_locals_action = self.create_action(
-            FramesExplorerWidgetActions.ToggleCaptureLocals,
+            DebuggerWidgetActions.ToggleCaptureLocals,
             text=_("Capture locals when inspecting execution"),
             tip=_("Capture the variables in the Variable Explorer"),
             toggled=True,
@@ -107,7 +107,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         )
 
         show_locals_on_click_action = self.create_action(
-            FramesExplorerWidgetActions.ToggleLocalsOnClick,
+            DebuggerWidgetActions.ToggleLocalsOnClick,
             text=_("Show selected frame locals from inspection "
                    "in the Variable Explorer"),
             tip=_("Show frame locals in the Variable explorer when selected."),
@@ -117,7 +117,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         # ---- Toolbar actions
         search_action = self.create_action(
-            FramesExplorerWidgetActions.Search,
+            DebuggerWidgetActions.Search,
             text=_("Search frames"),
             icon=self.create_icon('find'),
             toggled=self.toggle_finder,
@@ -125,7 +125,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         )
 
         inspect_action = self.create_action(
-            FramesExplorerWidgetActions.Inspect,
+            DebuggerWidgetActions.Inspect,
             text=_("Inspect execution"),
             icon=self.create_icon('show'),
             triggered=self.capture_frames,
@@ -133,7 +133,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         )
 
         enter_debug_action = self.create_action(
-            FramesExplorerWidgetActions.EnterDebug,
+            DebuggerWidgetActions.EnterDebug,
             text=_("Interrupt execution and enter debugger"),
             icon=self.create_icon('enter_debug'),
             triggered=self.enter_debug,
@@ -142,7 +142,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         # ---- Context menu actions
         self.view_locals_action = self.create_action(
-            FramesExplorerContextMenuActions.ViewLocalsAction,
+            DebuggerContextMenuActions.ViewLocalsAction,
             _("View variables with the Variable Explorer"),
             icon=self.create_icon('outline_explorer'),
             triggered=self.view_item_locals
@@ -157,7 +157,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
-                section=FramesExplorerWidgetOptionsMenuSections.Display,
+                section=DebuggerWidgetOptionsMenuSections.Display,
             )
 
         # Main toolbar
@@ -167,37 +167,37 @@ class FramesExplorerWidget(ShellConnectMainWidget):
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
-                section=FramesExplorerWidgetMainToolBarSections.Main,
+                section=DebuggerWidgetMainToolBarSections.Main,
             )
 
         # ---- Context menu to show when there are frames present
         self.context_menu = self.create_menu(
-            FramesExplorerWidgetMenus.PopulatedContextMenu)
+            DebuggerWidgetMenus.PopulatedContextMenu)
         for item in [self.view_locals_action, inspect_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
-                section=FramesExplorerContextMenuSections.Locals,
+                section=DebuggerContextMenuSections.Locals,
             )
 
-        # ---- Context menu when the frames explorer is empty
+        # ---- Context menu when the debugger is empty
         self.empty_context_menu = self.create_menu(
-            FramesExplorerWidgetMenus.EmptyContextMenu)
+            DebuggerWidgetMenus.EmptyContextMenu)
         for item in [inspect_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.empty_context_menu,
-                section=FramesExplorerContextMenuSections.Locals,
+                section=DebuggerContextMenuSections.Locals,
             )
 
     def update_actions(self):
         """Update actions."""
         widget = self.current_widget()
-        search_action = self.get_action(FramesExplorerWidgetActions.Search)
+        search_action = self.get_action(DebuggerWidgetActions.Search)
         enter_debug_action = self.get_action(
-            FramesExplorerWidgetActions.EnterDebug)
+            DebuggerWidgetActions.EnterDebug)
         inspect_action = self.get_action(
-            FramesExplorerWidgetActions.Inspect)
+            DebuggerWidgetActions.Inspect)
 
         if widget is None:
             search = False
@@ -303,7 +303,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
     @Slot()
     def hide_finder(self):
         """Hide finder."""
-        action = self.get_action(FramesExplorerWidgetActions.Search)
+        action = self.get_action(DebuggerWidgetActions.Search)
         action.setChecked(False)
 
     def view_item_locals(self):

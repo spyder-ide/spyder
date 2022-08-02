@@ -8,8 +8,8 @@
 
 
 """
-spyder.plugins.framesexplorer.widgets
+spyder.plugins.debugger.widgets
 =====================================
 
-Frames Explorer-related widgets.
+Debugger-related widgets.
 """

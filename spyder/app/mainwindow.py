@@ -586,7 +586,7 @@ class MainWindow(QMainWindow):
             'maininterpreter': Plugins.MainInterpreter,
             'outlineexplorer': Plugins.OutlineExplorer,
             'variableexplorer': Plugins.VariableExplorer,
-            'framesexplorer': Plugins.FramesExplorer,
+            'debugger': Plugins.Debugger,
             'ipyconsole': Plugins.IPythonConsole,
             'workingdirectory': Plugins.WorkingDirectory,
             'projects': Plugins.Projects,

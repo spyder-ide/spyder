@@ -7,7 +7,7 @@
 """
 Frames browser widget
 
-This is the main widget used in the Frames Explorer plugin
+This is the main widget used in the Debugger plugin
 """
 
 # Standard library imports
@@ -41,8 +41,8 @@ class FramesBrowserState:
 
 
 class FramesBrowser(QWidget, SpyderWidgetMixin):
-    """Frames browser (global frames explorer widget)"""
-    CONF_SECTION = 'frames_explorer'
+    """Frames browser (global debugger widget)"""
+    CONF_SECTION = 'debugger'
 
     # Signals
     edit_goto = Signal((str, int, str), (str, int, str, bool))
@@ -343,7 +343,7 @@ class ItemDelegate(QStyledItemDelegate):
 
 
 class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
-    CONF_SECTION = 'frames_explorer'
+    CONF_SECTION = 'debugger'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
     sig_show_namespace = Signal(dict)

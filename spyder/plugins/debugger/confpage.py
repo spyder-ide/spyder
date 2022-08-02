@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Frames Explorer Plugin Configuration Page."""
+"""Debugger Plugin Configuration Page."""
 
 # Third party imports
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout
@@ -14,7 +14,7 @@ from spyder.config.base import _
 from spyder.api.preferences import PluginConfigPage
 
 
-class FramesExplorerConfigPage(PluginConfigPage):
+class DebuggerConfigPage(PluginConfigPage):
 
     def setup_page(self):
         filter_group = QGroupBox(_("Filter"))

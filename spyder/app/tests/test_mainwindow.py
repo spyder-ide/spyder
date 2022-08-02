@@ -5292,8 +5292,8 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    frames_explorer = main_window.framesexplorer.get_widget()
-    frames_browser = frames_explorer.current_widget().results_browser
+    debugger = main_window.debugger.get_widget()
+    frames_browser = debugger.current_widget().results_browser
 
     # Click the run button
     run_action = main_window.run_toolbar_actions[0]
@@ -5305,7 +5305,7 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     control = main_window.ipyconsole.get_widget().get_focus_widget()
     assert ']:' not in control.toPlainText().split()[-1]
 
-    frames_explorer.capture_frames()
+    debugger.capture_frames()
     qtbot.wait(1000)
     qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
 
@@ -5318,20 +5318,20 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_frames_explorer(main_window, qtbot):
-    """Test frames explorer"""
+def test_debugger(main_window, qtbot):
+    """Test debugger"""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    from spyder.plugins.framesexplorer.widgets.main_widget import (
-        FramesExplorerWidgetActions)
+    from spyder.plugins.debugger.widgets.main_widget import (
+        DebuggerWidgetActions)
 
-    frames_explorer = main_window.framesexplorer.get_widget()
-    frames_browser = frames_explorer.current_widget().results_browser
-    enter_debug_action = frames_explorer.get_action(
-        FramesExplorerWidgetActions.EnterDebug)
+    debugger = main_window.debugger.get_widget()
+    frames_browser = debugger.current_widget().results_browser
+    enter_debug_action = debugger.get_action(
+        DebuggerWidgetActions.EnterDebug)
 
     assert not enter_debug_action.isEnabled()
 
@@ -5345,7 +5345,7 @@ def test_frames_explorer(main_window, qtbot):
 
     # Test post mortem
     with qtbot.waitSignal(shell.executed):
-        frames_explorer.enter_debug()
+        debugger.enter_debug()
 
     assert len(frames_browser.frames) == 1
     assert list(frames_browser.frames.keys())[0] == "pdb"
@@ -5419,14 +5419,14 @@ def test_enter_debugger(main_window, qtbot):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    from spyder.plugins.framesexplorer.widgets.main_widget import (
-        FramesExplorerWidgetActions)
+    from spyder.plugins.debugger.widgets.main_widget import (
+        DebuggerWidgetActions)
 
-    frames_explorer = main_window.framesexplorer.get_widget()
-    enter_debug_action = frames_explorer.get_action(
-        FramesExplorerWidgetActions.EnterDebug)
-    inspect_action = frames_explorer.get_action(
-        FramesExplorerWidgetActions.Inspect)
+    debugger = main_window.debugger.get_widget()
+    enter_debug_action = debugger.get_action(
+        DebuggerWidgetActions.EnterDebug)
+    inspect_action = debugger.get_action(
+        DebuggerWidgetActions.Inspect)
 
     # enter debugger and start a loop
     with qtbot.waitSignal(shell.executed):
@@ -5442,7 +5442,7 @@ def test_enter_debugger(main_window, qtbot):
 
     # enter the debugger
     with qtbot.waitSignal(shell.executed):
-        frames_explorer.enter_debug()
+        debugger.enter_debug()
     # make sure we are stopped somewhere in the middle
     assert not enter_debug_action.isEnabled()
     assert not inspect_action.isEnabled()
@@ -5469,7 +5469,7 @@ def test_enter_debugger(main_window, qtbot):
 
     # enter the debugger
     with qtbot.waitSignal(shell.executed):
-        frames_explorer.enter_debug()
+        debugger.enter_debug()
     assert shell.is_debugging()
 
     # make sure we are stopped somewhere in the middle
@@ -5481,7 +5481,7 @@ def test_enter_debugger(main_window, qtbot):
     qtbot.wait(200)
     # enter the debugger
     with qtbot.waitSignal(shell.executed):
-        frames_explorer.enter_debug()
+        debugger.enter_debug()
 
     # make sure we are stopped somewhere in the middle
     assert not enter_debug_action.isEnabled()
@@ -5501,7 +5501,7 @@ def test_recursive_debug(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-    debugger = main_window.framesexplorer.get_widget()
+    debugger = main_window.debugger.get_widget()
     frames_browser = debugger.current_widget().results_browser
 
     # Setup two functions
@@ -5547,8 +5547,8 @@ def test_interrupt(main_window, qtbot):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    frames_explorer = main_window.framesexplorer.get_widget()
-    frames_browser = frames_explorer.current_widget().results_browser
+    debugger = main_window.debugger.get_widget()
+    frames_browser = debugger.current_widget().results_browser
     with qtbot.waitSignal(shell.executed):
         shell.execute('import time')
 

@@ -183,7 +183,7 @@ DEFAULTS = [
               'show_callable_attributes': True,
               'show_special_attributes': False
              }),
-            ('frames_explorer',
+            ('debugger',
              {
               'exclude_internal': True,
               'capture_locals': False,
@@ -526,9 +526,9 @@ DEFAULTS = [
               # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
-              # ---- In widgets/framesexplorer/framesbrowser.py ----
-              'frames_explorer/refresh': 'Ctrl+R',
-              'frames_explorer/search': 'Ctrl+F',
+              # ---- In widgets/debugger/framesbrowser.py ----
+              'debugger/refresh': 'Ctrl+R',
+              'debugger/search': 'Ctrl+F',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',

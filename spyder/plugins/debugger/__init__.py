@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.plugins.framesexplorer
+spyder.plugins.debugger
 =============================
 
-Frames Explorer plugin used to instrospect current frames.
+Debugger plugin used to instrospect current frames.
 """

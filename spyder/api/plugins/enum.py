@@ -39,5 +39,5 @@ class Plugins:
     Toolbar = "toolbar"
     Tours = 'tours'
     VariableExplorer = 'variable_explorer'
-    FramesExplorer = 'frames_explorer'
+    Debugger = 'debugger'
     WorkingDirectory = 'workingdir'
