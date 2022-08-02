@@ -539,6 +539,46 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             if notify:
                 self.after_configuration_update(list(options_set))
 
+    def disable_conf(self, option, section=None):
+        """
+        Disable notifications for an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            Name of the option, either a string or a tuple of strings.
+        section: str
+            Section in the configuration system.
+        """
+        if self._conf is not None:
+            section = self.CONF_SECTION if section is None else section
+            if section is None:
+                raise SpyderAPIError(
+                    'A spyder plugin must define a `CONF_SECTION` class '
+                    'attribute!'
+                )
+            self._conf.disable_notifications(section, option)
+
+    def restore_conf(self, option, section=None):
+        """
+        Restore notifications for an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            Name of the option, either a string or a tuple of strings.
+        section: str
+            Section in the configuration system.
+        """
+        if self._conf is not None:
+            section = self.CONF_SECTION if section is None else section
+            if section is None:
+                raise SpyderAPIError(
+                    'A spyder plugin must define a `CONF_SECTION` class '
+                    'attribute!'
+                )
+            self._conf.restore_notifications(section, option)
+
     @Slot(str)
     @Slot(str, int)
     def show_status_message(self, message, timeout=0):
