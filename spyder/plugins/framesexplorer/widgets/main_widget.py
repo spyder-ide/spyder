@@ -92,7 +92,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         # ---- Options menu actions
         exclude_internal_action = self.create_action(
             FramesExplorerWidgetActions.ToggleExcludeInternal,
-            text=_("Exclude internal frames from inspect"),
+            text=_("Exclude internal frames when inspecting execution"),
             tip=_("Exclude frames that are not part of the user code"),
             toggled=True,
             option='exclude_internal',
@@ -100,7 +100,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         capture_locals_action = self.create_action(
             FramesExplorerWidgetActions.ToggleCaptureLocals,
-            text=_("Capture locals on inspect"),
+            text=_("Capture locals when inspecting execution"),
             tip=_("Capture the variables in the Variable Explorer"),
             toggled=True,
             option='capture_locals',
@@ -108,7 +108,8 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         show_locals_on_click_action = self.create_action(
             FramesExplorerWidgetActions.ToggleLocalsOnClick,
-            text=_("Show inspect locals in variable explorer on click"),
+            text=_("Show selected frame locals from inspection "
+                   "in the Variable Explorer"),
             tip=_("Show frame locals in the Variable explorer when selected."),
             toggled=True,
             option='show_locals_on_click',
@@ -133,7 +134,7 @@ class FramesExplorerWidget(ShellConnectMainWidget):
 
         enter_debug_action = self.create_action(
             FramesExplorerWidgetActions.EnterDebug,
-            text=_("Interrupt and enter debugger"),
+            text=_("Interrupt execution and enter debugger"),
             icon=self.create_icon('enter_debug'),
             triggered=self.enter_debug,
             register_shortcut=True,
@@ -310,7 +311,12 @@ class FramesExplorerWidget(ShellConnectMainWidget):
         self.current_widget().results_browser.view_item_locals()
 
     def enter_debug(self):
-        """Ask for post mortem debug."""
+        """
+        Enter the debugger.
+
+        If the shell is executing, interrupt execution and enter debugger.
+        If an exception took place, run post mortem.
+        """
         widget = self.current_widget()
         if widget is None:
             return

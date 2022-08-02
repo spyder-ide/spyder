@@ -273,7 +273,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.call_kernel(interrupt=True).raise_interrupt_signal()
         else:
             self._append_plain_text(
-                'Cannot interrupt a non-spyder kernel I did not start.\n')
+                'Cannot interrupt a non-Spyder kernel I did not start.\n')
 
     def execute(self, source=None, hidden=False, interactive=False):
         """

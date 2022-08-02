@@ -56,7 +56,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.results_browser = None
         self.color_scheme = color_scheme
         # -1 means never clear, otherwise number of calls
-        self._persistance = -1
+        self._persistence = -1
         self.state = None
         self.finder = None
         self.pdb_curindex = None
@@ -112,7 +112,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     def _show_frames(self, frames, title, state):
         """Set current frames"""
         # Reset defaults
-        self._persistance = -1  # survive to the next prompt
+        self._persistence = -1  # survive to the next prompt
         self.state = state
         self.pdb_curindex = None
 
@@ -153,7 +153,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Show pdb frames."""
         self._show_frames(
             {'pdb': pdb_stack}, _("Pdb stack"), FramesBrowserState.Debug)
-        self._persistance = 0
+        self._persistence = 0
         self.pdb_curindex = curindex
         self.set_current_item(0, curindex)
         self.results_browser.sig_activated.connect(
@@ -180,7 +180,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self._show_frames(
             frames, _("Waiting for debugger"), FramesBrowserState.DebugWait)
         # Disappear immediately
-        self._persistance = 0
+        self._persistence = 0
         self.sig_update_actions_requested.emit()
 
     def clear_if_needed(self):
@@ -193,15 +193,15 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
                 pdb_state = self._pdb_state[depth - 1]
                 if pdb_state:
                     self.show_pdb(*pdb_state)
-                    self._persistance = 0
+                    self._persistence = 0
                     return
 
         # Otherwise check persistance
-        if self._persistance == 0:
+        if self._persistence == 0:
             self._show_frames(None, "", None)
             self.sig_update_actions_requested.emit()
-        elif self._persistance > 0:
-            self._persistance -= 1
+        elif self._persistence > 0:
+            self._persistence -= 1
 
     def set_current_item(self, top_idx, sub_index):
         """Set current item"""

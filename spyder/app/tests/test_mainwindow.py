@@ -5335,8 +5335,10 @@ def test_frames_explorer(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_executing_frames_explorer(main_window, qtbot):
-    """Test frames explorer"""
+def test_enter_debugger(main_window, qtbot):
+    """
+    Test that we can enter the debugger while code is running in the kernel.
+    """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -5378,7 +5380,7 @@ def test_executing_frames_explorer(main_window, qtbot):
     assert not shell.is_debugging()
 
     if os.name == 'nt':
-        # SIGINT is not processed correctly on CI for window
+        # SIGINT is not processed correctly on CI for Windows
         return
 
     # Check we can enter the debugger
@@ -5417,7 +5419,7 @@ def test_executing_frames_explorer(main_window, qtbot):
 
 
 @pytest.mark.slow
-# @flaky(max_runs=3)
+@flaky(max_runs=3)
 def test_recursive_debug(main_window, qtbot):
     """Test recurside debug."""
     # Wait until the window is fully up
@@ -5462,7 +5464,7 @@ def test_recursive_debug(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt',
-    reason="SIGINT is not processed correctly on CI for window")
+    reason="SIGINT is not processed correctly on CI for Windows")
 def test_interrupt(main_window, qtbot):
     """Test interrupt."""
     # Wait until the window is fully up
