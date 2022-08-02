@@ -344,7 +344,7 @@ class SpyderKernel(IPythonKernel):
             # Interrupting the eventloop is only implemented when a message is
             # received on the shell channel, but this message is queued and
             # won't be processed because an `execute` message is being
-            # processed. Therefore we process the message here (comm channel)
+            # processed. Therefore we process the message here (control chan.)
             # and request a dummy message to be sent on the shell channel to
             # stop the eventloop. This will call back `_interrupt_eventloop`.
             self.frontend_call().request_interrupt_eventloop()
@@ -535,7 +535,6 @@ class SpyderKernel(IPythonKernel):
         try:
             import matplotlib.pyplot as plt
             plt.close('all')
-            del plt
         except:
             pass
 

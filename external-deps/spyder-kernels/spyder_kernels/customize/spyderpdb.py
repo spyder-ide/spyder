@@ -260,8 +260,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     if out is not None:
                         sys.stdout.flush()
                         sys.stderr.flush()
-                        frontend_request(blocking=False).show_pdb_output(
-                            repr(out))
+                        try:
+                            frontend_request(blocking=False).show_pdb_output(
+                                repr(out))
+                        except (CommError, TimeoutError):
+                            # Fallback
+                            print("pdb out> ", repr(out))
 
             finally:
                 if execute_events:
@@ -357,7 +361,10 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         Take a number as argument as an (optional) number of context line to
         print"""
         super(SpyderPdb, self).do_where(arg)
-        frontend_request(blocking=False).do_where()
+        try:
+            frontend_request(blocking=False).do_where()
+        except (CommError, TimeoutError):
+            logger.debug("Could not send where request to the frontend.")
 
     do_w = do_where
 
