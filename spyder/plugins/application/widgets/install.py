@@ -145,13 +145,15 @@ class UpdateInstallerDialog(QDialog):
     def continue_install(self):
         """Cancel the installation in progress."""
         reply = QMessageBox(icon=QMessageBox.Question,
-                            text=_('Do you want to download and install the latest version of'
-                                   ' spyder?<br>'),
+                            text=_('Do you want to download and'
+                                   ' install the latest version of'
+                                   'spyder?<br>'),
                             parent=self._parent)
         reply.setWindowTitle("Spyder")
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        reply.buttonClicked.connect(self._installation_thread.installation_thread)
+        reply.buttonClicked.connect(
+            self._installation_thread.installation_thread)
         reply.show()
 
     def finished_installation(self, status):
