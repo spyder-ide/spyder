@@ -342,7 +342,7 @@ class MainWindow(QMainWindow):
         logger.info("End of MainWindow constructor")
 
     # ---- Plugin handling methods
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def get_plugin(self, plugin_name, error=True):
         """
         Return a plugin instance by providing the plugin class.
@@ -709,6 +709,7 @@ class MainWindow(QMainWindow):
             console.handle_exception(error_data)
 
     # ---- Window setup
+    # -------------------------------------------------------------------------
     def _update_shortcuts_in_panes_menu(self, show=True):
         """
         Display the shortcut for the "Switch to plugin..." on the toggle view
@@ -1282,7 +1283,57 @@ class MainWindow(QMainWindow):
                 plugin_name=plugin_name,
             )
 
-    # --- Other
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def createPopupMenu(self):
+        return self.application.get_application_context_menu(parent=self)
+
+    def closeEvent(self, event):
+        """closeEvent reimplementation"""
+        if self.closing(True):
+            event.accept()
+        else:
+            event.ignore()
+
+    def resizeEvent(self, event):
+        """Reimplement Qt method"""
+        if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
+            self.window_size = self.size()
+        QMainWindow.resizeEvent(self, event)
+
+        # To be used by the tour to be able to resize
+        self.sig_resized.emit(event)
+
+    def moveEvent(self, event):
+        """Reimplement Qt method"""
+        if hasattr(self, 'layouts'):
+            if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
+                self.window_position = self.pos()
+        QMainWindow.moveEvent(self, event)
+        # To be used by the tour to be able to move
+        self.sig_moved.emit(event)
+
+    def hideEvent(self, event):
+        """Reimplement Qt method"""
+        try:
+            for plugin in (self.widgetlist + self.thirdparty_plugins):
+                # TODO: Remove old API
+                try:
+                    # New API
+                    if plugin.get_widget().isAncestorOf(
+                            self.last_focused_widget):
+                        plugin.change_visibility(True)
+                except AttributeError:
+                    # Old API
+                    if plugin.isAncestorOf(self.last_focused_widget):
+                        plugin._visibility_changed(True)
+
+            QMainWindow.hideEvent(self, event)
+        except RuntimeError:
+            QMainWindow.hideEvent(self, event)
+
+    # ---- Other
+    # -------------------------------------------------------------------------
     def update_source_menu(self):
         """Update source menu options that vary dynamically."""
         # This is necessary to avoid an error at startup.
@@ -1430,9 +1481,6 @@ class MainWindow(QMainWindow):
         if len(self.search_menu_actions) > 3:
             self.search_menu_actions[3].setEnabled(readwrite_editor)
 
-    def createPopupMenu(self):
-        return self.application.get_application_context_menu(parent=self)
-
     def set_splash(self, message):
         """Set splash message"""
         if self.splash is None:
@@ -1445,50 +1493,6 @@ class MainWindow(QMainWindow):
                                     Qt.AlignAbsolute),
                                 QColor(Qt.white))
         QApplication.processEvents()
-
-    def closeEvent(self, event):
-        """closeEvent reimplementation"""
-        if self.closing(True):
-            event.accept()
-        else:
-            event.ignore()
-
-    def resizeEvent(self, event):
-        """Reimplement Qt method"""
-        if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
-            self.window_size = self.size()
-        QMainWindow.resizeEvent(self, event)
-
-        # To be used by the tour to be able to resize
-        self.sig_resized.emit(event)
-
-    def moveEvent(self, event):
-        """Reimplement Qt method"""
-        if hasattr(self, 'layouts'):
-            if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
-                self.window_position = self.pos()
-        QMainWindow.moveEvent(self, event)
-        # To be used by the tour to be able to move
-        self.sig_moved.emit(event)
-
-    def hideEvent(self, event):
-        """Reimplement Qt method"""
-        try:
-            for plugin in (self.widgetlist + self.thirdparty_plugins):
-                # TODO: Remove old API
-                try:
-                    # New API
-                    if plugin.get_widget().isAncestorOf(
-                            self.last_focused_widget):
-                        plugin.change_visibility(True)
-                except AttributeError:
-                    # Old API
-                    if plugin.isAncestorOf(self.last_focused_widget):
-                        plugin._visibility_changed(True)
-
-            QMainWindow.hideEvent(self, event)
-        except RuntimeError:
-            QMainWindow.hideEvent(self, event)
 
     def change_last_focused_widget(self, old, now):
         """To keep track of to the last focused widget"""
@@ -1776,7 +1780,8 @@ class MainWindow(QMainWindow):
         path_dict = self.get_spyder_pythonpath_dict()
         self.update_python_path(path_dict)
 
-    #---- Preferences
+    # ---- Preferences
+    # -------------------------------------------------------------------------
     def apply_settings(self):
         """Apply main window settings."""
         qapp = QApplication.instance()
@@ -1829,6 +1834,7 @@ class MainWindow(QMainWindow):
         self.prefs_dialog_size = size
 
     # ---- Open files server
+    # -------------------------------------------------------------------------
     def start_open_files_server(self):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
@@ -1871,6 +1877,7 @@ class MainWindow(QMainWindow):
             req.sendall(b' ')
 
     # ---- Quit and restart, and reset spyder defaults
+    # -------------------------------------------------------------------------
     @Slot()
     def reset_spyder(self):
         """
@@ -1890,6 +1897,7 @@ class MainWindow(QMainWindow):
             reset=reset, close_immediately=close_immediately)
 
     # ---- Global Switcher
+    # -------------------------------------------------------------------------
     def open_switcher(self, symbol=False):
         """Open switcher dialog box."""
         if self.switcher is not None and self.switcher.isVisible():
