@@ -11,6 +11,7 @@ Tests for the main window.
 """
 
 # Standard library imports
+import gc
 import os
 import os.path as osp
 import psutil
@@ -351,6 +352,9 @@ def main_window(request, tmpdir, qtbot):
 
                     # Close editor related elements
                     window.editor.close_all_files()
+                    # force close all files
+                    while window.editor.editorstacks[0].close_file(force=True):
+                        pass
                     for editorwindow in window.editor.editorwindows:
                         editorwindow.close()
                     editorstack = window.editor.get_current_editorstack()
@@ -529,6 +533,77 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     assert editorstack.get_current_editor().toPlainText() == lock_code
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@pytest.mark.use_introspection
+def test_leaks(main_window, qtbot):
+    """
+    Test leaks in mainwindow when closing a file or a console.
+
+    Many other ways of leaking exist but are not covered here.
+    """
+    def ns_fun(main_window, qtbot):
+        # Wait until the window is fully up
+        shell = main_window.ipyconsole.get_current_shellwidget()
+        qtbot.waitUntil(
+            lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    
+        # Count initial objects
+        # Only one of each should be present, but because of many leaks,
+        # this is most likely not the case. Here only closing is tested
+        shell.wait_all_shutdown()
+        gc.collect()
+        objects = gc.get_objects()
+        n_code_editor_init = 0
+        for o in objects:
+            if type(o).__name__ == "CodeEditor":
+                n_code_editor_init += 1
+        n_shell_init = 0
+        for o in objects:
+            if type(o).__name__ == "ShellWidget":
+                n_shell_init += 1
+    
+        # Open a second file and console
+        main_window.editor.new()
+        main_window.ipyconsole.create_new_client()
+        # Do something interesting in the new window
+        code_editor = main_window.editor.get_focus_widget()
+        # Show an error in the editor
+        code_editor.set_text("aaa")
+    
+        shell = main_window.ipyconsole.get_current_shellwidget()
+        qtbot.waitUntil(
+            lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("%debug print()")
+    
+        # Close all files and consoles
+        main_window.editor.close_all_files()
+        main_window.ipyconsole.restart()
+
+        # Wait until the shells are closed
+        shell = main_window.ipyconsole.get_current_shellwidget()
+        shell.wait_all_shutdown()
+        return n_shell_init, n_code_editor_init
+
+    n_shell_init, n_code_editor_init = ns_fun(main_window, qtbot)
+    qtbot.wait(1000)
+    # Count final objects
+    gc.collect()
+    objects = gc.get_objects()
+    n_code_editor = 0
+    for o in objects:
+        if type(o).__name__ == "CodeEditor":
+            n_code_editor += 1
+    n_shell = 0
+    for o in objects:
+        if type(o).__name__ == "ShellWidget":
+            n_shell += 1
+
+    # Make sure no new objects have been created
+    assert n_shell <= n_shell_init
+    assert n_code_editor <= n_code_editor_init
 
 
 @pytest.mark.slow

@@ -148,6 +148,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
             try:
                 if self.clients_hearbeat[language] is not None:
                     self.clients_hearbeat[language].stop()
+                    self.clients_hearbeat[language].setParent(None)
+                    del self.clients_hearbeat[language]
             except (TypeError, KeyError, RuntimeError):
                 pass
 
@@ -184,11 +186,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 self.clients_restart_timers[language] = None
                 try:
                     self.clients_hearbeat[language].stop()
+                    self.clients_hearbeat[language].setParent(None)
+                    del self.clients_hearbeat[language]
                     client['instance'].disconnect()
                     client['instance'].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
-                self.clients_hearbeat[language] = None
                 self.report_lsp_down(language)
 
     def create_statusbar(self, parent):
@@ -261,6 +264,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 and not running_under_pytest()):
             try:
                 self.clients_hearbeat[language].stop()
+                self.clients_hearbeat[language].setParent(None)
+                del self.clients_hearbeat[language]
             except KeyError:
                 pass
             logger.info("Automatic restart for {}...".format(language))
@@ -464,12 +469,15 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
             started = language_client['status'] == self.RUNNING
 
-            # Start client heartbeat
-            timer = QTimer(self)
-            self.clients_hearbeat[language] = timer
-            timer.setInterval(self.TIME_HEARTBEAT)
-            timer.timeout.connect(functools.partial(self.check_heartbeat, language))
-            timer.start()
+            if language not in self.clients_hearbeat:
+                # completion_services for language is already running
+                # Start client heartbeat
+                timer = QTimer(self)
+                self.clients_hearbeat[language] = timer
+                timer.setInterval(self.TIME_HEARTBEAT)
+                timer.timeout.connect(functools.partial(
+                    self.check_heartbeat, language))
+                timer.start()
 
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
@@ -659,6 +667,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 try:
                     if self.clients_hearbeat[language] is not None:
                         self.clients_hearbeat[language].stop()
+                        self.clients_hearbeat[language].setParent(None)
+                        del self.clients_hearbeat[language]
                 except (TypeError, KeyError, RuntimeError):
                     pass
                 language_client['instance'].stop()

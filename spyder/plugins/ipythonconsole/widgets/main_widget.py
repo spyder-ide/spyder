@@ -401,7 +401,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def on_close(self):
         self.mainwindow_close = True
-        self.close_clients()
+        self.close_all_clients()
 
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
@@ -667,8 +667,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.get_control().set_help_enabled,
                 value)
 
-    @on_conf_change(section='appearance', option='selected')
-    def change_clients_color_scheme(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def change_clients_color_scheme(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         for idx, client in enumerate(self.clients):
             self._change_client_conf(
                 client,
@@ -1436,7 +1439,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
@@ -1575,7 +1577,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=connection_file,
                               context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
                               hostname=hostname,
                               is_external_kernel=is_external_kernel,
                               is_spyder_kernel=known_spyder_kernel,
@@ -1865,6 +1866,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
 
+        # Show time label
+        client.sig_time_label.connect(self.time_label.setText)
+
     def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
@@ -1882,19 +1886,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             index = self.tabwidget.currentIndex()
         if index is not None:
             client = self.tabwidget.widget(index)
-
-        # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
-        try:
-            # Close client
-            client.stop_button_click_handler()
-        except RuntimeError:
-            pass
-
-        # Disconnect timer needed to update elapsed time
-        try:
-            client.timer.timeout.disconnect(client.show_time)
-        except (RuntimeError, TypeError):
-            pass
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
@@ -1919,13 +1910,11 @@ class IPythonConsoleWidget(PluginMainWidget):
             if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
 
-        last_client = len(self.get_related_clients(client)) == 0
-        client.shutdown(last_client)
-        client.close()
-
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
+        is_last_client = len(self.get_related_clients(client)) == 0
+        client.close_client(is_last_client)
 
         # This is needed to prevent that hanged consoles make reference
         # to an index that doesn't exist. See spyder-ide/spyder#4881
@@ -1940,7 +1929,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
 
-    def close_clients(self):
+    def close_all_clients(self):
         """
         Perform close actions for each running client.
 
@@ -1949,17 +1938,16 @@ class IPythonConsoleWidget(PluginMainWidget):
         bool
             If the closing action was succesful.
         """
-        open_clients = self.clients.copy()
-        for client in self.clients:
-            last_client = (
-                len(self.get_related_clients(client, open_clients)) == 0)
-            client.shutdown(last_client)
-            client.close()
-            open_clients.remove(client)
+        while self.clients:
+            client = self.clients.pop()
+            is_last_client = len(self.get_related_clients(client)) == 0
+            client.close_client(is_last_client)
+
         # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()
         # Close cached kernel
         self.close_cached_kernel()
+        self.filenames = []
         return True
 
     def get_client_index_from_id(self, client_id):

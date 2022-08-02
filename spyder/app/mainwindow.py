@@ -1271,6 +1271,18 @@ class MainWindow(QMainWindow):
                 plugin_name=plugin_name,
             )
 
+    def unregister_shortcut(self, qaction_or_qshortcut, context, name,
+                            add_shortcut_to_tip=True, plugin_name=None):
+        shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
+        if shortcuts:
+            shortcuts.unregister_shortcut(
+                qaction_or_qshortcut,
+                context,
+                name,
+                add_shortcut_to_tip=add_shortcut_to_tip,
+                plugin_name=plugin_name,
+            )
+
     # --- Other
     def update_source_menu(self):
         """Update source menu options that vary dynamically."""

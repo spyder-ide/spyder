@@ -8,4 +8,3 @@
 
 from .messagebox import KiteInstallationErrorMessage
 from .status import KiteStatusWidget
-from .calltoaction import KiteCallToAction

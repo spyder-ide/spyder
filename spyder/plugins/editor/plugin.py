@@ -23,8 +23,7 @@ import time
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtGui import QTextCursor
-from qtpy.QtPrintSupport import (QAbstractPrintDialog, QPrintDialog, QPrinter,
-                                 QPrintPreviewDialog)
+from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
                             QToolBar, QVBoxLayout, QWidget)
@@ -47,11 +46,12 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
-from spyder.plugins.editor.widgets.codeeditor_widgets import Printer
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
                                                   EditorStack,)
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.printer import (
+    SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    save_bookmarks)
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
@@ -1156,6 +1156,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             debug_menu_actions + self.main.debug_menu_actions)
         debug_toolbar_actions = [
             self.debug_action,
+            self.debug_cell_action,
             self.debug_next_action,
             self.debug_step_action,
             self.debug_return_action,
@@ -1332,9 +1333,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             completion_size = CONF.get('main', 'completion/size')
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
-                kite_call_to_action = finfo.editor.kite_call_to_action
                 comp_widget.setup_appearance(completion_size, font)
-                kite_call_to_action.setFont(font)
 
     def set_ancestor(self, ancestor):
         """
@@ -1348,7 +1347,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for editorstack in self.editorstacks:
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
-                kite_call_to_action = finfo.editor.kite_call_to_action
 
                 # This is necessary to catch an error when the plugin is
                 # undocked and docked back, and (probably) a completion is
@@ -1356,7 +1354,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 # Fixes spyder-ide/spyder#17486
                 try:
                     comp_widget.setParent(ancestor)
-                    kite_call_to_action.setParent(ancestor)
                 except RuntimeError:
                     pass
 
@@ -2324,8 +2321,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._print_editor.set_font(self.get_font())
 
         # Create printer
-        printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_font())
+        printer = SpyderPrinter(mode=QPrinter.HighResolution,
+                                header_font=self.get_font())
         print_dialog = QPrintDialog(printer, self._print_editor)
 
         # Adjust print options when user has selected text
@@ -2366,11 +2363,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._print_editor.set_font(self.get_font())
 
         # Create printer
-        printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_font())
+        printer = SpyderPrinter(mode=QPrinter.HighResolution,
+                                header_font=self.get_font())
 
         # Create preview
-        preview = QPrintPreviewDialog(printer, self)
+        preview = SpyderPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
         preview.paintRequested.connect(
             lambda printer: self._print_editor.print_(printer)
@@ -3427,8 +3424,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for editorstack in self.editorstacks:
                 editorstack.set_underline_errors_enabled(value)
 
-    @on_conf_change(option='selected', section='appearance')
-    def set_color_scheme(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def set_color_scheme(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         if self.editorstacks is not None:
             logger.debug(f"Set color scheme to {value}")
             for editorstack in self.editorstacks:

@@ -454,6 +454,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.shellwidget.sig_kernel_reset.disconnect(
             nsb.on_kernel_started)
         nsb.close()
+        nsb.setParent(None)
 
     def import_data(self, filenames=None):
         """
