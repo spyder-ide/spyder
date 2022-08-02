@@ -50,7 +50,12 @@ class Appearance(SpyderPluginV2):
         return self.create_icon('eyedropper')
 
     def on_initialize(self):
-        pass
+        # NOTES:
+        # 1. This avoids applying the color scheme twice at startup, which is
+        #    quite resource intensive.
+        # 2. Notifications for this option are restored when creating the
+        #    config page.
+        self.disable_conf('ui_theme')
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def register_preferences(self):

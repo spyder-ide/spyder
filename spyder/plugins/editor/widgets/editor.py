@@ -1069,6 +1069,19 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_color_scheme(color_scheme)
 
+                # Update the most important extra selections so new color
+                # schemes appear to users as expected.
+                finfo.editor.unhighlight_current_line()
+                finfo.editor.unhighlight_current_cell()
+                finfo.editor.clear_occurrences()
+
+                if self.highlight_current_line_enabled:
+                    finfo.editor.highlight_current_line()
+                if self.highlight_current_cell_enabled:
+                    finfo.editor.highlight_current_cell()
+                if self.occurrence_highlighting_enabled:
+                    finfo.editor.mark_occurrences()
+
     def set_wrap_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'wrap')
         self.wrap_enabled = state

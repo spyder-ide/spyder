@@ -3424,8 +3424,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for editorstack in self.editorstacks:
                 editorstack.set_underline_errors_enabled(value)
 
-    @on_conf_change(option='selected', section='appearance')
-    def set_color_scheme(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def set_color_scheme(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         if self.editorstacks is not None:
             logger.debug(f"Set color scheme to {value}")
             for editorstack in self.editorstacks:

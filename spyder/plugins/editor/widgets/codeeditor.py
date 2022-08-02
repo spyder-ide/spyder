@@ -458,7 +458,7 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer = QTimer(self)
         self.occurrence_timer.setSingleShot(True)
         self.occurrence_timer.setInterval(1500)
-        self.occurrence_timer.timeout.connect(self.__mark_occurrences)
+        self.occurrence_timer.timeout.connect(self.mark_occurrences)
         self.occurrences = []
 
         # Update decorations
@@ -2156,7 +2156,7 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable occurrence highlighting"""
         self.occurrence_highlighting = enable
         if not enable:
-            self.__clear_occurrences()
+            self.clear_occurrences()
 
     def set_occurrence_timeout(self, timeout):
         """Set occurrence highlighting timeout (ms)"""
@@ -2498,7 +2498,7 @@ class CodeEditor(TextEditBaseWidget):
         # Strip if needed
         self.strip_trailing_spaces()
 
-    def __clear_occurrences(self):
+    def clear_occurrences(self):
         """Clear occurrence markers"""
         self.occurrences = []
         self.clear_extra_selections('occurrences')
@@ -2540,9 +2540,9 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
 
-    def __mark_occurrences(self):
+    def mark_occurrences(self):
         """Marking occurrences of the currently selected word"""
-        self.__clear_occurrences()
+        self.clear_occurrences()
 
         if not self.supported_language:
             return
@@ -4614,7 +4614,7 @@ class CodeEditor(TextEditBaseWidget):
         shift = event.modifiers() & Qt.ShiftModifier
 
         if text:
-            self.__clear_occurrences()
+            self.clear_occurrences()
 
             # Only ask for completions if there's some text generated
             # as part of the event. Events such as pressing Crtl,
