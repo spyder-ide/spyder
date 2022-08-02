@@ -81,6 +81,7 @@ from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.user import NoDefault
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.py3compat import configparser as cp, PY3, to_text_string
 from spyder.utils import encoding, programs
@@ -167,6 +168,9 @@ class MainWindow(QMainWindow):
 
         # Save command line options for plugins to access them
         self._cli_options = options
+
+        # To have an easy to access reference to CONF
+        self._conf = CONF
 
         logger.info("Start of MainWindow constructor")
 
@@ -269,7 +273,7 @@ class MainWindow(QMainWindow):
 
         if running_under_pytest():
             # Show errors in internal console when testing.
-            CONF.set('main', 'show_internal_errors', False)
+            self.set_conf('show_internal_errors', False)
 
         self.CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
 
@@ -288,8 +292,8 @@ class MainWindow(QMainWindow):
 
         # Showing splash screen
         self.splash = splash
-        if CONF.get('main', 'current_version', '') != __version__:
-            CONF.set('main', 'current_version', __version__)
+        if self.get_conf('current_version', default='') != __version__:
+            self.set_conf('current_version', __version__)
             # Execute here the actions to be performed only once after
             # each update (there is nothing there for now, but it could
             # be useful some day...)
@@ -438,8 +442,8 @@ class MainWindow(QMainWindow):
 
             # Update margins
             margin = 0
-            if CONF.get('main', 'use_custom_margin'):
-                margin = CONF.get('main', 'custom_margin')
+            if self.get_conf('use_custom_margin'):
+                margin = self.get_conf('custom_margin')
             plugin.update_margins(margin)
 
         if plugin_name == Plugins.Shortcuts:
@@ -464,8 +468,11 @@ class MainWindow(QMainWindow):
             try:
                 context = '_'
                 name = 'switch to {}'.format(plugin.CONF_SECTION)
-                shortcut = CONF.get_shortcut(context, name,
-                                             plugin_name=plugin.CONF_SECTION)
+                shortcut = self._conf.get_shortcut(
+                    context,
+                    name,
+                    plugin_name=plugin.CONF_SECTION
+                )
             except (cp.NoSectionError, cp.NoOptionError):
                 shortcut = None
 
@@ -514,8 +521,11 @@ class MainWindow(QMainWindow):
         try:
             context = '_'
             name = 'switch to {}'.format(plugin.CONF_SECTION)
-            shortcut = CONF.get_shortcut(context, name,
-                                         plugin_name=plugin.CONF_SECTION)
+            shortcut = self._conf.get_shortcut(
+                context,
+                name,
+                plugin_name=plugin.CONF_SECTION
+            )
         except Exception:
             pass
 
@@ -739,7 +749,7 @@ class MainWindow(QMainWindow):
                     try:
                         context = '_'
                         name = 'switch to {}'.format(section)
-                        shortcut = CONF.get_shortcut(
+                        shortcut = self._conf.get_shortcut(
                             context, name, plugin_name=section)
                     except (cp.NoSectionError, cp.NoOptionError):
                         shortcut = QKeySequence()
@@ -765,8 +775,8 @@ class MainWindow(QMainWindow):
         self.update_python_path(path_dict)
 
         logger.info("Applying theme configuration...")
-        ui_theme = CONF.get('appearance', 'ui_theme')
-        color_scheme = CONF.get('appearance', 'selected')
+        ui_theme = self.get_conf(option='ui_theme', section='appearance')
+        color_scheme = self.get_conf(option='selected', section='appearance')
 
         if ui_theme == 'dark':
             if not running_under_pytest():
@@ -805,7 +815,7 @@ class MainWindow(QMainWindow):
                 css_path = CSS_PATH
 
         # Set css_path as a configuration to be used by the plugins
-        CONF.set('appearance', 'css_path', css_path)
+        self.set_conf('css_path', css_path, section='appearance')
 
         # Status bar
         status = self.statusBar()
@@ -845,7 +855,9 @@ class MainWindow(QMainWindow):
                 registry_external_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
             try:
-                if CONF.get(plugin_main_attribute_name, "enable"):
+                if self.get_conf(
+                        option="enable",
+                        section=plugin_main_attribute_name):
                     enabled_plugins[plugin_name] = plugin
                     PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):
@@ -1124,7 +1136,10 @@ class MainWindow(QMainWindow):
         # Needed to ensure dockwidgets/panes layout size distribution
         # when a layout state is already present.
         # See spyder-ide/spyder#17945
-        if self.layouts is not None and CONF.get('main', 'window/state', None):
+        if (
+            self.layouts is not None
+            and self.get_conf('window/state', default=None)
+        ):
             self.layouts.before_mainwindow_visible()
 
         logger.info("*** End of MainWindow setup ***")
@@ -1156,7 +1171,7 @@ class MainWindow(QMainWindow):
         # the user tries to start other instances with
         # $ spyder foo.py
         if (
-            CONF.get('main', 'single_instance') and
+            self.get_conf('single_instance') and
             not self._cli_options.new_instance and
             self.open_files_server
         ):
@@ -1331,6 +1346,41 @@ class MainWindow(QMainWindow):
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
+
+    # ---- Configuration
+    # -------------------------------------------------------------------------
+    def get_conf(self, option, section='main', default=NoDefault):
+        """
+        Get an option from the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: str
+            Name of the option to get its value from.
+        section: str, optional
+            Section in the configuration system, e.g. `shortcuts`. The default
+            is 'main'.
+        default: Optional
+            Fallback value to return if the option is not found on the
+            configuration system.
+        """
+        return self._conf.get(section, option, default)
+
+    def set_conf(self, option, value, section='main'):
+        """
+        Set an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: str
+            Name of the option to set its value.
+        value:
+            Value to set on the configuration system.
+        section: str, optional
+            Section in the configuration system, e.g. `shortcuts`. The default
+            is 'main'.
+        """
+        return self._conf.set(section, option, value)
 
     # ---- Other
     # -------------------------------------------------------------------------
@@ -1511,7 +1561,7 @@ class MainWindow(QMainWindow):
 
         self.plugin_registry = PLUGIN_REGISTRY
 
-        if cancelable and CONF.get('main', 'prompt_on_exit'):
+        if cancelable and self.get_conf('prompt_on_exit'):
             reply = QMessageBox.critical(self, 'Spyder',
                                          'Do you really want to exit?',
                                          QMessageBox.Yes, QMessageBox.No)
@@ -1544,7 +1594,7 @@ class MainWindow(QMainWindow):
 
         self.already_closed = True
 
-        if CONF.get('main', 'single_instance') and self.open_files_server:
+        if self.get_conf('single_instance') and self.open_files_server:
             self.open_files_server.close()
 
         QApplication.processEvents()
@@ -1595,11 +1645,14 @@ class MainWindow(QMainWindow):
         if systerm:
             # Running script in an external system terminal
             try:
-                if CONF.get('main_interpreter', 'default'):
+                if self.get_conf(option='default', section='main_interpreter'):
                     executable = get_python_executable()
                 else:
-                    executable = CONF.get('main_interpreter', 'executable')
-                pypath = CONF.get('main', 'spyder_pythonpath', None)
+                    executable = self.get_conf(
+                        option='executable',
+                        section='main_interpreter'
+                    )
+                pypath = self.get_conf('spyder_pythonpath', default=None)
                 programs.run_python_script_in_terminal(
                         fname, wdir, args, interact, debug, python_args,
                         executable, pypath)
@@ -1695,7 +1748,7 @@ class MainWindow(QMainWindow):
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
             logger.error(str(e))
-        CONF.set('main', 'spyder_pythonpath', self.get_spyder_pythonpath())
+        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
 
     def get_spyder_pythonpath_dict(self):
         """
@@ -1795,15 +1848,15 @@ class MainWindow(QMainWindow):
                 pass
 
         default = self.DOCKOPTIONS
-        if CONF.get('main', 'vertical_tabs'):
+        if self.get_conf('vertical_tabs'):
             default = default|QMainWindow.VerticalTabs
         self.setDockOptions(default)
 
         self.apply_panes_settings()
 
-        if CONF.get('main', 'use_custom_cursor_blinking'):
+        if self.get_conf('use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(
-                CONF.get('main', 'custom_cursor_blinking'))
+                self.get_conf('custom_cursor_blinking'))
         else:
             qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
 
@@ -1817,8 +1870,8 @@ class MainWindow(QMainWindow):
             try:
                 # New API
                 margin = 0
-                if CONF.get('main', 'use_custom_margin'):
-                    margin = CONF.get('main', 'custom_margin')
+                if self.get_conf('use_custom_margin'):
+                    margin = self.get_conf('custom_margin')
                 plugin.update_margins(margin)
             except AttributeError:
                 # Old API
@@ -1839,7 +1892,7 @@ class MainWindow(QMainWindow):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
         port = select_port(default_port=OPEN_FILES_PORT)
-        CONF.set('main', 'open_files_port', port)
+        self.set_conf('open_files_port', port)
 
         # This is necessary in case it's not possible to bind a port for the
         # server in the system.
