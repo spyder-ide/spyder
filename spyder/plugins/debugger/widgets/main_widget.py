@@ -31,6 +31,11 @@ class DebuggerWidgetActions:
     Search = 'search'
     Inspect = 'inspect'
     EnterDebug = 'enter_debug'
+    Next = "next"
+    Continue = "continue"
+    Step = "step"
+    Return = "return"
+    Stop = "stop"
 
     # Toggles
     ToggleExcludeInternal = 'toggle_exclude_internal_action'
@@ -140,6 +145,46 @@ class DebuggerWidget(ShellConnectMainWidget):
             register_shortcut=True,
         )
 
+        next_action = self.create_action(
+            DebuggerWidgetActions.Next,
+            text=_("Run current line"),
+            icon=self.create_icon('arrow-step-over'),
+            triggered=lambda: self.debug_command("next"),
+            register_shortcut=True
+        )
+
+        continue_action = self.create_action(
+            DebuggerWidgetActions.Continue,
+            text=_("Continue execution until next breakpoint"),
+            icon=self.create_icon('arrow-continue'),
+            triggered=lambda: self.debug_command("continue"),
+            register_shortcut=True
+        )
+
+        step_action = self.create_action(
+            DebuggerWidgetActions.Step,
+            text=_("Step into function or method of current line"),
+            icon=self.create_icon('arrow-step-in'),
+            triggered=lambda: self.debug_command("step"),
+            register_shortcut=True
+        )
+
+        return_action = self.create_action(
+            DebuggerWidgetActions.Return,
+            text=_("Run until current function or method returns"),
+            icon=self.create_icon('arrow-step-out'),
+            triggered=lambda: self.debug_command("return"),
+            register_shortcut=True
+        )
+
+        stop_action = self.create_action(
+            DebuggerWidgetActions.Stop,
+            text=_("Stop debugging"),
+            icon=self.create_icon('stop_debug'),
+            triggered=self.stop_debugging,
+            register_shortcut=True
+        )
+
         # ---- Context menu actions
         self.view_locals_action = self.create_action(
             DebuggerContextMenuActions.ViewLocalsAction,
@@ -162,8 +207,14 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [search_action, enter_debug_action,
-                     inspect_action]:
+        for item in [search_action,
+                     inspect_action,
+                     enter_debug_action,
+                     next_action,
+                     continue_action,
+                     step_action,
+                     return_action,
+                     stop_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -204,6 +255,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             show_enter_debugger = False
             executing = False
             is_inspecting = False
+            pdb_prompt = False
         else:
             search = widget.finder_is_visible()
             post_mortem = widget.state == FramesBrowserState.Error
@@ -211,10 +263,21 @@ class DebuggerWidget(ShellConnectMainWidget):
             executing = sw._executing
             show_enter_debugger = post_mortem or executing
             is_inspecting = widget.state == FramesBrowserState.Inspect
+            pdb_prompt = sw.is_waiting_pdb_input()
         search_action.setChecked(search)
         enter_debug_action.setEnabled(show_enter_debugger)
         inspect_action.setEnabled(executing)
         self.context_menu.setEnabled(is_inspecting)
+
+        for action_name in [
+                DebuggerWidgetActions.Next,
+                DebuggerWidgetActions.Continue,
+                DebuggerWidgetActions.Step,
+                DebuggerWidgetActions.Return,
+                DebuggerWidgetActions.Stop]:
+            action = self.get_action(action_name)
+            action.setEnabled(pdb_prompt)
+
 
 
     # ---- ShellConnectMainWidget API
@@ -351,3 +414,17 @@ class DebuggerWidget(ShellConnectMainWidget):
             ).get_current_frames(
                 ignore_internal_threads=self.get_conf("exclude_internal"),
                 capture_locals=self.get_conf("capture_locals"))
+
+    def stop_debugging(self):
+        """Stop debugging"""
+        widget = self.current_widget()
+        if widget is None:
+            return
+        widget.shellwidget.stop_debugging()
+
+    def debug_command(self, command):
+        """Debug actions"""
+        widget = self.current_widget()
+        if widget is None:
+            return
+        widget.shellwidget.pdb_execute_command(command)

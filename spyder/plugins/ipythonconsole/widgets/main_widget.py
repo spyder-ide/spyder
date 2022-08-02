@@ -2174,26 +2174,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
 
-    def pdb_execute_command(self, command):
-        """
-        Send command to the pdb kernel if possible.
-        """
-
-        sw = self.get_current_shellwidget()
-        if sw is not None:
-            # Needed to handle an error when kernel_client is None.
-            # See spyder-ide/spyder#7578.
-            try:
-                sw.pdb_execute_command(command)
-            except AttributeError:
-                pass
-
-    def stop_debugging(self):
-        """Stop debugging"""
-        sw = self.get_current_shellwidget()
-        if sw is not None:
-            sw.stop_debugging()
-
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
