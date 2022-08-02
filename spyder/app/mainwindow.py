@@ -210,7 +210,7 @@ class MainWindow(QMainWindow):
         plugin.get_description()
 
         if not is_compatible:
-            self.show_compatibility_message(message)
+            self.show_plugin_compatibility_message(message)
             return
 
         # Connect Plugin Signals to main window methods
