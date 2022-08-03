@@ -268,7 +268,7 @@ class MainWindow(QMainWindow):
 
         self.CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
 
-        if set_windows_appusermodelid != None:
+        if set_windows_appusermodelid is not None:
             res = set_windows_appusermodelid()
             logger.info("appusermodelid: %s", res)
 
@@ -314,14 +314,17 @@ class MainWindow(QMainWindow):
                                                        socket.IPPROTO_TCP)
             except OSError:
                 self.open_files_server = None
-                QMessageBox.warning(None, "Spyder",
-                         _("An error occurred while creating a socket needed "
-                           "by Spyder. Please, try to run as an Administrator "
-                           "from cmd.exe the following command and then "
-                           "restart your computer: <br><br><span "
-                           "style=\'color: {color}\'><b>netsh winsock reset "
-                           "</b></span><br>").format(
-                               color=QStylePalette.COLOR_BACKGROUND_4))
+                QMessageBox.warning(
+                    None,
+                    "Spyder",
+                    _("An error occurred while creating a socket needed "
+                      "by Spyder. Please, try to run as an Administrator "
+                      "from cmd.exe the following command and then "
+                      "restart your computer: <br><br><span "
+                      "style=\'color: {color}\'><b>netsh winsock reset "
+                      "</b></span><br>").format(
+                          color=QStylePalette.COLOR_BACKGROUND_4)
+                )
         else:
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
@@ -1313,7 +1316,10 @@ class MainWindow(QMainWindow):
     def moveEvent(self, event):
         """Reimplement Qt method"""
         if hasattr(self, 'layouts'):
-            if not self.isMaximized() and not self.layouts.get_fullscreen_flag():
+            if (
+                not self.isMaximized()
+                and not self.layouts.get_fullscreen_flag()
+            ):
                 self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
         # To be used by the tour to be able to move
