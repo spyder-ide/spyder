@@ -1194,6 +1194,9 @@ class MainWindow(QMainWindow):
             assert 'pandas' not in sys.modules
             assert 'matplotlib' not in sys.modules
 
+        # Restore last visible plugins
+        self.layouts.restore_visible_plugins()
+
         # Restore undocked plugins
         self.restore_undocked_plugins()
 
@@ -1219,6 +1222,7 @@ class MainWindow(QMainWindow):
             reopen_last_session = True
 
         if editor and reopen_last_session:
+            logger.info("Restoring opened files from the previous session")
             editor.setup_open_files(close_previous_files=False)
 
     def restore_undocked_plugins(self):
@@ -1571,6 +1575,8 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+
+        self.layouts.save_visible_plugins()
 
         self.plugin_registry = PLUGIN_REGISTRY
 
