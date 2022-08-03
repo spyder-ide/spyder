@@ -40,7 +40,7 @@ class IPythonConsole(SpyderDockablePlugin):
 
     # This is required for the new API
     NAME = 'ipython_console'
-    REQUIRES = [Plugins.Console, Plugins.Preferences]
+    REQUIRES = [Plugins.Console, Plugins.Preferences, Plugins.Layout]
     OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
                 Plugins.Projects, Plugins.WorkingDirectory]
     TABIFY = [Plugins.History]
@@ -437,6 +437,19 @@ class IPythonConsole(SpyderDockablePlugin):
         """Set current working directory on the main widget."""
         self.get_widget().set_working_directory(new_dir)
 
+    def _unmaximize_plugin(self):
+        """
+        Unmaximize the currently maximized plugin, if any.
+
+        Notes
+        -----
+        We assume that users want to check output in the IPython console after
+        after running or debugging code. And for that we need to unmaximize any
+        plugin that is currently maximized.
+        """
+        layouts = self.get_plugin(Plugins.Layout)
+        layouts.unmaximize_dockwidget()
+
     # ---- Public API
     # -------------------------------------------------------------------------
 
@@ -649,6 +662,7 @@ class IPythonConsole(SpyderDockablePlugin):
         -------
         None.
         """
+        self._unmaximize_plugin()
         self.get_widget().run_script(
             filename,
             wdir,
@@ -689,6 +703,7 @@ class IPythonConsole(SpyderDockablePlugin):
         -------
         None.
         """
+        self._unmaximize_plugin()
         self.get_widget().run_cell(
             code, cell_name, filename, run_cell_copy, focus_to_editor,
             function=function)
@@ -718,6 +733,7 @@ class IPythonConsole(SpyderDockablePlugin):
         -------
         None.
         """
+        self._unmaximize_plugin()
         self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy,
                                      focus_to_editor)
 
@@ -747,10 +763,12 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def run_selection(self, lines, focus_to_editor=True):
         """Execute selected lines in the current console."""
+        self._unmaximize_plugin()
         self.get_widget().execute_code(lines, set_focus=not focus_to_editor)
 
     def stop_debugging(self):
         """Stop debugging in the current console."""
+        self._unmaximize_plugin()
         self.get_widget().stop_debugging()
 
     def get_pdb_state(self):
@@ -776,6 +794,7 @@ class IPythonConsole(SpyderDockablePlugin):
         -------
         None.
         """
+        self._unmaximize_plugin()
         self.get_widget().pdb_execute_command(command, focus_to_editor)
 
     def print_debug_file_msg(self):

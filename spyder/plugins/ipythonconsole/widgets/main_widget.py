@@ -2357,8 +2357,9 @@ class IPythonConsoleWidget(PluginMainWidget):
             except AttributeError:
                 pass
 
-            # Show plugin after execution
-            self.sig_switch_to_plugin_requested.emit()
+            # Show plugin after execution if focus is going to be given to it.
+            if not focus_to_editor:
+                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(

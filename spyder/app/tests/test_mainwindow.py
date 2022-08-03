@@ -1903,12 +1903,11 @@ def test_close_when_file_is_changed(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_maximize_minimize_plugins(main_window, qtbot):
-    """Test that the maximize button is working correctly."""
+    """Test that the maximize button is working as expected."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
 
     def get_random_plugin():
         """Get a random dockable plugin and give it focus"""
@@ -1931,7 +1930,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
     # Grab maximize button
     max_action = main_window.layouts.maximize_action
@@ -2005,13 +2005,14 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     if hasattr(plugin_2, '_hide_after_test'):
         plugin_2.toggle_view(False)
 
+    # Stop debugger
     stop_debug_action = main_window.debug_toolbar_actions[5]
     stop_debug_button = main_window.debug_toolbar.widgetForAction(
         stop_debug_action)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
 
-    # Maximize a plugin and check that it's unmaximized after running code
+    # Maximize a plugin and check that it's unmaximized after running a file
     plugin_3 = get_random_plugin()
     qtbot.mouseClick(max_button, Qt.LeftButton)
     qtbot.mouseClick(run_button, Qt.LeftButton)
@@ -2019,6 +2020,30 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     assert not max_action.isChecked()
     if hasattr(plugin_3, '_hide_after_test'):
         plugin_3.toggle_view(False)
+
+    # Maximize a plugin and check that it's unmaximized after running a cell
+    plugin_4 = get_random_plugin()
+    run_cell_action = main_window.run_toolbar_actions[1]
+    run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+    assert not plugin_4.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_4, '_hide_after_test'):
+        plugin_4.toggle_view(False)
+
+    # Maximize a plugin and check that it's unmaximized after running a
+    # selection
+    plugin_5 = get_random_plugin()
+    run_selection_action = main_window.run_toolbar_actions[3]
+    run_selection_button = main_window.run_toolbar.widgetForAction(
+        run_selection_action)
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+    assert not plugin_5.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_5, '_hide_after_test'):
+        plugin_5.toggle_view(False)
 
 
 @pytest.mark.slow
@@ -5082,13 +5107,13 @@ crash_func()
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
     """Test that the focus_to_editor option works as expected."""
 
-    def check_focus(button, debug=False):
+    def check_focus(button):
         # Give focus back to the editor before running the next test
         if not focus_to_editor:
             code_editor.setFocus()
 
         # Make sure we don't switch to the console after pressing the button
-        if focus_to_editor and not debug:
+        if focus_to_editor:
             with qtbot.assertNotEmitted(
                 main_window.ipyconsole.sig_switch_to_plugin_requested,
                 wait=1000
@@ -5138,7 +5163,7 @@ foo(1)
     # Run a file
     run_action = main_window.run_toolbar_actions[0]
     run_button = main_window.run_toolbar.widgetForAction(run_action)
-    check_focus(run_button, debug=True)
+    check_focus(run_button)
 
     # Run a cell
     run_cell_action = main_window.run_toolbar_actions[1]
@@ -5160,13 +5185,13 @@ foo(1)
     # Debug a file
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-    check_focus(debug_button, debug=True)
+    check_focus(debug_button)
 
     # Go to the next line while debugging
     debug_next_action = main_window.debug_toolbar_actions[1]
     debug_next_button = main_window.debug_toolbar.widgetForAction(
         debug_next_action)
-    check_focus(debug_next_button, debug=True)
+    check_focus(debug_next_button)
 
 
 @pytest.mark.slow
