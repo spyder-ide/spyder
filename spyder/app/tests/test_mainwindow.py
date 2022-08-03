@@ -4037,39 +4037,39 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     # Clear all breakpoints
     main_window.editor.clear_all_breakpoints()
 
-    # Run file inside a debugger
-    with qtbot.waitSignal(shell.executed):
-        shell.execute(
-            "debugfile(" + repr(str(file1)) + ")"
-        )
-
     shell.execute(
         "runfile(" + repr(str(file2)) + ")"
     )
-
 
     # Check nothing is in the variableexplorer
     nsb = main_window.variableexplorer.current_widget()
     assert len(nsb.editor.source_model._data) == 0
 
     # Wait a bit, refresh, and make sure we captured an in-between value
-    qtbot.wait(300)
+    qtbot.wait(500)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
     assert 0 < int(nsb.editor.source_model._data['j']['view']) < 9
 
-    # Wait until continue and stop on the breakpoint
-    qtbot.waitUntil(lambda: "IPdb [2]:" in shell._control.toPlainText())
+    qtbot.waitSignal(shell.executed)
 
-    # Verify that we are still on debugging
-    assert shell.is_waiting_pdb_input()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "del j"
+        )
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 0)
+
+    # Run file inside a debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "debugfile(" + repr(str(file1)) + ")"
+        )
 
     # continue
     shell.execute("c")
-    qtbot.wait(300)
+    qtbot.wait(500)
     nsb.refresh_table()
-    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 2)
-    assert nsb.editor.source_model._data['j']['view'] == '9'
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
     assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
 
 

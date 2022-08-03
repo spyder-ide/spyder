@@ -2357,5 +2357,35 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
         section='ipython_console')
 
 
+def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
+    """Test that %varexp is working while debugging locals."""
+
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("def f():\n    li = [1, 2]\n    return li")
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug f()")
+
+
+    # Get to an object that can be plotted
+    for _ in range(4):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("!s")
+
+    # Generate the plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%varexp --plot li")
+
+    qtbot.wait(1000)
+
+    # Assert that there's a plot in the console
+    assert shell._control.toHtml().count('img src') == 1
+
+
 if __name__ == "__main__":
     pytest.main()
