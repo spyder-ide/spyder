@@ -59,7 +59,7 @@ class SpyderLayout(BaseGridLayoutType):
         )
         self.add_area(
             [Plugins.Help, Plugins.VariableExplorer,
-             Plugins.FramesExplorer, Plugins.Plots,
+             Plugins.Debugger, Plugins.Plots,
              Plugins.OnlineHelp, Plugins.Explorer, Plugins.Find],
             row=0,
             column=3,
@@ -96,7 +96,7 @@ class HorizontalSplitLayout(BaseGridLayoutType):
         self.add_area(
             [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
              Plugins.VariableExplorer,
-             Plugins.FramesExplorer, Plugins.Plots, Plugins.History],
+             Plugins.Debugger, Plugins.Plots, Plugins.History],
             row=0,
             column=1,
             default=True,
@@ -123,7 +123,7 @@ class VerticalSplitLayout(BaseGridLayoutType):
         self.add_area(
             [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
              Plugins.VariableExplorer,
-             Plugins.FramesExplorer, Plugins.Plots, Plugins.History],
+             Plugins.Debugger, Plugins.Plots, Plugins.History],
             row=1,
             column=0,
             default=True,
@@ -155,7 +155,7 @@ class RLayout(BaseGridLayoutType):
         )
         self.add_area(
             [Plugins.VariableExplorer,
-             Plugins.FramesExplorer, Plugins.Plots, Plugins.History,
+             Plugins.Debugger, Plugins.Plots, Plugins.History,
              Plugins.OutlineExplorer, Plugins.Find],
             row=0,
             column=1,
@@ -204,7 +204,7 @@ class MatlabLayout(BaseGridLayoutType):
         )
         self.add_area(
             [Plugins.VariableExplorer,
-             Plugins.FramesExplorer, Plugins.Plots, Plugins.Find],
+             Plugins.Debugger, Plugins.Plots, Plugins.Find],
             row=0,
             column=2,
             default=True,

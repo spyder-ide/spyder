@@ -753,7 +753,7 @@ class Layout(SpyderPluginV2):
         Populate panes menu with the toggle view action of each base plugin.
         """
         order = ['editor', 'ipython_console', 'variable_explorer',
-                 'frames_explorer', 'help', 'plots', None, 'explorer',
+                 'debugger', 'help', 'plots', None, 'explorer',
                  'outline_explorer', 'project_explorer', 'find_in_files', None,
                  'historylog', 'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
