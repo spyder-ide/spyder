@@ -831,7 +831,6 @@ def test_do_complete(kernel):
     # test pdb
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.completenames = lambda *ignore: ['baba']
     kernel.shell.pdb_session = pdb_obj
     match = kernel.do_complete('ba', 2)
@@ -890,7 +889,6 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -917,7 +915,6 @@ def test_comprehensions_with_locals_in_pdb_2(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -944,7 +941,6 @@ def test_namespaces_in_pdb(kernel):
     kernel.shell.user_ns["test"] = 0
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1026,7 +1022,6 @@ def test_functions_with_locals_in_pdb_2(kernel):
     baba = 1
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1064,7 +1059,6 @@ def test_locals_globals_in_pdb(kernel):
     a = 1
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1141,6 +1135,50 @@ def test_get_interactive_backend(backend):
             assert MPL_BACKENDS_FROM_SPYDER[value] == backend
         else:
             assert value == '0'
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.version_info[0] < 3,
+    reason="Fails with python 2")
+def test_debug_namespace(tmpdir):
+    """
+    Test that the kernel uses the proper namespace while debugging.
+    """
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Write code to a file
+        d = tmpdir.join("pdb-ns-test.py")
+        d.write('def func():\n    bb = "hello"\n    breakpoint()\nfunc()')
+
+        # Run code file `d`
+        msg_id = client.execute("runfile(r'{}')".format(to_text_string(d)))
+
+        # make sure that 'bb' returns 'hello'
+        client.get_stdin_msg(timeout=TIMEOUT)
+        client.input('bb')
+
+        t0 = time.time()
+        while True:
+            assert time.time() - t0 < 5
+            msg = client.get_iopub_msg(timeout=TIMEOUT)
+            if msg.get('msg_type') == 'stream':
+                if 'hello' in msg["content"].get("text"):
+                    break
+
+         # make sure that get_value('bb') returns 'hello'
+        client.get_stdin_msg(timeout=TIMEOUT)
+        client.input("get_ipython().kernel.get_value('bb')")
+
+        t0 = time.time()
+        while True:
+            assert time.time() - t0 < 5
+            msg = client.get_iopub_msg(timeout=TIMEOUT)
+            if msg.get('msg_type') == 'stream':
+                if 'hello' in msg["content"].get("text"):
+                    break
 
 
 if __name__ == "__main__":
