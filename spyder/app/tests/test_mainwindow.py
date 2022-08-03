@@ -5318,8 +5318,8 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_debugger(main_window, qtbot):
-    """Test debugger"""
+def test_debugger_plugin(main_window, qtbot):
+    """Test debugger plugin."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(

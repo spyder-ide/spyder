@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.debugger
-=============================
+=======================
 
 Debugger plugin used to instrospect current frames.
 """

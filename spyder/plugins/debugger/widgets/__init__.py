@@ -9,7 +9,7 @@
 
 """
 spyder.plugins.debugger.widgets
-=====================================
+===============================
 
 Debugger-related widgets.
 """

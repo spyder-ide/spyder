@@ -282,6 +282,7 @@ spyder_plugins_entry_points = [
     'application = spyder.plugins.application.plugin:Application',
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
     'completions = spyder.plugins.completion.plugin:CompletionPlugin',
+    'debugger = spyder.plugins.debugger.plugin:Debugger',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
@@ -305,7 +306,6 @@ spyder_plugins_entry_points = [
     'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
     'tours = spyder.plugins.tours.plugin:Tours',
     'variable_explorer = spyder.plugins.variableexplorer.plugin:VariableExplorer',
-    'debugger = spyder.plugins.debugger.plugin:Debugger',
     'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]
 
