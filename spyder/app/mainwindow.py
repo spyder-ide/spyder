@@ -74,8 +74,7 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
-                                get_home_dir, get_module_source_path,
-                                is_pynsist, running_in_mac_app,
+                                get_home_dir, is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
@@ -193,14 +192,6 @@ class MainWindow(QMainWindow):
                 # In DEV Ctrl+C doesn't quit, because it helps to
                 # capture the traceback when spyder freezes
                 signal.signal(signal.SIGINT, signal_handler)
-
-        # Use a custom Qt stylesheet
-        if sys.platform == 'darwin':
-            spy_path = get_module_source_path('spyder')
-            img_path = osp.join(spy_path, 'images')
-            mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
-            mac_style = mac_style.replace('$IMAGE_PATH', img_path)
-            self.setStyleSheet(mac_style)
 
         # Shortcut management data
         self.shortcut_data = []
