@@ -757,10 +757,6 @@ class IPythonConsole(SpyderDockablePlugin):
         else:
             self.switch_to_plugin()
 
-    def stop_debugging(self):
-        """Stop debugging in the current console."""
-        self.get_widget().stop_debugging()
-
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         return self.get_widget().get_pdb_state()
@@ -768,21 +764,6 @@ class IPythonConsole(SpyderDockablePlugin):
     def get_pdb_last_step(self):
         """Get last pdb step of the current console."""
         return self.get_widget().get_pdb_last_step()
-
-    def pdb_execute_command(self, command):
-        """
-        Send command to the pdb kernel if possible.
-
-        Parameters
-        ----------
-        command : str
-            Command to execute by the pdb kernel.
-
-        Returns
-        -------
-        None.
-        """
-        self.get_widget().pdb_execute_command(command)
 
     def print_debug_file_msg(self):
         """

@@ -632,46 +632,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.register_shortcut(self.debug_action, context="_", name="Debug",
                                add_shortcut_to_tip=True)
 
-        self.debug_next_action = create_action(
-            self, _("Step"),
-            icon=ima.icon('arrow-step-over'), tip=_("Run current line"),
-            triggered=lambda: self.debug_command("next"))
-        self.register_shortcut(self.debug_next_action, "_", "Debug Step Over",
-                               add_shortcut_to_tip=True)
-
-        self.debug_continue_action = create_action(
-            self, _("Continue"),
-            icon=ima.icon('arrow-continue'),
-            tip=_("Continue execution until next breakpoint"),
-            triggered=lambda: self.debug_command("continue"))
-        self.register_shortcut(
-            self.debug_continue_action, "_", "Debug Continue",
-            add_shortcut_to_tip=True)
-
-        self.debug_step_action = create_action(
-            self, _("Step Into"),
-            icon=ima.icon('arrow-step-in'),
-            tip=_("Step into function or method of current line"),
-            triggered=lambda: self.debug_command("step"))
-        self.register_shortcut(self.debug_step_action, "_", "Debug Step Into",
-                               add_shortcut_to_tip=True)
-
-        self.debug_return_action = create_action(
-            self, _("Step Return"),
-            icon=ima.icon('arrow-step-out'),
-            tip=_("Run until current function or method returns"),
-            triggered=lambda: self.debug_command("return"))
-        self.register_shortcut(
-            self.debug_return_action, "_", "Debug Step Return",
-            add_shortcut_to_tip=True)
-
-        self.debug_exit_action = create_action(
-            self, _("Stop"),
-            icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
-            triggered=self.stop_debugging)
-        self.register_shortcut(self.debug_exit_action, "_", "Debug Exit",
-                               add_shortcut_to_tip=True)
-
         # --- Run toolbar ---
         run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
                                    tip=_("Run file"),
@@ -1142,11 +1102,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         debug_menu_actions = [
             self.debug_action,
             self.debug_cell_action,
-            self.debug_next_action,
-            self.debug_step_action,
-            self.debug_return_action,
-            self.debug_continue_action,
-            self.debug_exit_action,
             MENU_SEPARATOR,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
@@ -1157,11 +1112,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         debug_toolbar_actions = [
             self.debug_action,
             self.debug_cell_action,
-            self.debug_next_action,
-            self.debug_step_action,
-            self.debug_return_action,
-            self.debug_continue_action,
-            self.debug_exit_action
         ]
         self.main.debug_toolbar_actions += debug_toolbar_actions
 
@@ -1246,11 +1196,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         Some examples depending on the debugging state:
         self.debug_action.setEnabled(not state)
         self.debug_cell_action.setEnabled(not state)
-        self.debug_next_action.setEnabled(state)
-        self.debug_step_action.setEnabled(state)
-        self.debug_return_action.setEnabled(state)
-        self.debug_continue_action.setEnabled(state)
-        self.debug_exit_action.setEnabled(state)
         """
         current_editor = self.get_current_editor()
         if current_editor:
@@ -2858,20 +2803,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if index is not None:
                 editorstack.data[index].editor.debugger.toogle_breakpoint(
                         lineno)
-
-    def stop_debugging(self):
-        """Stop debugging"""
-        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
-        if ipyconsole:
-            ipyconsole.stop_debugging()
-
-    def debug_command(self, command):
-        """Debug actions"""
-        self.switch_to_plugin()
-        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
-        if ipyconsole:
-            ipyconsole.pdb_execute_command(command)
-            ipyconsole.switch_to_plugin()
 
     # ----- Handlers for the IPython Console kernels
     def _get_editorstack(self):
