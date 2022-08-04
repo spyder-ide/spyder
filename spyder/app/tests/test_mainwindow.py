@@ -4167,7 +4167,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     qtbot.wait(500)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
-    assert 0 < int(nsb.editor.source_model._data['j']['view']) < 9
+    assert 0 < int(nsb.editor.source_model._data['j']['view']) <= 9
 
     qtbot.waitSignal(shell.executed)
 
@@ -4188,7 +4188,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     qtbot.wait(500)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
-    assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
+    assert 0 < int(nsb.editor.source_model._data['i']['view']) <= 9
 
 
 @pytest.mark.slow
