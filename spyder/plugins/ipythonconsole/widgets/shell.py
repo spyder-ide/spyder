@@ -150,7 +150,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = None
         self.kernel_client = None
         handlers.update({
-            'pdb_state': self.set_pdb_state,
             'pdb_execute': self.pdb_execute,
             'show_pdb_output': self.show_pdb_output,
             'set_debug_state': self.set_debug_state,

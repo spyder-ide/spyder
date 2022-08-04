@@ -441,11 +441,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             pdb_stack, pdb_index = pdb_state['step']
             self.sig_pdb_stack.emit(pdb_stack, pdb_index)
 
-    def set_pdb_state(self, pdb_state):
-        """Set current pdb state."""
-        if pdb_state is not None and isinstance(pdb_state, dict):
-            self.refresh_from_pdb(pdb_state)
-
     def show_pdb_output(self, text):
         """Show Pdb output."""
         self._append_plain_text(self.output_sep, before_prompt=True)
@@ -615,8 +610,11 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         """Callback used when the user inputs text in pdb."""
         self.pdb_execute(line)
 
-    def pdb_input(self, prompt, password=None):
+    def pdb_input(self, prompt, password=None, state=None):
         """Get input for a command."""
+
+        if state is not None and isinstance(state, dict):
+            self.refresh_from_pdb(state)
 
         # Replace with numbered prompt
         prompt = self._current_prompt()
