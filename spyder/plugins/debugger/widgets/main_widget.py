@@ -207,14 +207,14 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [search_action,
-                     inspect_action,
-                     enter_debug_action,
-                     next_action,
+        for item in [next_action,
                      continue_action,
                      step_action,
                      return_action,
-                     stop_action]:
+                     stop_action,
+                     enter_debug_action,
+                     inspect_action,
+                     search_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
