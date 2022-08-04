@@ -627,9 +627,10 @@ class IPythonConsole(SpyderDockablePlugin):
                                        ask_recursive=ask_recursive)
 
     # ---- For execution and debugging
-    def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace,
-                   focus_to_editor):
+    def run_script(self, filename, wdir, args='', debug=False,
+                   post_mortem=False, current_client=True,
+                   clear_variables=False, console_namespace=False,
+                   focus_to_editor=True):
         """
         Run script in current or dedicated client.
 
@@ -639,24 +640,24 @@ class IPythonConsole(SpyderDockablePlugin):
             Path to file that will be run.
         wdir : str
             Working directory from where the file should be run.
-        args : str
+        args : str, optional
             Arguments defined to run the file.
-        debug : bool
+        debug : bool, optional
             True if the run if for debugging the file,
             False for just running it.
-        post_mortem : bool
+        post_mortem : bool, optional
             True if in case of error the execution should enter in
             post-mortem mode, False otherwise.
-        current_client : bool
+        current_client : bool, optional
             True if the execution should be done in the current client,
             False if the execution needs to be done in a dedicated client.
-        clear_variables : bool
+        clear_variables : bool, optional
             True if all the variables should be removed before execution,
             False otherwise.
-        console_namespace : bool
+        console_namespace : bool, optional
             True if the console namespace should be used, False otherwise.
-        focus_to_editor: bool
-            Leave focus in editor after execution.
+        focus_to_editor: bool, optional
+            Leave focus in the editor after execution.
 
         Returns
         -------
