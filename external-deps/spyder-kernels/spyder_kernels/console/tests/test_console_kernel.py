@@ -219,7 +219,7 @@ def test_get_var_properties(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -269,7 +269,7 @@ def test_remove_value(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -294,7 +294,7 @@ def test_copy_value(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -307,7 +307,7 @@ def test_copy_value(kernel):
     assert "'b'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -344,7 +344,7 @@ def test_load_data(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
