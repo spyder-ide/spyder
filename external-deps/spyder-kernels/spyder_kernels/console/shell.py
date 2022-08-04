@@ -26,6 +26,7 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.mpl import automatic_backend
+from spyder_kernels.comms.frontendcomm import CommError
 
 
 logger = logging.getLogger(__name__)
@@ -34,10 +35,20 @@ logger = logging.getLogger(__name__)
 class SpyderShell(ZMQInteractiveShell):
     """Spyder shell."""
 
+    PDB_CONF_KEYS = [
+        'pdb_ignore_lib',
+        'pdb_execute_events',
+        'pdb_use_exclamation_mark',
+        'pdb_stop_first_line',
+        'breakpoints',
+        'pdb_publish_stack'
+        ]
+
     def __init__(self, *args, **kwargs):
         # Create _pdb_obj_stack before __init__
         self._pdb_obj_stack = []
         self._request_pdb_stop = False
+        self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
         self.register_debugger_sigint()
 
@@ -65,6 +76,21 @@ class SpyderShell(ZMQInteractiveShell):
         return gui, backend
 
     # --- For Pdb namespace integration
+    def set_pdb_configuration(self, pdb_conf):
+        """
+        Set pdb configuration.
+
+        Parameters
+        ----------
+        pdb_conf: dict
+            dict containing the configuration, the keys are PDB_CONF_KEYS
+        """
+        for key in self.PDB_CONF_KEYS:
+            if key in pdb_conf:
+                self._pdb_conf[key] = pdb_conf[key]
+                if self.pdb_session:
+                    setattr(self.pdb_session, key, pdb_conf[key])
+
     def get_local_scope(self, stack_depth):
         """Get local scope at given frame depth."""
         frame = sys._getframe(stack_depth + 1)
@@ -98,8 +124,10 @@ class SpyderShell(ZMQInteractiveShell):
             # Already added
             return
         self._pdb_obj_stack.append(pdb_obj)
+        # set config to pdb obj
+        self.set_pdb_configuration(self._pdb_conf)
         try:
-            self.kernel.frontend_call(blocking=True).set_debug_state(
+            self.kernel.frontend_call(blocking=False).set_debug_state(
                 len(self._pdb_obj_stack))
         except (CommError, TimeoutError):
             logger.debug("Could not send debugging state to the frontend.")
@@ -110,8 +138,11 @@ class SpyderShell(ZMQInteractiveShell):
             # Already removed
             return
         self._pdb_obj_stack.pop()
+        if self.pdb_session:
+            # set config to newly active pdb obj
+            self.set_pdb_configuration(self._pdb_conf)
         try:
-            self.kernel.frontend_call(blocking=True).set_debug_state(
+            self.kernel.frontend_call(blocking=False).set_debug_state(
                 len(self._pdb_obj_stack))
         except (CommError, TimeoutError):
             logger.debug("Could not send debugging state to the frontend.")

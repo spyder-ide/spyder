@@ -1365,7 +1365,7 @@ def test_enter_debug_after_interruption():
                 continue
             if msg.get('msg_type') == 'comm_msg':
                 if msg["content"].get("data", {}).get("content", {}).get(
-                        'call_name') == 'get_pdb_settings':
+                        'call_name') == 'pdb_input':
                     # pdb entered
                     break
                 comm.handle_msg(msg)

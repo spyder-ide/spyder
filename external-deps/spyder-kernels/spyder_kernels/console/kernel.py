@@ -54,10 +54,7 @@ class SpyderKernel(IPythonKernel):
 
         # All functions that can be called through the comm
         handlers = {
-            'set_breakpoints': self.set_spyder_breakpoints,
-            'set_pdb_ignore_lib': self.set_pdb_ignore_lib,
-            'set_pdb_execute_events': self.set_pdb_execute_events,
-            'set_pdb_use_exclamation_mark': self.set_pdb_use_exclamation_mark,
+            'set_pdb_configuration': self.shell.set_pdb_configuration,
             'get_value': self.get_value,
             'load_data': self.load_data,
             'save_namespace': self.save_namespace,
@@ -363,35 +360,6 @@ class SpyderKernel(IPythonKernel):
         if self.shell.is_debugging():
             return self.shell.pdb_session.do_complete(code, cursor_pos)
         return self._do_complete(code, cursor_pos)
-
-    def set_spyder_breakpoints(self, breakpoints):
-        """
-        Handle a message from the frontend
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.set_spyder_breakpoints(breakpoints)
-
-    def set_pdb_ignore_lib(self, state):
-        """
-        Change the "Ignore libraries while stepping" debugger setting.
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.pdb_ignore_lib = state
-
-    def set_pdb_execute_events(self, state):
-        """
-        Handle a message from the frontend
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.pdb_execute_events = state
-
-    def set_pdb_use_exclamation_mark(self, state):
-        """
-        Set an option on the current debugging session to decide wether
-        the Pdb commands needs to be prefixed by '!'
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.pdb_use_exclamation_mark = state
 
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
