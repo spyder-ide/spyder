@@ -438,7 +438,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             if (fname, lineno) != last_pdb_loc:
                 self.sig_pdb_step.emit(fname, lineno)
         if 'stack' in pdb_state:
-            pdb_stack, pdb_index = pdb_state['step']
+            pdb_stack, pdb_index = pdb_state['stack']
             self.sig_pdb_stack.emit(pdb_stack, pdb_index)
 
     def show_pdb_output(self, text):
