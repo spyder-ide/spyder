@@ -92,6 +92,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_kernel_started = Signal()
     sig_kernel_reset = Signal()
 
+    # Request configuration from plugins
+    sig_configure_requested = Signal()
+
     @classmethod
     def prune_shutdown_thread_list(cls):
         """Remove shutdown threads."""

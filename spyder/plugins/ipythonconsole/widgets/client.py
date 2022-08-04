@@ -519,10 +519,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             'pdb_stop_first_line': self.get_conf('pdb_stop_first_line')
             })
 
+        # Enable faulthandler
         if self.fault_obj is not None:
             # To display faulthandler
             self.shellwidget.call_kernel().enable_faulthandler(
                 self.fault_obj.filename)
+
+        # Give a chance to plugins to configure widget
+        self.shellwidget.sig_configure_requested.emit()
 
     def add_to_history(self, command):
         """Add command to history"""
