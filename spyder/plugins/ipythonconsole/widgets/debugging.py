@@ -437,6 +437,9 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # Only step if the location changed
             if (fname, lineno) != last_pdb_loc:
                 self.sig_pdb_step.emit(fname, lineno)
+        if 'stack' in pdb_state:
+            pdb_stack, pdb_index = pdb_state['step']
+            self.sig_pdb_stack.emit(pdb_stack, pdb_index)
 
     def set_pdb_state(self, pdb_state):
         """Set current pdb state."""

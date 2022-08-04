@@ -62,6 +62,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
+    sig_pdb_stack = Signal(object, int)
     sig_pdb_state_changed = Signal(bool, dict)
     sig_pdb_prompt_ready = Signal()
 
