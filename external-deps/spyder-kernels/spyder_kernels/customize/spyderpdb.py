@@ -67,7 +67,6 @@ class SpyderPdb(ipyPdb):
      - Add completion to non-command code.
     """
 
-    send_initial_notification = True
     starting = True
 
     def __init__(self, completekey='tab', stdin=None, stdout=None,
@@ -539,7 +538,7 @@ class SpyderPdb(ipyPdb):
     # --- Methods overriden by us for Spyder integration
     def postloop(self):
         # postloop() is called when the debugger’s input prompt exists. Reset
-        # _previous_step so that publish_pdb_state() actually notifies Spyder
+        # _previous_step so that get_pdb_state() actually notifies Spyder
         # about a changed frame the next the input prompt is entered again.
         self._previous_step = None
 
@@ -591,8 +590,6 @@ class SpyderPdb(ipyPdb):
 
     def preloop(self):
         """Ask Spyder for breakpoints before the first prompt is created."""
-        if self.send_initial_notification:
-            self.publish_pdb_state()
         if self.starting:
             self.maybe_do_continue()
         super(SpyderPdb, self).preloop()
@@ -689,7 +686,7 @@ class SpyderPdb(ipyPdb):
 
         # Send the input request.
         self._cmd_input_line = None
-        kernel.frontend_call().pdb_input(prompt)
+        kernel.frontend_call().pdb_input(prompt, state=self.get_pdb_state())
 
         # Allow GUI event loop to update
         is_main_thread = (
@@ -728,15 +725,6 @@ class SpyderPdb(ipyPdb):
             line = '!' + line
         return line
 
-    def postcmd(self, stop, line):
-        """
-        Notify spyder about (possibly) changed frame
-
-        Note: The PDB commands “up”, “down” and “jump” change the current frame.
-        """
-        self.publish_pdb_state()
-        return super(SpyderPdb, self).postcmd(stop, line)
-
     # --- Methods defined by us for Spyder integration
     def set_spyder_breakpoints(self, breakpoints):
         """Set Spyder breakpoints."""
@@ -761,7 +749,7 @@ class SpyderPdb(ipyPdb):
 
     breakpoints = property(fset=set_spyder_breakpoints)
 
-    def publish_pdb_state(self):
+    def get_pdb_state(self):
         """
         Send debugger state (frame position) to the frontend.
 
@@ -771,7 +759,7 @@ class SpyderPdb(ipyPdb):
         frame = self.curframe
         if frame is None:
             self._previous_step = None
-            return
+            return None
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -780,7 +768,8 @@ class SpyderPdb(ipyPdb):
         lineno = frame.f_lineno
 
         if self._previous_step == (fname, lineno):
-            return
+            # Do not update state if not needed
+            return None
 
         # Set step of the current frame (if any)
         step = {}
@@ -807,10 +796,7 @@ class SpyderPdb(ipyPdb):
     
             state['stack'] = (pdb_stack, pdb_index)
 
-        try:
-            frontend_request(blocking=False).pdb_state(state)
-        except (CommError, TimeoutError):
-            logger.debug("Could not send Pdb state to the frontend.")
+        return state
 
     def run(self, cmd, globals=None, locals=None):
         """Debug a statement executed via the exec() function.
@@ -863,8 +849,8 @@ class SpyderPdb(ipyPdb):
         sys.settrace(self.trace_dispatch)
         self.lastcmd = debugger.lastcmd
 
-        # Reset _previous_step so that publish_pdb_state() called from within
-        # postcmd() notifies Spyder about a changed debugger position. The reset
+        # Reset _previous_step so that get_pdb_state() notifies Spyder about
+        # a changed debugger position. The reset
         # is required because the recursive debugger might change the position,
         # but the parent debugger (self) is not aware of this.
         self._previous_step = None

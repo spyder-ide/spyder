@@ -301,7 +301,6 @@ def post_mortem_excepthook(type, value, tb):
         print('Entering post mortem debugging...')
         print('*' * 40)
         #  add ability to move between frames
-        p.send_initial_notification = False
         p.reset()
         frame = tb.tb_next.tb_frame
         # wait for stdout to print
