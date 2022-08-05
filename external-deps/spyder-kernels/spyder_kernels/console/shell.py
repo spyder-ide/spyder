@@ -42,7 +42,7 @@ class SpyderShell(ZMQInteractiveShell):
         'pdb_stop_first_line',
         'breakpoints',
         'pdb_publish_stack'
-        ]
+    ]
 
     def __init__(self, *args, **kwargs):
         # Create _pdb_obj_stack before __init__
@@ -124,8 +124,10 @@ class SpyderShell(ZMQInteractiveShell):
             # Already added
             return
         self._pdb_obj_stack.append(pdb_obj)
-        # set config to pdb obj
+
+        # Set config to pdb obj
         self.set_pdb_configuration(self._pdb_conf)
+
         try:
             self.kernel.frontend_call(blocking=False).set_debug_state(
                 len(self._pdb_obj_stack))
@@ -138,9 +140,11 @@ class SpyderShell(ZMQInteractiveShell):
             # Already removed
             return
         self._pdb_obj_stack.pop()
+
         if self.pdb_session:
-            # set config to newly active pdb obj
+            # Set config to newly active pdb obj
             self.set_pdb_configuration(self._pdb_conf)
+
         try:
             self.kernel.frontend_call(blocking=False).set_debug_state(
                 len(self._pdb_obj_stack))

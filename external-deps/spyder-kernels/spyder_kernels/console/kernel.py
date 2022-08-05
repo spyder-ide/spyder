@@ -21,6 +21,7 @@ import threading
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
 from traitlets.config.loader import LazyConfigValue
+import zmq
 from zmq.utils.garbage import gc
 
 # Local imports
@@ -79,7 +80,6 @@ class SpyderKernel(IPythonKernel):
             'get_matplotlib_backend': self.get_matplotlib_backend,
             'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
             'pdb_input_reply': self.pdb_input_reply,
-            '_interrupt_eventloop': self._interrupt_eventloop,
             'enable_faulthandler': self.enable_faulthandler,
             "flush_std": self.flush_std,
             'get_current_frames': self.get_current_frames,
@@ -95,9 +95,23 @@ class SpyderKernel(IPythonKernel):
         self._running_namespace = None
         self.faulthandler_handle = None
 
+        # Add handlers to control to process messages while debugging
         self.control_handlers['comm_msg'] = self.control_comm_msg
         self.control_handlers['complete_request'] = self.shell_handlers[
             'complete_request']
+
+        # Socket to signal shell_stream locally
+        self.loopback_socket = None
+
+    def record_ports(self, ports):
+        """Record ports used by shell."""
+        super().record_ports(ports)
+        # Add socket to signal shell_stream locally
+        self.shell_handlers["interrupt_eventloop"] = self._interrupt_eventloop
+        self.loopback_socket = self.shell_stream.socket.context.socket(
+            zmq.DEALER)
+        self.loopback_socket.connect(
+            "tcp://127.0.0.1:%i" % self._recorded_ports['shell_port'])
 
     # -- Public API -----------------------------------------------------------
     def do_shutdown(self, restart):
@@ -364,19 +378,24 @@ class SpyderKernel(IPythonKernel):
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
         debugger = self.shell.pdb_session
-        if debugger:
-            debugger._disable_next_stack_entry = not echo_stack_entry
-            debugger._cmd_input_line = line
-        if self.eventloop:
-            # Interrupting the eventloop is only implemented when a message is
-            # received on the shell channel, but this message is queued and
-            # won't be processed because an `execute` message is being
-            # processed. Therefore we process the message here (control chan.)
-            # and request a dummy message to be sent on the shell channel to
-            # stop the eventloop. This will call back `_interrupt_eventloop`.
-            self.frontend_call().request_interrupt_eventloop()
+        if not debugger:
+            return
+        debugger._disable_next_stack_entry = not echo_stack_entry
+        debugger._cmd_input_line = line
+        if not self.eventloop:
+            return
+        # Interrupting the eventloop is only implemented when a message is
+        # received on the shell channel, but this message is queued and
+        # won't be processed because an `execute` message is being
+        # processed. Therefore we process the message here (control chan.)
+        # and request a dummy message to be sent on the shell channel to
+        # stop the eventloop. This will call back `_interrupt_eventloop`.
+        if not self.loopback_socket:
+            return
+        self.session.send(
+            self.loopback_socket, self.session.msg("interrupt_eventloop"))
 
-    def _interrupt_eventloop(self):
+    def _interrupt_eventloop(self, stream, ident, parent):
         """Interrupts the eventloop."""
         # Receiving the request is enough to stop the eventloop.
         pass

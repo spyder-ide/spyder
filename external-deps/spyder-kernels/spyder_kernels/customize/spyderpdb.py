@@ -546,7 +546,7 @@ class SpyderPdb(ipyPdb):
         """
         Jump to first breakpoint if needed
 
-        Fixes issue 2034
+        Fixes spyder-ide/spyder#2034
         """
         if not self.starting:
             # Only run this after a Pdb session is created
@@ -560,7 +560,7 @@ class SpyderPdb(ipyPdb):
         # Get all breakpoints for the file we're going to debug
         frame = self.curframe
         if not frame:
-            # We are not debugging, return. Solves #10290
+            # We are not debugging, return. Solves spyder-ide/spyder#10290
             return
 
         lineno = frame.f_lineno
@@ -568,7 +568,7 @@ class SpyderPdb(ipyPdb):
 
         # Do 'continue' if the first breakpoint is *not* placed
         # where the debugger is going to land.
-        # Fixes issue 4681
+        # Fixes spyder-ide/spyder#4681
         if self.pdb_stop_first_line:
             do_continue = breaks and lineno < breaks[0]
         else:
@@ -589,7 +589,7 @@ class SpyderPdb(ipyPdb):
                 "Could not send a Pdb continue call to the frontend.")
 
     def preloop(self):
-        """Ask Spyder for breakpoints before the first prompt is created."""
+        """Actions to perform before the first prompt is created."""
         if self.starting:
             self.maybe_do_continue()
         super(SpyderPdb, self).preloop()
@@ -781,19 +781,19 @@ class SpyderPdb(ipyPdb):
         state = dict(step=step)
 
         if self.pdb_publish_stack:
-            # Publish Pdb stack so we can update the Debugger on Spyder
+            # Publish Pdb stack so we can update the Debugger plugin on Spyder
             pdb_stack = traceback.StackSummary.extract(self.stack)
             pdb_index = self.curindex
-    
+
             skip_hidden = getattr(self, 'skip_hidden', False)
-    
+
             if skip_hidden:
                 # Filter out the hidden frames
                 hidden = self.hidden_frames(self.stack)
                 pdb_stack = [f for f, h in zip(pdb_stack, hidden) if not h]
                 # Adjust the index
                 pdb_index -= sum(hidden[:pdb_index])
-    
+
             state['stack'] = (pdb_stack, pdb_index)
 
         return state
@@ -850,9 +850,9 @@ class SpyderPdb(ipyPdb):
         self.lastcmd = debugger.lastcmd
 
         # Reset _previous_step so that get_pdb_state() notifies Spyder about
-        # a changed debugger position. The reset
-        # is required because the recursive debugger might change the position,
-        # but the parent debugger (self) is not aware of this.
+        # a changed debugger position. The reset is required because the
+        # recursive debugger might change the position, but the parent debugger
+        # (self) is not aware of this.
         self._previous_step = None
 
     def set_remote_filename(self, filename):
