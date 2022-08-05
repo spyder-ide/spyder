@@ -2116,11 +2116,8 @@ def test_stop_dbg(main_window, qtbot):
         shell.pdb_execute("!n")
 
     # Stop debugging
-    stop_debug_action = main_window.debug_toolbar_actions[5]
-    stop_debug_button = main_window.debug_toolbar.widgetForAction(
-        stop_debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+        shell.stop_debugging()
 
     # Assert there are only two ipdb prompts in the console
     assert shell._control.toPlainText().count('IPdb') == 2
@@ -4742,11 +4739,11 @@ def test_pdb_without_comm(main_window, qtbot):
 
     # Press step button and expect a sig_pdb_step signal
     with qtbot.waitSignal(shell.sig_pdb_step):
-        main_window.editor.debug_command("step")
+        main_window.debugger.get_widget().debug_command("step")
 
     # Stop debugging and expect an executed signal
     with qtbot.waitSignal(shell.executed):
-        main_window.editor.stop_debugging()
+        shell.stop_debugging()
 
 
 @pytest.mark.slow
