@@ -440,6 +440,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if 'stack' in pdb_state:
             pdb_stack, pdb_index = pdb_state['stack']
             self.sig_pdb_stack.emit(pdb_stack, pdb_index)
+        if 'request_pdb_input' in pdb_state:
+            self.pdb_execute(pdb_state['request_pdb_input'])
 
     def show_pdb_output(self, text):
         """Show Pdb output."""
