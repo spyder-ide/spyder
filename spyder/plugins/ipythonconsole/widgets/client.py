@@ -459,9 +459,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Configure shellwidget after kernel is connected."""
         self.give_focus = give_focus
 
-        # Make sure the kernel sends the comm config over
-        self.shellwidget.call_kernel()._send_comm_config()
-
         # Set exit callback
         self.shellwidget.set_exit_callback()
 
@@ -500,13 +497,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.update_cwd)
 
-        # To apply style
-        self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
-
         self.send_kernel_configuration()
 
     def send_kernel_configuration(self):
         """Send kernel configuration to kernel"""
+
+        # To apply style
+        self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
         # send pdb config
         self.shellwidget.call_kernel().set_pdb_configuration({

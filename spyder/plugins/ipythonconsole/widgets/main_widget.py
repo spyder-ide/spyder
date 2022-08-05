@@ -2170,6 +2170,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Connect to an external Spyder kernel."""
         shellwidget.is_spyder_kernel = True
         shellwidget.spyder_kernel_comm.open_comm(shellwidget.kernel_client)
+        shellwidget.ipyclient.send_kernel_configuration()
         self.sig_shellwidget_changed.emit(shellwidget)
         self.sig_external_spyder_kernel_connected.emit(shellwidget)
 
