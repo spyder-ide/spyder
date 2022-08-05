@@ -156,7 +156,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'update_syspath': self.update_syspath,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
-            'request_interrupt_eventloop': self.request_interrupt_eventloop,
         })
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -291,10 +290,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._execute_queue.append((source, hidden, interactive))
             return
         super(ShellWidget, self).execute(source, hidden, interactive)
-
-    def request_interrupt_eventloop(self):
-        """Send a message to the kernel to interrupt the eventloop."""
-        self.call_kernel()._interrupt_eventloop()
 
     def set_exit_callback(self):
         """Set exit callback for this shell."""
