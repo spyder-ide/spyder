@@ -42,18 +42,21 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def __init__(self, parent):
 
+        self.cancelled = False
+        self.status = NO_STATUS
+        self.thread_install_update = None
         self.tooltip = self.BASE_TOOLTIP
-        self.installation_thread = parent
+        self._container = parent
         super().__init__(parent)
 
         # Installation dialog
         self.installer = UpdateInstallerDialog(
-            self,
-            self.installation_thread)
+            self)
 
-        self.installation_thread.sig_installation_status.connect(
-            self.set_value)
         self.sig_clicked.connect(self.show_installation_dialog)
+
+        self.installer.sig_installation_status.connect(
+            self.set_value)
 
     def set_value(self, value):
         """Return update installation state."""
@@ -82,6 +85,9 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def get_icon(self):
         return ima.icon('spyder')
+    
+    def start_installation(self):
+        self.installer.start_installation_update()
 
     @Slot()
     def show_installation_dialog(self):

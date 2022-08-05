@@ -14,10 +14,6 @@ Holds references for base actions in the Application of Spyder.
 import os
 import sys
 import glob
-import subprocess
-from urllib.request import urlretrieve
-from tempfile import TemporaryDirectory
-import threading
 
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
@@ -31,7 +27,7 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.utils.installers import InstallerMissingDependencies
 from spyder.config.utils import is_anaconda
-from spyder.config.base import get_conf_path, get_debug_level
+from spyder.config.base import get_conf_path, get_debug_level, is_pynsist
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
@@ -49,7 +45,7 @@ if os.name == 'nt':
 _ = get_translation('spyder')
 
 
-# Update Installation process statusesf
+# Update Installation process statuses
 NO_STATUS = _("No status")
 DOWNLOADING_INSTALLER = _("Downloading installer")
 INSTALLING = _("Installing")
@@ -94,16 +90,6 @@ class ApplicationActions:
 
 class ApplicationContainer(PluginMainContainer):
 
-    # Signals
-    # Signal to get the current status of the update installation
-    # str: Status string
-    sig_installation_status = Signal(str)
-
-    # Signal to get the download progress
-    # int: Download progress
-    # int: Total download size
-    sig_download_progress = Signal(int, int)
-
     sig_report_issue_requested = Signal()
     """
     Signal to request reporting an issue to Github.
@@ -120,11 +106,7 @@ class ApplicationContainer(PluginMainContainer):
 
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent)
-        # Windows(OS) update installation
-        self.cancelled = False
-        self.status = NO_STATUS
-        self.thread_install_update = None
-
+        
         # Keep track of dpi message
         self.current_dpi = None
         self.dpi_messagebox = None
@@ -134,7 +116,7 @@ class ApplicationContainer(PluginMainContainer):
     def setup(self):
 
         self.application_update_status = ApplicationUpdateStatus(parent=self)
-        self._change_update_installation_status(status=NO_STATUS)
+        self.application_update_status.set_value(NO_STATUS)
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
 
@@ -271,52 +253,6 @@ class ApplicationContainer(PluginMainContainer):
 
     # ---- Updates
     # -------------------------------------------------------------------------
-    def _change_update_installation_status(self, status=NO_STATUS):
-        """Set the installation status."""
-        self.status = status
-        self.sig_installation_status.emit(self.status)
-
-    def _progress_reporter(self, block_number, read_size, total_size):
-        progress = 0
-        if total_size > 0:
-            progress = block_number * read_size
-        if self.cancelled:
-            raise UpdateInstallationCancelledException()
-        else:
-            self.sig_download_progress.emit(progress, total_size)
-
-    def cancell_thread_install_update(self):
-        self._change_update_installation_status(status=CANCELLED)
-        self.thread_install_update.join()
-
-    def _download_install(self):
-        try:
-            with TemporaryDirectory(prefix="Spyder-") as tmpdir:
-                destination = os.path.join(tmpdir, 'updateSpyder.exe')
-                download = urlretrieve(
-                    ('https://github.com/spyder-ide/spyder/releases/latest/'
-                        'download/Spyder_64bit_full.exe'),
-                    destination,
-                    reporthook=self._progress_reporter)
-                self._change_update_installation_status(status=INSTALLING)
-                install = subprocess.Popen(destination, shell=True)
-                install.communicate()
-        except UpdateInstallationCancelledException:
-            self._change_update_installation_status(status=CANCELLED)
-        finally:
-            self._change_update_installation_status(status=PENDING)
-
-    def installation_thread(self, option):
-        if option.text() in ('&Yes'):
-            self.cancelled = False
-            self._change_update_installation_status(
-                status=DOWNLOADING_INSTALLER)
-            """call a function in a simple thread, to prevent blocking"""
-            self.thread_install_update = threading.Thread(
-                target=self._download_install)
-            self.thread_install_update.start()
-        else:
-            self._change_update_installation_status(status=PENDING)
 
     def _check_updates_ready(self):
 
@@ -365,6 +301,7 @@ class ApplicationContainer(PluginMainContainer):
         else:
 
             if update_available:
+                self.application_update_status.set_value(PENDING)
 
                 header = _("<b>Spyder {} is available!</b><br><br>").format(
                     latest_release)
@@ -383,16 +320,16 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda update anaconda</code><br>"
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
-                    self._change_update_installation_status(status=NO_STATUS)
+                    self.application_update_status.set_value(NO_STATUS)
                 else:
-                    if os.name == 'nt':
+                    if os.name == 'nt' and is_pynsist():
                         box.setStandardButtons(QMessageBox.Yes |
                                                QMessageBox.No)
                         content = _(
                             "You want to download and install the latest "
                             "version of spyder?<br><br>"
                         )
-                        box.buttonClicked.connect(self.installation_thread)
+                        box.buttonClicked.connect(self.application_update_status.start_installation)
                     else:
                         content = _(
                             "Click <a href=\"{}\">this link</a> to "
@@ -409,9 +346,6 @@ class ApplicationContainer(PluginMainContainer):
                 box.set_check_visible(False)
                 box.exec_()
                 check_updates = box.is_checked()
-                self._change_update_installation_status(status=NO_STATUS)
-            else:
-                self._change_update_installation_status(status=NO_STATUS)
 
         # Update checkbox based on user interaction
         self.set_conf(option, check_updates)
@@ -428,9 +362,9 @@ class ApplicationContainer(PluginMainContainer):
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
         if os.name == 'nt':
-            self._change_update_installation_status(status=CHECKING)
+            self.application_update_status.set_value(CHECKING)
         else:
-            self._change_update_installation_status(status=NO_STATUS)
+            self.application_update_status.set_value(NO_STATUS)
 
         if self.thread_updates is not None:
             self.thread_updates.quit()
