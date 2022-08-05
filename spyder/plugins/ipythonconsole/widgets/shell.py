@@ -152,7 +152,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
             'set_debug_state': self.set_debug_state,
-            'update_syspath': self.update_syspath,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
         })
