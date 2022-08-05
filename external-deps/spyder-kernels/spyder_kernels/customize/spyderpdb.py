@@ -542,58 +542,6 @@ class SpyderPdb(ipyPdb):
         # about a changed frame the next the input prompt is entered again.
         self._previous_step = None
 
-    def maybe_do_continue(self):
-        """
-        Jump to first breakpoint if needed
-
-        Fixes spyder-ide/spyder#2034
-        """
-        if not self.starting:
-            # Only run this after a Pdb session is created
-            return
-        self.starting = False
-
-        if not self.continue_if_has_breakpoints:
-            # This was disabled
-            return
-
-        # Get all breakpoints for the file we're going to debug
-        frame = self.curframe
-        if not frame:
-            # We are not debugging, return. Solves spyder-ide/spyder#10290
-            return
-
-        lineno = frame.f_lineno
-        breaks = self.get_file_breaks(frame.f_code.co_filename)
-
-        # Do 'continue' if the first breakpoint is *not* placed
-        # where the debugger is going to land.
-        # Fixes spyder-ide/spyder#4681
-        if self.pdb_stop_first_line:
-            do_continue = breaks and lineno < breaks[0]
-        else:
-            # The breakpoint could be in another file.
-            do_continue = not (breaks and lineno >= breaks[0])
-
-        if not do_continue:
-            return
-
-        try:
-            if self.pdb_use_exclamation_mark:
-                cont_cmd = '!continue'
-            else:
-                cont_cmd = 'continue'
-            frontend_request(blocking=False).pdb_execute(cont_cmd)
-        except (CommError, TimeoutError):
-            logger.debug(
-                "Could not send a Pdb continue call to the frontend.")
-
-    def preloop(self):
-        """Actions to perform before the first prompt is created."""
-        if self.starting:
-            self.maybe_do_continue()
-        super(SpyderPdb, self).preloop()
-
     def set_continue(self):
         """
         Stop only at breakpoints or when finished.
@@ -749,6 +697,39 @@ class SpyderPdb(ipyPdb):
 
     breakpoints = property(fset=set_spyder_breakpoints)
 
+    def should_do_continue(self):
+        """
+        Jump to first breakpoint if needed
+
+        Fixes spyder-ide/spyder#2034
+        """
+        if not self.starting:
+            # Only run this after a Pdb session is created
+            return False
+        self.starting = False
+
+        if not self.continue_if_has_breakpoints:
+            # This was disabled
+            return False
+
+        # Get all breakpoints for the file we're going to debug
+        frame = self.curframe
+        if not frame:
+            # We are not debugging, return. Solves spyder-ide/spyder#10290
+            return False
+
+        lineno = frame.f_lineno
+        breaks = self.get_file_breaks(frame.f_code.co_filename)
+
+        # Do 'continue' if the first breakpoint is *not* placed
+        # where the debugger is going to land.
+        # Fixes spyder-ide/spyder#4681
+        if self.pdb_stop_first_line:
+            return breaks and lineno < breaks[0]
+
+        # The breakpoint could be in another file.
+        return not (breaks and lineno >= breaks[0])
+
     def get_pdb_state(self):
         """
         Send debugger state (frame position) to the frontend.
@@ -756,10 +737,18 @@ class SpyderPdb(ipyPdb):
         The state is only sent if it has changed since the last update.
         """
 
+        state = None
+        if self.starting and self.should_do_continue():
+            if self.pdb_use_exclamation_mark:
+                cont_cmd = '!continue'
+            else:
+                cont_cmd = 'continue'
+            state = {'request_pdb_input': cont_cmd}
+
         frame = self.curframe
         if frame is None:
             self._previous_step = None
-            return None
+            return state
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -769,7 +758,7 @@ class SpyderPdb(ipyPdb):
 
         if self._previous_step == (fname, lineno):
             # Do not update state if not needed
-            return None
+            return state
 
         # Set step of the current frame (if any)
         step = {}
@@ -778,7 +767,9 @@ class SpyderPdb(ipyPdb):
             step = dict(fname=fname, lineno=lineno)
             self._previous_step = (fname, lineno)
 
-        state = dict(step=step)
+        if state is None:
+            state = {}
+        state['step'] = step
 
         if self.pdb_publish_stack:
             # Publish Pdb stack so we can update the Debugger plugin on Spyder
