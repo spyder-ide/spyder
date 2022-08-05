@@ -21,7 +21,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 
 
-# Update Installation process statusesf
+# Update installation process statuses
 NO_STATUS = _("No status")
 DOWNLOADING_INSTALLER = _("Downloading installer")
 INSTALLING = _("Installing")
@@ -78,7 +78,7 @@ class UpdateInstallation(QWidget):
     def update_installation_status(self, status):
         """Update installation status (downloading, installing, finished)."""
         self._progress_label.setText(status)
-        self.install_info.setText(status + " the latest version of Spyder.")
+        self.install_info.setText(status + _(" the latest version of Spyder."))
         if status == INSTALLING:
             self._progress_bar.setRange(0, 0)
             self.cancel_button.hide()

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Status widget for Kite completions.
+Status widget for Spyder updates.
 """
 
 # Standard library imports
