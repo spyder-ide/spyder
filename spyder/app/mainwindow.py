@@ -462,7 +462,7 @@ class MainWindow(QMainWindow):
             try:
                 context = '_'
                 name = 'switch to {}'.format(plugin.CONF_SECTION)
-                shortcut = self._conf.get_shortcut(
+                shortcut = self.get_shortcut(
                     context,
                     name,
                     plugin_name=plugin.CONF_SECTION
@@ -515,7 +515,7 @@ class MainWindow(QMainWindow):
         try:
             context = '_'
             name = 'switch to {}'.format(plugin.CONF_SECTION)
-            shortcut = self._conf.get_shortcut(
+            shortcut = self.get_shortcut(
                 context,
                 name,
                 plugin_name=plugin.CONF_SECTION
@@ -743,7 +743,7 @@ class MainWindow(QMainWindow):
                     try:
                         context = '_'
                         name = 'switch to {}'.format(section)
-                        shortcut = self._conf.get_shortcut(
+                        shortcut = self.get_shortcut(
                             context, name, plugin_name=section)
                     except (cp.NoSectionError, cp.NoOptionError):
                         shortcut = QKeySequence()
@@ -1378,6 +1378,22 @@ class MainWindow(QMainWindow):
             is 'main'.
         """
         return self._conf.set(section, option, value)
+
+    def get_shortcut(self, context, name, plugin_name=None):
+        """
+        Get a shortcut from the Spyder configuration system.
+
+        Parameters
+        ----------
+        context: str
+            Context where the shortcut applies. It can be either '_' for global
+            shortcuts or a specific context.
+        name: str
+            Name of the shortcut in the configutration system.
+        plugin_name: str, optional
+            Name of the plugin to which the shortcut is associated.
+        """
+        return self._conf.get_shortcut(context, name, plugin_name)
 
     # ---- Other
     # -------------------------------------------------------------------------
