@@ -1911,15 +1911,12 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     def get_random_plugin():
         """Get a random dockable plugin and give it focus"""
-        plugins = get_class_values(Plugins)
-        plugins.remove(Plugins.Editor)
-        plugins.remove(Plugins.IPythonConsole)
-        plugins.remove(Plugins.All)
+        plugins = main_window.get_dockable_plugins()
+        for plugin_name, plugin in plugins:
+            if plugin_name in [Plugins.Editor, Plugins.IPythonConsole]:
+                plugins.remove((plugin_name, plugin))
 
-        plugin = main_window.get_plugin(Plugins.Layout)
-        while not hasattr(plugin, 'WIDGET_CLASS'):
-            plugin_name = random.choice(plugins)
-            plugin = main_window.get_plugin(plugin_name)
+        plugin = random.choice(plugins)[1]
 
         if not plugin.get_widget().toggle_view_action.isChecked():
             plugin.toggle_view(True)
