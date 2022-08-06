@@ -701,6 +701,30 @@ class Layout(SpyderPluginV2):
         if self.maximize_action.isChecked():
             self.maximize_action.setChecked(False)
 
+    def unmaximize_other_dockwidget(self, plugin_instance):
+        """
+        Unmaximize the currently maximized plugin, if not `plugin_instance`.
+        """
+        last_plugin = self.get_last_plugin()
+        is_maximized = False
+
+        if last_plugin is not None:
+            try:
+                # New API
+                is_maximized = (
+                    last_plugin.get_widget().get_maximized_state()
+                )
+            except AttributeError:
+                # Old API
+                is_maximized = last_plugin._ismaximized
+
+        if (
+            last_plugin is not None
+            and is_maximized
+            and last_plugin is not plugin_instance
+        ):
+            self.unmaximize_dockwidget()
+
     def _update_fullscreen_action(self):
         if self._fullscreen_flag:
             icon = self.create_icon('window_nofullscreen')

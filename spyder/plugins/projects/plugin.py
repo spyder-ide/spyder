@@ -393,25 +393,7 @@ class Projects(SpyderDockablePlugin):
         """Unmaximize the currently maximized plugin, if not self."""
         if self.main:
             layouts = self.get_plugin(Plugins.Layout)
-            last_plugin = layouts.get_last_plugin()
-            is_maximized = False
-
-            if last_plugin is not None:
-                try:
-                    # New API
-                    is_maximized = (
-                        last_plugin.get_widget().get_maximized_state()
-                    )
-                except AttributeError:
-                    # Old API
-                    is_maximized = last_plugin._ismaximized
-
-            if (
-                last_plugin is not None
-                and is_maximized
-                and last_plugin is not self
-            ):
-                layouts.unmaximize_dockwidget()
+            layouts.unmaximize_other_dockwidget(plugin_instance=self)
 
     def build_opener(self, project):
         """Build function opening passed project"""
