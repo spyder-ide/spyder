@@ -12,6 +12,7 @@ Spyder kernel for Jupyter.
 
 # Standard library imports
 import faulthandler
+import json
 import logging
 import os
 import sys
@@ -20,6 +21,7 @@ import threading
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
+from ipykernel import get_connection_info
 from traitlets.config.loader import LazyConfigValue
 import zmq
 from zmq.utils.garbage import gc
@@ -100,19 +102,10 @@ class SpyderKernel(IPythonKernel):
         self.control_handlers['comm_msg'] = self.control_comm_msg
         self.control_handlers['complete_request'] = self.shell_handlers[
             'complete_request']
+        self.shell_handlers["interrupt_eventloop"] = self._interrupt_eventloop
 
         # Socket to signal shell_stream locally
         self.loopback_socket = None
-
-    def record_ports(self, ports):
-        """Record ports used by shell."""
-        super().record_ports(ports)
-        # Add socket to signal shell_stream locally
-        self.shell_handlers["interrupt_eventloop"] = self._interrupt_eventloop
-        self.loopback_socket = self.shell_stream.socket.context.socket(
-            zmq.DEALER)
-        self.loopback_socket.connect(
-            "tcp://127.0.0.1:%i" % self._recorded_ports['shell_port'])
 
     # -- Public API -----------------------------------------------------------
     def do_shutdown(self, restart):
@@ -391,8 +384,12 @@ class SpyderKernel(IPythonKernel):
         # processed. Therefore we process the message here (control chan.)
         # and request a dummy message to be sent on the shell channel to
         # stop the eventloop. This will call back `_interrupt_eventloop`.
-        if not self.loopback_socket:
-            return
+        if self.loopback_socket is None:
+            # Add socket to signal shell_stream locally
+            self.loopback_socket = self.shell_stream.socket.context.socket(
+                zmq.DEALER)
+            port = json.loads(get_connection_info())['shell_port']
+            self.loopback_socket.connect("tcp://127.0.0.1:%i" % port)
         self.session.send(
             self.loopback_socket, self.session.msg("interrupt_eventloop"))
 

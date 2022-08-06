@@ -305,6 +305,13 @@ def main():
             """
             pass
 
+        def close(self):
+            """Close the loopback socket."""
+            socket = self.kernel.loopback_socket
+            if socket and not socket.closed:
+                socket.close()
+            return super().close()
+
     # Fire up the kernel instance.
     kernel = SpyderKernelApp.instance()
     kernel.kernel_class = SpyderKernel

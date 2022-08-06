@@ -50,7 +50,15 @@ class SpyderShell(ZMQInteractiveShell):
         self._request_pdb_stop = False
         self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
+        self._allow_kbdint = False
         self.register_debugger_sigint()
+
+    def ask_exit(self):
+        """Engage the exit actions."""
+        if self.active_eventloop != "inline":
+            # Some eventloops prevent the kernel from shutting down
+            self.enable_gui('inline')
+        return super(SpyderShell, self).ask_exit()
 
     def _showtraceback(self, etype, evalue, stb):
         """
@@ -256,5 +264,15 @@ class SpyderShell(ZMQInteractiveShell):
                 # second call to interrupt, raise
                 raise KeyboardInterrupt
             pdb_session.interrupt()
-        else:
+        elif self._allow_kbdint:
+            # Do not raise KeyboardInterrupt in the middle of ipython code
             signal.default_int_handler(signum, frame)
+
+    async def run_code(self, code_obj, result=None, *, async_=False):
+        """Execute a code object."""
+        try:
+            self._allow_kbdint = True
+            return await super().run_code(
+                code_obj, result=result, async_=async_)
+        finally:
+            self._allow_kbdint = False
