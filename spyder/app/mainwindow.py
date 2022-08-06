@@ -345,21 +345,9 @@ class MainWindow(QMainWindow):
             conf_widget.initialize()
             return conf_widget
 
-    @property
-    def last_plugin(self):
-        """
-        Get last plugin with focus if it is a dockable widget.
-
-        If a non-dockable plugin has the focus this will return by default
-        the Editor plugin.
-        """
-        # Needed to prevent errors with the old API at
-        # spyder/plugins/base::_switch_to_plugin
-        return self.layouts.get_last_plugin()
-
     def switch_to_plugin(self, plugin, force_focus=None):
         """
-        Switch to this plugin.
+        Switch to `plugin`.
 
         Notes
         -----
@@ -367,44 +355,7 @@ class MainWindow(QMainWindow):
         this plugin to view (if it's hidden) and gives it focus (if
         possible).
         """
-        last_plugin = self.last_plugin
-        try:
-            # New API
-            if (
-                last_plugin is not None
-                and last_plugin.get_widget().get_maximized_state()
-                and last_plugin is not plugin
-            ):
-                maximize_action = self.layouts.maximize_action
-                if maximize_action.isChecked():
-                    maximize_action.setChecked(False)
-                else:
-                    maximize_action.setChecked(True)
-        except AttributeError:
-            # Old API
-            if (
-                last_plugin is not None
-                and self.last_plugin._ismaximized
-                and last_plugin is not plugin
-            ):
-                maximize_action = self.layouts.maximize_action
-                if maximize_action.isChecked():
-                    maximize_action.setChecked(False)
-                else:
-                    maximize_action.setChecked(True)
-
-        try:
-            # New API
-            if not plugin.toggle_view_action.isChecked():
-                plugin.toggle_view_action.setChecked(True)
-                plugin.get_widget().is_visible = False
-        except AttributeError:
-            # Old API
-            if not plugin._toggle_view_action.isChecked():
-                plugin._toggle_view_action.setChecked(True)
-                plugin._widget._is_visible = False
-
-        plugin.change_visibility(True, force_focus=force_focus)
+        self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
 
     def remove_dockwidget(self, plugin):
         """

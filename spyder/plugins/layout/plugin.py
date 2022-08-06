@@ -725,6 +725,54 @@ class Layout(SpyderPluginV2):
         ):
             self.unmaximize_dockwidget()
 
+    def switch_to_plugin(self, plugin, force_focus=None):
+        """
+        Switch to `plugin`.
+
+        Notes
+        -----
+        This operation unmaximizes the current plugin (if any), raises
+        this plugin to view (if it's hidden) and gives it focus (if
+        possible).
+        """
+        last_plugin = self.get_last_plugin()
+
+        try:
+            # New API
+            if (
+                last_plugin is not None
+                and last_plugin.get_widget().get_maximized_state()
+                and last_plugin is not plugin
+            ):
+                if self.maximize_action.isChecked():
+                    self.maximize_action.setChecked(False)
+                else:
+                    self.maximize_action.setChecked(True)
+        except AttributeError:
+            # Old API
+            if (
+                last_plugin is not None
+                and last_plugin._ismaximized
+                and last_plugin is not plugin
+            ):
+                if self.maximize_action.isChecked():
+                    self.maximize_action.setChecked(False)
+                else:
+                    self.maximize_action.setChecked(True)
+
+        try:
+            # New API
+            if not plugin.toggle_view_action.isChecked():
+                plugin.toggle_view_action.setChecked(True)
+                plugin.get_widget().is_visible = False
+        except AttributeError:
+            # Old API
+            if not plugin._toggle_view_action.isChecked():
+                plugin._toggle_view_action.setChecked(True)
+                plugin._widget._is_visible = False
+
+        plugin.change_visibility(True, force_focus=force_focus)
+
     def _update_fullscreen_action(self):
         if self._fullscreen_flag:
             icon = self.create_icon('window_nofullscreen')
