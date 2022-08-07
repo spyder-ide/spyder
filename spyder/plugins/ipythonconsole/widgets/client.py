@@ -459,9 +459,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Configure shellwidget after kernel is connected."""
         self.give_focus = give_focus
 
-        # Make sure the kernel sends the comm config over
-        self.shellwidget.call_kernel()._send_comm_config()
-
         # Set exit callback
         self.shellwidget.set_exit_callback()
 

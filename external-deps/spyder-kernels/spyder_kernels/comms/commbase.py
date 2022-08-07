@@ -357,7 +357,7 @@ class CommBase:
 
         display_error = ('display_error' in settings and
                          settings['display_error'])
-        if is_error and display_error:
+        if is_error:
             data.print_error()
 
         send_reply = 'send_reply' in settings and settings['send_reply']
