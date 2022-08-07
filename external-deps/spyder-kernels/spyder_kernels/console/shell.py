@@ -60,17 +60,6 @@ class SpyderShell(ZMQInteractiveShell):
             stb = ['']
         super(SpyderShell, self)._showtraceback(etype, evalue, stb)
 
-    def enable_matplotlib(self, gui=None):
-        """Enable matplotlib."""
-        if gui is None or gui.lower() == "auto":
-            gui = automatic_backend()
-        gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
-        try:
-            self.kernel.frontend_call(blocking=False).update_matplotlib_gui(gui)
-        except Exception:
-            pass
-        return gui, backend
-
     # --- For Pdb namespace integration
     def get_local_scope(self, stack_depth):
         """Get local scope at given frame depth."""
