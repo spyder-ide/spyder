@@ -1261,9 +1261,18 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert "runfile" in shell._control.toPlainText()
     assert "3" in shell._control.toPlainText()
 
-    # Try quitting the kernels
+    # Try enabling a qt backend and debugging
     with qtbot.waitSignal(shell.executed):
-        shell.execute('quit()')
+        shell.execute('%matplotlib qt5')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1 + 1')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+    # Try quitting the kernels
+    shell.execute('quit()')
     python_shell.execute('quit()')
 
     # Make sure everything quit properly
