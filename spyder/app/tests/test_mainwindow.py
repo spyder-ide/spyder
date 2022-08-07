@@ -1265,6 +1265,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('%matplotlib qt5')
     with qtbot.waitSignal(shell.executed):
+        shell.execute('1 + 1')
+    with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
     with qtbot.waitSignal(shell.executed):
         shell.execute('1 + 1')
