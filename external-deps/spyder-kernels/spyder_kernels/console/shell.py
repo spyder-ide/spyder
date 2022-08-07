@@ -41,6 +41,13 @@ class SpyderShell(ZMQInteractiveShell):
         super(SpyderShell, self).__init__(*args, **kwargs)
         self.register_debugger_sigint()
 
+    def ask_exit(self):
+        """Engage the exit actions."""
+        if self.active_eventloop != "inline":
+            # Some eventloops prevent the kernel from shutting down
+            self.enable_gui('inline')
+        return super(SpyderShell, self).ask_exit()
+
     def _showtraceback(self, etype, evalue, stb):
         """
         Don't show a traceback when exiting our debugger after entering
