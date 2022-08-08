@@ -443,7 +443,7 @@ class IPythonConsole(SpyderDockablePlugin):
 
         Notes
         -----
-        We assume that users want to check output in the IPython console after
+        We assume that users want to check output in the IPython console
         after running or debugging code. And for that we need to unmaximize any
         plugin that is currently maximized.
         """
