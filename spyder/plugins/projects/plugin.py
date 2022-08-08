@@ -76,7 +76,7 @@ class Projects(SpyderDockablePlugin):
     NAME = 'project_explorer'
     CONF_SECTION = NAME
     CONF_FILE = False
-    REQUIRES = [Plugins.Layout]
+    REQUIRES = []
     OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
                 Plugins.MainMenu]
     WIDGET_CLASS = ProjectExplorerWidget
@@ -392,8 +392,7 @@ class Projects(SpyderDockablePlugin):
     def unmaximize(self):
         """Unmaximize the currently maximized plugin, if not self."""
         if self.main:
-            layouts = self.get_plugin(Plugins.Layout)
-            layouts.unmaximize_other_dockwidget(plugin_instance=self)
+            self.sig_unmaximize_plugin_requested[object].emit(self)
 
     def build_opener(self, project):
         """Build function opening passed project"""

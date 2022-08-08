@@ -33,7 +33,6 @@ class Tours(SpyderPluginV2):
     """
     NAME = 'tours'
     CONF_SECTION = NAME
-    REQUIRES = [Plugins.Layout]
     OPTIONAL = [Plugins.MainMenu]
     CONF_FILE = False
     CONTAINER_CLASS = ToursContainer
@@ -103,8 +102,7 @@ class Tours(SpyderPluginV2):
         index: int
             The tour index to display.
         """
-        layouts = self.get_plugin(Plugins.Layout)
-        layouts.unmaximize_dockwidget()
+        self.sig_unmaximize_plugin_requested.emit()
         self.get_container().show_tour(index)
 
     def show_tour_message(self, force=False):

@@ -269,6 +269,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     To be used by plugins tracking main window position changes.
     """
 
+    sig_unmaximize_plugin_requested = Signal((), (object,))
+    """
+    This signal is emitted to inform the main window that it needs to
+    unmaximize the currently maximized plugin, if any.
+
+    Parameters
+    ----------
+    plugin_instance: SpyderDockablePlugin
+        Unmaximize plugin only if it is not `plugin_instance`.
+    """
+
     # --- Private attributes -------------------------------------------------
     # ------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration

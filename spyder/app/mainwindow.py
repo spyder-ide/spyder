@@ -213,13 +213,16 @@ class MainWindow(QMainWindow):
             self.show_plugin_compatibility_message(message)
             return
 
-        # Connect Plugin Signals to main window methods
+        # Connect plugin signals to main window methods
         plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
+        plugin.sig_unmaximize_plugin_requested.connect(self.unmaximize_plugin)
+        plugin.sig_unmaximize_plugin_requested[object].connect(
+            self.unmaximize_plugin)
 
         if isinstance(plugin, SpyderDockablePlugin):
             plugin.sig_focus_changed.connect(self.plugin_focus_changed)
@@ -356,6 +359,21 @@ class MainWindow(QMainWindow):
         possible).
         """
         self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
+
+    def unmaximize_plugin(self, not_this_plugin=None):
+        """
+        Unmaximize currently maximized plugin, if any.
+
+        Parameters
+        ----------
+        not_this_plugin: SpyderDockablePlugin, optional
+            Unmaximize plugin if the maximized one is `not_this_plugin`.
+        """
+        if not_this_plugin is None:
+            self.layouts.unmaximize_dockwidget()
+        else:
+            self.layouts.unmaximize_other_dockwidget(
+                plugin_instance=not_this_plugin)
 
     def remove_dockwidget(self, plugin):
         """
