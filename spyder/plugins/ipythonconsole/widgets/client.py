@@ -583,7 +583,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # disable secure writes.
             "WARNING: Insecure writes have been enabled via environment",
             # Old error
-            "No such comm"
+            "No such comm",
+            # PYDEVD debug warning message. See spyder-ide/spyder#18908
+            "Note: Debugging will proceed. "
+            "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation."
         ]
 
         return any([err in error for err in benign_errors])
