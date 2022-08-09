@@ -2018,11 +2018,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         plugin_2.toggle_view(False)
 
     # Stop debugger
-    stop_debug_action = main_window.debug_toolbar_actions[5]
-    stop_debug_button = main_window.debug_toolbar.widgetForAction(
-        stop_debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+        shell.stop_debugging()
 
     # Maximize a plugin and check that it's unmaximized after running a file
     plugin_3 = get_random_plugin()
