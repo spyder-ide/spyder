@@ -160,7 +160,9 @@ class MainWindow(QMainWindow):
 
         # Set Windows app icon to use .ico file
         if os.name == "nt":
-            qapp.setWindowIcon(ima.get_icon("windows_app_icon"))
+            # Use resample kwarg to prevent a blurry icon on Windows
+            # See spyder-ide/spyder#18283
+            qapp.setWindowIcon(ima.get_icon("windows_app_icon", resample=True))
 
         # Set default style
         self.default_style = str(qapp.style().objectName())
