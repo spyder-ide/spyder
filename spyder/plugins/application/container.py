@@ -45,16 +45,6 @@ if os.name == 'nt':
 _ = get_translation('spyder')
 
 
-# Update Installation process statuses
-NO_STATUS = _("No status")
-DOWNLOADING_INSTALLER = _("Downloading installer")
-INSTALLING = _("Installing")
-FINISHED = _("Installation finished")
-PENDING = _("Pending update")
-CHECKING = _("Checking for updates")
-CANCELLED = _("Cancelled")
-
-
 class ApplicationPluginMenus:
     DebugLogsMenu = "debug_logs_menu"
 
@@ -116,7 +106,7 @@ class ApplicationContainer(PluginMainContainer):
     def setup(self):
 
         self.application_update_status = ApplicationUpdateStatus(parent=self)
-        self.application_update_status.set_value(NO_STATUS)
+        self.application_update_status.set_no_status()
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
 
@@ -301,7 +291,7 @@ class ApplicationContainer(PluginMainContainer):
         else:
 
             if update_available:
-                self.application_update_status.set_value(PENDING)
+                self.application_update_status.set_status_pending()
 
                 header = _("<b>Spyder {} is available!</b><br><br>").format(
                     latest_release)
@@ -320,7 +310,7 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda update anaconda</code><br>"
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
-                    self.application_update_status.set_value(NO_STATUS)
+                    self.application_update_status.set_no_status()
                 else:
                     if os.name == 'nt' and is_pynsist():
                         box.setStandardButtons(QMessageBox.Yes |
@@ -346,6 +336,7 @@ class ApplicationContainer(PluginMainContainer):
                 box.set_check_visible(False)
                 box.exec_()
                 check_updates = box.is_checked()
+                self.application_update_status.set_no_status()
 
         # Update checkbox based on user interaction
         self.set_conf(option, check_updates)
@@ -362,9 +353,9 @@ class ApplicationContainer(PluginMainContainer):
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
         if os.name == 'nt':
-            self.application_update_status.set_value(CHECKING)
+            self.application_update_status.set_status_checking()
         else:
-            self.application_update_status.set_value(NO_STATUS)
+            self.application_update_status.set_no_status()
 
         if self.thread_updates is not None:
             self.thread_updates.quit()

@@ -18,21 +18,11 @@ from qtpy.QtCore import Slot
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
 from spyder.plugins.application.widgets.install import (
-    UpdateInstallerDialog)
+    UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING, FINISHED, PENDING, CHECKING, CANCELLED)
 from spyder.utils.icon_manager import ima
 from spyder import get_versions
 
 logger = logging.getLogger(__name__)
-
-
-# Update Installation process statusesf
-NO_STATUS = _("No status")
-DOWNLOADING_INSTALLER = _("Downloading installer")
-INSTALLING = _("Installing")
-FINISHED = _("Installation finished")
-PENDING = _("Pending update")
-CHECKING = _("Checking for updates")
-CANCELLED = _("Cancelled")
 
 
 class ApplicationUpdateStatus(StatusBarWidget):
@@ -62,19 +52,16 @@ class ApplicationUpdateStatus(StatusBarWidget):
         """Return update installation state."""
         versions = get_versions()
         if value == DOWNLOADING_INSTALLER or value == INSTALLING:
-            self.setVisible(True)
             self.tooltip = _("Update installation will continue in the "
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again")
-        elif value == CHECKING or value == PENDING:
-            self.setVisible(True)
+        elif value == PENDING:
             self.tooltip = value
         else:
-            self.setVisible(False)
             value = versions['spyder']
             self.tooltip = self.BASE_TOOLTIP
-
+        self.setVisible(True)
         self.update_tooltip()
         value = "Spyder: {0}".format(value)
         super().set_value(value)
@@ -88,6 +75,15 @@ class ApplicationUpdateStatus(StatusBarWidget):
     
     def start_installation(self):
         self.installer.start_installation_update()
+
+    def set_status_pending(self):
+        self.set_value(PENDING)
+
+    def set_status_checking(self):
+        self.set_value(CHECKING)
+
+    def set_no_status(self):
+        self.set_value(NO_STATUS)
 
     @Slot()
     def show_installation_dialog(self):
