@@ -1141,8 +1141,18 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         Actions to be performed only after the main window's `show` method
         is triggered.
         """
-        # Process pending events and hide splash before loading the
-        # previous session.
+        # Populate `Panes > View` menu.
+        # This **MUST** be done before restoring the last visible plugins, so
+        # that works as expected.
+        self.layouts.create_plugins_menu()
+
+        # Restore last visible plugins.
+        # This **MUST** be done before running on_mainwindow_visible for
+        # plugins so that the user doesn't experience sudden jumps in the
+        # interface.
+        self.layouts.restore_visible_plugins()
+
+        # Process pending events and hide splash screen before moving forward.
         QApplication.processEvents()
         if self.splash is not None:
             self.splash.hide()
@@ -1190,9 +1200,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if DEV is not None:
             assert 'pandas' not in sys.modules
             assert 'matplotlib' not in sys.modules
-
-        # Restore last visible plugins
-        self.layouts.restore_visible_plugins()
 
         # Restore undocked plugins
         self.restore_undocked_plugins()

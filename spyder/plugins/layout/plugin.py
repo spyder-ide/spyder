@@ -198,8 +198,6 @@ class Layout(SpyderPluginV2):
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
-        # Populate panes menu
-        self.create_plugins_menu()
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
 
