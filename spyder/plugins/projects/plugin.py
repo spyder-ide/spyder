@@ -392,10 +392,7 @@ class Projects(SpyderDockablePlugin):
     def unmaximize(self):
         """Unmaximize the currently maximized plugin, if not self."""
         if self.main:
-            if (self.main.last_plugin is not None and
-                    self.main.last_plugin._ismaximized and
-                    self.main.last_plugin is not self):
-                self.main.maximize_dockwidget()
+            self.sig_unmaximize_plugin_requested[object].emit(self)
 
     def build_opener(self, project):
         """Build function opening passed project"""

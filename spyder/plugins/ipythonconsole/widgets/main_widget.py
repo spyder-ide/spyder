@@ -2185,8 +2185,11 @@ class IPythonConsoleWidget(PluginMainWidget):
         # editor during repeated, rapid entry of debugging commands.
         self.sig_edit_goto_requested[str, int, str, bool].emit(
             fname, lineno, '', False)
-        self.activateWindow()
-        shellwidget._control.setFocus()
+
+        # Give focus to console if requested
+        if not shellwidget._pdb_focus_to_editor:
+            self.activateWindow()
+            shellwidget._control.setFocus()
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into all clients"""
@@ -2262,7 +2265,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
             # This is necessary to prevent raising the console if the editor
             # and console are tabified next to each other and the 'Maintain
-            # focus in the editor' option is activated.
+            # focus in the editor' option is enabled.
             # Fixes spyder-ide/spyder#17028
             if not focus_to_editor:
                 self.sig_switch_to_plugin_requested.emit()
@@ -2285,7 +2288,8 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For scripts
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace):
+                   current_client, clear_variables, console_namespace,
+                   focus_to_editor):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(str(text))
 
@@ -2319,6 +2323,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                 if console_namespace:
                     line += ", current_namespace=True"
                 line += ")"
+
+                if debug:
+                    # To keep focus in editor after running debugfile
+                    client.shellwidget._pdb_focus_to_editor = focus_to_editor
             else:  # External, non spyder-kernels, use %run
                 line = "%run "
                 if debug:
@@ -2335,19 +2343,24 @@ class IPythonConsoleWidget(PluginMainWidget):
                     pass
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables,
-                                      set_focus=False)
+                                      set_focus=not focus_to_editor)
                 else:
                     if is_new_client:
                         client.shellwidget.silent_execute('%clear')
                     else:
                         client.shellwidget.execute('%clear')
                     client.shellwidget.sig_prompt_ready.connect(
-                            lambda: self.execute_code(
-                                line, current_client, clear_variables,
-                                set_focus=False))
+                        lambda: self.execute_code(
+                            line, current_client, clear_variables,
+                            set_focus=not focus_to_editor
+                        )
+                    )
             except AttributeError:
                 pass
-            self.sig_switch_to_plugin_requested.emit()
+
+            # Show plugin after execution if focus is going to be given to it.
+            if not focus_to_editor:
+                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
@@ -2435,15 +2448,26 @@ class IPythonConsoleWidget(PluginMainWidget):
                 sw.reset_namespace(warning=False)
             elif current_client and clear_variables:
                 sw.reset_namespace(warning=False)
+
             # Needed to handle an error when kernel_client is none.
             # See spyder-ide/spyder#6308.
             try:
                 sw.execute(str(lines))
             except AttributeError:
                 pass
-            self.activateWindow()
+
             if set_focus:
-                self.get_current_client().get_control().setFocus()
+                # The `activateWindow` call below needs to be inside this `if`
+                # to avoid giving focus to the console when it's undocked,
+                # users are running code from the editor and the 'Maintain
+                # focus in the editor' option is enabled.
+                # Fixes spyder-ide/spyder#3221
+                self.activateWindow()
+
+                # Gives focus to the current client
+                focus_widget = self.get_focus_widget()
+                if focus_widget:
+                    focus_widget.setFocus()
 
     # ---- For error handling
     def go_to_error(self, text):

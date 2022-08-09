@@ -409,13 +409,16 @@ class MainWindow(QMainWindow):
             self.show_plugin_compatibility_message(message)
             return
 
-        # Connect Plugin Signals to main window methods
+        # Connect plugin signals to main window methods
         plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
+        plugin.sig_unmaximize_plugin_requested.connect(self.unmaximize_plugin)
+        plugin.sig_unmaximize_plugin_requested[object].connect(
+            self.unmaximize_plugin)
 
         if isinstance(plugin, SpyderDockablePlugin):
             plugin.sig_focus_changed.connect(self.plugin_focus_changed)
@@ -547,36 +550,9 @@ class MainWindow(QMainWindow):
             conf_widget.initialize()
             return conf_widget
 
-    @property
-    def last_plugin(self):
-        """
-        Get last plugin with focus if it is a dockable widget.
-
-        If a non-dockable plugin has the focus this will return by default
-        the Editor plugin.
-        """
-        # Needed to prevent errors with the old API at
-        # spyder/plugins/base::_switch_to_plugin
-        return self.layouts.get_last_plugin()
-
-    def maximize_dockwidget(self, restore=False):
-        """
-        This is needed to prevent errors with the old API at
-        spyder/plugins/base::_switch_to_plugin.
-
-        See spyder-ide/spyder#15164
-
-        Parameters
-        ----------
-        restore : bool, optional
-            If the current dockwidget needs to be restored to its unmaximized
-            state. The default is False.
-        """
-        self.layouts.maximize_dockwidget(restore=restore)
-
     def switch_to_plugin(self, plugin, force_focus=None):
         """
-        Switch to this plugin.
+        Switch to `plugin`.
 
         Notes
         -----
@@ -584,31 +560,22 @@ class MainWindow(QMainWindow):
         this plugin to view (if it's hidden) and gives it focus (if
         possible).
         """
-        last_plugin = self.last_plugin
-        try:
-            # New API
-            if (last_plugin is not None
-                    and last_plugin.get_widget().is_maximized
-                    and last_plugin is not plugin):
-                self.layouts.maximize_dockwidget()
-        except AttributeError:
-            # Old API
-            if (last_plugin is not None and self.last_plugin._ismaximized
-                    and last_plugin is not plugin):
-                self.layouts.maximize_dockwidget()
+        self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
 
-        try:
-            # New API
-            if not plugin.toggle_view_action.isChecked():
-                plugin.toggle_view_action.setChecked(True)
-                plugin.get_widget().is_visible = False
-        except AttributeError:
-            # Old API
-            if not plugin._toggle_view_action.isChecked():
-                plugin._toggle_view_action.setChecked(True)
-                plugin._widget._is_visible = False
+    def unmaximize_plugin(self, not_this_plugin=None):
+        """
+        Unmaximize currently maximized plugin, if any.
 
-        plugin.change_visibility(True, force_focus=force_focus)
+        Parameters
+        ----------
+        not_this_plugin: SpyderDockablePlugin, optional
+            Unmaximize plugin if the maximized one is `not_this_plugin`.
+        """
+        if not_this_plugin is None:
+            self.layouts.unmaximize_dockwidget()
+        else:
+            self.layouts.unmaximize_other_dockwidget(
+                plugin_instance=not_this_plugin)
 
     def remove_dockwidget(self, plugin):
         """
@@ -1230,7 +1197,7 @@ class MainWindow(QMainWindow):
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if isinstance(plugin, SpyderDockablePlugin):
                 if plugin.get_conf('undocked_on_window_close', default=False):
-                    plugin.get_widget().create_window()
+                    plugin.create_window()
             elif isinstance(plugin, SpyderPluginWidget):
                 if plugin.get_option('undocked_on_window_close',
                                      default=False):

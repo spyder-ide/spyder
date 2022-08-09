@@ -15,6 +15,7 @@ import gc
 import os
 import os.path as osp
 import psutil
+import random
 import re
 import shutil
 import sys
@@ -1917,26 +1918,144 @@ def test_close_when_file_is_changed(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_maximize_minimize_plugins(main_window, qtbot):
-    """Test that the maximize button is working correctly."""
+    """Test that the maximize button is working as expected."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Set focus to the Editor
-    main_window.editor.get_focus_widget().setFocus()
+    def get_random_plugin():
+        """Get a random dockable plugin and give it focus"""
+        plugins = main_window.get_dockable_plugins()
+        for plugin_name, plugin in plugins:
+            if plugin_name in [Plugins.Editor, Plugins.IPythonConsole]:
+                plugins.remove((plugin_name, plugin))
 
-    # Click the maximize button
+        plugin = random.choice(plugins)[1]
+
+        if not plugin.get_widget().toggle_view_action.isChecked():
+            plugin.toggle_view(True)
+            plugin._hide_after_test = True
+
+        plugin.get_widget().get_focus_widget().setFocus()
+        return plugin
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Grab maximize button
     max_action = main_window.layouts.maximize_action
     max_button = main_window.main_toolbar.widgetForAction(max_action)
+
+    # Maximize a random plugin
+    plugin_1 = get_random_plugin()
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
-    # Verify that the Editor is maximized
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+
+    # Assert plugin_1 is unmaximized and focus is in the editor
+    assert not plugin_1.get_widget().get_maximized_state()
+    assert QApplication.focusWidget() is main_window.editor.get_focus_widget()
+    assert not max_action.isChecked()
+    if hasattr(plugin_1, '_hide_after_test'):
+        plugin_1.toggle_view(False)
+
+    # Maximize editor
+    qtbot.mouseClick(max_button, Qt.LeftButton)
     assert main_window.editor._ismaximized
 
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
     assert not main_window.editor._ismaximized
+
+    # Don't call switch_to_plugin when the IPython console is undocked
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    assert main_window.editor._ismaximized
+    ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
+    ipyconsole.create_window()
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    assert main_window.editor._ismaximized
+
+    # Unmaximize when docking back the IPython console
+    ipyconsole.close_window()
+    assert not main_window.editor._ismaximized
+
+    # Maximize a plugin and check that it's unmaximized after clicking the
+    # debug button
+    plugin_2 = get_random_plugin()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: 'IPdb' in shell._control.toPlainText())
+    assert not plugin_2.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+
+    # This checks that running other debugging actions doesn't maximize the
+    # editor by error
+    debug_next_action = main_window.debug_toolbar_actions[1]
+    debug_next_button = main_window.debug_toolbar.widgetForAction(
+        debug_next_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_next_button, Qt.LeftButton)
+    assert not main_window.editor._ismaximized
+    assert not max_action.isChecked()
+
+    # Check that running debugging actions unmaximizes plugins
+    plugin_2.get_widget().get_focus_widget().setFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_next_button, Qt.LeftButton)
+    assert not plugin_2.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_2, '_hide_after_test'):
+        plugin_2.toggle_view(False)
+
+    # Stop debugger
+    stop_debug_action = main_window.debug_toolbar_actions[5]
+    stop_debug_button = main_window.debug_toolbar.widgetForAction(
+        stop_debug_action)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+
+    # Maximize a plugin and check that it's unmaximized after running a file
+    plugin_3 = get_random_plugin()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+    assert not plugin_3.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_3, '_hide_after_test'):
+        plugin_3.toggle_view(False)
+
+    # Maximize a plugin and check that it's unmaximized after running a cell
+    plugin_4 = get_random_plugin()
+    run_cell_action = main_window.run_toolbar_actions[1]
+    run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+    assert not plugin_4.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_4, '_hide_after_test'):
+        plugin_4.toggle_view(False)
+
+    # Maximize a plugin and check that it's unmaximized after running a
+    # selection
+    plugin_5 = get_random_plugin()
+    run_selection_action = main_window.run_toolbar_actions[3]
+    run_selection_button = main_window.run_toolbar.widgetForAction(
+        run_selection_action)
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+    assert not plugin_5.get_widget().get_maximized_state()
+    assert not max_action.isChecked()
+    if hasattr(plugin_5, '_hide_after_test'):
+        plugin_5.toggle_view(False)
 
 
 @pytest.mark.slow
@@ -4057,7 +4176,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     qtbot.wait(500)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
-    assert 0 < int(nsb.editor.source_model._data['j']['view']) < 9
+    assert 0 < int(nsb.editor.source_model._data['j']['view']) <= 9
 
     qtbot.waitSignal(shell.executed)
 
@@ -4078,7 +4197,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     qtbot.wait(500)
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
-    assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
+    assert 0 < int(nsb.editor.source_model._data['i']['view']) <= 9
 
 
 @pytest.mark.slow
@@ -4997,9 +5116,33 @@ crash_func()
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 @pytest.mark.parametrize("focus_to_editor", [True, False])
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
     """Test that the focus_to_editor option works as expected."""
+
+    def check_focus(button):
+        # Give focus back to the editor before running the next test
+        if not focus_to_editor:
+            code_editor.setFocus()
+
+        # Make sure we don't switch to the console after pressing the button
+        if focus_to_editor:
+            with qtbot.assertNotEmitted(
+                main_window.ipyconsole.sig_switch_to_plugin_requested,
+                wait=1000
+            ):
+                with qtbot.waitSignal(shell.executed):
+                    qtbot.mouseClick(button, Qt.LeftButton)
+        else:
+            with qtbot.waitSignal(shell.executed):
+                qtbot.mouseClick(button, Qt.LeftButton)
+
+        # Check the right widget has focus
+        focus_widget = QApplication.focusWidget()
+        if focus_to_editor:
+            assert focus_widget is code_editor
+        else:
+            assert focus_widget is control
+
     # Write code with cells to a file
     code = """# %%
 def foo(x):
@@ -5029,30 +5172,15 @@ foo(1)
     code_editor.setFocus()
     assert QApplication.focusWidget() is code_editor
 
-    # Select the run cell button to click it
+    # Run a file
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    check_focus(run_button)
+
+    # Run a cell
     run_cell_action = main_window.run_toolbar_actions[1]
     run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
-
-    # Make sure we don't switch to the console after pressing the button
-    if focus_to_editor:
-        with qtbot.assertNotEmitted(
-            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
-        ):
-            qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-    else:
-        qtbot.mouseClick(run_cell_button, Qt.LeftButton)
-        qtbot.wait(1000)
-
-    # Check the right widget has focus
-    focus_widget = QApplication.focusWidget()
-    if focus_to_editor:
-        assert focus_widget is code_editor
-    else:
-        assert focus_widget is control
-
-    # Give focus back to the editor before running the next test
-    if not focus_to_editor:
-        code_editor.setFocus()
+    check_focus(run_cell_button)
 
     # Move cursor to last line to run it
     cursor = code_editor.textCursor()
@@ -5060,27 +5188,22 @@ foo(1)
     cursor.movePosition(QTextCursor.PreviousBlock, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
 
-    # Select the run selection button to click it
+    # Run selection
     run_selection_action = main_window.run_toolbar_actions[3]
     run_selection_button = main_window.run_toolbar.widgetForAction(
         run_selection_action)
+    check_focus(run_selection_button)
 
-    # Make sure we don't switch to the console after pressing the button
-    if focus_to_editor:
-        with qtbot.assertNotEmitted(
-            main_window.ipyconsole.sig_switch_to_plugin_requested, wait=1000
-        ):
-            qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-    else:
-        qtbot.mouseClick(run_selection_button, Qt.LeftButton)
-        qtbot.wait(1000)
+    # Debug a file
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    check_focus(debug_button)
 
-    # Check the right widget has focus
-    focus_widget = QApplication.focusWidget()
-    if focus_to_editor:
-        assert focus_widget is code_editor
-    else:
-        assert focus_widget is control
+    # Go to the next line while debugging
+    debug_next_action = main_window.debug_toolbar_actions[1]
+    debug_next_button = main_window.debug_toolbar.widgetForAction(
+        debug_next_action)
+    check_focus(debug_next_button)
 
 
 @pytest.mark.slow

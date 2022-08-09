@@ -86,8 +86,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
 
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str,
-                                      bool, bool, bool, bool, bool)
+    run_in_current_ipyclient = Signal(
+        str, str, str, bool, bool, bool, bool, bool, bool)
     run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     exec_in_extconsole = Signal(str, bool)
@@ -2900,9 +2900,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot()
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
-        editorstack = self.get_current_editorstack()
-
-        editor = self.get_current_editor()
         fname = osp.abspath(self.get_current_filename())
 
         # Get fname's dirname before we escape the single and double
@@ -2965,12 +2962,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                post_mortem, clear_namespace,
                                console_namespace)
         self.re_run_file(save_new_files=False)
-        if not interact and not debug:
-            # If external console dockwidget is hidden, it will be
-            # raised in top-level and so focus will be given to the
-            # current external shell automatically
-            # (see SpyderPluginWidget.visibility_changed method)
-            editor.setFocus()
 
     def set_dialog_size(self, size):
         self.dialog_size = size
@@ -2978,7 +2969,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot()
     def debug_file(self):
         """Debug current script"""
-        self.switch_to_plugin()
         current_editor = self.get_current_editor()
         if current_editor is not None:
             current_editor.sig_debug_start.emit()
@@ -2993,19 +2983,23 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 return
         if self.__last_ec_exec is None:
             return
+
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm,
          post_mortem, clear_namespace,
          console_namespace) = self.__last_ec_exec
+        focus_to_editor = self.get_option('focus_to_editor')
+
         if not systerm:
-            self.run_in_current_ipyclient.emit(fname, wdir, args,
-                                               debug, post_mortem,
-                                               current, clear_namespace,
-                                               console_namespace)
+            self.run_in_current_ipyclient.emit(
+                fname, wdir, args, debug, post_mortem, current,
+                clear_namespace, console_namespace, focus_to_editor
+            )
         else:
-            self.main.open_external_console(fname, wdir, args, interact,
-                                            debug, python, python_args,
-                                            systerm, post_mortem)
+            self.main.open_external_console(
+                fname, wdir, args, interact, debug, python, python_args,
+                systerm, post_mortem
+            )
 
     @Slot()
     def run_selection(self):

@@ -295,13 +295,18 @@ class BasePluginWidgetMixin(object):
 
     def _switch_to_plugin(self):
         """Switch to plugin."""
-        if (self.main.last_plugin is not None and
-                self.main.last_plugin._ismaximized and
-                self.main.last_plugin is not self):
-            self.main.maximize_dockwidget()
-        if not self._toggle_view_action.isChecked():
-            self._toggle_view_action.setChecked(True)
-        self._visibility_changed(True)
+        last_plugin = self.main.layouts.get_last_plugin()
+        maximize_action = self.main.layouts.maximize_action
+
+        if (
+            last_plugin is not None
+            and last_plugin._ismaximized
+            and last_plugin is not self
+        ):
+            if maximize_action.isChecked():
+                maximize_action.setChecked(False)
+            else:
+                maximize_action.setChecked(True)
 
     @Slot()
     def _plugin_closed(self):

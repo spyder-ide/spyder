@@ -211,8 +211,13 @@ class Explorer(SpyderDockablePlugin):
             ipyconsole.create_client_from_path)
         self.sig_run_requested.connect(
             lambda fname:
-            ipyconsole.run_script(fname, osp.dirname(fname), '', False,
-                                  False, False, True, False))
+            ipyconsole.run_script(
+                filename=fname,
+                wdir=osp.dirname(fname),
+                current_client=False,
+                clear_variables=True,
+            )
+        )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
