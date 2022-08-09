@@ -82,7 +82,7 @@ class SpyderKernel(IPythonKernel):
             'is_special_kernel_valid': self.is_special_kernel_valid,
             'get_matplotlib_backend': self.get_matplotlib_backend,
             'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
-            'pdb_input_reply': self.pdb_input_reply,
+            'pdb_input_reply': self.shell.pdb_input_reply,
             'enable_faulthandler': self.enable_faulthandler,
             "flush_std": self.flush_std,
             'get_current_frames': self.get_current_frames,
@@ -102,7 +102,6 @@ class SpyderKernel(IPythonKernel):
         self.control_handlers['comm_msg'] = self.control_comm_msg
         self.control_handlers['complete_request'] = self.shell_handlers[
             'complete_request']
-        self.shell_handlers["interrupt_eventloop"] = self._interrupt_eventloop
 
         # Socket to signal shell_stream locally
         self.loopback_socket = None
@@ -369,34 +368,34 @@ class SpyderKernel(IPythonKernel):
             return self.shell.pdb_session.do_complete(code, cursor_pos)
         return self._do_complete(code, cursor_pos)
 
-    def pdb_input_reply(self, line, echo_stack_entry=True):
-        """Get a pdb command from the frontend."""
-        debugger = self.shell.pdb_session
-        if not debugger:
-            return
-        debugger._disable_next_stack_entry = not echo_stack_entry
-        debugger._cmd_input_line = line
+    def interrupt_eventloop(self):
+        """
+        Interrupts the eventloop.
+
+        To be used when the main thread is blocked by a call to self.eventloop.
+        This can be called from another thread, e.g. the control thread.
+
+        note:
+        Interrupting the eventloop is only implemented when a message is
+        received on the shell channel, but this message is queued and
+        won't be processed because an `execute` message is being
+        processed.
+        """
         if not self.eventloop:
             return
-        # Interrupting the eventloop is only implemented when a message is
-        # received on the shell channel, but this message is queued and
-        # won't be processed because an `execute` message is being
-        # processed. Therefore we process the message here (control chan.)
-        # and request a dummy message to be sent on the shell channel to
-        # stop the eventloop. This will call back `_interrupt_eventloop`.
+
         if self.loopback_socket is None:
             # Add socket to signal shell_stream locally
             self.loopback_socket = self.shell_stream.socket.context.socket(
                 zmq.DEALER)
             port = json.loads(get_connection_info())['shell_port']
             self.loopback_socket.connect("tcp://127.0.0.1:%i" % port)
+            # Add dummy handler
+            self.shell_handlers["interrupt_eventloop"] = (
+                lambda stream, ident, parent: None)
+
         self.session.send(
             self.loopback_socket, self.session.msg("interrupt_eventloop"))
-
-    def _interrupt_eventloop(self, stream, ident, parent):
-        """Interrupts the eventloop."""
-        # Receiving the request is enough to stop the eventloop.
-        pass
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):

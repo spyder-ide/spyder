@@ -26,7 +26,6 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.mpl import automatic_backend
-from spyder_kernels.comms.frontendcomm import CommError
 
 
 logger = logging.getLogger(__name__)
@@ -86,12 +85,13 @@ class SpyderShell(ZMQInteractiveShell):
     # --- For Pdb namespace integration
     def set_pdb_configuration(self, pdb_conf):
         """
-        Set pdb configuration.
+        Set Pdb configuration.
 
         Parameters
         ----------
         pdb_conf: dict
-            dict containing the configuration, the keys are PDB_CONF_KEYS
+            Dictionary containing the configuration. Its keys are part of the
+            `PDB_CONF_KEYS` class constant.
         """
         for key in self.PDB_CONF_KEYS:
             if key in pdb_conf:
@@ -249,14 +249,16 @@ class SpyderShell(ZMQInteractiveShell):
 
     def spyderkernel_sigint_handler(self, signum, frame):
         """SIGINT handler."""
-        pdb_session = self.pdb_session
         if self._request_pdb_stop:
             # SIGINT called from request_pdb_stop
             self._request_pdb_stop = False
             debugger = SpyderPdb()
             debugger.interrupt()
             debugger.set_trace(frame)
-        elif pdb_session:
+            return
+
+        pdb_session = self.pdb_session
+        if pdb_session:
             # SIGINT called while debugging
             if pdb_session.allow_kbdint:
                 raise KeyboardInterrupt
@@ -264,15 +266,29 @@ class SpyderShell(ZMQInteractiveShell):
                 # second call to interrupt, raise
                 raise KeyboardInterrupt
             pdb_session.interrupt()
-        elif self._allow_kbdint:
-            # Do not raise KeyboardInterrupt in the middle of ipython code
-            signal.default_int_handler(signum, frame)
+            return
 
-    async def run_code(self, code_obj, result=None, *, async_=False):
+        if self._allow_kbdint:
+            # Do not raise KeyboardInterrupt in the middle of ipython code
+            raise KeyboardInterrupt
+
+    async def run_code(self, *args, **kwargs):
         """Execute a code object."""
         try:
-            self._allow_kbdint = True
-            return await super().run_code(
-                code_obj, result=result, async_=async_)
-        finally:
-            self._allow_kbdint = False
+            try:
+                self._allow_kbdint = True
+                return await super().run_code(*args, **kwargs)
+            finally:
+                self._allow_kbdint = False
+        except KeyboardInterrupt:
+            self.showtraceback()
+
+    def pdb_input_reply(self, line, echo_stack_entry=True):
+        """Get a pdb command from the frontend."""
+        debugger = self.pdb_session
+        if not debugger:
+            return
+        debugger._disable_next_stack_entry = not echo_stack_entry
+        debugger._cmd_input_line = line
+        # Interrupts eventloop if needed
+        self.kernel.interrupt_eventloop()
