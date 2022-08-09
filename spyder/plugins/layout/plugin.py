@@ -198,6 +198,17 @@ class Layout(SpyderPluginV2):
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
+        # Populate `Panes > View` menu.
+        # This **MUST** be done before restoring the last visible plugins, so
+        # that works as expected.
+        self.create_plugins_menu()
+
+        # Restore last visible plugins.
+        # This **MUST** be done before running on_mainwindow_visible for the
+        # other plugins so that the user doesn't experience sudden jumps in the
+        # interface.
+        self.restore_visible_plugins()
+
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
 

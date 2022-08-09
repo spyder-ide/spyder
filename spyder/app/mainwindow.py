@@ -1141,30 +1141,25 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         Actions to be performed only after the main window's `show` method
         is triggered.
         """
-        # Populate `Panes > View` menu.
-        # This **MUST** be done before restoring the last visible plugins, so
-        # that works as expected.
-        self.layouts.create_plugins_menu()
-
-        # Restore last visible plugins.
-        # This **MUST** be done before running on_mainwindow_visible for
-        # plugins so that the user doesn't experience sudden jumps in the
-        # interface.
-        self.layouts.restore_visible_plugins()
+        # This must be run before the main window is shown.
+        # Fixes spyder-ide/spyder#12104
+        self.layouts.on_mainwindow_visible()
 
         # Process pending events and hide splash screen before moving forward.
         QApplication.processEvents()
         if self.splash is not None:
             self.splash.hide()
 
-        # Call on_mainwindow_visible for all plugins.
+        # Call on_mainwindow_visible for all plugins, except Layout because it
+        # needs to be called first (see above).
         for plugin_name in PLUGIN_REGISTRY:
-            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            try:
-                plugin.on_mainwindow_visible()
-                QApplication.processEvents()
-            except AttributeError:
-                pass
+            if plugin_name != Plugins.Layout:
+                plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+                try:
+                    plugin.on_mainwindow_visible()
+                    QApplication.processEvents()
+                except AttributeError:
+                    pass
 
         self.restore_scrollbar_position.emit()
 
