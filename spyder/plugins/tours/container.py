@@ -51,7 +51,7 @@ class ToursContainer(PluginMainContainer):
             TourActions.ShowTour,
             text=_("Show tour"),
             icon=self.create_icon('tour'),
-            triggered=lambda: self.show_tour(DEFAULT_TOUR)
+            triggered=lambda: plugin.show_tour(DEFAULT_TOUR)
         )
 
     # --- PluginMainContainer API

@@ -427,4 +427,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        widget.shellwidget.pdb_execute_command(command)
+        focus_to_editor = self.get_conf("focus_to_editor", section="editor")
+        widget.shellwidget.pdb_execute_command(
+            command, focus_to_editor=focus_to_editor)

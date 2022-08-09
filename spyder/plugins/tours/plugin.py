@@ -102,7 +102,7 @@ class Tours(SpyderPluginV2):
         index: int
             The tour index to display.
         """
-        self.main.maximize_dockwidget(restore=True)
+        self.sig_unmaximize_plugin_requested.emit()
         self.get_container().show_tour(index)
 
     def show_tour_message(self, force=False):
