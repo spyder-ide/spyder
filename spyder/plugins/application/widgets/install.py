@@ -20,13 +20,14 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
                             QWidget)
 
 # Local imports
+from spyder import __version__
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 
 
 # Update installation process statuses
-NO_STATUS = _("No status")
+NO_STATUS = __version__
 DOWNLOADING_INSTALLER = _("Downloading installer")
 INSTALLING = _("Installing")
 FINISHED = _("Installation finished")
@@ -57,7 +58,7 @@ class UpdateInstallation(QWidget):
         self._progress_label = QLabel(_('Downloading'))
 
         self.install_info = QLabel(
-            _("Dowloading the latest Spyder version <br>"))
+            _("Downloading the latest Spyder version <br>"))
 
         button_layout = QHBoxLayout()
         self.ok_button = QPushButton(_('OK'))
@@ -150,7 +151,7 @@ class UpdateInstallerDialog(QDialog):
         """Cancel the installation in progress."""
         reply = QMessageBox.critical(
             self._parent, 'Spyder',
-            _('Do you really want to cancel Update installation?'),
+            _('Do you really want to cancel installing the Spyder update?'),
             QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.cancelled = True
@@ -161,7 +162,7 @@ class UpdateInstallerDialog(QDialog):
         return False
 
     def continue_install(self):
-        """Cancel the installation in progress."""
+        """Continue the installation in progress by downloading the installer."""
         reply = QMessageBox(icon=QMessageBox.Question,
                             text=_('Do you want to download and'
                                    ' install the latest version of'

@@ -310,7 +310,6 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda update anaconda</code><br>"
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
-                    self.application_update_status.set_no_status()
                 else:
                     if os.name == 'nt' and is_pynsist():
                         box.setStandardButtons(QMessageBox.Yes |
@@ -352,10 +351,7 @@ class ApplicationContainer(PluginMainContainer):
         """Check for spyder updates on github releases using a QThread."""
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
-        if os.name == 'nt':
-            self.application_update_status.set_status_checking()
-        else:
-            self.application_update_status.set_no_status()
+        self.application_update_status.set_status_checking()
 
         if self.thread_updates is not None:
             self.thread_updates.quit()
@@ -626,7 +622,3 @@ class ApplicationContainer(PluginMainContainer):
             self.dpi_messagebox.move(int(x), int(y))
             self.dpi_messagebox.adjustSize()
 
-
-class UpdateInstallationCancelledException(Exception):
-    """Update installation was cancelled."""
-    pass

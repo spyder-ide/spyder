@@ -59,7 +59,6 @@ class ApplicationUpdateStatus(StatusBarWidget):
         elif value == PENDING:
             self.tooltip = value
         else:
-            value = versions['spyder']
             self.tooltip = self.BASE_TOOLTIP
         self.setVisible(True)
         self.update_tooltip()
