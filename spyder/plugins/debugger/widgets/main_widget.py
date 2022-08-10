@@ -417,6 +417,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def stop_debugging(self):
         """Stop debugging"""
+        self.sig_unmaximize_plugin_requested.emit()
         widget = self.current_widget()
         if widget is None:
             return
@@ -424,6 +425,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def debug_command(self, command):
         """Debug actions"""
+        self.sig_unmaximize_plugin_requested.emit()
         widget = self.current_widget()
         if widget is None:
             return
