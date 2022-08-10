@@ -150,17 +150,6 @@ class ProfilerWidget(PluginMainWidget):
         Word to select on given row.
     """
 
-    sig_redirect_stdio_requested = Signal(bool)
-    """
-    This signal is emitted to request the main application to redirect
-    standard output/error when using Open/Save/Browse dialogs within widgets.
-
-    Parameters
-    ----------
-    redirect: bool
-        Start redirect (True) or stop redirect (False).
-    """
-
     sig_started = Signal()
     """This signal is emitted to inform the profiling process has started."""
 

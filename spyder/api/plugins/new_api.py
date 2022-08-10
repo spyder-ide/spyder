@@ -321,21 +321,20 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 container.setup()
                 container.update_actions()
 
-            if isinstance(container, PluginMainContainer):
-                # TODO: This signals should also affect the main_widgets?
-                # Currently this is not working for
-                # instances of PluginMainWidget subclasses
-                # Default signals to connect in main container or main widget.
-                container.sig_exception_occurred.connect(
-                    self.sig_exception_occurred)
-                container.sig_free_memory_requested.connect(
-                    self.sig_free_memory_requested)
-                container.sig_quit_requested.connect(
-                    self.sig_quit_requested)
-                container.sig_redirect_stdio_requested.connect(
-                    self.sig_redirect_stdio_requested)
-                container.sig_restart_requested.connect(
-                    self.sig_restart_requested)
+            # Default signals to connect in main container or main widget.
+            container.sig_free_memory_requested.connect(
+                self.sig_free_memory_requested)
+            container.sig_quit_requested.connect(self.sig_quit_requested)
+            container.sig_redirect_stdio_requested.connect(
+                self.sig_redirect_stdio_requested)
+            container.sig_exception_occurred.connect(
+                self.sig_exception_occurred)
+            container.sig_unmaximize_plugin_requested.connect(
+                self.sig_unmaximize_plugin_requested)
+
+            # FIXME: This is semi-broken
+            # container.sig_restart_requested.connect(
+            #     self.sig_restart_requested)
 
             self.after_container_creation()
 

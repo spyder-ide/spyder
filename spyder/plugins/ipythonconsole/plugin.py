@@ -244,7 +244,6 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_help_requested.connect(self.sig_help_requested)
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
-        widget.sig_exception_occurred.connect(self.sig_exception_occurred)
 
         # Update kernels if python path is changed
         self.main.sig_pythonpath_changed.connect(self.update_path)
