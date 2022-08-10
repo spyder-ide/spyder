@@ -174,7 +174,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     sig_toggle_view_changed = Signal(bool)
     """
-    This action is emitted to inform the visibility of a dockable plugin
+    This signal is emitted to inform the visibility of a dockable plugin
     has changed.
 
     This is triggered by checking/unchecking the entry for a pane in the
@@ -190,6 +190,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
     This signal is emitted to inform the main window that a child widget
     needs its ancestor to be updated.
+    """
+
+    sig_unmaximize_plugin_requested = Signal((), (object,))
+    """
+    This signal is emitted to inform the main window that it needs to
+    unmaximize the currently maximized plugin, if any.
+
+    Parameters
+    ----------
+    plugin_instance: SpyderDockablePlugin
+        Unmaximize plugin only if it is not `plugin_instance`.
     """
 
     def __init__(self, name, plugin, parent=None):

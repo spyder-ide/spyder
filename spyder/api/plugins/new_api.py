@@ -329,6 +329,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 self.sig_redirect_stdio_requested)
             container.sig_exception_occurred.connect(
                 self.sig_exception_occurred)
+            container.sig_unmaximize_plugin_requested.connect(
+                self.sig_unmaximize_plugin_requested)
 
             # FIXME: This is semi-broken
             # container.sig_restart_requested.connect(
