@@ -51,8 +51,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
         return self.create_icon('dictedit')
 
     def on_initialize(self):
-        self.get_widget().sig_free_memory_requested.connect(
-            self.sig_free_memory_requested)
+        pass
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):

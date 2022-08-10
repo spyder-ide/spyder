@@ -64,17 +64,6 @@ class PlotsWidget(ShellConnectMainWidget):
     sig_figure_loaded = Signal()
     """This signal is emitted when a figure is loaded succesfully"""
 
-    sig_redirect_stdio_requested = Signal(bool)
-    """
-    This signal is emitted to request the main application to redirect
-    standard output/error when using Open/Save/Browse dialogs within widgets.
-
-    Parameters
-    ----------
-    redirect: bool
-        Start redirect (True) or stop redirect (False).
-    """
-
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
