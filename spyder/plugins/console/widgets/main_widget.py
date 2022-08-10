@@ -95,9 +95,6 @@ class ConsoleWidget(PluginMainWidget):
     # Request to show a status message on the main window
     sig_show_status_requested = Signal(str)
 
-    # Request the main application to quit.
-    sig_quit_requested = Signal()
-
     sig_help_requested = Signal(dict)
     """
     This signal is emitted to request help on a given object `name`.

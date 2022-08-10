@@ -77,8 +77,6 @@ class Pylint(SpyderDockablePlugin):
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
         widget.sig_start_analysis_requested.connect(
             lambda: self.start_code_analysis())
 
