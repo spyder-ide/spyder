@@ -30,7 +30,6 @@ from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.mixins import SpyderPluginObserver
 from spyder.api.translations import get_translation
-from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -325,16 +324,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             container.sig_free_memory_requested.connect(
                 self.sig_free_memory_requested)
             container.sig_quit_requested.connect(self.sig_quit_requested)
+            container.sig_restart_requested.connect(self.sig_restart_requested)
             container.sig_redirect_stdio_requested.connect(
                 self.sig_redirect_stdio_requested)
             container.sig_exception_occurred.connect(
                 self.sig_exception_occurred)
             container.sig_unmaximize_plugin_requested.connect(
                 self.sig_unmaximize_plugin_requested)
-
-            # FIXME: This is semi-broken
-            # container.sig_restart_requested.connect(
-            #     self.sig_restart_requested)
 
             self.after_container_creation()
 
