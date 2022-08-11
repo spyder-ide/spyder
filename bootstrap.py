@@ -94,12 +94,13 @@ if installed_dev_repo:
 logger.info("Executing Spyder from source checkout")
 
 # Prepare arguments for Spyder's main script
+original_sys_argv = sys.argv.copy()
 sys.argv = [sys.argv[0]] + args.spyder_options
 
 # ---- Update os.environ
 
-# Store variable to be used in self.restart (restart spyder instance)
-os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(sys.argv[1:])
+# Store variable to be used in self.restart (restart Spyder instance)
+os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(original_sys_argv[1:])
 
 # Start Spyder with a clean configuration directory for testing purposes
 if args.safe_mode:

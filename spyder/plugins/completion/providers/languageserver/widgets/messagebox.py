@@ -6,9 +6,6 @@
 
 """Language Server Protocol message boxes."""
 
-# Standard library imports
-import os
-
 # Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
