@@ -500,7 +500,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.send_kernel_configuration()
 
     def send_kernel_configuration(self):
-        """Send kernel configuration to kernel"""
+        """Send kernel configuration to kernel."""
 
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
@@ -514,7 +514,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             'pdb_use_exclamation_mark': self.get_conf(
                 'pdb_use_exclamation_mark'),
             'pdb_stop_first_line': self.get_conf('pdb_stop_first_line')
-            })
+        })
 
         # Enable faulthandler
         if self.fault_obj is not None:
@@ -522,8 +522,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.call_kernel().enable_faulthandler(
                 self.fault_obj.filename)
 
-        # Give a chance to plugins to configure widget
-        self.shellwidget.sig_configure_requested.emit()
+        # Give a chance to plugins to configure the kernel
+        self.shellwidget.sig_config_kernel_requested.emit()
 
     def add_to_history(self, command):
         """Add command to history"""

@@ -979,8 +979,7 @@ class IPythonConsoleWidget(PluginMainWidget):
                     sw.set_pdb_ignore_lib,
                     sw.set_pdb_execute_events,
                     sw.set_pdb_use_exclamation_mark,
-                    sw.set_pdb_stop_first_line,
-                    ]:
+                    sw.set_pdb_stop_first_line]:
                 # Execute immediately if this is pdb conf
                 client_conf_func(value)
             else:
