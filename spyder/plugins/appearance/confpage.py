@@ -245,7 +245,12 @@ class AppearanceConfigPage(PluginConfigPage):
 
         # Useful for retrieving the actual data
         for n in names + custom_names:
-            self.scheme_choices_dict[self.get_option('{0}/name'.format(n))] = n
+            # Make option value a string to prevent errors when using it
+            # as widget text.
+            # See spyder-ide/spyder#18929
+            self.scheme_choices_dict[
+                str(self.get_option('{0}/name'.format(n)))
+            ] = n
 
         if custom_names:
             choices = names + [None] + custom_names
@@ -258,7 +263,11 @@ class AppearanceConfigPage(PluginConfigPage):
         for name in choices:
             if name is None:
                 continue
-            combobox.addItem(self.get_option('{0}/name'.format(name)), name)
+            # Make option value a string to prevent errors when using it
+            # as widget text.
+            # See spyder-ide/spyder#18929
+            item_name = str(self.get_option('{0}/name'.format(name)))
+            combobox.addItem(item_name, name)
 
         if custom_names:
             combobox.insertSeparator(len(names))
@@ -379,9 +388,11 @@ class AppearanceConfigPage(PluginConfigPage):
         if answer == QMessageBox.Yes:
             # Put the combobox in Spyder by default, when deleting a scheme
             names = self.get_option('names')
-            self.set_scheme('spyder')
-            self.schemes_combobox.setCurrentIndex(names.index('spyder'))
-            self.set_option('selected', 'spyder')
+            default_theme = 'spyder'
+            if self.is_dark_interface():
+                default_theme = 'spyder/dark'
+            self.schemes_combobox.setCurrentIndex(names.index(default_theme))
+            self.set_option('selected', default_theme)
 
             # Delete from custom_names
             custom_names = self.get_option('custom_names', [])

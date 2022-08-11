@@ -241,6 +241,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             data = self.get_option(option, default, section=sec)
             if getattr(lineedit, 'content_type', None) == list:
                 data = ', '.join(data)
+            else:
+                # Make option value a string to prevent errors when using it
+                # as widget text.
+                # See spyder-ide/spyder#18929
+                data = str(data)
             lineedit.setText(data)
             lineedit.textChanged.connect(lambda _, opt=option, sect=sec:
                                          self.has_been_modified(sect, opt))
