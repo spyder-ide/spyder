@@ -66,9 +66,6 @@ class MainWindowMock(QMainWindow):
     def set_prefs_size(self, size):
         pass
 
-    def reset_spyder(self):
-        pass
-
 
 @pytest.fixture(scope="module")
 def qtbot_module(qapp, request):

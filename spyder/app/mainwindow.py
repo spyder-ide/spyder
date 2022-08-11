@@ -1911,20 +1911,8 @@ class MainWindow(QMainWindow):
             self.sig_open_external_file.emit(fname)
             req.sendall(b' ')
 
-    # ---- Quit and restart, and reset spyder defaults
+    # ---- Restart Spyder
     # -------------------------------------------------------------------------
-    @Slot()
-    def reset_spyder(self):
-        """
-        Quit and reset Spyder and then Restart application.
-        """
-        answer = QMessageBox.warning(self, _("Warning"),
-             _("Spyder will restart and reset to default settings: <br><br>"
-               "Do you want to continue?"),
-             QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            self.restart(reset=True)
-
     @Slot()
     def restart(self, reset=False, close_immediately=False):
         """Wrapper to handle plugins request to restart Spyder."""
