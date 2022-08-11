@@ -65,8 +65,6 @@ class Application(SpyderPluginV2):
         container.sig_report_issue_requested.connect(self.report_issue)
         container.set_window(self._window)
 
-        self.sig_restart_requested.connect(self.restart)
-
     # --------------------- PLUGIN INITIALIZATION -----------------------------
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
