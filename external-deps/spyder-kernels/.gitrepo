@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = faster_pdb
-	commit = 5cb7210aa660d96d41b7254c0dfba628df8665c5
-	parent = 9f64dc0692eed70cf973d05fe412d196b44b49f9
+	branch = master
+	commit = 08f2ea6be48b5381fa1d500d8aa75edeae45d384
+	parent = b08a7b75bc05c1c1ed7c6fa8ab6e55470156e340
 	method = merge
 	cmdver = 0.4.1
