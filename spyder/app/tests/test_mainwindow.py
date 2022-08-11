@@ -57,6 +57,7 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
+from spyder.plugins.debugger.widgets.main_widget import DebuggerWidgetActions
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -1985,30 +1986,31 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     qtbot.waitUntil(lambda: 'IPdb' in shell._control.toPlainText())
     assert not plugin_2.get_widget().get_maximized_state()
     assert not max_action.isChecked()
+    if hasattr(plugin_2, '_hide_after_test'):
+        plugin_2.toggle_view(False)
 
     # This checks that running other debugging actions doesn't maximize the
     # editor by error
-    debug_next_action = main_window.debug_toolbar_actions[1]
-    debug_next_button = main_window.debug_toolbar.widgetForAction(
+    debugger = main_window.debugger
+    debug_next_action = debugger.get_action(DebuggerWidgetActions.Next)
+    debug_next_button = debugger.get_widget()._main_toolbar.widgetForAction(
         debug_next_action)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_next_button, Qt.LeftButton)
     assert not main_window.editor._ismaximized
     assert not max_action.isChecked()
 
-    # Check that running debugging actions unmaximizes plugins
-    plugin_2.get_widget().get_focus_widget().setFocus()
+    # Check that other debugging actions unmaximize the debugger plugin
+    debugger.get_widget().get_focus_widget().setFocus()
     qtbot.mouseClick(max_button, Qt.LeftButton)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_next_button, Qt.LeftButton)
-    assert not plugin_2.get_widget().get_maximized_state()
+    assert not debugger.get_widget().get_maximized_state()
     assert not max_action.isChecked()
-    if hasattr(plugin_2, '_hide_after_test'):
-        plugin_2.toggle_view(False)
 
     # Stop debugger
-    stop_debug_action = main_window.debug_toolbar_actions[5]
-    stop_debug_button = main_window.debug_toolbar.widgetForAction(
+    stop_debug_action = debugger.get_action(DebuggerWidgetActions.Stop)
+    stop_debug_button = debugger.get_widget()._main_toolbar.widgetForAction(
         stop_debug_action)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
@@ -5444,9 +5446,6 @@ def test_debugger_plugin(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
-    from spyder.plugins.debugger.widgets.main_widget import (
-        DebuggerWidgetActions)
 
     debugger = main_window.debugger.get_widget()
     frames_browser = debugger.current_widget().results_browser
