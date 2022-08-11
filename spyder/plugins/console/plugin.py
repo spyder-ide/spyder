@@ -95,7 +95,6 @@ class Console(SpyderDockablePlugin):
         # Signals
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_focus_changed.connect(self.sig_focus_changed)
-        widget.sig_quit_requested.connect(self.sig_quit_requested)
         widget.sig_refreshed.connect(self.sig_refreshed)
         widget.sig_help_requested.connect(self.sig_help_requested)
 
