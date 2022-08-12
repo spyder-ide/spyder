@@ -1412,7 +1412,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True):
+                          cache=True, initial_cwd=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
@@ -1449,7 +1449,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               handlers=self.registered_spyder_kernel_handlers,
                               stderr_obj=stderr_obj,
                               stdout_obj=stdout_obj,
-                              fault_obj=fault_obj)
+                              fault_obj=fault_obj,
+                              initial_cwd=initial_cwd)
 
         self.add_tab(
             client, name=client.get_name(), filename=filename,
@@ -1791,13 +1792,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         # type is Qt.DirectConnection.
         self._shellwidget_started(client)
 
-
     @Slot(str)
     def create_client_from_path(self, path):
         """Create a client with its cwd pointing to path."""
-        self.create_new_client()
-        sw = self.get_current_shellwidget()
-        sw.set_cwd(path)
+        self.create_new_client(initial_cwd=path)
 
     def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
