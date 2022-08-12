@@ -122,7 +122,7 @@ class Explorer(SpyderDockablePlugin):
         New path for renamed folder.
     """
 
-    sig_interpreter_opened = Signal(str)
+    sig_open_interpreter_requested = Signal(str)
     """
     This signal is emitted to request opening an interpreter with the given
     path as working directory.
@@ -177,7 +177,7 @@ class Explorer(SpyderDockablePlugin):
         widget.sig_file_created.connect(self.sig_file_created)
         widget.sig_open_file_requested.connect(self.sig_open_file_requested)
         widget.sig_open_interpreter_requested.connect(
-            self.sig_interpreter_opened)
+            self.sig_open_interpreter_requested)
         widget.sig_module_created.connect(self.sig_module_created)
         widget.sig_removed.connect(self.sig_file_removed)
         widget.sig_renamed.connect(self.sig_file_renamed)
@@ -207,7 +207,7 @@ class Explorer(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipython_console_available(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.sig_interpreter_opened.connect(
+        self.sig_open_interpreter_requested.connect(
             ipyconsole.create_client_from_path)
         self.sig_run_requested.connect(
             lambda fname:
@@ -240,7 +240,7 @@ class Explorer(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.sig_interpreter_opened.disconnect(
+        self.sig_open_interpreter_requested.disconnect(
             ipyconsole.create_client_from_path)
         self.sig_run_requested.disconnect()
 
