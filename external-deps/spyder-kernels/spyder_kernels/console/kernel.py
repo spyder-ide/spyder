@@ -12,6 +12,7 @@ Spyder kernel for Jupyter.
 
 # Standard library imports
 import faulthandler
+import json
 import logging
 import os
 import sys
@@ -20,7 +21,9 @@ import threading
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
+from ipykernel import get_connection_info
 from traitlets.config.loader import LazyConfigValue
+import zmq
 from zmq.utils.garbage import gc
 
 # Local imports
@@ -55,10 +58,7 @@ class SpyderKernel(IPythonKernel):
 
         # All functions that can be called through the comm
         handlers = {
-            'set_breakpoints': self.set_spyder_breakpoints,
-            'set_pdb_ignore_lib': self.set_pdb_ignore_lib,
-            'set_pdb_execute_events': self.set_pdb_execute_events,
-            'set_pdb_use_exclamation_mark': self.set_pdb_use_exclamation_mark,
+            'set_pdb_configuration': self.shell.set_pdb_configuration,
             'get_value': self.get_value,
             'load_data': self.load_data,
             'save_namespace': self.save_namespace,
@@ -82,8 +82,7 @@ class SpyderKernel(IPythonKernel):
             'is_special_kernel_valid': self.is_special_kernel_valid,
             'get_matplotlib_backend': self.get_matplotlib_backend,
             'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
-            'pdb_input_reply': self.pdb_input_reply,
-            '_interrupt_eventloop': self._interrupt_eventloop,
+            'pdb_input_reply': self.shell.pdb_input_reply,
             'enable_faulthandler': self.enable_faulthandler,
             "flush_std": self.flush_std,
             'get_current_frames': self.get_current_frames,
@@ -99,9 +98,13 @@ class SpyderKernel(IPythonKernel):
         self._running_namespace = None
         self.faulthandler_handle = None
 
+        # Add handlers to control to process messages while debugging
         self.control_handlers['comm_msg'] = self.control_comm_msg
         self.control_handlers['complete_request'] = self.shell_handlers[
             'complete_request']
+
+        # Socket to signal shell_stream locally
+        self.loopback_socket = None
 
     # -- Public API -----------------------------------------------------------
     def do_shutdown(self, restart):
@@ -365,54 +368,34 @@ class SpyderKernel(IPythonKernel):
             return self.shell.pdb_session.do_complete(code, cursor_pos)
         return self._do_complete(code, cursor_pos)
 
-    def set_spyder_breakpoints(self, breakpoints):
+    def interrupt_eventloop(self):
         """
-        Handle a message from the frontend
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.set_spyder_breakpoints(breakpoints)
+        Interrupts the eventloop.
 
-    def set_pdb_ignore_lib(self, state):
-        """
-        Change the "Ignore libraries while stepping" debugger setting.
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.pdb_ignore_lib = state
+        To be used when the main thread is blocked by a call to self.eventloop.
+        This can be called from another thread, e.g. the control thread.
 
-    def set_pdb_execute_events(self, state):
+        note:
+        Interrupting the eventloop is only implemented when a message is
+        received on the shell channel, but this message is queued and
+        won't be processed because an `execute` message is being
+        processed.
         """
-        Handle a message from the frontend
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.pdb_execute_events = state
+        if not self.eventloop:
+            return
 
-    def set_pdb_use_exclamation_mark(self, state):
-        """
-        Set an option on the current debugging session to decide wether
-        the Pdb commands needs to be prefixed by '!'
-        """
-        if self.shell.pdb_session:
-            self.shell.pdb_session.pdb_use_exclamation_mark = state
+        if self.loopback_socket is None:
+            # Add socket to signal shell_stream locally
+            self.loopback_socket = self.shell_stream.socket.context.socket(
+                zmq.DEALER)
+            port = json.loads(get_connection_info())['shell_port']
+            self.loopback_socket.connect("tcp://127.0.0.1:%i" % port)
+            # Add dummy handler
+            self.shell_handlers["interrupt_eventloop"] = (
+                lambda stream, ident, parent: None)
 
-    def pdb_input_reply(self, line, echo_stack_entry=True):
-        """Get a pdb command from the frontend."""
-        debugger = self.shell.pdb_session
-        if debugger:
-            debugger._disable_next_stack_entry = not echo_stack_entry
-            debugger._cmd_input_line = line
-        if self.eventloop:
-            # Interrupting the eventloop is only implemented when a message is
-            # received on the shell channel, but this message is queued and
-            # won't be processed because an `execute` message is being
-            # processed. Therefore we process the message here (control chan.)
-            # and request a dummy message to be sent on the shell channel to
-            # stop the eventloop. This will call back `_interrupt_eventloop`.
-            self.frontend_call().request_interrupt_eventloop()
-
-    def _interrupt_eventloop(self):
-        """Interrupts the eventloop."""
-        # Receiving the request is enough to stop the eventloop.
-        pass
+        self.session.send(
+            self.loopback_socket, self.session.msg("interrupt_eventloop"))
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):

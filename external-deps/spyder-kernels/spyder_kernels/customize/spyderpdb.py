@@ -67,7 +67,6 @@ class SpyderPdb(ipyPdb):
      - Add completion to non-command code.
     """
 
-    send_initial_notification = True
     starting = True
 
     def __init__(self, completekey='tab', stdin=None, stdout=None,
@@ -79,6 +78,7 @@ class SpyderPdb(ipyPdb):
         self.pdb_ignore_lib = False
         self.pdb_execute_events = False
         self.pdb_use_exclamation_mark = False
+        self.pdb_publish_stack = False
         self._exclamation_warning_printed = False
         self.pdb_stop_first_line = True
         self._disable_next_stack_entry = False
@@ -90,7 +90,6 @@ class SpyderPdb(ipyPdb):
         # Don't report hidden frames for IPython 7.24+. This attribute
         # has no effect in previous versions.
         self.report_skipped = False
-
 
         # Keep track of remote filename
         self.remote_filename = None
@@ -539,26 +538,9 @@ class SpyderPdb(ipyPdb):
     # --- Methods overriden by us for Spyder integration
     def postloop(self):
         # postloop() is called when the debugger’s input prompt exists. Reset
-        # _previous_step so that publish_pdb_state() actually notifies Spyder
+        # _previous_step so that get_pdb_state() actually notifies Spyder
         # about a changed frame the next the input prompt is entered again.
         self._previous_step = None
-
-    def preloop(self):
-        """Ask Spyder for breakpoints before the first prompt is created."""
-        try:
-            pdb_settings = frontend_request(blocking=True).get_pdb_settings()
-            self.pdb_ignore_lib = pdb_settings['pdb_ignore_lib']
-            self.pdb_execute_events = pdb_settings['pdb_execute_events']
-            self.pdb_use_exclamation_mark = pdb_settings[
-                'pdb_use_exclamation_mark']
-            self.pdb_stop_first_line = pdb_settings['pdb_stop_first_line']
-            if self.starting:
-                self.set_spyder_breakpoints(pdb_settings['breakpoints'])
-            if self.send_initial_notification:
-                self.publish_pdb_state()
-        except (CommError, TimeoutError):
-            logger.debug("Could not get breakpoints from the frontend.")
-        super(SpyderPdb, self).preloop()
 
     def set_continue(self):
         """
@@ -612,7 +594,6 @@ class SpyderPdb(ipyPdb):
                       "For copying text while debugging, use Ctrl+Shift+C",
                       file=self.stdout)
 
-
     def cmdloop(self, intro=None):
         """
         Repeatedly issue a prompt, accept input, parse an initial prefix
@@ -653,7 +634,7 @@ class SpyderPdb(ipyPdb):
 
         # Send the input request.
         self._cmd_input_line = None
-        kernel.frontend_call().pdb_input(prompt)
+        kernel.frontend_call().pdb_input(prompt, state=self.get_pdb_state())
 
         # Allow GUI event loop to update
         is_main_thread = (
@@ -692,15 +673,6 @@ class SpyderPdb(ipyPdb):
             line = '!' + line
         return line
 
-    def postcmd(self, stop, line):
-        """
-        Notify spyder about (possibly) changed frame
-
-        Note: The PDB commands “up”, “down” and “jump” change the current frame.
-        """
-        self.publish_pdb_state()
-        return super(SpyderPdb, self).postcmd(stop, line)
-
     # --- Methods defined by us for Spyder integration
     def set_spyder_breakpoints(self, breakpoints):
         """Set Spyder breakpoints."""
@@ -723,56 +695,60 @@ class SpyderPdb(ipyPdb):
                     # The file is not readable
                     pass
 
-        # Jump to first breakpoint.
-        # Fixes issue 2034
-        if self.starting:
+    breakpoints = property(fset=set_spyder_breakpoints)
+
+    def should_do_continue(self):
+        """
+        Jump to first breakpoint if needed
+
+        Fixes spyder-ide/spyder#2034
+        """
+        if not self.starting:
             # Only run this after a Pdb session is created
-            self.starting = False
+            return False
+        self.starting = False
 
-            # Get all breakpoints for the file we're going to debug
-            frame = self.curframe
-            if not frame:
-                # We are not debugging, return. Solves #10290
-                return
-            lineno = frame.f_lineno
-            breaks = self.get_file_breaks(frame.f_code.co_filename)
+        if not self.continue_if_has_breakpoints:
+            # This was disabled
+            return False
 
-            # Do 'continue' if the first breakpoint is *not* placed
-            # where the debugger is going to land.
-            # Fixes issue 4681
-            if self.pdb_stop_first_line:
-                do_continue = (
-                    self.continue_if_has_breakpoints
-                    and breaks
-                    and lineno < breaks[0])
-            else:
-                # The breakpoint could be in another file.
-                do_continue = (
-                    self.continue_if_has_breakpoints
-                    and not (breaks and lineno >= breaks[0]))
+        # Get all breakpoints for the file we're going to debug
+        frame = self.curframe
+        if not frame:
+            # We are not debugging, return. Solves spyder-ide/spyder#10290
+            return False
 
-            if do_continue:
-                try:
-                    if self.pdb_use_exclamation_mark:
-                        cont_cmd = '!continue'
-                    else:
-                        cont_cmd = 'continue'
-                    frontend_request(blocking=False).pdb_execute(cont_cmd)
-                except (CommError, TimeoutError):
-                    logger.debug(
-                        "Could not send a Pdb continue call to the frontend.")
+        lineno = frame.f_lineno
+        breaks = self.get_file_breaks(frame.f_code.co_filename)
 
-    def publish_pdb_state(self):
+        # Do 'continue' if the first breakpoint is *not* placed
+        # where the debugger is going to land.
+        # Fixes spyder-ide/spyder#4681
+        if self.pdb_stop_first_line:
+            return breaks and lineno < breaks[0]
+
+        # The breakpoint could be in another file.
+        return not (breaks and lineno >= breaks[0])
+
+    def get_pdb_state(self):
         """
         Send debugger state (frame position) to the frontend.
 
         The state is only sent if it has changed since the last update.
         """
 
+        state = None
+        if self.starting and self.should_do_continue():
+            if self.pdb_use_exclamation_mark:
+                cont_cmd = '!continue'
+            else:
+                cont_cmd = 'continue'
+            state = {'request_pdb_input': cont_cmd}
+
         frame = self.curframe
         if frame is None:
             self._previous_step = None
-            return
+            return state
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -781,7 +757,8 @@ class SpyderPdb(ipyPdb):
         lineno = frame.f_lineno
 
         if self._previous_step == (fname, lineno):
-            return
+            # Do not update state if not needed
+            return state
 
         # Set step of the current frame (if any)
         step = {}
@@ -790,30 +767,27 @@ class SpyderPdb(ipyPdb):
             step = dict(fname=fname, lineno=lineno)
             self._previous_step = (fname, lineno)
 
-        try:
-            frontend_request(blocking=False).pdb_state(dict(step=step))
-        except (CommError, TimeoutError):
-            logger.debug("Could not send Pdb state to the frontend.")
+        if state is None:
+            state = {}
+        state['step'] = step
 
-        # Publish Pdb stack so we can update the Variable Explorer
-        # and the Editor on the Spyder side
-        pdb_stack = traceback.StackSummary.extract(self.stack)
-        pdb_index = self.curindex
+        if self.pdb_publish_stack:
+            # Publish Pdb stack so we can update the Debugger plugin on Spyder
+            pdb_stack = traceback.StackSummary.extract(self.stack)
+            pdb_index = self.curindex
 
-        skip_hidden = getattr(self, 'skip_hidden', False)
+            skip_hidden = getattr(self, 'skip_hidden', False)
 
-        if skip_hidden:
-            # Filter out the hidden frames
-            hidden = self.hidden_frames(self.stack)
-            pdb_stack = [f for f, h in zip(pdb_stack, hidden) if not h]
-            # Adjust the index
-            pdb_index -= sum(hidden[:pdb_index])
+            if skip_hidden:
+                # Filter out the hidden frames
+                hidden = self.hidden_frames(self.stack)
+                pdb_stack = [f for f, h in zip(pdb_stack, hidden) if not h]
+                # Adjust the index
+                pdb_index -= sum(hidden[:pdb_index])
 
-        try:
-            frontend_request(blocking=False).set_pdb_stack(
-                pdb_stack, pdb_index)
-        except (CommError, TimeoutError):
-            logger.debug("Could not send Pdb stack to the frontend.")
+            state['stack'] = (pdb_stack, pdb_index)
+
+        return state
 
     def run(self, cmd, globals=None, locals=None):
         """Debug a statement executed via the exec() function.
@@ -866,10 +840,10 @@ class SpyderPdb(ipyPdb):
         sys.settrace(self.trace_dispatch)
         self.lastcmd = debugger.lastcmd
 
-        # Reset _previous_step so that publish_pdb_state() called from within
-        # postcmd() notifies Spyder about a changed debugger position. The reset
-        # is required because the recursive debugger might change the position,
-        # but the parent debugger (self) is not aware of this.
+        # Reset _previous_step so that get_pdb_state() notifies Spyder about
+        # a changed debugger position. The reset is required because the
+        # recursive debugger might change the position, but the parent debugger
+        # (self) is not aware of this.
         self._previous_step = None
 
     def set_remote_filename(self, filename):

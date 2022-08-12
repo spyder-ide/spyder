@@ -62,6 +62,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
+    sig_pdb_stack = Signal(object, int)
     sig_pdb_state_changed = Signal(bool, dict)
     sig_pdb_prompt_ready = Signal()
 
@@ -90,6 +91,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # Kernel started or restarted
     sig_kernel_started = Signal()
     sig_kernel_reset = Signal()
+
+    # Request plugins to send additional configuration to the kernel
+    sig_config_kernel_requested = Signal()
 
     @classmethod
     def prune_shutdown_thread_list(cls):
@@ -146,15 +150,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = None
         self.kernel_client = None
         handlers.update({
-            'pdb_state': self.set_pdb_state,
-            'pdb_execute': self.pdb_execute,
             'show_pdb_output': self.show_pdb_output,
-            'get_pdb_settings': self.get_pdb_settings,
             'set_debug_state': self.set_debug_state,
-            'update_syspath': self.update_syspath,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
-            'request_interrupt_eventloop': self.request_interrupt_eventloop,
         })
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -289,10 +288,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._execute_queue.append((source, hidden, interactive))
             return
         super(ShellWidget, self).execute(source, hidden, interactive)
-
-    def request_interrupt_eventloop(self):
-        """Send a message to the kernel to interrupt the eventloop."""
-        self.call_kernel()._interrupt_eventloop()
 
     def set_exit_callback(self):
         """Set exit callback for this shell."""

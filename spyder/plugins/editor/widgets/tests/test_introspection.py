@@ -1209,9 +1209,11 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     qtbot.wait(2000)
 
     code_editor.set_text('')
+    qtbot.wait(2000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'import flas')
+        qtbot.wait(2000)
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     qtbot.keyPress(completion, Qt.Key_Tab)

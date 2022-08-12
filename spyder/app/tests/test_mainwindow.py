@@ -1263,9 +1263,20 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert "runfile" in shell._control.toPlainText()
     assert "3" in shell._control.toPlainText()
 
-    # Try quitting the kernels
+    # Try enabling a qt backend and debugging
+    if os.name != 'nt':
+        # Fails on windows
+        with qtbot.waitSignal(shell.executed):
+            shell.execute('%matplotlib qt5')
     with qtbot.waitSignal(shell.executed):
-        shell.execute('quit()')
+        shell.execute('%debug print()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1 + 1')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+    # Try quitting the kernels
+    shell.execute('quit()')
     python_shell.execute('quit()')
 
     # Make sure everything quit properly
@@ -2009,11 +2020,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     assert not max_action.isChecked()
 
     # Stop debugger
-    stop_debug_action = debugger.get_action(DebuggerWidgetActions.Stop)
-    stop_debug_button = debugger.get_widget()._main_toolbar.widgetForAction(
-        stop_debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+        shell.stop_debugging()
 
     # Maximize a plugin and check that it's unmaximized after running a file
     plugin_3 = get_random_plugin()
@@ -4769,6 +4777,7 @@ def test_continue_first_line(main_window, qtbot):
     """
     Check we can bypass prevent closing.
     """
+    CONF.set('ipython_console', 'pdb_stop_first_line', False)
     code = "print('a =', 1 + 6)\nprint('b =', 1 + 8)\n"
 
     # Wait until the window is fully up
@@ -4788,7 +4797,9 @@ def test_continue_first_line(main_window, qtbot):
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
 
-    CONF.set('ipython_console', 'pdb_stop_first_line', False)
+    # Wait for control to process config change
+    qtbot.wait(1000)
+
     # Start debugging
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)

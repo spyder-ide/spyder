@@ -208,6 +208,16 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         if self.results_browser is not None:
             self.results_browser.set_current_item(top_idx, sub_index)
 
+    def enable_pdb_stack(self):
+        """Ask shellwidget to send stack."""
+        self.shellwidget.call_kernel().set_pdb_configuration(
+            {'pdb_publish_stack': True})
+
+    def disable_pdb_stack(self):
+        """Ask shellwidget to stop sending stack."""
+        self.shellwidget.call_kernel().set_pdb_configuration(
+            {'pdb_publish_stack': False})
+
 
 class LineFrameItem(QTreeWidgetItem):
 

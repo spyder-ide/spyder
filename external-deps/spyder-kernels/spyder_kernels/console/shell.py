@@ -34,12 +34,30 @@ logger = logging.getLogger(__name__)
 class SpyderShell(ZMQInteractiveShell):
     """Spyder shell."""
 
+    PDB_CONF_KEYS = [
+        'pdb_ignore_lib',
+        'pdb_execute_events',
+        'pdb_use_exclamation_mark',
+        'pdb_stop_first_line',
+        'breakpoints',
+        'pdb_publish_stack'
+    ]
+
     def __init__(self, *args, **kwargs):
         # Create _pdb_obj_stack before __init__
         self._pdb_obj_stack = []
         self._request_pdb_stop = False
+        self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
+        self._allow_kbdint = False
         self.register_debugger_sigint()
+
+    def ask_exit(self):
+        """Engage the exit actions."""
+        if self.active_eventloop != "inline":
+            # Some eventloops prevent the kernel from shutting down
+            self.enable_gui('inline')
+        return super(SpyderShell, self).ask_exit()
 
     def _showtraceback(self, etype, evalue, stb):
         """
@@ -65,6 +83,22 @@ class SpyderShell(ZMQInteractiveShell):
         return gui, backend
 
     # --- For Pdb namespace integration
+    def set_pdb_configuration(self, pdb_conf):
+        """
+        Set Pdb configuration.
+
+        Parameters
+        ----------
+        pdb_conf: dict
+            Dictionary containing the configuration. Its keys are part of the
+            `PDB_CONF_KEYS` class constant.
+        """
+        for key in self.PDB_CONF_KEYS:
+            if key in pdb_conf:
+                self._pdb_conf[key] = pdb_conf[key]
+                if self.pdb_session:
+                    setattr(self.pdb_session, key, pdb_conf[key])
+
     def get_local_scope(self, stack_depth):
         """Get local scope at given frame depth."""
         frame = sys._getframe(stack_depth + 1)
@@ -98,8 +132,12 @@ class SpyderShell(ZMQInteractiveShell):
             # Already added
             return
         self._pdb_obj_stack.append(pdb_obj)
+
+        # Set config to pdb obj
+        self.set_pdb_configuration(self._pdb_conf)
+
         try:
-            self.kernel.frontend_call(blocking=True).set_debug_state(
+            self.kernel.frontend_call(blocking=False).set_debug_state(
                 len(self._pdb_obj_stack))
         except (CommError, TimeoutError):
             logger.debug("Could not send debugging state to the frontend.")
@@ -110,8 +148,13 @@ class SpyderShell(ZMQInteractiveShell):
             # Already removed
             return
         self._pdb_obj_stack.pop()
+
+        if self.pdb_session:
+            # Set config to newly active pdb obj
+            self.set_pdb_configuration(self._pdb_conf)
+
         try:
-            self.kernel.frontend_call(blocking=True).set_debug_state(
+            self.kernel.frontend_call(blocking=False).set_debug_state(
                 len(self._pdb_obj_stack))
         except (CommError, TimeoutError):
             logger.debug("Could not send debugging state to the frontend.")
@@ -206,14 +249,16 @@ class SpyderShell(ZMQInteractiveShell):
 
     def spyderkernel_sigint_handler(self, signum, frame):
         """SIGINT handler."""
-        pdb_session = self.pdb_session
         if self._request_pdb_stop:
             # SIGINT called from request_pdb_stop
             self._request_pdb_stop = False
             debugger = SpyderPdb()
             debugger.interrupt()
             debugger.set_trace(frame)
-        elif pdb_session:
+            return
+
+        pdb_session = self.pdb_session
+        if pdb_session:
             # SIGINT called while debugging
             if pdb_session.allow_kbdint:
                 raise KeyboardInterrupt
@@ -221,5 +266,29 @@ class SpyderShell(ZMQInteractiveShell):
                 # second call to interrupt, raise
                 raise KeyboardInterrupt
             pdb_session.interrupt()
-        else:
-            signal.default_int_handler(signum, frame)
+            return
+
+        if self._allow_kbdint:
+            # Do not raise KeyboardInterrupt in the middle of ipython code
+            raise KeyboardInterrupt
+
+    async def run_code(self, *args, **kwargs):
+        """Execute a code object."""
+        try:
+            try:
+                self._allow_kbdint = True
+                return await super().run_code(*args, **kwargs)
+            finally:
+                self._allow_kbdint = False
+        except KeyboardInterrupt:
+            self.showtraceback()
+
+    def pdb_input_reply(self, line, echo_stack_entry=True):
+        """Get a pdb command from the frontend."""
+        debugger = self.pdb_session
+        if not debugger:
+            return
+        debugger._disable_next_stack_entry = not echo_stack_entry
+        debugger._cmd_input_line = line
+        # Interrupts eventloop if needed
+        self.kernel.interrupt_eventloop()

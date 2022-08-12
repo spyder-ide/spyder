@@ -811,6 +811,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.shellwidget.set_pdb_use_exclamation_mark,
                 value)
 
+    @on_conf_change(option='pdb_stop_first_line')
+    def change_clients_pdb_stop_first_line(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_pdb_stop_first_line,
+                value)
+
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
@@ -966,10 +974,19 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not client.is_client_executing():
             client_conf_func(value)
         elif client.shellwidget.is_debugging():
-            def change_conf(c=client, ccf=client_conf_func, value=value):
-                ccf(value)
-                c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
-            sw.sig_pdb_prompt_ready.connect(change_conf)
+            if client_conf_func in [
+                    sw.set_spyder_breakpoints,
+                    sw.set_pdb_ignore_lib,
+                    sw.set_pdb_execute_events,
+                    sw.set_pdb_use_exclamation_mark,
+                    sw.set_pdb_stop_first_line]:
+                # Execute immediately if this is pdb conf
+                client_conf_func(value)
+            else:
+                def change_conf(c=client, ccf=client_conf_func, value=value):
+                    ccf(value)
+                    c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
+                sw.sig_pdb_prompt_ready.connect(change_conf)
         else:
             def change_conf(c=client, ccf=client_conf_func, value=value):
                 ccf(value)
@@ -2152,6 +2169,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Connect to an external Spyder kernel."""
         shellwidget.is_spyder_kernel = True
         shellwidget.spyder_kernel_comm.open_comm(shellwidget.kernel_client)
+        shellwidget.ipyclient.send_kernel_configuration()
         self.sig_shellwidget_changed.emit(shellwidget)
         self.sig_external_spyder_kernel_connected.emit(shellwidget)
 
