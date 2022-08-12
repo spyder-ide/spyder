@@ -18,7 +18,8 @@ from qtpy.QtCore import Slot
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
 from spyder.plugins.application.widgets.install import (
-    UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING, FINISHED, PENDING, CHECKING, CANCELLED)
+    UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
+    FINISHED, PENDING, CHECKING, CANCELLED)
 from spyder.utils.icon_manager import ima
 from spyder import get_versions
 
@@ -71,7 +72,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def get_icon(self):
         return ima.icon('spyder')
-    
+
     def start_installation(self):
         self.installer.start_installation_update()
 

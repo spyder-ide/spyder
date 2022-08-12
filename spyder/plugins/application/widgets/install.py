@@ -8,6 +8,7 @@
 
 # Standard library imports
 import sys
+import os
 import subprocess
 from urllib.request import urlretrieve
 from tempfile import TemporaryDirectory
@@ -65,7 +66,6 @@ class UpdateInstallation(QWidget):
         button_layout.addStretch()
         button_layout.addWidget(self.ok_button)
         button_layout.addStretch()
-
         action_layout.addStretch()
         action_layout.addWidget(self._progress_label)
         action_layout.addWidget(self._progress_widget)
@@ -106,7 +106,6 @@ class UpdateInstallerDialog(QDialog):
     # Signal to get the current status of the update installation
     # str: Status string
     sig_installation_status = Signal(str)
-
 
     def __init__(self, parent):
 
@@ -162,7 +161,8 @@ class UpdateInstallerDialog(QDialog):
         return False
 
     def continue_install(self):
-        """Continue the installation in progress by downloading the installer."""
+        """Continue the installation in progress
+        by downloading the installer."""
         reply = QMessageBox(icon=QMessageBox.Question,
                             text=_('Do you want to download and'
                                    ' install the latest version of'
@@ -172,7 +172,11 @@ class UpdateInstallerDialog(QDialog):
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         reply.buttonClicked.connect(
-            self.start_installation_update)
+                            lambda button:
+                            self.start_installation_update()
+                            if button.text() in ('&Yes')
+                            else self._change_update_installation_status(
+                                status=PENDING))
         reply.show()
 
     def finished_installation(self, status):
@@ -233,17 +237,14 @@ class UpdateInstallerDialog(QDialog):
         finally:
             self._change_update_installation_status(status=PENDING)
 
-    def start_installation_update(self, option):
-        if option.text() in ('&Yes'):
-            self.cancelled = False
-            self._change_update_installation_status(
-                status=DOWNLOADING_INSTALLER)
-            """call a function in a simple thread, to prevent blocking"""
-            self.thread_install_update = threading.Thread(
-                target=self._download_install)
-            self.thread_install_update.start()
-        else:
-            self._change_update_installation_status(status=PENDING)
+    def start_installation_update(self):
+        self.cancelled = False
+        self._change_update_installation_status(
+            status=DOWNLOADING_INSTALLER)
+        """call a function in a simple thread, to prevent blocking"""
+        self.thread_install_update = threading.Thread(
+            target=self._download_install)
+        self.thread_install_update.start()
 
 
 class UpdateInstallationCancelledException(Exception):

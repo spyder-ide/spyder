@@ -96,7 +96,7 @@ class ApplicationContainer(PluginMainContainer):
 
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent)
-        
+
         # Keep track of dpi message
         self.current_dpi = None
         self.dpi_messagebox = None
@@ -318,7 +318,13 @@ class ApplicationContainer(PluginMainContainer):
                             "You want to download and install the latest "
                             "version of spyder?<br><br>"
                         )
-                        box.buttonClicked.connect(self.application_update_status.start_installation)
+                        box.buttonClicked.connect(
+                            lambda button:
+                            self.application_update_status.start_installation()
+                            if button.text() in ('&Yes')
+                            else
+                            self.application_update_status.set_status_pending()
+                            )
                     else:
                         content = _(
                             "Click <a href=\"{}\">this link</a> to "
@@ -621,4 +627,3 @@ class ApplicationContainer(PluginMainContainer):
             # Fixes spyder-ide/spyder#17677
             self.dpi_messagebox.move(int(x), int(y))
             self.dpi_messagebox.adjustSize()
-
