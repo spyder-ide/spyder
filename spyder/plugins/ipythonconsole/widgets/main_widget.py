@@ -2370,15 +2370,23 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
     # ---- For working directory and path management
-    def set_working_directory(self, new_dir):
+    def set_working_directory(self, dirname):
         """
-        Set current working directory when changed by the Working Directory
+        Set current working directory in the Working Directory and Files
+        plugins.
+        """
+        if osp.isdir(dirname):
+            self.sig_current_directory_changed.emit(dirname)
+
+    def save_working_directory(self, dirname):
+        """
+        Save current working directory when changed by the Working Directory
         plugin.
         """
-        self._current_working_directory = new_dir
+        self._current_working_directory = dirname
 
     def get_working_directory(self):
-        """Get current working directory."""
+        """Get saved value of current working directory."""
         return self._current_working_directory
 
     def set_current_client_working_directory(self, directory):
