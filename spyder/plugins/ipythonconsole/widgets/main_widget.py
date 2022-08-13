@@ -1859,7 +1859,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Connect to working directory
         shellwidget.sig_working_directory_changed.connect(
-            self.working_directory_changed)
+            self.on_working_directory_changed)
 
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
@@ -2395,7 +2395,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         if shellwidget is not None:
             shellwidget.set_cwd(directory)
 
-    def working_directory_changed(self, dirname):
+    def on_working_directory_changed(self, dirname):
         """
         Notify that the working directory was changed in the current console
         to other plugins.

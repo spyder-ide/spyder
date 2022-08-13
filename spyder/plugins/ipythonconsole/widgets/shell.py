@@ -310,13 +310,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 self.sig_working_directory_changed.emit(self._cwd)
 
     def update_cwd(self):
-        """Update current working directory in the kernel."""
+        """
+        Update working directory in Spyder after getting its value from the
+        kernel.
+        """
         if self.kernel_client is None:
             return
-        self.call_kernel(callback=self.remote_set_cwd).get_cwd()
+        self.call_kernel(callback=self.on_getting_cwd).get_cwd()
 
-    def remote_set_cwd(self, cwd):
-        """Get current working directory from kernel."""
+    def on_getting_cwd(self, cwd):
+        """
+        If necessary, notify that the working directory was changed to other
+        plugins.
+        """
         if cwd != self._cwd:
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
