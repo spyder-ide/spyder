@@ -1164,6 +1164,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
+            # This is necessary to sync the current client cwd with the working
+            # directory displayed by other plugins in Spyder (e.g. Files).
+            # NOTE: Instead of emitting sig_current_directory_changed directly,
+            # we call on_working_directory_changed to validate that the cwd
+            # exists (this couldn't be the case for remote kernels).
+            if sw.get_cwd() != self.get_working_directory():
+                self.on_working_directory_changed(sw.get_cwd())
+
         self.update_tabs_text()
         self.update_actions()
 
@@ -2400,7 +2408,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         Notify that the working directory was changed in the current console
         to other plugins.
         """
-        if osp.isdir(dirname):
+        if dirname and osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
 
     def update_working_directory(self):

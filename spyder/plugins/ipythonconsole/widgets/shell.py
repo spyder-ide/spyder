@@ -309,6 +309,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             if update_in_spyder:
                 self.sig_working_directory_changed.emit(self._cwd)
 
+    def get_cwd(self):
+        """
+        Get current working directory.
+
+        Notes
+        -----
+        * This doesn't ask the kernel for its working directory. Instead, it
+          returns the last value of it saved here.
+        * We do it for performance reasons because we call this method when
+          switching consoles to update the Working Directory toolbar.
+        """
+        return self._cwd
+
     def update_cwd(self):
         """
         Update working directory in Spyder after getting its value from the
