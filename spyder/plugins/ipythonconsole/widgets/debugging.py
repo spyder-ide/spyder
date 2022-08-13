@@ -198,7 +198,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._pdb_prompt = (None, None)  # prompt, password
         self._pdb_last_cmd = ''  # last command sent to pdb
         self._pdb_frame_loc = (None, None)  # fname, lineno
-        self._pdb_focus_to_editor = True  # Focus to editor after command
+        self._pdb_focus_to_editor = False  # Focus to editor after command
                                           # execution
         # Command queue
         self._pdb_input_queue = []  # List of (code, hidden, echo_stack_entry)

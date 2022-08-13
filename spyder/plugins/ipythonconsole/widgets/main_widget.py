@@ -2186,7 +2186,10 @@ class IPythonConsoleWidget(PluginMainWidget):
             fname, lineno, '', False)
 
         # Give focus to console if requested
-        if not shellwidget._pdb_focus_to_editor:
+        if shellwidget._pdb_focus_to_editor:
+            # Next focus to editor was enabled
+            shellwidget._pdb_focus_to_editor = False
+        else:
             self.activateWindow()
             shellwidget._control.setFocus()
 
