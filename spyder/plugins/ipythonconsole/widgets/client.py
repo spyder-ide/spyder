@@ -358,6 +358,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         logger.debug("Setting initial working directory in the kernel")
         cwd_path = get_home_dir()
         project_path = self.container.get_active_project_path()
+        update_in_spyder = True
 
         # This is for the first client
         if self.id_['int_id'] == '1':
@@ -368,6 +369,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 cwd_path = get_home_dir()
                 if project_path is not None:
                     cwd_path = project_path
+                update_in_spyder = False
             elif self.get_conf(
                 'startup/use_fixed_directory',
                 section='workingdir'
@@ -390,6 +392,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     cwd_path = project_path
             elif self.get_conf('console/use_cwd', section='workingdir'):
                 cwd_path = self.container.get_working_directory()
+                update_in_spyder = False
             elif self.get_conf(
                 'console/use_fixed_directory',
                 section='workingdir'
@@ -401,7 +404,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 )
 
         if osp.isdir(cwd_path):
-            self.shellwidget.set_cwd(cwd_path)
+            self.shellwidget.set_cwd(
+                cwd_path, update_in_spyder=update_in_spyder
+            )
 
     # ----- Public API --------------------------------------------------------
     @property

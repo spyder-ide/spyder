@@ -296,7 +296,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             self.silent_exec_method(code)
 
-    def set_cwd(self, dirname):
+    def set_cwd(self, dirname, update_in_spyder=False):
         """Set shell current working directory."""
         if os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
@@ -306,6 +306,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
             self._cwd = dirname
+            if update_in_spyder:
+                self.sig_working_directory_changed.emit(self._cwd)
 
     def update_cwd(self):
         """Update current working directory in the kernel."""
