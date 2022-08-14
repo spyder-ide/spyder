@@ -260,6 +260,10 @@ class Explorer(SpyderDockablePlugin):
         """
         self.get_widget().chdir(directory, emit=emit)
 
+    def get_current_folder(self):
+        """Get folder displayed at the moment."""
+        return self.get_widget().get_current_folder()
+
     def refresh(self, new_path=None, force_current=True):
         """
         Refresh history.
