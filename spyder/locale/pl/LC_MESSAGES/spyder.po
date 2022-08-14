@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-07-01 10:40-0500\n"
-"PO-Revision-Date: 2022-08-14 11:56\n"
+"PO-Revision-Date: 2022-08-14 16:14\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -779,7 +779,7 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:200
 msgid "Debug logs"
-msgstr ""
+msgstr "Logi debugowania"
 
 #: spyder/plugins/application/container.py:263
 msgid "New Spyder version"
@@ -823,7 +823,7 @@ msgstr "W którym trybie debugowania chcesz uruchomić Spyder ponownie?"
 
 #: spyder/plugins/application/container.py:446
 msgid "Verbose"
-msgstr ""
+msgstr "Tryb diagnostyczny"
 
 #: spyder/plugins/application/container.py:447
 msgid "Minimal"
@@ -971,7 +971,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/kite/provider.py:227
 msgid "Kite error"
-msgstr ""
+msgstr "Błąd Kite"
 
 #: spyder/plugins/completion/providers/kite/provider.py:247
 msgid "Install Kite completion engine"
