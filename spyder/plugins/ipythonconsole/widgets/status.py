@@ -39,7 +39,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         sw = self._shellwidget_dict[self._current_id]["widget"]
         sw.execute("%matplotlib " + backend)
         is_spyder_kernel = self._shellwidget_dict[self._current_id][
-            "spyder_kernel"]
+            "widget"].is_spyder_kernel
         if not is_spyder_kernel:
             self.update_matplotlib_gui(backend)
 
@@ -71,16 +71,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         self._shellwidget_dict[swid] = {
             "gui": backend,
             "widget": shellwidget,
-            "spyder_kernel": shellwidget.is_spyder_kernel
             }
         self.set_shellwidget(shellwidget)
-
-    def on_connection_to_external_spyder_kernel(self, shellwidget):
-        """Shellwidget is spyder_kernels."""
-        shellwidget_id = id(shellwidget)
-        if shellwidget_id in self._shellwidget_dict:
-            self._shellwidget_dict[shellwidget_id][
-                "spyder_kernel"] = True
 
     def set_shellwidget(self, shellwidget):
         """Set current shellwidget."""
