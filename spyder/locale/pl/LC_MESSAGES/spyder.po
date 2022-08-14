@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-07-01 10:40-0500\n"
-"PO-Revision-Date: 2022-08-14 10:27\n"
+"PO-Revision-Date: 2022-08-14 11:56\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -35,7 +35,7 @@ msgstr "Wtyczki"
 
 #: spyder/api/widgets/main_widget.py:244
 msgid "Main widget toolbar"
-msgstr ""
+msgstr "Główny pasek narzędzi"
 
 #: spyder/api/widgets/main_widget.py:254
 msgid "Main widget corner toolbar"
@@ -43,7 +43,7 @@ msgstr ""
 
 #: spyder/api/widgets/main_widget.py:266
 msgid "Options menu"
-msgstr ""
+msgstr "Menu opcji"
 
 #: spyder/api/widgets/main_widget.py:313 spyder/plugins/base.py:182 spyder/plugins/editor/widgets/editor.py:689 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:204
 msgid "Options"
@@ -59,11 +59,11 @@ msgstr "Dodaj okno do doku"
 
 #: spyder/api/widgets/main_widget.py:344 spyder/api/widgets/main_widget.py:448 spyder/plugins/base.py:204 spyder/plugins/base.py:512
 msgid "Unlock position"
-msgstr ""
+msgstr "Odblokuj pozycję"
 
 #: spyder/api/widgets/main_widget.py:345 spyder/api/widgets/main_widget.py:453 spyder/plugins/base.py:205 spyder/plugins/base.py:516
 msgid "Unlock to move pane to another position"
-msgstr ""
+msgstr "Odblokuj aby przesunąć panel do innej pozycji"
 
 #: spyder/api/widgets/main_widget.py:351 spyder/plugins/base.py:212
 msgid "Undock"
@@ -83,11 +83,11 @@ msgstr "Zamknij okno"
 
 #: spyder/api/widgets/main_widget.py:442 spyder/plugins/base.py:506
 msgid "Lock position"
-msgstr ""
+msgstr "Zablokuj położenie"
 
 #: spyder/api/widgets/main_widget.py:446 spyder/plugins/base.py:510
 msgid "Lock pane to the current position"
-msgstr ""
+msgstr "Zablokuj panel w aktualnej pozycji"
 
 #: spyder/api/widgets/toolbars.py:123
 msgid "More"
@@ -95,11 +95,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:193
 msgid "Compatibility Check"
-msgstr ""
+msgstr "Sprawdź kompatybilność"
 
 #: spyder/app/mainwindow.py:204
 msgid "Loading {}..."
-msgstr ""
+msgstr "Ładowanie..."
 
 #: spyder/app/mainwindow.py:690
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
@@ -486,7 +486,7 @@ msgstr ""
 
 #: spyder/dependencies.py:237
 msgid "Jupyter kernels for the Spyder console"
-msgstr ""
+msgstr "Kernele Jupyter notebook dla konsoli Spydera"
 
 #: spyder/dependencies.py:241
 msgid "Compute distances between strings"
@@ -815,11 +815,11 @@ msgstr "<b>Część zależności jest niespełniona!</b><br><br><tt>%s</tt><br><
 
 #: spyder/plugins/application/container.py:440
 msgid "Question"
-msgstr ""
+msgstr "Pytania"
 
 #: spyder/plugins/application/container.py:443
 msgid "Which debug mode do you want Spyder to restart in?"
-msgstr ""
+msgstr "W którym trybie debugowania chcesz uruchomić Spyder ponownie?"
 
 #: spyder/plugins/application/container.py:446
 msgid "Verbose"
@@ -827,7 +827,7 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:447
 msgid "Minimal"
-msgstr ""
+msgstr "Minimalne"
 
 #: spyder/plugins/application/container.py:563 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:510
 msgid "Don't show again."
@@ -843,7 +843,7 @@ msgstr "Odrzuć"
 
 #: spyder/plugins/application/plugin.py:55
 msgid "Application"
-msgstr ""
+msgstr "Aplikacja"
 
 #: spyder/plugins/application/plugin.py:61
 msgid "Provide main application base actions."
@@ -1035,7 +1035,7 @@ msgstr "OK"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:325 spyder/plugins/completion/providers/kite/widgets/messagebox.py:24
 msgid "Kite installation error"
-msgstr ""
+msgstr "Błąd podczas instalacji kite"
 
 #: spyder/plugins/completion/providers/kite/widgets/install.py:326
 msgid "<b>An error ocurred while installing Kite!</b><br><br>Please try to <a href=\"{kite_url}\">install it manually</a> or <a href=\"{kite_contact}\">contact Kite</a> for help"
@@ -1195,7 +1195,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:55
 msgid "Check Python files: *.py"
-msgstr ""
+msgstr "Sprawdź pliki Pythona: *.py"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:57
 msgid "Exclude files or directories matching these patterns:"
@@ -3407,7 +3407,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:256 spyder/plugins/findinfiles/widgets/main_widget.py:257
 msgid "Exclude case sensitive"
-msgstr ""
+msgstr "Nie uwzględniaj wielkości liter"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:265 spyder/plugins/findinfiles/widgets/main_widget.py:266 spyder/plugins/findinfiles/widgets/main_widget.py:338
 msgid "Show advanced options"
@@ -3471,7 +3471,7 @@ msgstr "Konsola IPython"
 
 #: spyder/plugins/help/confpage.py:43
 msgid "Additional features"
-msgstr ""
+msgstr "Dodatkowe funkcje"
 
 #: spyder/plugins/help/confpage.py:44
 msgid "Render mathematical equations"
@@ -3808,7 +3808,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:242
 msgid "Debug"
-msgstr ""
+msgstr "Debugowanie"
 
 #: spyder/plugins/ipythonconsole/confpage.py:246
 msgid "Prevent editor from closing files while debugging"
@@ -4044,7 +4044,7 @@ msgstr "Przeglądaj"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:63
 msgid "This is a remote kernel (via SSH)"
-msgstr ""
+msgstr "To zdalne połączenie z jądrem (poprzez SSH)"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:66
 msgid "Hostname:"
@@ -4627,11 +4627,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:41
 msgid "Package"
-msgstr ""
+msgstr "Paczki"
 
 #: spyder/plugins/outlineexplorer/widgets.py:42
 msgid "Class"
-msgstr ""
+msgstr "Klasa"
 
 #: spyder/plugins/outlineexplorer/widgets.py:43
 msgid "Method"
@@ -4647,39 +4647,39 @@ msgstr "Atrybut"
 
 #: spyder/plugins/outlineexplorer/widgets.py:46
 msgid "constructor"
-msgstr ""
+msgstr "konstruktor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:47
 msgid "Enum"
-msgstr ""
+msgstr "Enumerator"
 
 #: spyder/plugins/outlineexplorer/widgets.py:49
 msgid "Function"
-msgstr ""
+msgstr "Funkcja"
 
 #: spyder/plugins/outlineexplorer/widgets.py:50
 msgid "Variable"
-msgstr ""
+msgstr "Zmienna"
 
 #: spyder/plugins/outlineexplorer/widgets.py:51
 msgid "Constant"
-msgstr ""
+msgstr "Stała"
 
 #: spyder/plugins/outlineexplorer/widgets.py:52
 msgid "String"
-msgstr ""
+msgstr "Ciąg znaków"
 
 #: spyder/plugins/outlineexplorer/widgets.py:53
 msgid "Number"
-msgstr ""
+msgstr "Liczba"
 
 #: spyder/plugins/outlineexplorer/widgets.py:54
 msgid "Boolean"
-msgstr ""
+msgstr "Wartość logiczna"
 
 #: spyder/plugins/outlineexplorer/widgets.py:55
 msgid "Array"
-msgstr ""
+msgstr "Tablica"
 
 #: spyder/plugins/outlineexplorer/widgets.py:57 spyder/widgets/collectionseditor.py:190
 msgid "Key"
@@ -4695,15 +4695,15 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:60
 msgid "Struct"
-msgstr ""
+msgstr "Struktura"
 
 #: spyder/plugins/outlineexplorer/widgets.py:61
 msgid "Event"
-msgstr ""
+msgstr "Zdarzenie"
 
 #: spyder/plugins/outlineexplorer/widgets.py:62
 msgid "Operator"
-msgstr ""
+msgstr "Operator"
 
 #: spyder/plugins/outlineexplorer/widgets.py:63
 msgid "Type parameter"
@@ -4711,7 +4711,7 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:64
 msgid "Cell"
-msgstr ""
+msgstr "Komórka"
 
 #: spyder/plugins/outlineexplorer/widgets.py:65
 msgid "Block comment"
@@ -4767,7 +4767,7 @@ msgstr "Zapisz wszystkie wykresy..."
 
 #: spyder/plugins/plots/widgets/main_widget.py:157
 msgid "Copy image"
-msgstr ""
+msgstr "Skopiuj obraz"
 
 #: spyder/plugins/plots/widgets/main_widget.py:158
 msgid "Copy plot to clipboard as image"
@@ -5468,7 +5468,7 @@ msgstr ""
 
 #: spyder/plugins/statusbar/confpage.py:35
 msgid "Show CPU usage every"
-msgstr ""
+msgstr "Pokaż użycie procesora co"
 
 #: spyder/plugins/statusbar/confpage.py:42
 msgid "Show clock"
@@ -6279,7 +6279,7 @@ msgstr ""
 
 #: spyder/plugins/workingdirectory/plugin.py:65
 msgid "Working directory"
-msgstr ""
+msgstr "Katalog roboczy"
 
 #: spyder/plugins/workingdirectory/plugin.py:68
 msgid "Set the current working directory for various plugins."
@@ -6425,7 +6425,7 @@ msgstr ""
 
 #: spyder/widgets/browser.py:147
 msgid "Select all"
-msgstr ""
+msgstr "Zaznacz wszystko"
 
 #: spyder/widgets/browser.py:180
 msgid "Inspect"
@@ -6585,11 +6585,11 @@ msgstr "Dostarcza funkcji"
 
 #: spyder/widgets/dependencies.py:36
 msgid "Mandatory"
-msgstr ""
+msgstr "Obowiązkowe"
 
 #: spyder/widgets/dependencies.py:46
 msgid "Spyder plugins"
-msgstr ""
+msgstr "Wtyczki Spydera"
 
 #: spyder/widgets/dependencies.py:89
 msgid "Optional modules are not required to run Spyder but enhance its functions."
@@ -6625,7 +6625,7 @@ msgstr "Znajdź ciąg znaków"
 
 #: spyder/widgets/findreplace.py:102
 msgid "Replace text"
-msgstr ""
+msgstr "Zastąp tekst"
 
 #: spyder/widgets/findreplace.py:107
 msgid "Find previous"
@@ -6789,7 +6789,7 @@ msgstr "Usuń ścieżkę"
 
 #: spyder/widgets/pathmanager.py:167
 msgid "Import"
-msgstr ""
+msgstr "Importuj"
 
 #: spyder/widgets/pathmanager.py:170
 msgid "Import from PYTHONPATH environment variable"
@@ -6797,7 +6797,7 @@ msgstr ""
 
 #: spyder/widgets/pathmanager.py:174 spyder/widgets/pathmanager.py:275
 msgid "Export"
-msgstr ""
+msgstr "Eksportuj"
 
 #: spyder/widgets/pathmanager.py:177
 msgid "Export to PYTHONPATH environment variable"
