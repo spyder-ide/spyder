@@ -26,7 +26,7 @@ def new_main_mod(filename, modname):
     main_mod.__file__ = filename
     # It seems pydoc (and perhaps others) needs any module instance to
     # implement a __nonzero__ method
-    main_mod.__nonzero__ = lambda : True
+    main_mod.__nonzero__ = lambda: True
 
     return main_mod
 

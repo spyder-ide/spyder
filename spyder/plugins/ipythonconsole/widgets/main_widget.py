@@ -405,7 +405,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def on_close(self):
         self.mainwindow_close = True
-        self.close_clients()
+        self.close_all_clients()
 
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
@@ -671,8 +671,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.get_control().set_help_enabled,
                 value)
 
-    @on_conf_change(section='appearance', option='selected')
-    def change_clients_color_scheme(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def change_clients_color_scheme(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         for idx, client in enumerate(self.clients):
             self._change_client_conf(
                 client,
@@ -810,6 +813,14 @@ class IPythonConsoleWidget(PluginMainWidget):
             self._change_client_conf(
                 client,
                 client.shellwidget.set_pdb_use_exclamation_mark,
+                value)
+
+    @on_conf_change(option='pdb_stop_first_line')
+    def change_clients_pdb_stop_first_line(self, value):
+        for idx, client in enumerate(self.clients):
+            self._change_client_conf(
+                client,
+                client.shellwidget.set_pdb_stop_first_line,
                 value)
 
     @on_conf_change(option=[
@@ -967,10 +978,19 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not client.is_client_executing():
             client_conf_func(value)
         elif client.shellwidget.is_debugging():
-            def change_conf(c=client, ccf=client_conf_func, value=value):
-                ccf(value)
-                c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
-            sw.sig_pdb_prompt_ready.connect(change_conf)
+            if client_conf_func in [
+                    sw.set_spyder_breakpoints,
+                    sw.set_pdb_ignore_lib,
+                    sw.set_pdb_execute_events,
+                    sw.set_pdb_use_exclamation_mark,
+                    sw.set_pdb_stop_first_line]:
+                # Execute immediately if this is pdb conf
+                client_conf_func(value)
+            else:
+                def change_conf(c=client, ccf=client_conf_func, value=value):
+                    ccf(value)
+                    c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
+                sw.sig_pdb_prompt_ready.connect(change_conf)
         else:
             def change_conf(c=client, ccf=client_conf_func, value=value):
                 ccf(value)
@@ -1440,7 +1460,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning,
                               given_name=given_name,
@@ -1579,7 +1598,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=connection_file,
                               context_menu_actions=self.context_menu_actions,
-                              time_label=self.time_label,
                               hostname=hostname,
                               is_external_kernel=is_external_kernel,
                               is_spyder_kernel=known_spyder_kernel,
@@ -1869,6 +1887,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
 
+        # Show time label
+        client.sig_time_label.connect(self.time_label.setText)
+
     def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
@@ -1886,19 +1907,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             index = self.tabwidget.currentIndex()
         if index is not None:
             client = self.tabwidget.widget(index)
-
-        # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
-        try:
-            # Close client
-            client.stop_button_click_handler()
-        except RuntimeError:
-            pass
-
-        # Disconnect timer needed to update elapsed time
-        try:
-            client.timer.timeout.disconnect(client.show_time)
-        except (RuntimeError, TypeError):
-            pass
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
@@ -1923,13 +1931,11 @@ class IPythonConsoleWidget(PluginMainWidget):
             if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
 
-        last_client = len(self.get_related_clients(client)) == 0
-        client.shutdown(last_client)
-        client.close()
-
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
+        is_last_client = len(self.get_related_clients(client)) == 0
+        client.close_client(is_last_client)
 
         # This is needed to prevent that hanged consoles make reference
         # to an index that doesn't exist. See spyder-ide/spyder#4881
@@ -1944,7 +1950,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
 
-    def close_clients(self):
+    def close_all_clients(self):
         """
         Perform close actions for each running client.
 
@@ -1953,17 +1959,16 @@ class IPythonConsoleWidget(PluginMainWidget):
         bool
             If the closing action was succesful.
         """
-        open_clients = self.clients.copy()
-        for client in self.clients:
-            last_client = (
-                len(self.get_related_clients(client, open_clients)) == 0)
-            client.shutdown(last_client)
-            client.close()
-            open_clients.remove(client)
+        while self.clients:
+            client = self.clients.pop()
+            is_last_client = len(self.get_related_clients(client)) == 0
+            client.close_client(is_last_client)
+
         # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()
         # Close cached kernel
         self.close_cached_kernel()
+        self.filenames = []
         return True
 
     def get_client_index_from_id(self, client_id):
@@ -2168,6 +2173,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Connect to an external Spyder kernel."""
         shellwidget.is_spyder_kernel = True
         shellwidget.spyder_kernel_comm.open_comm(shellwidget.kernel_client)
+        shellwidget.ipyclient.send_kernel_configuration()
         self.sig_shellwidget_changed.emit(shellwidget)
         self.sig_external_spyder_kernel_connected.emit(shellwidget)
 
@@ -2182,33 +2188,19 @@ class IPythonConsoleWidget(PluginMainWidget):
         # editor during repeated, rapid entry of debugging commands.
         self.sig_edit_goto_requested[str, int, str, bool].emit(
             fname, lineno, '', False)
-        self.activateWindow()
-        shellwidget._control.setFocus()
+
+        # Give focus to console if requested
+        if shellwidget._pdb_focus_to_editor:
+            # Next focus to editor was enabled
+            shellwidget._pdb_focus_to_editor = False
+        else:
+            self.activateWindow()
+            shellwidget._control.setFocus()
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
-
-    def pdb_execute_command(self, command):
-        """
-        Send command to the pdb kernel if possible.
-        """
-
-        sw = self.get_current_shellwidget()
-        if sw is not None:
-            # Needed to handle an error when kernel_client is None.
-            # See spyder-ide/spyder#7578.
-            try:
-                sw.pdb_execute_command(command)
-            except AttributeError:
-                pass
-
-    def stop_debugging(self):
-        """Stop debugging"""
-        sw = self.get_current_shellwidget()
-        if sw is not None:
-            sw.stop_debugging()
 
     def get_pdb_state(self):
         """Get debugging state of the current console."""
@@ -2279,7 +2271,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
             # This is necessary to prevent raising the console if the editor
             # and console are tabified next to each other and the 'Maintain
-            # focus in the editor' option is activated.
+            # focus in the editor' option is enabled.
             # Fixes spyder-ide/spyder#17028
             if not focus_to_editor:
                 self.sig_switch_to_plugin_requested.emit()
@@ -2302,7 +2294,8 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For scripts
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace):
+                   current_client, clear_variables, console_namespace,
+                   focus_to_editor):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(str(text))
 
@@ -2336,6 +2329,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                 if console_namespace:
                     line += ", current_namespace=True"
                 line += ")"
+
+                if debug:
+                    # To keep focus in editor after running debugfile
+                    client.shellwidget._pdb_focus_to_editor = focus_to_editor
             else:  # External, non spyder-kernels, use %run
                 line = "%run "
                 if debug:
@@ -2352,19 +2349,24 @@ class IPythonConsoleWidget(PluginMainWidget):
                     pass
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables,
-                                      set_focus=False)
+                                      set_focus=not focus_to_editor)
                 else:
                     if is_new_client:
                         client.shellwidget.silent_execute('%clear')
                     else:
                         client.shellwidget.execute('%clear')
                     client.shellwidget.sig_prompt_ready.connect(
-                            lambda: self.execute_code(
-                                line, current_client, clear_variables,
-                                set_focus=False))
+                        lambda: self.execute_code(
+                            line, current_client, clear_variables,
+                            set_focus=not focus_to_editor
+                        )
+                    )
             except AttributeError:
                 pass
-            self.sig_switch_to_plugin_requested.emit()
+
+            # Show plugin after execution if focus is going to be given to it.
+            if not focus_to_editor:
+                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
@@ -2452,15 +2454,26 @@ class IPythonConsoleWidget(PluginMainWidget):
                 sw.reset_namespace(warning=False)
             elif current_client and clear_variables:
                 sw.reset_namespace(warning=False)
+
             # Needed to handle an error when kernel_client is none.
             # See spyder-ide/spyder#6308.
             try:
                 sw.execute(str(lines))
             except AttributeError:
                 pass
-            self.activateWindow()
+
             if set_focus:
-                self.get_current_client().get_control().setFocus()
+                # The `activateWindow` call below needs to be inside this `if`
+                # to avoid giving focus to the console when it's undocked,
+                # users are running code from the editor and the 'Maintain
+                # focus in the editor' option is enabled.
+                # Fixes spyder-ide/spyder#3221
+                self.activateWindow()
+
+                # Gives focus to the current client
+                focus_widget = self.get_focus_widget()
+                if focus_widget:
+                    focus_widget.setFocus()
 
     # ---- For error handling
     def go_to_error(self, text):

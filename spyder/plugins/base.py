@@ -295,13 +295,18 @@ class BasePluginWidgetMixin(object):
 
     def _switch_to_plugin(self):
         """Switch to plugin."""
-        if (self.main.last_plugin is not None and
-                self.main.last_plugin._ismaximized and
-                self.main.last_plugin is not self):
-            self.main.maximize_dockwidget()
-        if not self._toggle_view_action.isChecked():
-            self._toggle_view_action.setChecked(True)
-        self._visibility_changed(True)
+        last_plugin = self.main.layouts.get_last_plugin()
+        maximize_action = self.main.layouts.maximize_action
+
+        if (
+            last_plugin is not None
+            and last_plugin._ismaximized
+            and last_plugin is not self
+        ):
+            if maximize_action.isChecked():
+                maximize_action.setChecked(False)
+            else:
+                maximize_action.setChecked(True)
 
     @Slot()
     def _plugin_closed(self):
@@ -464,16 +469,6 @@ class BasePluginWidgetMixin(object):
         # Update title
         self.sig_update_plugin_title.connect(self._update_plugin_title)
         self.setWindowTitle(self.get_plugin_title())
-
-    def _register_shortcut(self, qaction_or_qshortcut, context, name,
-                           add_shortcut_to_tip=False):
-        """Register a shortcut associated to a QAction or QShortcut."""
-        self.main.register_shortcut(
-            qaction_or_qshortcut,
-            context,
-            name,
-            add_shortcut_to_tip,
-            self.CONF_SECTION)
 
     def _get_color_scheme(self):
         """Get the current color scheme."""

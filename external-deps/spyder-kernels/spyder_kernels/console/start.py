@@ -258,11 +258,9 @@ def varexp(line):
         import guiqwt.pyplot as pyplot
     except:
         import matplotlib.pyplot as pyplot
-    __fig__ = pyplot.figure();
-    __items__ = getattr(pyplot, funcname[2:])(
-        ip.kernel._get_current_namespace()[name])
+    pyplot.figure();
+    getattr(pyplot, funcname[2:])(ip.kernel._get_current_namespace()[name])
     pyplot.show()
-    del __fig__, __items__
 
 
 def main():
@@ -306,6 +304,13 @@ def main():
             Therefore, it doesn't allow us to use our debugger.
             """
             pass
+
+        def close(self):
+            """Close the loopback socket."""
+            socket = self.kernel.loopback_socket
+            if socket and not socket.closed:
+                socket.close()
+            return super().close()
 
     # Fire up the kernel instance.
     kernel = SpyderKernelApp.instance()

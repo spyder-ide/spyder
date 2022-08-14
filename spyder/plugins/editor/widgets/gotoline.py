@@ -4,46 +4,18 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-import time
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QColor, QIntValidator
-from qtpy.QtPrintSupport import QPrinter
+from qtpy.QtGui import QIntValidator
 from qtpy.QtWidgets import (QDialog, QLabel, QLineEdit, QGridLayout,
                             QDialogButtonBox, QVBoxLayout, QHBoxLayout)
 
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 
 
-# =============================================================================
-# CodeEditor's Printer
-# =============================================================================
-# TODO: Implement the header and footer support
-class Printer(QPrinter):
-    def __init__(self, mode=QPrinter.ScreenResolution, header_font=None):
-        QPrinter.__init__(self, mode)
-        self.setColorMode(QPrinter.Color)
-        self.setPageOrder(QPrinter.FirstPageFirst)
-        self.date = time.ctime()
-        if header_font is not None:
-            self.header_font = header_font
-
-    # <!> The following method is simply ignored by QPlainTextEdit
-    #     (this is a copy from QsciEditor's Printer)
-    def formatPage(self, painter, drawing, area, pagenr):
-        header = '%s - %s - Page %s' % (self.docName(), self.date, pagenr)
-        painter.save()
-        painter.setFont(self.header_font)
-        painter.setPen(QColor(Qt.black))
-        if drawing:
-            painter.drawText(area.right()-painter.fontMetrics().width(header),
-                             area.top()+painter.fontMetrics().ascent(), header)
-        area.setTop(area.top()+painter.fontMetrics().height()+5)
-        painter.restore()
+# Translations
+_ = get_translation('spyder')
 
 
-# =============================================================================
-# Go to line dialog box
-# =============================================================================
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor, Qt.WindowTitleHint

@@ -17,6 +17,7 @@ class Plugins:
     Breakpoints = 'breakpoints'
     Completions = 'completions'
     Console = 'internal_console'
+    Debugger = 'debugger'
     Editor = 'editor'
     Explorer = 'explorer'
     Find = 'find_in_files'
@@ -39,5 +40,4 @@ class Plugins:
     Toolbar = "toolbar"
     Tours = 'tours'
     VariableExplorer = 'variable_explorer'
-    FramesExplorer = 'frames_explorer'
     WorkingDirectory = 'workingdir'

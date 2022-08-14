@@ -1282,26 +1282,27 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
 
     # Show time label.
-    ipyconsole.get_widget().set_show_elapsed_time_current_client(True)
+    main_widget = ipyconsole.get_widget()
+    main_widget.set_show_elapsed_time_current_client(True)
 
     # Set time to 2 minutes ago.
     client.t0 -= 120
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         ipyconsole.get_widget().set_client_elapsed_time(client)
-    assert ('00:02:00' in client.time_label.text() or
-            '00:02:01' in client.time_label.text())
+    assert ('00:02:00' in main_widget.time_label.text() or
+            '00:02:01' in main_widget.time_label.text())
 
     # Wait for a second to pass, to ensure timer is counting up
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         pass
-    assert ('00:02:01' in client.time_label.text() or
-            '00:02:02' in client.time_label.text())
+    assert ('00:02:01' in main_widget.time_label.text() or
+            '00:02:02' in main_widget.time_label.text())
 
     # Make previous time later than current time.
     client.t0 += 2000
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         pass
-    assert '00:00:00' in client.time_label.text()
+    assert '00:00:00' in main_widget.time_label.text()
 
     client.timer.timeout.disconnect(client.show_time)
 
@@ -1968,7 +1969,6 @@ def test_stop_pdb(ipyconsole, qtbot):
     assert "In [2]:" in control.toPlainText()
 
 
-
 @flaky(max_runs=3)
 def test_code_cache(ipyconsole, qtbot):
     """
@@ -2000,6 +2000,7 @@ def test_code_cache(ipyconsole, qtbot):
     # Send two execute requests and cancel the second one
     shell.execute('import time; time.sleep(.5)')
     shell.execute('var = 1000')
+    qtbot.wait(100)
     shell.interrupt_kernel()
     qtbot.wait(1000)
     # Make sure the value of var didn't change
@@ -2020,6 +2021,7 @@ def test_code_cache(ipyconsole, qtbot):
     # Send two execute requests and cancel the second one
     shell.execute('import time; time.sleep(.5)')
     shell.execute('var = 1000')
+    qtbot.wait(100)
     shell.interrupt_kernel()
     qtbot.wait(1000)
     # Make sure the value of var didn't change
@@ -2353,6 +2355,36 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
         'startup/run_lines',
         '',
         section='ipython_console')
+
+
+def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
+    """Test that %varexp is working while debugging locals."""
+
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("def f():\n    li = [1, 2]\n    return li")
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug f()")
+
+
+    # Get to an object that can be plotted
+    for _ in range(4):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("!s")
+
+    # Generate the plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%varexp --plot li")
+
+    qtbot.wait(1000)
+
+    # Assert that there's a plot in the console
+    assert shell._control.toHtml().count('img src') == 1
 
 
 if __name__ == "__main__":

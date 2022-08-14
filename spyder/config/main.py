@@ -183,7 +183,7 @@ DEFAULTS = [
               'show_callable_attributes': True,
               'show_special_attributes': False
              }),
-            ('frames_explorer',
+            ('debugger',
              {
               'exclude_internal': True,
               'capture_locals': False,
@@ -336,7 +336,6 @@ DEFAULTS = [
             ('completions',
              {
                'enable': True,
-               'kite_call_to_action': False,
                'enable_code_snippets': True,
                'completions_wait_for_ms': 200,
                'enabled_providers': {},
@@ -527,9 +526,9 @@ DEFAULTS = [
               # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
-              # ---- In widgets/framesexplorer/framesbrowser.py ----
-              'frames_explorer/refresh': 'Ctrl+R',
-              'frames_explorer/search': 'Ctrl+F',
+              # ---- In widgets/debugger/framesbrowser.py ----
+              'debugger/refresh': 'Ctrl+R',
+              'debugger/search': 'Ctrl+F',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -649,4 +648,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '70.4.0'
+CONF_VERSION = '71.0.0'

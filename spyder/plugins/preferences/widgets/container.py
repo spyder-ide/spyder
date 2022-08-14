@@ -4,9 +4,6 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-# Standard library imports
-import sys
-
 # Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QAction

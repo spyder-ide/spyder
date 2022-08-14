@@ -141,6 +141,7 @@ class IconManager():
             'arrow-step-in':           [('mdi.debug-step-into',), {'color': SpyderPalette.ICON_2}],
             'arrow-step-out':          [('mdi.debug-step-out',), {'color': SpyderPalette.ICON_2}],
             'stop_debug':              [('mdi.stop',), {'color': SpyderPalette.ICON_2}],
+            'enter_debug':             [('mdi.location-enter',), {'color': SpyderPalette.ICON_2}],
             'run':                     [('mdi.play',), {'color': SpyderPalette.ICON_3}],
             'todo_list':               [('mdi.check-bold',), {'color': self.MAIN_FG_COLOR}],
             'wng_list':                [('mdi.alert',), {'options': [{'color': SpyderPalette.COLOR_WARN_2, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
@@ -191,6 +192,7 @@ class IconManager():
             'MessageBoxWarning':       [('mdi.alert',), {'color': self.MAIN_FG_COLOR}],
             'arredit':                 [('mdi.table-edit',), {'color': self.MAIN_FG_COLOR}],
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
+            'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'plot':                    [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
@@ -343,6 +345,18 @@ class IconManager():
             'statusbar':               [('mdi.dock-bottom',), {'color': self.MAIN_FG_COLOR}],
             # --- Plugin registry ---------------------------------------------------
             'plugins':                 [('mdi.puzzle',), {'color': self.MAIN_FG_COLOR}],
+            # --- Print preview dialog ----------------------------------------------
+            'print.fit_width':         [('mdi.arrow-expand-horizontal',), {'color': self.MAIN_FG_COLOR}],
+            'print.fit_page':          [('mdi.stretch-to-page-outline',), {'color': self.MAIN_FG_COLOR}],
+            'portrait':                [('mdi.crop-portrait',), {'color': self.MAIN_FG_COLOR}],
+            'landscape':               [('mdi.crop-landscape',), {'color': self.MAIN_FG_COLOR}],
+            'previous_page':           [('mdi.chevron-left',), {'color': self.MAIN_FG_COLOR}],
+            'next_page':               [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],
+            'first_page':              [('mdi.page-first',), {'color': self.MAIN_FG_COLOR}],
+            'last_page':               [('mdi.page-last',), {'color': self.MAIN_FG_COLOR}],
+            'print.single_page':       [('mdi.file-document-outline',), {'color': self.MAIN_FG_COLOR}],
+            'print.all_pages':         [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
+            'print.page_setup':        [('mdi.ruler-square',), {'color': self.MAIN_FG_COLOR}],
         }
 
     def get_std_icon(self, name, size=None):

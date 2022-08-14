@@ -13,7 +13,7 @@ import os
 
 # Third party imports
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
-from qtpy.QtWidgets import QApplication, QDesktopWidget, QDockWidget
+from qtpy.QtWidgets import QApplication, QDesktopWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -641,10 +641,11 @@ class Layout(SpyderPluginV2):
             try:
                 # New API
                 self.main.setCentralWidget(self._last_plugin.get_widget())
+                self._last_plugin.get_widget().set_maximized_state(True)
             except AttributeError:
                 # Old API
                 self.main.setCentralWidget(self._last_plugin)
-            self._last_plugin._ismaximized = True
+                self._last_plugin._ismaximized = True
 
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline
@@ -679,7 +680,7 @@ class Layout(SpyderPluginV2):
 
             try:
                 # New API
-                self._last_plugin.get_widget().is_maximized = False
+                self._last_plugin.get_widget().set_maximized_state(False)
             except AttributeError:
                 # Old API
                 self._last_plugin._ismaximized = False
@@ -694,6 +695,83 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 self._last_plugin.get_focus_widget().setFocus()
+
+    def unmaximize_dockwidget(self):
+        """Unmaximize any dockable plugin."""
+        if self.maximize_action.isChecked():
+            self.maximize_action.setChecked(False)
+
+    def unmaximize_other_dockwidget(self, plugin_instance):
+        """
+        Unmaximize the currently maximized plugin, if not `plugin_instance`.
+        """
+        last_plugin = self.get_last_plugin()
+        is_maximized = False
+
+        if last_plugin is not None:
+            try:
+                # New API
+                is_maximized = (
+                    last_plugin.get_widget().get_maximized_state()
+                )
+            except AttributeError:
+                # Old API
+                is_maximized = last_plugin._ismaximized
+
+        if (
+            last_plugin is not None
+            and is_maximized
+            and last_plugin is not plugin_instance
+        ):
+            self.unmaximize_dockwidget()
+
+    def switch_to_plugin(self, plugin, force_focus=None):
+        """
+        Switch to `plugin`.
+
+        Notes
+        -----
+        This operation unmaximizes the current plugin (if any), raises
+        this plugin to view (if it's hidden) and gives it focus (if
+        possible).
+        """
+        last_plugin = self.get_last_plugin()
+
+        try:
+            # New API
+            if (
+                last_plugin is not None
+                and last_plugin.get_widget().get_maximized_state()
+                and last_plugin is not plugin
+            ):
+                if self.maximize_action.isChecked():
+                    self.maximize_action.setChecked(False)
+                else:
+                    self.maximize_action.setChecked(True)
+        except AttributeError:
+            # Old API
+            if (
+                last_plugin is not None
+                and last_plugin._ismaximized
+                and last_plugin is not plugin
+            ):
+                if self.maximize_action.isChecked():
+                    self.maximize_action.setChecked(False)
+                else:
+                    self.maximize_action.setChecked(True)
+
+        try:
+            # New API
+            if not plugin.toggle_view_action.isChecked():
+                plugin.toggle_view_action.setChecked(True)
+                plugin.get_widget().is_visible = False
+        except AttributeError:
+            # Old API
+            if not plugin._toggle_view_action.isChecked():
+                plugin._toggle_view_action.setChecked(True)
+                plugin._widget._is_visible = False
+
+        plugin.change_visibility(True, force_focus=force_focus)
 
     def _update_fullscreen_action(self):
         if self._fullscreen_flag:
@@ -753,7 +831,7 @@ class Layout(SpyderPluginV2):
         Populate panes menu with the toggle view action of each base plugin.
         """
         order = ['editor', 'ipython_console', 'variable_explorer',
-                 'frames_explorer', 'help', 'plots', None, 'explorer',
+                 'debugger', 'help', 'plots', None, 'explorer',
                  'outline_explorer', 'project_explorer', 'find_in_files', None,
                  'historylog', 'profiler', 'breakpoints', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
