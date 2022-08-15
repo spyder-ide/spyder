@@ -23,6 +23,7 @@ from _thread import interrupt_main
 from ipykernel.zmqshell import ZMQInteractiveShell
 
 # Local imports
+import spyder_kernels
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.mpl import automatic_backend
@@ -51,6 +52,8 @@ class SpyderShell(ZMQInteractiveShell):
         super(SpyderShell, self).__init__(*args, **kwargs)
         self._allow_kbdint = False
         self.register_debugger_sigint()
+        # Used for checking correct version by spyder
+        self._spyder_kernels_version = spyder_kernels.__version__
 
     def ask_exit(self):
         """Engage the exit actions."""
