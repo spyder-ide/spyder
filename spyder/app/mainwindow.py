@@ -73,6 +73,7 @@ from spyder.app.utils import (
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
@@ -80,7 +81,6 @@ from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
-from spyder.config.user import NoDefault
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.py3compat import configparser as cp, PY3, to_text_string
 from spyder.utils import encoding, programs
@@ -119,11 +119,14 @@ logger = logging.getLogger(__name__)
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
 
+
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     """Spyder main window"""
+    CONF_SECTION = 'main'
+
     DOCKOPTIONS = (
         QMainWindow.AllowTabbedDocks | QMainWindow.AllowNestedDocks |
         QMainWindow.AnimatedDocks
@@ -169,9 +172,6 @@ class MainWindow(QMainWindow):
 
         # Save command line options for plugins to access them
         self._cli_options = options
-
-        # To have an easy to access reference to CONF
-        self._conf = CONF
 
         logger.info("Start of MainWindow constructor")
 
@@ -470,8 +470,8 @@ class MainWindow(QMainWindow):
                 context = '_'
                 name = 'switch to {}'.format(plugin.CONF_SECTION)
                 shortcut = self.get_shortcut(
-                    context,
                     name,
+                    context,
                     plugin_name=plugin.CONF_SECTION
                 )
             except (cp.NoSectionError, cp.NoOptionError):
@@ -523,8 +523,8 @@ class MainWindow(QMainWindow):
             context = '_'
             name = 'switch to {}'.format(plugin.CONF_SECTION)
             shortcut = self.get_shortcut(
-                context,
                 name,
+                context,
                 plugin_name=plugin.CONF_SECTION
             )
         except Exception:
@@ -715,7 +715,7 @@ class MainWindow(QMainWindow):
                         context = '_'
                         name = 'switch to {}'.format(section)
                         shortcut = self.get_shortcut(
-                            context, name, plugin_name=section)
+                            name, context, plugin_name=section)
                     except (cp.NoSectionError, cp.NoOptionError):
                         shortcut = QKeySequence()
                 else:
@@ -740,8 +740,8 @@ class MainWindow(QMainWindow):
         self.update_python_path(path_dict)
 
         logger.info("Applying theme configuration...")
-        ui_theme = self.get_conf(option='ui_theme', section='appearance')
-        color_scheme = self.get_conf(option='selected', section='appearance')
+        ui_theme = self.get_conf('ui_theme', section='appearance')
+        color_scheme = self.get_conf('selected', section='appearance')
 
         if ui_theme == 'dark':
             if not running_under_pytest():
@@ -820,9 +820,7 @@ class MainWindow(QMainWindow):
                 registry_external_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
             try:
-                if self.get_conf(
-                        option="enable",
-                        section=plugin_main_attribute_name):
+                if self.get_conf("enable", section=plugin_main_attribute_name):
                     enabled_plugins[plugin_name] = plugin
                     PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):
@@ -1115,20 +1113,25 @@ class MainWindow(QMainWindow):
         Actions to be performed only after the main window's `show` method
         is triggered.
         """
-        # Process pending events and hide splash before loading the
-        # previous session.
+        # This must be run before the main window is shown.
+        # Fixes spyder-ide/spyder#12104
+        self.layouts.on_mainwindow_visible()
+
+        # Process pending events and hide splash screen before moving forward.
         QApplication.processEvents()
         if self.splash is not None:
             self.splash.hide()
 
-        # Call on_mainwindow_visible for all plugins.
+        # Call on_mainwindow_visible for all plugins, except Layout because it
+        # needs to be called first (see above).
         for plugin_name in PLUGIN_REGISTRY:
-            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            try:
-                plugin.on_mainwindow_visible()
-                QApplication.processEvents()
-            except AttributeError:
-                pass
+            if plugin_name != Plugins.Layout:
+                plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+                try:
+                    plugin.on_mainwindow_visible()
+                    QApplication.processEvents()
+                except AttributeError:
+                    pass
 
         self.restore_scrollbar_position.emit()
 
@@ -1190,6 +1193,7 @@ class MainWindow(QMainWindow):
             reopen_last_session = True
 
         if editor and reopen_last_session:
+            logger.info("Restoring opened files from the previous session")
             editor.setup_open_files(close_previous_files=False)
 
     def restore_undocked_plugins(self):
@@ -1314,57 +1318,6 @@ class MainWindow(QMainWindow):
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
-
-    # ---- Configuration
-    # -------------------------------------------------------------------------
-    def get_conf(self, option, section='main', default=NoDefault):
-        """
-        Get an option from the Spyder configuration system.
-
-        Parameters
-        ----------
-        option: str
-            Name of the option to get its value from.
-        section: str, optional
-            Section in the configuration system, e.g. `shortcuts`. The default
-            is 'main'.
-        default: Optional
-            Fallback value to return if the option is not found on the
-            configuration system.
-        """
-        return self._conf.get(section, option, default)
-
-    def set_conf(self, option, value, section='main'):
-        """
-        Set an option in the Spyder configuration system.
-
-        Parameters
-        ----------
-        option: str
-            Name of the option to set its value.
-        value:
-            Value to set on the configuration system.
-        section: str, optional
-            Section in the configuration system, e.g. `shortcuts`. The default
-            is 'main'.
-        """
-        return self._conf.set(section, option, value)
-
-    def get_shortcut(self, context, name, plugin_name=None):
-        """
-        Get a shortcut from the Spyder configuration system.
-
-        Parameters
-        ----------
-        context: str
-            Context where the shortcut applies. It can be either '_' for global
-            shortcuts or a specific context.
-        name: str
-            Name of the shortcut in the configutration system.
-        plugin_name: str, optional
-            Name of the plugin to which the shortcut is associated.
-        """
-        return self._conf.get_shortcut(context, name, plugin_name)
 
     # ---- Other
     # -------------------------------------------------------------------------
@@ -1543,6 +1496,8 @@ class MainWindow(QMainWindow):
         if self.already_closed or self.is_starting_up:
             return True
 
+        self.layouts.save_visible_plugins()
+
         self.plugin_registry = PLUGIN_REGISTRY
 
         if cancelable and self.get_conf('prompt_on_exit'):
@@ -1629,11 +1584,11 @@ class MainWindow(QMainWindow):
         if systerm:
             # Running script in an external system terminal
             try:
-                if self.get_conf(option='default', section='main_interpreter'):
+                if self.get_conf('default', section='main_interpreter'):
                     executable = get_python_executable()
                 else:
                     executable = self.get_conf(
-                        option='executable',
+                        'executable',
                         section='main_interpreter'
                     )
                 pypath = self.get_conf('spyder_pythonpath', default=None)

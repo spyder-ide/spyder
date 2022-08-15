@@ -9,6 +9,7 @@ Layout Plugin.
 """
 # Standard library imports
 import configparser as cp
+import logging
 import os
 
 # Third party imports
@@ -38,7 +39,8 @@ from spyder.py3compat import qbytearray_to_str  # FIXME:
 # Localization
 _ = get_translation("spyder")
 
-# Constants
+# For logging
+logger = logging.getLogger(__name__)
 
 # Number of default layouts available
 DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
@@ -73,8 +75,8 @@ class Layout(SpyderPluginV2):
     CONTAINER_CLASS = LayoutContainer
     CAN_BE_DISABLED = False
 
-    # --- SpyderDockablePlugin API
-    # ------------------------------------------------------------------------
+    # ---- SpyderDockablePlugin API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Layout")
@@ -196,13 +198,22 @@ class Layout(SpyderPluginV2):
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
-        # Populate panes menu
+        # Populate `Panes > View` menu.
+        # This **MUST** be done before restoring the last visible plugins, so
+        # that works as expected.
         self.create_plugins_menu()
+
+        # Restore last visible plugins.
+        # This **MUST** be done before running on_mainwindow_visible for the
+        # other plugins so that the user doesn't experience sudden jumps in the
+        # interface.
+        self.restore_visible_plugins()
+
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
 
-    # --- Plubic API
-    # ------------------------------------------------------------------------
+    # ---- Plubic API
+    # -------------------------------------------------------------------------
     def get_last_plugin(self):
         """
         Return the last focused dockable plugin.
@@ -905,3 +916,38 @@ class Layout(SpyderPluginV2):
         toolbar = self.get_plugin(Plugins.Toolbar)
         if toolbar:
             toolbar.toggle_lock(value=self._interface_locked)
+
+    def restore_visible_plugins(self):
+        """
+        Restore dockable plugins that were visible during the previous session.
+        """
+        logger.info("Restoring visible plugins from the previous session")
+        visible_plugins = self.get_conf('last_visible_plugins', default=[])
+
+        # This should only be necessary the first time this method is run
+        if not visible_plugins:
+            visible_plugins = [Plugins.IPythonConsole, Plugins.Help,
+                               Plugins.Editor]
+
+        # Restore visible plugins
+        for plugin in visible_plugins:
+            plugin_class = self.get_plugin(plugin)
+            if plugin_class and plugin_class.dockwidget.isVisible():
+                plugin_class.dockwidget.raise_()
+
+    def save_visible_plugins(self):
+        """Save visible plugins."""
+        logger.debug("Saving visible plugins to config system")
+
+        visible_plugins = []
+        for plugin in self.get_dockable_plugins():
+            try:
+                # New API
+                if plugin.get_widget().is_visible:
+                    visible_plugins.append(plugin.NAME)
+            except AttributeError:
+                # Old API
+                if plugin._isvisible:
+                    visible_plugins.append(plugin.NAME)
+
+        self.set_conf('last_visible_plugins', visible_plugins)
