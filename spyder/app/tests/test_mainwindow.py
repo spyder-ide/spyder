@@ -5377,6 +5377,47 @@ def test_out_runfile_runcell(main_window, qtbot):
 
 
 @pytest.mark.slow
+def test_visible_plugins(main_window, qtbot):
+    """
+    Test that saving and restoring visible plugins works as expected.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Load default layout
+    main_window.layouts.quick_layout_switch(DefaultLayouts.SpyderLayout)
+
+    # Make some non-default plugins visible
+    selected = [Plugins.Plots, Plugins.History]
+    for plugin_name in selected:
+        main_window.get_plugin(plugin_name).dockwidget.raise_()
+
+    # Save visible plugins
+    main_window.layouts.save_visible_plugins()
+
+    # Change visible plugins
+    for plugin_name in [Plugins.VariableExplorer, Plugins.IPythonConsole]:
+        main_window.get_plugin(plugin_name).dockwidget.raise_()
+
+    # Make sure plugins to test are not visible
+    for plugin_name in selected:
+        assert not main_window.get_plugin(plugin_name).get_widget().is_visible
+
+    # Restore saved visible plugins
+    main_window.layouts.restore_visible_plugins()
+
+    # Assert visible plugins are the expected ones
+    visible_plugins = []
+    for plugin_name, plugin in main_window.get_dockable_plugins():
+        if plugin_name != Plugins.Editor and plugin.get_widget().is_visible:
+            visible_plugins.append(plugin_name)
+
+    assert set(selected) == set(visible_plugins)
+
+
+@pytest.mark.slow
 def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
     """
     Test that the current working directory is synced between the IPython

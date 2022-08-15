@@ -12,9 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
-import os
 import os.path as osp
-import sys
 
 # Third party imports
 from qtpy import PYQT5
@@ -245,6 +243,9 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         self.setUsesScrollButtons(True)
+        # Needed to prevent eliding tabs text on MacOS
+        # See spyder-ide/spyder#18817
+        self.setElideMode(Qt.ElideNone)
         self.tabBar().setObjectName('pane-tabbar')
 
         self.corner_widgets = {}
