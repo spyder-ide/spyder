@@ -2256,6 +2256,9 @@ class IPythonConsoleWidget(PluginMainWidget):
                                 repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
 
+                if function == "debugcell":
+                    # To keep focus in editor after running debugfile
+                    client.shellwidget._pdb_focus_to_editor = focus_to_editor
             # External kernels and run_cell_copy, just execute the code
             else:
                 line = code.strip()
