@@ -2387,5 +2387,38 @@ def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
+def test_old_kernel_version(ipyconsole, qtbot):
+    """
+    Check that an error is shown when an version of spyder-kernels is used.
+    """
+    # Set a false _spyder_kernels_version in the cached kernel
+    w = ipyconsole.get_widget()
+    # create new client so PYTEST_CURRENT_TEST is the same
+    w.create_new_client()
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    kc = w._cached_kernel_properties[-1][2]
+    kc.start_channels()
+    kc.execute("get_ipython()._spyder_kernels_version = '1.0.0'")
+    # Cleanup the kernel_client so it can be used again
+    kc.stop_channels()
+    kc._shell_channel = None
+    kc._iopub_channel = None
+    kc._stdin_channel = None
+    kc._hb_channel = None
+    kc._control_channel = None
+
+    # Create new client
+    w.create_new_client()
+    client = w.get_current_client()
+
+    # Make sure an error is shown
+    qtbot.waitUntil(lambda: client.error_text is not None)
+    assert 'version 1.0.0' in client.error_text
+
+
 if __name__ == "__main__":
     pytest.main()
