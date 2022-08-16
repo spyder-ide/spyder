@@ -5198,11 +5198,11 @@ foo(1)
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     check_focus(debug_button)
 
-    # Go to the next line while debugging
-    debug_next_action = main_window.debug_toolbar_actions[1]
-    debug_next_button = main_window.debug_toolbar.widgetForAction(
-        debug_next_action)
-    check_focus(debug_next_button)
+    # Execute another debugging command
+    debug_command_action = main_window.debug_toolbar_actions[1]
+    debug_command_button = main_window.debug_toolbar.widgetForAction(
+        debug_command_action)
+    check_focus(debug_command_button)
 
 
 @pytest.mark.slow
