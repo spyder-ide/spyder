@@ -18,6 +18,7 @@ from qtpy.QtCore import QTimer, Signal
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
+from spyder.config.base import is_pynsist
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
@@ -108,8 +109,14 @@ class InterpreterStatus(BaseTimerStatus):
         # Compute info of default interpreter to have it available in
         # case we need to switch to it. This will avoid lags when
         # doing that in get_value.
-        if sys.executable not in self.path_to_env:
-            self._get_env_info(sys.executable)
+        default_executable = sys.executable
+        if is_pynsist():
+            # Be sure to use 'python' executable instead of 'pythonw' since
+            # no ouput is generated with 'pythonw'.
+            default_executable = default_executable.replace(
+                'pythonw', 'python')
+        if default_executable not in self.path_to_env:
+            self._get_env_info(default_executable)
 
         # Get envs
         conda_env = get_list_conda_envs()
