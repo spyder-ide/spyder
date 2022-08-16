@@ -310,6 +310,7 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda update anaconda</code><br>"
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
+                    self.application_update_status.set_no_status()
                 else:
                     if os.name == 'nt' and is_pynsist():
                         box.setStandardButtons(QMessageBox.Yes |
@@ -318,13 +319,6 @@ class ApplicationContainer(PluginMainContainer):
                             "You want to download and install the latest "
                             "version of spyder?<br><br>"
                         )
-                        box.buttonClicked.connect(
-                            lambda button:
-                            self.application_update_status.start_installation()
-                            if button.text() in ('&Yes')
-                            else
-                            self.application_update_status.set_status_pending()
-                            )
                     else:
                         content = _(
                             "Click <a href=\"{}\">this link</a> to "
@@ -333,7 +327,11 @@ class ApplicationContainer(PluginMainContainer):
                 msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
-                box.show()
+                box.exec_()
+                if box.result() == QMessageBox.Yes:
+                    self.application_update_status.start_installation()
+                elif(box.result() == QMessageBox.No):
+                    self.application_update_status.set_status_pending()
                 check_updates = box.is_checked()
             elif feedback:
                 msg = _("Spyder is up to date.")

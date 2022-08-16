@@ -171,13 +171,12 @@ class UpdateInstallerDialog(QDialog):
         reply.setWindowTitle("Spyder")
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        reply.buttonClicked.connect(
-                            lambda button:
-                            self.start_installation_update()
-                            if button.text() in ('&Yes')
-                            else self._change_update_installation_status(
-                                status=PENDING))
         reply.show()
+        reply.exec_()
+        if reply.result() == QMessageBox.Yes:
+            self.start_installation_update()
+        else:
+            self._change_update_installation_status(status=PENDING)
 
     def finished_installation(self, status):
         """Handle finished installation."""
