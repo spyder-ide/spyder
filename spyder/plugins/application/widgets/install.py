@@ -25,6 +25,7 @@ from spyder import __version__
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
+from spyder.utils.programs import is_module_installed
 
 
 # Update installation process statuses
@@ -222,11 +223,18 @@ class UpdateInstallerDialog(QDialog):
         try:
             with TemporaryDirectory(prefix="Spyder-") as tmpdir:
                 destination = os.path.join(tmpdir, 'updateSpyder.exe')
-                download = urlretrieve(
-                    ('https://github.com/spyder-ide/spyder/releases/latest/'
-                        'download/Spyder_64bit_full.exe'),
-                    destination,
-                    reporthook=self._progress_reporter)
+                url = (
+                    'https://github.com/spyder-ide/spyder/releases/latest/'
+                    'download/Spyder_64bit_lite.exe')
+                val = (is_module_installed('numpy') or
+                       is_module_installed('pandas'))
+                if val:
+                    url = (
+                        'https://github.com/spyder-ide/spyder/releases/latest/'
+                        'download/Spyder_64bit_full.exe')
+                download = urlretrieve(url,
+                                       destination,
+                                       reporthook=self._progress_reporter)
                 self._change_update_installation_status(status=INSTALLING)
                 install = subprocess.Popen(destination, shell=True)
                 install.communicate()
