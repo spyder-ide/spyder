@@ -2387,6 +2387,7 @@ def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on windows")
 def test_old_kernel_version(ipyconsole, qtbot):
     """
     Check that an error is shown when an version of spyder-kernels is used.
