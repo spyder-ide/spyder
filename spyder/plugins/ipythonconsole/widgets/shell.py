@@ -9,6 +9,7 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
+import ast
 import os
 import os.path as osp
 import time
@@ -30,17 +31,21 @@ from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
+from spyder.utils.programs import check_version_range
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
-    NamepaceBrowserWidget, PageControlWidget)
+    NamepaceBrowserWidget, PageControlWidget, SPYDER_KERNELS_VERSION)
 
 
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
+
+ERROR_SPYDER_KERNEL_VERSION = _(
+    "Spyder kernel version {} not in required versions {}")
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -247,6 +252,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
+        # Send message to kernel to check status
+        self.check_spyder_kernel()
         if self.is_spyder_kernel:
             # For completion
             kernel_client.control_channel.message_received.connect(
@@ -302,7 +309,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def check_spyder_kernel(self):
         """Determine if the kernel is from Spyder."""
-        code = u"getattr(get_ipython().kernel, 'set_value', False)"
+        code = "getattr(get_ipython(), '_spyder_kernels_version', False)"
         if self._reading:
             return
         else:
@@ -318,8 +325,30 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Process kernel reply
         data = reply.get('data')
         if data is not None and 'text/plain' in data:
-            is_spyder_kernel = data['text/plain']
-            if 'SpyderKernel' in is_spyder_kernel:
+            version = ast.literal_eval(data['text/plain'])
+            if not version:
+                # The running_under_pytest() part can be removed when
+                # spyder-kernels 3 makes it into conda. This is needed for
+                # the test_conda_env_activation test
+                if running_under_pytest():
+                    return
+
+                if self.is_spyder_kernel:
+                    self.ipyclient.show_kernel_error(
+                        _("spyder_kernels version must be updated"))
+                return
+
+            if not check_version_range(version, SPYDER_KERNELS_VERSION):
+                if "dev0" not in version:
+                    # Development versions are acceptable
+                    self.ipyclient.show_kernel_error(
+                        ERROR_SPYDER_KERNEL_VERSION.format(
+                            version,
+                            SPYDER_KERNELS_VERSION
+                            ))
+                    return
+
+            if not self.is_spyder_kernel:
                 self.is_spyder_kernel = True
                 self.sig_is_spykernel.emit(self)
 

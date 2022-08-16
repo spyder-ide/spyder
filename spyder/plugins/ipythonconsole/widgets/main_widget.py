@@ -40,7 +40,9 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget, ShellWidget)
+    KernelConnectionDialog, PageControlWidget, ShellWidget,
+    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
+    SPYDER_KERNELS_VERSION)
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -58,10 +60,6 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_MIN_VERSION = '2.3.0'
-SPYDER_KERNELS_MAX_VERSION = '2.4.0'
-SPYDER_KERNELS_VERSION = (
-    f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
 SPYDER_KERNELS_VERSION_MSG = _(
     '>= {0} and < {1}').format(
         SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
@@ -1644,16 +1642,13 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
         shellwidget = client.shellwidget
+        if not known_spyder_kernel:
+            shellwidget.sig_is_spykernel.connect(
+                self.connect_external_spyder_kernel)
         shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
-
-        if not known_spyder_kernel:
-            shellwidget.sig_is_spykernel.connect(
-                self.connect_external_spyder_kernel)
-            shellwidget.check_spyder_kernel()
-
         self.sig_shellwidget_created.emit(shellwidget)
         kernel_client.stopped_channels.connect(
             lambda: self.sig_shellwidget_deleted.emit(shellwidget))
