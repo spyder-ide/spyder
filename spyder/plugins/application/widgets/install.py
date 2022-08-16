@@ -171,7 +171,6 @@ class UpdateInstallerDialog(QDialog):
         reply.setWindowTitle("Spyder")
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        reply.show()
         reply.exec_()
         if reply.result() == QMessageBox.Yes:
             self.start_installation_update()
