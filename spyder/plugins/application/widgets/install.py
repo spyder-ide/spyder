@@ -4,15 +4,15 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Update installation widget."""
+"""Update installation widgets."""
 
 # Standard library imports
-import sys
 import os
 import subprocess
-from urllib.request import urlretrieve
+import sys
 from tempfile import TemporaryDirectory
 import threading
+from urllib.request import urlretrieve
 
 # Third-party imports
 from qtpy.QtCore import QEvent, QObject, Qt, Signal
@@ -22,11 +22,14 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import is_module_installed
 
+
+# Localization
+_ = get_translation('spyder')
 
 # Update installation process statuses
 NO_STATUS = __version__
@@ -42,7 +45,7 @@ class UpdateInstallation(QWidget):
     """Update progress installation widget."""
 
     def __init__(self, parent):
-        super(UpdateInstallation, self).__init__(parent)
+        super().__init__(parent)
 
         # Left side
         action_layout = QVBoxLayout()
@@ -96,14 +99,13 @@ class UpdateInstallation(QWidget):
 
 
 class UpdateInstallerDialog(QDialog):
-    """Spyder installer."""
+    """Update installer dialog."""
 
     # Signal to get the download progress
     # int: Download progress
     # int: Total download size
     sig_download_progress = Signal(int, int)
 
-    # Signals
     # Signal to get the current status of the update installation
     # str: Status string
     sig_installation_status = Signal(str)
@@ -113,7 +115,7 @@ class UpdateInstallerDialog(QDialog):
         self.cancelled = False
         self.status = NO_STATUS
         self.thread_install_update = None
-        super(UpdateInstallerDialog, self).__init__(parent)
+        super().__init__(parent)
         self.setStyleSheet(
             f"background-color: {QStylePalette.COLOR_BACKGROUND_2}")
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
@@ -123,7 +125,6 @@ class UpdateInstallerDialog(QDialog):
         # Layout
         installer_layout = QVBoxLayout()
         installer_layout.addWidget(self._installation_widget)
-
         self.setLayout(installer_layout)
 
         # Signals
@@ -151,7 +152,7 @@ class UpdateInstallerDialog(QDialog):
         """Cancel the installation in progress."""
         reply = QMessageBox.critical(
             self._parent, 'Spyder',
-            _('Do you really want to cancel installing the Spyder update?'),
+            _('Do you really want to cancel the Spyder update installation?'),
             QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.cancelled = True
@@ -162,12 +163,13 @@ class UpdateInstallerDialog(QDialog):
         return False
 
     def continue_install(self):
-        """Continue the installation in progress
-        by downloading the installer."""
+        """
+        Continue the installation in progress by downloading the installer.
+        """
         reply = QMessageBox(icon=QMessageBox.Question,
                             text=_('Do you want to download and'
                                    ' install the latest version of'
-                                   ' spyder?<br>'),
+                                   ' Spyder?<br>'),
                             parent=self._parent)
         reply.setWindowTitle("Spyder")
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
@@ -194,7 +196,7 @@ class UpdateInstallerDialog(QDialog):
             self.hide()
 
     def reject(self):
-        """Reimplement Qt method."""
+        """Reimplemented Qt method."""
         on_installation_widget = self._installation_widget.isVisible()
         if on_installation_widget:
             self.close_installer()
@@ -215,7 +217,7 @@ class UpdateInstallerDialog(QDialog):
         else:
             self.sig_download_progress.emit(progress, total_size)
 
-    def cancell_thread_install_update(self):
+    def cancel_thread_install_update(self):
         self._change_update_installation_status(status=CANCELLED)
         self.thread_install_update.join()
 

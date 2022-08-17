@@ -28,13 +28,13 @@ from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.utils.installers import InstallerMissingDependencies
 from spyder.config.utils import is_anaconda
 from spyder.config.base import get_conf_path, get_debug_level, is_pynsist
+from spyder.plugins.application.widgets.status import ApplicationUpdateStatus
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.workers.updates import WorkerUpdates
-from spyder.plugins.application.widgets.status import ApplicationUpdateStatus
 
 
 WinUserEnvDialog = None
@@ -89,6 +89,7 @@ class ApplicationContainer(PluginMainContainer):
     """
     Signal to load a log file
     """
+
     sig_show_status_bar_widget = Signal(bool)
     """
     Signal to show the widget in status bar
@@ -107,6 +108,7 @@ class ApplicationContainer(PluginMainContainer):
 
         self.application_update_status = ApplicationUpdateStatus(parent=self)
         self.application_update_status.set_no_status()
+
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
 
@@ -245,7 +247,6 @@ class ApplicationContainer(PluginMainContainer):
     # -------------------------------------------------------------------------
 
     def _check_updates_ready(self):
-
         """Show results of the Spyder update checking process."""
 
         # `feedback` = False is used on startup, so only positive feedback is
@@ -254,7 +255,6 @@ class ApplicationContainer(PluginMainContainer):
         feedback = self.give_updates_feedback
 
         # Get results from worker
-
         update_available = self.worker_updates.update_available
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
@@ -316,17 +316,19 @@ class ApplicationContainer(PluginMainContainer):
                                                QMessageBox.No)
                         content = _(
                             "You want to download and install the latest "
-                            "version of spyder?<br><br>"
+                            "version of Spyder?<br><br>"
                         )
                     else:
                         content = _(
                             "Click <a href=\"{}\">this link</a> to "
                             "download it.<br><br>"
                         ).format(url_r)
+
                 msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
+
                 if box.result() == QMessageBox.Yes:
                     self.application_update_status.start_installation()
                 elif(box.result() == QMessageBox.No):

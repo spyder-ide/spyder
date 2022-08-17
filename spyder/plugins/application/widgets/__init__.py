@@ -5,4 +5,4 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Widgets for the application plugin."""
+"""Widgets for the Application plugin."""

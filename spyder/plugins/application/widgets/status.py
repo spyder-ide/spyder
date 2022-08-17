@@ -15,13 +15,13 @@ import logging
 from qtpy.QtCore import Slot
 
 # Local imports
+from spyder import get_versions
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _, is_pynsist
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
     FINISHED, PENDING, CHECKING, CANCELLED)
 from spyder.utils.icon_manager import ima
-from spyder import get_versions
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +41,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
         super().__init__(parent)
 
         # Installation dialog
-        self.installer = UpdateInstallerDialog(
-            self)
+        self.installer = UpdateInstallerDialog(self)
 
         self.sig_clicked.connect(self.show_installation_dialog)
 
@@ -71,7 +70,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
         return self.tooltip
 
     def get_icon(self):
-        return ima.icon('spyder')
+        return ima.icon('spyder_about')
 
     def start_installation(self):
         self.installer.start_installation_update()
