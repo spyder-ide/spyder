@@ -1052,6 +1052,11 @@ def get_interpreter_info(path):
     try:
         out, __ = run_program(path, ['-V']).communicate()
         out = out.decode()
+
+        # This is necessary to prevent showing unexpected output.
+        # See spyder-ide/spyder#19000
+        if not re.search(r'^Python \d+\.\d+\.\d+$', out):
+            out = ''
     except Exception:
         out = ''
     return out.strip()
