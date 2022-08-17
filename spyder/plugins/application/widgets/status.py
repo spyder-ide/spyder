@@ -16,7 +16,7 @@ from qtpy.QtCore import Slot
 
 # Local imports
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _
+from spyder.config.base import _, is_pynsist
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
     FINISHED, PENDING, CHECKING, CANCELLED)
@@ -88,8 +88,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     @Slot()
     def show_installation_dialog(self):
         """Show installation dialog."""
-        if (not self.tooltip == self.BASE_TOOLTIP and not
-                self.tooltip == PENDING):
+        if ((not self.tooltip == self.BASE_TOOLTIP and not
+                self.tooltip == PENDING) and is_pynsist):
             self.installer.show()
-        elif (self.tooltip == PENDING):
+        elif ((self.tooltip == PENDING) and is_pynsist):
             self.installer.continue_install()

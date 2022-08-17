@@ -310,7 +310,6 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda update anaconda</code><br>"
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
-                    self.application_update_status.set_no_status()
                 else:
                     if os.name == 'nt' and is_pynsist():
                         box.setStandardButtons(QMessageBox.Yes |
