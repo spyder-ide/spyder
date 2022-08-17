@@ -1955,13 +1955,20 @@ class IPythonConsoleWidget(PluginMainWidget):
         bool
             If the closing action was succesful.
         """
-        while self.clients:
-            client = self.clients.pop()
-            is_last_client = len(self.get_related_clients(client)) == 0
+        # IMPORTANT: **Do not** change this way of closing clients, which uses
+        # a copy of `self.clients`, because it preserves the main window layout
+        # when Spyder is closed.
+        # Fixes spyder-ide/spyder#19084
+        open_clients = self.clients.copy()
+        for client in self.clients:
+            is_last_client = (
+                len(self.get_related_clients(client, open_clients)) == 0)
             client.close_client(is_last_client)
+            open_clients.remove(client)
 
         # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()
+
         # Close cached kernel
         self.close_cached_kernel()
         self.filenames = []
