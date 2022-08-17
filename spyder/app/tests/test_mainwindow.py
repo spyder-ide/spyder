@@ -5482,7 +5482,7 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     assert shell.get_cwd() == str(tmpdir) == workdir.get_workdir() == \
            files.get_current_folder()
 
-    # Check that new clients with a fixed directory
+    # Check new clients with a fixed directory
     ipyconsole.set_conf('console/use_cwd', False, section='workingdir')
     ipyconsole.set_conf(
         'console/use_fixed_directory',
@@ -5503,6 +5503,29 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
     qtbot.wait(500)
     assert shell.get_cwd() == fixed_dir == workdir.get_workdir() == \
+           files.get_current_folder()
+
+    # Check when opening projects
+    project_path = str(tmpdir.mkdir('test_project'))
+    main_window.projects.open_project(path=project_path)
+    qtbot.wait(500)
+
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
+    assert shell.get_cwd() == project_path == workdir.get_workdir() == \
+           files.get_current_folder()
+
+    # Check when closing projects
+    main_window.projects.close_project()
+    qtbot.wait(500)
+
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
+    assert shell.get_cwd() == get_home_dir() == workdir.get_workdir() == \
            files.get_current_folder()
 
 

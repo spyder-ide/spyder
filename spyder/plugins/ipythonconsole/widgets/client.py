@@ -369,7 +369,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 cwd_path = get_home_dir()
                 if project_path is not None:
                     cwd_path = project_path
-                update_in_spyder = False
             elif self.get_conf(
                 'startup/use_fixed_directory',
                 section='workingdir'
