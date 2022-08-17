@@ -41,6 +41,11 @@ CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled")
 
 
+class UpdateInstallationCancelledException(Exception):
+    """Update installation was cancelled."""
+    pass
+
+
 class UpdateInstallation(QWidget):
     """Update progress installation widget."""
 
@@ -253,8 +258,3 @@ class UpdateInstallerDialog(QDialog):
         self.thread_install_update = threading.Thread(
             target=self._download_install)
         self.thread_install_update.start()
-
-
-class UpdateInstallationCancelledException(Exception):
-    """Update installation was cancelled."""
-    pass
