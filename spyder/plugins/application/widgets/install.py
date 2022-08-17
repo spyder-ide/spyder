@@ -156,7 +156,7 @@ class UpdateInstallerDialog(QDialog):
             QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.cancelled = True
-            self.cancell_thread_install_update()
+            self.cancel_thread_install_update()
             self.setup()
             self.accept()
             return True
