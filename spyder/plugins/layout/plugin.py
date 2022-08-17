@@ -18,9 +18,10 @@ from qtpy.QtWidgets import QApplication, QDesktopWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import Plugins, DockablePlugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
@@ -211,6 +212,12 @@ class Layout(SpyderPluginV2):
 
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _get_internal_dockable_plugins(self):
+        """Get the list of internal dockable plugins"""
+        return get_class_values(DockablePlugins)
 
     # ---- Plubic API
     # -------------------------------------------------------------------------
@@ -951,3 +958,63 @@ class Layout(SpyderPluginV2):
                     visible_plugins.append(plugin.NAME)
 
         self.set_conf('last_visible_plugins', visible_plugins)
+
+    def tabify_new_plugins(self):
+        """
+        Tabify new dockable plugins, i.e. plugins that were not part of the
+        interface in the last session.
+
+        NOTES
+        -----
+        This is only necessary the first time a plugin is loaded. Afterwards,
+        the plugin's placement is recorded in the window hexstate, which is
+        loaded in the next session.
+        """
+        # Detect if a new dockable internal plugin hasn't been added to the
+        # DockablePlugins enum and raise an error if that's the case.
+        for plugin in self.get_dockable_plugins():
+            if (
+                plugin.NAME in PLUGIN_REGISTRY.internal_plugins
+                and plugin.NAME not in self._get_internal_dockable_plugins()
+            ):
+                raise SpyderAPIError(
+                    f"Plugin {plugin.NAME} is a new dockable plugin but it "
+                    f"hasn't been added to the DockablePlugins enum. Please "
+                    f"do that to avoid this error."
+                )
+
+        # If this is the first time Spyder runs, then we don't need to go
+        # beyond this point because all plugins are tabified in the
+        # set_main_window_layout method of any layout.
+        if self._first_spyder_run:
+            # Save the list of internal dockable plugins to compare it with
+            # the current ones during the next session.
+            self.set_conf(
+                'internal_dockable_plugins',
+                self._get_internal_dockable_plugins()
+            )
+            return
+
+        logger.debug("Tabifying new plugins")
+
+        # Get the list of internal dockable plugins that were present in the
+        # last session to decide which ones need to be tabified.
+        last_internal_dockable_plugins = self.get_conf(
+            'internal_dockable_plugins',
+            default=self._get_internal_dockable_plugins()
+        )
+
+        # Tabify new internal plugins
+        for plugin_name in self._get_internal_dockable_plugins():
+            if plugin_name not in last_internal_dockable_plugins:
+                plugin = self.main.get_plugin(plugin_name, error=False)
+                if plugin:
+                    self.main.tabify_plugin(plugin, Plugins.Console)
+
+        # Tabify new external plugins
+        for plugin in self.get_dockable_plugins():
+            if (
+                plugin.NAME in PLUGIN_REGISTRY.external_plugins
+                and plugin.get_conf('first_time', True)
+            ):
+                self.main.tabify_plugin(plugin, Plugins.Console)

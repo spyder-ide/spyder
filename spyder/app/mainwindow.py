@@ -628,8 +628,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             if (isinstance(plugin, SpyderDockablePlugin)
                     and plugin.NAME != Plugins.Console):
                 logger.info(
-                    "Tabify {} dockwidget for the first time...".format(
-                        plugin.NAME))
+                    f"Tabifying {plugin.NAME} plugin for the first time next "
+                    f"to {next_to_plugins}"
+                )
                 tabify_helper(plugin, next_to_plugins)
 
                 # Show external plugins
@@ -641,7 +642,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         else:
             # This is needed to ensure plugins are placed correctly when
             # switching layouts.
-            logger.info("Tabify {} dockwidget...".format(plugin.NAME))
+            logger.info(f"Tabifying {plugin.NAME} plugin")
             # Check if plugin has no other dockwidgets in the same position
             if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
                 tabify_helper(plugin, next_to_plugins)
@@ -1058,16 +1059,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             except AttributeError:
                 pass
 
-        # Tabify external plugins which were installed after Spyder was
-        # installed.
-        # Note: This is only necessary the first time a plugin is loaded.
-        # Afterwards, the plugin placement is recorded on the window hexstate,
-        # which is loaded by the layouts plugin during the next session.
-        for plugin_name in PLUGIN_REGISTRY.external_plugins:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if plugin_instance.get_conf('first_time', True):
-                self.tabify_plugin(plugin_instance, Plugins.Console)
-
         if self.splash is not None:
             self.splash.hide()
 
@@ -1103,6 +1094,13 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             and self.get_conf('window/state', default=None)
         ):
             self.layouts.before_mainwindow_visible()
+
+        # Tabify new plugins which were installed or created after Spyder ran
+        # for the first time.
+        # NOTE: **DO NOT** make layout changes after this point or new plugins
+        # won't be tabified correctly.
+        if self.layouts is not None:
+            self.layouts.tabify_new_plugins()
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False
