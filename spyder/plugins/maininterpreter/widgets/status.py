@@ -18,7 +18,7 @@ from qtpy.QtCore import QTimer, Signal
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
-from spyder.config.base import is_pynsist
+from spyder.config.base import is_pynsist, running_in_mac_app
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
@@ -112,9 +112,9 @@ class InterpreterStatus(BaseTimerStatus):
         default_executable = sys.executable
         if is_pynsist():
             # Be sure to use 'python' executable instead of 'pythonw' since
-            # no ouput is generated with 'pythonw'.
+            # no output is generated with 'pythonw'.
             default_executable = default_executable.replace(
-                'pythonw', 'python')
+                'pythonw.exe', 'python.exe').lower()
         if default_executable not in self.path_to_env:
             self._get_env_info(default_executable)
 
@@ -129,9 +129,8 @@ class InterpreterStatus(BaseTimerStatus):
         try:
             name = self.path_to_env[path]
         except KeyError:
-            win_app_path = osp.join(
-                'AppData', 'Local', 'Programs', 'spyder')
-            if 'Spyder.app' in path or win_app_path in path:
+            if (self.get_conf('default') and
+                    (running_in_mac_app() or is_pynsist())):
                 name = 'internal'
             elif 'conda' in path:
                 name = 'conda'
@@ -143,6 +142,9 @@ class InterpreterStatus(BaseTimerStatus):
             self.path_to_env[path] = name
             self.envs[name] = (path, version)
         __, version = self.envs[name]
+        if not version:
+            version = get_interpreter_info(path)
+            self.envs[name] = (path, version)
         return f'{name} ({version})'
 
     def _on_interpreter_removed(self):
