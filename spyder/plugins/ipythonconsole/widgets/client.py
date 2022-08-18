@@ -107,7 +107,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  handlers={},
                  stderr_obj=None,
                  stdout_obj=None,
-                 fault_obj=None):
+                 fault_obj=None,
+                 initial_cwd=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -123,6 +124,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.reset_warning = reset_warning
         self.ask_before_restart = ask_before_restart
         self.ask_before_closing = ask_before_closing
+        self.initial_cwd = initial_cwd
 
         # --- Other attrs
         self.context_menu_actions = context_menu_actions
@@ -220,8 +222,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show if special console is valid
         self._check_special_console_error()
 
-        # Set the initial current working directory
-        self._set_initial_cwd()
+        # Set the initial current working directory in the kernel
+        self._set_initial_cwd_in_kernel()
 
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
@@ -351,11 +353,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         page_control.sig_show_find_widget_requested.connect(
             self.container.find_widget.show)
 
-    def _set_initial_cwd(self):
-        """Set initial cwd according to preferences."""
-        logger.debug("Setting initial working directory")
+    def _set_initial_cwd_in_kernel(self):
+        """Set the initial cwd in the kernel."""
+        logger.debug("Setting initial working directory in the kernel")
         cwd_path = get_home_dir()
         project_path = self.container.get_active_project_path()
+        emit_cwd_change = True
 
         # This is for the first client
         if self.id_['int_id'] == '1':
@@ -377,7 +380,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 )
         else:
             # For new clients
-            if self.get_conf(
+            if self.initial_cwd is not None:
+                cwd_path = self.initial_cwd
+            elif self.get_conf(
                 'console/use_project_or_home_directory',
                 section='workingdir'
             ):
@@ -386,6 +391,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     cwd_path = project_path
             elif self.get_conf('console/use_cwd', section='workingdir'):
                 cwd_path = self.container.get_working_directory()
+                emit_cwd_change = False
             elif self.get_conf(
                 'console/use_fixed_directory',
                 section='workingdir'
@@ -397,7 +403,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 )
 
         if osp.isdir(cwd_path):
-            self.shellwidget.set_cwd(cwd_path)
+            self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 
     # ----- Public API --------------------------------------------------------
     @property
