@@ -7,6 +7,7 @@
 """Update installation widgets."""
 
 # Standard library imports
+import logging
 import os
 import subprocess
 import sys
@@ -27,6 +28,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import is_module_installed
 
+logger = logging.getLogger(__name__)
 
 # Localization
 _ = get_translation('spyder')
@@ -210,6 +212,7 @@ class UpdateInstallerDialog(QDialog):
 
     def _change_update_installation_status(self, status=NO_STATUS):
         """Set the installation status."""
+        logger.debug(f"Installation status: {status}")
         self.status = status
         self.sig_installation_status.emit(self.status)
 
@@ -228,6 +231,7 @@ class UpdateInstallerDialog(QDialog):
 
     def _download_install(self):
         try:
+            logger.debug("Downloading installer executable")
             with TemporaryDirectory(prefix="Spyder-") as tmpdir:
                 destination = os.path.join(tmpdir, 'updateSpyder.exe')
                 url = (
@@ -239,6 +243,7 @@ class UpdateInstallerDialog(QDialog):
                     url = (
                         'https://github.com/spyder-ide/spyder/releases/latest/'
                         'download/Spyder_64bit_full.exe')
+                logger.debug(f"Downloading installer from: {url}")
                 download = urlretrieve(url,
                                        destination,
                                        reporthook=self._progress_reporter)

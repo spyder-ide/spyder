@@ -33,9 +33,6 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def __init__(self, parent):
 
-        self.cancelled = False
-        self.status = NO_STATUS
-        self.thread_install_update = None
         self.tooltip = self.BASE_TOOLTIP
         self._container = parent
         super().__init__(parent)
