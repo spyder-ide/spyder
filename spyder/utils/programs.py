@@ -798,9 +798,9 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         raise NotImplementedError
 
 
-def check_version_range(module_version, version):
+def check_version_range(module_version, version_range):
     """
-    Check version string of a module against a required version.
+    Check if a module's version lies in `version_range`.
     """
     if ';' in version:
         versions = version.split(';')

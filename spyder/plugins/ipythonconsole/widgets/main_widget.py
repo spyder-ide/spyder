@@ -1642,6 +1642,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
         shellwidget = client.shellwidget
+
         if not known_spyder_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_spyder_kernel)

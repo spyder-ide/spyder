@@ -335,7 +335,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
                 if self.is_spyder_kernel:
                     self.ipyclient.show_kernel_error(
-                        _("spyder_kernels version must be updated"))
+                        _("Please update Spyder-kernels to a version greater "
+                          "than 3.0")
+                    )
                 return
 
             if not check_version_range(version, SPYDER_KERNELS_VERSION):
