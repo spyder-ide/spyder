@@ -52,8 +52,12 @@ class SpyderShell(ZMQInteractiveShell):
         super(SpyderShell, self).__init__(*args, **kwargs)
         self._allow_kbdint = False
         self.register_debugger_sigint()
+
         # Used for checking correct version by spyder
-        self._spyder_kernels_version = spyder_kernels.__version__
+        self._spyder_kernels_version = (
+            spyder_kernels.__version__,
+            sys.executable
+        )
 
     def ask_exit(self):
         """Engage the exit actions."""
