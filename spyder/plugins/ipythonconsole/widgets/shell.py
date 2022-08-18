@@ -296,8 +296,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             self.silent_exec_method(code)
 
-    def set_cwd(self, dirname, update_in_spyder=False):
-        """Set shell current working directory."""
+    def set_cwd(self, dirname, emit_cwd_change=False):
+        """
+        Set shell current working directory.
+
+        Parameters
+        ----------
+        dirname: str
+            Path to the new current working directory.
+        emit_cwd_change: bool
+            Whether to emit a Qt signal that informs other panes in Spyder that
+            the current working directory has changed.
+        """
         if os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
@@ -306,7 +316,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
             self._cwd = dirname
-            if update_in_spyder:
+            if emit_cwd_change:
                 self.sig_working_directory_changed.emit(self._cwd)
 
     def get_cwd(self):
