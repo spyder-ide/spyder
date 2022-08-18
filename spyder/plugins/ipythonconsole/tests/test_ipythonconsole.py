@@ -2403,7 +2403,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
 
     kc = w._cached_kernel_properties[-1][2]
     kc.start_channels()
-    kc.execute("get_ipython()._spyder_kernels_version = '1.0.0'")
+    kc.execute("get_ipython()._spyder_kernels_version = ('1.0.0', '')")
     # Cleanup the kernel_client so it can be used again
     kc.stop_channels()
     kc._shell_channel = None
@@ -2418,7 +2418,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
 
     # Make sure an error is shown
     qtbot.waitUntil(lambda: client.error_text is not None)
-    assert 'version 1.0.0' in client.error_text
+    assert '1.0.0' in client.error_text
 
 
 if __name__ == "__main__":
