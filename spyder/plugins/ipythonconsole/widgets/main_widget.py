@@ -1164,6 +1164,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
+            # This is necessary to sync the current client cwd with the working
+            # directory displayed by other plugins in Spyder (e.g. Files).
+            # NOTE: Instead of emitting sig_current_directory_changed directly,
+            # we call on_working_directory_changed to validate that the cwd
+            # exists (this couldn't be the case for remote kernels).
+            if sw.get_cwd() != self.get_working_directory():
+                self.on_working_directory_changed(sw.get_cwd())
+
         self.update_tabs_text()
         self.update_actions()
 
@@ -1412,7 +1420,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True):
+                          cache=True, initial_cwd=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
@@ -1449,7 +1457,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               handlers=self.registered_spyder_kernel_handlers,
                               stderr_obj=stderr_obj,
                               stdout_obj=stdout_obj,
-                              fault_obj=fault_obj)
+                              fault_obj=fault_obj,
+                              initial_cwd=initial_cwd)
 
         self.add_tab(
             client, name=client.get_name(), filename=filename,
@@ -1791,13 +1800,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         # type is Qt.DirectConnection.
         self._shellwidget_started(client)
 
-
     @Slot(str)
     def create_client_from_path(self, path):
         """Create a client with its cwd pointing to path."""
-        self.create_new_client()
-        sw = self.get_current_shellwidget()
-        sw.set_cwd(path)
+        self.create_new_client(initial_cwd=path)
 
     def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
@@ -1861,7 +1867,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Connect to working directory
         shellwidget.sig_working_directory_changed.connect(
-            self.working_directory_changed)
+            self.on_working_directory_changed)
 
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
@@ -2385,15 +2391,23 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
     # ---- For working directory and path management
-    def set_working_directory(self, new_dir):
+    def set_working_directory(self, dirname):
         """
-        Set current working directory when changed by the Working Directory
+        Set current working directory in the Working Directory and Files
+        plugins.
+        """
+        if osp.isdir(dirname):
+            self.sig_current_directory_changed.emit(dirname)
+
+    def save_working_directory(self, dirname):
+        """
+        Save current working directory when changed by the Working Directory
         plugin.
         """
-        self._current_working_directory = new_dir
+        self._current_working_directory = dirname
 
     def get_working_directory(self):
-        """Get current working directory."""
+        """Get saved value of current working directory."""
         return self._current_working_directory
 
     def set_current_client_working_directory(self, directory):
@@ -2402,12 +2416,12 @@ class IPythonConsoleWidget(PluginMainWidget):
         if shellwidget is not None:
             shellwidget.set_cwd(directory)
 
-    def working_directory_changed(self, dirname):
+    def on_working_directory_changed(self, dirname):
         """
         Notify that the working directory was changed in the current console
         to other plugins.
         """
-        if osp.isdir(dirname):
+        if dirname and osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
 
     def update_working_directory(self):
