@@ -62,7 +62,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
             self.tooltip = self.BASE_TOOLTIP
         self.setVisible(True)
         self.update_tooltip()
-        value = "Spyder: {0}".format(value)
+        value = f"Spyder: {value}"
+        logger.debug(f"Application Update Status: {value}")
         super().set_value(value)
 
     def get_tooltip(self):

@@ -233,9 +233,9 @@ class UpdateInstallerDialog(QDialog):
                 url = (
                     'https://github.com/spyder-ide/spyder/releases/latest/'
                     'download/Spyder_64bit_lite.exe')
-                val = (is_module_installed('numpy') or
-                       is_module_installed('pandas'))
-                if val:
+                is_full_installer = (is_module_installed('numpy') or
+                                     is_module_installed('pandas'))
+                if is_full_installer:
                     url = (
                         'https://github.com/spyder-ide/spyder/releases/latest/'
                         'download/Spyder_64bit_full.exe')
