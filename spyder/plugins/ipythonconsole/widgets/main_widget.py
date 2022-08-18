@@ -40,9 +40,7 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget, ShellWidget,
-    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
-    SPYDER_KERNELS_VERSION)
+    KernelConnectionDialog, PageControlWidget, ShellWidget)
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -60,13 +58,6 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_VERSION_MSG = _(
-    '>= {0} and < {1}').format(
-        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
-SPYDER_KERNELS_CONDA = (
-    f'conda install spyder&#45;kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
-SPYDER_KERNELS_PIP = (
-    f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 
 class IPythonConsoleWidgetActions:
@@ -1474,42 +1465,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             error_msg = self.PERMISSION_ERROR_MSG.format(jupyter_runtime_dir())
             client.show_kernel_error(error_msg)
             return
-
-        # Check if ipykernel is present in the external interpreter.
-        # Else we won't be able to create a client
-        if not self.get_conf('default', section='main_interpreter'):
-            pyexec = self.get_conf('executable', section='main_interpreter')
-            has_spyder_kernels = programs.is_module_installed(
-                'spyder_kernels',
-                interpreter=pyexec,
-                version=SPYDER_KERNELS_VERSION)
-            if not has_spyder_kernels and not running_under_pytest():
-                client.show_kernel_error(
-                    _("The Python environment or installation whose "
-                      "interpreter is located at"
-                      "<pre>"
-                      "    <tt>{0}</tt>"
-                      "</pre>"
-                      "doesn't have the <tt>spyder-kernels</tt> module or the "
-                      "right version of it installed ({1}). "
-                      "Without this module is not possible for Spyder to "
-                      "create a console for you.<br><br>"
-                      "You can install it by activating your environment (if "
-                      "necessary) and then running in a system terminal:"
-                      "<pre>"
-                      "    <tt>{2}</tt>"
-                      "</pre>"
-                      "or"
-                      "<pre>"
-                      "    <tt>{3}</tt>"
-                      "</pre>").format(
-                          pyexec,
-                          SPYDER_KERNELS_VERSION_MSG,
-                          SPYDER_KERNELS_CONDA,
-                          SPYDER_KERNELS_PIP
-                      )
-                )
-                return
 
         self.connect_client_to_kernel(client, km, kc)
         if client.shellwidget.kernel_manager is None:

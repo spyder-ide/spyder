@@ -802,10 +802,10 @@ def check_version_range(module_version, version_range):
     """
     Check if a module's version lies in `version_range`.
     """
-    if ';' in version:
-        versions = version.split(';')
+    if ';' in version_range:
+        versions = version_range.split(';')
     else:
-        versions = [version]
+        versions = [version_range]
 
     output = True
     for _ver in versions:

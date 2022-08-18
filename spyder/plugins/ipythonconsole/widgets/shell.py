@@ -38,14 +38,46 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
-    NamepaceBrowserWidget, PageControlWidget, SPYDER_KERNELS_VERSION)
+    NamepaceBrowserWidget, PageControlWidget)
 
 
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
 
+# Required version of Spyder-kernels
+SPYDER_KERNELS_MIN_VERSION = '2.3.0'
+SPYDER_KERNELS_MAX_VERSION = '2.4.0'
+SPYDER_KERNELS_VERSION = (
+    f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
+SPYDER_KERNELS_VERSION_MSG = _(
+    '>= {0} and < {1}').format(
+        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
+SPYDER_KERNELS_CONDA = (
+    f'conda install spyder&#45;kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
+SPYDER_KERNELS_PIP = (
+    f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
+
 ERROR_SPYDER_KERNEL_VERSION = _(
-    "Spyder kernel version {} not in required versions {}")
+    "The Python environment or installation whose "
+    "interpreter is located at"
+    "<pre>"
+    "    <tt>{0}</tt>"
+    "</pre>"
+    "doesn't have the right version of <tt>spyder-kernels</tt> "
+    " installed ({1} instead of {2}). "
+    "Without this module is not possible for Spyder to "
+    "create a console for you.<br><br>"
+    "You can install it by activating your environment (if "
+    "necessary) and then running in a system terminal:"
+    "<pre>"
+    "    <tt>{3}</tt>"
+    "</pre>"
+    "or"
+    "<pre>"
+    "    <tt>{4}</tt>"
+    "</pre>"
+)
+
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -325,8 +357,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Process kernel reply
         data = reply.get('data')
         if data is not None and 'text/plain' in data:
-            version = ast.literal_eval(data['text/plain'])
-            if not version:
+            spyder_kernel_info = ast.literal_eval(data['text/plain'])
+            if not spyder_kernel_info:
                 # The running_under_pytest() part can be removed when
                 # spyder-kernels 3 makes it into conda. This is needed for
                 # the test_conda_env_activation test
@@ -339,14 +371,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                           "than 3.0")
                     )
                 return
-
+            version, pyexec = spyder_kernel_info
             if not check_version_range(version, SPYDER_KERNELS_VERSION):
                 if "dev0" not in version:
                     # Development versions are acceptable
                     self.ipyclient.show_kernel_error(
                         ERROR_SPYDER_KERNEL_VERSION.format(
+                            pyexec,
                             version,
-                            SPYDER_KERNELS_VERSION
+                            SPYDER_KERNELS_VERSION_MSG,
+                            SPYDER_KERNELS_CONDA,
+                            SPYDER_KERNELS_PIP
                             ))
                     return
 
