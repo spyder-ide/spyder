@@ -49,6 +49,7 @@ class InterpreterStatus(BaseTimerStatus):
         self.envs = {}
         self.value = ''
         self.default_interpreter = sys.executable
+
         if is_pynsist():
             # Be sure to use 'python' executable instead of 'pythonw' since
             # no output is generated with 'pythonw'.
@@ -129,8 +130,10 @@ class InterpreterStatus(BaseTimerStatus):
         try:
             name = self.path_to_env[path]
         except KeyError:
-            if (self.default_interpreter == path and
-                    (running_in_mac_app() or is_pynsist())):
+            if (
+                self.default_interpreter == path
+                and (running_in_mac_app() or is_pynsist())
+            ):
                 name = 'internal'
             elif 'conda' in path:
                 name = 'conda'
