@@ -123,8 +123,6 @@ class UpdateInstallerDialog(QDialog):
         self.status = NO_STATUS
         self.thread_install_update = None
         super().__init__(parent)
-        self.setStyleSheet(
-            f"background-color: {QStylePalette.COLOR_BACKGROUND_2}")
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
         self._installation_widget = UpdateInstallation(self)
@@ -256,10 +254,10 @@ class UpdateInstallerDialog(QDialog):
             self._change_update_installation_status(status=PENDING)
 
     def start_installation_update(self):
+        """Start the installation update thread and set downloading status."""
         self.cancelled = False
         self._change_update_installation_status(
             status=DOWNLOADING_INSTALLER)
-        """call a function in a simple thread, to prevent blocking"""
         self.thread_install_update = threading.Thread(
             target=self._download_install)
         self.thread_install_update.start()

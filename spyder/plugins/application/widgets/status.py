@@ -34,8 +34,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def __init__(self, parent):
 
         self.tooltip = self.BASE_TOOLTIP
-        self._container = parent
-        super().__init__(parent)
+        super().__init__(parent, show_spinner=True)
 
         # Installation dialog
         self.installer = UpdateInstallerDialog(self)
@@ -47,14 +46,17 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def set_value(self, value):
         """Return update installation state."""
-        versions = get_versions()
         if value == DOWNLOADING_INSTALLER or value == INSTALLING:
             self.tooltip = _("Update installation will continue in the "
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again")
+            self.spinner.show()
+            self.spinner.start()
         elif value == PENDING:
             self.tooltip = value
+            self.spinner.hide()
+            self.spinner.stop()
         else:
             self.tooltip = self.BASE_TOOLTIP
         self.setVisible(True)
@@ -75,18 +77,24 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def set_status_pending(self):
         self.set_value(PENDING)
+        self.spinner.hide()
+        self.spinner.stop()
 
     def set_status_checking(self):
         self.set_value(CHECKING)
+        self.spinner.show()
+        self.spinner.start()
 
     def set_no_status(self):
         self.set_value(NO_STATUS)
+        self.spinner.hide()
+        self.spinner.stop()
 
     @Slot()
     def show_installation_dialog(self):
         """Show installation dialog."""
         if ((not self.tooltip == self.BASE_TOOLTIP and not
-                self.tooltip == PENDING) and is_pynsist):
+                self.tooltip == PENDING) and is_pynsist()):
             self.installer.show()
-        elif ((self.tooltip == PENDING) and is_pynsist):
+        elif ((self.tooltip == PENDING) and is_pynsist()):
             self.installer.continue_install()
