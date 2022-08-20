@@ -11,8 +11,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QPoint, QSize, Qt, Signal, Slot
-from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QBrush,
-                        QFontMetrics, QPalette, QTextDocument)
+from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
+                        QTextDocument)
 from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
