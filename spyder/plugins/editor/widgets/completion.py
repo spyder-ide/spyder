@@ -13,8 +13,7 @@ import sys
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QFocusEvent
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
-                            QListWidgetItem, QToolTip)
+from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
 from spyder.utils.icon_manager import ima
@@ -217,7 +216,6 @@ class CompletionWidget(QListWidget):
 
     def set_item_display(self, item_widget, item_info, height, width):
         """Set item text & icons using the info available."""
-        item_provider = item_info['provider']
         item_type = self.ITEM_TYPE_MAP.get(item_info['kind'], 'no_match')
         item_label = item_info['label']
         icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
