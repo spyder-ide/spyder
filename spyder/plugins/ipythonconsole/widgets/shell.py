@@ -349,10 +349,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def check_spyder_kernel_callback(self, reply):
         """
-        Handle data returned by silent executions of kernel methods
+        Check if the Spyder-kernels version is the right one after receiving it
+        from the kernel.
 
-        This is based on the _handle_exec_callback of RichJupyterWidget.
-        Therefore this is licensed BSD.
+        If the kernel is non-locally managed, check if it is a spyder-kernel.
         """
         # Process kernel reply
         data = reply.get('data')
