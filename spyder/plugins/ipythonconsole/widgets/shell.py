@@ -58,17 +58,15 @@ SPYDER_KERNELS_PIP = (
     f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 ERROR_SPYDER_KERNEL_VERSION = _(
-    "The Python environment or installation whose "
-    "interpreter is located at"
+    "The Python environment or installation whose interpreter is located at"
     "<pre>"
     "    <tt>{0}</tt>"
     "</pre>"
-    "doesn't have the right version of <tt>spyder-kernels</tt> "
-    " installed ({1} instead of {2}). "
-    "Without this module is not possible for Spyder to "
+    "doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} "
+    "instead of {2}). Without this module is not possible for Spyder to "
     "create a console for you.<br><br>"
-    "You can install it by activating your environment (if "
-    "necessary) and then running in a system terminal:"
+    "You can install it by activating your environment (if necessary) and "
+    "then running in a system terminal:"
     "<pre>"
     "    <tt>{3}</tt>"
     "</pre>"
@@ -284,8 +282,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
+
         # Send message to kernel to check status
         self.check_spyder_kernel()
+
         if self.is_spyder_kernel:
             # For completion
             kernel_client.control_channel.message_received.connect(
@@ -360,7 +360,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             spyder_kernel_info = ast.literal_eval(data['text/plain'])
             if not spyder_kernel_info:
                 # The running_under_pytest() part can be removed when
-                # spyder-kernels 3 makes it into conda. This is needed for
+                # spyder-kernels 3 is released. This is needed for
                 # the test_conda_env_activation test
                 if running_under_pytest():
                     return
@@ -382,7 +382,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                             SPYDER_KERNELS_VERSION_MSG,
                             SPYDER_KERNELS_CONDA,
                             SPYDER_KERNELS_PIP
-                            ))
+                        )
+                    )
                     return
 
             if not self.is_spyder_kernel:
