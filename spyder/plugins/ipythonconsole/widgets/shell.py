@@ -66,6 +66,23 @@ ERROR_SPYDER_KERNEL_VERSION = _(
     "</pre>"
 )
 
+# For version<3.0 where the version and executable can not be queried
+ERROR_SPYDER_KERNEL_VERSION_OLD = _(
+    "This Python environment doesn't have the right version of "
+    "<tt>spyder-kernels</tt> installed (>= {0} and < {1}). "
+    "Without this module is not possible for "
+    "Spyder to create a console for you.<br><br>"
+    "You can install it by activating your environment (if necessary) and "
+    "then running in a system terminal:"
+    "<pre>"
+    "    <tt>{2}</tt>"
+    "</pre>"
+    "or"
+    "<pre>"
+    "    <tt>{3}</tt>"
+    "</pre>"
+)
+
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   FigureBrowserWidget):
@@ -355,9 +372,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     return
 
                 if self.is_spyder_kernel:
+                    # spyder-kernels version < 3.0
                     self.ipyclient.show_kernel_error(
-                        _("Please update Spyder-kernels to a version greater "
-                          "than 3.0")
+                        ERROR_SPYDER_KERNEL_VERSION_OLD.format(
+                            SPYDER_KERNELS_MIN_VERSION,
+                            SPYDER_KERNELS_MAX_VERSION,
+                            SPYDER_KERNELS_CONDA,
+                            SPYDER_KERNELS_PIP
+                        )
                     )
                 return
             version, pyexec = spyder_kernel_info
