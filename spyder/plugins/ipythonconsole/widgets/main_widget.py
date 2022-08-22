@@ -33,6 +33,7 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_conf_path, get_home_dir, running_under_pytest)
+from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
@@ -2082,6 +2083,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 config=None,
                 autorestart=True,
             )
+        except SpyderKernelError as e:
+            return (e.args[0], None)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
@@ -2094,6 +2097,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             kernel_manager.start_kernel(stderr=stderr_handle,
                                         stdout=stdout_handle,
                                         env=kernel_spec.env)
+        except SpyderKernelError as e:
+            return (e.args[0], None)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
