@@ -10,13 +10,12 @@
 import logging
 import os
 import subprocess
-import sys
-from tempfile import TemporaryDirectory
+import tempfile
 import threading
 from urllib.request import urlretrieve
 
 # Third-party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
                             QWidget)
@@ -25,7 +24,6 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 from spyder import __version__
 from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import is_module_installed
 
 logger = logging.getLogger(__name__)
@@ -41,6 +39,16 @@ FINISHED = _("Installation finished")
 PENDING = _("Pending update")
 CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled")
+
+INSTALL_INFO_MESSAGES = {
+    DOWNLOADING_INSTALLER: _("Downloading Spyder latest "
+                             "release installer executable"),
+    INSTALLING: _("Installing Spyder latest release"),
+    FINISHED: _("Spyder update installation finished"),
+    PENDING: _("An update is pending"),
+    CHECKING: _("Checking for updates"),
+    CANCELLED: _("Update cancelled")
+}
 
 
 class UpdateInstallationCancelledException(Exception):
@@ -94,7 +102,7 @@ class UpdateInstallation(QWidget):
     def update_installation_status(self, status):
         """Update installation status (downloading, installing, finished)."""
         self._progress_label.setText(status)
-        self.install_info.setText(status + _(" the latest version of Spyder."))
+        self.install_info.setText(INSTALL_INFO_MESSAGES[status])
         if status == INSTALLING:
             self._progress_bar.setRange(0, 0)
             self.cancel_button.hide()
@@ -172,9 +180,9 @@ class UpdateInstallerDialog(QDialog):
         Continue the installation in progress by downloading the installer.
         """
         reply = QMessageBox(icon=QMessageBox.Question,
-                            text=_('Do you want to download and'
-                                   ' install the latest version of'
-                                   ' Spyder?<br>'),
+                            text=_("Would you like to automatically download a"
+                                   "nd install the latest version of Spyder?"
+                                   "<br><br>"),
                             parent=self._parent)
         reply.setWindowTitle("Spyder")
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
@@ -230,24 +238,24 @@ class UpdateInstallerDialog(QDialog):
     def _download_install(self):
         try:
             logger.debug("Downloading installer executable")
-            with TemporaryDirectory(prefix="Spyder-") as tmpdir:
-                destination = os.path.join(tmpdir, 'updateSpyder.exe')
+            tmpdir = tempfile.mkdtemp(prefix="Spyder-")
+            destination = os.path.join(tmpdir, 'updateSpyder.exe')
+            url = (
+                'https://github.com/spyder-ide/spyder/releases/latest/'
+                'download/Spyder_64bit_lite.exe')
+            is_full_installer = (is_module_installed('numpy') or
+                                 is_module_installed('pandas'))
+            if is_full_installer:
                 url = (
                     'https://github.com/spyder-ide/spyder/releases/latest/'
-                    'download/Spyder_64bit_lite.exe')
-                is_full_installer = (is_module_installed('numpy') or
-                                     is_module_installed('pandas'))
-                if is_full_installer:
-                    url = (
-                        'https://github.com/spyder-ide/spyder/releases/latest/'
-                        'download/Spyder_64bit_full.exe')
-                logger.debug(f"Downloading installer from: {url}")
-                download = urlretrieve(url,
-                                       destination,
-                                       reporthook=self._progress_reporter)
-                self._change_update_installation_status(status=INSTALLING)
-                install = subprocess.Popen(destination, shell=True)
-                install.communicate()
+                    'download/Spyder_64bit_full.exe')
+            logger.debug(f"Downloading installer from: {url}")
+            download = urlretrieve(url,
+                                   destination,
+                                   reporthook=self._progress_reporter)
+            self._change_update_installation_status(status=INSTALLING)
+            subprocess.run(['start', destination], shell=True)
+
         except UpdateInstallationCancelledException:
             self._change_update_installation_status(status=CANCELLED)
         finally:

@@ -311,12 +311,12 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
                 else:
-                    if os.name == 'nt' and is_pynsist():
+                    if is_pynsist():
                         box.setStandardButtons(QMessageBox.Yes |
                                                QMessageBox.No)
                         content = _(
-                            "You want to download and install the latest "
-                            "version of Spyder?<br><br>"
+                            "Would you like to automatically download and"
+                            " install the latest version of Spyder?<br><br>"
                         )
                     else:
                         content = _(
@@ -341,7 +341,8 @@ class ApplicationContainer(PluginMainContainer):
                 box.exec_()
                 check_updates = box.is_checked()
                 self.application_update_status.set_no_status()
-
+            else:
+                self.application_update_status.set_no_status()
         # Update checkbox based on user interaction
         self.set_conf(option, check_updates)
 
