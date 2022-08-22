@@ -471,6 +471,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.open_interpreter_action = self.create_action(
             DirViewActions.OpenInterpreter,
             text=_("Open IPython console here"),
+            icon=self.create_icon('ipython_console'),
             triggered=lambda: self.open_interpreter(),
         )
 

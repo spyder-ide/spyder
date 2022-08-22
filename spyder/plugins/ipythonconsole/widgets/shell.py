@@ -390,8 +390,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 self.is_spyder_kernel = True
                 self.sig_is_spykernel.emit(self)
 
-    def set_cwd(self, dirname):
-        """Set shell current working directory."""
+    def set_cwd(self, dirname, emit_cwd_change=False):
+        """
+        Set shell current working directory.
+
+        Parameters
+        ----------
+        dirname: str
+            Path to the new current working directory.
+        emit_cwd_change: bool
+            Whether to emit a Qt signal that informs other panes in Spyder that
+            the current working directory has changed.
+        """
         if os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
@@ -400,15 +410,36 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
             self._cwd = dirname
+            if emit_cwd_change:
+                self.sig_working_directory_changed.emit(self._cwd)
+
+    def get_cwd(self):
+        """
+        Get current working directory.
+
+        Notes
+        -----
+        * This doesn't ask the kernel for its working directory. Instead, it
+          returns the last value of it saved here.
+        * We do it for performance reasons because we call this method when
+          switching consoles to update the Working Directory toolbar.
+        """
+        return self._cwd
 
     def update_cwd(self):
-        """Update current working directory in the kernel."""
+        """
+        Update working directory in Spyder after getting its value from the
+        kernel.
+        """
         if self.kernel_client is None:
             return
-        self.call_kernel(callback=self.remote_set_cwd).get_cwd()
+        self.call_kernel(callback=self.on_getting_cwd).get_cwd()
 
-    def remote_set_cwd(self, cwd):
-        """Get current working directory from kernel."""
+    def on_getting_cwd(self, cwd):
+        """
+        If necessary, notify that the working directory was changed to other
+        plugins.
+        """
         if cwd != self._cwd:
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
