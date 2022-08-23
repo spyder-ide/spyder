@@ -27,7 +27,8 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.utils.installers import InstallerMissingDependencies
 from spyder.config.utils import is_anaconda
-from spyder.config.base import get_conf_path, get_debug_level, is_pynsist
+from spyder.config.base import (get_conf_path, get_debug_level, is_pynsist,
+                                running_in_mac_app)
 from spyder.plugins.application.widgets.status import ApplicationUpdateStatus
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.qthelpers import start_file, DialogManager
@@ -314,7 +315,7 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
                 else:
-                    if is_pynsist():
+                    if is_pynsist() or running_in_mac_app():
                         box.setStandardButtons(QMessageBox.Yes |
                                                QMessageBox.No)
                         content = _(

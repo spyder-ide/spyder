@@ -18,7 +18,7 @@ from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _, is_pynsist
+from spyder.config.base import _, is_pynsist, running_in_mac_app
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
     FINISHED, PENDING, CHECKING, CANCELLED)
@@ -100,10 +100,12 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def show_installation_dialog_or_menu(self):
         """Show installation dialog or menu."""
         value = self.value.split(":")[-1].strip()
-        if (not self.tooltip == self.BASE_TOOLTIP and not
-                value == PENDING and is_pynsist()):
+        if ((not self.tooltip == self.BASE_TOOLTIP
+            and not value == PENDING)
+                and (is_pynsist() or running_in_mac_app())):
             self.installer.show()
-        elif value == PENDING and is_pynsist():
+        elif (value == PENDING and
+              (is_pynsist() or running_in_mac_app())):
             self.installer.continue_install()
         elif value == NO_STATUS:
             self.menu.clear()

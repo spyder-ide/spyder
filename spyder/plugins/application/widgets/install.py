@@ -239,22 +239,25 @@ class UpdateInstallerDialog(QDialog):
         try:
             logger.debug("Downloading installer executable")
             tmpdir = tempfile.mkdtemp(prefix="Spyder-")
-            destination = os.path.join(tmpdir, 'updateSpyder.exe')
-            url = (
-                'https://github.com/spyder-ide/spyder/releases/latest/'
-                'download/Spyder_64bit_lite.exe')
             is_full_installer = (is_module_installed('numpy') or
                                  is_module_installed('pandas'))
-            if is_full_installer:
-                url = (
-                    'https://github.com/spyder-ide/spyder/releases/latest/'
-                    'download/Spyder_64bit_full.exe')
+            if os.name == 'nt':
+                name = 'Spyder_64bit_{}.exe'.format('full' if is_full_installer
+                                                    else 'lite')
+            else:
+                name = 'Spyder{}.dmg'.format('' if is_full_installer
+                                             else '-Lite')
+
+            url = ('https://github.com/spyder-ide/spyder/releases/latest/'
+                   f'download/{name}')
+            destination = os.path.join(tmpdir, name)
             logger.debug(f"Downloading installer from: {url}")
             download = urlretrieve(url,
                                    destination,
                                    reporthook=self._progress_reporter)
             self._change_update_installation_status(status=INSTALLING)
-            subprocess.run(['start', destination], shell=True)
+            cmd = ('start' if os.name == 'nt' else 'open')
+            subprocess.run([cmd, destination], shell=True)
 
         except UpdateInstallationCancelledException:
             self._change_update_installation_status(status=CANCELLED)
