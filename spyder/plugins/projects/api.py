@@ -105,7 +105,8 @@ class BaseProjectType:
 
         return list(OrderedDict.fromkeys(recent_files))
 
-    def create_config(self, path):
+    @staticmethod
+    def create_config(path):
         """Create the project's configuration object."""
         return ProjectMultiConfig(
             PROJECT_NAME_MAP,
