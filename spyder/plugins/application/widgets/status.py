@@ -10,6 +10,7 @@ Status widget for Spyder updates.
 
 # Standard library imports
 import logging
+import os
 
 # Third party imports
 from qtpy.QtCore import QPoint, Signal, Slot
