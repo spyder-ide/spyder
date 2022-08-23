@@ -33,10 +33,10 @@ _ = get_translation('spyder')
 
 # Update installation process statuses
 NO_STATUS = __version__
-DOWNLOADING_INSTALLER = _("Downloading installer")
-INSTALLING = _("Installing")
+DOWNLOADING_INSTALLER = _("Downloading update")
+INSTALLING = _("Installing update")
 FINISHED = _("Installation finished")
-PENDING = _("Pending update")
+PENDING = _("Update available")
 CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled")
 

@@ -12,16 +12,17 @@ Status widget for Spyder updates.
 import logging
 
 # Third party imports
-from qtpy.QtCore import Slot
+from qtpy.QtCore import QPoint, Signal, Slot
+from qtpy.QtWidgets import QMenu
 
 # Local imports
-from spyder import get_versions
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _, is_pynsist
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
     FINISHED, PENDING, CHECKING, CANCELLED)
 from spyder.utils.icon_manager import ima
+from spyder.utils.qthelpers import add_actions, create_action
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     BASE_TOOLTIP = _("Application update status")
     ID = 'application_update_status'
 
+    sig_check_for_updates_requested = Signal()
+
     def __init__(self, parent):
 
         self.tooltip = self.BASE_TOOLTIP
@@ -38,8 +41,10 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
         # Installation dialog
         self.installer = UpdateInstallerDialog(self)
+        # Check for updates action menu
+        self.menu = QMenu(self)
 
-        self.sig_clicked.connect(self.show_installation_dialog)
+        self.sig_clicked.connect(self.show_installation_dialog_or_menu)
 
         self.installer.sig_installation_status.connect(
             self.set_value)
@@ -91,10 +96,24 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.spinner.stop()
 
     @Slot()
-    def show_installation_dialog(self):
-        """Show installation dialog."""
-        if ((not self.tooltip == self.BASE_TOOLTIP and not
-                self.tooltip == PENDING) and is_pynsist()):
+    def show_installation_dialog_or_menu(self):
+        """Show installation dialog or menu."""
+        value = self.value.split(":")[-1].strip()
+        if (not self.tooltip == self.BASE_TOOLTIP and not
+                value == PENDING and is_pynsist()):
             self.installer.show()
-        elif ((self.tooltip == PENDING) and is_pynsist()):
+        elif value == PENDING and is_pynsist():
             self.installer.continue_install()
+        elif value == NO_STATUS:
+            self.menu.clear()
+            check_for_updates_action = create_action(
+                self,
+                text=_("Check for updates..."),
+                triggered=self.sig_check_for_updates_requested.emit
+            )
+            add_actions(self.menu, [check_for_updates_action])
+            rect = self.contentsRect()
+            os_height = 7 if os.name == 'nt' else 12
+            pos = self.mapToGlobal(
+                rect.topLeft() + QPoint(-10, -rect.height() - os_height))
+            self.menu.popup(pos)

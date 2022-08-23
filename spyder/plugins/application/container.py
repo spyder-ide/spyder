@@ -107,6 +107,9 @@ class ApplicationContainer(PluginMainContainer):
     def setup(self):
 
         self.application_update_status = ApplicationUpdateStatus(parent=self)
+        self.application_update_status.sig_check_for_updates_requested.connect(
+            self.check_updates
+        )
         self.application_update_status.set_no_status()
 
         # Compute dependencies in a thread to not block the interface.
