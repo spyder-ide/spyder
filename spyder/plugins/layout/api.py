@@ -451,7 +451,7 @@ class BaseGridLayoutType:
                             plugins_to_tabify.append(
                                 (current_plugin, base_plugin))
                         else:
-                            main_window.tabify_plugins(
+                            self.plugin.tabify_plugins(
                                 base_plugin, current_plugin)
                             if plugin_id not in hidden_plugin_ids:
                                 current_plugin.toggle_view(area_visible)
@@ -466,8 +466,8 @@ class BaseGridLayoutType:
         # try to use the TABIFY attribute to add the plugin to the layout.
         # Otherwise use the default area base plugin
         for plugin, base_plugin in plugins_to_tabify:
-            if not main_window.tabify_plugin(plugin):
-                main_window.tabify_plugins(base_plugin, plugin)
+            if not self.plugin.tabify_plugin(plugin):
+                self.plugin.tabify_plugins(base_plugin, plugin)
             current_plugin.toggle_view(False)
 
         column_docks = []

@@ -485,7 +485,7 @@ class BasePluginWidgetMixin(object):
 
     def _tabify(self, core_plugin):
         """Tabify plugin next to a core plugin."""
-        self.main.tabify_plugins(core_plugin, self)
+        self.main.layouts.tabify_plugins(core_plugin, self)
 
     def _lock_unlock_position(self):
         """Show/hide title bar to move/lock position."""

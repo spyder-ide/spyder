@@ -589,66 +589,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         except ValueError:
             pass
 
-    def tabify_plugins(self, first, second):
-        """Tabify plugin dockwigdets."""
-        self.tabifyDockWidget(first.dockwidget, second.dockwidget)
-
-    def tabify_plugin(self, plugin, default=None):
-        """
-        Tabify the plugin using the list of possible TABIFY options.
-
-        Only do this if the dockwidget does not have more dockwidgets
-        in the same position and if the plugin is using the New API.
-        """
-        def tabify_helper(plugin, next_to_plugins):
-            for next_to_plugin in next_to_plugins:
-                try:
-                    self.tabify_plugins(next_to_plugin, plugin)
-                    break
-                except SpyderAPIError as err:
-                    logger.error(err)
-
-        # If TABIFY not defined use the [default]
-        tabify = getattr(plugin, 'TABIFY', [default])
-        if not isinstance(tabify, list):
-            next_to_plugins = [tabify]
-        else:
-            next_to_plugins = tabify
-
-        # Check if TABIFY is not a list with None as unique value or a default
-        # list
-        if tabify in [[None], []]:
-            return False
-
-        # Get the actual plugins from the names
-        next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
-
-        # First time plugin starts
-        if plugin.get_conf('first_time', True):
-            if (isinstance(plugin, SpyderDockablePlugin)
-                    and plugin.NAME != Plugins.Console):
-                logger.info(
-                    f"Tabifying {plugin.NAME} plugin for the first time next "
-                    f"to {next_to_plugins}"
-                )
-                tabify_helper(plugin, next_to_plugins)
-
-                # Show external plugins
-                if plugin.NAME in PLUGIN_REGISTRY.external_plugins:
-                    plugin.get_widget().toggle_view(True)
-
-            plugin.set_conf('enable', True)
-            plugin.set_conf('first_time', False)
-        else:
-            # This is needed to ensure plugins are placed correctly when
-            # switching layouts.
-            logger.info(f"Tabifying {plugin.NAME} plugin")
-            # Check if plugin has no other dockwidgets in the same position
-            if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
-                tabify_helper(plugin, next_to_plugins)
-
-        return True
-
     def handle_exception(self, error_data):
         """
         This method will call the handle exception method of the Console

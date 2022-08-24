@@ -18,7 +18,8 @@ from qtpy.QtWidgets import QApplication, QDesktopWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, DockablePlugins, SpyderPluginV2
+from spyder.api.plugins import (
+    Plugins, DockablePlugins, SpyderDockablePlugin, SpyderPluginV2)
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
@@ -71,7 +72,7 @@ class Layout(SpyderPluginV2):
     """
     NAME = "layout"
     CONF_SECTION = "quick_layouts"
-    REQUIRES = [Plugins.All]  # Uses wildcard to require all the plugins
+    REQUIRES = [Plugins.All]  # Uses wildcard to require all plugins
     CONF_FILE = False
     CONTAINER_CLASS = LayoutContainer
     CAN_BE_DISABLED = False
@@ -969,12 +970,75 @@ class Layout(SpyderPluginV2):
 
     # ---- Tabify plugins
     # -------------------------------------------------------------------------
+    def tabify_plugins(self, first, second):
+        """Tabify plugin dockwigdets."""
+        self.main.tabifyDockWidget(first.dockwidget, second.dockwidget)
+
+    def tabify_plugin(self, plugin, default=None):
+        """
+        Tabify `plugin` using the list of possible TABIFY options.
+
+        Only do this if the dockwidget does not have more dockwidgets
+        in the same position and if the plugin is using the New API.
+        """
+        def tabify_helper(plugin, next_to_plugins):
+            for next_to_plugin in next_to_plugins:
+                try:
+                    self.tabify_plugins(next_to_plugin, plugin)
+                    break
+                except SpyderAPIError as err:
+                    logger.error(err)
+
+        # If TABIFY not defined use the [default]
+        tabify = getattr(plugin, 'TABIFY', [default])
+        if not isinstance(tabify, list):
+            next_to_plugins = [tabify]
+        else:
+            next_to_plugins = tabify
+
+        # Check if TABIFY is not a list with None as unique value or a default
+        # list
+        if tabify in [[None], []]:
+            return False
+
+        # Get the actual plugins from their names
+        next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
+
+        # First time plugin starts
+        if plugin.get_conf('first_time', True):
+            if (
+                isinstance(plugin, SpyderDockablePlugin)
+                and plugin.NAME != Plugins.Console
+            ):
+                logger.info(
+                    f"Tabifying {plugin.NAME} plugin for the first time next "
+                    f"to {next_to_plugins}"
+                )
+                tabify_helper(plugin, next_to_plugins)
+
+                # Show external plugins
+                if plugin.NAME in PLUGIN_REGISTRY.external_plugins:
+                    plugin.get_widget().toggle_view(True)
+
+            plugin.set_conf('enable', True)
+            plugin.set_conf('first_time', False)
+        else:
+            # This is needed to ensure plugins are placed correctly when
+            # switching layouts.
+            logger.info(f"Tabifying {plugin.NAME} plugin")
+
+            # Check if plugin has no other dockwidgets in the same position
+            if not bool(self.main.tabifiedDockWidgets(plugin.dockwidget)):
+                tabify_helper(plugin, next_to_plugins)
+
+        return True
+
     def tabify_new_plugins(self):
         """
         Tabify new dockable plugins, i.e. plugins that were not part of the
         interface in the last session.
 
-        NOTES
+        Notes
         -----
         This is only necessary the first time a plugin is loaded. Afterwards,
         the plugin's placement is recorded in the window hexstate, which is
@@ -1019,7 +1083,7 @@ class Layout(SpyderPluginV2):
             if plugin_name not in last_internal_dockable_plugins:
                 plugin = self.main.get_plugin(plugin_name, error=False)
                 if plugin:
-                    self.main.tabify_plugin(plugin, Plugins.Console)
+                    self.tabify_plugin(plugin, Plugins.Console)
 
         # Tabify new external plugins
         for plugin in self.get_dockable_plugins():
@@ -1027,4 +1091,4 @@ class Layout(SpyderPluginV2):
                 plugin.NAME in PLUGIN_REGISTRY.external_plugins
                 and plugin.get_conf('first_time', True)
             ):
-                self.main.tabify_plugin(plugin, Plugins.Console)
+                self.tabify_plugin(plugin, Plugins.Console)
