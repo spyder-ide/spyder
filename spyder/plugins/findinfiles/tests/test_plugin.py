@@ -19,10 +19,8 @@ from spyder.config.manager import CONF
 from spyder.plugins.findinfiles.plugin import FindInFiles
 from spyder.plugins.findinfiles.widgets.combobox import SELECT_OTHER
 
+
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
-NONASCII_DIR = osp.join(LOCATION, "èáïü Øαôå 字分误")
-if not osp.exists(NONASCII_DIR):
-    os.makedirs(NONASCII_DIR)
 
 
 @pytest.fixture
@@ -39,13 +37,14 @@ def findinfiles(qtbot):
 
 # ---- Tests for FindInFiles plugin
 @pytest.mark.order(1)
-def test_closing_plugin(findinfiles, qtbot, mocker):
+def test_closing_plugin(findinfiles, qtbot, mocker, tmpdir):
     """
     Test that the external paths listed in the combobox are saved and loaded
     correctly from the spyder config file.
     """
     path_selection_combo = findinfiles.get_widget().path_selection_combo
     path_selection_combo.clear_external_paths()
+    nonascii_dir = str(tmpdir.mkdir("èáïü Øαôå 字分误"))
     assert path_selection_combo.get_external_paths() == []
 
     # Add external paths to the path_selection_combo.
@@ -53,7 +52,7 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
         LOCATION,
         osp.dirname(LOCATION),
         osp.dirname(osp.dirname(LOCATION)),
-        NONASCII_DIR,
+        nonascii_dir,
     ]
     for external_path in expected_results:
         mocker.patch(

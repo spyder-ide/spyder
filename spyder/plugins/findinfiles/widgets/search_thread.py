@@ -58,12 +58,14 @@ class SearchThread(QThread):
     power = 0       # 0**1 = 1
     max_power = 9   # 2**9 = 512
 
-    def __init__(self, parent, search_text, text_color):
+    def __init__(self, parent, search_text, text_color, max_results=1000):
         super().__init__(parent)
-        self.mutex = QMutex()
-        self.stopped = None
         self.search_text = search_text
         self.text_color = text_color
+        self.max_results = max_results
+
+        self.mutex = QMutex()
+        self.stopped = None
         self.pathlist = None
         self.total_matches = None
         self.error_flag = None
@@ -80,6 +82,7 @@ class SearchThread(QThread):
         self.num_files = 0
         self.files = []
         self.partial_results = []
+        self.total_items = 0
 
     def initialize(self, path, is_file, exclude,
                    texts, text_re, case_sensitive):
@@ -286,16 +289,18 @@ class SearchThread(QThread):
         items = []
         num_matches = self.total_matches
         for result in self.partial_results:
-            filename, lineno, colno, match_end, line = result
+            if self.total_items < self.max_results:
+                filename, lineno, colno, match_end, line = result
 
-            if filename not in self.files:
-                self.files.append(filename)
-                self.sig_file_match.emit(filename)
-                self.num_files += 1
+                if filename not in self.files:
+                    self.files.append(filename)
+                    self.sig_file_match.emit(filename)
+                    self.num_files += 1
 
-            line = self.truncate_result(line, colno, match_end)
-            item = (filename, lineno, colno, line, match_end)
-            items.append(item)
+                line = self.truncate_result(line, colno, match_end)
+                item = (filename, lineno, colno, line, match_end)
+                items.append(item)
+                self.total_items += 1
 
         # Process title
         title = "'%s' - " % self.search_text
