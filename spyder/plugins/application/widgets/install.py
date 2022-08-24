@@ -257,7 +257,7 @@ class UpdateInstallerDialog(QDialog):
                                    reporthook=self._progress_reporter)
             self._change_update_installation_status(status=INSTALLING)
             cmd = ('start' if os.name == 'nt' else 'open')
-            subprocess.run([cmd, destination], shell=True)
+            subprocess.run(' '.join([cmd, destination]), shell=True)
 
         except UpdateInstallationCancelledException:
             self._change_update_installation_status(status=CANCELLED)
