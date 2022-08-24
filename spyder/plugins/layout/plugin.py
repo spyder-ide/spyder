@@ -219,7 +219,31 @@ class Layout(SpyderPluginV2):
         """Get the list of internal dockable plugins"""
         return get_class_values(DockablePlugins)
 
-    # ---- Plubic API
+    def _update_fullscreen_action(self):
+        if self._fullscreen_flag:
+            icon = self.create_icon('window_nofullscreen')
+        else:
+            icon = self.create_icon('window_fullscreen')
+        self.get_container()._fullscreen_action.setIcon(icon)
+
+    def _update_lock_interface_action(self):
+        """
+        Helper method to update the locking of panes/dockwidgets and toolbars.
+
+        Returns
+        -------
+        None.
+        """
+        if self._interface_locked:
+            icon = self.create_icon('drag_dock_widget')
+            text = _('Unlock panes and toolbars')
+        else:
+            icon = self.create_icon('lock')
+            text = _('Lock panes and toolbars')
+        self.lock_interface_action.setIcon(icon)
+        self.lock_interface_action.setText(text)
+
+    # ---- Helper methods
     # -------------------------------------------------------------------------
     def get_last_plugin(self):
         """
@@ -245,6 +269,8 @@ class Layout(SpyderPluginV2):
         """
         return self._fullscreen_flag
 
+    # ---- Layout handling
+    # -------------------------------------------------------------------------
     def register_layout(self, parent_plugin, layout_type):
         """
         Register a new layout type.
@@ -593,6 +619,8 @@ class Layout(SpyderPluginV2):
             section=section,
         )
 
+    # ---- Maximize, close, switch to dockwidgets/plugins
+    # -------------------------------------------------------------------------
     @Slot()
     def close_current_dockwidget(self):
         """Search for the currently focused plugin and close it."""
@@ -791,13 +819,8 @@ class Layout(SpyderPluginV2):
 
         plugin.change_visibility(True, force_focus=force_focus)
 
-    def _update_fullscreen_action(self):
-        if self._fullscreen_flag:
-            icon = self.create_icon('window_nofullscreen')
-        else:
-            icon = self.create_icon('window_fullscreen')
-        self.get_container()._fullscreen_action.setIcon(icon)
-
+    # ---- Menus and actions
+    # -------------------------------------------------------------------------
     @Slot()
     def toggle_fullscreen(self):
         """
@@ -886,23 +909,6 @@ class Layout(SpyderPluginV2):
     def lock_interface_action(self):
         return self.get_container()._lock_interface_action
 
-    def _update_lock_interface_action(self):
-        """
-        Helper method to update the locking of panes/dockwidgets and toolbars.
-
-        Returns
-        -------
-        None.
-        """
-        if self._interface_locked:
-            icon = self.create_icon('drag_dock_widget')
-            text = _('Unlock panes and toolbars')
-        else:
-            icon = self.create_icon('lock')
-            text = _('Lock panes and toolbars')
-        self.lock_interface_action.setIcon(icon)
-        self.lock_interface_action.setText(text)
-
     def toggle_lock(self, value=None):
         """Lock/Unlock dockwidgets and toolbars."""
         self._interface_locked = (
@@ -924,6 +930,8 @@ class Layout(SpyderPluginV2):
         if toolbar:
             toolbar.toggle_lock(value=self._interface_locked)
 
+    # ---- Visible dockable plugins
+    # -------------------------------------------------------------------------
     def restore_visible_plugins(self):
         """
         Restore dockable plugins that were visible during the previous session.
@@ -959,6 +967,8 @@ class Layout(SpyderPluginV2):
 
         self.set_conf('last_visible_plugins', visible_plugins)
 
+    # ---- Tabify plugins
+    # -------------------------------------------------------------------------
     def tabify_new_plugins(self):
         """
         Tabify new dockable plugins, i.e. plugins that were not part of the
