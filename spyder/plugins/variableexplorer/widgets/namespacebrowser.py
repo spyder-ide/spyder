@@ -180,7 +180,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             interrupt=True
         ).set_namespace_view_settings(settings)
 
-    def on_kernel_started(self):
+    def setup_kernel(self):
         self.set_namespace_view_settings()
         self.refresh_namespacebrowser(interrupt=False)
 

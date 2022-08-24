@@ -13,12 +13,10 @@ import ast
 import os
 import os.path as osp
 import time
-import uuid
 from textwrap import dedent
-from threading import Lock
 
 # Third party imports
-from qtpy.QtCore import Signal, QThread
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
@@ -110,7 +108,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For ShellWidget
     sig_focus_changed = Signal()
     new_client = Signal()
-    sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
     # Kernel died and restarted (not user requested)
     sig_kernel_died_restarted = Signal()
@@ -123,46 +120,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For printing internal errors
     sig_exception_occurred = Signal(dict)
 
-    # Class array of shutdown threads
-    shutdown_thread_list = []
-
     # To save values and messages returned by the kernel
     _kernel_is_starting = True
-
-    # Kernel started or restarted
-    sig_kernel_started = Signal()
-    sig_kernel_reset = Signal()
 
     # Request plugins to send additional configuration to the kernel
     sig_config_kernel_requested = Signal()
 
-    @classmethod
-    def prune_shutdown_thread_list(cls):
-        """Remove shutdown threads."""
-        pruned_shutdown_thread_list = []
-        for t in cls.shutdown_thread_list:
-            try:
-                if t.isRunning():
-                    pruned_shutdown_thread_list.append(t)
-            except RuntimeError:
-                pass
-        cls.shutdown_thread_list = pruned_shutdown_thread_list
-
-    @classmethod
-    def wait_all_shutdown(cls):
-        """Wait for shutdown to finish."""
-        for thread in cls.shutdown_thread_list:
-            if thread.isRunning():
-                try:
-                    thread.kernel_manager._kill_kernel()
-                except Exception:
-                    pass
-                thread.quit()
-                thread.wait()
-        cls.shutdown_thread_list = []
+    # To notify of kernel connection / deconnection
+    sig_shellwidget_created = Signal(object)
+    sig_shellwidget_deleted = Signal(object)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 is_external_kernel, is_spyder_kernel, handlers, *args, **kw):
+                 handlers, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -174,8 +143,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
-        self.is_external_kernel = is_external_kernel
-        self.is_spyder_kernel = is_spyder_kernel
+        self.kernel = False
         self._cwd = ''
 
         # Keyboard shortcuts
@@ -206,51 +174,49 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
         self.show_modules_message = is_pynsist() or running_in_mac_app()
-        self.shutdown_lock = Lock()
 
     # ---- Public API ---------------------------------------------------------
-    def shutdown_kernel(self):
-        """Shutdown kernel."""
-        with self.shutdown_lock:
-            # Avoid calling shutdown_kernel on the same manager twice
-            # from different threads to avoid crash.
-            if self.kernel_manager.shutting_down:
-                return
-            self.kernel_manager.shutting_down = True
-        try:
-            self.kernel_manager.shutdown_kernel()
-        except Exception:
-            # kernel was externally killed
-            pass
+    @property
+    def is_spyder_kernel(self):
+        if self.kernel is None:
+            return False
+        return self.kernel.known_spyder_kernel
+
+    def connect_kernel(self, kernel):
+        """Connect to kernel."""
+        # Kernel client
+        kernel_client = kernel.kernel_client
+        kernel_client.stopped_channels.connect(
+            lambda: self.sig_shellwidget_deleted.emit(self))
+        kernel_client.start_channels()
+        self.kernel_client = kernel_client
+
+        self.kernel_manager = kernel.kernel_manager
+        self.kernel = kernel
+        if self.is_spyder_kernel:
+            self.setup_spyder_kernel()
+        # Send message to kernel to check status
+        self.check_spyder_kernel()
+        self.sig_shellwidget_created.emit(self)
 
     def shutdown(self, shutdown_kernel=True):
         """Shutdown connection and kernel."""
         if self.shutting_down:
             return
         self.shutting_down = True
-        if shutdown_kernel:
-            if not self.kernel_manager:
-                return
-
-            self.interrupt_kernel()
-            if self.kernel_manager:
-                self.kernel_manager.stop_restarter()
-            self.spyder_kernel_comm.close()
-            if self.kernel_client is not None:
-                self.kernel_client.stop_channels()
-            if self.kernel_manager:
-                shutdown_thread = QThread(None)
-                shutdown_thread.kernel_manager = self.kernel_manager
-                shutdown_thread.run = self.shutdown_kernel
-                self.shutdown_thread_list.append(shutdown_thread)
-                shutdown_thread.start()
-        else:
-            self.spyder_kernel_comm.close()
-            if self.kernel_client is not None:
-                self.kernel_client.stop_channels()
-
-        self.prune_shutdown_thread_list()
+        self.close_kernel(shutdown_kernel)
         super(ShellWidget, self).shutdown()
+
+    def close_kernel(self, shutdown_kernel=True):
+        """Close the kernel"""
+        self.kernel.close(shutdown_kernel)
+        # reset state
+        self.reset_kernel_state()
+
+    def reset_kernel_state(self):
+        """Reset the kernel state."""
+        self._prompt_requested = False
+        self._pdb_recursion_level = 0
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None, display_error=False):
@@ -284,22 +250,22 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             display_error=display_error
         )
 
-    def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
-        """Set the kernel client and manager"""
-        self.kernel_manager = kernel_manager
-        self.kernel_client = kernel_client
+    @property
+    def is_external_kernel(self):
+        """Check if this is an external kernel."""
+        return self.kernel_manager is None
 
-        # Send message to kernel to check status
-        self.check_spyder_kernel()
+    def setup_spyder_kernel(self):
+        """Setup spyder kernel"""
+        self.kernel.open_comm(self.spyder_kernel_comm)
 
-        if self.is_spyder_kernel:
-            # For completion
-            kernel_client.control_channel.message_received.connect(
-                self._dispatch)
-            self.spyder_kernel_comm.open_comm(kernel_client)
-
+        # For completion
+        self.kernel_client.control_channel.message_received.connect(
+            self._dispatch)
         # Redefine the complete method to work while debugging.
         self._redefine_complete_for_dbg(self.kernel_client)
+        # Send configuration
+        self.ipyclient.send_spyder_kernel_configuration()
 
     def pop_execute_queue(self):
         """Pop one waiting instruction."""
@@ -333,10 +299,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._execute_queue.append((source, hidden, interactive))
             return
         super(ShellWidget, self).execute(source, hidden, interactive)
-
-    def set_exit_callback(self):
-        """Set exit callback for this shell."""
-        self.exit_requested.connect(self.ipyclient.exit_callback)
 
     def is_running(self):
         if self.kernel_client is not None and \
@@ -399,8 +361,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     return
 
             if not self.is_spyder_kernel:
-                self.is_spyder_kernel = True
-                self.sig_is_spykernel.emit(self)
+                self.kernel.known_spyder_kernel = True
+                self.setup_spyder_kernel()
 
     def set_cwd(self, dirname, emit_cwd_change=False):
         """
@@ -721,10 +683,9 @@ the sympy module (e.g. plot)
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
 
-                self.sig_kernel_reset.emit()
-
                 if self.is_spyder_kernel:
                     self.call_kernel().close_all_mpl_figures()
+                    self.ipyclient.send_spyder_kernel_configuration()
         except AttributeError:
             pass
 
@@ -995,7 +956,6 @@ the sympy module (e.g. plot)
         # Notify that kernel has started
         exec_count = msg['content'].get('execution_count', '')
         if exec_count == 0 and self._kernel_is_starting:
-            self.sig_kernel_started.emit()
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
@@ -1022,7 +982,6 @@ the sympy module (e.g. plot)
         elif state == 'idle' and msg_type == 'shutdown_request':
             # This handles restarts asked by the user
             self.ipyclient.t0 = time.monotonic()
-            self.sig_kernel_started.emit()
         else:
             super()._handle_status(msg)
 

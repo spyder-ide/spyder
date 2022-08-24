@@ -154,16 +154,6 @@ class IPythonConsole(SpyderDockablePlugin):
         The shellwigdet.
     """
 
-    sig_external_spyder_kernel_connected = Signal(object)
-    """
-    This signal is emitted when we connect to an external Spyder kernel.
-
-    Parameters
-    ----------
-    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-        The shellwigdet that was connected to the kernel.
-    """
-
     sig_render_plain_text_requested = Signal(str)
     """
     This signal is emitted to request a plain text help render.
@@ -235,8 +225,6 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
         widget.sig_shellwidget_changed.connect(self.sig_shellwidget_changed)
-        widget.sig_external_spyder_kernel_connected.connect(
-            self.sig_external_spyder_kernel_connected)
         widget.sig_render_plain_text_requested.connect(
             self.sig_render_plain_text_requested)
         widget.sig_render_rich_text_requested.connect(

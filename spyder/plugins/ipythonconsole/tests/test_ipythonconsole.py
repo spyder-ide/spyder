@@ -48,6 +48,7 @@ from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
+from spyder.plugins.ipythonconsole.utils import stdfile
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.utils.programs import get_temp_dir
@@ -157,9 +158,9 @@ def ipyconsole(qtbot, request, tmpdir):
     # Instruct the console to not use a stderr file
     no_stderr_file = request.node.get_closest_marker('no_stderr_file')
     if no_stderr_file:
-        test_no_stderr = 'True'
+        test_no_stderr = True
     else:
-        test_no_stderr = ''
+        test_no_stderr = False
 
     # Use the automatic backend if requested
     auto_backend = request.node.get_closest_marker('auto_backend')
@@ -209,8 +210,8 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Create the console and a new client and set environment
     os.environ['IPYCONSOLE_TESTING'] = 'True'
-    os.environ['IPYCONSOLE_TEST_DIR'] = test_dir
-    os.environ['IPYCONSOLE_TEST_NO_STDERR'] = test_no_stderr
+    stdfile.IPYCONSOLE_TEST_DIR = test_dir
+    stdfile.IPYCONSOLE_TEST_NO_STDERR = test_no_stderr
     window = MainWindowMock()
     console = IPythonConsole(parent=window, configuration=configuration)
     console._register()
@@ -274,8 +275,8 @@ def ipyconsole(qtbot, request, tmpdir):
     # Close
     console.on_close()
     os.environ.pop('IPYCONSOLE_TESTING')
-    os.environ.pop('IPYCONSOLE_TEST_DIR')
-    os.environ.pop('IPYCONSOLE_TEST_NO_STDERR')
+    stdfile.IPYCONSOLE_TEST_DIR = None
+    stdfile.IPYCONSOLE_TEST_NO_STDERR = False
 
     if os.name == 'nt' or known_leak:
         # Do not test for leaks
@@ -1288,7 +1289,8 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     # Set time to 2 minutes ago.
     client.t0 -= 120
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
-        ipyconsole.get_widget().set_client_elapsed_time(client)
+        client.timer.timeout.connect(client.show_time)
+        client.timer.start(1000)
     assert ('00:02:00' in main_widget.time_label.text() or
             '00:02:01' in main_widget.time_label.text())
 
@@ -2401,7 +2403,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    kc = w._cached_kernel_properties[-1][2]
+    kc = w._cached_kernel_properties[-1].kernel_client
     kc.start_channels()
     kc.execute("get_ipython()._spyder_kernels_version = ('1.0.0', '')")
     # Cleanup the kernel_client so it can be used again

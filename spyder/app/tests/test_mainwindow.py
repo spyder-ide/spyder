@@ -61,6 +61,8 @@ from spyder.plugins.debugger.widgets.main_widget import DebuggerWidgetActions
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.ipythonconsole.widgets.kernel_connection_manager import (
+    KernelConnection)
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -554,7 +556,7 @@ def test_leaks(main_window, qtbot):
         # Count initial objects
         # Only one of each should be present, but because of many leaks,
         # this is most likely not the case. Here only closing is tested
-        shell.wait_all_shutdown()
+        KernelConnection.wait_all_shutdown()
         gc.collect()
         objects = gc.get_objects()
         n_code_editor_init = 0
@@ -585,8 +587,7 @@ def test_leaks(main_window, qtbot):
         main_window.ipyconsole.restart()
 
         # Wait until the shells are closed
-        shell = main_window.ipyconsole.get_current_shellwidget()
-        shell.wait_all_shutdown()
+        KernelConnection.wait_all_shutdown()
         return n_shell_init, n_code_editor_init
 
     n_shell_init, n_code_editor_init = ns_fun(main_window, qtbot)
