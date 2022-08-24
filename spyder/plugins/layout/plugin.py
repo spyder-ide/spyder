@@ -947,7 +947,7 @@ class Layout(SpyderPluginV2):
 
         # Restore visible plugins
         for plugin in visible_plugins:
-            plugin_class = self.get_plugin(plugin)
+            plugin_class = self.main.get_plugin(plugin, error=False)
             if plugin_class and plugin_class.dockwidget.isVisible():
                 plugin_class.dockwidget.raise_()
 
