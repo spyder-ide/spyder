@@ -1004,8 +1004,10 @@ class Layout(SpyderPluginV2):
         # Get the actual plugins from their names
         next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
 
-        # First time plugin starts
         if plugin.get_conf('first_time', True):
+            # This tabifies external and internal plugins that are loaded for
+            # the first time, and internal ones that are not part of the
+            # default layout.
             if (
                 isinstance(plugin, SpyderDockablePlugin)
                 and plugin.NAME != Plugins.Console
@@ -1023,12 +1025,13 @@ class Layout(SpyderPluginV2):
             plugin.set_conf('enable', True)
             plugin.set_conf('first_time', False)
         else:
-            # This is needed to ensure plugins are placed correctly when
-            # switching layouts.
-            logger.info(f"Tabifying {plugin.NAME} plugin")
-
-            # Check if plugin has no other dockwidgets in the same position
+            # This is needed to ensure that, when switching to a different
+            # layout, any plugin (external or internal) not part of its
+            # declared areas is tabified as expected.
+            # Note: Check if `plugin` has no other dockwidgets in the same
+            # position before proceeding.
             if not bool(self.main.tabifiedDockWidgets(plugin.dockwidget)):
+                logger.info(f"Tabifying {plugin.NAME} plugin")
                 tabify_helper(plugin, next_to_plugins)
 
         return True
