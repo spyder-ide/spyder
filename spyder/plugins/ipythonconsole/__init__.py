@@ -10,6 +10,7 @@ spyder.plugins.ipythonconsole
 
 IPython Console plugin based on QtConsole
 """
+
 # Required version of Spyder-kernels
 SPYDER_KERNELS_MIN_VERSION = '2.3.0'
 SPYDER_KERNELS_MAX_VERSION = '2.4.0'
