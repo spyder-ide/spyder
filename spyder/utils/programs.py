@@ -798,6 +798,29 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         raise NotImplementedError
 
 
+def check_version_range(module_version, version_range):
+    """
+    Check if a module's version lies in `version_range`.
+    """
+    if ';' in version_range:
+        versions = version_range.split(';')
+    else:
+        versions = [version_range]
+
+    output = True
+    for _ver in versions:
+        match = re.search(r'[0-9]', _ver)
+        assert match is not None, "Invalid version number"
+        symb = _ver[:match.start()]
+        if not symb:
+            symb = '='
+        assert symb in ('>=', '>', '=', '<', '<='),\
+            "Invalid version condition '%s'" % symb
+        ver = _ver[match.start():]
+        output = output and check_version(module_version, ver, symb)
+    return output
+
+
 def check_version(actver, version, cmp_op):
     """
     Check version string of an active module against a required version.
@@ -924,23 +947,7 @@ def is_module_installed(module_name, version=None, interpreter=None,
     if version is None:
         return True
     else:
-        if ';' in version:
-            versions = version.split(';')
-        else:
-            versions = [version]
-
-        output = True
-        for _ver in versions:
-            match = re.search(r'[0-9]', _ver)
-            assert match is not None, "Invalid version number"
-            symb = _ver[:match.start()]
-            if not symb:
-                symb = '='
-            assert symb in ('>=', '>', '=', '<', '<='),\
-                "Invalid version condition '%s'" % symb
-            ver = _ver[match.start():]
-            output = output and check_version(module_version, ver, symb)
-        return output
+        return check_version_range(module_version, version)
 
 
 def is_python_interpreter_valid_name(filename):

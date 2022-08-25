@@ -33,6 +33,7 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_conf_path, get_home_dir, running_under_pytest)
+from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
@@ -58,17 +59,6 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_MIN_VERSION = '2.3.0'
-SPYDER_KERNELS_MAX_VERSION = '2.4.0'
-SPYDER_KERNELS_VERSION = (
-    f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
-SPYDER_KERNELS_VERSION_MSG = _(
-    '>= {0} and < {1}').format(
-        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
-SPYDER_KERNELS_CONDA = (
-    f'conda install spyder&#45;kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
-SPYDER_KERNELS_PIP = (
-    f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 
 class IPythonConsoleWidgetActions:
@@ -1486,42 +1476,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             client.show_kernel_error(error_msg)
             return
 
-        # Check if ipykernel is present in the external interpreter.
-        # Else we won't be able to create a client
-        if not self.get_conf('default', section='main_interpreter'):
-            pyexec = self.get_conf('executable', section='main_interpreter')
-            has_spyder_kernels = programs.is_module_installed(
-                'spyder_kernels',
-                interpreter=pyexec,
-                version=SPYDER_KERNELS_VERSION)
-            if not has_spyder_kernels and not running_under_pytest():
-                client.show_kernel_error(
-                    _("The Python environment or installation whose "
-                      "interpreter is located at"
-                      "<pre>"
-                      "    <tt>{0}</tt>"
-                      "</pre>"
-                      "doesn't have the <tt>spyder-kernels</tt> module or the "
-                      "right version of it installed ({1}). "
-                      "Without this module is not possible for Spyder to "
-                      "create a console for you.<br><br>"
-                      "You can install it by activating your environment (if "
-                      "necessary) and then running in a system terminal:"
-                      "<pre>"
-                      "    <tt>{2}</tt>"
-                      "</pre>"
-                      "or"
-                      "<pre>"
-                      "    <tt>{3}</tt>"
-                      "</pre>").format(
-                          pyexec,
-                          SPYDER_KERNELS_VERSION_MSG,
-                          SPYDER_KERNELS_CONDA,
-                          SPYDER_KERNELS_PIP
-                      )
-                )
-                return
-
         self.connect_client_to_kernel(client, km, kc)
         if client.shellwidget.kernel_manager is None:
             return
@@ -1653,16 +1607,14 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
         shellwidget = client.shellwidget
-        shellwidget.set_kernel_client_and_manager(
-            kernel_client, kernel_manager)
-        shellwidget.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
 
         if not known_spyder_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_spyder_kernel)
-            shellwidget.check_spyder_kernel()
-
+        shellwidget.set_kernel_client_and_manager(
+            kernel_client, kernel_manager)
+        shellwidget.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         self.sig_shellwidget_created.emit(shellwidget)
         kernel_client.stopped_channels.connect(
             lambda: self.sig_shellwidget_deleted.emit(shellwidget))
@@ -2131,6 +2083,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 config=None,
                 autorestart=True,
             )
+        except SpyderKernelError as e:
+            return (e.args[0], None)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
@@ -2143,6 +2097,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             kernel_manager.start_kernel(stderr=stderr_handle,
                                         stdout=stdout_handle,
                                         env=kernel_spec.env)
+        except SpyderKernelError as e:
+            return (e.args[0], None)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
