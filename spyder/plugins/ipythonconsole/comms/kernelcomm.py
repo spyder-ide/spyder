@@ -73,7 +73,7 @@ class KernelComm(CommBase, QObject):
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 
-    def remove(self, comm_id=None):
+    def remove(self, comm_id=None, only_closing=False):
         """
         Remove the comm without notifying the other side.
 
@@ -81,6 +81,8 @@ class KernelComm(CommBase, QObject):
         """
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
+            if only_closing and self._comms[comm_id]['status'] != 'closing':
+                continue
             del self._comms[comm_id]
 
     def close(self, comm_id=None):

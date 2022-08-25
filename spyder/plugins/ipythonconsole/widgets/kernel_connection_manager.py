@@ -247,7 +247,7 @@ class KernelConnection:
     def after_shutdown(self):
         """Cleanup after shutdown"""
         if self.kernel_comm is not None:
-            self.kernel_comm.remove()
+            self.kernel_comm.remove(only_closing=True)
         self.shutdown_thread = None
 
     def _thread_shutdown_kernel(self):
