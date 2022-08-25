@@ -2396,8 +2396,6 @@ def test_old_kernel_version(ipyconsole, qtbot):
     """
     # Set a false _spyder_kernels_version in the cached kernel
     w = ipyconsole.get_widget()
-    # create new client so PYTEST_CURRENT_TEST is the same
-    w.create_new_client()
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(

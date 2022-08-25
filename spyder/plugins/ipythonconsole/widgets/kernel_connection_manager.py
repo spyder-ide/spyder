@@ -345,6 +345,11 @@ class CachedKernelMixin:
         # Call interrupt_mode so the dict will be the same
         kernel_spec.interrupt_mode
         cached_spec.interrupt_mode
+        if "PYTEST_CURRENT_TEST" in cached_env:
+            # Make tests faster by using cached kernels
+            # hopefully the kernel will never use PYTEST_CURRENT_TEST
+            cached_env["PYTEST_CURRENT_TEST"] = (
+                kernel_spec.env["PYTEST_CURRENT_TEST"])
         return (
             cached_spec.__dict__ == kernel_spec.__dict__
             and kernel_spec.argv == cached_argv
