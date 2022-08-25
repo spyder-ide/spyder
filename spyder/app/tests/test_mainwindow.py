@@ -547,6 +547,12 @@ def test_leaks(main_window, qtbot):
 
     Many other ways of leaking exist but are not covered here.
     """
+    def wait_all_shutdown():
+        objects = gc.get_objects()
+        for o in objects:
+            if isinstance(o, KernelConnection):
+                o.wait_shutdown_thread()
+
     def ns_fun(main_window, qtbot):
         # Wait until the window is fully up
         shell = main_window.ipyconsole.get_current_shellwidget()
@@ -556,7 +562,7 @@ def test_leaks(main_window, qtbot):
         # Count initial objects
         # Only one of each should be present, but because of many leaks,
         # this is most likely not the case. Here only closing is tested
-        KernelConnection.wait_all_shutdown()
+        wait_all_shutdown()
         gc.collect()
         objects = gc.get_objects()
         n_code_editor_init = 0
@@ -587,7 +593,7 @@ def test_leaks(main_window, qtbot):
         main_window.ipyconsole.restart()
 
         # Wait until the shells are closed
-        KernelConnection.wait_all_shutdown()
+        wait_all_shutdown()
         return n_shell_init, n_code_editor_init
 
     n_shell_init, n_code_editor_init = ns_fun(main_window, qtbot)

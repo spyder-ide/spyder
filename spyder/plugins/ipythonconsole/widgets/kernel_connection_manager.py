@@ -41,9 +41,6 @@ else:
 class KernelConnection:
     """A class to store kernel connection informations."""
 
-    # Class array of shutdown threads
-    shutdown_thread_list = []
-
     def __init__(
         self,
         connection_file,
@@ -71,32 +68,8 @@ class KernelConnection:
         # Comm
         self.kernel_comm = None
         # Internal
+        self.shutdown_thread = None
         self._shutdown_lock = Lock()
-
-    @classmethod
-    def prune_shutdown_thread_list(cls):
-        """Remove shutdown threads."""
-        pruned_shutdown_thread_list = []
-        for t in cls.shutdown_thread_list:
-            try:
-                if t.isRunning():
-                    pruned_shutdown_thread_list.append(t)
-            except RuntimeError:
-                pass
-        cls.shutdown_thread_list = pruned_shutdown_thread_list
-
-    @classmethod
-    def wait_all_shutdown(cls):
-        """Wait for shutdown to finish."""
-        for thread in cls.shutdown_thread_list:
-            if thread.isRunning():
-                try:
-                    thread.kernel_manager._kill_kernel()
-                except Exception:
-                    pass
-                thread.quit()
-                thread.wait()
-        cls.shutdown_thread_list = []
 
     @staticmethod
     def new_connection_file():
@@ -251,24 +224,31 @@ class KernelConnection:
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
+        if self.kernel_comm is not None:
+            self.kernel_comm.close()
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
             km.stop_restarter()
             if now:
                 km.shutdown_kernel(now=True)
+                self.after_shutdown()
             else:
                 shutdown_thread = QThread(None)
                 shutdown_thread.run = self._thread_shutdown_kernel
-                self.shutdown_thread_list.append(shutdown_thread)
                 shutdown_thread.start()
-                self.prune_shutdown_thread_list()
-        if self.kernel_comm is not None:
-            self.kernel_comm.close()
+                shutdown_thread.finished.connect(self.after_shutdown)
+                self.shutdown_thread = shutdown_thread
         if (
             self.kernel_client is not None
             and self.kernel_client.channels_running
         ):
             self.kernel_client.stop_channels()
+
+    def after_shutdown(self):
+        """Cleanup after shutdown"""
+        if self.kernel_comm is not None:
+            self.kernel_comm.remove()
+        self.shutdown_thread = None
 
     def _thread_shutdown_kernel(self):
         """Shutdown kernel."""
@@ -283,6 +263,19 @@ class KernelConnection:
         except Exception:
             # kernel was externally killed
             pass
+
+    def wait_shutdown_thread(self):
+        """Wait shutdown thread."""
+        thread = self.shutdown_thread
+        if thread is None:
+            return
+        if thread.isRunning():
+            try:
+                thread.kernel_manager._kill_kernel()
+            except Exception:
+                pass
+            thread.quit()
+            thread.wait()
 
     def copy(self):
         """Copy kernel."""

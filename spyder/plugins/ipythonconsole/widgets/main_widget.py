@@ -1645,8 +1645,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.close_client(is_last_client)
             open_clients.remove(client)
 
-        # Close all closing shellwidgets.
-        KernelConnection.wait_all_shutdown()
+        # wait all closing KernelConnection.
+        for client in self.clients:
+            if client.kernel:
+                client.kernel.wait_shutdown_thread()
 
         # Close cached kernel
         self.close_cached_kernel()
