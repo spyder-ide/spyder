@@ -1289,7 +1289,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def moveEvent(self, event):
         """Reimplement Qt method"""
-        if hasattr(self, 'layouts'):
+        if hasattr(self, 'layouts') and self.layouts is not None:
             if (
                 not self.isMaximized()
                 and not self.layouts.get_fullscreen_flag()
