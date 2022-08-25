@@ -1480,6 +1480,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client, give_focus=give_focus)
+        return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
                                  password):
@@ -1777,16 +1778,18 @@ class IPythonConsoleWidget(PluginMainWidget):
     def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
         # Create client
-        self.create_new_client(filename=filename, is_cython=is_cython)
+        client = self.create_new_client(
+            filename=filename, is_cython=is_cython)
 
         # Don't increase the count of master clients
         self.master_clients -= 1
 
         # Rename client tab with filename
-        client = self.get_current_client()
         client.allow_rename = False
         tab_text = self.disambiguate_fname(filename)
         self.rename_client_tab(client, tab_text)
+
+        return client
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
@@ -2279,8 +2282,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         else:
             client = self.get_client_for_file(filename)
             if client is None:
-                self.create_client_for_file(filename, is_cython=is_cython)
-                client = self.get_current_client()
+                client = self.create_client_for_file(
+                    filename, is_cython=is_cython)
                 is_new_client = True
 
         if client is not None:
@@ -2326,7 +2329,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                     client.shellwidget.sig_prompt_ready.connect(
                         lambda: self.execute_code(
                             line, current_client, clear_variables,
-                            set_focus=not focus_to_editor
+                            set_focus=not focus_to_editor,
+                            shellwidget=client.shellwidget
                         )
                     )
             except AttributeError:
@@ -2415,9 +2419,12 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For execution
     def execute_code(self, lines, current_client=True, clear_variables=False,
-                     set_focus=True):
+                     set_focus=True, shellwidget=None):
         """Execute code instructions."""
-        sw = self.get_current_shellwidget()
+        if current_client:
+            sw = self.get_current_shellwidget()
+        else:
+            sw = shellwidget
         if sw is not None:
             if not current_client:
                 # Clear console and reset namespace for
