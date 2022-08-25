@@ -623,15 +623,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
 
-        # --- Debug toolbar ---
-        self.debug_action = create_action(
-            self, _("&Debug"),
-            icon=ima.icon('debug'),
-            tip=_("Debug file"),
-            triggered=self.debug_file)
-        self.register_shortcut(self.debug_action, context="_", name="Debug",
-                               add_shortcut_to_tip=True)
-
         # --- Run toolbar ---
         run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
                                    tip=_("Run file"),
@@ -703,19 +694,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.register_shortcut(run_cell_advance_action, context="Editor",
                                name="Run cell and advance",
-                               add_shortcut_to_tip=True)
-
-        self.debug_cell_action = create_action(
-            self,
-            _("Debug cell"),
-            icon=ima.icon('debug_cell'),
-            tip=_("Debug current cell "
-                  "(Alt+Shift+Enter)"),
-            triggered=self.debug_cell,
-            context=Qt.WidgetShortcut)
-
-        self.register_shortcut(self.debug_cell_action, context="Editor",
-                               name="Debug cell",
                                add_shortcut_to_tip=True)
 
         re_run_last_cell_action = create_action(self,
@@ -1100,8 +1078,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         # ---- Debug menu/toolbar construction ----
         debug_menu_actions = [
-            self.debug_action,
-            self.debug_cell_action,
             MENU_SEPARATOR,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
@@ -1109,11 +1085,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         ]
         self.main.debug_menu_actions = (
             debug_menu_actions + self.main.debug_menu_actions)
-        debug_toolbar_actions = [
-            self.debug_action,
-            self.debug_cell_action,
-        ]
-        self.main.debug_toolbar_actions += debug_toolbar_actions
 
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [
@@ -1148,16 +1119,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             file_toolbar_actions +
             [MENU_SEPARATOR] +
             run_toolbar_actions +
-            [MENU_SEPARATOR] +
-            debug_toolbar_actions
+            [MENU_SEPARATOR]
         )
         self.pythonfile_dependent_actions = [
             run_action,
             configure_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
-            self.debug_action,
-            self.debug_cell_action,
             run_selected_action,
             run_cell_action,
             run_cell_advance_action,
@@ -1192,10 +1160,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def update_pdb_state(self, state, last_step):
         """
         Enable/disable debugging actions and handle pdb state change.
-
-        Some examples depending on the debugging state:
-        self.debug_action.setEnabled(not state)
-        self.debug_cell_action.setEnabled(not state)
         """
         current_editor = self.get_current_editor()
         if current_editor:

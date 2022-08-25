@@ -6,6 +6,8 @@
 
 """Debugger Plugin."""
 
+from qtpy.QtCore import Signal, Slot
+
 # Local imports
 from spyder.config.base import _
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -15,6 +17,14 @@ from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.widgets.main_widget import (
     DebuggerWidget)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
+from spyder.utils.qthelpers import MENU_SEPARATOR
+from spyder.config.manager import CONF
+from spyder.plugins.mainmenu.api import ApplicationMenus
+
+
+class DebuggerActions:
+    DebugCurrentFile = 'debug file'
+    DebugCurrentCell = 'debug cell'
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -30,6 +40,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     CONF_WIDGET_CLASS = DebuggerConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
+    sig_debug_file = Signal()
+    """This signal is emitted to request the current file to be debugd."""
+
+    sig_debug_cell = Signal()
+    """This signal is emitted to request the current cell to be debugd."""
+
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     @staticmethod
@@ -43,7 +59,43 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         return self.create_icon('dictedit')
 
     def on_initialize(self):
-        pass
+        self.create_action(
+            DebuggerActions.DebugCurrentFile,
+            text=_("&Debug file"),
+            tip=_("Debug file"),
+            icon=self.create_icon('debug'),
+            triggered=self.sig_debug_file,
+            register_shortcut=True,
+        )
+        
+        self.create_action(
+            DebuggerActions.DebugCurrentCell,
+            text=_("Debug cell"),
+            tip=_("Debug cell"),
+            icon=self.create_icon('debug_cell'),
+            triggered=self.sig_debug_cell,
+            register_shortcut=True,
+        )
+
+    @Slot()
+    def debug_file(self):
+        """
+        Debug current script.
+        Should only be called when an editor is avilable.
+        """
+        editor = self.get_plugin(Plugins.Editor)
+        editor.switch_to_plugin()
+        editor.run_file(method="debug_file")
+
+    @Slot()
+    def debug_cell(self):
+        '''
+        Debug Current cell.
+        Should only be called when an editor is avilable.
+        '''
+        editor = self.get_plugin(Plugins.Editor)
+        editor.get_current_editorstack().run_cell(
+            method="debug_cell")
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -60,10 +112,32 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor)
         self.get_widget().edit_goto.connect(editor.load)
 
+        # The editor is avilable, connect signal.
+        self.sig_debug_file.connect(self.debug_file)
+        self.sig_debug_cell.connect(self.debug_cell)
+        CONF.config_shortcut(
+            self.debug_file,
+            context=self.CONF_SECTION,
+            name=DebuggerActions.DebugCurrentFile,
+            parent=editor)
+        CONF.config_shortcut(
+            self.debug_cell,
+            context=self.CONF_SECTION,
+            name=DebuggerActions.DebugCurrentCell,
+            parent=editor)
+        debug_file_action = self.get_action(
+            DebuggerActions.DebugCurrentFile)
+        debug_cell_action = self.get_action(
+            DebuggerActions.DebugCurrentCell)
+        self.main.debug_toolbar_actions += [
+            debug_file_action, debug_cell_action]
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         self.get_widget().edit_goto.disconnect(editor.load)
+        self.sig_debug_file.disconnect(self.debug_file)
+        self.sig_debug_cell.disconnect(self.debug_cell)
 
     @on_plugin_available(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_available(self):
@@ -74,6 +148,32 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     def on_variable_explorer_teardown(self):
         self.get_widget().sig_show_namespace.disconnect(
             self.show_namespace_in_variable_explorer)
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        debug_file_action = self.get_action(
+            DebuggerActions.DebugCurrentFile)
+        debug_cell_action = self.get_action(
+            DebuggerActions.DebugCurrentCell)
+
+        self.main.run_menu_actions += [
+                MENU_SEPARATOR,
+                debug_file_action,
+                debug_cell_action
+            ]
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        mainmenu.remove_item_from_application_menu(
+            DebuggerActions.DebugCurrentFile,
+            menu_id=ApplicationMenus.Run
+        )
+        mainmenu.remove_item_from_application_menu(
+            DebuggerActions.DebugCurrentCell,
+            menu_id=ApplicationMenus.Run
+        )
 
     # ---- Public API
     # ------------------------------------------------------------------------
