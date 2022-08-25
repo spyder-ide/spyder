@@ -161,11 +161,6 @@ DEFAULTS = [
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.
               'hide_cmd_windows': True,
-              'pdb_prevent_closing': True,
-              'pdb_ignore_lib': False,
-              'pdb_execute_events': True,
-              'pdb_use_exclamation_mark': True,
-              'pdb_stop_first_line': True
               }),
             ('variable_explorer',
              {
@@ -188,6 +183,11 @@ DEFAULTS = [
               'exclude_internal': True,
               'capture_locals': False,
               'show_locals_on_click': False,
+              'pdb_prevent_closing': True,
+              'pdb_ignore_lib': False,
+              'pdb_execute_events': True,
+              'pdb_use_exclamation_mark': True,
+              'pdb_stop_first_line': True
              }),
             ('plots',
              {
@@ -648,4 +648,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '71.0.0'
+CONF_VERSION = '72.0.0'

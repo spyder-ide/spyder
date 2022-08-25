@@ -2327,7 +2327,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         Check if a file can be closed taking into account debugging state.
         """
-        if not CONF.get('ipython_console', 'pdb_prevent_closing'):
+        if not CONF.get('debugger', 'pdb_prevent_closing'):
             return True
         ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
 

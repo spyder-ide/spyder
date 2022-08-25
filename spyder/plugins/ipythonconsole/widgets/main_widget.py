@@ -777,37 +777,41 @@ class IPythonConsoleWidget(PluginMainWidget):
                 value)
 
     # ---- Debugging options
-    @on_conf_change(option='pdb_ignore_lib')
+    @on_conf_change(section='debugger', option='pdb_ignore_lib')
     def change_clients_pdb_ignore_lib(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_ignore_lib,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_ignore_lib': value
+                })
 
-    @on_conf_change(option='pdb_execute_events')
+    @on_conf_change(section='debugger', option='pdb_execute_events')
     def change_clients_pdb_execute_events(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_execute_events,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_execute_events': value
+                })
 
-    @on_conf_change(option='pdb_use_exclamation_mark')
+    @on_conf_change(section='debugger', option='pdb_use_exclamation_mark')
     def change_clients_pdb_use_exclamation_mark(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_use_exclamation_mark,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_use_exclamation_mark': value
+                })
 
-    @on_conf_change(option='pdb_stop_first_line')
+    @on_conf_change(section='debugger', option='pdb_stop_first_line')
     def change_clients_pdb_stop_first_line(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_stop_first_line,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_stop_first_line': value
+                })
+
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_configuration({
+                'breakpoints': self.get_conf(
+                    'breakpoints', default={}, section='run')
+                })
 
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
@@ -964,19 +968,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         if not client.is_client_executing():
             client_conf_func(value)
         elif client.shellwidget.is_debugging():
-            if client_conf_func in [
-                    sw.set_spyder_breakpoints,
-                    sw.set_pdb_ignore_lib,
-                    sw.set_pdb_execute_events,
-                    sw.set_pdb_use_exclamation_mark,
-                    sw.set_pdb_stop_first_line]:
-                # Execute immediately if this is pdb conf
-                client_conf_func(value)
-            else:
-                def change_conf(c=client, ccf=client_conf_func, value=value):
-                    ccf(value)
-                    c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
-                sw.sig_pdb_prompt_ready.connect(change_conf)
+            def change_conf(c=client, ccf=client_conf_func, value=value):
+                ccf(value)
+                c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
+            sw.sig_pdb_prompt_ready.connect(change_conf)
         else:
             def change_conf(c=client, ccf=client_conf_func, value=value):
                 ccf(value)
@@ -2164,11 +2159,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         else:
             self.activateWindow()
             shellwidget._control.setFocus()
-
-    def set_spyder_breakpoints(self):
-        """Set Spyder breakpoints into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_spyder_breakpoints()
 
     def get_pdb_state(self):
         """Get debugging state of the current console."""

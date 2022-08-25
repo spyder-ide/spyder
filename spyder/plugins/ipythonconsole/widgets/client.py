@@ -515,12 +515,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.call_kernel().set_pdb_configuration({
             'breakpoints': self.get_conf(
                 'breakpoints', default={}, section='run'),
-            'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
-            'pdb_execute_events': self.get_conf('pdb_execute_events'),
+            'pdb_ignore_lib': self.get_conf(
+                'pdb_ignore_lib', section='debugger'),
+            'pdb_execute_events': self.get_conf(
+                'pdb_execute_events', section='debugger'),
             'pdb_use_exclamation_mark': self.get_conf(
-                'pdb_use_exclamation_mark'),
-            'pdb_stop_first_line': self.get_conf('pdb_stop_first_line')
-        })
+                'pdb_use_exclamation_mark', section='debugger'),
+            'pdb_stop_first_line': self.get_conf(
+                'pdb_stop_first_line', section='debugger')
+            })
 
         # Enable faulthandler
         if self.fault_obj is not None:

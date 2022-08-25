@@ -179,7 +179,7 @@ def main_window(request, tmpdir, qtbot):
     CONF.set('ipython_console', 'pylab/inline/figure_format', 0)
 
     # Set exclamation mark to True
-    CONF.set('ipython_console', 'pdb_use_exclamation_mark', True)
+    CONF.set('debugger', 'pdb_use_exclamation_mark', True)
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
@@ -4763,10 +4763,10 @@ def test_prevent_closing(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
-    CONF.set('ipython_console', 'pdb_prevent_closing', False)
+    CONF.set('debugger', 'pdb_prevent_closing', False)
     # Check we can close a file we debug if the option is disabled
     assert main_window.editor.get_current_editorstack().close_file()
-    CONF.set('ipython_console', 'pdb_prevent_closing', True)
+    CONF.set('debugger', 'pdb_prevent_closing', True)
     # Check we are still debugging
     assert shell.is_debugging()
 
@@ -4777,7 +4777,7 @@ def test_continue_first_line(main_window, qtbot):
     """
     Check we can bypass prevent closing.
     """
-    CONF.set('ipython_console', 'pdb_stop_first_line', False)
+    CONF.set('debugger', 'pdb_stop_first_line', False)
     code = "print('a =', 1 + 6)\nprint('b =', 1 + 8)\n"
 
     # Wait until the window is fully up
@@ -4805,7 +4805,7 @@ def test_continue_first_line(main_window, qtbot):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
     # The debugging should finish
     qtbot.waitUntil(lambda: not shell.is_debugging())
-    CONF.set('ipython_console', 'pdb_stop_first_line', True)
+    CONF.set('debugger', 'pdb_stop_first_line', True)
 
     # Check everything was executed
     qtbot.waitUntil(lambda: "a = 7" in shell._control.toPlainText())
