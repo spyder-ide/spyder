@@ -179,8 +179,7 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
-    debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
+    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -2836,19 +2835,21 @@ class EditorStack(QWidget):
         if self.focus_to_editor:
             editor.move_cursor_to_next('line', 'down')
 
-    def run_cell(self, debug=False):
+    def run_cell(self, method=None):
         """Run current cell."""
+        if method is None:
+            method = "runcell"
         text, block = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
         name = cell_name(block)
         filename = finfo.filename
 
-        self._run_cell_text(text, editor, (filename, name), debug)
+        self._run_cell_text(text, editor, (filename, name), method)
 
     def debug_cell(self):
         """Debug current cell."""
-        self.run_cell(debug=True)
+        self.run_cell(method="debugcell")
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2884,7 +2885,7 @@ class EditorStack(QWidget):
 
         self._run_cell_text(text, editor, (filename, cell_name))
 
-    def _run_cell_text(self, text, editor, cell_id, debug=False):
+    def _run_cell_text(self, text, editor, cell_id, method=None):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2900,12 +2901,15 @@ class EditorStack(QWidget):
         """
         (filename, cell_name) = cell_id
         if editor.is_python_or_ipython():
-            args = (text, cell_name, filename, self.run_cell_copy,
-                    self.focus_to_editor)
-            if debug:
-                self.debug_cell_in_ipyclient.emit(*args)
-            else:
-                self.run_cell_in_ipyclient.emit(*args)
+            if method is None:
+                method = "runcell"
+            # self.run_cell_copy only works for runcell
+            run_cell_copy = self.run_cell_copy
+            if method != "runcell":
+                run_cell_copy = False
+            self.sig_run_cell_in_ipyclient.emit(
+                text, cell_name, filename, run_cell_copy, method,
+                self.focus_to_editor)
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):

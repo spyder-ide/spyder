@@ -2196,7 +2196,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 focus_to_editor, function='runcell'):
+                 method='runcell', focus_to_editor=False):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -2210,20 +2210,35 @@ class IPythonConsoleWidget(PluginMainWidget):
             client = self.get_current_client()
 
         if client is not None:
-            # Internal kernels, use runcell
-            if client.get_kernel() is not None and not run_cell_copy:
+            is_spyder_kernel = client.shellwidget.is_spyder_kernel
+            # Only use copy for runcell
+
+            if method == 'runcell' and (run_cell_copy or not is_spyder_kernel):
+                # Use copy of cell
+                line = code.strip()
+            elif is_spyder_kernel:
+                # Use custom function
                 line = (str(
                         "{}({}, '{}')").format(
-                                str(function),
+                                str(method),
                                 repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
 
-                if function == "debugcell":
+                if method == "debugcell":
                     # To keep focus in editor after running debugfile
                     client.shellwidget._pdb_focus_to_editor = focus_to_editor
             # External kernels and run_cell_copy, just execute the code
             else:
-                line = code.strip()
+                # Can not use custom function on non-spyder kernels
+                QMessageBox.warning(
+                    self,
+                    _('Warning'),
+                    _("The client is not a spyder-kernel "
+                      "to run <b>{}</b>.<br><br>Please Use a spyder-kernel."
+                      ).format(method),
+                    QMessageBox.Ok
+                )
+                return
 
             try:
                 self.execute_code(line, set_focus=not focus_to_editor)
@@ -2247,17 +2262,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                 QMessageBox.Ok
             )
 
-    def debug_cell(self, code, cell_name, filename, run_cell_copy,
-                   focus_to_editor):
-        """Debug current cell."""
-        self.run_cell(code, cell_name, filename, run_cell_copy,
-                      focus_to_editor, 'debugcell')
-
     # ---- For scripts
-    def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace,
-                   focus_to_editor):
-        """Run script in current or dedicated client"""
+    def run_script(self, filename, wdir, args, post_mortem, current_client,
+                   clear_variables, console_namespace, focus_to_editor,
+                   method=None, force_wdir=False):
+        """Run script in current or dedicated client."""
         norm = lambda text: remove_backslashes(str(text))
 
         # Run Cython files in a dedicated console
@@ -2277,12 +2286,17 @@ class IPythonConsoleWidget(PluginMainWidget):
                 is_new_client = True
 
         if client is not None:
+            if method is None:
+                method = "runfile"
             # If spyder-kernels, use runfile
             if client.shellwidget.is_spyder_kernel:
-                line = "%s('%s'" % ('debugfile' if debug else 'runfile',
-                                    norm(filename))
+                line = method + "('%s'" % (norm(filename))
                 if args:
                     line += ", args='%s'" % norm(args)
+                if (wdir and client.shellwidget.is_external_kernel
+                        and not force_wdir):
+                    # No working directory for external kernels
+                    wdir = ''
                 if wdir:
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
@@ -2291,16 +2305,27 @@ class IPythonConsoleWidget(PluginMainWidget):
                     line += ", current_namespace=True"
                 line += ")"
 
-                if debug:
+                if method == "debugfile":
                     # To keep focus in editor after running debugfile
                     client.shellwidget._pdb_focus_to_editor = focus_to_editor
-            else:  # External, non spyder-kernels, use %run
+            elif method in ["runfile", "debugfile"]:
+                # External, non spyder-kernels, use %run
                 line = "%run "
-                if debug:
+                if method == "debugfile":
                     line += "-d "
                 line += "\"%s\"" % str(filename)
                 if args:
                     line += " %s" % norm(args)
+            else:
+                QMessageBox.warning(
+                    self,
+                    _('Warning'),
+                    _("The client is not a spyder-kernel "
+                      "to run <b>{}</b>.<br><br>Please Use a spyder-kernel."
+                      ).format(method),
+                    QMessageBox.Ok
+                )
+                return
 
             try:
                 if client.shellwidget._executing:
