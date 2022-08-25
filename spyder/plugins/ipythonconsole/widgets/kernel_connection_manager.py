@@ -258,14 +258,12 @@ class KernelConnection:
                 km.shutdown_kernel(now=True)
             else:
                 shutdown_thread = QThread(None)
-                shutdown_thread.kernel_manager = km
                 shutdown_thread.run = self._thread_shutdown_kernel
                 self.shutdown_thread_list.append(shutdown_thread)
                 shutdown_thread.start()
                 self.prune_shutdown_thread_list()
         if self.kernel_comm is not None:
             self.kernel_comm.close()
-            self.kernel_comm.remove()
         if (
             self.kernel_client is not None
             and self.kernel_client.channels_running

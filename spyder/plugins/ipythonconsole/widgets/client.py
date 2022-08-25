@@ -809,7 +809,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw.kernel_manager.start_restarter()
             self.send_spyder_kernel_configuration()
 
-
         self.restart_thread = None
         self.sig_execution_state_changed.emit()
 
