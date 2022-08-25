@@ -66,12 +66,11 @@ ERROR_SPYDER_KERNEL_VERSION = _(
     "</pre>"
 )
 
-# For version<3.0 where the version and executable can not be queried
+# For Spyder-kernels version < 3.0, where the version and executable cannot be queried
 ERROR_SPYDER_KERNEL_VERSION_OLD = _(
     "This Python environment doesn't have the right version of "
-    "<tt>spyder-kernels</tt> installed (>= {0} and < {1}). "
-    "Without this module is not possible for "
-    "Spyder to create a console for you.<br><br>"
+    "<tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this "
+    "module is not possible for Spyder to create a console for you.<br><br>"
     "You can install it by activating your environment (if necessary) and "
     "then running in a system terminal:"
     "<pre>"
@@ -382,6 +381,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                         )
                     )
                 return
+
             version, pyexec = spyder_kernel_info
             if not check_version_range(version, SPYDER_KERNELS_VERSION):
                 if "dev0" not in version:

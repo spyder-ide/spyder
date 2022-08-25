@@ -34,27 +34,26 @@ from spyder.utils.programs import is_python_interpreter, is_module_installed
 HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
 
+
 # Localization
 _ = get_translation('spyder')
+
 ERROR_SPYDER_KERNEL_INSTALLED = _(
-    "The Python environment or installation whose "
-    "interpreter is located at"
+    "The Python environment or installation whose interpreter is located at"
     "<pre>"
     "    <tt>{0}</tt>"
     "</pre>"
-    "doesn't have the <tt>spyder-kernels</tt> module "
-    "installed. Without this module is not possible for "
-    "Spyder to create a console for you.<br><br>"
-    "You can install it by activating your environment (if "
-    "necessary) and then running in a system terminal:"
+    "doesn't have the <tt>spyder-kernels</tt> module installed. Without this "
+    "module is not possible for Spyder to create a console for you.<br><br>"
+    "You can install it by activating your environment (if necessary) and "
+    "running in a system terminal:"
     "<pre>"
     "    <tt>{1}</tt>"
     "</pre>"
     "or"
     "<pre>"
     "    <tt>{2}</tt>"
-    "</pre>"
-)
+    "</pre>")
 
 
 def is_different_interpreter(pyexec):
