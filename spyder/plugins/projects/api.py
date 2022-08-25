@@ -9,8 +9,10 @@ Projects Plugin API.
 """
 
 # Standard library imports
-import os.path as osp
 from collections import OrderedDict
+import configparser
+import os.path as osp
+import shutil
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -39,17 +41,20 @@ class BaseProjectType:
         self.root_path = root_path
         self.open_project_files = []
         self.open_non_project_files = []
+
+        # Path to project's config directory
         path = osp.join(root_path, get_project_config_folder(), 'config')
-        self.config = ProjectMultiConfig(
-            PROJECT_NAME_MAP,
-            path=path,
-            defaults=PROJECT_DEFAULTS,
-            load=True,
-            version=PROJECT_CONF_VERSION,
-            backup=True,
-            raw_mode=True,
-            remove_obsolete=False,
-        )
+
+        # This is necessary to avoid any issues while reading the project's
+        # config files.
+        # Fixes spyder-ide/spyder#17907
+        try:
+            self.config = self.create_config(path)
+        except configparser.Error:
+            # Remove config directory in case of errors and recreate it again.
+            shutil.rmtree(path)
+            self.config = self.create_config(path)
+
         act_name = self.get_option("project_type")
         if not act_name:
             self.set_option("project_type", self.ID)
@@ -99,6 +104,20 @@ class BaseProjectType:
                 recent_files.remove(recent_file)
 
         return list(OrderedDict.fromkeys(recent_files))
+
+    @staticmethod
+    def create_config(path):
+        """Create the project's configuration object."""
+        return ProjectMultiConfig(
+            PROJECT_NAME_MAP,
+            path=path,
+            defaults=PROJECT_DEFAULTS,
+            load=True,
+            version=PROJECT_CONF_VERSION,
+            backup=True,
+            raw_mode=True,
+            remove_obsolete=False,
+        )
 
     # --- API
     # ------------------------------------------------------------------------
