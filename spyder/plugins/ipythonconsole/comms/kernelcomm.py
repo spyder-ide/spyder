@@ -37,6 +37,16 @@ class KernelComm(CommBase, QObject):
         # Register handlers
         self.register_call_handler('_async_error', self._async_error)
 
+    def is_open(self, comm_id=None):
+        """Check to see if the comm is open."""
+        valid_comms = [
+            comm for comm in self._comms
+            if self._comms[comm]['status'] in ['opening', 'ready']
+        ]
+        if comm_id is None:
+            return len(valid_comms) > 0
+        return comm_id in valid_comms
+
     @contextmanager
     def comm_channel_manager(self, comm_id, queue_message=False):
         """Use control_channel instead of shell_channel."""

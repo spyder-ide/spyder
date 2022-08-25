@@ -34,7 +34,7 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget, ShellWidget)
+    KernelConnectionDialog, PageControlWidget)
 from spyder.plugins.ipythonconsole.widgets.kernel_connection_manager import (
     CachedKernelMixin, KernelConnection)
 from spyder.py3compat import PY38_OR_MORE

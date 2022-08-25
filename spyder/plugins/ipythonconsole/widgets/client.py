@@ -732,11 +732,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             if self.infowidget.isVisible():
                 self.infowidget.hide()
 
-        if self._abort_kernel_restart():
-            return
-
         # Close comm
         sw.spyder_kernel_comm.close()
+
+        if self._abort_kernel_restart():
+            return
 
         # Stop autorestart mechanism
         sw.kernel_manager.stop_restarter()
@@ -772,6 +772,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         sw = self.shellwidget
 
         if self._abort_kernel_restart():
+            sw.spyder_kernel_comm.remove()
             return
 
         if self.restart_thread and self.restart_thread.error is not None:
@@ -805,6 +806,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 # Aborting!
                 return
 
+            # Start autorestart mechanism
             sw.kernel_manager.autorestart = True
             sw.kernel_manager.start_restarter()
             self.send_spyder_kernel_configuration()
