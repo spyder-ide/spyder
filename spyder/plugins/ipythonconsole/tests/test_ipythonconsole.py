@@ -2386,5 +2386,58 @@ def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
+def test_run_script(ipyconsole, qtbot, tmp_path):
+    """
+    Test running multiple scripts at the same time.
+
+    This is a regression test for issue spyder-ide/spyder#15405
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Create two temp files: 'a.py' and 'b.py'
+    dir_a = tmp_path / 'a'
+    dir_a.mkdir()
+    filename_a = dir_a / 'a.py'
+    filename_a.write_text('a = 1')
+
+    dir_b = tmp_path / 'b'
+    dir_b.mkdir()
+    filename_b = dir_a / 'b.py'
+    filename_b.write_text('b = 1')
+
+    filenames = [str(filename_a), str(filename_b)]
+
+    # Run scripts
+    for filename in filenames:
+        ipyconsole.run_script(
+            filename=filename,
+            wdir=osp.dirname(filename),
+            current_client=False,
+            clear_variables=True
+        )
+
+    # Validate created consoles names and code executed
+    for filename in filenames:
+        basename = osp.basename(filename)
+        client_name = f'{basename}/A'
+        variable_name = basename.split('.')[0]
+
+        client = ipyconsole.get_client_for_file(filename)
+        assert client.get_name() == client_name
+
+        sw = client.shellwidget
+        qtbot.waitUntil(
+            lambda: sw._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+        # Wait for the respective script to be run
+        control = client.get_control()
+        qtbot.waitUntil(
+            lambda: "In [2]:" in control.toPlainText(), timeout=SHELL_TIMEOUT)
+        assert sw.get_value(variable_name) == 1
+
+
 if __name__ == "__main__":
     pytest.main()
