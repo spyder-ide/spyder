@@ -1018,7 +1018,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                 if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
                     for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
                         self.layouts.register_layout(
-                            self, custom_layout)
+                            self.layouts, custom_layout)
                 else:
                     logger.info(
                         'Unable to load custom layouts for {}. '

@@ -42,7 +42,6 @@ class BaseGridLayoutType:
 
     def __init__(self, parent_plugin):
         self.plugin = parent_plugin
-        self._plugin = parent_plugin
         self._areas = []
         self._area_rects = []
         self._column_stretchs = {}
