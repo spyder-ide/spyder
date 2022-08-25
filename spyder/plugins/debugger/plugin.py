@@ -32,7 +32,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     NAME = 'debugger'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.VariableExplorer]
+    OPTIONAL = [Plugins.Editor, Plugins.VariableExplorer, Plugins.MainMenu]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME
@@ -85,7 +85,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         """
         editor = self.get_plugin(Plugins.Editor)
         editor.switch_to_plugin()
-        editor.run_file(method="debug_file")
+        editor.run_file(method="debugfile")
 
     @Slot()
     def debug_cell(self):
@@ -95,7 +95,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         '''
         editor = self.get_plugin(Plugins.Editor)
         editor.get_current_editorstack().run_cell(
-            method="debug_cell")
+            method="debugcell")
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):

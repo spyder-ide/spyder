@@ -586,12 +586,6 @@ class EditorStack(QWidget):
             name="run cell",
             parent=self)
 
-        debug_cell = CONF.config_shortcut(
-            self.debug_cell,
-            context="Editor",
-            name="debug cell",
-            parent=self)
-
         run_cell_and_advance = CONF.config_shortcut(
             self.run_cell_and_advance,
             context="Editor",
@@ -658,7 +652,7 @@ class EditorStack(QWidget):
                 open_file, save_file, save_all, save_as, close_all,
                 prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
                 zoom_out, zoom_reset, close_file_1, close_file_2, run_cell,
-                debug_cell, run_cell_and_advance,
+                run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -2514,7 +2508,6 @@ class EditorStack(QWidget):
         editor.sig_run_to_line.connect(self.run_to_line)
         editor.sig_run_from_line.connect(self.run_from_line)
         editor.sig_run_cell.connect(self.run_cell)
-        editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file)
@@ -2846,10 +2839,6 @@ class EditorStack(QWidget):
         filename = finfo.filename
 
         self._run_cell_text(text, editor, (filename, name), method)
-
-    def debug_cell(self):
-        """Debug current cell."""
-        self.run_cell(method="debugcell")
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""

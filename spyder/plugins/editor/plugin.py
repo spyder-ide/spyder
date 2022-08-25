@@ -2938,14 +2938,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.dialog_size = size
 
     @Slot()
-    def debug_file(self):
-        """Debug current script"""
-        current_editor = self.get_current_editor()
-        if current_editor is not None:
-            current_editor.sig_debug_start.emit()
-        self.run_file(method="debugfile")
-
-    @Slot()
     def re_run_file(self, save_new_files=True):
         """Re-run last script"""
         if self.get_option('save_all_before_run'):
@@ -3001,12 +2993,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
-
-    @Slot()
-    def debug_cell(self):
-        '''Debug Current cell.'''
-        editorstack = self.get_current_editorstack()
-        editorstack.debug_cell()
 
     @Slot()
     def re_run_last_cell(self):
