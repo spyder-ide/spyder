@@ -509,9 +509,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
 
-        # For spyder-ide/spyder#6235, IPython was changing the
-        # setting of %colors on windows by assuming it was using a
-        # dark background. This corrects it based on the scheme.
+        # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
         # send pdb config
@@ -791,12 +789,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Reset Pdb state and reopen comm
             sw.reset_kernel_state()
 
-            if reset:
-                sw.reset(clear=True)
-            sw._append_html(_("<br>Restarting kernel...<br>"),
-                            before_prompt=True)
-            sw.insert_horizontal_ruler()
-
             # Reopen comm
             sw.spyder_kernel_comm.remove()
             try:
@@ -809,6 +801,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Start autorestart mechanism
             sw.kernel_manager.autorestart = True
             sw.kernel_manager.start_restarter()
+
+            if reset:
+                sw.reset(clear=True)
+            sw._append_html(_("<br>Restarting kernel...<br>"),
+                            before_prompt=True)
+            sw.insert_horizontal_ruler()
+
             self.send_spyder_kernel_configuration()
 
         self.restart_thread = None
