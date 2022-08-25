@@ -2830,8 +2830,6 @@ class EditorStack(QWidget):
 
     def run_cell(self, method=None):
         """Run current cell."""
-        if method is None:
-            method = "runcell"
         text, block = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
@@ -2840,9 +2838,9 @@ class EditorStack(QWidget):
 
         self._run_cell_text(text, editor, (filename, name), method)
 
-    def run_cell_and_advance(self):
+    def run_cell_and_advance(self, method=None):
         """Run current cell and advance to the next one"""
-        self.run_cell()
+        self.run_cell(method)
         self.advance_cell()
 
     def advance_cell(self, reverse=False):

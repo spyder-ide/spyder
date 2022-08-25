@@ -41,10 +41,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     sig_debug_file = Signal()
-    """This signal is emitted to request the current file to be debugd."""
+    """This signal is emitted to request the current file to be debugged."""
 
     sig_debug_cell = Signal()
-    """This signal is emitted to request the current cell to be debugd."""
+    """This signal is emitted to request the current cell to be debugged."""
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
@@ -94,8 +94,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         Should only be called when an editor is avilable.
         '''
         editor = self.get_plugin(Plugins.Editor)
-        editor.get_current_editorstack().run_cell(
-            method="debugcell")
+        editor.run_cell(method="debugcell")
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):

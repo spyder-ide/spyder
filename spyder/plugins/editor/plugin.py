@@ -2983,16 +2983,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.run_from_line()
 
     @Slot()
-    def run_cell(self):
+    def run_cell(self, method=None):
         """Run current cell"""
         editorstack = self.get_current_editorstack()
-        editorstack.run_cell()
+        editorstack.run_cell(method=method)
 
     @Slot()
-    def run_cell_and_advance(self):
+    def run_cell_and_advance(self, method=None):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()
-        editorstack.run_cell_and_advance()
+        editorstack.run_cell_and_advance(method)
 
     @Slot()
     def re_run_last_cell(self):
