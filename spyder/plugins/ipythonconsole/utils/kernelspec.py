@@ -27,11 +27,13 @@ from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter
 
-# Constants
+
+# ---- Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
 
 
+# ---- Auxiliary functions
 def is_different_interpreter(pyexec):
     """Check that pyexec is a different interpreter from sys.executable."""
     executable_validation = osp.basename(pyexec).startswith('python')
@@ -59,9 +61,6 @@ def get_activation_script(quote=False):
     return script_path
 
 
-HERE = osp.dirname(os.path.realpath(__file__))
-
-
 class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     """Kernel spec for Spyder kernels"""
 
@@ -78,6 +77,38 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         self.language = 'python3'
         self.resource_dir = ''
 
+    # ---- Private API defined by us
+    # -------------------------------------------------------------------------
+    def _get_pythonpath(self):
+        """Get PYTHONPATH to send to the kernel."""
+        spyder_pythonpath = self.get_conf(
+            'spyder_pythonpath', default=[], section='main')
+        external_pythonpath = os.environ.get('PYTHONPATH', None)
+        ext_pypath_handled_by_spyder = False
+
+        # Check if Spyder is handling the paths present in PYTHONPATH.
+        # Note: This is a very simply validation but it'll be improved once
+        # we have a plugin for our Python Path Manager.
+        if external_pythonpath:
+            for path in external_pythonpath.split(os.pathsep):
+                if path in spyder_pythonpath:
+                    ext_pypath_handled_by_spyder = True
+                    break
+
+        # If Spyder is not handling PYTHONPATH, then append its paths to the
+        # ones added through our Python Path Manager. That makes things work as
+        # they have been since Spyder 3.
+        # Fixes spyder-ide/spyder#18942.
+        if external_pythonpath and not ext_pypath_handled_by_spyder:
+            external_pypaths = external_pythonpath.split(os.pathsep)
+            pathlist = spyder_pythonpath + external_pypaths
+        else:
+            pathlist = spyder_pythonpath
+
+        return os.pathsep.join(pathlist)
+
+    # ---- Kernelspec API
+    # -------------------------------------------------------------------------
     @property
     def argv(self):
         """Command to start kernels"""
@@ -132,14 +163,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # to the kernel sys.path
         env_vars.pop('VIRTUAL_ENV', None)
 
-        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
+        # Do not pass PYTHONPATH to kernels directly.
+        # See spyder-ide/spyder#13519
         env_vars.pop('PYTHONPATH', None)
 
-        # List of paths declared by the user, plus project's path, to
-        # add to PYTHONPATH
-        pathlist = self.get_conf(
-            'spyder_pythonpath', default=[], section='main')
-        pypath = os.pathsep.join(pathlist)
+        # List of paths to add to PYTHONPATH
+        pypath = self._get_pythonpath()
 
         # List of modules to exclude from our UMR
         umr_namelist = self.get_conf(
