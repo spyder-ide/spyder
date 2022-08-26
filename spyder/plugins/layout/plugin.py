@@ -285,6 +285,21 @@ class Layout(SpyderPluginV2):
         """
         self.get_container().register_layout(parent_plugin, layout_type)
 
+    def register_custom_layouts(self):
+        """Register custom layouts provided by external plugins."""
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = self.get_plugin(plugin_name)
+            if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
+                if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
+                    for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
+                        self.register_layout(self, custom_layout)
+                else:
+                    logger.info(
+                        f'Unable to load custom layouts for plugin '
+                        f'{plugin_name}. Expecting a list of layout classes '
+                        f'but got {plugin_instance.CUSTOM_LAYOUTS}.'
+                    )
+
     def get_layout(self, layout_id):
         """
         Get a registered layout by his ID.

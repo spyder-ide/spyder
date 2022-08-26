@@ -1012,19 +1012,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                     pass
 
         # Register custom layouts
-        for plugin_name in PLUGIN_REGISTRY.external_plugins:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
-                if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
-                    for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
-                        self.layouts.register_layout(
-                            self.layouts, custom_layout)
-                else:
-                    logger.info(
-                        'Unable to load custom layouts for {}. '
-                        'Expecting a list of layout classes but got {}'
-                        .format(plugin_name, plugin_instance.CUSTOM_LAYOUTS)
-                    )
+        if self.layouts is not None:
+            self.layouts.register_custom_layouts()
 
         # Needed to ensure dockwidgets/panes layout size distribution
         # when a layout state is already present.
