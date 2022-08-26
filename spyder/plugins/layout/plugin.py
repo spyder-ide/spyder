@@ -947,7 +947,7 @@ class Layout(SpyderPluginV2):
 
         # Restore visible plugins
         for plugin in visible_plugins:
-            plugin_class = self.main.get_plugin(plugin, error=False)
+            plugin_class = self.get_plugin(plugin, error=False)
             if plugin_class and plugin_class.dockwidget.isVisible():
                 plugin_class.dockwidget.raise_()
 
@@ -1084,7 +1084,7 @@ class Layout(SpyderPluginV2):
         # Tabify new internal plugins
         for plugin_name in self._get_internal_dockable_plugins():
             if plugin_name not in last_internal_dockable_plugins:
-                plugin = self.main.get_plugin(plugin_name, error=False)
+                plugin = self.get_plugin(plugin_name, error=False)
                 if plugin:
                     self.tabify_plugin(plugin, Plugins.Console)
 
