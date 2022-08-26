@@ -309,14 +309,13 @@ class ApplicationContainer(PluginMainContainer):
                         "<code>conda update anaconda</code><br>"
                         "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
-                else:
-                    if is_pynsist() or running_in_mac_app():
-                        box.setStandardButtons(QMessageBox.Yes |
-                                               QMessageBox.No)
-                        content = _(
-                            "Would you like to automatically download and"
-                            " install the latest version of Spyder?<br><br>"
-                        )
+                elif is_pynsist() or running_in_mac_app():
+                    box.setStandardButtons(QMessageBox.Yes |
+                                           QMessageBox.No)
+                    content = _(
+                        "Would you like to automatically download and"
+                        " install the latest version of Spyder?<br><br>"
+                    )
 
                 msg = header + content + footer
                 box.setText(msg)
