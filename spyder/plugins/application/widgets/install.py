@@ -105,7 +105,7 @@ class UpdateInstallation(QWidget):
         self.install_info.setText(INSTALL_INFO_MESSAGES[status])
         if status == INSTALLING:
             self._progress_bar.setRange(0, 0)
-            self.cancel_button.hide()
+            self.cancel_button.setEnabled(False)
 
     def update_installation_progress(self, current_value, total):
         """Update installation progress bar."""
@@ -153,10 +153,10 @@ class UpdateInstallerDialog(QDialog):
         self._installation_widget.cancel_button.clicked.connect(
             self.cancel_install)
 
-        # Show integration widget
+        # Show installation widget
         self.setup()
 
-    def setup(self, installation=False):
+    def setup(self):
         """Setup visibility of widgets."""
         self._installation_widget.setVisible(True)
         self.adjustSize()

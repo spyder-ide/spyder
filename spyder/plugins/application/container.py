@@ -91,11 +91,6 @@ class ApplicationContainer(PluginMainContainer):
     Signal to load a log file
     """
 
-    sig_show_status_bar_widget = Signal(bool)
-    """
-    Signal to show the widget in status bar
-    """
-
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent)
 
@@ -322,11 +317,6 @@ class ApplicationContainer(PluginMainContainer):
                             "Would you like to automatically download and"
                             " install the latest version of Spyder?<br><br>"
                         )
-                    else:
-                        content = _(
-                            "Click <a href=\"{}\">this link</a> to "
-                            "download it.<br><br>"
-                        ).format(url_r)
 
                 msg = header + content + footer
                 box.setText(msg)
