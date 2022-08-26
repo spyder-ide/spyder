@@ -67,7 +67,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             triggered=self.sig_debug_file,
             register_shortcut=True,
         )
-        
+
         self.create_action(
             DebuggerActions.DebugCurrentCell,
             text=_("Debug cell"),
@@ -155,11 +155,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         debug_cell_action = self.get_action(
             DebuggerActions.DebugCurrentCell)
 
-        self.main.run_menu_actions += [
-                MENU_SEPARATOR,
+        self.main.debug_menu_actions = [
                 debug_file_action,
-                debug_cell_action
-            ]
+                debug_cell_action,
+                MENU_SEPARATOR,
+            ] + self.main.debug_menu_actions
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -167,11 +167,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         mainmenu.remove_item_from_application_menu(
             DebuggerActions.DebugCurrentFile,
-            menu_id=ApplicationMenus.Run
+            menu_id=ApplicationMenus.Debug
         )
         mainmenu.remove_item_from_application_menu(
             DebuggerActions.DebugCurrentCell,
-            menu_id=ApplicationMenus.Run
+            menu_id=ApplicationMenus.Debug
         )
 
     # ---- Public API

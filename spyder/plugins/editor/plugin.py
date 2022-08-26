@@ -1078,13 +1078,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         # ---- Debug menu/toolbar construction ----
         debug_menu_actions = [
-            MENU_SEPARATOR,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
         ]
-        self.main.debug_menu_actions = (
-            debug_menu_actions + self.main.debug_menu_actions)
+        self.main.debug_menu_actions += debug_menu_actions
 
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [
