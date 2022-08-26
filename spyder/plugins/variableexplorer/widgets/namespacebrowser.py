@@ -161,7 +161,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         except TypeError:
             pass
 
-    def refresh_namespacebrowser(self, interrupt=True):
+    def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
         self.shellwidget.call_kernel(
             interrupt=interrupt,

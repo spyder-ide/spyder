@@ -8,6 +8,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import re
 from threading import Lock
 import uuid
 
@@ -303,17 +304,36 @@ class KernelConnection:
 
     def remove_files(self):
         """Remove std files."""
-        if self.stderr_obj is not None:
-            self.stderr_obj.remove()
-        if self.stdout_obj is not None:
-            self.stdout_obj.remove()
-        if self.fault_obj is not None:
-            self.fault_obj.remove()
+        for obj in [self.stderr_obj, self.stderr_obj, self.fault_obj]:
+            if obj is not None:
+                obj.remove()
 
     def open_comm(self, kernel_comm):
         """Open kernel comm"""
         kernel_comm.open_comm(self.kernel_client)
         self.kernel_comm = kernel_comm
+
+    def replace_std_files(self):
+        """Replace std files."""
+        for obj in [self.stderr_obj, self.stderr_obj, self.fault_obj]:
+            if obj is None:
+                continue
+            obj.remove()
+            fn = obj.filename
+            m = re.match(r"(.+_)(\d+)(.[a-z]+)", fn)
+            if m:
+                # Already a replaced file
+                path, n, ext = m.groups()
+                obj.filename = path + str(1 + int(n)) + ext
+                continue
+            m = re.match(r"(.+)(.[a-z]+)", fn)
+            if m:
+                # First replaced file
+                path, ext = m.groups()
+                obj.filename = path + "_1" + ext
+                continue
+            # No extension, should not happen
+            obj.filename += "_1"
 
 
 class CachedKernelMixin:

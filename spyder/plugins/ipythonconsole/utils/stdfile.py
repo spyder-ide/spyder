@@ -71,9 +71,11 @@ class StdFile:
             if self._handle is not None:
                 self._handle.close()
             os.remove(self.filename)
-            self._handle = None
         except Exception:
             pass
+        self._handle = None
+        self._mtime = 0
+        self._cursor = 0
 
     def get_contents(self):
         """Get the contents of the std kernel file."""

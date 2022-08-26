@@ -743,6 +743,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Reconfigure client before the new kernel is connected again.
         self._before_prompt_is_ready()
 
+        # replace std files to avoid catching old kernel errors
+        self.kernel.replace_std_files()
+
         # Create and run restarting thread
         if (self.restart_thread is not None
                 and self.restart_thread.isRunning()):
