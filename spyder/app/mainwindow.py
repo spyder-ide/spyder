@@ -589,65 +589,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         except ValueError:
             pass
 
-    def tabify_plugins(self, first, second):
-        """Tabify plugin dockwigdets."""
-        self.tabifyDockWidget(first.dockwidget, second.dockwidget)
-
-    def tabify_plugin(self, plugin, default=None):
-        """
-        Tabify the plugin using the list of possible TABIFY options.
-
-        Only do this if the dockwidget does not have more dockwidgets
-        in the same position and if the plugin is using the New API.
-        """
-        def tabify_helper(plugin, next_to_plugins):
-            for next_to_plugin in next_to_plugins:
-                try:
-                    self.tabify_plugins(next_to_plugin, plugin)
-                    break
-                except SpyderAPIError as err:
-                    logger.error(err)
-
-        # If TABIFY not defined use the [default]
-        tabify = getattr(plugin, 'TABIFY', [default])
-        if not isinstance(tabify, list):
-            next_to_plugins = [tabify]
-        else:
-            next_to_plugins = tabify
-
-        # Check if TABIFY is not a list with None as unique value or a default
-        # list
-        if tabify in [[None], []]:
-            return False
-
-        # Get the actual plugins from the names
-        next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
-
-        # First time plugin starts
-        if plugin.get_conf('first_time', True):
-            if (isinstance(plugin, SpyderDockablePlugin)
-                    and plugin.NAME != Plugins.Console):
-                logger.info(
-                    "Tabify {} dockwidget for the first time...".format(
-                        plugin.NAME))
-                tabify_helper(plugin, next_to_plugins)
-
-                # Show external plugins
-                if plugin.NAME in PLUGIN_REGISTRY.external_plugins:
-                    plugin.get_widget().toggle_view(True)
-
-            plugin.set_conf('enable', True)
-            plugin.set_conf('first_time', False)
-        else:
-            # This is needed to ensure plugins are placed correctly when
-            # switching layouts.
-            logger.info("Tabify {} dockwidget...".format(plugin.NAME))
-            # Check if plugin has no other dockwidgets in the same position
-            if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
-                tabify_helper(plugin, next_to_plugins)
-
-        return True
-
     def handle_exception(self, error_data):
         """
         This method will call the handle exception method of the Console
@@ -1058,16 +999,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             except AttributeError:
                 pass
 
-        # Tabify external plugins which were installed after Spyder was
-        # installed.
-        # Note: This is only necessary the first time a plugin is loaded.
-        # Afterwards, the plugin placement is recorded on the window hexstate,
-        # which is loaded by the layouts plugin during the next session.
-        for plugin_name in PLUGIN_REGISTRY.external_plugins:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if plugin_instance.get_conf('first_time', True):
-                self.tabify_plugin(plugin_instance, Plugins.Console)
-
         if self.splash is not None:
             self.splash.hide()
 
@@ -1081,19 +1012,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                     pass
 
         # Register custom layouts
-        for plugin_name in PLUGIN_REGISTRY.external_plugins:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
-                if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
-                    for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
-                        self.layouts.register_layout(
-                            self, custom_layout)
-                else:
-                    logger.info(
-                        'Unable to load custom layouts for {}. '
-                        'Expecting a list of layout classes but got {}'
-                        .format(plugin_name, plugin_instance.CUSTOM_LAYOUTS)
-                    )
+        if self.layouts is not None:
+            self.layouts.register_custom_layouts()
 
         # Needed to ensure dockwidgets/panes layout size distribution
         # when a layout state is already present.
@@ -1103,6 +1023,13 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             and self.get_conf('window/state', default=None)
         ):
             self.layouts.before_mainwindow_visible()
+
+        # Tabify new plugins which were installed or created after Spyder ran
+        # for the first time.
+        # NOTE: **DO NOT** make layout changes after this point or new plugins
+        # won't be tabified correctly.
+        if self.layouts is not None:
+            self.layouts.tabify_new_plugins()
 
         logger.info("*** End of MainWindow setup ***")
         self.is_starting_up = False

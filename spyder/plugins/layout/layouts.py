@@ -8,11 +8,6 @@
 Default layout definitions.
 """
 
-# Third party imports
-from qtpy.QtCore import QRect, QRectF, Qt
-from qtpy.QtWidgets import (QApplication, QDockWidget, QGridLayout,
-                            QMainWindow, QPlainTextEdit, QWidget)
-
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.api.translations import get_translation

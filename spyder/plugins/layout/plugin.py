@@ -18,9 +18,11 @@ from qtpy.QtWidgets import QApplication, QDesktopWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import (
+    Plugins, DockablePlugins, SpyderDockablePlugin, SpyderPluginV2)
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.translations import get_translation
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
@@ -70,7 +72,7 @@ class Layout(SpyderPluginV2):
     """
     NAME = "layout"
     CONF_SECTION = "quick_layouts"
-    REQUIRES = [Plugins.All]  # Uses wildcard to require all the plugins
+    REQUIRES = [Plugins.All]  # Uses wildcard to require all plugins
     CONF_FILE = False
     CONTAINER_CLASS = LayoutContainer
     CAN_BE_DISABLED = False
@@ -212,7 +214,37 @@ class Layout(SpyderPluginV2):
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
 
-    # ---- Plubic API
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _get_internal_dockable_plugins(self):
+        """Get the list of internal dockable plugins"""
+        return get_class_values(DockablePlugins)
+
+    def _update_fullscreen_action(self):
+        if self._fullscreen_flag:
+            icon = self.create_icon('window_nofullscreen')
+        else:
+            icon = self.create_icon('window_fullscreen')
+        self.get_container()._fullscreen_action.setIcon(icon)
+
+    def _update_lock_interface_action(self):
+        """
+        Helper method to update the locking of panes/dockwidgets and toolbars.
+
+        Returns
+        -------
+        None.
+        """
+        if self._interface_locked:
+            icon = self.create_icon('drag_dock_widget')
+            text = _('Unlock panes and toolbars')
+        else:
+            icon = self.create_icon('lock')
+            text = _('Lock panes and toolbars')
+        self.lock_interface_action.setIcon(icon)
+        self.lock_interface_action.setText(text)
+
+    # ---- Helper methods
     # -------------------------------------------------------------------------
     def get_last_plugin(self):
         """
@@ -238,6 +270,8 @@ class Layout(SpyderPluginV2):
         """
         return self._fullscreen_flag
 
+    # ---- Layout handling
+    # -------------------------------------------------------------------------
     def register_layout(self, parent_plugin, layout_type):
         """
         Register a new layout type.
@@ -250,6 +284,21 @@ class Layout(SpyderPluginV2):
             Layout to register.
         """
         self.get_container().register_layout(parent_plugin, layout_type)
+
+    def register_custom_layouts(self):
+        """Register custom layouts provided by external plugins."""
+        for plugin_name in PLUGIN_REGISTRY.external_plugins:
+            plugin_instance = self.get_plugin(plugin_name)
+            if hasattr(plugin_instance, 'CUSTOM_LAYOUTS'):
+                if isinstance(plugin_instance.CUSTOM_LAYOUTS, list):
+                    for custom_layout in plugin_instance.CUSTOM_LAYOUTS:
+                        self.register_layout(self, custom_layout)
+                else:
+                    logger.info(
+                        f'Unable to load custom layouts for plugin '
+                        f'{plugin_name}. Expecting a list of layout classes '
+                        f'but got {plugin_instance.CUSTOM_LAYOUTS}.'
+                    )
 
     def get_layout(self, layout_id):
         """
@@ -586,6 +635,8 @@ class Layout(SpyderPluginV2):
             section=section,
         )
 
+    # ---- Maximize, close, switch to dockwidgets/plugins
+    # -------------------------------------------------------------------------
     @Slot()
     def close_current_dockwidget(self):
         """Search for the currently focused plugin and close it."""
@@ -784,13 +835,8 @@ class Layout(SpyderPluginV2):
 
         plugin.change_visibility(True, force_focus=force_focus)
 
-    def _update_fullscreen_action(self):
-        if self._fullscreen_flag:
-            icon = self.create_icon('window_nofullscreen')
-        else:
-            icon = self.create_icon('window_fullscreen')
-        self.get_container()._fullscreen_action.setIcon(icon)
-
+    # ---- Menus and actions
+    # -------------------------------------------------------------------------
     @Slot()
     def toggle_fullscreen(self):
         """
@@ -879,23 +925,6 @@ class Layout(SpyderPluginV2):
     def lock_interface_action(self):
         return self.get_container()._lock_interface_action
 
-    def _update_lock_interface_action(self):
-        """
-        Helper method to update the locking of panes/dockwidgets and toolbars.
-
-        Returns
-        -------
-        None.
-        """
-        if self._interface_locked:
-            icon = self.create_icon('drag_dock_widget')
-            text = _('Unlock panes and toolbars')
-        else:
-            icon = self.create_icon('lock')
-            text = _('Lock panes and toolbars')
-        self.lock_interface_action.setIcon(icon)
-        self.lock_interface_action.setText(text)
-
     def toggle_lock(self, value=None):
         """Lock/Unlock dockwidgets and toolbars."""
         self._interface_locked = (
@@ -917,6 +946,8 @@ class Layout(SpyderPluginV2):
         if toolbar:
             toolbar.toggle_lock(value=self._interface_locked)
 
+    # ---- Visible dockable plugins
+    # -------------------------------------------------------------------------
     def restore_visible_plugins(self):
         """
         Restore dockable plugins that were visible during the previous session.
@@ -931,7 +962,7 @@ class Layout(SpyderPluginV2):
 
         # Restore visible plugins
         for plugin in visible_plugins:
-            plugin_class = self.get_plugin(plugin)
+            plugin_class = self.get_plugin(plugin, error=False)
             if plugin_class and plugin_class.dockwidget.isVisible():
                 plugin_class.dockwidget.raise_()
 
@@ -951,3 +982,131 @@ class Layout(SpyderPluginV2):
                     visible_plugins.append(plugin.NAME)
 
         self.set_conf('last_visible_plugins', visible_plugins)
+
+    # ---- Tabify plugins
+    # -------------------------------------------------------------------------
+    def tabify_plugins(self, first, second):
+        """Tabify plugin dockwigdets."""
+        self.main.tabifyDockWidget(first.dockwidget, second.dockwidget)
+
+    def tabify_plugin(self, plugin, default=None):
+        """
+        Tabify `plugin` using the list of possible TABIFY options.
+
+        Only do this if the dockwidget does not have more dockwidgets
+        in the same position and if the plugin is using the New API.
+        """
+        def tabify_helper(plugin, next_to_plugins):
+            for next_to_plugin in next_to_plugins:
+                try:
+                    self.tabify_plugins(next_to_plugin, plugin)
+                    break
+                except SpyderAPIError as err:
+                    logger.error(err)
+
+        # If TABIFY not defined use the [default]
+        tabify = getattr(plugin, 'TABIFY', [default])
+        if not isinstance(tabify, list):
+            next_to_plugins = [tabify]
+        else:
+            next_to_plugins = tabify
+
+        # Check if TABIFY is not a list with None as unique value or a default
+        # list
+        if tabify in [[None], []]:
+            return False
+
+        # Get the actual plugins from their names
+        next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
+
+        if plugin.get_conf('first_time', True):
+            # This tabifies external and internal plugins that are loaded for
+            # the first time, and internal ones that are not part of the
+            # default layout.
+            if (
+                isinstance(plugin, SpyderDockablePlugin)
+                and plugin.NAME != Plugins.Console
+            ):
+                logger.info(
+                    f"Tabifying {plugin.NAME} plugin for the first time next "
+                    f"to {next_to_plugins}"
+                )
+                tabify_helper(plugin, next_to_plugins)
+
+                # Show external plugins
+                if plugin.NAME in PLUGIN_REGISTRY.external_plugins:
+                    plugin.get_widget().toggle_view(True)
+
+            plugin.set_conf('enable', True)
+            plugin.set_conf('first_time', False)
+        else:
+            # This is needed to ensure that, when switching to a different
+            # layout, any plugin (external or internal) not part of its
+            # declared areas is tabified as expected.
+            # Note: Check if `plugin` has no other dockwidgets in the same
+            # position before proceeding.
+            if not bool(self.main.tabifiedDockWidgets(plugin.dockwidget)):
+                logger.info(f"Tabifying {plugin.NAME} plugin")
+                tabify_helper(plugin, next_to_plugins)
+
+        return True
+
+    def tabify_new_plugins(self):
+        """
+        Tabify new dockable plugins, i.e. plugins that were not part of the
+        interface in the last session.
+
+        Notes
+        -----
+        This is only necessary the first time a plugin is loaded. Afterwards,
+        the plugin's placement is recorded in the window hexstate, which is
+        loaded in the next session.
+        """
+        # Detect if a new dockable internal plugin hasn't been added to the
+        # DockablePlugins enum and raise an error if that's the case.
+        for plugin in self.get_dockable_plugins():
+            if (
+                plugin.NAME in PLUGIN_REGISTRY.internal_plugins
+                and plugin.NAME not in self._get_internal_dockable_plugins()
+            ):
+                raise SpyderAPIError(
+                    f"Plugin {plugin.NAME} is a new dockable plugin but it "
+                    f"hasn't been added to the DockablePlugins enum. Please "
+                    f"do that to avoid this error."
+                )
+
+        # If this is the first time Spyder runs, then we don't need to go
+        # beyond this point because all plugins are tabified in the
+        # set_main_window_layout method of any layout.
+        if self._first_spyder_run:
+            # Save the list of internal dockable plugins to compare it with
+            # the current ones during the next session.
+            self.set_conf(
+                'internal_dockable_plugins',
+                self._get_internal_dockable_plugins()
+            )
+            return
+
+        logger.debug("Tabifying new plugins")
+
+        # Get the list of internal dockable plugins that were present in the
+        # last session to decide which ones need to be tabified.
+        last_internal_dockable_plugins = self.get_conf(
+            'internal_dockable_plugins',
+            default=self._get_internal_dockable_plugins()
+        )
+
+        # Tabify new internal plugins
+        for plugin_name in self._get_internal_dockable_plugins():
+            if plugin_name not in last_internal_dockable_plugins:
+                plugin = self.get_plugin(plugin_name, error=False)
+                if plugin:
+                    self.tabify_plugin(plugin, Plugins.Console)
+
+        # Tabify new external plugins
+        for plugin in self.get_dockable_plugins():
+            if (
+                plugin.NAME in PLUGIN_REGISTRY.external_plugins
+                and plugin.get_conf('first_time', True)
+            ):
+                self.tabify_plugin(plugin, Plugins.Console)

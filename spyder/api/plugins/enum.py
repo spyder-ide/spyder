@@ -40,3 +40,21 @@ class Plugins:
     Tours = 'tours'
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
+
+
+class DockablePlugins:
+    Breakpoints = 'breakpoints'
+    Console = 'internal_console'
+    Editor = 'editor'
+    Explorer = 'explorer'
+    Find = 'find_in_files'
+    Help = 'help'
+    History = 'historylog'
+    IPythonConsole = 'ipython_console'
+    OnlineHelp = 'onlinehelp'
+    OutlineExplorer = 'outline_explorer'
+    Plots = 'plots'
+    Profiler = 'profiler'
+    Projects = 'project_explorer'
+    Pylint = 'pylint'
+    VariableExplorer = 'variable_explorer'
