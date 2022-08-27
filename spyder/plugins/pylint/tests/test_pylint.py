@@ -75,7 +75,7 @@ class MainWindowMock(QMainWindow):
             'projects': self.projects
         }
 
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
 

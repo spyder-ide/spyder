@@ -404,9 +404,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         return self._main
 
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         """
-        Return a plugin instance by providing the plugin's NAME.
+        Get a plugin instance by providing its name.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin from which its instance will be returned.
+        error: bool
+            Whether to raise errors when trying to return the plugin's
+            instance.
         """
         # Ensure that this plugin has the plugin corresponding to
         # `plugin_name` listed as required or optional.
@@ -416,7 +424,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         if plugin_name in full_set or Plugins.All in full_set:
             try:
-                return self._main.get_plugin(plugin_name)
+                return self._main.get_plugin(plugin_name, error=error)
             except SpyderAPIError as e:
                 if plugin_name in optional:
                     return None
