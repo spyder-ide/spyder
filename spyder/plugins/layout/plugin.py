@@ -196,8 +196,24 @@ class Layout(SpyderPluginV2):
     def before_mainwindow_visible(self):
         # Update layout menu
         self.update_layout_menu_actions()
+
         # Setup layout
         self.setup_layout(default=False)
+
+        # Register custom layouts
+        self.register_custom_layouts()
+
+        # Needed to ensure dockwidgets/panes layout size distribution when a
+        # layout state is already present.
+        # See spyder-ide/spyder#17945
+        if self.get_conf('window/state', section='main', default=None):
+            self.setup_layout(default=False)
+
+        # Tabify new plugins which were installed or created after Spyder runs
+        # for the first time.
+        # Note: **DO NOT** make layout changes after this point or new plugins
+        # won't be tabified correctly.
+        self.tabify_new_plugins()
 
     def on_mainwindow_visible(self):
         # Populate `Panes > View` menu.

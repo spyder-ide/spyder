@@ -987,17 +987,23 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         The actions here are related with setting up the main window.
         """
-        logger.info("Setting up window...")
+        logger.info("Setting up window before is visible...")
 
+        # Call before_mainwindow_visible for all plugins except Layout because
+        # it needs to be called afterwards (see below).
         for plugin_name in PLUGIN_REGISTRY:
-            plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            try:
-                plugin_instance.before_mainwindow_visible()
-            except AttributeError:
-                pass
+            if plugin_name != Plugins.Layout:
+                plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
+                try:
+                    plugin_instance.before_mainwindow_visible()
+                except AttributeError:
+                    pass
 
         if self.splash is not None:
             self.splash.hide()
+
+        if self.layouts is not None:
+            self.layouts.before_mainwindow_visible()
 
         # Menu about to show
         for child in self.menuBar().children():
@@ -1008,27 +1014,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                 except TypeError:
                     pass
 
-        # Register custom layouts
-        if self.layouts is not None:
-            self.layouts.register_custom_layouts()
-
-        # Needed to ensure dockwidgets/panes layout size distribution
-        # when a layout state is already present.
-        # See spyder-ide/spyder#17945
-        if (
-            self.layouts is not None
-            and self.get_conf('window/state', default=None)
-        ):
-            self.layouts.before_mainwindow_visible()
-
-        # Tabify new plugins which were installed or created after Spyder ran
-        # for the first time.
-        # NOTE: **DO NOT** make layout changes after this point or new plugins
-        # won't be tabified correctly.
-        if self.layouts is not None:
-            self.layouts.tabify_new_plugins()
-
-        logger.info("*** End of MainWindow setup ***")
+        logger.info("End of window setup")
         self.is_starting_up = False
 
     def post_visible_setup(self):
@@ -1036,6 +1022,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         Actions to be performed only after the main window's `show` method
         is triggered.
         """
+        logger.info("Performing adjustments after the window is visible...")
+
         # This must be run before the main window is shown.
         # Fixes spyder-ide/spyder#12104
         self.layouts.on_mainwindow_visible()
@@ -1045,7 +1033,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if self.splash is not None:
             self.splash.hide()
 
-        # Call on_mainwindow_visible for all plugins, except Layout because it
+        # Call on_mainwindow_visible for all plugins except Layout because it
         # needs to be called first (see above).
         for plugin_name in PLUGIN_REGISTRY:
             if plugin_name != Plugins.Layout:
@@ -1097,6 +1085,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
         self.sig_setup_finished.emit()
+
+        logger.info("End of adjustments when the window is visible")
 
     def reopen_last_session(self):
         """
