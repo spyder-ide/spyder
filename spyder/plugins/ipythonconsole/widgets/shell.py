@@ -999,7 +999,11 @@ the sympy module (e.g. plot)
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
-        super()._handle_execute_reply(msg)
+        # This catches an error when doing the teardown of a test.
+        try:
+            super()._handle_execute_reply(msg)
+        except RuntimeError:
+            pass
 
     def _handle_status(self, msg):
         """

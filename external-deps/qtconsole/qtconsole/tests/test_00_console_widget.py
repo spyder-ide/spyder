@@ -207,6 +207,58 @@ def test_debug(qtconsole, qtbot):
     assert control.toPlainText().strip().split()[-1] == "abcd"
 
 
+@flaky(max_runs=15)
+def test_input_and_print(qtconsole, qtbot):
+    """
+    Test that we print correctly mixed input and print statements.
+
+    This is a regression test for spyder-ide/spyder#17710.
+    """
+    window = qtconsole.window
+    shell = window.active_frontend
+    control = shell._control
+
+    def wait_for_input():
+        qtbot.waitUntil(
+            lambda: control.toPlainText().splitlines()[-1] == 'Write input: '
+        )
+
+    # Wait until the console is fully up
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Run a for loop with mixed input and print statements
+    code = """
+user_input = None
+while user_input != '':
+    user_input = input('Write input: ')
+    print('Input was entered!')
+"""
+    shell.execute(code)
+    wait_for_input()
+
+    # Interact with the 'for' loop for a certain number of repetitions
+    repetitions = 3
+    for _ in range(repetitions):
+        qtbot.keyClicks(control, '1')
+        qtbot.keyClick(control, QtCore.Qt.Key_Enter)
+        wait_for_input()
+
+    # Get out of the for loop
+    qtbot.keyClick(control, QtCore.Qt.Key_Enter)
+    qtbot.waitUntil(lambda: not shell._reading)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Assert that printed correctly the expected output in the console.
+    output = (
+        "   ...: \n" +
+        "Write input: 1\nInput was entered!\n" * repetitions +
+        "Write input: \nInput was entered!\n"
+    )
+    assert output in control.toPlainText()
+
+
 @pytest.mark.skipif(no_display, reason="Doesn't work without a display")
 class TestConsoleWidget(unittest.TestCase):
 
