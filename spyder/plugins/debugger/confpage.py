@@ -24,11 +24,11 @@ class DebuggerConfigPage(PluginConfigPage):
         # Pdb run lines Group
         pdb_run_lines_group = QGroupBox(_("Run code while debugging"))
         pdb_run_lines_label = QLabel(_(
-            "You can run several lines of code on each "
-            "new prompt while debugging. Please "
-            "introduce each one separated by semicolons "
-            "and a space, for example:<br>"
-            "<i>import matplotlib.pyplot as plt</i>"))
+            "You can run several lines of code on each new prompt while "
+            "debugging. Please introduce each one separated by semicolons and "
+            "a space, for example:<br>"
+            "<i>import matplotlib.pyplot as plt; import numpy as np</i>")
+        )
         pdb_run_lines_label.setWordWrap(True)
         pdb_run_lines_edit = self.create_lineedit(
             _("Lines:"), 'startup/pdb_run_lines', '', alignment=Qt.Horizontal)
