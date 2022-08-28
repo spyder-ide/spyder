@@ -209,7 +209,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self.handle_exec_method(msg)
             self._request_info['execute'].pop(msg_id)
         else:
-            super(NamepaceBrowserWidget, self)._handle_execute_reply(msg)
+            # This catches an error when doing the teardown of a test.
+            try:
+                super(NamepaceBrowserWidget, self)._handle_execute_reply(msg)
+            except RuntimeError:
+                pass
 
     def _handle_status(self, msg):
         """

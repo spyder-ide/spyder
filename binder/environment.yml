@@ -36,7 +36,7 @@ dependencies:
 - qdarkstyle >=3.0.2,<3.1.0
 - qstylizer >=0.1.10
 - qtawesome >=1.0.2
-- qtconsole >=5.3.0,<5.4.0
+- qtconsole >=5.3.2,<5.4.0
 - qtpy >=2.1.0
 - rtree >=0.9.7
 - setuptools >=49.6.0
