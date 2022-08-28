@@ -1034,7 +1034,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     ipyconsole.set_conf('pdb_execute_events', True, section='debugger')
     shell.set_pdb_configuration({
         'pdb_execute_events': True
-        })
+    })
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -1048,7 +1048,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     ipyconsole.set_conf('pdb_execute_events', False, section='debugger')
     shell.set_pdb_configuration({
         'pdb_execute_events': False
-        })
+    })
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')

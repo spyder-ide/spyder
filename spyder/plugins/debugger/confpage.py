@@ -67,7 +67,7 @@ class DebuggerConfigPage(PluginConfigPage):
             _("Process execute events while debugging"), 'pdb_execute_events',
             tip=_("This option lets you decide if the debugger should "
                   "process the 'execute events' after each prompt, such as "
-                  "matplotlib 'show' command."))
+                  "matplotlib <tt>show</tt> command."))
         debug_layout.addWidget(execute_events_box)
 
         exclamation_mark_box = newcb(

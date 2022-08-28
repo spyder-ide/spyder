@@ -6,6 +6,7 @@
 
 """Debugger Plugin."""
 
+# Third-party imports
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
@@ -109,11 +110,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
-        self.get_widget().edit_goto.connect(editor.load)
+        widget = self.get_widget()
 
-        # The editor is avilable, connect signal.
-        self.sig_debug_file.connect(self.debug_file)
-        self.sig_debug_cell.connect(self.debug_cell)
+        widget.edit_goto.connect(editor.load)
+        widget.sig_debug_file.connect(self.debug_file)
+        widget.sig_debug_cell.connect(self.debug_cell)
         CONF.config_shortcut(
             self.debug_file,
             context=self.CONF_SECTION,
@@ -134,9 +135,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
-        self.get_widget().edit_goto.disconnect(editor.load)
-        self.sig_debug_file.disconnect(self.debug_file)
-        self.sig_debug_cell.disconnect(self.debug_cell)
+        widget = self.get_widget()
+
+        widget.edit_goto.disconnect(editor.load)
+        widget.sig_debug_file.disconnect(self.debug_file)
+        widget.sig_debug_cell.disconnect(self.debug_cell)
 
     @on_plugin_available(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_available(self):

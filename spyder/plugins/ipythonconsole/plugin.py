@@ -635,9 +635,10 @@ class IPythonConsole(SpyderDockablePlugin):
         focus_to_editor: bool, optional
             Leave focus in the editor after execution.
         method : str or None
-            method to run the file. must accept the same arguments as runfile.
+            Method to run the file. It must accept the same arguments as
+            `runfile`.
         force_wdir: bool
-            the working directory is ignored on remote kernel except if
+            The working directory is ignored on remote kernels except if
             force_wdir is True
 
         Returns

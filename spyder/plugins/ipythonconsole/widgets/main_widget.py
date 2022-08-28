@@ -782,28 +782,28 @@ class IPythonConsoleWidget(PluginMainWidget):
         for client in self.clients:
             client.shellwidget.set_pdb_configuration({
                 'pdb_ignore_lib': value
-                })
+            })
 
     @on_conf_change(section='debugger', option='pdb_execute_events')
     def change_clients_pdb_execute_events(self, value):
         for client in self.clients:
             client.shellwidget.set_pdb_configuration({
                 'pdb_execute_events': value
-                })
+            })
 
     @on_conf_change(section='debugger', option='pdb_use_exclamation_mark')
     def change_clients_pdb_use_exclamation_mark(self, value):
         for client in self.clients:
             client.shellwidget.set_pdb_configuration({
                 'pdb_use_exclamation_mark': value
-                })
+            })
 
     @on_conf_change(section='debugger', option='pdb_stop_first_line')
     def change_clients_pdb_stop_first_line(self, value):
         for client in self.clients:
             client.shellwidget.set_pdb_configuration({
                 'pdb_stop_first_line': value
-                })
+            })
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into all clients"""
@@ -811,7 +811,7 @@ class IPythonConsoleWidget(PluginMainWidget):
             cl.shellwidget.set_pdb_configuration({
                 'breakpoints': self.get_conf(
                     'breakpoints', default={}, section='run')
-                })
+            })
 
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
@@ -2211,8 +2211,8 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         if client is not None:
             is_spyder_kernel = client.shellwidget.is_spyder_kernel
-            # Only use copy for runcell
 
+            # Only use copy for runcell
             if method == 'runcell' and (run_cell_copy or not is_spyder_kernel):
                 # Use copy of cell
                 line = code.strip()
@@ -2293,8 +2293,10 @@ class IPythonConsoleWidget(PluginMainWidget):
                 line = method + "('%s'" % (norm(filename))
                 if args:
                     line += ", args='%s'" % norm(args)
-                if (wdir and client.shellwidget.is_external_kernel
-                        and not force_wdir):
+                if (
+                    wdir and client.shellwidget.is_external_kernel
+                    and not force_wdir
+                ):
                     # No working directory for external kernels
                     wdir = ''
                 if wdir:
