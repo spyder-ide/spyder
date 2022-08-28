@@ -42,6 +42,9 @@ class DebuggerWidgetActions:
     ToggleCaptureLocals = 'toggle_capture_locals_action'
     ToggleLocalsOnClick = 'toggle_show_locals_on_click_action'
 
+    DebugCurrentFile = 'debug file'
+    DebugCurrentCell = 'debug cell'
+
 
 class DebuggerWidgetOptionsMenuSections:
     Display = 'excludes_section'
@@ -76,6 +79,10 @@ class DebuggerWidget(ShellConnectMainWidget):
     # Signals
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_show_namespace = Signal(dict, object)
+    sig_debug_file = Signal()
+    """This signal is emitted to request the current file to be debugged."""
+    sig_debug_cell = Signal()
+    """This signal is emitted to request the current cell to be debugged."""
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -183,6 +190,24 @@ class DebuggerWidget(ShellConnectMainWidget):
             icon=self.create_icon('stop_debug'),
             triggered=self.stop_debugging,
             register_shortcut=True
+        )
+
+        self.create_action(
+            DebuggerWidgetActions.DebugCurrentFile,
+            text=_("&Debug file"),
+            tip=_("Debug file"),
+            icon=self.create_icon('debug'),
+            triggered=self.sig_debug_file,
+            register_shortcut=True,
+        )
+
+        self.create_action(
+            DebuggerWidgetActions.DebugCurrentCell,
+            text=_("Debug cell"),
+            tip=_("Debug cell"),
+            icon=self.create_icon('debug_cell'),
+            triggered=self.sig_debug_cell,
+            register_shortcut=True,
         )
 
         # ---- Context menu actions

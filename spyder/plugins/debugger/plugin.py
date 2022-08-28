@@ -7,7 +7,7 @@
 """Debugger Plugin."""
 
 # Third-party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Slot
 
 # Local imports
 from spyder.config.base import _
@@ -21,11 +21,7 @@ from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.utils.qthelpers import MENU_SEPARATOR
 from spyder.config.manager import CONF
 from spyder.plugins.mainmenu.api import ApplicationMenus
-
-
-class DebuggerActions:
-    DebugCurrentFile = 'debug file'
-    DebugCurrentCell = 'debug cell'
+from spyder.plugins.debugger.widgets.main_widget import DebuggerWidgetActions
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -41,12 +37,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     CONF_WIDGET_CLASS = DebuggerConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
-    sig_debug_file = Signal()
-    """This signal is emitted to request the current file to be debugged."""
-
-    sig_debug_cell = Signal()
-    """This signal is emitted to request the current cell to be debugged."""
-
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     @staticmethod
@@ -60,42 +50,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         return self.create_icon('dictedit')
 
     def on_initialize(self):
-        self.create_action(
-            DebuggerActions.DebugCurrentFile,
-            text=_("&Debug file"),
-            tip=_("Debug file"),
-            icon=self.create_icon('debug'),
-            triggered=self.sig_debug_file,
-            register_shortcut=True,
-        )
-
-        self.create_action(
-            DebuggerActions.DebugCurrentCell,
-            text=_("Debug cell"),
-            tip=_("Debug cell"),
-            icon=self.create_icon('debug_cell'),
-            triggered=self.sig_debug_cell,
-            register_shortcut=True,
-        )
-
-    @Slot()
-    def debug_file(self):
-        """
-        Debug current script.
-        Should only be called when an editor is avilable.
-        """
-        editor = self.get_plugin(Plugins.Editor)
-        editor.switch_to_plugin()
-        editor.run_file(method="debugfile")
-
-    @Slot()
-    def debug_cell(self):
-        '''
-        Debug Current cell.
-        Should only be called when an editor is avilable.
-        '''
-        editor = self.get_plugin(Plugins.Editor)
-        editor.run_cell(method="debugcell")
+        pass
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -115,22 +70,19 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget.edit_goto.connect(editor.load)
         widget.sig_debug_file.connect(self.debug_file)
         widget.sig_debug_cell.connect(self.debug_cell)
-        CONF.config_shortcut(
-            self.debug_file,
-            context=self.CONF_SECTION,
-            name=DebuggerActions.DebugCurrentFile,
-            parent=editor)
-        CONF.config_shortcut(
-            self.debug_cell,
-            context=self.CONF_SECTION,
-            name=DebuggerActions.DebugCurrentCell,
-            parent=editor)
-        debug_file_action = self.get_action(
-            DebuggerActions.DebugCurrentFile)
-        debug_cell_action = self.get_action(
-            DebuggerActions.DebugCurrentCell)
-        self.main.debug_toolbar_actions += [
-            debug_file_action, debug_cell_action]
+
+        names = [
+            DebuggerWidgetActions.DebugCurrentFile,
+            DebuggerWidgetActions.DebugCurrentCell,
+            ]
+        for name in names:
+            action = widget.get_action(name)
+            CONF.config_shortcut(
+                action.trigger,
+                context=self.CONF_SECTION,
+                name=name,
+                parent=editor)
+            self.main.debug_toolbar_actions += [action]
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -140,6 +92,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget.edit_goto.disconnect(editor.load)
         widget.sig_debug_file.disconnect(self.debug_file)
         widget.sig_debug_cell.disconnect(self.debug_cell)
+
+        names = [
+            DebuggerWidgetActions.DebugCurrentFile,
+            DebuggerWidgetActions.DebugCurrentCell,
+            ]
+        for name in names:
+            action = widget.get_action(name)
+            self.main.debug_toolbar_actions.remove(action)
 
     @on_plugin_available(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_available(self):
@@ -153,10 +113,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        debug_file_action = self.get_action(
-            DebuggerActions.DebugCurrentFile)
-        debug_cell_action = self.get_action(
-            DebuggerActions.DebugCurrentCell)
+        widget = self.get_widget()
+        debug_file_action = widget.get_action(
+            DebuggerWidgetActions.DebugCurrentFile)
+        debug_cell_action = widget.get_action(
+            DebuggerWidgetActions.DebugCurrentCell)
 
         self.main.debug_menu_actions = [
                 debug_file_action,
@@ -169,16 +130,35 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
         mainmenu.remove_item_from_application_menu(
-            DebuggerActions.DebugCurrentFile,
+            DebuggerWidgetActions.DebugCurrentFile,
             menu_id=ApplicationMenus.Debug
         )
         mainmenu.remove_item_from_application_menu(
-            DebuggerActions.DebugCurrentCell,
+            DebuggerWidgetActions.DebugCurrentCell,
             menu_id=ApplicationMenus.Debug
         )
 
     # ---- Public API
     # ------------------------------------------------------------------------
+    @Slot()
+    def debug_file(self):
+        """
+        Debug current script.
+        Should only be called when an editor is avilable.
+        """
+        editor = self.get_plugin(Plugins.Editor)
+        editor.switch_to_plugin()
+        editor.run_file(method="debugfile")
+
+    @Slot()
+    def debug_cell(self):
+        '''
+        Debug Current cell.
+        Should only be called when an editor is avilable.
+        '''
+        editor = self.get_plugin(Plugins.Editor)
+        editor.run_cell(method="debugcell")
+
     def show_namespace_in_variable_explorer(self, namespace, shellwidget):
         """
         Find the right variable explorer widget and show the namespace.
