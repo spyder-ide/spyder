@@ -103,7 +103,7 @@ jobs:
              },
              {
                "pattern": "TypeError: _show_prompt() got an unexpected keyword argument 'separator'",
-               "reply": "Thanks for reporting. This error is already fixed in our latest version.<br><br>Since it's still not available in Anaconda, you have two options:<br><br>1. Use our Windows or Mac installer, which you can find [here](https://github.com/spyder-ide/spyder/releases).<br><br>2. Create a new environment with conda-forge packages. For that, please close Spyder, open the Anaconda Prompt and run the following commands there:<br><br>`conda create -n spyder-cf -c conda-forge spyder jupyter_client=7.3.1`<br>`conda activate spyder-cf`<br>`spyder`",
+               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt and run the following commands there:<br><br>`conda update anaconda`<br>`conda install spyder=5.2.2`",
                "labels": ["resolution:Duplicate"],
                "close": true
              },

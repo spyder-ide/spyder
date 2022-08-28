@@ -234,7 +234,7 @@ install_requires = [
     'qdarkstyle>=3.0.2,<3.1.0',
     'qstylizer>=0.1.10',
     'qtawesome>=1.0.2',
-    'qtconsole>=5.3.0,<5.4.0',
+    'qtconsole>=5.3.2,<5.4.0',
     'qtpy>=2.1.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
@@ -251,7 +251,7 @@ if 'dev' in __version__:
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
     install_requires.append('python-lsp-server[all]>=1.5.0,<1.7.0')
-    install_requires.append('qtconsole>=5.3.0,<5.5.0')
+    install_requires.append('qtconsole>=5.3.2,<5.5.0')
     install_requires.append('spyder-kernels>=2.3.2,<3.1.0')
 
 extras_require = {
