@@ -27,10 +27,10 @@ from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
 
 # Localization
 _ = get_translation("spyder")
+
 PERMISSION_ERROR_MSG = _(
-    "The directory {} is not writable and it is "
-    "required to create IPython consoles. Please "
-    "make it writable."
+    "The directory {} is not writable and it is required to create IPython "
+    "consoles. Please make it writable."
 )
 
 if os.name == "nt":
@@ -66,8 +66,10 @@ class KernelConnection:
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
+
         # Comm
         self.kernel_comm = None
+
         # Internal
         self.shutdown_thread = None
         self._shutdown_lock = Lock()
@@ -197,6 +199,7 @@ class KernelConnection:
                 )
                 + str(e)
             )
+
         if self.hostname is not None:
             try:
                 connection_info = dict(
@@ -207,6 +210,7 @@ class KernelConnection:
                     hb_port=kernel_client.hb_port,
                     control_port=kernel_client.control_port,
                 )
+
                 (
                     kernel_client.shell_port,
                     kernel_client.iopub_port,
@@ -227,9 +231,11 @@ class KernelConnection:
         """Close kernel"""
         if self.kernel_comm is not None:
             self.kernel_comm.close()
+
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
             km.stop_restarter()
+
             if now:
                 km.shutdown_kernel(now=True)
                 self.after_shutdown()
@@ -239,6 +245,7 @@ class KernelConnection:
                 shutdown_thread.start()
                 shutdown_thread.finished.connect(self.after_shutdown)
                 self.shutdown_thread = shutdown_thread
+
         if (
             self.kernel_client is not None
             and self.kernel_client.channels_running
@@ -362,9 +369,11 @@ class CachedKernelMixin:
             cached_argv,
             _,
         ) = self._cached_kernel_properties
+
         # Call interrupt_mode so the dict will be the same
         kernel_spec.interrupt_mode
         cached_spec.interrupt_mode
+
         if "PYTEST_CURRENT_TEST" in cached_env:
             # Make tests faster by using cached kernels
             # hopefully the kernel will never use PYTEST_CURRENT_TEST

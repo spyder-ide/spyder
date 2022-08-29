@@ -21,6 +21,7 @@ from spyder.utils.encoding import get_coding
 from spyder.utils.programs import get_temp_dir
 
 
+# For testing
 IPYCONSOLE_TEST_DIR = None
 IPYCONSOLE_TEST_NO_STDERR = False
 
@@ -73,6 +74,7 @@ class StdFile:
             os.remove(self.filename)
         except Exception:
             pass
+
         self._handle = None
         self._mtime = 0
         self._cursor = 0
