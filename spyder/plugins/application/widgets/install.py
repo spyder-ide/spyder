@@ -134,7 +134,7 @@ class UpdateInstallerDialog(QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
         self._installation_widget = UpdateInstallation(self)
-
+        self.latest_release_version = ""
         # Layout
         installer_layout = QVBoxLayout()
         installer_layout.addWidget(self._installation_widget)
@@ -238,7 +238,7 @@ class UpdateInstallerDialog(QDialog):
     def _download_install(self):
         try:
             logger.debug("Downloading installer executable")
-            tmpdir = tempfile.mkdtemp(prefix="Spyder-")
+            tmpdir = tempfile.gettempdir()
             is_full_installer = (is_module_installed('numpy') or
                                  is_module_installed('pandas'))
             if os.name == 'nt':
@@ -250,11 +250,15 @@ class UpdateInstallerDialog(QDialog):
 
             url = ('https://github.com/spyder-ide/spyder/releases/latest/'
                    f'download/{name}')
-            destination = os.path.join(tmpdir, name)
-            logger.debug(f"Downloading installer from: {url}")
-            download = urlretrieve(url,
-                                   destination,
-                                   reporthook=self._progress_reporter)
+            path_destination = os.path.join(tmpdir, 'spyder',
+                                            self.latest_release_version)
+            os.makedirs(path_destination, exist_ok=True)
+            destination = os.path.join(path_destination, name)
+            if (not os.path.isfile(destination)):
+                logger.debug(f"Downloading installer from: {url}")
+                download = urlretrieve(url,
+                                       destination,
+                                       reporthook=self._progress_reporter)
             self._change_update_installation_status(status=INSTALLING)
             cmd = ('start' if os.name == 'nt' else 'open')
             subprocess.run(' '.join([cmd, destination]), shell=True)
@@ -264,8 +268,9 @@ class UpdateInstallerDialog(QDialog):
         finally:
             self._change_update_installation_status(status=PENDING)
 
-    def start_installation_update(self):
+    def start_installation_update(self, latest_release_version):
         """Start the installation update thread and set downloading status."""
+        self.latest_release_version = latest_release_version
         self.cancelled = False
         self._change_update_installation_status(
             status=DOWNLOADING_INSTALLER)

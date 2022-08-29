@@ -323,7 +323,8 @@ class ApplicationContainer(PluginMainContainer):
                 box.exec_()
 
                 if box.result() == QMessageBox.Yes:
-                    self.application_update_status.start_installation()
+                    self.application_update_status.start_installation(
+                        latest_release=latest_release)
                 elif(box.result() == QMessageBox.No):
                     self.application_update_status.set_status_pending()
                 check_updates = box.is_checked()

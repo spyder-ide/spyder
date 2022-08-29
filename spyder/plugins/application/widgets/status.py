@@ -59,6 +59,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
                              "dialog again")
             self.spinner.show()
             self.spinner.start()
+            self.installer.show()
+
         elif value == PENDING:
             self.tooltip = value
             self.spinner.hide()
@@ -78,8 +80,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def get_icon(self):
         return ima.icon('spyder_about')
 
-    def start_installation(self):
-        self.installer.start_installation_update()
+    def start_installation(self, latest_release):
+        self.installer.start_installation_update(latest_release)
 
     def set_status_pending(self):
         self.set_value(PENDING)
