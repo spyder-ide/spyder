@@ -12,12 +12,12 @@ Debugger Main Plugin Widget.
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
+from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.config.gui import get_color_scheme
 from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
-from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 
 # Localization
 _ = get_translation('spyder')
@@ -86,19 +86,18 @@ class DebuggerWidget(ShellConnectMainWidget):
     """This signal is emitted to request the current file to be debugged."""
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
-
     sig_debug_file = Signal()
     """This signal is emitted to request the current file to be debugged."""
-
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
-
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
-
     sig_toggle_breakpoints = Signal()
+    """Add or remove a breakpoint on the current line."""
     sig_toggle_conditional_breakpoints = Signal()
+    """Add or remove a conditional breakpoint on the current line."""
     sig_clear_all_breakpoints = Signal()
+    """Clear all breakpoints in all files."""
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)

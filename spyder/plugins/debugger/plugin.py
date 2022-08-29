@@ -10,19 +10,19 @@
 from qtpy.QtCore import Slot
 
 # Local imports
-from spyder.config.base import _
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.plugins.debugger.confpage import DebuggerConfigPage
-from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerWidget, DebuggerWidgetActions)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
-from spyder.utils.qthelpers import MENU_SEPARATOR
+from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
+from spyder.plugins.debugger.widgets.main_widget import (
+    DebuggerWidget, DebuggerWidgetActions)
+from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.utils.qthelpers import MENU_SEPARATOR
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -259,24 +259,29 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         shellwidget.sig_pdb_state_changed.disconnect(
             self.update_current_codeeditor_pdb_state)
 
+    @Slot(object)
     def add_codeeditor(self, codeeditor):
+        """
+        Add a new codeeditor.
+        """
         codeeditor.breakpoints_manager = BreakpointsManager(codeeditor)
         codeeditor.breakpoints_manager.sig_breakpoints_saved.connect(
             self.get_widget().sig_breakpoints_saved)
 
+    @Slot(object)
     def remove_codeeditor(self, codeeditor):
+        """
+        Remove a codeeditor.
+        """
         codeeditor.breakpoints_manager.sig_breakpoints_saved.disconnect(
             self.get_widget().sig_breakpoints_saved)
         codeeditor.breakpoints_manager = None
 
-    def update_current_codeeditor_pdb_state(self, pdb_state, pdb_last_step):
-        current_editor = self.get_current_editor()
-        if current_editor is None:
-            return
-        current_editor.breakpoints_manager.update_pdb_state(
-            pdb_state, pdb_last_step)
-
+    @Slot(object)
     def update_codeeditor(self, codeeditor):
+        """
+        Focus codeeditor has changed.
+        """
         if codeeditor.filename is None:
             # Not setup yet
             return
@@ -289,13 +294,30 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         codeeditor.breakpoints_manager.update_pdb_state(
             pdb_state, pdb_last_step)
 
+    @Slot(bool, dict)
+    def update_current_codeeditor_pdb_state(self, pdb_state, pdb_last_step):
+        """
+        The pdb state has changed.
+        """
+        current_editor = self.get_current_editor()
+        if current_editor is None:
+            return
+        current_editor.breakpoints_manager.update_pdb_state(
+            pdb_state, pdb_last_step)
+
     def get_current_editor(self):
+        """
+        Get current codeeditor.
+        """
         editor = self.get_plugin(Plugins.Editor)
         if editor is None:
             return None
         return editor.get_current_editor()
 
     def get_current_editorstack(self):
+        """
+        Get current editorstack.
+        """
         editor = self.get_plugin(Plugins.Editor)
         if editor is None:
             return None
@@ -329,6 +351,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             for data in editorstack.data:
                 data.editor.breakpoints_manager.clear_breakpoints()
 
+    @Slot(str, int)
     def clear_breakpoint(self, filename, lineno):
         """Remove a single breakpoint"""
         clear_breakpoint(filename, lineno)
