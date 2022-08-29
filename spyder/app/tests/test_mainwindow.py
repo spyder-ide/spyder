@@ -1016,7 +1016,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # Load test file
     test_file = osp.join(LOCATION, 'script.py')
@@ -1084,7 +1084,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     assert shell.is_waiting_pdb_input()
 
     # Remove breakpoint and close test file
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
     main_window.editor.close_file()
 
 
@@ -1579,7 +1579,7 @@ def test_set_new_breakpoints(main_window, qtbot):
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # Load test file
     test_file = osp.join(LOCATION, 'script.py')
@@ -1602,7 +1602,7 @@ def test_set_new_breakpoints(main_window, qtbot):
         test_file) in control.toPlainText()
 
     # Remove breakpoint and close test file
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
     main_window.editor.close_file()
 
 
@@ -2152,7 +2152,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # Load test file
     test_file = osp.join(LOCATION, 'script.py')
@@ -2212,7 +2212,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     assert 'In [2]:' in control.toPlainText()
 
     # Remove breakpoint and close test file
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
     main_window.editor.close_file()
 
 
@@ -2228,7 +2228,7 @@ def test_stop_dbg(main_window, qtbot):
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # Load test file
     test_file = osp.join(LOCATION, 'script.py')
@@ -2252,7 +2252,7 @@ def test_stop_dbg(main_window, qtbot):
     assert shell._control.toPlainText().count('IPdb') == 2
 
     # Remove breakpoint and close test file
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
     main_window.editor.close_file()
 
 
@@ -3020,7 +3020,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
     code_editor = main_window.editor.get_focus_widget()
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # Click the debug button
     with qtbot.waitSignal(shell.executed):
@@ -3042,7 +3042,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
         qtbot.keyClick(shell._control, Qt.Key_Enter)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
 
 # --- Preferences
@@ -3426,7 +3426,7 @@ def test_debug_unsaved_file(main_window, qtbot):
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # create new file
     main_window.editor.new()
@@ -3724,7 +3724,7 @@ def test_runcell_pdb(main_window, qtbot):
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # create new file
     main_window.editor.new()
@@ -4098,7 +4098,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # create new file
     main_window.editor.new()
@@ -4161,7 +4161,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     shell.execute(
         "runfile(" + repr(str(file2)) + ")"
@@ -4228,7 +4228,7 @@ def test_debug_namespace(main_window, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute(
@@ -4451,7 +4451,7 @@ hello()
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # create new file
     main_window.editor.new()
@@ -4751,7 +4751,7 @@ def test_prevent_closing(main_window, qtbot):
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # create new file
     main_window.editor.new()
@@ -4790,7 +4790,7 @@ def test_continue_first_line(main_window, qtbot):
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # create new file
     main_window.editor.new()
@@ -5335,7 +5335,7 @@ def test_debug_unsaved_function(main_window, qtbot):
     run_button = main_window.run_toolbar.widgetForAction(run_action)
 
     # Clear all breakpoints
-    main_window.editor.clear_all_breakpoints()
+    main_window.debugger.clear_all_breakpoints()
 
     # create new file
     main_window.editor.new()

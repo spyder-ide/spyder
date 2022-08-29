@@ -94,6 +94,7 @@ def test_flag_painting(editor_bot, qtbot):
     visible. There is seven different flags: breakpoints, todos, warnings,
     errors, found_results, and occurences"""
     editor = editor_bot
+    editor.filename = "file.py"
     editor.breakpoints_manager = BreakpointsManager(editor)
     sfa = editor.scrollflagarea
 

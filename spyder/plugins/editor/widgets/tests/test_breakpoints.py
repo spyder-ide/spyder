@@ -75,7 +75,7 @@ def code_editor_bot(qtbot):
         editor.sig_breakpoints_changed_called = True
 
     editor.sig_breakpoints_changed_called = False
-    editor.sig_breakpoints_changed.connect(mark_called)
+    editor.sig_flags_changed.connect(mark_called)
     text = ('def f1(a, b):\n'
             '"Double quote string."\n'
             '\n'  # Blank line.
