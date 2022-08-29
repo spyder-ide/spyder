@@ -75,7 +75,7 @@ def code_editor_bot(qtbot):
         editor.sig_breakpoints_changed_called = True
 
     editor.sig_breakpoints_changed_called = False
-    editor.sig_flags_changed.connect(mark_called)
+
     text = ('def f1(a, b):\n'
             '"Double quote string."\n'
             '\n'  # Blank line.
@@ -83,7 +83,9 @@ def code_editor_bot(qtbot):
             '    return c\n'
             )
     editor.set_text(text)
+    editor.filename = "file.py"
     editor.breakpoints_manager = BreakpointsManager(editor)
+    editor.breakpoints_manager.sig_repaint_breakpoints.connect(mark_called)
     return editor, qtbot
 
 
@@ -261,6 +263,7 @@ def test_update_breakpoints(code_editor_bot):
     reset_emits(editor)
     assert not editor.sig_breakpoints_changed_called
     # update_breakpoints is the slot for the blockCountChanged signal.
+    editor.breakpoints_manager.toogle_breakpoint(line_number=1)
     editor.textCursor().insertBlock()
     assert editor.sig_breakpoints_changed_called
 
