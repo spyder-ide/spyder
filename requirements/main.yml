@@ -38,7 +38,7 @@ dependencies:
   - rtree >=0.9.7
   - setuptools >=49.6.0
   - sphinx >=0.6.6
-  - spyder-kernels >=2.3.2,<2.4.0
+  - spyder-kernels >=2.3.3,<2.4.0
   - textdistance >=4.2.0
   - three-merge >=0.1.1
   - watchdog >=0.10.3
