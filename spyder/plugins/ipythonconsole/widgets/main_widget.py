@@ -181,19 +181,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         Path to file.
     """
 
-    sig_pdb_state_changed = Signal(bool, dict)
-    """
-    This signal is emitted when the debugging state changes.
-
-    Parameters
-    ----------
-    waiting_pdb_input: bool
-        If the debugging session is waiting for input.
-    pdb_last_step: dict
-        Dictionary with the information of the last step done
-        in the debugging session.
-    """
-
     sig_shellwidget_created = Signal(object)
     """
     This signal is emitted when a shellwidget is created.
@@ -805,14 +792,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                 'pdb_stop_first_line': value
             })
 
-    def set_spyder_breakpoints(self):
-        """Set Spyder breakpoints into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_pdb_configuration({
-                'breakpoints': self.get_conf(
-                    'breakpoints', default={}, section='run')
-            })
-
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
@@ -1162,7 +1141,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         if client:
             sw = client.shellwidget
-            self.sig_pdb_state_changed.emit(
+            sw.sig_pdb_state_changed.emit(
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
@@ -1816,7 +1795,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         shellwidget.sig_pdb_step.connect(
             lambda fname, lineno, shellwidget=shellwidget:
             self.pdb_has_stopped(fname, lineno, shellwidget))
-        shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)

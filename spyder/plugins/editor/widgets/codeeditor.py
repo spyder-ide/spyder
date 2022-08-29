@@ -59,14 +59,11 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            TextDocumentSyncKind,
                                            DiagnosticSeverity)
-from spyder.plugins.editor.panels import (ClassFunctionDropdown,
-                                          DebuggerPanel, EdgeLine,
-                                          FoldingPanel, IndentationGuide,
-                                          LineNumberArea, PanelsManager,
-                                          ScrollFlagArea)
+from spyder.plugins.editor.panels import (
+    ClassFunctionDropdown, EdgeLine, FoldingPanel, IndentationGuide,
+    LineNumberArea, PanelsManager, ScrollFlagArea)
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 get_file_language)
-from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.panels.utils import (
@@ -168,11 +165,6 @@ class CodeEditor(TextEditBaseWidget):
     edge_line = None
     indent_guides = None
 
-    sig_breakpoints_changed = Signal()
-    sig_repaint_breakpoints = Signal()
-    sig_debug_stop = Signal((int,), ())
-    sig_debug_start = Signal()
-    sig_breakpoints_saved = Signal()
     sig_filename_changed = Signal(str)
     sig_bookmarks_changed = Signal()
     go_to_definition = Signal(str, int, int)
@@ -362,12 +354,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Folding
         self.panels.register(FoldingPanel())
-
-        # Debugger panel (Breakpoints)
-        self.debugger = DebuggerManager(self)
-        self.panels.register(DebuggerPanel())
-        # Update breakpoints if the number of lines in the file changes
-        self.blockCountChanged.connect(self.sig_breakpoints_changed)
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
@@ -841,7 +827,6 @@ class CodeEditor(TextEditBaseWidget):
                      show_class_func_dropdown=False,
                      indent_guides=False,
                      scroll_past_end=False,
-                     show_debug_panel=True,
                      folding=True,
                      remove_trailing_spaces=False,
                      remove_trailing_newlines=False,
@@ -919,7 +904,6 @@ class CodeEditor(TextEditBaseWidget):
             Default False.
         scroll_past_end: Enable/Disable possibility to scroll file passed
             its end. Default False.
-        show_debug_panel: Enable/Disable debug panel. Default True.
         folding: Enable/Disable code folding. Default True.
         remove_trailing_spaces: Remove trailing whitespaces on lines.
             Default False.
@@ -937,17 +921,11 @@ class CodeEditor(TextEditBaseWidget):
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
 
-        # Show/hide the debug panel depending on the language and parameter
-        self.set_debug_panel(show_debug_panel, language)
-
         # Show/hide folding panel depending on parameter
         self.toggle_code_folding(folding)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
-
-        # Debugging
-        self.debugger.set_filename(filename)
 
         # Edge line
         self.edge_line.set_enabled(edge_line)
@@ -2039,30 +2017,6 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # -------------------------------------------------------------------------
-    def set_debug_panel(self, show_debug_panel, language):
-        """Enable/disable debug panel."""
-        debugger_panel = self.panels.get(DebuggerPanel)
-        if (is_text_string(language) and
-                language.lower() in ALL_LANGUAGES['Python'] and
-                show_debug_panel):
-            debugger_panel.setVisible(True)
-        else:
-            debugger_panel.setVisible(False)
-
-    def update_debugger_panel_state(self, state, last_step, force=False):
-        """Update debugger panel state."""
-        debugger_panel = self.panels.get(DebuggerPanel)
-        if force:
-            debugger_panel.start_clean()
-            return
-        elif state and 'fname' in last_step:
-            fname = last_step['fname']
-            if (fname and self.filename
-                    and osp.normcase(fname) == osp.normcase(self.filename)):
-                debugger_panel.start_clean()
-                return
-        debugger_panel.stop_clean()
-
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
         folding_panel = self.panels.get(FoldingPanel)

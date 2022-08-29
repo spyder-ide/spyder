@@ -54,8 +54,6 @@ from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    save_bookmarks)
-from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
-                                                  clear_breakpoint)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
@@ -107,8 +105,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     This option is available on the options menu of the editor plugin
     """
 
-    breakpoints_saved = Signal()
-
     sig_file_opened_closed_or_updated = Signal(str, str)
     """
     This signal is emitted when a file is opened, closed or updated,
@@ -122,8 +118,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         Name of the programming language of the file that was opened,
         closed or updated.
     """
-
-    sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
@@ -157,6 +151,36 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     sig_open_files_finished = Signal()
     """
     This signal is emitted when the editor finished to open files.
+    """
+
+    sig_codeeditor_created = Signal(object)
+    """
+    This signal is emitted when a codeeditor is created.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
+
+    sig_codeeditor_deleted = Signal(object)
+    """
+    This signal is emitted when a codeeditor is closed.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
+
+    sig_codeeditor_changed = Signal(object)
+    """
+    This signal is emitted when the current codeeditor changes.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
     """
 
     def __init__(self, parent, ignore_last_opened_files=False):
@@ -601,27 +625,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                        context=Qt.WidgetShortcut)
         self.register_shortcut(replace_action, context="find_replace",
                                name="Replace text")
-
-        # ---- Debug menu and toolbar ----
-        set_clear_breakpoint_action = create_action(self,
-                                    _("Set/Clear breakpoint"),
-                                    icon=ima.icon('breakpoint_big'),
-                                    triggered=self.set_or_clear_breakpoint,
-                                    context=Qt.WidgetShortcut)
-        self.register_shortcut(set_clear_breakpoint_action, context="Editor",
-                               name="Breakpoint")
-
-        set_cond_breakpoint_action = create_action(self,
-                            _("Set/Edit conditional breakpoint"),
-                            icon=ima.icon('breakpoint_cond_big'),
-                            triggered=self.set_or_edit_conditional_breakpoint,
-                            context=Qt.WidgetShortcut)
-        self.register_shortcut(set_cond_breakpoint_action, context="Editor",
-                               name="Conditional breakpoint")
-
-        clear_all_breakpoints_action = create_action(self,
-                                    _('Clear breakpoints in all files'),
-                                    triggered=self.clear_all_breakpoints)
 
         # --- Run toolbar ---
         run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
@@ -1076,14 +1079,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                run_cell_advance_action, run_selected_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
-        # ---- Debug menu/toolbar construction ----
-        debug_menu_actions = [
-            set_clear_breakpoint_action,
-            set_cond_breakpoint_action,
-            clear_all_breakpoints_action,
-        ]
-        self.main.debug_menu_actions += debug_menu_actions
-
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [
             showblanks_action,
@@ -1122,8 +1117,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.pythonfile_dependent_actions = [
             run_action,
             configure_action,
-            set_clear_breakpoint_action,
-            set_cond_breakpoint_action,
             run_selected_action,
             run_cell_action,
             run_cell_advance_action,
@@ -1154,14 +1147,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.stack_menu_actions = [gotoline_action, workdir_action]
 
         return self.file_dependent_actions
-
-    def update_pdb_state(self, state, last_step):
-        """
-        Enable/disable debugging actions and handle pdb state change.
-        """
-        current_editor = self.get_current_editor()
-        if current_editor:
-            current_editor.update_debugger_panel_state(state, last_step)
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -1200,7 +1185,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 'run_cell', self.handle_run_cell)
 
         self.add_dockwidget()
-        self.update_pdb_state(False, {})
 
         # Add modes to switcher
         self.switcher_manager = EditorSwitcherManager(
@@ -1515,7 +1499,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
-        editorstack.sig_breakpoints_saved.connect(self.breakpoints_saved)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
         editorstack.plugin_load.connect(self.load)
@@ -1531,6 +1514,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_load_bookmark.connect(self.load_bookmark)
         editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
         editorstack.sig_help_requested.connect(self.sig_help_requested)
+        editorstack.sig_codeeditor_created.connect(self.sig_codeeditor_created)
+        editorstack.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
+        editorstack.sig_codeeditor_deleted.connect(self.sig_codeeditor_deleted)
+
 
         # Register editorstack's autosave component with plugin's autosave
         # component
@@ -1891,7 +1878,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         fname=<basestring> --> create file
         """
         # If no text is provided, create default content
-        empty = False
         try:
             if text is None:
                 default_content = True
@@ -2176,7 +2162,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
-                current_editor.debugger.load_breakpoints()
                 current_editor.set_bookmarks(load_bookmarks(filename))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
@@ -2190,19 +2175,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             current_editor.window().raise_()
             if processevents:
                 QApplication.processEvents()
-            else:
-                # processevents is false only when calling from debugging
-                current_editor.sig_debug_stop.emit(goto[index])
-
-                ipyconsole = self.main.get_plugin(
-                    Plugins.IPythonConsole, error=False)
-                if ipyconsole:
-                    current_sw = ipyconsole.get_current_shellwidget()
-                    current_sw.sig_prompt_ready.connect(
-                        current_editor.sig_debug_stop[()])
-                    current_pdb_state = ipyconsole.get_pdb_state()
-                    pdb_last_step = ipyconsole.get_pdb_last_step()
-                    self.update_pdb_state(current_pdb_state, pdb_last_step)
 
         self.__ignore_cursor_history = cursor_history_state
         self.add_cursor_to_history()
@@ -2290,23 +2262,24 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         if not CONF.get('debugger', 'pdb_prevent_closing'):
             return True
+
         ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
+        if ipyconsole is None:
+            return True
 
-        debugging = False
-        last_pdb_step = {}
-        if ipyconsole:
-            debugging = ipyconsole.get_pdb_state()
-            last_pdb_step = ipyconsole.get_pdb_last_step()
+        debugging = ipyconsole.get_pdb_state()
+        if not debugging:
+            return True
 
-        can_close = True
-        if debugging and 'fname' in last_pdb_step and filename:
+        last_pdb_step = ipyconsole.get_pdb_last_step()
+
+        if 'fname' in last_pdb_step and filename:
             if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
-                can_close = False
-                self.sig_file_debug_message_requested.emit()
-        elif debugging:
-            can_close = False
-            self.sig_file_debug_message_requested.emit()
-        return can_close
+                ipyconsole.print_debug_file_msg()
+                return False
+            return True
+        ipyconsole.print_debug_file_msg()
+        return False
 
     @Slot()
     def close_file(self):
@@ -2584,13 +2557,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if current_stack is not None:
             current_stack.hide_tooltip()
 
-        # Update debugging state
-        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
-        if ipyconsole is not None:
-            pdb_state = ipyconsole.get_pdb_state()
-            pdb_last_step = ipyconsole.get_pdb_last_step()
-            self.update_pdb_state(pdb_state, pdb_last_step)
-
     def current_editor_cursor_changed(self, line, column):
         """Handles the change of the cursor inside the current editor."""
         code_editor = self.get_current_editor()
@@ -2725,45 +2691,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.go_to_line(line)
-
-    @Slot()
-    def set_or_clear_breakpoint(self):
-        """Set/Clear breakpoint"""
-        editorstack = self.get_current_editorstack()
-        if editorstack is not None:
-            self.switch_to_plugin()
-            editorstack.set_or_clear_breakpoint()
-
-    @Slot()
-    def set_or_edit_conditional_breakpoint(self):
-        """Set/Edit conditional breakpoint"""
-        editorstack = self.get_current_editorstack()
-        if editorstack is not None:
-            self.switch_to_plugin()
-            editorstack.set_or_edit_conditional_breakpoint()
-
-    @Slot()
-    def clear_all_breakpoints(self):
-        """Clear breakpoints in all files"""
-        self.switch_to_plugin()
-        clear_all_breakpoints()
-        self.breakpoints_saved.emit()
-        editorstack = self.get_current_editorstack()
-        if editorstack is not None:
-            for data in editorstack.data:
-                data.editor.debugger.clear_breakpoints()
-        self.refresh_plugin()
-
-    def clear_breakpoint(self, filename, lineno):
-        """Remove a single breakpoint"""
-        clear_breakpoint(filename, lineno)
-        self.breakpoints_saved.emit()
-        editorstack = self.get_current_editorstack()
-        if editorstack is not None:
-            index = self.is_file_opened(filename)
-            if index is not None:
-                editorstack.data[index].editor.debugger.toogle_breakpoint(
-                        lineno)
 
     # ----- Handlers for the IPython Console kernels
     def _get_editorstack(self):

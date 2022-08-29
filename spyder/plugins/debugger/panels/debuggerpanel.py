@@ -19,9 +19,11 @@ from spyder.config.base import debug_print
 class DebuggerPanel(Panel):
     """Debugger panel for show information about the debugging in process."""
 
-    def __init__(self):
+    def __init__(self, breakpoints_manager):
         """Initialize panel."""
         Panel.__init__(self)
+
+        self.breakpoints_manager = breakpoints_manager
 
         self.setMouseTracking(True)
         self.scrollable = True
@@ -31,10 +33,12 @@ class DebuggerPanel(Panel):
         self.stop = False
 
         # Diccionary of QIcons to draw in the panel
-        self.icons = {'breakpoint': ima.icon('breakpoint_big'),
-                      'transparent': ima.icon('breakpoint_transparent'),
-                      'condition': ima.icon('breakpoint_cond_big'),
-                      'arrow': ima.icon('arrow_debugger')}
+        self.icons = {
+            "breakpoint": ima.icon("breakpoint_big"),
+            "transparent": ima.icon("breakpoint_transparent"),
+            "condition": ima.icon("breakpoint_cond_big"),
+            "arrow": ima.icon("arrow_debugger"),
+        }
 
     def set_current_line_arrow(self, n):
         self._current_line_arrow = n
@@ -58,8 +62,7 @@ class DebuggerPanel(Panel):
             painter (QPainter)
             icon_name (srt): key of icon to draw (see: self.icons)
         """
-        rect = QRect(0, top, self.sizeHint().width(),
-                     self.sizeHint().height())
+        rect = QRect(0, top, self.sizeHint().width(), self.sizeHint().height())
         try:
             icon = self.icons[icon_name]
         except KeyError as e:
@@ -90,18 +93,18 @@ class DebuggerPanel(Panel):
 
         for top, line_number, block in self.editor.visible_blocks:
             if self.line_number_hint == line_number:
-                self._draw_breakpoint_icon(top, painter, 'transparent')
+                self._draw_breakpoint_icon(top, painter, "transparent")
             if self._current_line_arrow == line_number and not self.stop:
-                self._draw_breakpoint_icon(top, painter, 'arrow')
+                self._draw_breakpoint_icon(top, painter, "arrow")
 
             data = block.userData()
             if data is None or not data.breakpoint:
                 continue
 
             if data.breakpoint_condition is None:
-                self._draw_breakpoint_icon(top, painter, 'breakpoint')
+                self._draw_breakpoint_icon(top, painter, "breakpoint")
             else:
-                self._draw_breakpoint_icon(top, painter, 'condition')
+                self._draw_breakpoint_icon(top, painter, "condition")
 
     def mousePressEvent(self, event):
         """Override Qt method
@@ -110,8 +113,9 @@ class DebuggerPanel(Panel):
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
-        self.editor.debugger.toogle_breakpoint(line_number,
-                                               edit_condition=shift)
+        self.breakpoints_manager.toogle_breakpoint(
+            line_number, edit_condition=shift
+        )
 
     def mouseMoveEvent(self, event):
         """Override Qt method.
@@ -119,7 +123,8 @@ class DebuggerPanel(Panel):
         Draw semitransparent breakpoint hint.
         """
         self.line_number_hint = self.editor.get_linenumber_from_mouse_event(
-            event)
+            event
+        )
         self.update()
 
     def leaveEvent(self, event):
@@ -144,12 +149,10 @@ class DebuggerPanel(Panel):
             state (bool): Activate/deactivate.
         """
         if state:
-            self.editor.sig_repaint_breakpoints.connect(self.repaint)
-            self.editor.sig_debug_stop.connect(self.set_current_line_arrow)
-            self.editor.sig_debug_stop[()].connect(self.stop_clean)
-            self.editor.sig_debug_start.connect(self.start_clean)
+            self.breakpoints_manager.sig_repaint_breakpoints.connect(
+                self.repaint
+            )
         else:
-            self.editor.sig_repaint_breakpoints.disconnect(self.repaint)
-            self.editor.sig_debug_stop.disconnect(self.set_current_line_arrow)
-            self.editor.sig_debug_stop[()].disconnect(self.stop_clean)
-            self.editor.sig_debug_start.disconnect(self.start_clean)
+            self.breakpoints_manager.sig_repaint_breakpoints.disconnect(
+                self.repaint
+            )

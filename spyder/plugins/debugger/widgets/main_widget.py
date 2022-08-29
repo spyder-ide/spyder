@@ -44,6 +44,9 @@ class DebuggerWidgetActions:
 
     DebugCurrentFile = 'debug file'
     DebugCurrentCell = 'debug cell'
+    ToggleBreakpoint = 'toggle breakpoint'
+    ToggleConditionalBreakpoint = 'toggle conditional breakpoint'
+    ClearAllBreakpoints = 'clear all breakpoints'
 
 
 class DebuggerWidgetOptionsMenuSections:
@@ -83,6 +86,19 @@ class DebuggerWidget(ShellConnectMainWidget):
     """This signal is emitted to request the current file to be debugged."""
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
+
+    sig_debug_file = Signal()
+    """This signal is emitted to request the current file to be debugged."""
+
+    sig_debug_cell = Signal()
+    """This signal is emitted to request the current cell to be debugged."""
+
+    sig_breakpoints_saved = Signal()
+    """Breakpoints have been saved"""
+
+    sig_toggle_breakpoints = Signal()
+    sig_toggle_conditional_breakpoints = Signal()
+    sig_clear_all_breakpoints = Signal()
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -208,6 +224,31 @@ class DebuggerWidget(ShellConnectMainWidget):
             icon=self.create_icon('debug_cell'),
             triggered=self.sig_debug_cell,
             register_shortcut=True,
+        )
+
+        self.create_action(
+            DebuggerWidgetActions.ToggleBreakpoint,
+            text=_("Set/Clear breakpoint"),
+            tip=_("Set/Clear breakpoint"),
+            icon=self.create_icon('breakpoint_big'),
+            triggered=self.sig_toggle_breakpoints,
+            register_shortcut=True,
+        )
+
+        self.create_action(
+            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+            text=_("Set/Edit conditional breakpoint"),
+            tip=_("Set/Edit conditional breakpoint"),
+            icon=self.create_icon('breakpoint_cond_big'),
+            triggered=self.sig_toggle_conditional_breakpoints,
+            register_shortcut=True,
+        )
+
+        self.create_action(
+            DebuggerWidgetActions.ClearAllBreakpoints,
+            text=_("Clear breakpoints in all files"),
+            tip=_("Clear breakpoints in all files"),
+            triggered=self.sig_clear_all_breakpoints
         )
 
         # ---- Context menu actions

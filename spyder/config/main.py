@@ -453,8 +453,6 @@ DEFAULTS = [
               'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
-              'editor/breakpoint': 'F12',
-              'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
               'editor/run to line': 'Shift+F9',
               'editor/run from line': CTRL + '+F9',
@@ -529,6 +527,8 @@ DEFAULTS = [
               'debugger/step': "Ctrl+F11",
               'debugger/return': "Ctrl+Shift+F11",
               'debugger/stop': "Ctrl+Shift+F12",
+              'debugger/toggle breakpoint': 'F12',
+              'debugger/toggle conditional breakpoint': 'Shift+F12',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',

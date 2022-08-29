@@ -16,7 +16,7 @@ from qtpy.QtGui import QFont
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-
+from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -94,6 +94,7 @@ def test_flag_painting(editor_bot, qtbot):
     visible. There is seven different flags: breakpoints, todos, warnings,
     errors, found_results, and occurences"""
     editor = editor_bot
+    editor.breakpoints_manager = BreakpointsManager(editor)
     sfa = editor.scrollflagarea
 
     editor.resize(450, 300)
@@ -104,7 +105,7 @@ def test_flag_painting(editor_bot, qtbot):
     qtbot.waitUntil(lambda: not sfa.slider)
 
     # Trigger the painting of all flag types.
-    editor.debugger.toogle_breakpoint(line_number=2)
+    editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},
@@ -127,7 +128,7 @@ def test_flag_painting(editor_bot, qtbot):
     editor.set_text(long_code)
 
     # Trigger the painting of all flag types.
-    editor.debugger.toogle_breakpoint(line_number=2)
+    editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},

@@ -514,7 +514,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # send pdb config
         self.shellwidget.call_kernel().set_pdb_configuration({
             'breakpoints': self.get_conf(
-                'breakpoints', default={}, section='run'),
+                "breakpoints", default={}, section='debugger'),
             'pdb_ignore_lib': self.get_conf(
                 'pdb_ignore_lib', section='debugger'),
             'pdb_execute_events': self.get_conf(

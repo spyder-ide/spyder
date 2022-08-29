@@ -1024,7 +1024,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     code_editor = main_window.editor.get_focus_widget()
 
     # Set breakpoint
-    code_editor.debugger.toogle_breakpoint(line_number=10)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=10)
     qtbot.wait(500)
     cursor = code_editor.textCursor()
     cursor.setPosition(0)
@@ -1071,7 +1071,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
         shell.pdb_execute("!exit")
 
     # Set breakpoint on first line with code
-    code_editor.debugger.toogle_breakpoint(line_number=2)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=2)
 
     # Click the debug button
     with qtbot.waitSignal(shell.executed):
@@ -1593,7 +1593,7 @@ def test_set_new_breakpoints(main_window, qtbot):
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.debugger.toogle_breakpoint(line_number=6)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=6)
 
     # Verify that the breakpoint was set
     with qtbot.waitSignal(shell.executed):
@@ -2166,7 +2166,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.debugger.toogle_breakpoint(line_number=6)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=6)
     qtbot.wait(500)
 
     # Verify that c works
@@ -3034,7 +3034,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
 
     with qtbot.waitSignal(shell.executed):
         # Set a breakpoint
-        code_editor.debugger.toogle_breakpoint(line_number=3)
+        code_editor.breakpoints_manager.toogle_breakpoint(line_number=3)
         # We should drop into the debugger
 
     with qtbot.waitSignal(shell.executed):
@@ -3434,7 +3434,7 @@ def test_debug_unsaved_file(main_window, qtbot):
     code_editor.set_text('print(0)\nprint(1)\nprint(2)')
 
     # Set breakpoint
-    code_editor.debugger.toogle_breakpoint(line_number=2)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     qtbot.wait(500)
 
     # Start debugging
@@ -4104,7 +4104,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
-    code_editor.debugger.toogle_breakpoint(line_number=2)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=2)
 
     # Write b in the namespace
     with qtbot.waitSignal(shell.executed):
@@ -4457,7 +4457,7 @@ hello()
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
-    code_editor.debugger.toogle_breakpoint(line_number=4)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=4)
 
     nsb = main_window.variableexplorer.current_widget()
 
@@ -4757,7 +4757,7 @@ def test_prevent_closing(main_window, qtbot):
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
-    code_editor.debugger.toogle_breakpoint(line_number=1)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=1)
 
     # Start debugging
     with qtbot.waitSignal(shell.executed):
@@ -5343,7 +5343,7 @@ def test_debug_unsaved_function(main_window, qtbot):
     code_editor.set_text('def foo():\n    print(1)')
 
     # Set breakpoint
-    code_editor.debugger.toogle_breakpoint(line_number=2)
+    code_editor.breakpoints_manager.toogle_breakpoint(line_number=2)
 
     # run file
     with qtbot.waitSignal(shell.executed):

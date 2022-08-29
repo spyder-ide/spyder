@@ -16,12 +16,13 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerWidget)
+    DebuggerWidget, DebuggerWidgetActions)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.utils.qthelpers import MENU_SEPARATOR
 from spyder.config.manager import CONF
 from spyder.plugins.mainmenu.api import ApplicationMenus
-from spyder.plugins.debugger.widgets.main_widget import DebuggerWidgetActions
+from spyder.plugins.debugger.utils.breakpointsmanager import (
+    BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -67,21 +68,40 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
 
+        # The editor is avilable, connect signal.
         widget.edit_goto.connect(editor.load)
         widget.sig_debug_file.connect(self.debug_file)
         widget.sig_debug_cell.connect(self.debug_cell)
+        widget.sig_toggle_breakpoints.connect(self.set_or_clear_breakpoint)
+        widget.sig_toggle_conditional_breakpoints.connect(
+            self.set_or_edit_conditional_breakpoint)
+        widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
 
-        names = [
+        editor.sig_codeeditor_created.connect(self.add_codeeditor)
+        editor.sig_codeeditor_changed.connect(self.update_codeeditor)
+        editor.sig_codeeditor_deleted.connect(self.remove_codeeditor)
+
+        # Apply shortcuts to editor and add actions to pythonfile list
+        editor_shortcuts = [
             DebuggerWidgetActions.DebugCurrentFile,
             DebuggerWidgetActions.DebugCurrentCell,
-            ]
-        for name in names:
+            DebuggerWidgetActions.ToggleBreakpoint,
+            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+        ]
+        for name in editor_shortcuts:
             action = widget.get_action(name)
             CONF.config_shortcut(
                 action.trigger,
                 context=self.CONF_SECTION,
                 name=name,
                 parent=editor)
+            editor.pythonfile_dependent_actions += [action]
+
+        # Add buttons to toolbar
+        for name in [
+                DebuggerWidgetActions.DebugCurrentFile,
+                DebuggerWidgetActions.DebugCurrentCell]:
+            action = widget.get_action(name)
             self.main.debug_toolbar_actions += [action]
 
     @on_plugin_teardown(plugin=Plugins.Editor)
@@ -92,7 +112,27 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget.edit_goto.disconnect(editor.load)
         widget.sig_debug_file.disconnect(self.debug_file)
         widget.sig_debug_cell.disconnect(self.debug_cell)
+        widget.sig_toggle_breakpoints.disconnect(self.set_or_clear_breakpoint)
+        widget.sig_toggle_conditional_breakpoints.disconnect(
+            self.set_or_edit_conditional_breakpoint)
+        widget.sig_clear_all_breakpoints.disconnect(self.clear_all_breakpoints)
 
+        editor.sig_codeeditor_created.disconnect(self.add_codeeditor)
+        editor.sig_codeeditor_changed.disconnect(self.update_codeeditor)
+        editor.sig_codeeditor_deleted.disconnect(self.remove_codeeditor)
+
+        # Remove editor actions
+        editor_shortcuts = [
+            DebuggerWidgetActions.DebugCurrentFile,
+            DebuggerWidgetActions.DebugCurrentCell,
+            DebuggerWidgetActions.ToggleBreakpoint,
+            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+        ]
+        for name in editor_shortcuts:
+            action = widget.get_action(name)
+            editor.pythonfile_dependent_actions.remove(action)
+
+        # Remove buttons from toolbar
         names = [
             DebuggerWidgetActions.DebugCurrentFile,
             DebuggerWidgetActions.DebugCurrentCell,
@@ -114,29 +154,44 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         widget = self.get_widget()
-        debug_file_action = widget.get_action(
-            DebuggerWidgetActions.DebugCurrentFile)
-        debug_cell_action = widget.get_action(
-            DebuggerWidgetActions.DebugCurrentCell)
+        names = [
+            DebuggerWidgetActions.DebugCurrentFile,
+            DebuggerWidgetActions.DebugCurrentCell,
+            MENU_SEPARATOR,
+            DebuggerWidgetActions.ToggleBreakpoint,
+            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+            DebuggerWidgetActions.ClearAllBreakpoints,
+            MENU_SEPARATOR,
+            ]
 
-        self.main.debug_menu_actions = [
-                debug_file_action,
-                debug_cell_action,
-                MENU_SEPARATOR,
-            ] + self.main.debug_menu_actions
+        debug_menu_actions = []
+
+        for name in names:
+            if name is MENU_SEPARATOR:
+                action = name
+            else:
+                action = widget.get_action(name)
+            debug_menu_actions.append(action)
+
+        self.main.debug_menu_actions = (
+            debug_menu_actions + self.main.debug_menu_actions)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        mainmenu.remove_item_from_application_menu(
+        names = [
             DebuggerWidgetActions.DebugCurrentFile,
-            menu_id=ApplicationMenus.Debug
-        )
-        mainmenu.remove_item_from_application_menu(
             DebuggerWidgetActions.DebugCurrentCell,
-            menu_id=ApplicationMenus.Debug
-        )
+            DebuggerWidgetActions.ToggleBreakpoint,
+            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+            DebuggerWidgetActions.ClearAllBreakpoints
+            ]
+        for name in names:
+            mainmenu.remove_item_from_application_menu(
+                name,
+                menu_id=ApplicationMenus.Debug
+            )
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -170,3 +225,122 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             return
         nsb = variable_explorer.get_widget_for_shellwidget(shellwidget)
         nsb.process_remote_view(namespace)
+
+    def add_shellwidget(self, shellwidget):
+        """
+        Add a new shellwidget to be registered.
+
+        This function registers a new widget to display content that
+        comes from shellwidget.
+
+        Parameters
+        ----------
+        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+            The shell widget.
+        """
+        super().add_shellwidget(shellwidget)
+        self.get_widget().sig_breakpoints_saved.connect(
+            shellwidget.set_breakpoints)
+        shellwidget.sig_pdb_state_changed.connect(
+            self.update_current_codeeditor_pdb_state)
+
+    def remove_shellwidget(self, shellwidget):
+        """
+        Remove the registered shellwidget.
+
+        Parameters
+        ----------
+        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+            The shell widget.
+        """
+        super().remove_shellwidget(shellwidget)
+        self.get_widget().sig_breakpoints_saved.disconnect(
+            shellwidget.set_breakpoints)
+        shellwidget.sig_pdb_state_changed.disconnect(
+            self.update_current_codeeditor_pdb_state)
+
+    def add_codeeditor(self, codeeditor):
+        codeeditor.breakpoints_manager = BreakpointsManager(codeeditor)
+        codeeditor.breakpoints_manager.sig_breakpoints_saved.connect(
+            self.get_widget().sig_breakpoints_saved)
+
+    def remove_codeeditor(self, codeeditor):
+        codeeditor.breakpoints_manager.sig_breakpoints_saved.disconnect(
+            self.get_widget().sig_breakpoints_saved)
+        codeeditor.breakpoints_manager = None
+
+    def update_current_codeeditor_pdb_state(self, pdb_state, pdb_last_step):
+        current_editor = self.get_current_editor()
+        if current_editor is None:
+            return
+        current_editor.breakpoints_manager.update_pdb_state(
+            pdb_state, pdb_last_step)
+
+    def update_codeeditor(self, codeeditor):
+        if codeeditor.filename is None:
+            # Not setup yet
+            return
+        # Update debugging state
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        if ipyconsole is None:
+            return
+        pdb_state = ipyconsole.get_pdb_state()
+        pdb_last_step = ipyconsole.get_pdb_last_step()
+        codeeditor.breakpoints_manager.update_pdb_state(
+            pdb_state, pdb_last_step)
+
+    def get_current_editor(self):
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is None:
+            return None
+        return editor.get_current_editor()
+
+    def get_current_editorstack(self):
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is None:
+            return None
+        return editor.get_current_editorstack()
+
+    @Slot()
+    def set_or_clear_breakpoint(self):
+        """Set/Clear breakpoint"""
+        current_editor = self.get_current_editor()
+        if current_editor is None:
+            return
+        current_editor.breakpoints_manager.toogle_breakpoint()
+
+    @Slot()
+    def set_or_edit_conditional_breakpoint(self):
+        """Set/Edit conditional breakpoint"""
+        current_editor = self.get_current_editor()
+        if current_editor is None:
+            return
+        current_editor.breakpoints_manager.toogle_breakpoint(
+            edit_condition=True)
+
+    @Slot()
+    def clear_all_breakpoints(self):
+        """Clear breakpoints in all files"""
+        clear_all_breakpoints()
+        self.get_widget().sig_breakpoints_saved.emit()
+
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            for data in editorstack.data:
+                data.editor.breakpoints_manager.clear_breakpoints()
+
+    def clear_breakpoint(self, filename, lineno):
+        """Remove a single breakpoint"""
+        clear_breakpoint(filename, lineno)
+        self.get_widget().sig_breakpoints_saved.emit()
+
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is None:
+            return None
+
+        editorstack = editor.get_current_editorstack()
+        if editorstack is not None:
+            index = editor.is_file_opened(filename)
+            if index is not None:
+                editorstack.data[
+                    index].editor.breakpoints_manager.toogle_breakpoint(lineno)

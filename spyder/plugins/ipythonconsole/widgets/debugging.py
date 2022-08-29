@@ -387,6 +387,13 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         """Set configuration into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_configuration(configuration)
 
+    def set_breakpoints(self):
+        """Set current breakpoints."""
+        self.set_pdb_configuration({
+            'breakpoints': self.get_conf(
+                "breakpoints", default={}, section='debugger')
+            })
+
     def is_pdb_using_exclamantion_mark(self):
         return self.get_conf('pdb_use_exclamation_mark', section='debugger')
 
