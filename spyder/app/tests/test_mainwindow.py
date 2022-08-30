@@ -61,7 +61,7 @@ from spyder.plugins.debugger.widgets.main_widget import DebuggerWidgetActions
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.plugins.ipythonconsole.widgets.kernel_connection_manager import (
+from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnection)
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
