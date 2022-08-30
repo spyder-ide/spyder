@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-08-22 11:49-0500\n"
-"PO-Revision-Date: 2022-08-24 17:45\n"
+"PO-Revision-Date: 2022-08-30 16:29\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1881,7 +1881,7 @@ msgstr "Surligner la cellule en cours d'édition"
 
 #: spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:932
 msgid "Scroll past the end"
-msgstr "Faites défiler la fin"
+msgstr "Faire défiler au-delà de la fin"
 
 #: spyder/plugins/editor/confpage.py:60
 msgid "Highlight occurrences after"
