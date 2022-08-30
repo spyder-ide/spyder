@@ -233,7 +233,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         self.create_action(
-            DebuggerWidgetActions.ToggleBreakpoint,
+            DebuggerBreakpointActions.ToggleBreakpoint,
             text=_("Set/Clear breakpoint"),
             tip=_("Set/Clear breakpoint"),
             icon=self.create_icon('breakpoint_big'),
@@ -242,7 +242,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         self.create_action(
-            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+            DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             text=_("Set/Edit conditional breakpoint"),
             tip=_("Set/Edit conditional breakpoint"),
             icon=self.create_icon('breakpoint_cond_big'),
@@ -251,7 +251,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         self.create_action(
-            DebuggerWidgetActions.ClearAllBreakpoints,
+            DebuggerBreakpointActions.ClearAllBreakpoints,
             text=_("Clear breakpoints in all files"),
             tip=_("Clear breakpoints in all files"),
             triggered=self.sig_clear_all_breakpoints
