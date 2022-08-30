@@ -33,6 +33,7 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_conf_path, get_home_dir, running_under_pytest)
+from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
@@ -59,17 +60,6 @@ _ = get_translation('spyder')
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-SPYDER_KERNELS_MIN_VERSION = '2.3.0'
-SPYDER_KERNELS_MAX_VERSION = '2.4.0'
-SPYDER_KERNELS_VERSION = (
-    f'>={SPYDER_KERNELS_MIN_VERSION};<{SPYDER_KERNELS_MAX_VERSION}')
-SPYDER_KERNELS_VERSION_MSG = _(
-    '>= {0} and < {1}').format(
-        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
-SPYDER_KERNELS_CONDA = (
-    f'conda install spyder&#45;kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
-SPYDER_KERNELS_PIP = (
-    f'pip install spyder&#45;kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
 
 
 class IPythonConsoleWidgetActions:
@@ -1185,6 +1175,14 @@ class IPythonConsoleWidget(PluginMainWidget):
                 sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
+            # This is necessary to sync the current client cwd with the working
+            # directory displayed by other plugins in Spyder (e.g. Files).
+            # NOTE: Instead of emitting sig_current_directory_changed directly,
+            # we call on_working_directory_changed to validate that the cwd
+            # exists (this couldn't be the case for remote kernels).
+            if sw.get_cwd() != self.get_working_directory():
+                self.on_working_directory_changed(sw.get_cwd())
+
         self.update_tabs_text()
         self.update_actions()
 
@@ -1433,7 +1431,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True):
+                          cache=True, initial_cwd=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
@@ -1470,7 +1468,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                               handlers=self.registered_spyder_kernel_handlers,
                               stderr_obj=stderr_obj,
                               stdout_obj=stdout_obj,
-                              fault_obj=fault_obj)
+                              fault_obj=fault_obj,
+                              initial_cwd=initial_cwd)
 
         self.add_tab(
             client, name=client.get_name(), filename=filename,
@@ -1481,46 +1480,11 @@ class IPythonConsoleWidget(PluginMainWidget):
             client.show_kernel_error(error_msg)
             return
 
-        # Check if ipykernel is present in the external interpreter.
-        # Else we won't be able to create a client
-        if not self.get_conf('default', section='main_interpreter'):
-            pyexec = self.get_conf('executable', section='main_interpreter')
-            has_spyder_kernels = programs.is_module_installed(
-                'spyder_kernels',
-                interpreter=pyexec,
-                version=SPYDER_KERNELS_VERSION)
-            if not has_spyder_kernels and not running_under_pytest():
-                client.show_kernel_error(
-                    _("The Python environment or installation whose "
-                      "interpreter is located at"
-                      "<pre>"
-                      "    <tt>{0}</tt>"
-                      "</pre>"
-                      "doesn't have the <tt>spyder-kernels</tt> module or the "
-                      "right version of it installed ({1}). "
-                      "Without this module is not possible for Spyder to "
-                      "create a console for you.<br><br>"
-                      "You can install it by activating your environment (if "
-                      "necessary) and then running in a system terminal:"
-                      "<pre>"
-                      "    <tt>{2}</tt>"
-                      "</pre>"
-                      "or"
-                      "<pre>"
-                      "    <tt>{3}</tt>"
-                      "</pre>").format(
-                          pyexec,
-                          SPYDER_KERNELS_VERSION_MSG,
-                          SPYDER_KERNELS_CONDA,
-                          SPYDER_KERNELS_PIP
-                      )
-                )
-                return
-
         self.connect_client_to_kernel(client, km, kc)
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client, give_focus=give_focus)
+        return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
                                  password):
@@ -1648,16 +1612,14 @@ class IPythonConsoleWidget(PluginMainWidget):
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
         shellwidget = client.shellwidget
-        shellwidget.set_kernel_client_and_manager(
-            kernel_client, kernel_manager)
-        shellwidget.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
 
         if not known_spyder_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_spyder_kernel)
-            shellwidget.check_spyder_kernel()
-
+        shellwidget.set_kernel_client_and_manager(
+            kernel_client, kernel_manager)
+        shellwidget.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         self.sig_shellwidget_created.emit(shellwidget)
         kernel_client.stopped_channels.connect(
             lambda: self.sig_shellwidget_deleted.emit(shellwidget))
@@ -1812,27 +1774,26 @@ class IPythonConsoleWidget(PluginMainWidget):
         # type is Qt.DirectConnection.
         self._shellwidget_started(client)
 
-
     @Slot(str)
     def create_client_from_path(self, path):
         """Create a client with its cwd pointing to path."""
-        self.create_new_client()
-        sw = self.get_current_shellwidget()
-        sw.set_cwd(path)
+        self.create_new_client(initial_cwd=path)
 
     def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
         # Create client
-        self.create_new_client(filename=filename, is_cython=is_cython)
+        client = self.create_new_client(
+            filename=filename, is_cython=is_cython)
 
         # Don't increase the count of master clients
         self.master_clients -= 1
 
         # Rename client tab with filename
-        client = self.get_current_client()
         client.allow_rename = False
         tab_text = self.disambiguate_fname(filename)
         self.rename_client_tab(client, tab_text)
+
+        return client
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
@@ -1882,7 +1843,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Connect to working directory
         shellwidget.sig_working_directory_changed.connect(
-            self.working_directory_changed)
+            self.on_working_directory_changed)
 
         # Connect client execution state to be reflected in the interface
         client.sig_execution_state_changed.connect(self.update_actions)
@@ -1959,13 +1920,20 @@ class IPythonConsoleWidget(PluginMainWidget):
         bool
             If the closing action was succesful.
         """
-        while self.clients:
-            client = self.clients.pop()
-            is_last_client = len(self.get_related_clients(client)) == 0
+        # IMPORTANT: **Do not** change this way of closing clients, which uses
+        # a copy of `self.clients`, because it preserves the main window layout
+        # when Spyder is closed.
+        # Fixes spyder-ide/spyder#19084
+        open_clients = self.clients.copy()
+        for client in self.clients:
+            is_last_client = (
+                len(self.get_related_clients(client, open_clients)) == 0)
             client.close_client(is_last_client)
+            open_clients.remove(client)
 
         # Close all closing shellwidgets.
         ShellWidget.wait_all_shutdown()
+
         # Close cached kernel
         self.close_cached_kernel()
         self.filenames = []
@@ -2122,6 +2090,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                 config=None,
                 autorestart=True,
             )
+        except SpyderKernelError as e:
+            return (e.args[0], None)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
@@ -2134,6 +2104,8 @@ class IPythonConsoleWidget(PluginMainWidget):
             kernel_manager.start_kernel(stderr=stderr_handle,
                                         stdout=stdout_handle,
                                         env=kernel_spec.env)
+        except SpyderKernelError as e:
+            return (e.args[0], None)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
@@ -2260,6 +2232,9 @@ class IPythonConsoleWidget(PluginMainWidget):
                                 repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
 
+                if function == "debugcell":
+                    # To keep focus in editor after running debugfile
+                    client.shellwidget._pdb_focus_to_editor = focus_to_editor
             # External kernels and run_cell_copy, just execute the code
             else:
                 line = code.strip()
@@ -2311,8 +2286,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         else:
             client = self.get_client_for_file(filename)
             if client is None:
-                self.create_client_for_file(filename, is_cython=is_cython)
-                client = self.get_current_client()
+                client = self.create_client_for_file(
+                    filename, is_cython=is_cython)
                 is_new_client = True
 
         if client is not None:
@@ -2358,7 +2333,8 @@ class IPythonConsoleWidget(PluginMainWidget):
                     client.shellwidget.sig_prompt_ready.connect(
                         lambda: self.execute_code(
                             line, current_client, clear_variables,
-                            set_focus=not focus_to_editor
+                            set_focus=not focus_to_editor,
+                            shellwidget=client.shellwidget
                         )
                     )
             except AttributeError:
@@ -2379,15 +2355,23 @@ class IPythonConsoleWidget(PluginMainWidget):
             )
 
     # ---- For working directory and path management
-    def set_working_directory(self, new_dir):
+    def set_working_directory(self, dirname):
         """
-        Set current working directory when changed by the Working Directory
+        Set current working directory in the Working Directory and Files
+        plugins.
+        """
+        if osp.isdir(dirname):
+            self.sig_current_directory_changed.emit(dirname)
+
+    def save_working_directory(self, dirname):
+        """
+        Save current working directory when changed by the Working Directory
         plugin.
         """
-        self._current_working_directory = new_dir
+        self._current_working_directory = dirname
 
     def get_working_directory(self):
-        """Get current working directory."""
+        """Get saved value of current working directory."""
         return self._current_working_directory
 
     def set_current_client_working_directory(self, directory):
@@ -2396,12 +2380,12 @@ class IPythonConsoleWidget(PluginMainWidget):
         if shellwidget is not None:
             shellwidget.set_cwd(directory)
 
-    def working_directory_changed(self, dirname):
+    def on_working_directory_changed(self, dirname):
         """
         Notify that the working directory was changed in the current console
         to other plugins.
         """
-        if osp.isdir(dirname):
+        if dirname and osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
 
     def update_working_directory(self):
@@ -2439,9 +2423,12 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     # ---- For execution
     def execute_code(self, lines, current_client=True, clear_variables=False,
-                     set_focus=True):
+                     set_focus=True, shellwidget=None):
         """Execute code instructions."""
-        sw = self.get_current_shellwidget()
+        if current_client:
+            sw = self.get_current_shellwidget()
+        else:
+            sw = shellwidget
         if sw is not None:
             if not current_client:
                 # Clear console and reset namespace for

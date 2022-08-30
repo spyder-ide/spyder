@@ -11,8 +11,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import QPoint, QSize, Qt, Signal, Slot
-from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QBrush,
-                        QFontMetrics, QPalette, QTextDocument)
+from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
+                        QTextDocument)
 from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
@@ -260,13 +260,20 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            self.files[filename] = item = FileMatchItem(
-                self,
-                self.path,
-                filename,
-                self.sorting,
-                self.text_color
-            )
+            # Catch any error while creating file items.
+            # Fixes spyder-ide/spyder#17443
+            try:
+                item = FileMatchItem(
+                    self,
+                    self.path,
+                    filename,
+                    self.sorting,
+                    self.text_color
+                )
+            except Exception:
+                return
+
+            self.files[filename] = item
 
             item.setExpanded(True)
             self.num_files += 1

@@ -65,7 +65,7 @@ class MainWindowMock(QMainWindow):
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
         plugin._register(omit_conf=True)
 
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         if plugin_name in PLUGIN_REGISTRY:
             return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
@@ -88,7 +88,7 @@ class ConfigDialogTester(QWidget):
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             plugin._register()
 
-        def get_plugin(self, plugin_name, error=False):
+        def get_plugin(self, plugin_name, error=True):
             if plugin_name in PLUGIN_REGISTRY:
                 return PLUGIN_REGISTRY.get_plugin(plugin_name)
             return None

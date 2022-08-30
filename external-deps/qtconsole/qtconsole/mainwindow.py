@@ -8,6 +8,7 @@ common actions.
 # Distributed under the terms of the Modified BSD License.
 import sys
 import webbrowser
+from functools import partial
 from threading import Thread
 
 from jupyter_core.paths import jupyter_runtime_dir
@@ -625,11 +626,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.syntax_style_menu = self.view_menu.addMenu("&Syntax Style")
             style_group = QtWidgets.QActionGroup(self)
             for style in available_syntax_styles:
-                action = QtWidgets.QAction("{}".format(style), self,
-                                       triggered=lambda v,
-                                       syntax_style=style:
-                                           self.set_syntax_style(
-                                                   syntax_style=syntax_style))
+                action = QtWidgets.QAction("{}".format(style), self)
+                action.triggered.connect(partial(self.set_syntax_style,
+                                                 style))
                 action.setCheckable(True)
                 style_group.addAction(action)
                 self.syntax_style_menu.addAction(action)

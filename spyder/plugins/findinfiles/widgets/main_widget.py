@@ -589,7 +589,12 @@ class FindInFilesWidget(PluginMainWidget):
         # Start
         self.running = True
         self.start_spinner()
-        self.search_thread = SearchThread(None, search_text, self.text_color)
+        self.search_thread = SearchThread(
+            None,
+            search_text,
+            self.text_color,
+            self.get_conf('max_results')
+        )
         self.search_thread.sig_finished.connect(self._handle_search_complete)
         self.search_thread.sig_file_match.connect(
             self.result_browser.append_file_result
@@ -630,9 +635,15 @@ class FindInFilesWidget(PluginMainWidget):
             dialog.setWindowTitle(_('Max results'))
             dialog.setLabelText(_('Set maximum number of results: '))
             dialog.setInputMode(QInputDialog.IntInput)
-            dialog.setIntRange(1, 10000)
             dialog.setIntStep(1)
             dialog.setIntValue(self.get_conf('max_results'))
+
+            # In order to show the right number of results when max_results is
+            # reached, we can't allow users to introduce less than 2 in this
+            # dialog. Since that value seems a bit arbitrary, we decided to set
+            # it to 5.
+            # See spyder-ide/spyder#16256
+            dialog.setIntRange(5, 10000)
 
             # Connect slot
             dialog.intValueSelected.connect(

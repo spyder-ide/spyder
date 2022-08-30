@@ -985,7 +985,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def hide_completion_widget(self, focus_to_parent=True):
         """Hide completion widget and tooltip."""
-        self.completion_widget.hide(focus_to_parent=focus_to_parent)
+        # This is necessary to catch an error when creating new editor windows.
+        # Fixes spyder-ide/spyder#19109
+        try:
+            self.completion_widget.hide(focus_to_parent=focus_to_parent)
+        except RuntimeError:
+            pass
         QToolTip.hideText()
 
     # ------Standard keys

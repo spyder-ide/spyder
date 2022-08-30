@@ -20,6 +20,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
 from spyder.plugins.findinfiles.widgets.combobox import (
@@ -27,6 +28,7 @@ from spyder.plugins.findinfiles.widgets.combobox import (
     SELECT_OTHER)
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import APP_STYLESHEET
 
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -84,6 +86,7 @@ def findinfiles(qtbot, request):
         widget.setup()
 
     widget.resize(640, 480)
+    widget.setStyleSheet(str(APP_STYLESHEET))
     qtbot.addWidget(widget)
     widget.show()
     return widget
@@ -308,6 +311,41 @@ def test_exclude_regexp_error(findinfiles, qtbot):
     findinfiles.find()
     tooltip = findinfiles.exclude_pattern_edit.toolTip()
     assert findinfiles.REGEX_ERROR in tooltip
+
+
+@flaky(max_runs=5)
+@pytest.mark.skipif(not running_in_ci(), reason="Only works on CIs")
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_no_empty_file_items(findinfiles, qtbot):
+    """
+    Test that a search that hits the max number of results doesn't generate
+    empty file items.
+
+    This is a regression test for issue spyder-ide/spyder#16256
+    """
+    findinfiles.set_search_text("spam")
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_conf('max_results', 6)
+
+    with qtbot.waitSignal(findinfiles.sig_max_results_reached):
+        findinfiles.find()
+
+    # Assert the results are the expected ones to reproduce the bug this test
+    # tries to catch. In other words, this is here to prevent future changes to
+    # our test files that would render this test useless.
+    results = {
+        'spam.py': [(2, 7), (5, 1), (7, 12)],
+        'spam.txt': [(1, 0), (1, 5), (3, 22)]
+    }
+    assert process_search_results(findinfiles.result_browser.data) == results
+
+    # Assert that the files with results are exactly the same as those
+    # displayed in the results browser.
+    files_with_results = set(
+        [v[0] for v in findinfiles.result_browser.data.values()]
+    )
+    displayed_files = set(findinfiles.result_browser.files.keys())
+    assert files_with_results == displayed_files
 
 
 # ---- Tests for SearchInComboBox

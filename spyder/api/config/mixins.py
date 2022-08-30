@@ -185,7 +185,9 @@ class SpyderConfigurationAccessor:
             )
         return CONF.get_default(section, option)
 
-    def get_shortcut(self, name: str, context: Optional[str] = None) -> str:
+    def get_shortcut(
+            self, name: str, context: Optional[str] = None,
+            plugin_name: Optional[str] = None) -> str:
         """
         Get a shortcut sequence stored under the given name and context.
 
@@ -194,7 +196,9 @@ class SpyderConfigurationAccessor:
         name: str
             Key identifier under which the shortcut is stored.
         context: Optional[str]
-            Name of the context (plugin) where the shortcut was defined.
+            Name of the shortcut context.
+        plugin: Optional[str]
+            Name of the plugin where the shortcut is defined.
 
         Returns
         -------
@@ -207,7 +211,7 @@ class SpyderConfigurationAccessor:
             If the section does not exist in the configuration.
         """
         context = self.CONF_SECTION if context is None else context
-        return CONF.get_shortcut(context, name)
+        return CONF.get_shortcut(context, name, plugin_name)
 
     def config_shortcut(
             self, action: QAction, name: str, parent: QWidget,

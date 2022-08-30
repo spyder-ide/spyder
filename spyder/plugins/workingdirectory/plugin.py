@@ -188,6 +188,8 @@ class WorkingDirectory(SpyderPluginV2):
         if sender_plugin is not None:
             container = self.get_container()
             container.chdir(directory, emit=False)
+            if ipyconsole:
+                ipyconsole.save_working_directory(directory)
 
         self.save_history()
 

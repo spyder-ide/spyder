@@ -349,7 +349,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_working_directory_available(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.connect(
-            self._set_working_directory)
+            self.save_working_directory)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -396,7 +396,7 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_working_directory_teardown(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.disconnect(
-            self._set_working_directory)
+            self.save_working_directory)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -411,11 +411,6 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)
-
-        # Raise plugin the first time Spyder starts
-        if self.get_conf('show_first_time', default=True):
-            self.dockwidget.raise_()
-            self.set_conf('show_first_time', False)
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -447,11 +442,6 @@ class IPythonConsole(SpyderDockablePlugin):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
-
-    @Slot(str)
-    def _set_working_directory(self, new_dir):
-        """Set current working directory on the main widget."""
-        self.get_widget().set_working_directory(new_dir)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -806,7 +796,7 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def set_working_directory(self, dirname):
         """
-        Set current working directory for the `workingdirectory` and `explorer`
+        Set current working directory in the Working Directory and Files
         plugins.
 
         Parameters
@@ -819,6 +809,18 @@ class IPythonConsole(SpyderDockablePlugin):
         None.
         """
         self.get_widget().set_working_directory(dirname)
+
+    @Slot(str)
+    def save_working_directory(self, dirname):
+        """
+        Save current working directory on the main widget to start new clients.
+
+        Parameters
+        ----------
+        new_dir: str
+            Path to the new current working directory.
+        """
+        self.get_widget().save_working_directory(dirname)
 
     def update_working_directory(self):
         """Update working directory to console current working directory."""

@@ -515,7 +515,7 @@ class CompletionPlugin(SpyderPluginV2):
         tool_tip = mi_status._interpreter
 
         if '(' in value:
-            value, _ = value.split('(')
+            value = value.split('(')[0]
 
         if ':' in value:
             kind, name = value.split(':')

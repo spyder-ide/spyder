@@ -8,9 +8,6 @@
 Pylint Code Analysis Plugin.
 """
 
-# Standard library imports
-import os.path as osp
-
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
 
@@ -23,8 +20,7 @@ from spyder.api.translations import get_translation
 from spyder.utils.programs import is_module_installed
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
-from spyder.plugins.pylint.main_widget import (PylintWidget,
-                                               PylintWidgetActions)
+from spyder.plugins.pylint.main_widget import PylintWidget
 
 
 # Localization
@@ -43,6 +39,7 @@ class Pylint(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = PylintConfigPage
     REQUIRES = [Plugins.Preferences, Plugins.Editor]
     OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
+    TABIFY = [Plugins.Help]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
@@ -113,8 +110,6 @@ class Pylint(SpyderDockablePlugin):
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
-        widget = self.get_widget()
-
         # Connect to projects
         projects = self.get_plugin(Plugins.Projects)
 

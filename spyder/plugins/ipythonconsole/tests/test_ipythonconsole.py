@@ -2283,7 +2283,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
 
     # Simulate a specific directory
     cwd_dir = str(tmpdir.mkdir('ipyconsole_cwd_test'))
-    ipyconsole.get_widget().set_working_directory(cwd_dir)
+    ipyconsole.get_widget().save_working_directory(cwd_dir)
 
     # Get cwd of new client and assert is the expected one
     assert get_cwd_of_new_client() == cwd_dir
@@ -2385,6 +2385,93 @@ def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
+
+
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on windows")
+def test_old_kernel_version(ipyconsole, qtbot):
+    """
+    Check that an error is shown when an version of spyder-kernels is used.
+    """
+    # Set a false _spyder_kernels_version in the cached kernel
+    w = ipyconsole.get_widget()
+    # create new client so PYTEST_CURRENT_TEST is the same
+    w.create_new_client()
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    kc = w._cached_kernel_properties[-1][2]
+    kc.start_channels()
+    kc.execute("get_ipython()._spyder_kernels_version = ('1.0.0', '')")
+    # Cleanup the kernel_client so it can be used again
+    kc.stop_channels()
+    kc._shell_channel = None
+    kc._iopub_channel = None
+    kc._stdin_channel = None
+    kc._hb_channel = None
+    kc._control_channel = None
+
+    # Create new client
+    w.create_new_client()
+    client = w.get_current_client()
+
+    # Make sure an error is shown
+    qtbot.waitUntil(lambda: client.error_text is not None)
+    assert '1.0.0' in client.error_text
+
+
+def test_run_script(ipyconsole, qtbot, tmp_path):
+    """
+    Test running multiple scripts at the same time.
+
+    This is a regression test for issue spyder-ide/spyder#15405
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Create two temp files: 'a.py' and 'b.py'
+    dir_a = tmp_path / 'a'
+    dir_a.mkdir()
+    filename_a = dir_a / 'a.py'
+    filename_a.write_text('a = 1')
+
+    dir_b = tmp_path / 'b'
+    dir_b.mkdir()
+    filename_b = dir_a / 'b.py'
+    filename_b.write_text('b = 1')
+
+    filenames = [str(filename_a), str(filename_b)]
+
+    # Run scripts
+    for filename in filenames:
+        ipyconsole.run_script(
+            filename=filename,
+            wdir=osp.dirname(filename),
+            current_client=False,
+            clear_variables=True
+        )
+
+    # Validate created consoles names and code executed
+    for filename in filenames:
+        basename = osp.basename(filename)
+        client_name = f'{basename}/A'
+        variable_name = basename.split('.')[0]
+
+        client = ipyconsole.get_client_for_file(filename)
+        assert client.get_name() == client_name
+
+        sw = client.shellwidget
+        qtbot.waitUntil(
+            lambda: sw._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+        # Wait for the respective script to be run
+        control = client.get_control()
+        qtbot.waitUntil(
+            lambda: "In [2]:" in control.toPlainText(), timeout=SHELL_TIMEOUT)
+        assert sw.get_value(variable_name) == 1
 
 
 if __name__ == "__main__":

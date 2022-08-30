@@ -5198,11 +5198,11 @@ foo(1)
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     check_focus(debug_button)
 
-    # Go to the next line while debugging
-    debug_next_action = main_window.debug_toolbar_actions[1]
-    debug_next_button = main_window.debug_toolbar.widgetForAction(
-        debug_next_action)
-    check_focus(debug_next_button)
+    # Execute another debugging command
+    debug_command_action = main_window.debug_toolbar_actions[1]
+    debug_command_button = main_window.debug_toolbar.widgetForAction(
+        debug_command_action)
+    check_focus(debug_command_button)
 
 
 @pytest.mark.slow
@@ -5733,6 +5733,159 @@ def test_interrupt(main_window, qtbot):
     assert time.time() - t0 < 10
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
+
+
+@pytest.mark.slow
+def test_visible_plugins(main_window, qtbot):
+    """
+    Test that saving and restoring visible plugins works as expected.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Load default layout
+    main_window.layouts.quick_layout_switch(DefaultLayouts.SpyderLayout)
+
+    # Make some non-default plugins visible
+    selected = [Plugins.Plots, Plugins.History]
+    for plugin_name in selected:
+        main_window.get_plugin(plugin_name).dockwidget.raise_()
+
+    # Save visible plugins
+    main_window.layouts.save_visible_plugins()
+
+    # Change visible plugins
+    for plugin_name in [Plugins.VariableExplorer, Plugins.IPythonConsole]:
+        main_window.get_plugin(plugin_name).dockwidget.raise_()
+
+    # Make sure plugins to test are not visible
+    for plugin_name in selected:
+        assert not main_window.get_plugin(plugin_name).get_widget().is_visible
+
+    # Restore saved visible plugins
+    main_window.layouts.restore_visible_plugins()
+
+    # Assert visible plugins are the expected ones
+    visible_plugins = []
+    for plugin_name, plugin in main_window.get_dockable_plugins():
+        if plugin_name != Plugins.Editor and plugin.get_widget().is_visible:
+            visible_plugins.append(plugin_name)
+
+    assert set(selected) == set(visible_plugins)
+
+
+@pytest.mark.slow
+def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
+    """
+    Test that the current working directory is synced between the IPython
+    console and other plugins when switching consoles.
+    """
+    ipyconsole = main_window.ipyconsole
+    workdir = main_window.workingdirectory
+    files = main_window.get_plugin(Plugins.Explorer)
+
+    # Wait for the window to be fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create two new clients and change their cwd's
+    for i in range(2):
+        sync_dir = tmpdir.mkdir(f'test_sync_{i}')
+        ipyconsole.create_new_client()
+        shell = ipyconsole.get_current_shellwidget()
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(f'cd {str(sync_dir)}')
+
+    # Switch between clients and check that the cwd is in sync with other
+    # plugins
+    for i in range(3):
+        ipyconsole.get_widget().tabwidget.setCurrentIndex(i)
+        shell_cwd = ipyconsole.get_current_shellwidget().get_cwd()
+        assert shell_cwd == workdir.get_workdir() == files.get_current_folder()
+
+
+@pytest.mark.slow
+def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
+    """
+    Test that the initial current working directory for new consoles is synced
+    with other plugins.
+    """
+    ipyconsole = main_window.ipyconsole
+    workdir = main_window.workingdirectory
+    files = main_window.get_plugin(Plugins.Explorer)
+
+    # Wait for the window to be fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Open console from Files in tmpdir
+    files.get_widget().treewidget.open_interpreter([str(tmpdir)])
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    assert shell.get_cwd() == str(tmpdir) == workdir.get_workdir() == \
+           files.get_current_folder()
+
+    # Check that a new client has the same initial cwd as the current one
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
+    assert shell.get_cwd() == str(tmpdir) == workdir.get_workdir() == \
+           files.get_current_folder()
+
+    # Check new clients with a fixed directory
+    ipyconsole.set_conf('console/use_cwd', False, section='workingdir')
+    ipyconsole.set_conf(
+        'console/use_fixed_directory',
+        True,
+        section='workingdir'
+    )
+
+    fixed_dir = str(tmpdir.mkdir('fixed_dir'))
+    ipyconsole.set_conf(
+        'console/fixed_directory',
+        fixed_dir,
+        section='workingdir'
+    )
+
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
+    assert shell.get_cwd() == fixed_dir == workdir.get_workdir() == \
+           files.get_current_folder()
+
+    # Check when opening projects
+    project_path = str(tmpdir.mkdir('test_project'))
+    main_window.projects.open_project(path=project_path)
+    qtbot.wait(500)
+
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
+    assert shell.get_cwd() == project_path == workdir.get_workdir() == \
+           files.get_current_folder()
+
+    # Check when closing projects
+    main_window.projects.close_project()
+    qtbot.wait(500)
+
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
+    assert shell.get_cwd() == get_home_dir() == workdir.get_workdir() == \
+           files.get_current_folder()
 
 
 if __name__ == "__main__":

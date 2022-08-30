@@ -9,6 +9,7 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
+import ast
 import os
 import os.path as osp
 import time
@@ -30,9 +31,13 @@ from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
+from spyder.utils.programs import check_version_range
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
 from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.plugins.ipythonconsole import (
+    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
+    SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
@@ -41,6 +46,41 @@ from spyder.plugins.ipythonconsole.widgets import (
 
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
+
+ERROR_SPYDER_KERNEL_VERSION = _(
+    "The Python environment or installation whose interpreter is located at"
+    "<pre>"
+    "    <tt>{0}</tt>"
+    "</pre>"
+    "doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} "
+    "instead of >= {2} and < {3}). Without this module is not possible for "
+    "Spyder to create a console for you.<br><br>"
+    "You can install it by activating your environment (if necessary) and "
+    "then running in a system terminal:"
+    "<pre>"
+    "    <tt>{4}</tt>"
+    "</pre>"
+    "or"
+    "<pre>"
+    "    <tt>{5}</tt>"
+    "</pre>"
+)
+
+# For Spyder-kernels version < 3.0, where the version and executable cannot be queried
+ERROR_SPYDER_KERNEL_VERSION_OLD = _(
+    "This Python environment doesn't have the right version of "
+    "<tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this "
+    "module is not possible for Spyder to create a console for you.<br><br>"
+    "You can install it by activating your environment (if necessary) and "
+    "then running in a system terminal:"
+    "<pre>"
+    "    <tt>{2}</tt>"
+    "</pre>"
+    "or"
+    "<pre>"
+    "    <tt>{3}</tt>"
+    "</pre>"
+)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -247,6 +287,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
+
+        # Send message to kernel to check status
+        self.check_spyder_kernel()
+
         if self.is_spyder_kernel:
             # For completion
             kernel_client.control_channel.message_received.connect(
@@ -302,7 +346,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def check_spyder_kernel(self):
         """Determine if the kernel is from Spyder."""
-        code = u"getattr(get_ipython().kernel, 'set_value', False)"
+        code = "getattr(get_ipython(), '_spyder_kernels_version', False)"
         if self._reading:
             return
         else:
@@ -310,21 +354,66 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def check_spyder_kernel_callback(self, reply):
         """
-        Handle data returned by silent executions of kernel methods
+        Check if the Spyder-kernels version is the right one after receiving it
+        from the kernel.
 
-        This is based on the _handle_exec_callback of RichJupyterWidget.
-        Therefore this is licensed BSD.
+        If the kernel is non-locally managed, check if it is a spyder-kernel.
         """
         # Process kernel reply
         data = reply.get('data')
         if data is not None and 'text/plain' in data:
-            is_spyder_kernel = data['text/plain']
-            if 'SpyderKernel' in is_spyder_kernel:
+            spyder_kernel_info = ast.literal_eval(data['text/plain'])
+            if not spyder_kernel_info:
+                # The running_under_pytest() part can be removed when
+                # spyder-kernels 3 is released. This is needed for
+                # the test_conda_env_activation test
+                if running_under_pytest():
+                    return
+
+                if self.is_spyder_kernel:
+                    # spyder-kernels version < 3.0
+                    self.ipyclient.show_kernel_error(
+                        ERROR_SPYDER_KERNEL_VERSION_OLD.format(
+                            SPYDER_KERNELS_MIN_VERSION,
+                            SPYDER_KERNELS_MAX_VERSION,
+                            SPYDER_KERNELS_CONDA,
+                            SPYDER_KERNELS_PIP
+                        )
+                    )
+                return
+
+            version, pyexec = spyder_kernel_info
+            if not check_version_range(version, SPYDER_KERNELS_VERSION):
+                if "dev0" not in version:
+                    # Development versions are acceptable
+                    self.ipyclient.show_kernel_error(
+                        ERROR_SPYDER_KERNEL_VERSION.format(
+                            pyexec,
+                            version,
+                            SPYDER_KERNELS_MIN_VERSION,
+                            SPYDER_KERNELS_MAX_VERSION,
+                            SPYDER_KERNELS_CONDA,
+                            SPYDER_KERNELS_PIP
+                        )
+                    )
+                    return
+
+            if not self.is_spyder_kernel:
                 self.is_spyder_kernel = True
                 self.sig_is_spykernel.emit(self)
 
-    def set_cwd(self, dirname):
-        """Set shell current working directory."""
+    def set_cwd(self, dirname, emit_cwd_change=False):
+        """
+        Set shell current working directory.
+
+        Parameters
+        ----------
+        dirname: str
+            Path to the new current working directory.
+        emit_cwd_change: bool
+            Whether to emit a Qt signal that informs other panes in Spyder that
+            the current working directory has changed.
+        """
         if os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
@@ -333,15 +422,36 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
             self._cwd = dirname
+            if emit_cwd_change:
+                self.sig_working_directory_changed.emit(self._cwd)
+
+    def get_cwd(self):
+        """
+        Get current working directory.
+
+        Notes
+        -----
+        * This doesn't ask the kernel for its working directory. Instead, it
+          returns the last value of it saved here.
+        * We do it for performance reasons because we call this method when
+          switching consoles to update the Working Directory toolbar.
+        """
+        return self._cwd
 
     def update_cwd(self):
-        """Update current working directory in the kernel."""
+        """
+        Update working directory in Spyder after getting its value from the
+        kernel.
+        """
         if self.kernel_client is None:
             return
-        self.call_kernel(callback=self.remote_set_cwd).get_cwd()
+        self.call_kernel(callback=self.on_getting_cwd).get_cwd()
 
-    def remote_set_cwd(self, cwd):
-        """Get current working directory from kernel."""
+    def on_getting_cwd(self, cwd):
+        """
+        If necessary, notify that the working directory was changed to other
+        plugins.
+        """
         if cwd != self._cwd:
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
@@ -889,7 +999,11 @@ the sympy module (e.g. plot)
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
-        super()._handle_execute_reply(msg)
+        # This catches an error when doing the teardown of a test.
+        try:
+            super()._handle_execute_reply(msg)
+        except RuntimeError:
+            pass
 
     def _handle_status(self, msg):
         """

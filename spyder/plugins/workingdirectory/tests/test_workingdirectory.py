@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         self._cli_options = get_options(sys_argv)[0]
         super().__init__()
 
-    def get_plugin(self, plugin):
+    def get_plugin(self, plugin, error=True):
         return Mock()
 
 
