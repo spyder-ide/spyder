@@ -20,7 +20,7 @@ from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerWidget, DebuggerWidgetActions)
+    DebuggerWidget, DebuggerToolbarActions)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.utils.qthelpers import MENU_SEPARATOR
 
@@ -134,9 +134,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # Remove buttons from toolbar
         names = [
-            DebuggerWidgetActions.DebugCurrentFile,
-            DebuggerWidgetActions.DebugCurrentCell,
-            ]
+            DebuggerToolbarActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentCell,
+        ]
         for name in names:
             action = widget.get_action(name)
             self.main.debug_toolbar_actions.remove(action)
@@ -198,21 +198,25 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @Slot()
     def debug_file(self):
         """
-        Debug current script.
-        Should only be called when an editor is avilable.
+        Debug current file.
+
+        It should only be called when an editor is available.
         """
-        editor = self.get_plugin(Plugins.Editor)
-        editor.switch_to_plugin()
-        editor.run_file(method="debugfile")
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.switch_to_plugin()
+            editor.run_file(method="debugfile")
 
     @Slot()
     def debug_cell(self):
-        '''
-        Debug Current cell.
-        Should only be called when an editor is avilable.
-        '''
-        editor = self.get_plugin(Plugins.Editor)
-        editor.run_cell(method="debugcell")
+        """
+        Debug current cell.
+
+        It should only be called when an editor is available.
+        """
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.run_cell(method="debugcell")
 
     def show_namespace_in_variable_explorer(self, namespace, shellwidget):
         """
