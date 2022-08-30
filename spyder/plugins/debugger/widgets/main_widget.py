@@ -42,6 +42,8 @@ class DebuggerWidgetActions:
     ToggleCaptureLocals = 'toggle_capture_locals_action'
     ToggleLocalsOnClick = 'toggle_show_locals_on_click_action'
 
+
+class DebuggerToolbarActions:
     DebugCurrentFile = 'debug file'
     DebugCurrentCell = 'debug cell'
 
@@ -79,8 +81,10 @@ class DebuggerWidget(ShellConnectMainWidget):
     # Signals
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_show_namespace = Signal(dict, object)
+
     sig_debug_file = Signal()
     """This signal is emitted to request the current file to be debugged."""
+
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
 
@@ -193,7 +197,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         self.create_action(
-            DebuggerWidgetActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentFile,
             text=_("&Debug file"),
             tip=_("Debug file"),
             icon=self.create_icon('debug'),
@@ -202,7 +206,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         self.create_action(
-            DebuggerWidgetActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentCell,
             text=_("Debug cell"),
             tip=_("Debug cell"),
             icon=self.create_icon('debug_cell'),

@@ -21,7 +21,7 @@ from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.utils.qthelpers import MENU_SEPARATOR
 from spyder.config.manager import CONF
 from spyder.plugins.mainmenu.api import ApplicationMenus
-from spyder.plugins.debugger.widgets.main_widget import DebuggerWidgetActions
+from spyder.plugins.debugger.widgets.main_widget import DebuggerToolbarActions
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -72,9 +72,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget.sig_debug_cell.connect(self.debug_cell)
 
         names = [
-            DebuggerWidgetActions.DebugCurrentFile,
-            DebuggerWidgetActions.DebugCurrentCell,
-            ]
+            DebuggerToolbarActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentCell,
+        ]
         for name in names:
             action = widget.get_action(name)
             CONF.config_shortcut(
@@ -94,9 +94,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget.sig_debug_cell.disconnect(self.debug_cell)
 
         names = [
-            DebuggerWidgetActions.DebugCurrentFile,
-            DebuggerWidgetActions.DebugCurrentCell,
-            ]
+            DebuggerToolbarActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentCell,
+        ]
         for name in names:
             action = widget.get_action(name)
             self.main.debug_toolbar_actions.remove(action)
@@ -115,9 +115,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     def on_main_menu_available(self):
         widget = self.get_widget()
         debug_file_action = widget.get_action(
-            DebuggerWidgetActions.DebugCurrentFile)
+            DebuggerToolbarActions.DebugCurrentFile)
         debug_cell_action = widget.get_action(
-            DebuggerWidgetActions.DebugCurrentCell)
+            DebuggerToolbarActions.DebugCurrentCell)
 
         self.main.debug_menu_actions = [
                 debug_file_action,
@@ -130,11 +130,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
         mainmenu.remove_item_from_application_menu(
-            DebuggerWidgetActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentFile,
             menu_id=ApplicationMenus.Debug
         )
         mainmenu.remove_item_from_application_menu(
-            DebuggerWidgetActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentCell,
             menu_id=ApplicationMenus.Debug
         )
 
@@ -143,21 +143,25 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @Slot()
     def debug_file(self):
         """
-        Debug current script.
-        Should only be called when an editor is avilable.
+        Debug current file.
+
+        It should only be called when an editor is available.
         """
-        editor = self.get_plugin(Plugins.Editor)
-        editor.switch_to_plugin()
-        editor.run_file(method="debugfile")
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.switch_to_plugin()
+            editor.run_file(method="debugfile")
 
     @Slot()
     def debug_cell(self):
-        '''
-        Debug Current cell.
-        Should only be called when an editor is avilable.
-        '''
-        editor = self.get_plugin(Plugins.Editor)
-        editor.run_cell(method="debugcell")
+        """
+        Debug current cell.
+
+        It should only be called when an editor is available.
+        """
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.run_cell(method="debugcell")
 
     def show_namespace_in_variable_explorer(self, namespace, shellwidget):
         """
