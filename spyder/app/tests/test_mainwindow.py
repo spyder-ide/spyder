@@ -62,7 +62,7 @@ from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
-    KernelConnection)
+    KernelHandler)
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -550,7 +550,7 @@ def test_leaks(main_window, qtbot):
     def wait_all_shutdown():
         objects = gc.get_objects()
         for o in objects:
-            if isinstance(o, KernelConnection):
+            if isinstance(o, KernelHandler):
                 o.wait_shutdown_thread()
 
     def ns_fun(main_window, qtbot):
