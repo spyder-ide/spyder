@@ -1,29 +1,26 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.3.2 is released!
+**Subject**: [ANN] Spyder 5.3.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.3.2** has been released and is available for
+I'm pleased to announce that Spyder **5.3.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes seven weeks after version 5.3.1 and it contains the
-following new features, important fixes and new API features:
+This release comes six weeks and five days after version 5.3.2 and it contains the
+following new features and important fixes:
 
-* Add code signing to the standalone macOS installer.
-* Add `openpyxml` and `defusedxml` to the packages bundled with the standalone Windows and macOS installers.
-* New entry from the Editor context menu to `Show help for current object`.
-* Improve UX/UI for the repositioning panes functionality.
-* Fix several bugs related to the debugging functionality (remote kernels usage and Pdb history).
-* Fix incompatibility with Pylint 2.14.0+.
-* Fix Windows Python environment activation script with micromamba.
-* Fix several bugs related with the Plots pane.
-* Add `create_client_for_kernel` and `rename_client_tab` to the Ipython Console plugin so that other plugins can access to console creation like [Spyder-notebook](https://github.com/spyder-ide/spyder-notebook/pull/369).
+* Printing files now uses a light syntax highlighting theme to prevent printing files with dark backgrounds.
+* MacOS standalone installer now are build using MacOS 11 instead of MacOS 10.15
+* Fix several bugs related with the Layout plugin (save visible plugins to restore their visiility and tabify behavior for external plugins).
+* Fix several bugs related with the focus management between the Editor and other panes.
+* Improve Find and Replace speed on the Editor.
+* Fixes to the MacOS standalone application to support being code signed.
 
-In this release we fixed 33 issues and merged 54 pull requests that amount
-to more than 249 commits. For a full list of fixes, please see our
+In this release we fixed 33 issues and merged 48 pull requests that amount
+to more than 225 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
