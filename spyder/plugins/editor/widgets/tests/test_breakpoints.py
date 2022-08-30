@@ -128,7 +128,8 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     editor.go_to_line(3)
     block = editor.textCursor().block()
     arb()
-    editor_assert_helper(editor, block, bp=False, bpc=None, emits=False)
+    editor.sig_breakpoints_changed_called = True
+    editor_assert_helper(editor, block, bp=False, bpc=None, emits=True)
 
     # Test adding condition on line containing code.
     reset_emits(editor)
