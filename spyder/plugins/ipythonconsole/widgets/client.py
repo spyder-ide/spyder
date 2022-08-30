@@ -105,17 +105,17 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
         # --- Init attrs
-        self.kernel = None
         self.container = parent
         self.id_ = id_
-        self.hostname = None
         self.menu_actions = menu_actions
         self.given_name = given_name
-        self.show_elapsed_time = self.get_conf('show_elapsed_time')
-        self.reset_warning = self.get_conf('show_reset_namespace_warning')
         self.initial_cwd = initial_cwd
 
         # --- Other attrs
+        self.kernel_handler = None
+        self.hostname = None
+        self.show_elapsed_time = self.get_conf('show_elapsed_time')
+        self.reset_warning = self.get_conf('show_reset_namespace_warning')
         self.context_menu_actions = context_menu_actions
         self.options_button = options_button
         self.history = []
@@ -175,47 +175,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 and self.restart_thread.isRunning()):
             self.restart_thread.quit()
             self.restart_thread.wait()
-
-    @property
-    def connection_file(self):
-        if self.kernel is None:
-            return None
-        return self.kernel.connection_file
-
-    @property
-    def stderr_obj(self):
-        if self.kernel is None:
-            return None
-        return self.kernel.stderr_obj
-
-    @property
-    def stdout_obj(self):
-        if self.kernel is None:
-            return None
-        return self.kernel.stdout_obj
-
-    @property
-    def fault_obj(self):
-        if self.kernel is None:
-            return None
-        return self.kernel.fault_obj
-
-    def start_std_poll(self):
-        """Start polling std files"""
-        self.std_poll_timer = QTimer(self)
-        self.std_poll_timer.timeout.connect(self.poll_std_file_change)
-        self.std_poll_timer.setInterval(1000)
-        self.std_poll_timer.start()
-        self.shellwidget.executed.connect(self.poll_std_file_change)
-
-    def connect_kernel(self, kernel):
-        """Connect kernel to client."""
-        self._before_prompt_is_ready()
-        self.kernel = kernel
-        if kernel.stderr_obj is not None or kernel.stdout_obj is not None:
-            self.start_std_poll()
-        # Actually do the connection
-        self.shellwidget.connect_kernel(kernel)
 
     # ----- Private methods ---------------------------------------------------
     def _before_prompt_is_ready(self):
@@ -423,6 +382,47 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 
     # ----- Public API --------------------------------------------------------
+    @property
+    def connection_file(self):
+        if self.kernel_handler is None:
+            return None
+        return self.kernel_handler.connection_file
+
+    @property
+    def stderr_obj(self):
+        if self.kernel_handler is None:
+            return None
+        return self.kernel_handler.stderr_obj
+
+    @property
+    def stdout_obj(self):
+        if self.kernel_handler is None:
+            return None
+        return self.kernel_handler.stdout_obj
+
+    @property
+    def fault_obj(self):
+        if self.kernel_handler is None:
+            return None
+        return self.kernel_handler.fault_obj
+
+    def start_std_poll(self):
+        """Start polling std files"""
+        self.std_poll_timer = QTimer(self)
+        self.std_poll_timer.timeout.connect(self.poll_std_file_change)
+        self.std_poll_timer.setInterval(1000)
+        self.std_poll_timer.start()
+        self.shellwidget.executed.connect(self.poll_std_file_change)
+
+    def connect_kernel(self, kernel):
+        """Connect kernel to client."""
+        self._before_prompt_is_ready()
+        self.kernel_handler = kernel
+        if kernel.stderr_obj is not None or kernel.stdout_obj is not None:
+            self.start_std_poll()
+        # Actually do the connection
+        self.shellwidget.connect_kernel(kernel)
+
     def remove_std_files(self, is_last_client=True):
         """Remove stderr_file associated with the client."""
         try:
@@ -431,8 +431,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             pass
         if self.std_poll_timer is not None:
             self.std_poll_timer.stop()
-        if is_last_client and self.kernel is not None:
-            self.kernel.remove_files()
+        if is_last_client and self.kernel_handler is not None:
+            self.kernel_handler.remove_files()
 
     @Slot()
     def poll_std_file_change(self):
@@ -745,7 +745,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._before_prompt_is_ready()
 
         # Replace std files to avoid catching old kernel errors
-        self.kernel.replace_std_files()
+        self.kernel_handler.replace_std_files()
 
         # Create and run restarting thread
         if (

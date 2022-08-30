@@ -35,8 +35,8 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
     KernelConnectionDialog, PageControlWidget)
-from spyder.plugins.ipythonconsole.widgets.kernel_connection_manager import (
-    CachedKernelMixin, KernelConnection)
+from spyder.plugins.ipythonconsole.utils.kernel_handler import (
+    CachedKernelMixin, KernelHandler)
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -1384,13 +1384,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             is_sympy=is_sympy
         )
         try:
-            kernel = self.get_cached_kernel(kernel_spec, cache=cache)
+            kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
         except Exception as e:
             client.show_kernel_error(e)
             return
 
         # Connect kernel to client
-        client.connect_kernel(kernel)
+        client.connect_kernel(kernel_handler)
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
@@ -1402,10 +1402,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         related_clients = []
         for cl in self.clients:
             if connection_file in cl.connection_file:
-                if (cl.kernel is not None and
-                    hostname == cl.kernel.hostname and
-                    sshkey == cl.kernel.sshkey and
-                    password == cl.kernel.password
+                if (cl.kernel_handler is not None and
+                    hostname == cl.kernel_handler.hostname and
+                    sshkey == cl.kernel_handler.sshkey and
+                    password == cl.kernel_handler.password
                 ):
                     related_clients.append(cl)
 
@@ -1455,16 +1455,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         try:
             # Get new client for kernel
             if master_client is not None:
-                kernel = master_client.kernel.copy()
+                kernel_handler = master_client.kernel_handler.copy()
             else:
-                kernel = KernelConnection.from_connection_file(
+                kernel_handler = KernelHandler.from_connection_file(
                     connection_file, hostname, sshkey, password)
         except Exception as e:
             client.show_kernel_error(e)
             return
 
         # Connect kernel
-        client.connect_kernel(kernel)
+        client.connect_kernel(kernel_handler)
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
@@ -1645,10 +1645,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.close_client(is_last_client)
             open_clients.remove(client)
 
-        # wait all closing KernelConnection.
+        # wait all closing KernelHandler.
         for client in self.clients:
-            if client.kernel:
-                client.kernel.wait_shutdown_thread()
+            if client.kernel_handler:
+                client.kernel_handler.wait_shutdown_thread()
 
         # Close cached kernel
         self.close_cached_kernel()

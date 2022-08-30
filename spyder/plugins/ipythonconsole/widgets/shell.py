@@ -142,7 +142,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
-        self.kernel = False
+        self.kernel_handler = False
         self._cwd = ''
 
         # Keyboard shortcuts
@@ -177,9 +177,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # ---- Public API ---------------------------------------------------------
     @property
     def is_spyder_kernel(self):
-        if self.kernel is None:
+        if self.kernel_handler is None:
             return False
-        return self.kernel.known_spyder_kernel
+        return self.kernel_handler.known_spyder_kernel
 
     def connect_kernel(self, kernel):
         """Connect to kernel."""
@@ -191,7 +191,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_client = kernel_client
 
         self.kernel_manager = kernel.kernel_manager
-        self.kernel = kernel
+        self.kernel_handler = kernel
         if self.is_spyder_kernel:
             self.setup_spyder_kernel()
         # Send message to kernel to check status
@@ -208,7 +208,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def close_kernel(self, shutdown_kernel=True):
         """Close the kernel"""
-        self.kernel.close(shutdown_kernel)
+        self.kernel_handler.close(shutdown_kernel)
         # reset state
         self.reset_kernel_state()
 
@@ -256,7 +256,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def setup_spyder_kernel(self):
         """Setup spyder kernel"""
-        self.kernel.open_comm(self.spyder_kernel_comm)
+        self.kernel_handler.open_comm(self.spyder_kernel_comm)
 
         # For completion
         self.kernel_client.control_channel.message_received.connect(
@@ -361,7 +361,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     return
 
             if not self.is_spyder_kernel:
-                self.kernel.known_spyder_kernel = True
+                self.kernel_handler.known_spyder_kernel = True
                 self.setup_spyder_kernel()
 
     def set_cwd(self, dirname, emit_cwd_change=False):

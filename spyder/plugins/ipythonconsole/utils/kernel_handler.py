@@ -39,7 +39,7 @@ else:
     ssh_tunnel = openssh_tunnel
 
 
-class KernelConnection:
+class KernelHandler:
     """A class to store kernel connection informations."""
 
     def __init__(
@@ -388,31 +388,31 @@ class CachedKernelMixin:
     def get_cached_kernel(self, kernel_spec, cache=True):
         """Get a new kernel, and cache one for next time."""
         # Cache another kernel for next time.
-        new_kernel = KernelConnection.new_from_spec(kernel_spec)
+        new_kernel_handler = KernelHandler.new_from_spec(kernel_spec)
 
         if not cache:
             # remove/don't use cache if requested
             self.close_cached_kernel()
-            return new_kernel
+            return new_kernel_handler
 
         # Check cached kernel has the same configuration as is being asked
-        cached_kernel = None
+        cached_kernel_handler = None
         if self._cached_kernel_properties is not None:
-            cached_kernel = self._cached_kernel_properties[-1]
+            cached_kernel_handler = self._cached_kernel_properties[-1]
             if not self.check_cached_kernel_spec(kernel_spec):
                 # Close the kernel
                 self.close_cached_kernel()
-                cached_kernel = None
+                cached_kernel_handler = None
 
         # Cache the new kernel
         self._cached_kernel_properties = (
             kernel_spec,
             kernel_spec.env,
             kernel_spec.argv,
-            new_kernel,
+            new_kernel_handler,
         )
 
-        if cached_kernel is None:
-            return KernelConnection.new_from_spec(kernel_spec)
+        if cached_kernel_handler is None:
+            return KernelHandler.new_from_spec(kernel_spec)
 
-        return cached_kernel
+        return cached_kernel_handler
