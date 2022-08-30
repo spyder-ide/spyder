@@ -46,6 +46,9 @@ class DebuggerWidgetActions:
 class DebuggerToolbarActions:
     DebugCurrentFile = 'debug file'
     DebugCurrentCell = 'debug cell'
+
+
+class DebuggerBreakpointActions:
     ToggleBreakpoint = 'toggle breakpoint'
     ToggleConditionalBreakpoint = 'toggle conditional breakpoint'
     ClearAllBreakpoints = 'clear all breakpoints'

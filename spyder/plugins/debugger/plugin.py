@@ -20,7 +20,7 @@ from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerWidget, DebuggerToolbarActions)
+    DebuggerWidget, DebuggerToolbarActions, DebuggerBreakpointActions)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.utils.qthelpers import MENU_SEPARATOR
 
@@ -83,10 +83,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # Apply shortcuts to editor and add actions to pythonfile list
         editor_shortcuts = [
-            DebuggerWidgetActions.DebugCurrentFile,
-            DebuggerWidgetActions.DebugCurrentCell,
-            DebuggerWidgetActions.ToggleBreakpoint,
-            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+            DebuggerToolbarActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerBreakpointActions.ToggleBreakpoint,
+            DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
         for name in editor_shortcuts:
             action = widget.get_action(name)
@@ -99,8 +99,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # Add buttons to toolbar
         for name in [
-                DebuggerWidgetActions.DebugCurrentFile,
-                DebuggerWidgetActions.DebugCurrentCell]:
+                DebuggerToolbarActions.DebugCurrentFile,
+                DebuggerToolbarActions.DebugCurrentCell]:
             action = widget.get_action(name)
             self.main.debug_toolbar_actions += [action]
 
@@ -123,10 +123,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # Remove editor actions
         editor_shortcuts = [
-            DebuggerWidgetActions.DebugCurrentFile,
-            DebuggerWidgetActions.DebugCurrentCell,
-            DebuggerWidgetActions.ToggleBreakpoint,
-            DebuggerWidgetActions.ToggleConditionalBreakpoint,
+            DebuggerToolbarActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerBreakpointActions.ToggleBreakpoint,
+            DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
         for name in editor_shortcuts:
             action = widget.get_action(name)
@@ -155,12 +155,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     def on_main_menu_available(self):
         widget = self.get_widget()
         names = [
-            DebuggerWidgetActions.DebugCurrentFile,
-            DebuggerWidgetActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentCell,
             MENU_SEPARATOR,
-            DebuggerWidgetActions.ToggleBreakpoint,
-            DebuggerWidgetActions.ToggleConditionalBreakpoint,
-            DebuggerWidgetActions.ClearAllBreakpoints,
+            DebuggerBreakpointActions.ToggleBreakpoint,
+            DebuggerBreakpointActions.ToggleConditionalBreakpoint,
+            DebuggerBreakpointActions.ClearAllBreakpoints,
             MENU_SEPARATOR,
             ]
 
@@ -181,11 +181,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
         names = [
-            DebuggerWidgetActions.DebugCurrentFile,
-            DebuggerWidgetActions.DebugCurrentCell,
-            DebuggerWidgetActions.ToggleBreakpoint,
-            DebuggerWidgetActions.ToggleConditionalBreakpoint,
-            DebuggerWidgetActions.ClearAllBreakpoints
+            DebuggerToolbarActions.DebugCurrentFile,
+            DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerBreakpointActions.ToggleBreakpoint,
+            DebuggerBreakpointActions.ToggleConditionalBreakpoint,
+            DebuggerBreakpointActions.ClearAllBreakpoints
             ]
         for name in names:
             mainmenu.remove_item_from_application_menu(
