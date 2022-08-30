@@ -250,14 +250,14 @@ class UpdateInstallerDialog(QDialog):
 
             url = ('https://github.com/spyder-ide/spyder/releases/latest/'
                    f'download/{name}')
-            path_destination = os.path.join(tmpdir, 'spyder',
-                                            self.latest_release_version)
-            os.makedirs(path_destination, exist_ok=True)
-            destination = os.path.join(path_destination, name)
-            if (not os.path.isfile(destination)):
-                logger.debug(f"Downloading installer from: {url}")
+            installer_dir_path = os.path.join(tmpdir, 'spyder', 'updates',
+                                              self.latest_release_version)
+            os.makedirs(installer_dir_path, exist_ok=True)
+            installer_path = os.path.join(installer_dir_path, name)
+            if (not os.path.isfile(installer_path)):
+                logger.debug(f"Downloading installer from {url} to {installer_path}")
                 download = urlretrieve(url,
-                                       destination,
+                                       installer_path,
                                        reporthook=self._progress_reporter)
             self._change_update_installation_status(status=INSTALLING)
             cmd = ('start' if os.name == 'nt' else 'open')
