@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class ApplicationUpdateStatus(StatusBarWidget):
-    """Status bar widget for Application update status."""
+    """Status bar widget for application update status."""
     BASE_TOOLTIP = _("Application update status")
     ID = 'application_update_status'
 
@@ -56,7 +56,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
             self.tooltip = _("Update installation will continue in the "
                              "background.\n"
                              "Click here to show the installation "
-                             "dialog again")
+                             "dialog again.")
             self.spinner.show()
             self.spinner.start()
             self.installer.show()

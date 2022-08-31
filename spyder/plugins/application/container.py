@@ -313,8 +313,8 @@ class ApplicationContainer(PluginMainContainer):
                     box.setStandardButtons(QMessageBox.Yes |
                                            QMessageBox.No)
                     content = _(
-                        "Would you like to automatically download and"
-                        " install the latest version of Spyder?<br><br>"
+                        "Would you like to automatically download and "
+                        "install it?<br><br>"
                     )
 
                 msg = header + content + footer

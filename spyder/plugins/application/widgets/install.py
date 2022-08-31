@@ -78,7 +78,7 @@ class UpdateInstallation(QWidget):
         self._progress_label = QLabel(_('Downloading'))
 
         self.install_info = QLabel(
-            _("Downloading the latest Spyder version <br>"))
+            _("Downloading Spyder update <br>"))
 
         button_layout = QHBoxLayout()
         self.ok_button = QPushButton(_('OK'))
@@ -180,8 +180,8 @@ class UpdateInstallerDialog(QDialog):
         Continue the installation in progress by downloading the installer.
         """
         reply = QMessageBox(icon=QMessageBox.Question,
-                            text=_("Would you like to automatically download a"
-                                   "nd install the latest version of Spyder?"
+                            text=_("Would you like to automatically download "
+                                   "and install the latest version of Spyder?"
                                    "<br><br>"),
                             parent=self._parent)
         reply.setWindowTitle("Spyder")
