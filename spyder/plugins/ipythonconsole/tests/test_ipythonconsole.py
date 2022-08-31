@@ -220,7 +220,7 @@ def ipyconsole(qtbot, request, tmpdir):
     window.setCentralWidget(console.get_widget())
 
     # Set exclamation mark to True
-    configuration.set('ipython_console', 'pdb_use_exclamation_mark', True)
+    configuration.set('debugger', 'pdb_use_exclamation_mark', True)
 
     if os.name == 'nt':
         qtbot.addWidget(window)
@@ -1031,8 +1031,10 @@ def test_execute_events_dbg(ipyconsole, qtbot):
         shell.execute('%debug print()')
 
     # Set processing events to True
-    ipyconsole.set_conf('pdb_execute_events', True)
-    shell.set_pdb_execute_events(True)
+    ipyconsole.set_conf('pdb_execute_events', True, section='debugger')
+    shell.set_pdb_configuration({
+        'pdb_execute_events': True
+    })
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -1043,8 +1045,10 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
     # Set processing events to False
-    ipyconsole.set_conf('pdb_execute_events', False)
-    shell.set_pdb_execute_events(False)
+    ipyconsole.set_conf('pdb_execute_events', False, section='debugger')
+    shell.set_pdb_configuration({
+        'pdb_execute_events': False
+    })
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -1618,7 +1622,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     control.setFocus()
 
     # Tests assume inline backend
-    ipyconsole.set_conf('pdb_ignore_lib', not show_lib)
+    ipyconsole.set_conf('pdb_ignore_lib', not show_lib, section="debugger")
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
@@ -1635,7 +1639,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
         assert 'iostream.py' in control.toPlainText()
     else:
         assert 'iostream.py' not in control.toPlainText()
-    ipyconsole.set_conf('pdb_ignore_lib', True)
+    ipyconsole.set_conf('pdb_ignore_lib', True, section="debugger")
 
 
 @flaky(max_runs=3)

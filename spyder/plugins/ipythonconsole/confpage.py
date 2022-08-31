@@ -17,7 +17,6 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.py3compat import PY2
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -220,66 +219,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
 
-        # ---- Debug ----
-        # Pdb run lines Group
-        pdb_run_lines_group = QGroupBox(_("Run code while debugging"))
-        pdb_run_lines_label = QLabel(_(
-            "You can run several lines of code on each "
-            "new prompt while debugging. Please "
-            "introduce each one separated by semicolons "
-            "and a space, for example:<br>"
-            "<i>import matplotlib.pyplot as plt</i>"))
-        pdb_run_lines_label.setWordWrap(True)
-        pdb_run_lines_edit = self.create_lineedit(
-            _("Lines:"), 'startup/pdb_run_lines', '', alignment=Qt.Horizontal)
-
-        pdb_run_lines_layout = QVBoxLayout()
-        pdb_run_lines_layout.addWidget(pdb_run_lines_label)
-        pdb_run_lines_layout.addWidget(pdb_run_lines_edit)
-        pdb_run_lines_group.setLayout(pdb_run_lines_layout)
-
-        # Debug Group
-        debug_group = QGroupBox(_("Debug"))
-        debug_layout = QVBoxLayout()
-
-        prevent_closing_box = newcb(
-            _("Prevent editor from closing files while debugging"),
-            'pdb_prevent_closing',
-            tip=_("This option prevents the user from closing a file while"
-                  " it is debugged."))
-        debug_layout.addWidget(prevent_closing_box)
-
-        continue_box = newcb(
-            _("Stop debugging on first line of files without breakpoints"),
-            'pdb_stop_first_line',
-            tip=_("This option lets you decide if the debugger should"
-                  " stop on the first line while debugging if no breakpoints"
-                  " are present."))
-        debug_layout.addWidget(continue_box)
-
-        libraries_box = newcb(
-            _("Ignore Python libraries while debugging"), 'pdb_ignore_lib',
-            tip=_("This option lets you decide if the debugger should "
-                  "ignore the system libraries while debugging."))
-        debug_layout.addWidget(libraries_box)
-
-        execute_events_box = newcb(
-            _("Process execute events while debugging"), 'pdb_execute_events',
-            tip=_("This option lets you decide if the debugger should "
-                  "process the 'execute events' after each prompt, such as "
-                  "matplotlib 'show' command."))
-        debug_layout.addWidget(execute_events_box)
-
-        exclamation_mark_box = newcb(
-            _("Use exclamation mark prefix for Pdb commands"),
-            'pdb_use_exclamation_mark',
-            tip=_("This option lets you decide if the Pdb commands should "
-                  "be prefixed by an exclamation mark. This helps in "
-                  "separating Pdb commands from Python code."))
-        debug_layout.addWidget(exclamation_mark_box)
-
-        debug_group.setLayout(debug_layout)
-
         # ---- Advanced settings ----
         # Enable Jedi completion
         jedi_group = QGroupBox(_("Jedi completion"))
@@ -418,8 +357,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             pylab_group, backend_group, inline_group), _("Graphics"))
         self.tabs.addTab(self.create_tab(
             run_lines_group, run_file_group), _("Startup"))
-        self.tabs.addTab(self.create_tab(
-            debug_group, pdb_run_lines_group), _("Debugger"))
         self.tabs.addTab(self.create_tab(
             jedi_group, greedy_group, autocall_group,
             sympy_group, prompts_group,

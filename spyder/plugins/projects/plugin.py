@@ -1015,6 +1015,8 @@ class Projects(SpyderDockablePlugin):
 
     def _run_file_in_ipyconsole(self, fname):
         self.ipyconsole.run_script(
-            fname, osp.dirname(fname), '', False, False, False, True,
-            False
+            filename=fname,
+            wdir=osp.dirname(fname),
+            current_client=False,
+            clear_variables=True
         )

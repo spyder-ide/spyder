@@ -161,11 +161,6 @@ DEFAULTS = [
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.
               'hide_cmd_windows': True,
-              'pdb_prevent_closing': True,
-              'pdb_ignore_lib': False,
-              'pdb_execute_events': True,
-              'pdb_use_exclamation_mark': True,
-              'pdb_stop_first_line': True
               }),
             ('variable_explorer',
              {
@@ -188,6 +183,11 @@ DEFAULTS = [
               'exclude_internal': True,
               'capture_locals': False,
               'show_locals_on_click': False,
+              'pdb_prevent_closing': True,
+              'pdb_ignore_lib': False,
+              'pdb_execute_events': True,
+              'pdb_use_exclamation_mark': True,
+              'pdb_stop_first_line': True
              }),
             ('plots',
              {
@@ -386,12 +386,6 @@ DEFAULTS = [
               # -- In plugins/editor
               '_/file switcher': 'Ctrl+P',
               '_/symbol finder': 'Ctrl+Alt+P',
-              '_/debug': "Ctrl+F5",
-              '_/debug step over': "Ctrl+F10",
-              '_/debug continue': "Ctrl+F12",
-              '_/debug step into': "Ctrl+F11",
-              '_/debug step return': "Ctrl+Shift+F11",
-              '_/debug exit': "Ctrl+Shift+F12",
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
@@ -489,7 +483,6 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
-              'editor/debug cell': 'Alt+Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': 'Alt+Return',
@@ -529,6 +522,13 @@ DEFAULTS = [
               # ---- In widgets/debugger/framesbrowser.py ----
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
+              'debugger/debug file': "Ctrl+F5",
+              'debugger/debug cell': 'Alt+Shift+Return',
+              'debugger/next': "Ctrl+F10",
+              'debugger/continue': "Ctrl+F12",
+              'debugger/step': "Ctrl+F11",
+              'debugger/return': "Ctrl+Shift+F11",
+              'debugger/stop': "Ctrl+Shift+F12",
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -648,4 +648,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '71.0.0'
+CONF_VERSION = '72.0.0'

@@ -312,9 +312,10 @@ class IPythonConsole(SpyderDockablePlugin):
             self._load_file_in_editor)
         self.sig_edit_new.connect(editor.new)
         editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
-        editor.run_in_current_ipyclient.connect(self.run_script)
-        editor.run_cell_in_ipyclient.connect(self.run_cell)
-        editor.debug_cell_in_ipyclient.connect(self.debug_cell)
+        editor.sig_run_file_in_ipyclient.connect(
+            self.run_script)
+        editor.sig_run_cell_in_ipyclient.connect(
+            self.run_cell)
 
         # Connect Editor debug action with Console
         self.sig_pdb_state_changed.connect(editor.update_pdb_state)
@@ -359,9 +360,10 @@ class IPythonConsole(SpyderDockablePlugin):
             self._load_file_in_editor)
         self.sig_edit_new.disconnect(editor.new)
         editor.breakpoints_saved.disconnect(self.set_spyder_breakpoints)
-        editor.run_in_current_ipyclient.disconnect(self.run_script)
-        editor.run_cell_in_ipyclient.disconnect(self.run_cell)
-        editor.debug_cell_in_ipyclient.disconnect(self.debug_cell)
+        editor.sig_run_file_in_ipyclient.disconnect(
+            self.run_script)
+        editor.sig_run_cell_in_ipyclient.disconnect(
+            self.run_cell)
 
         # Connect Editor debug action with Console
         self.sig_pdb_state_changed.disconnect(editor.update_pdb_state)
@@ -603,10 +605,11 @@ class IPythonConsole(SpyderDockablePlugin):
                                        ask_recursive=ask_recursive)
 
     # ---- For execution and debugging
-    def run_script(self, filename, wdir, args='', debug=False,
+    def run_script(self, filename, wdir, args='',
                    post_mortem=False, current_client=True,
                    clear_variables=False, console_namespace=False,
-                   focus_to_editor=True):
+                   focus_to_editor=True, method=None,
+                   force_wdir=False):
         """
         Run script in current or dedicated client.
 
@@ -618,9 +621,6 @@ class IPythonConsole(SpyderDockablePlugin):
             Working directory from where the file should be run.
         args : str, optional
             Arguments defined to run the file.
-        debug : bool, optional
-            True if the run if for debugging the file,
-            False for just running it.
         post_mortem : bool, optional
             True if in case of error the execution should enter in
             post-mortem mode, False otherwise.
@@ -634,6 +634,12 @@ class IPythonConsole(SpyderDockablePlugin):
             True if the console namespace should be used, False otherwise.
         focus_to_editor: bool, optional
             Leave focus in the editor after execution.
+        method : str or None
+            Method to run the file. It must accept the same arguments as
+            `runfile`.
+        force_wdir: bool
+            The working directory is ignored on remote kernels except if
+            force_wdir is True
 
         Returns
         -------
@@ -644,15 +650,16 @@ class IPythonConsole(SpyderDockablePlugin):
             filename,
             wdir,
             args,
-            debug,
             post_mortem,
             current_client,
             clear_variables,
             console_namespace,
-            focus_to_editor)
+            focus_to_editor,
+            method,
+            force_wdir)
 
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 focus_to_editor, function='runcell'):
+                 method='runcell', focus_to_editor=False):
         """
         Run cell in current or dedicated client.
 
@@ -668,13 +675,13 @@ class IPythonConsole(SpyderDockablePlugin):
         run_cell_copy : bool
             True if the cell should be executed line by line,
             False if the provided `function` should be used.
-        focus_to_editor: bool
-            Whether to give focus to the editor after running the cell. If
-            False, focus is given to the console.
-        function : str, optional
+        method : str, optional
             Name handler of the kernel function to be used to execute the cell
             in case `run_cell_copy` is False.
             The default is 'runcell'.
+        focus_to_editor: bool
+            Whether to give focus to the editor after running the cell. If
+            False, focus is given to the console.
 
         Returns
         -------
@@ -682,37 +689,8 @@ class IPythonConsole(SpyderDockablePlugin):
         """
         self.sig_unmaximize_plugin_requested.emit()
         self.get_widget().run_cell(
-            code, cell_name, filename, run_cell_copy, focus_to_editor,
-            function=function)
-
-    def debug_cell(self, code, cell_name, filename, run_cell_copy,
-                   focus_to_editor):
-        """
-        Debug current cell.
-
-        Parameters
-        ----------
-        code : str
-            Piece of code to run that corresponds to a cell in case
-            `run_cell_copy` is True.
-        cell_name : str or int
-            Cell name or index.
-        filename : str
-            Path of the file where the cell to execute is located.
-        run_cell_copy : bool
-            True if the cell should be executed line by line,
-            False if the `debugcell` kernel function should be used.
-        focus_to_editor: bool
-            Whether to give focus to the editor after debugging the cell. If
-            False, focus is given to the console.
-
-        Returns
-        -------
-        None.
-        """
-        self.sig_unmaximize_plugin_requested.emit()
-        self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy,
-                                     focus_to_editor)
+            code, cell_name, filename, run_cell_copy, method=method,
+            focus_to_editor=focus_to_editor)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """
