@@ -145,7 +145,7 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     editor_assert_helper(editor, block, bp=True, bpc='a > 50', emits=False)
 
     # Condition changed.
-    breakpointsmanager.QInputDialog.getText.return_value = ('a == 42', True)  # OK.
+    breakpointsmanager.QInputDialog.getText.return_value = ('a == 42', True)
     reset_emits(editor)
     arb(line_number=4, edit_condition=True)
     editor_assert_helper(editor, block, bp=True, bpc='a == 42', emits=True)

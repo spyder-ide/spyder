@@ -347,8 +347,6 @@ class DebuggerWidget(ShellConnectMainWidget):
             action = self.get_action(action_name)
             action.setEnabled(pdb_prompt)
 
-
-
     # ---- ShellConnectMainWidget API
     # ------------------------------------------------------------------------
     def create_new_widget(self, shellwidget):
@@ -389,7 +387,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         widget.results_browser.view_locals_action = self.view_locals_action
         self.sig_breakpoints_saved.connect(widget.set_breakpoints)
-        
+
         shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         return widget
 

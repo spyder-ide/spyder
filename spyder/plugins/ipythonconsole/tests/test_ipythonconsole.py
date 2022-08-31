@@ -218,9 +218,12 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # connect to a debugger plugin
     debugger = Debugger(parent=window, configuration=configuration)
+
     def get_plugin(name):
         if name == Plugins.IPythonConsole:
             return console
+        return None
+
     debugger.get_plugin = get_plugin
     debugger.on_ipython_console_available()
     console.on_initialize()
