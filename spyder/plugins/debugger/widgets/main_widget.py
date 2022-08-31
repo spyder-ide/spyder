@@ -90,11 +90,6 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     sig_debug_file = Signal()
     """This signal is emitted to request the current file to be debugged."""
-
-    sig_debug_cell = Signal()
-    """This signal is emitted to request the current cell to be debugged."""
-    sig_debug_file = Signal()
-    """This signal is emitted to request the current file to be debugged."""
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
     sig_breakpoints_saved = Signal()
@@ -105,6 +100,8 @@ class DebuggerWidget(ShellConnectMainWidget):
     """Add or remove a conditional breakpoint on the current line."""
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
+    sig_pdb_state_changed = Signal(bool, dict)
+    """Pdb state changed"""
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -391,6 +388,9 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         widget.results_browser.view_locals_action = self.view_locals_action
+        self.sig_breakpoints_saved.connect(shellwidget.set_breakpoints)
+        
+        shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         return widget
 
     def switch_widget(self, widget, old_widget):
@@ -424,6 +424,9 @@ class DebuggerWidget(ShellConnectMainWidget):
         shellwidget.sig_config_kernel_requested.disconnect(
             widget.on_config_kernel)
         widget.on_unconfig_kernel()
+        self.sig_breakpoints_saved.disconnect(shellwidget.set_breakpoints)
+        shellwidget.sig_pdb_state_changed.disconnect(
+            self.sig_pdb_state_changed)
 
         widget.close()
         widget.setParent(None)

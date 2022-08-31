@@ -51,7 +51,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         return self.create_icon('dictedit')
 
     def on_initialize(self):
-        pass
+        widget = self.get_widget()
+        widget.sig_pdb_state_changed.connect(
+            self.update_current_codeeditor_pdb_state)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -229,39 +231,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             return
         nsb = variable_explorer.get_widget_for_shellwidget(shellwidget)
         nsb.process_remote_view(namespace)
-
-    def add_shellwidget(self, shellwidget):
-        """
-        Add a new shellwidget to be registered.
-
-        This function registers a new widget to display content that
-        comes from shellwidget.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        super().add_shellwidget(shellwidget)
-        self.get_widget().sig_breakpoints_saved.connect(
-            shellwidget.set_breakpoints)
-        shellwidget.sig_pdb_state_changed.connect(
-            self.update_current_codeeditor_pdb_state)
-
-    def remove_shellwidget(self, shellwidget):
-        """
-        Remove the registered shellwidget.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget.
-        """
-        super().remove_shellwidget(shellwidget)
-        self.get_widget().sig_breakpoints_saved.disconnect(
-            shellwidget.set_breakpoints)
-        shellwidget.sig_pdb_state_changed.disconnect(
-            self.update_current_codeeditor_pdb_state)
 
     @Slot(object)
     def add_codeeditor(self, codeeditor):
