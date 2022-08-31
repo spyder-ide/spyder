@@ -26,7 +26,6 @@ class MainWindowMock(QMainWindow):
     run_menu_actions = []
     run_toolbar_actions = []
     debug_menu_actions = []
-    debug_toolbar_actions = []
     source_menu_actions = []
     source_toolbar_actions = []
     search_menu_actions = []

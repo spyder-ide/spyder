@@ -1577,12 +1577,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         help_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
 
+        # TODO: Rewrite when the editor is moved to the new API
+        from spyder.plugins.debugger.api import DebuggerToolbarActions
+        debug_toolbar_actions = []
+        for action_name in [DebuggerToolbarActions.DebugCurrentFile,
+                            DebuggerToolbarActions.DebugCurrentCell]:
+            action = self.main.debugger.get_action(action_name)
+            debug_toolbar_actions.append(action)
+
         self.toolbar_list = ((_("File toolbar"), "file_toolbar",
                               self.main.file_toolbar_actions),
                              (_("Run toolbar"), "run_toolbar",
                               self.main.run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
-                              self.main.debug_toolbar_actions))
+                              debug_toolbar_actions))
 
         self.menu_list = ((_("&File"), file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),

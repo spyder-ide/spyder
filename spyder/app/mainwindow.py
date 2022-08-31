@@ -258,8 +258,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.file_toolbar_actions = []
         self.run_toolbar = None
         self.run_toolbar_actions = []
-        self.debug_toolbar = None
-        self.debug_toolbar_actions = []
 
         self.menus = []
 
@@ -914,7 +912,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         toolbar = self.toolbar
         self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
         self.run_toolbar = toolbar.get_application_toolbar("run_toolbar")
-        self.debug_toolbar = toolbar.get_application_toolbar("debug_toolbar")
 
         # Tools + External Tools (some of this depends on the Application
         # plugin)
