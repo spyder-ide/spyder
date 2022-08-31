@@ -1685,16 +1685,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             self._path_manager.raise_()
             self._path_manager.setFocus()
 
-    def pythonpath_changed(self):
-        """Project's PYTHONPATH contribution has changed."""
-        projects = self.get_plugin(Plugins.Projects, error=False)
-
-        self.project_path = ()
-        if projects:
-            self.project_path = tuple(projects.get_pythonpath())
-        path_dict = self.get_spyder_pythonpath_dict()
-        self.update_python_path(path_dict)
-
     # ---- Preferences
     # -------------------------------------------------------------------------
     def apply_settings(self):
