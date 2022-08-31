@@ -1438,6 +1438,28 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @pytest.mark.slow
+def test_project_path(main_window, tmpdir, qtbot):
+    """Test project path added to spyder_pythonpath."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    projects = main_window.projects
+
+    # Create a project
+    path = to_text_string(tmpdir.mkdir('project_path'))
+
+    assert path not in projects.get_conf('spyder_pythonpath', section='main')
+
+    projects.open_project(path=path)
+
+    assert path in projects.get_conf('spyder_pythonpath', section='main')
+
+    projects.close_project()
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
 def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
