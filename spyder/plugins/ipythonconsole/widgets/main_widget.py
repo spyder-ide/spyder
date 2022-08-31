@@ -763,35 +763,6 @@ class IPythonConsoleWidget(PluginMainWidget):
                 client.shellwidget.set_autocall,
                 value)
 
-    # ---- Debugging options
-    @on_conf_change(section='debugger', option='pdb_ignore_lib')
-    def change_clients_pdb_ignore_lib(self, value):
-        for client in self.clients:
-            client.shellwidget.set_pdb_configuration({
-                'pdb_ignore_lib': value
-            })
-
-    @on_conf_change(section='debugger', option='pdb_execute_events')
-    def change_clients_pdb_execute_events(self, value):
-        for client in self.clients:
-            client.shellwidget.set_pdb_configuration({
-                'pdb_execute_events': value
-            })
-
-    @on_conf_change(section='debugger', option='pdb_use_exclamation_mark')
-    def change_clients_pdb_use_exclamation_mark(self, value):
-        for client in self.clients:
-            client.shellwidget.set_pdb_configuration({
-                'pdb_use_exclamation_mark': value
-            })
-
-    @on_conf_change(section='debugger', option='pdb_stop_first_line')
-    def change_clients_pdb_stop_first_line(self, value):
-        for client in self.clients:
-            client.shellwidget.set_pdb_configuration({
-                'pdb_stop_first_line': value
-            })
-
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
         'startup/run_lines', 'startup/use_run_file', 'startup/run_file',

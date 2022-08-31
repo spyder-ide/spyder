@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (
     QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import get_translation
@@ -208,15 +209,46 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         if self.results_browser is not None:
             self.results_browser.set_current_item(top_idx, sub_index)
 
-    def enable_pdb_stack(self):
+    def on_config_kernel(self):
         """Ask shellwidget to send stack."""
-        self.shellwidget.call_kernel().set_pdb_configuration(
-            {'pdb_publish_stack': True})
+        self.shellwidget.call_kernel().set_pdb_configuration({
+            'breakpoints': self.get_conf("breakpoints", default={}),
+            'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
+            'pdb_execute_events': self.get_conf('pdb_execute_events'),
+            'pdb_use_exclamation_mark': self.get_conf(
+                'pdb_use_exclamation_mark'),
+            'pdb_stop_first_line': self.get_conf('pdb_stop_first_line'),
+            'pdb_publish_stack': True,
+            })
 
-    def disable_pdb_stack(self):
+    def on_unconfig_kernel(self):
         """Ask shellwidget to stop sending stack."""
         self.shellwidget.call_kernel().set_pdb_configuration(
             {'pdb_publish_stack': False})
+
+    @on_conf_change(option='pdb_ignore_lib')
+    def change_pdb_ignore_lib(self, value):
+        self.shellwidget.set_pdb_configuration({
+            'pdb_ignore_lib': value
+        })
+
+    @on_conf_change(option='pdb_execute_events')
+    def change_pdb_execute_events(self, value):
+        self.shellwidget.set_pdb_configuration({
+            'pdb_execute_events': value
+        })
+
+    @on_conf_change(option='pdb_use_exclamation_mark')
+    def change_pdb_use_exclamation_mark(self, value):
+        self.shellwidget.set_pdb_configuration({
+            'pdb_use_exclamation_mark': value
+        })
+
+    @on_conf_change(option='pdb_stop_first_line')
+    def change_pdb_stop_first_line(self, value):
+        self.shellwidget.set_pdb_configuration({
+            'pdb_stop_first_line': value
+        })
 
 
 class LineFrameItem(QTreeWidgetItem):
