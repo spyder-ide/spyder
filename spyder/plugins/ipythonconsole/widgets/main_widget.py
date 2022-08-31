@@ -2123,19 +2123,6 @@ class IPythonConsoleWidget(PluginMainWidget):
             return sw.get_pdb_last_step()
         return {}
 
-    def check_pdb_state(self):
-        """
-        Check if actions need to be taken checking the last pdb state.
-        """
-        pdb_state = self.get_pdb_state()
-        if pdb_state:
-            pdb_last_step = self.get_pdb_last_step()
-            sw = self.get_current_shellwidget()
-            if 'fname' in pdb_last_step and sw is not None:
-                fname = pdb_last_step['fname']
-                line = pdb_last_step['lineno']
-                self.pdb_has_stopped(fname, line, sw)
-
     def print_debug_file_msg(self):
         """Print message in the current console when a file can't be closed."""
         debug_msg = _('The current file cannot be closed because it is '
