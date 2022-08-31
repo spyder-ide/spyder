@@ -1603,14 +1603,17 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         the state as values. The state is `True` for active and `False` for
         inactive.
         """
-        path = [p for p in new_path_dict]
-        not_active_path = [p for p in new_path_dict if not new_path_dict[p]]
+        path = tuple(p for p in new_path_dict)
+        not_active_path = tuple(p for p in new_path_dict
+                                if not new_path_dict[p])
         try:
             encoding.writelines(path, self.SPYDER_PATH)
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
             logger.error(str(e))
-        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
+
+        self.path = path
+        self.not_active_path = not_active_path
 
     def get_spyder_pythonpath_dict(self):
         """
@@ -1661,6 +1664,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         # Load new path plus project path
         new_path_dict_p = self.get_spyder_pythonpath_dict()
+
+        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
 
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
