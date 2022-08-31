@@ -226,29 +226,41 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget.call_kernel().set_pdb_configuration(
             {'pdb_publish_stack': False})
 
+    def set_pdb_configuration(self, configuration):
+        """Set configuration into a debugging session"""
+        self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
+            configuration)
+
     @on_conf_change(option='pdb_ignore_lib')
     def change_pdb_ignore_lib(self, value):
-        self.shellwidget.set_pdb_configuration({
+        self.set_pdb_configuration({
             'pdb_ignore_lib': value
         })
 
     @on_conf_change(option='pdb_execute_events')
     def change_pdb_execute_events(self, value):
-        self.shellwidget.set_pdb_configuration({
+        self.set_pdb_configuration({
             'pdb_execute_events': value
         })
 
     @on_conf_change(option='pdb_use_exclamation_mark')
     def change_pdb_use_exclamation_mark(self, value):
-        self.shellwidget.set_pdb_configuration({
+        self.set_pdb_configuration({
             'pdb_use_exclamation_mark': value
         })
 
     @on_conf_change(option='pdb_stop_first_line')
     def change_pdb_stop_first_line(self, value):
-        self.shellwidget.set_pdb_configuration({
+        self.set_pdb_configuration({
             'pdb_stop_first_line': value
         })
+
+    def set_breakpoints(self):
+        """Set current breakpoints."""
+        self.set_pdb_configuration({
+            'breakpoints': self.get_conf(
+                "breakpoints", default={}, section='debugger')
+            })
 
 
 class LineFrameItem(QTreeWidgetItem):

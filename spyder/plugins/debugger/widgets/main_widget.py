@@ -388,7 +388,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         widget.results_browser.view_locals_action = self.view_locals_action
-        self.sig_breakpoints_saved.connect(shellwidget.set_breakpoints)
+        self.sig_breakpoints_saved.connect(widget.set_breakpoints)
         
         shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         return widget
@@ -424,7 +424,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         shellwidget.sig_config_kernel_requested.disconnect(
             widget.on_config_kernel)
         widget.on_unconfig_kernel()
-        self.sig_breakpoints_saved.disconnect(shellwidget.set_breakpoints)
+        self.sig_breakpoints_saved.disconnect(widget.set_breakpoints)
         shellwidget.sig_pdb_state_changed.disconnect(
             self.sig_pdb_state_changed)
 
