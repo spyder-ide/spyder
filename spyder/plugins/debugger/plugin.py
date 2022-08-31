@@ -24,6 +24,7 @@ from spyder.plugins.debugger.widgets.main_widget import (
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
 from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.qthelpers import MENU_SEPARATOR
 
 
@@ -32,7 +33,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     NAME = 'debugger'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.VariableExplorer, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.Toolbar,
+                Plugins.VariableExplorer]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME
@@ -92,20 +94,20 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
         for name in editor_shortcuts:
-            action = widget.get_action(name)
+            action = self.get_action(name)
             CONF.config_shortcut(
                 action.trigger,
                 context=self.CONF_SECTION,
                 name=name,
-                parent=editor)
+                parent=editor
+            )
             editor.pythonfile_dependent_actions += [action]
 
         # Add buttons to toolbar
         for name in [
                 DebuggerToolbarActions.DebugCurrentFile,
                 DebuggerToolbarActions.DebugCurrentCell]:
-            action = widget.get_action(name)
-            self.main.debug_toolbar_actions += [action]
+            action = self.get_action(name)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -126,17 +128,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
         for name in editor_shortcuts:
-            action = widget.get_action(name)
+            action = self.get_action(name)
             editor.pythonfile_dependent_actions.remove(action)
-
-        # Remove buttons from toolbar
-        names = [
-            DebuggerToolbarActions.DebugCurrentFile,
-            DebuggerToolbarActions.DebugCurrentCell,
-        ]
-        for name in names:
-            action = widget.get_action(name)
-            self.main.debug_toolbar_actions.remove(action)
 
     @on_plugin_available(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_available(self):
@@ -150,7 +143,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        widget = self.get_widget()
         names = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
@@ -167,7 +159,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             if name is MENU_SEPARATOR:
                 action = name
             else:
-                action = widget.get_action(name)
+                action = self.get_action(name)
             debug_menu_actions.append(action)
 
         self.main.debug_menu_actions = (
@@ -188,6 +180,28 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             mainmenu.remove_item_from_application_menu(
                 name,
                 menu_id=ApplicationMenus.Debug
+            )
+
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+
+        for action in [DebuggerToolbarActions.DebugCurrentFile,
+                       DebuggerToolbarActions.DebugCurrentCell]:
+            toolbar.add_item_to_application_toolbar(
+                self.get_action(action),
+                toolbar_id=ApplicationToolbars.Debug
+            )
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+
+        for action in [DebuggerToolbarActions.DebugCurrentFile,
+                       DebuggerToolbarActions.DebugCurrentCell]:
+            toolbar.remove_item_from_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.Debug
             )
 
     # ---- Private API
