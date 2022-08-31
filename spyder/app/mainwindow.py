@@ -1666,11 +1666,13 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Load new path plus project path
         new_path_dict_p = self.get_spyder_pythonpath_dict()
 
-        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
+        if new_path_dict_p != old_path_dict_p:
+            # Do not notify observers unless necessary
+            self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
 
-        # Any plugin that needs to do some work based on this signal should
-        # connect to it on plugin registration
-        self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
+            # Any plugin that needs to do some work based on this signal should
+            # connect to it on plugin registration
+            self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
 
     @Slot()
     def show_path_manager(self):
