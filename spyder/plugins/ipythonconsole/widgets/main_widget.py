@@ -2179,13 +2179,11 @@ class IPythonConsoleWidget(PluginMainWidget):
             # External kernels and run_cell_copy, just execute the code
             else:
                 # Can not use custom function on non-spyder kernels
-                QMessageBox.warning(
-                    self,
-                    _('Warning'),
-                    _("The client is not a spyder-kernel "
-                      "to run <b>{}</b>.<br><br>Please Use a spyder-kernel."
-                      ).format(method),
-                    QMessageBox.Ok
+                client.shellwidget.append_html_message(
+                    _("The console is not running a Spyder-kernel, so it "
+                      "can't execute <b>{}</b>.<br><br>"
+                      "Please use a Spyder-kernel for this.").format(method),
+                    before_prompt=True
                 )
                 return
 
@@ -2268,13 +2266,11 @@ class IPythonConsoleWidget(PluginMainWidget):
                 if args:
                     line += " %s" % norm(args)
             else:
-                QMessageBox.warning(
-                    self,
-                    _('Warning'),
-                    _("The client is not a spyder-kernel "
-                      "to run <b>{}</b>.<br><br>Please Use a spyder-kernel."
-                      ).format(method),
-                    QMessageBox.Ok
+                client.shellwidget.append_html_message(
+                    _("The console is not running a Spyder-kernel, so it "
+                      "can't execute <b>{}</b>.<br><br>"
+                      "Please use a Spyder-kernel for this.").format(method),
+                    before_prompt=True
                 )
                 return
 
