@@ -674,8 +674,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
         logger.info("Updating PYTHONPATH")
-        path_dict = self.get_spyder_pythonpath_dict()
-        self.update_python_path(path_dict)
+        self.load_python_path()
+        self.update_python_path()
 
         logger.info("Applying theme configuration...")
         ui_theme = self.get_conf('ui_theme', section='appearance')
@@ -1628,8 +1628,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         Example:
             OrderedDict([('/some/path, True), ('/some/other/path, False)])
         """
-        self.load_python_path()
-
         path_dict = OrderedDict()
         for path in self.path:
             path_dict[path] = path not in self.not_active_path
