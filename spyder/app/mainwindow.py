@@ -1606,14 +1606,17 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         path = tuple(p for p in new_path_dict)
         not_active_path = tuple(p for p in new_path_dict
                                 if not new_path_dict[p])
-        try:
-            encoding.writelines(path, self.SPYDER_PATH)
-            encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
-        except EnvironmentError as e:
-            logger.error(str(e))
+        if path != self.path or not_active_path != self.not_active_path:
+            # Do not write unless necessary
+            try:
+                encoding.writelines(path, self.SPYDER_PATH)
+                encoding.writelines(not_active_path,
+                                    self.SPYDER_NOT_ACTIVE_PATH)
+            except EnvironmentError as e:
+                logger.error(str(e))
 
-        self.path = path
-        self.not_active_path = not_active_path
+            self.path = path
+            self.not_active_path = not_active_path
 
     def get_spyder_pythonpath_dict(self):
         """
