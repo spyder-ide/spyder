@@ -54,6 +54,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget = self.get_widget()
         widget.sig_pdb_state_changed.connect(
             self.update_current_codeeditor_pdb_state)
+        widget.sig_debug_file.connect(self.debug_file)
+        widget.sig_debug_cell.connect(self.debug_cell)
+        widget.sig_toggle_breakpoints.connect(self.set_or_clear_breakpoint)
+        widget.sig_toggle_conditional_breakpoints.connect(
+            self.set_or_edit_conditional_breakpoint)
+        widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -72,13 +78,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # The editor is avilable, connect signal.
         widget.edit_goto.connect(editor.load)
-        widget.sig_debug_file.connect(self.debug_file)
-        widget.sig_debug_cell.connect(self.debug_cell)
-        widget.sig_toggle_breakpoints.connect(self.set_or_clear_breakpoint)
-        widget.sig_toggle_conditional_breakpoints.connect(
-            self.set_or_edit_conditional_breakpoint)
-        widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
-
         editor.sig_codeeditor_created.connect(self.add_codeeditor)
         editor.sig_codeeditor_changed.connect(self.update_codeeditor)
         editor.sig_codeeditor_deleted.connect(self.remove_codeeditor)
@@ -112,12 +111,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget = self.get_widget()
 
         widget.edit_goto.disconnect(editor.load)
-        widget.sig_debug_file.disconnect(self.debug_file)
-        widget.sig_debug_cell.disconnect(self.debug_cell)
-        widget.sig_toggle_breakpoints.disconnect(self.set_or_clear_breakpoint)
-        widget.sig_toggle_conditional_breakpoints.disconnect(
-            self.set_or_edit_conditional_breakpoint)
-        widget.sig_clear_all_breakpoints.disconnect(self.clear_all_breakpoints)
 
         editor.sig_codeeditor_created.disconnect(self.add_codeeditor)
         editor.sig_codeeditor_changed.disconnect(self.update_codeeditor)
