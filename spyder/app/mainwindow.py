@@ -1641,22 +1641,30 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         path = [k for k, v in path_dict.items() if v]
         return path
 
-    def update_python_path(self, new_path_dict):
-        """Update python path on Spyder interpreter and kernels."""
-        # Load previous path
-        path_dict = self.get_spyder_pythonpath_dict()
+    def update_python_path(self, new_path_dict=None):
+        """
+        Update python path on Spyder interpreter and kernels.
 
-        # Save path
-        if path_dict != new_path_dict:
-            # It doesn't include the project_path
+        The new_path_dict should not include the project path.
+        """
+        # Load existing path plus project path
+        old_path_dict_p = self.get_spyder_pythonpath_dict()
+
+        # Save new path
+        if new_path_dict is not None:
             self.save_python_path(new_path_dict)
 
-        # Load new path
-        new_path_dict_p = self.get_spyder_pythonpath_dict()  # Includes project
+        # Update project path
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        if projects:
+            self.project_path = tuple(projects.get_pythonpath())
+
+        # Load new path plus project path
+        new_path_dict_p = self.get_spyder_pythonpath_dict()
 
         # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
-        self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
+        self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
 
     @Slot()
     def show_path_manager(self):
