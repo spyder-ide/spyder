@@ -1597,7 +1597,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def save_python_path(self, new_path_dict):
         """
-        Save path in Spyder configuration folder.
+        Save Spyder PYTHONPATH to configuration folder and update attributes.
 
         `new_path_dict` is an OrderedDict that has the new paths as keys and
         the state as values. The state is `True` for active and `False` for
@@ -1620,7 +1620,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def get_spyder_pythonpath_dict(self):
         """
-        Return Spyder PYTHONPATH.
+        Return Spyder PYTHONPATH plus project path as dictionary of paths.
 
         The returned ordered dictionary has the paths as keys and the state
         as values. The state is `True` for active and `False` for inactive.
@@ -1639,7 +1639,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def get_spyder_pythonpath(self):
         """
-        Return Spyder PYTHONPATH.
+        Return active Spyder PYTHONPATH plus project path as list of paths.
         """
         path_dict = self.get_spyder_pythonpath_dict()
         path = [k for k, v in path_dict.items() if v]
