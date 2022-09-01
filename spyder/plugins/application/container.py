@@ -294,7 +294,7 @@ class ApplicationContainer(PluginMainContainer):
 
                 header = _("<b>Spyder {} is available!</b> ",
                            "<i>(you have {})</i><br><br>").format(
-                    latest_release,)
+                    latest_release, __version__)
                 footer = _(
                     "For more information visit our "
                     "<a href=\"{}\">installation guide</a>."
