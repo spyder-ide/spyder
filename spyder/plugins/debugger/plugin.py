@@ -21,6 +21,8 @@ from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 from spyder.plugins.debugger.widgets.main_widget import (
     DebuggerWidget, DebuggerToolbarActions, DebuggerBreakpointActions)
+from spyder.plugins.editor.utils.editor import get_file_language
+from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.utils.qthelpers import MENU_SEPARATOR
 
@@ -202,31 +204,73 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         nsb = variable_explorer.get_widget_for_shellwidget(shellwidget)
         nsb.process_remote_view(namespace)
 
+    def _is_python_editor(self, codeeditor):
+        """Check if the editor is a python editor."""
+        if codeeditor.filename is None:
+            return False
+        txt = codeeditor.get_text_with_eol()
+        language = get_file_language(codeeditor.filename, txt)
+        return language.lower() in ALL_LANGUAGES["Python"]
+
+    def _connect_codeeditor(self, codeeditor):
+        """Connect a code editor."""
+        codeeditor.breakpoints_manager = BreakpointsManager(codeeditor)
+        codeeditor.breakpoints_manager.sig_breakpoints_saved.connect(
+            self.get_widget().sig_breakpoints_saved)
+
+    def _disconnect_codeeditor(self, codeeditor):
+        """Connect a code editor."""
+        codeeditor.breakpoints_manager.sig_breakpoints_saved.disconnect(
+            self.get_widget().sig_breakpoints_saved)
+        codeeditor.breakpoints_manager = None
+
+    @Slot(str)
+    def _filename_changed(self, filename):
+        """Change filename."""
+        codeeditor = self._get_editor_for_filename(filename)
+        if codeeditor is None:
+            return
+
+        if codeeditor.breakpoints_manager is None:
+            # Was not a python editor
+            if self._is_python_editor(codeeditor):
+                self._connect_codeeditor(codeeditor)
+        else:
+            # Was a python editor
+            if self._is_python_editor(codeeditor):
+                codeeditor.breakpoints_manager.set_filename(filename)
+            else:
+                self._disconnect_codeeditor(codeeditor)
+
     @Slot(object)
     def _add_codeeditor(self, codeeditor):
         """
         Add a new codeeditor.
         """
-        codeeditor.breakpoints_manager = BreakpointsManager(codeeditor)
-        codeeditor.breakpoints_manager.sig_breakpoints_saved.connect(
-            self.get_widget().sig_breakpoints_saved)
+        codeeditor.sig_filename_changed.connect(self._filename_changed)
+        codeeditor.breakpoints_manager = None
+        if self._is_python_editor(codeeditor):
+            self._connect_codeeditor(codeeditor)
+
 
     @Slot(object)
     def _remove_codeeditor(self, codeeditor):
         """
         Remove a codeeditor.
         """
-        codeeditor.breakpoints_manager.sig_breakpoints_saved.disconnect(
-            self.get_widget().sig_breakpoints_saved)
-        codeeditor.breakpoints_manager = None
+        codeeditor.sig_filename_changed.disconnect(self._filename_changed)
+        if codeeditor.breakpoints_manager is not None:
+            self._disconnect_codeeditor(codeeditor)
 
     @Slot(object)
     def _update_codeeditor(self, codeeditor):
         """
         Focus codeeditor has changed.
         """
-        if codeeditor.filename is None:
-            # Not setup yet
+        if (
+            codeeditor.filename is None or
+            codeeditor.breakpoints_manager is None
+            ):
             return
         # Update debugging state
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
@@ -242,10 +286,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         """
         The pdb state has changed.
         """
-        current_editor = self._get_current_editor()
-        if current_editor is None:
+        codeeditor = self._get_current_editor()
+        if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
-        current_editor.breakpoints_manager.update_pdb_state(
+        codeeditor.breakpoints_manager.update_pdb_state(
             pdb_state, pdb_last_step)
 
     def _get_current_editor(self):
@@ -256,6 +300,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         if editor is None:
             return None
         return editor.get_current_editor()
+
+    def _get_editor_for_filename(self, filename):
+        """Get editor for filename."""
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is None:
+            return None
+        return editor._get_editor(filename)
 
     def _get_current_editorstack(self):
         """
@@ -269,18 +320,18 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @Slot()
     def _set_or_clear_breakpoint(self):
         """Set/Clear breakpoint"""
-        current_editor = self._get_current_editor()
-        if current_editor is None:
+        codeeditor = self._get_current_editor()
+        if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
-        current_editor.breakpoints_manager.toogle_breakpoint()
+        codeeditor.breakpoints_manager.toogle_breakpoint()
 
     @Slot()
     def _set_or_edit_conditional_breakpoint(self):
         """Set/Edit conditional breakpoint"""
-        current_editor = self._get_current_editor()
-        if current_editor is None:
+        codeeditor = self._get_current_editor()
+        if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
-        current_editor.breakpoints_manager.toogle_breakpoint(
+        codeeditor.breakpoints_manager.toogle_breakpoint(
             edit_condition=True)
 
     # ---- Public API
@@ -317,7 +368,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editorstack = self._get_current_editorstack()
         if editorstack is not None:
             for data in editorstack.data:
-                data.editor.breakpoints_manager.clear_breakpoints()
+                if data.editor.breakpoints_manager is not None:
+                    data.editor.breakpoints_manager.clear_breakpoints()
 
     @Slot(str, int)
     def clear_breakpoint(self, filename, lineno):
@@ -325,13 +377,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         clear_breakpoint(filename, lineno)
         self.get_widget().sig_breakpoints_saved.emit()
 
-        editor = self.get_plugin(Plugins.Editor)
-        if editor is None:
+        codeeditor = self._get_editor_for_filename(filename)
+
+        if codeeditor is None or codeeditor.breakpoints_manager is None:
             return None
 
-        editorstack = editor.get_current_editorstack()
-        if editorstack is not None:
-            index = editor.is_file_opened(filename)
-            if index is not None:
-                editorstack.data[
-                    index].editor.breakpoints_manager.toogle_breakpoint(lineno)
+        codeeditor.breakpoints_manager.toogle_breakpoint(lineno)

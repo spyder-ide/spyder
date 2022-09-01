@@ -2364,7 +2364,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def close_file_from_name(self, filename):
         """Close file from its name"""
         filename = osp.abspath(to_text_string(filename))
-        index = self.editorstacks[0].has_filename(filename)
+        index = self.get_filename_index(filename)
         if index is not None:
             self.editorstacks[0].close_file(index)
 
@@ -2388,7 +2388,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editor.
         """
         filename = osp.abspath(to_text_string(source))
-        index = self.editorstacks[0].has_filename(filename)
+        index = self.get_filename_index(filename)
         if index is not None:
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,

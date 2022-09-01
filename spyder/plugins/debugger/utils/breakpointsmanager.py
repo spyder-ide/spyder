@@ -18,8 +18,6 @@ from spyder.py3compat import to_text_string
 from spyder.api.manager import Manager
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
-from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
 
 
 def _load_all_breakpoints():
@@ -81,7 +79,6 @@ class BreakpointsManager(Manager, QObject):
         self.debugger_panel = DebuggerPanel(self)
         editor.panels.register(self.debugger_panel)
         self.debugger_panel.order_in_zone = -1
-        self.editor.sig_filename_changed.connect(self.set_filename)
         self.set_filename(editor.filename)
         self.load_breakpoints()
 
@@ -117,23 +114,6 @@ class BreakpointsManager(Manager, QObject):
         if self.breakpoints:
             save_breakpoints(old_filename, [])  # clear old breakpoints
             self.save_breakpoints()
-
-        # File type may have changed!
-        update_panel = True
-        if old_filename:
-            original_ext = osp.splitext(old_filename)[1]
-            new_ext = osp.splitext(filename)[1]
-            update_panel = original_ext != new_ext
-        if not update_panel:
-            return
-
-        # Set file language and re-run highlighter
-        txt = to_text_string(self.editor.get_text_with_eol())
-        language = get_file_language(filename, txt)
-        if language.lower() in ALL_LANGUAGES["Python"]:
-            self.debugger_panel.setVisible(True)
-        else:
-            self.debugger_panel.setVisible(False)
 
     def toogle_breakpoint(
         self, line_number=None, condition=None, edit_condition=False
