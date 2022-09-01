@@ -21,7 +21,7 @@ from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
-from spyder import __docs_url__, __forum_url__, __trouble_url__
+from spyder import __docs_url__, __forum_url__, __trouble_url__, __version__
 from spyder import dependencies
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
@@ -292,8 +292,9 @@ class ApplicationContainer(PluginMainContainer):
             if update_available:
                 self.application_update_status.set_status_pending()
 
-                header = _("<b>Spyder {} is available!</b><br><br>").format(
-                    latest_release)
+                header = _("<b>Spyder {} is available!</b> ",
+                           "<i>(you have {})</i><br><br>").format(
+                    latest_release,)
                 footer = _(
                     "For more information visit our "
                     "<a href=\"{}\">installation guide</a>."
