@@ -49,7 +49,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         breakpoints_box = newcb(_("Show breakpoints"), 'breakpoints_panel',
-                                section='debugger')
+                                section='debugger', default=True)
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
