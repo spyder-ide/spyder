@@ -76,6 +76,7 @@ class BreakpointsManager(Manager, QObject):
         self.filename = None
         self._breakpoint_blocks = {}
         self.breakpoints = []
+
         # Debugger panel (Breakpoints)
         self.debugger_panel = DebuggerPanel(self)
         editor.panels.register(self.debugger_panel)
@@ -83,6 +84,7 @@ class BreakpointsManager(Manager, QObject):
         self.editor.sig_filename_changed.connect(self.set_filename)
         self.set_filename(editor.filename)
         self.load_breakpoints()
+
         # Update breakpoints if the number of lines in the file changes
         editor.blockCountChanged.connect(self.breakpoints_changed)
 
@@ -115,6 +117,7 @@ class BreakpointsManager(Manager, QObject):
         if self.breakpoints:
             save_breakpoints(old_filename, [])  # clear old breakpoints
             self.save_breakpoints()
+
         # File type may have changed!
         update_panel = True
         if old_filename:
@@ -123,6 +126,7 @@ class BreakpointsManager(Manager, QObject):
             update_panel = original_ext != new_ext
         if not update_panel:
             return
+
         # Set file language and re-run highlighter
         txt = to_text_string(self.editor.get_text_with_eol())
         language = get_file_language(filename, txt)

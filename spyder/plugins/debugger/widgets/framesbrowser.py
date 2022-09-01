@@ -210,7 +210,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             self.results_browser.set_current_item(top_idx, sub_index)
 
     def on_config_kernel(self):
-        """Ask shellwidget to send stack."""
+        """Ask shellwidget to send Pdb configuration to kernel."""
         self.shellwidget.call_kernel().set_pdb_configuration({
             'breakpoints': self.get_conf("breakpoints", default={}),
             'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
@@ -219,7 +219,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
                 'pdb_use_exclamation_mark'),
             'pdb_stop_first_line': self.get_conf('pdb_stop_first_line'),
             'pdb_publish_stack': True,
-            })
+        })
 
     def on_unconfig_kernel(self):
         """Ask shellwidget to stop sending stack."""
@@ -227,7 +227,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             {'pdb_publish_stack': False})
 
     def set_pdb_configuration(self, configuration):
-        """Set configuration into a debugging session"""
+        """Set configuration into a debugging session."""
         self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
             configuration)
 
@@ -260,7 +260,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.set_pdb_configuration({
             'breakpoints': self.get_conf(
                 "breakpoints", default={}, section='debugger')
-            })
+        })
 
 
 class LineFrameItem(QTreeWidgetItem):

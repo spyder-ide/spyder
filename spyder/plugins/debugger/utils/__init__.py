@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.debugger.utils
-===========================
+=============================
 
 Some utility classes and functions.
 """

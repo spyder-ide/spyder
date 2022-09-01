@@ -149,7 +149,7 @@ class Breakpoints(SpyderDockablePlugin):
         widget.sig_clear_breakpoint_requested.connect(
             debugger.clear_breakpoint)
         widget.sig_conditional_breakpoint_requested.connect(
-            debugger.set_or_edit_conditional_breakpoint)
+            debugger._set_or_edit_conditional_breakpoint)
 
     @on_plugin_teardown(plugin=Plugins.Debugger)
     def on_debugger_teardown(self):
@@ -162,7 +162,7 @@ class Breakpoints(SpyderDockablePlugin):
         widget.sig_clear_breakpoint_requested.disconnect(
             debugger.clear_breakpoint)
         widget.sig_conditional_breakpoint_requested.disconnect(
-            debugger.set_or_edit_conditional_breakpoint)
+            debugger._set_or_edit_conditional_breakpoint)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):

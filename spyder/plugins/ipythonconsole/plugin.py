@@ -301,8 +301,6 @@ class IPythonConsole(SpyderDockablePlugin):
             self.run_script)
         editor.sig_run_cell_in_ipyclient.connect(
             self.run_cell)
-
-        # Connect Editor debug action with Console
         editor.exec_in_extconsole.connect(self.run_selection)
 
     @on_plugin_available(plugin=Plugins.Projects)
@@ -345,8 +343,6 @@ class IPythonConsole(SpyderDockablePlugin):
             self.run_script)
         editor.sig_run_cell_in_ipyclient.disconnect(
             self.run_cell)
-
-        # Connect Editor debug action with Console
         editor.exec_in_extconsole.disconnect(self.run_selection)
 
     @on_plugin_teardown(plugin=Plugins.Projects)

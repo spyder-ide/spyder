@@ -92,14 +92,19 @@ class DebuggerWidget(ShellConnectMainWidget):
     """This signal is emitted to request the current file to be debugged."""
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
+
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
+
     sig_toggle_breakpoints = Signal()
     """Add or remove a breakpoint on the current line."""
+
     sig_toggle_conditional_breakpoints = Signal()
     """Add or remove a conditional breakpoint on the current line."""
+
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
+
     sig_pdb_state_changed = Signal(bool, dict)
     """Pdb state changed"""
 

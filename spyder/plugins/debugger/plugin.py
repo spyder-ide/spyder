@@ -53,12 +53,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     def on_initialize(self):
         widget = self.get_widget()
         widget.sig_pdb_state_changed.connect(
-            self.update_current_codeeditor_pdb_state)
+            self._update_current_codeeditor_pdb_state)
         widget.sig_debug_file.connect(self.debug_file)
         widget.sig_debug_cell.connect(self.debug_cell)
-        widget.sig_toggle_breakpoints.connect(self.set_or_clear_breakpoint)
+        widget.sig_toggle_breakpoints.connect(self._set_or_clear_breakpoint)
         widget.sig_toggle_conditional_breakpoints.connect(
-            self.set_or_edit_conditional_breakpoint)
+            self._set_or_edit_conditional_breakpoint)
         widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
 
     @on_plugin_available(plugin=Plugins.Preferences)
@@ -76,11 +76,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
 
-        # The editor is avilable, connect signal.
+        # The editor is available, connect signals.
         widget.edit_goto.connect(editor.load)
-        editor.sig_codeeditor_created.connect(self.add_codeeditor)
-        editor.sig_codeeditor_changed.connect(self.update_codeeditor)
-        editor.sig_codeeditor_deleted.connect(self.remove_codeeditor)
+        editor.sig_codeeditor_created.connect(self._add_codeeditor)
+        editor.sig_codeeditor_changed.connect(self._update_codeeditor)
+        editor.sig_codeeditor_deleted.connect(self._remove_codeeditor)
 
         # Apply shortcuts to editor and add actions to pythonfile list
         editor_shortcuts = [
@@ -112,9 +112,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         widget.edit_goto.disconnect(editor.load)
 
-        editor.sig_codeeditor_created.disconnect(self.add_codeeditor)
-        editor.sig_codeeditor_changed.disconnect(self.update_codeeditor)
-        editor.sig_codeeditor_deleted.disconnect(self.remove_codeeditor)
+        editor.sig_codeeditor_created.disconnect(self._add_codeeditor)
+        editor.sig_codeeditor_changed.disconnect(self._update_codeeditor)
+        editor.sig_codeeditor_deleted.disconnect(self._remove_codeeditor)
 
         # Remove editor actions
         editor_shortcuts = [
@@ -157,7 +157,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ClearAllBreakpoints,
             MENU_SEPARATOR,
-            ]
+        ]
 
         debug_menu_actions = []
 
@@ -181,7 +181,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ClearAllBreakpoints
-            ]
+        ]
         for name in names:
             mainmenu.remove_item_from_application_menu(
                 name,
@@ -226,7 +226,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         nsb.process_remote_view(namespace)
 
     @Slot(object)
-    def add_codeeditor(self, codeeditor):
+    def _add_codeeditor(self, codeeditor):
         """
         Add a new codeeditor.
         """
@@ -235,7 +235,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             self.get_widget().sig_breakpoints_saved)
 
     @Slot(object)
-    def remove_codeeditor(self, codeeditor):
+    def _remove_codeeditor(self, codeeditor):
         """
         Remove a codeeditor.
         """
@@ -244,7 +244,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         codeeditor.breakpoints_manager = None
 
     @Slot(object)
-    def update_codeeditor(self, codeeditor):
+    def _update_codeeditor(self, codeeditor):
         """
         Focus codeeditor has changed.
         """
@@ -261,7 +261,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             pdb_state, pdb_last_step)
 
     @Slot(bool, dict)
-    def update_current_codeeditor_pdb_state(self, pdb_state, pdb_last_step):
+    def _update_current_codeeditor_pdb_state(self, pdb_state, pdb_last_step):
         """
         The pdb state has changed.
         """
@@ -271,7 +271,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         current_editor.breakpoints_manager.update_pdb_state(
             pdb_state, pdb_last_step)
 
-    def get_current_editor(self):
+    def _get_current_editor(self):
         """
         Get current codeeditor.
         """
@@ -280,7 +280,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             return None
         return editor.get_current_editor()
 
-    def get_current_editorstack(self):
+    def _get_current_editorstack(self):
         """
         Get current editorstack.
         """
@@ -290,7 +290,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         return editor.get_current_editorstack()
 
     @Slot()
-    def set_or_clear_breakpoint(self):
+    def _set_or_clear_breakpoint(self):
         """Set/Clear breakpoint"""
         current_editor = self.get_current_editor()
         if current_editor is None:
@@ -298,7 +298,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         current_editor.breakpoints_manager.toogle_breakpoint()
 
     @Slot()
-    def set_or_edit_conditional_breakpoint(self):
+    def _set_or_edit_conditional_breakpoint(self):
         """Set/Edit conditional breakpoint"""
         current_editor = self.get_current_editor()
         if current_editor is None:
