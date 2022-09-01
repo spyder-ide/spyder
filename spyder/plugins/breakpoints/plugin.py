@@ -135,7 +135,6 @@ class Breakpoints(SpyderDockablePlugin):
         list_action = self.get_action(BreakpointsActions.ListBreakpoints)
 
         widget.sig_edit_goto_requested.disconnect(editor.load)
-
         editor.pythonfile_dependent_actions.remove(list_action)
 
     @on_plugin_available(plugin=Plugins.Debugger)
