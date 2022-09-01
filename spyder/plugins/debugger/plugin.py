@@ -139,12 +139,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @on_plugin_available(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_available(self):
         self.get_widget().sig_show_namespace.connect(
-            self.show_namespace_in_variable_explorer)
+            self._show_namespace_in_variable_explorer)
 
     @on_plugin_teardown(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_teardown(self):
         self.get_widget().sig_show_namespace.disconnect(
-            self.show_namespace_in_variable_explorer)
+            self._show_namespace_in_variable_explorer)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -188,32 +188,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
                 menu_id=ApplicationMenus.Debug
             )
 
-    # ---- Public API
+    # ---- Private API
     # ------------------------------------------------------------------------
-    @Slot()
-    def debug_file(self):
-        """
-        Debug current file.
-
-        It should only be called when an editor is available.
-        """
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editor.switch_to_plugin()
-            editor.run_file(method="debugfile")
-
-    @Slot()
-    def debug_cell(self):
-        """
-        Debug current cell.
-
-        It should only be called when an editor is available.
-        """
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editor.run_cell(method="debugcell")
-
-    def show_namespace_in_variable_explorer(self, namespace, shellwidget):
+    def _show_namespace_in_variable_explorer(self, namespace, shellwidget):
         """
         Find the right variable explorer widget and show the namespace.
 
@@ -265,7 +242,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         """
         The pdb state has changed.
         """
-        current_editor = self.get_current_editor()
+        current_editor = self._get_current_editor()
         if current_editor is None:
             return
         current_editor.breakpoints_manager.update_pdb_state(
@@ -292,7 +269,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @Slot()
     def _set_or_clear_breakpoint(self):
         """Set/Clear breakpoint"""
-        current_editor = self.get_current_editor()
+        current_editor = self._get_current_editor()
         if current_editor is None:
             return
         current_editor.breakpoints_manager.toogle_breakpoint()
@@ -300,11 +277,36 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @Slot()
     def _set_or_edit_conditional_breakpoint(self):
         """Set/Edit conditional breakpoint"""
-        current_editor = self.get_current_editor()
+        current_editor = self._get_current_editor()
         if current_editor is None:
             return
         current_editor.breakpoints_manager.toogle_breakpoint(
             edit_condition=True)
+
+    # ---- Public API
+    # ------------------------------------------------------------------------
+    @Slot()
+    def debug_file(self):
+        """
+        Debug current file.
+
+        It should only be called when an editor is available.
+        """
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.switch_to_plugin()
+            editor.run_file(method="debugfile")
+
+    @Slot()
+    def debug_cell(self):
+        """
+        Debug current cell.
+
+        It should only be called when an editor is available.
+        """
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.run_cell(method="debugcell")
 
     @Slot()
     def clear_all_breakpoints(self):
@@ -312,7 +314,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         clear_all_breakpoints()
         self.get_widget().sig_breakpoints_saved.emit()
 
-        editorstack = self.get_current_editorstack()
+        editorstack = self._get_current_editorstack()
         if editorstack is not None:
             for data in editorstack.data:
                 data.editor.breakpoints_manager.clear_breakpoints()
