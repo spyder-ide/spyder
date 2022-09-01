@@ -12,10 +12,12 @@ import os.path as osp
 from qtpy.QtWidgets import QInputDialog, QLineEdit
 from qtpy.QtCore import Signal, QObject
 
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.api.manager import Manager
 from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.api.manager import Manager
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 
@@ -61,17 +63,18 @@ def clear_breakpoint(filename, lineno):
         save_breakpoints(filename, breakpoints)
 
 
-class BreakpointsManager(Manager, QObject):
+class BreakpointsManager(Manager, QObject, SpyderConfigurationObserver):
     """
     Manages adding/removing breakpoint from the editor.
     """
+    CONF_SECTION = 'debugger'
 
     sig_breakpoints_saved = Signal()
     sig_repaint_breakpoints = Signal()
 
     def __init__(self, editor):
         super().__init__(editor)
-        self.filename = None
+        self.filename = editor.filename
         self._breakpoint_blocks = {}
         self.breakpoints = []
 
@@ -79,7 +82,8 @@ class BreakpointsManager(Manager, QObject):
         self.debugger_panel = DebuggerPanel(self)
         editor.panels.register(self.debugger_panel)
         self.debugger_panel.order_in_zone = -1
-        self.set_filename(editor.filename)
+        self.update_panel_visibility()
+        # load breakpoints
         self.load_breakpoints()
 
         # Update breakpoints if the number of lines in the file changes
@@ -114,6 +118,15 @@ class BreakpointsManager(Manager, QObject):
         if self.breakpoints:
             save_breakpoints(old_filename, [])  # clear old breakpoints
             self.save_breakpoints()
+
+    def update_panel_visibility(self):
+        """Update the panel visibility."""
+        self.debugger_panel.setVisible(
+            self.get_conf('breakpoints_panel', default=True))
+
+    @on_conf_change(option='breakpoints_panel')
+    def on_breakpoints_panel_update(self, value):
+        self.update_panel_visibility()
 
     def toogle_breakpoint(
         self, line_number=None, condition=None, edit_condition=False
