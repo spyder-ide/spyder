@@ -315,7 +315,15 @@ class AutosaveForStack(object):
             msgbox = AutosaveErrorDialog(action, error)
             msgbox.exec_if_enabled()
         del self.name_mapping[filename]
-        del self.file_hashes[autosave_filename]
+
+        # This is necessary to catch an error when a file is changed externally
+        # but it's left unsaved in Spyder.
+        # Fixes spyder-ide/spyder#19283
+        try:
+            del self.file_hashes[autosave_filename]
+        except KeyError:
+            pass
+
         self.save_autosave_mapping()
         logger.debug('Removing autosave file %s', autosave_filename)
 
