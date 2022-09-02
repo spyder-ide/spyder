@@ -1692,15 +1692,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
 
         return columnize(items, separator, displaywidth)
 
-    def _get_block_plain_text(self, block):
-        """ Given a QTextBlock, return its unformatted text.
-        """
-        cursor = QtGui.QTextCursor(block)
-        cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
-        cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
-                            QtGui.QTextCursor.KeepAnchor)
-        return cursor.selection().toPlainText()
-
     def _get_cursor(self):
         """ Get a cursor at the current insert position.
         """
@@ -1768,7 +1759,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             return None
         else:
             cursor = self._control.textCursor()
-            text = self._get_block_plain_text(cursor.block())
+            text = cursor.block().text()
             return text[len(prompt):]
 
     def _get_input_buffer_cursor_pos(self):
@@ -2428,7 +2419,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             while self._reading:
                 QtCore.QCoreApplication.processEvents()
             return self._get_input_buffer(force=True).rstrip('\n')
-
         else:
             self._reading_callback = lambda: \
                 callback(self._get_input_buffer(force=True).rstrip('\n'))
@@ -2489,6 +2479,13 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             If set, a separator will be written before the prompt.
         """
         self._flush_pending_stream()
+
+        # This is necessary to solve out-of-order insertion of mixed stdin and
+        # stdout stream texts.
+        # Fixes spyder-ide/spyder#17710
+        if not sys.platform == 'darwin':
+            QtCore.QCoreApplication.processEvents()
+
         cursor = self._get_end_cursor()
 
         # Save the current position to support _append*(before_prompt=True).
@@ -2513,6 +2510,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         # Write the prompt.
         if separator:
             self._append_plain_text(self._prompt_sep)
+
         if prompt is None:
             if self._prompt_html is None:
                 self._append_plain_text(self._prompt)

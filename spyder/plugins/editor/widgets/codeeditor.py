@@ -183,7 +183,6 @@ class CodeEditor(TextEditBaseWidget):
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
     sig_re_run_last_cell = Signal()
-    sig_debug_cell = Signal()
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
     sig_refresh_formatting = Signal(bool)
@@ -4451,10 +4450,6 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Run from current line"),
             shortcut=CONF.get_shortcut('editor', 'run from line'),
             triggered=self.sig_run_from_line)
-        self.debug_cell_action = create_action(
-            self, _("Debug cell"), icon=ima.icon('debug_cell'),
-            shortcut=CONF.get_shortcut('editor', 'debug cell'),
-            triggered=self.sig_debug_cell)
 
         # Zoom actions
         zoom_in_action = create_action(

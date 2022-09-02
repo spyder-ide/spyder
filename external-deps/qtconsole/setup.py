@@ -24,7 +24,6 @@ PY3 = (sys.version_info[0] >= 3)
 # get on with it
 #-----------------------------------------------------------------------------
 
-from glob import glob
 import io
 import os
 
@@ -53,7 +52,6 @@ with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 setup_args = dict(
     name                          = name,
     version                       = version_ns['__version__'],
-    scripts                       = glob(pjoin('scripts', '*')),
     packages                      = packages,
     package_data                  = package_data,
     description                   = "Jupyter Qt console",
@@ -68,7 +66,7 @@ setup_args = dict(
     keywords                      = ['Interactive', 'Interpreter', 'Shell'],
     python_requires               = '>= 3.7',
     install_requires = [
-        'traitlets',
+        'traitlets!=5.2.1,!=5.2.2',
         'ipython_genutils',
         'jupyter_core',
         'jupyter_client>=4.1',

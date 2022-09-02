@@ -179,8 +179,7 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
-    debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
+    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -587,12 +586,6 @@ class EditorStack(QWidget):
             name="run cell",
             parent=self)
 
-        debug_cell = CONF.config_shortcut(
-            self.debug_cell,
-            context="Editor",
-            name="debug cell",
-            parent=self)
-
         run_cell_and_advance = CONF.config_shortcut(
             self.run_cell_and_advance,
             context="Editor",
@@ -659,7 +652,7 @@ class EditorStack(QWidget):
                 open_file, save_file, save_all, save_as, close_all,
                 prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
                 zoom_out, zoom_reset, close_file_1, close_file_2, run_cell,
-                debug_cell, run_cell_and_advance,
+                run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -2515,7 +2508,6 @@ class EditorStack(QWidget):
         editor.sig_run_to_line.connect(self.run_to_line)
         editor.sig_run_from_line.connect(self.run_from_line)
         editor.sig_run_cell.connect(self.run_cell)
-        editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file)
@@ -2836,7 +2828,7 @@ class EditorStack(QWidget):
         if self.focus_to_editor:
             editor.move_cursor_to_next('line', 'down')
 
-    def run_cell(self, debug=False):
+    def run_cell(self, method=None):
         """Run current cell."""
         text, block = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
@@ -2844,15 +2836,11 @@ class EditorStack(QWidget):
         name = cell_name(block)
         filename = finfo.filename
 
-        self._run_cell_text(text, editor, (filename, name), debug)
+        self._run_cell_text(text, editor, (filename, name), method)
 
-    def debug_cell(self):
-        """Debug current cell."""
-        self.run_cell(debug=True)
-
-    def run_cell_and_advance(self):
+    def run_cell_and_advance(self, method=None):
         """Run current cell and advance to the next one"""
-        self.run_cell()
+        self.run_cell(method)
         self.advance_cell()
 
     def advance_cell(self, reverse=False):
@@ -2884,7 +2872,7 @@ class EditorStack(QWidget):
 
         self._run_cell_text(text, editor, (filename, cell_name))
 
-    def _run_cell_text(self, text, editor, cell_id, debug=False):
+    def _run_cell_text(self, text, editor, cell_id, method=None):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2900,12 +2888,15 @@ class EditorStack(QWidget):
         """
         (filename, cell_name) = cell_id
         if editor.is_python_or_ipython():
-            args = (text, cell_name, filename, self.run_cell_copy,
-                    self.focus_to_editor)
-            if debug:
-                self.debug_cell_in_ipyclient.emit(*args)
-            else:
-                self.run_cell_in_ipyclient.emit(*args)
+            if method is None:
+                method = "runcell"
+            # self.run_cell_copy only works for runcell
+            run_cell_copy = self.run_cell_copy
+            if method != "runcell":
+                run_cell_copy = False
+            self.sig_run_cell_in_ipyclient.emit(
+                text, cell_name, filename, run_cell_copy, method,
+                self.focus_to_editor)
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):

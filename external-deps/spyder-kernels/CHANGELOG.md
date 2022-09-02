@@ -1,5 +1,24 @@
 # History of changes
 
+## Version 2.3.3 (2022-08-28)
+
+### Issues Closed
+
+* [Issue 405](https://github.com/spyder-ide/spyder-kernels/issues/405) - Python 2 tests are broken in Conda slots ([PR 404](https://github.com/spyder-ide/spyder-kernels/pull/404) by [@impact27](https://github.com/impact27))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 407](https://github.com/spyder-ide/spyder-kernels/pull/407) - PR: Use `get_size` to get variable length for `get_var_properties` to prevent triggering Dask tasks, by [@dalthviz](https://github.com/dalthviz)
+* [PR 404](https://github.com/spyder-ide/spyder-kernels/pull/404) - PR: Use debugging namespace when curframe is active, by [@impact27](https://github.com/impact27) ([405](https://github.com/spyder-ide/spyder-kernels/issues/405))
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
 ## Version 2.3.2 (2022-07-06)
 
 ### Issues Closed

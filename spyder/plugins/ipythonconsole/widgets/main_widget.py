@@ -726,37 +726,41 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 value)
 
     # ---- Debugging options
-    @on_conf_change(option='pdb_ignore_lib')
+    @on_conf_change(section='debugger', option='pdb_ignore_lib')
     def change_clients_pdb_ignore_lib(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_ignore_lib,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_ignore_lib': value
+            })
 
-    @on_conf_change(option='pdb_execute_events')
+    @on_conf_change(section='debugger', option='pdb_execute_events')
     def change_clients_pdb_execute_events(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_execute_events,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_execute_events': value
+            })
 
-    @on_conf_change(option='pdb_use_exclamation_mark')
+    @on_conf_change(section='debugger', option='pdb_use_exclamation_mark')
     def change_clients_pdb_use_exclamation_mark(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_use_exclamation_mark,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_use_exclamation_mark': value
+            })
 
-    @on_conf_change(option='pdb_stop_first_line')
+    @on_conf_change(section='debugger', option='pdb_stop_first_line')
     def change_clients_pdb_stop_first_line(self, value):
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.shellwidget.set_pdb_stop_first_line,
-                value)
+        for client in self.clients:
+            client.shellwidget.set_pdb_configuration({
+                'pdb_stop_first_line': value
+            })
+
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_configuration({
+                'breakpoints': self.get_conf(
+                    'breakpoints', default={}, section='run')
+            })
 
     @on_conf_change(option=[
         'symbolic_math', 'hide_cmd_windows',
@@ -905,19 +909,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if not client.is_client_executing():
             client_conf_func(value)
         elif client.shellwidget.is_debugging():
-            if client_conf_func in [
-                    sw.set_spyder_breakpoints,
-                    sw.set_pdb_ignore_lib,
-                    sw.set_pdb_execute_events,
-                    sw.set_pdb_use_exclamation_mark,
-                    sw.set_pdb_stop_first_line]:
-                # Execute immediately if this is pdb conf
-                client_conf_func(value)
-            else:
-                def change_conf(c=client, ccf=client_conf_func, value=value):
-                    ccf(value)
-                    c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
-                sw.sig_pdb_prompt_ready.connect(change_conf)
+            def change_conf(c=client, ccf=client_conf_func, value=value):
+                ccf(value)
+                c.shellwidget.sig_pdb_prompt_ready.disconnect(change_conf)
+            sw.sig_pdb_prompt_ready.connect(change_conf)
         else:
             def change_conf(c=client, ccf=client_conf_func, value=value):
                 ccf(value)
@@ -1821,11 +1816,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.activateWindow()
             shellwidget._control.setFocus()
 
-    def set_spyder_breakpoints(self):
-        """Set Spyder breakpoints into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_spyder_breakpoints()
-
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
@@ -1862,7 +1852,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 focus_to_editor, function='runcell'):
+                 method='runcell', focus_to_editor=False):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -1876,20 +1866,33 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client = self.get_current_client()
 
         if client is not None:
-            # Spyder kernels, use runcell
-            if client.shellwidget.is_spyder_kernel and not run_cell_copy:
+            is_spyder_kernel = client.shellwidget.is_spyder_kernel
+
+            # Only use copy for runcell
+            if method == 'runcell' and (run_cell_copy or not is_spyder_kernel):
+                # Use copy of cell
+                line = code.strip()
+            elif is_spyder_kernel:
+                # Use custom function
                 line = (str(
                         "{}({}, '{}')").format(
-                                str(function),
+                                str(method),
                                 repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
 
-                if function == "debugcell":
+                if method == "debugcell":
                     # To keep focus in editor after running debugfile
                     client.shellwidget._pdb_focus_to_editor = focus_to_editor
             # External kernels and run_cell_copy, just execute the code
             else:
-                line = code.strip()
+                # Can not use custom function on non-spyder kernels
+                client.shellwidget.append_html_message(
+                    _("The console is not running a Spyder-kernel, so it "
+                      "can't execute <b>{}</b>.<br><br>"
+                      "Please use a Spyder-kernel for this.").format(method),
+                    before_prompt=True
+                )
+                return
 
             try:
                 self.execute_code(line, set_focus=not focus_to_editor)
@@ -1913,17 +1916,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 QMessageBox.Ok
             )
 
-    def debug_cell(self, code, cell_name, filename, run_cell_copy,
-                   focus_to_editor):
-        """Debug current cell."""
-        self.run_cell(code, cell_name, filename, run_cell_copy,
-                      focus_to_editor, 'debugcell')
-
     # ---- For scripts
-    def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace,
-                   focus_to_editor):
-        """Run script in current or dedicated client"""
+    def run_script(self, filename, wdir, args, post_mortem, current_client,
+                   clear_variables, console_namespace, focus_to_editor,
+                   method=None, force_wdir=False):
+        """Run script in current or dedicated client."""
         norm = lambda text: remove_backslashes(str(text))
 
         # Run Cython files in a dedicated console
@@ -1943,12 +1940,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 is_new_client = True
 
         if client is not None:
+            if method is None:
+                method = "runfile"
             # If spyder-kernels, use runfile
             if client.shellwidget.is_spyder_kernel:
-                line = "%s('%s'" % ('debugfile' if debug else 'runfile',
-                                    norm(filename))
+                line = method + "('%s'" % (norm(filename))
                 if args:
                     line += ", args='%s'" % norm(args)
+                if (
+                    wdir and client.shellwidget.is_external_kernel
+                    and not force_wdir
+                ):
+                    # No working directory for external kernels
+                    wdir = ''
                 if wdir:
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
@@ -1957,16 +1961,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     line += ", current_namespace=True"
                 line += ")"
 
-                if debug:
+                if method == "debugfile":
                     # To keep focus in editor after running debugfile
                     client.shellwidget._pdb_focus_to_editor = focus_to_editor
-            else:  # External, non spyder-kernels, use %run
+            elif method in ["runfile", "debugfile"]:
+                # External, non spyder-kernels, use %run
                 line = "%run "
-                if debug:
+                if method == "debugfile":
                     line += "-d "
                 line += "\"%s\"" % str(filename)
                 if args:
                     line += " %s" % norm(args)
+            else:
+                client.shellwidget.append_html_message(
+                    _("The console is not running a Spyder-kernel, so it "
+                      "can't execute <b>{}</b>.<br><br>"
+                      "Please use a Spyder-kernel for this.").format(method),
+                    before_prompt=True
+                )
+                return
 
             try:
                 if client.shellwidget._executing:
