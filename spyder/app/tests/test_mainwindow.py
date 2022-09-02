@@ -61,6 +61,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
@@ -1932,7 +1933,9 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Grab maximize button
     max_action = main_window.layouts.maximize_action
-    max_button = main_window.main_toolbar.widgetForAction(max_action)
+    toolbar = main_window.get_plugin(Plugins.Toolbar)
+    main_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Main)
+    max_button = main_toolbar.widgetForAction(max_action)
 
     # Maximize a random plugin
     plugin_1 = get_random_plugin()
