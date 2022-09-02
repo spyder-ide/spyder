@@ -254,7 +254,8 @@ class UpdateInstallerDialog(QDialog):
             os.makedirs(installer_dir_path, exist_ok=True)
             installer_path = os.path.join(installer_dir_path, name)
             if (not os.path.isfile(installer_path)):
-                logger.debug(f"Downloading installer from {url} to {installer_path}")
+                logger.debug(
+                    f"Downloading installer from {url} to {installer_path}")
                 download = urlretrieve(url,
                                        installer_path,
                                        reporthook=self._progress_reporter)
