@@ -103,10 +103,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
     """Called when pdb reaches a new line"""
+
     sig_pdb_stack = Signal(object, int)
     """Called when the pdb stack changed"""
+
     sig_pdb_state_changed = Signal(bool, dict)
     """Called every time a pdb interaction happens"""
+
     sig_pdb_prompt_ready = Signal()
     """Called when pdb request new input"""
 
