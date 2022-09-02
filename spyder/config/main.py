@@ -187,7 +187,8 @@ DEFAULTS = [
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': True,
-              'pdb_stop_first_line': True
+              'pdb_stop_first_line': True,
+              'breakpoints_panel': True,
              }),
             ('plots',
              {
