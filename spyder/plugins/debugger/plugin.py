@@ -252,7 +252,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         if self._is_python_editor(codeeditor):
             self._connect_codeeditor(codeeditor)
 
-
     @Slot(object)
     def _remove_codeeditor(self, codeeditor):
         """
@@ -270,7 +269,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         if (
             codeeditor.filename is None or
             codeeditor.breakpoints_manager is None
-            ):
+        ):
             return
         # Update debugging state
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)

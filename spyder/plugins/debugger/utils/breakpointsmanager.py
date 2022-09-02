@@ -83,7 +83,8 @@ class BreakpointsManager(Manager, QObject, SpyderConfigurationObserver):
         editor.panels.register(self.debugger_panel)
         self.debugger_panel.order_in_zone = -1
         self.update_panel_visibility()
-        # load breakpoints
+
+        # Load breakpoints
         self.load_breakpoints()
 
         # Update breakpoints if the number of lines in the file changes
