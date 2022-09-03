@@ -250,8 +250,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.source_menu_actions = []
         self.run_menu = None
         self.run_menu_actions = []
-        self.debug_menu = None
-        self.debug_menu_actions = []
 
         # TODO: Move to corresponding Plugins
         self.file_toolbar = None
@@ -839,7 +837,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.source_menu = mainmenu.get_application_menu("source_menu")
         self.source_menu.aboutToShow.connect(self.update_source_menu)
         self.run_menu = mainmenu.get_application_menu("run_menu")
-        self.debug_menu = mainmenu.get_application_menu("debug_menu")
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -954,7 +951,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         add_actions(self.search_menu, self.search_menu_actions)
         add_actions(self.source_menu, self.source_menu_actions)
         add_actions(self.run_menu, self.run_menu_actions)
-        add_actions(self.debug_menu, self.debug_menu_actions)
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:

@@ -23,9 +23,8 @@ from spyder.plugins.debugger.widgets.main_widget import (
     DebuggerWidget, DebuggerToolbarActions, DebuggerBreakpointActions)
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.utils.qthelpers import MENU_SEPARATOR
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -143,27 +142,26 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        names = [
-            DebuggerToolbarActions.DebugCurrentFile,
-            DebuggerToolbarActions.DebugCurrentCell,
-            MENU_SEPARATOR,
-            DebuggerBreakpointActions.ToggleBreakpoint,
-            DebuggerBreakpointActions.ToggleConditionalBreakpoint,
-            DebuggerBreakpointActions.ClearAllBreakpoints,
-            MENU_SEPARATOR,
-        ]
+        mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        debug_menu_actions = []
+        # Debug section
+        for action in [DebuggerToolbarActions.DebugCurrentFile,
+                       DebuggerToolbarActions.DebugCurrentCell]:
+            mainmenu.add_item_to_application_menu(
+                self.get_action(action),
+                menu_id=ApplicationMenus.Debug,
+                section=DebugMenuSections.StartDebug,
+                before_section=DebugMenuSections.EditBreakpoints)
 
-        for name in names:
-            if name is MENU_SEPARATOR:
-                action = name
-            else:
-                action = self.get_action(name)
-            debug_menu_actions.append(action)
-
-        self.main.debug_menu_actions = (
-            debug_menu_actions + self.main.debug_menu_actions)
+        # Breakpoints section
+        for action in [DebuggerBreakpointActions.ToggleBreakpoint,
+                       DebuggerBreakpointActions.ToggleConditionalBreakpoint,
+                       DebuggerBreakpointActions.ClearAllBreakpoints]:
+            mainmenu.add_item_to_application_menu(
+                self.get_action(action),
+                menu_id=ApplicationMenus.Debug,
+                section=DebugMenuSections.EditBreakpoints,
+                before_section=DebugMenuSections.ListBreakpoints)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
