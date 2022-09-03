@@ -102,9 +102,43 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
+    """
+    Called when pdb reaches a new line
+
+    Parameters
+    ----------
+    filename: str
+        The filename the debugger stepped in
+    line_number: int
+        The line number the debugger stepped in
+    """
+
     sig_pdb_stack = Signal(object, int)
+    """
+    Called when the pdb stack changed
+
+    Parameters
+    ----------
+    pdb_stack: traceback.StackSummary
+        The current pdb stack
+    pdb_index: int
+        The index in the stack
+    """
+
     sig_pdb_state_changed = Signal(bool, dict)
+    """
+    Called every time a pdb interaction happens
+
+    Parameters
+    ----------
+    pdb_state: bool
+        wether the debugger is waiting for input
+    pdb_step: dict
+        filename and line number of the last step
+    """
+
     sig_pdb_prompt_ready = Signal()
+    """Called when pdb request new input"""
 
     # For ShellWidget
     sig_focus_changed = Signal()

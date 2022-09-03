@@ -195,7 +195,6 @@ class EditorStack(QWidget):
     update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
-    sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
@@ -215,6 +214,36 @@ class EditorStack(QWidget):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
+
+    sig_codeeditor_created = Signal(object)
+    """
+    This signal is emitted when a codeeditor is created.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
+
+    sig_codeeditor_deleted = Signal(object)
+    """
+    This signal is emitted when a codeeditor is closed.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
+
+    sig_codeeditor_changed = Signal(object)
+    """
+    This signal is emitted when the current codeeditor changes.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
 
     sig_help_requested = Signal(dict)
     """
@@ -430,18 +459,6 @@ class EditorStack(QWidget):
             name='Inspect current object',
             parent=self)
 
-        set_breakpoint = CONF.config_shortcut(
-            self.set_or_clear_breakpoint,
-            context='Editor',
-            name='Breakpoint',
-            parent=self)
-
-        set_cond_breakpoint = CONF.config_shortcut(
-            self.set_or_edit_conditional_breakpoint,
-            context='Editor',
-            name='Conditional breakpoint',
-            parent=self)
-
         gotoline = CONF.config_shortcut(
             self.go_to_line,
             context='Editor',
@@ -647,7 +664,7 @@ class EditorStack(QWidget):
             parent=self)
 
         # Return configurable ones
-        return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
+        return [inspect, gotoline, tab,
                 tabshift, run_selection, run_to_line, run_from_line, new_file,
                 open_file, save_file, save_all, save_as, close_all,
                 prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
@@ -853,18 +870,6 @@ class EditorStack(QWidget):
         else:
             if self.data:
                 self.get_current_editor().exec_gotolinedialog()
-
-    def set_or_clear_breakpoint(self):
-        """Set/clear breakpoint"""
-        if self.data:
-            editor = self.get_current_editor()
-            editor.debugger.toogle_breakpoint()
-
-    def set_or_edit_conditional_breakpoint(self):
-        """Set conditional breakpoint"""
-        if self.data:
-            editor = self.get_current_editor()
-            editor.debugger.toogle_breakpoint(edit_condition=True)
 
     def set_bookmark(self, slot_num):
         """Bookmark current position to given slot."""
@@ -1358,8 +1363,6 @@ class EditorStack(QWidget):
             self.sig_open_file.emit(options)
 
             # Update panels
-            finfo.editor.set_debug_panel(
-                show_debug_panel=True, language=language)
             finfo.editor.cleanup_code_analysis()
             finfo.editor.cleanup_folding()
         else:
@@ -1655,6 +1658,7 @@ class EditorStack(QWidget):
             # by long all the time is not working on some 32bit platforms.
             # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
             self.sig_close_file.emit(str(id(self)), filename)
+            self.sig_codeeditor_deleted.emit(editor)
 
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
@@ -2190,6 +2194,7 @@ class EditorStack(QWidget):
 
         self.stack_history.refresh()
         self.stack_history.remove_and_append(index)
+        self.sig_codeeditor_changed.emit(editor)
 
         # Needed to avoid an error generated after moving/renaming
         # files outside Spyder while in debug mode.
@@ -2511,7 +2516,6 @@ class EditorStack(QWidget):
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file)
-        editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
             lambda: self.update_code_analysis_actions.emit())
         editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
@@ -2611,6 +2615,7 @@ class EditorStack(QWidget):
             'codeeditor': editor
         }
         self.sig_open_file.emit(options)
+        self.sig_codeeditor_created.emit(editor)
         if self.get_stack_index() == 0:
             self.current_changed(0)
 
