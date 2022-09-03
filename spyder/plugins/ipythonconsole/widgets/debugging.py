@@ -383,10 +383,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             self.interrupt_kernel()
         self.pdb_execute_command("exit")
 
-    def set_pdb_configuration(self, configuration):
-        """Set configuration into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_configuration(configuration)
-
     def is_pdb_using_exclamantion_mark(self):
         return self.get_conf('pdb_use_exclamation_mark', section='debugger')
 

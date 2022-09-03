@@ -187,7 +187,8 @@ DEFAULTS = [
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': True,
-              'pdb_stop_first_line': True
+              'pdb_stop_first_line': True,
+              'breakpoints_panel': True,
              }),
             ('plots',
              {
@@ -453,8 +454,6 @@ DEFAULTS = [
               'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
-              'editor/breakpoint': 'F12',
-              'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
               'editor/run to line': 'Shift+F9',
               'editor/run from line': CTRL + '+F9',
@@ -529,6 +528,8 @@ DEFAULTS = [
               'debugger/step': "Ctrl+F11",
               'debugger/return': "Ctrl+Shift+F11",
               'debugger/stop': "Ctrl+Shift+F12",
+              'debugger/toggle breakpoint': 'F12',
+              'debugger/toggle conditional breakpoint': 'Shift+F12',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -648,4 +649,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '72.0.0'
+CONF_VERSION = '73.0.0'

@@ -109,19 +109,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Path to file.
     """
 
-    sig_pdb_state_changed = Signal(bool, dict)
-    """
-    This signal is emitted when the debugging state changes.
-
-    Parameters
-    ----------
-    waiting_pdb_input: bool
-        If the debugging session is waiting for input.
-    pdb_last_step: dict
-        Dictionary with the information of the last step done
-        in the debugging session.
-    """
-
     sig_shellwidget_created = Signal(object)
     """
     This signal is emitted when a shellwidget is connected to
@@ -221,7 +208,6 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_edit_goto_requested[str, int, str, bool].connect(
             self.sig_edit_goto_requested[str, int, str, bool])
         widget.sig_edit_new.connect(self.sig_edit_new)
-        widget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
         widget.sig_shellwidget_changed.connect(self.sig_shellwidget_changed)
@@ -299,17 +285,11 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested[str, int, str, bool].connect(
             self._load_file_in_editor)
         self.sig_edit_new.connect(editor.new)
-        editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         editor.sig_run_file_in_ipyclient.connect(
             self.run_script)
         editor.sig_run_cell_in_ipyclient.connect(
             self.run_cell)
-
-        # Connect Editor debug action with Console
-        self.sig_pdb_state_changed.connect(editor.update_pdb_state)
         editor.exec_in_extconsole.connect(self.run_selection)
-        editor.sig_file_debug_message_requested.connect(
-            self.print_debug_file_msg)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -347,17 +327,11 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_edit_goto_requested[str, int, str, bool].disconnect(
             self._load_file_in_editor)
         self.sig_edit_new.disconnect(editor.new)
-        editor.breakpoints_saved.disconnect(self.set_spyder_breakpoints)
         editor.sig_run_file_in_ipyclient.disconnect(
             self.run_script)
         editor.sig_run_cell_in_ipyclient.disconnect(
             self.run_cell)
-
-        # Connect Editor debug action with Console
-        self.sig_pdb_state_changed.disconnect(editor.update_pdb_state)
         editor.exec_in_extconsole.disconnect(self.run_selection)
-        editor.sig_file_debug_message_requested.disconnect(
-            self.print_debug_file_msg)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
@@ -794,10 +768,6 @@ class IPythonConsole(SpyderDockablePlugin):
         None.
         """
         self.get_widget().update_path(path_dict, new_path_dict)
-
-    def set_spyder_breakpoints(self):
-        """Set Spyder breakpoints into all clients"""
-        self.get_widget().set_spyder_breakpoints()
 
     def restart(self):
         """

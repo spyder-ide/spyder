@@ -41,7 +41,7 @@ class Breakpoints(SpyderDockablePlugin):
     Breakpoint list Plugin.
     """
     NAME = 'breakpoints'
-    REQUIRES = [Plugins.Editor]
+    REQUIRES = [Plugins.Editor, Plugins.Debugger]
     OPTIONAL = [Plugins.MainMenu]
     TABIFY = [Plugins.Help]
     WIDGET_CLASS = BreakpointWidget
@@ -123,24 +123,10 @@ class Breakpoints(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         list_action = self.get_action(BreakpointsActions.ListBreakpoints)
 
-        # TODO: change name of this signal on editor
-        editor.breakpoints_saved.connect(self.set_data)
-        widget.sig_clear_all_breakpoints_requested.connect(
-            editor.clear_all_breakpoints)
-        widget.sig_clear_breakpoint_requested.connect(editor.clear_breakpoint)
         widget.sig_edit_goto_requested.connect(editor.load)
-        widget.sig_conditional_breakpoint_requested.connect(
-            editor.set_or_edit_conditional_breakpoint)
 
         # TODO: Fix location once the sections are defined
         editor.pythonfile_dependent_actions += [list_action]
-
-    @on_plugin_available(plugin=Plugins.MainMenu)
-    def on_main_menu_available(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        list_action = self.get_action(BreakpointsActions.ListBreakpoints)
-        mainmenu.add_item_to_application_menu(
-            list_action, menu_id=ApplicationMenus.Debug)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -148,16 +134,41 @@ class Breakpoints(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         list_action = self.get_action(BreakpointsActions.ListBreakpoints)
 
-        editor.breakpoints_saved.disconnect(self.set_data)
-        widget.sig_clear_all_breakpoints_requested.disconnect(
-            editor.clear_all_breakpoints)
-        widget.sig_clear_breakpoint_requested.disconnect(
-            editor.clear_breakpoint)
         widget.sig_edit_goto_requested.disconnect(editor.load)
-        widget.sig_conditional_breakpoint_requested.disconnect(
-            editor.set_or_edit_conditional_breakpoint)
-
         editor.pythonfile_dependent_actions.remove(list_action)
+
+    @on_plugin_available(plugin=Plugins.Debugger)
+    def on_debugger_available(self):
+        debugger = self.get_plugin(Plugins.Debugger)
+        widget = self.get_widget()
+        debugger.get_widget().sig_breakpoints_saved.connect(self.set_data)
+
+        widget.sig_clear_all_breakpoints_requested.connect(
+            debugger.clear_all_breakpoints)
+        widget.sig_clear_breakpoint_requested.connect(
+            debugger.clear_breakpoint)
+        widget.sig_conditional_breakpoint_requested.connect(
+            debugger._set_or_edit_conditional_breakpoint)
+
+    @on_plugin_teardown(plugin=Plugins.Debugger)
+    def on_debugger_teardown(self):
+        debugger = self.get_plugin(Plugins.Debugger)
+        widget = self.get_widget()
+        debugger.get_widget().sig_breakpoints_saved.disconnect(self.set_data)
+
+        widget.sig_clear_all_breakpoints_requested.disconnect(
+            debugger.clear_all_breakpoints)
+        widget.sig_clear_breakpoint_requested.disconnect(
+            debugger.clear_breakpoint)
+        widget.sig_conditional_breakpoint_requested.disconnect(
+            debugger._set_or_edit_conditional_breakpoint)
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        list_action = self.get_action(BreakpointsActions.ListBreakpoints)
+        mainmenu.add_item_to_application_menu(
+            list_action, menu_id=ApplicationMenus.Debug)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -172,9 +183,9 @@ class Breakpoints(SpyderDockablePlugin):
         Load breakpoint data from configuration file.
         """
         breakpoints_dict = self.get_conf(
-            'breakpoints',
+            "breakpoints",
             default={},
-            section='run',
+            section='debugger',
         )
         for filename in list(breakpoints_dict.keys()):
             if not osp.isfile(filename):
