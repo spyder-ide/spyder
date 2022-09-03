@@ -304,10 +304,9 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         layout = QVBoxLayout()
         layout.setSpacing(0)
-        self.tabwidget = Tabs(self, menu=self._options_menu,
-                              actions=self.menu_actions,
-                              rename_tabs=True,
-                              split_char='/', split_index=0)
+
+        self.tabwidget = Tabs(self, rename_tabs=True, split_char='/',
+                              split_index=0)
         if (hasattr(self.tabwidget, 'setDocumentMode')
                 and not sys.platform == 'darwin'):
             # Don't set document mode to true on OSX because it generates
@@ -594,9 +593,9 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.time_label = QLabel("")
 
         # Add tab corner widgets.
+        self.add_corner_widget('timer', self.time_label)
         self.add_corner_widget('reset', self.reset_button)
         self.add_corner_widget('start_interrupt', self.stop_button)
-        self.add_corner_widget('timer', self.time_label)
 
         # Create IPython documentation menu
         self.ipython_menu = self.create_menu(
