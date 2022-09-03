@@ -289,12 +289,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         # Update debugging state
         widget = self.get_widget()
         pdb_state = widget.get_pdb_state()
-        pdb_last_step = widget.get_pdb_last_step()
+        filename, lineno = widget.get_pdb_last_step()
         codeeditor.breakpoints_manager.update_pdb_state(
-            pdb_state, pdb_last_step)
+            pdb_state, filename, lineno)
 
-    @Slot(bool, dict)
-    def _update_current_codeeditor_pdb_state(self, pdb_state, pdb_last_step):
+    @Slot(bool, str, int)
+    def _update_current_codeeditor_pdb_state(
+            self, pdb_state, filename, line_number):
         """
         The pdb state has changed.
         """
@@ -302,7 +303,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
         codeeditor.breakpoints_manager.update_pdb_state(
-            pdb_state, pdb_last_step)
+            pdb_state, filename, line_number)
 
     def _get_current_editor(self):
         """
@@ -408,10 +409,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         if not debugging:
             return True
 
-        last_pdb_step = widget.get_pdb_last_step()
+        pdb_fname, _ = widget.get_pdb_last_step()
 
-        if 'fname' in last_pdb_step and filename:
-            if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
+        if pdb_fname and filename:
+            if osp.normcase(pdb_fname) == osp.normcase(filename):
                 widget.print_debug_file_msg()
                 return False
             return True

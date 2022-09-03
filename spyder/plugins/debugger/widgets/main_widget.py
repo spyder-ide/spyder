@@ -129,7 +129,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
 
-    sig_pdb_state_changed = Signal(bool, dict)
+    sig_pdb_state_changed = Signal(bool, str, int)
     """
     Called every time a pdb interaction happens
 
@@ -137,8 +137,10 @@ class DebuggerWidget(ShellConnectMainWidget):
     ----------
     pdb_state: bool
         wether the debugger is waiting for input
-    pdb_step: dict
-        filename and line number of the last step
+    filename: str
+        The filename the debugger stepped in
+    line_number: int
+        The line number the debugger stepped in
     """
 
     sig_load_pdb_file = Signal(str, int)
@@ -447,8 +449,9 @@ class DebuggerWidget(ShellConnectMainWidget):
     def switch_widget(self, widget, old_widget):
         """Set the current FramesBrowser."""
         sw = widget.shellwidget
-        self.sig_pdb_state_changed.emit(
-            sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
+        state = sw.is_waiting_pdb_input()
+        fname, lineno = sw.get_pdb_last_step()
+        self.sig_pdb_state_changed.emit(state, fname, lineno)
 
     def close_widget(self, widget):
         """Close widget."""
@@ -521,11 +524,11 @@ class DebuggerWidget(ShellConnectMainWidget):
         """Get last pdb step of the current console."""
         widget = self.current_widget()
         if widget is None:
-            return {}
+            return None, None
         sw = widget.shellwidget
         if sw is not None:
             return sw.get_pdb_last_step()
-        return {}
+        return None, None
 
     @Slot()
     def hide_finder(self):
