@@ -14,17 +14,22 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerWidget, DebuggerToolbarActions, DebuggerBreakpointActions)
+    DebuggerBreakpointActions, DebuggerToolbarActions, DebuggerWidget,
+    DebuggerWidgetActions)
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
 from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
+
+
+# Localization
+_ = get_translation("spyder")
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -144,13 +149,25 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        # Debug section
+        # StartDebug section
         for action in [DebuggerToolbarActions.DebugCurrentFile,
                        DebuggerToolbarActions.DebugCurrentCell]:
             mainmenu.add_item_to_application_menu(
                 self.get_action(action),
                 menu_id=ApplicationMenus.Debug,
                 section=DebugMenuSections.StartDebug,
+                before_section=DebugMenuSections.ControlDebug)
+
+        # ControlDebug section
+        for action in [DebuggerWidgetActions.Next,
+                       DebuggerWidgetActions.Step,
+                       DebuggerWidgetActions.Return,
+                       DebuggerWidgetActions.Continue,
+                       DebuggerWidgetActions.Stop]:
+            mainmenu.add_item_to_application_menu(
+                self.get_action(action),
+                menu_id=ApplicationMenus.Debug,
+                section=DebugMenuSections.ControlDebug,
                 before_section=DebugMenuSections.EditBreakpoints)
 
         # Breakpoints section
@@ -170,6 +187,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         names = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerWidgetActions.Next,
+            DebuggerWidgetActions.Step,
+            DebuggerWidgetActions.Return,
+            DebuggerWidgetActions.Continue,
+            DebuggerWidgetActions.Stop,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ClearAllBreakpoints

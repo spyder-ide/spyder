@@ -66,7 +66,8 @@ class RunMenuSections:
 
 
 class DebugMenuSections:
-    Debug = 'debug_section'
+    StartDebug = 'start_debug_section'
+    ControlDebug = 'control_debug_section'
     EditBreakpoints = 'edit_breakpoints_section'
     ListBreakpoints = 'list_breakpoints_section'
 
