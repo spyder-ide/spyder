@@ -153,7 +153,7 @@ class IPythonConsoleWidget(PluginMainWidget):
     This signal will request to change the focus to the plugin.
     """
 
-    sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
+    sig_edit_goto_requested = Signal(str, int, str)
     """
     This signal will request to open a file in a given row and column
     using a code editor.
@@ -166,9 +166,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         Cursor starting row position.
     word: str
         Word to select on given row.
-    processevents: bool
-        True if the code editor need to process qt events when loading the
-        requested file.
     """
 
     sig_edit_new = Signal(str)
@@ -1112,8 +1109,6 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         if client:
             sw = client.shellwidget
-            sw.sig_pdb_state_changed.emit(
-                sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
             # This is necessary to sync the current client cwd with the working
@@ -1763,10 +1758,6 @@ class IPythonConsoleWidget(PluginMainWidget):
         # For help requests
         control.sig_help_requested.connect(self.sig_help_requested)
 
-        shellwidget.sig_pdb_step.connect(
-            lambda fname, lineno, shellwidget=shellwidget:
-            self.pdb_has_stopped(fname, lineno, shellwidget))
-
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
@@ -2090,46 +2081,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.sig_external_spyder_kernel_connected.emit(shellwidget)
 
     # ---- For running and debugging
-    # --------------------------------------------------------------------------
-
-    # ---- For general debugging
-    def pdb_has_stopped(self, fname, lineno, shellwidget):
-        """Python debugger has just stopped at frame (fname, lineno)"""
-        # This is a unique form of the sig_edit_goto_requested signal that
-        # is intended to prevent keyboard input from accidentally entering the
-        # editor during repeated, rapid entry of debugging commands.
-        self.sig_edit_goto_requested[str, int, str, bool].emit(
-            fname, lineno, '', False)
-
-        # Give focus to console if requested
-        if shellwidget._pdb_focus_to_editor:
-            # Next focus to editor was enabled
-            shellwidget._pdb_focus_to_editor = False
-        else:
-            self.activateWindow()
-            shellwidget._control.setFocus()
-
-    def get_pdb_state(self):
-        """Get debugging state of the current console."""
-        sw = self.get_current_shellwidget()
-        if sw is not None:
-            return sw.is_waiting_pdb_input()
-        return False
-
-    def get_pdb_last_step(self):
-        """Get last pdb step of the current console."""
-        sw = self.get_current_shellwidget()
-        if sw is not None:
-            return sw.get_pdb_last_step()
-        return {}
-
-    def print_debug_file_msg(self):
-        """Print message in the current console when a file can't be closed."""
-        debug_msg = _('The current file cannot be closed because it is '
-                      'in debug mode.')
-        self.get_current_client().shellwidget.append_html_message(
-            debug_msg, before_prompt=True)
-
+    # -------------------------------------------------------------------------
     # ---- For cells
     def run_cell(self, code, cell_name, filename, run_cell_copy,
                  method='runcell', focus_to_editor=False):

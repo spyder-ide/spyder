@@ -6,6 +6,9 @@
 
 """Debugger Plugin."""
 
+# Standard library imports
+import os.path as osp
+
 # Third-party imports
 from qtpy.QtCore import Slot
 
@@ -63,6 +66,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             self._set_or_edit_conditional_breakpoint)
         widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
 
+        widget.sig_load_pdb_file.connect(
+            self._load_pdb_file_in_editor)
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -79,7 +85,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget = self.get_widget()
 
         # The editor is available, connect signals.
-        widget.edit_goto.connect(editor.load)
+        widget.sig_edit_goto.connect(editor.load)
         editor.sig_codeeditor_created.connect(self._add_codeeditor)
         editor.sig_codeeditor_changed.connect(self._update_codeeditor)
         editor.sig_codeeditor_deleted.connect(self._remove_codeeditor)
@@ -112,7 +118,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
 
-        widget.edit_goto.disconnect(editor.load)
+        widget.sig_edit_goto.disconnect(editor.load)
 
         editor.sig_codeeditor_created.disconnect(self._add_codeeditor)
         editor.sig_codeeditor_changed.disconnect(self._update_codeeditor)
@@ -192,6 +198,15 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     # ---- Private API
     # ------------------------------------------------------------------------
+    def _load_pdb_file_in_editor(self, fname, lineno):
+        """Load file using processevents."""
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is None:
+            return
+        # Prevent keyboard input from accidentally entering the
+        # editor during repeated, rapid entry of debugging commands.
+        editor.load(fname, lineno, processevents=False)
+
     def _show_namespace_in_variable_explorer(self, namespace, shellwidget):
         """
         Find the right variable explorer widget and show the namespace.
@@ -272,11 +287,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         ):
             return
         # Update debugging state
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        if ipyconsole is None:
-            return
-        pdb_state = ipyconsole.get_pdb_state()
-        pdb_last_step = ipyconsole.get_pdb_last_step()
+        widget = self.get_widget()
+        pdb_state = widget.get_pdb_state()
+        pdb_last_step = widget.get_pdb_last_step()
         codeeditor.breakpoints_manager.update_pdb_state(
             pdb_state, pdb_last_step)
 
@@ -382,3 +395,25 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             return None
 
         codeeditor.breakpoints_manager.toogle_breakpoint(lineno)
+
+    def can_close_file(self, filename=None):
+        """
+        Check if a file can be closed taking into account debugging state.
+        """
+        if not self.get_conf('pdb_prevent_closing'):
+            return True
+        widget = self.get_widget()
+
+        debugging = widget.get_pdb_state()
+        if not debugging:
+            return True
+
+        last_pdb_step = widget.get_pdb_last_step()
+
+        if 'fname' in last_pdb_step and filename:
+            if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
+                widget.print_debug_file_msg()
+                return False
+            return True
+        widget.print_debug_file_msg()
+        return False

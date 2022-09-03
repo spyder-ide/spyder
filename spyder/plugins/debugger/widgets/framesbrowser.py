@@ -46,10 +46,44 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     CONF_SECTION = 'debugger'
 
     # Signals
-    edit_goto = Signal((str, int, str), (str, int, str, bool))
+    sig_edit_goto = Signal(str, int, str)
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
     sig_show_namespace = Signal(dict)
+    """
+    Show the namespace
+
+    Parameters
+    ----------
+    namespace: dict
+        A namespace view created by spyder_kernels
+    """
     sig_update_actions_requested = Signal()
+    """Update the actions"""
     sig_hide_finder_requested = Signal()
+    """Hide the finder widget"""
+    sig_load_pdb_file = Signal(str, int)
+    """
+    Called when pdb reaches a new line
+
+    Parameters
+    ----------
+    filename: str
+        The filename the debugger stepped in
+    line_number: int
+        The line number the debugger stepped in
+    """
 
     def __init__(self, parent, shellwidget, color_scheme):
         QWidget.__init__(self, parent)
@@ -62,6 +96,17 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.finder = None
         self.pdb_curindex = None
         self._pdb_state = []
+
+    def pdb_has_stopped(self, fname, lineno):
+        """Handle pdb has stopped"""
+        # this will set the focus to the editor
+        self.sig_load_pdb_file.emit(fname, lineno)
+        if self.shellwidget._pdb_focus_to_editor:
+            # Focus to editor will be requested each time
+            self.shellwidget._pdb_focus_to_editor = False
+        else:
+            # take back focus
+            self.shellwidget._control.setFocus()
 
     def set_context_menu(self, context_menu, empty_context_menu):
         """Set the context menus."""
@@ -93,7 +138,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             return
 
         self.results_browser = ResultsBrowser(self, self.color_scheme)
-        self.results_browser.sig_edit_goto.connect(self.edit_goto)
+        self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
         self.results_browser.sig_show_namespace.connect(
             self.sig_show_namespace)
 
