@@ -506,21 +506,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.update_cwd)
 
-    def send_spyder_kernel_configuration(self):
-        """Send kernel configuration to spyder kernel."""
-
-        # To apply style
-        self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
-
-        # Enable faulthandler
-        if self.fault_obj is not None:
-            # To display faulthandler
-            self.shellwidget.call_kernel().enable_faulthandler(
-                self.fault_obj.filename)
-
-        # Give a chance to plugins to configure the kernel
-        self.shellwidget.sig_config_kernel_requested.emit()
-
     def add_to_history(self, command):
         """Add command to history"""
         if self.shellwidget.is_debugging():
@@ -803,7 +788,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                             before_prompt=True)
             sw.insert_horizontal_ruler()
 
-            self.send_spyder_kernel_configuration()
+            sw.send_spyder_kernel_configuration()
 
         self.restart_thread = None
         self.sig_execution_state_changed.emit()

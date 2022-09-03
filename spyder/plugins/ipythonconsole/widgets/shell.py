@@ -298,14 +298,33 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Redefine the complete method to work while debugging.
         self._redefine_complete_for_dbg(self.kernel_client)
         # Send configuration
-        self.ipyclient.send_spyder_kernel_configuration()
+        self.send_spyder_kernel_configuration()
 
     def pop_execute_queue(self):
         """Pop one waiting instruction."""
         if self._execute_queue:
             self.execute(*self._execute_queue.pop(0))
 
-    # ---- Public API ---------------------------------------------------------
+    @property
+    def fault_obj(self):
+        if self.kernel_handler is None:
+            return None
+        return self.kernel_handler.fault_obj
+
+    def send_spyder_kernel_configuration(self):
+        """Send kernel configuration to spyder kernel."""
+        # To apply style
+        self.set_color_scheme(self.syntax_style, reset=False)
+
+        # Enable faulthandler
+        if self.fault_obj is not None:
+            # To display faulthandler
+            self.call_kernel().enable_faulthandler(
+                self.fault_obj.filename)
+
+        # Give a chance to plugins to configure the kernel
+        self.sig_config_kernel_requested.emit()
+
     def interrupt_kernel(self):
         """Attempts to interrupt the running kernel."""
         # Empty queue when interrupting
@@ -719,7 +738,7 @@ the sympy module (e.g. plot)
 
                 if self.is_spyder_kernel:
                     self.call_kernel().close_all_mpl_figures()
-                    self.ipyclient.send_spyder_kernel_configuration()
+                    self.send_spyder_kernel_configuration()
         except AttributeError:
             pass
 
