@@ -305,22 +305,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self._execute_queue:
             self.execute(*self._execute_queue.pop(0))
 
-    @property
-    def fault_obj(self):
-        if self.kernel_handler is None:
-            return None
-        return self.kernel_handler.fault_obj
-
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
+        ffn = self.kernel_handler.get_fault_filename()
         # Enable faulthandler
-        if self.fault_obj is not None:
+        if ffn:
             # To display faulthandler
-            self.call_kernel().enable_faulthandler(
-                self.fault_obj.filename)
+            self.call_kernel().enable_faulthandler(ffn)
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_kernel_requested.emit()

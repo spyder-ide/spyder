@@ -400,12 +400,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return None
         return self.kernel_handler.stdout_obj
 
-    @property
-    def fault_obj(self):
-        if self.kernel_handler is None:
-            return None
-        return self.kernel_handler.fault_obj
-
     def start_std_poll(self):
         """Start polling std files"""
         self.std_poll_timer = QTimer(self)
@@ -759,12 +753,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 before_prompt=True
             )
         else:
-            if self.fault_obj is not None:
-                fault = self.fault_obj.get_contents()
-                if fault:
-                    fault = self.filter_fault(fault)
-                    self.shellwidget._append_plain_text(
-                        '\n' + fault, before_prompt=True)
+            fault = self.kernel_handler.get_fault_text()
+            if fault:
+                self.shellwidget._append_plain_text(
+                    '\n' + fault, before_prompt=True)
 
             # Reset Pdb state and reopen comm
             sw.reset_kernel_state()
@@ -792,50 +784,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         self.restart_thread = None
         self.sig_execution_state_changed.emit()
-
-    def filter_fault(self, fault):
-        """Get a fault from a previous session."""
-        thread_regex = (
-            r"(Current thread|Thread) "
-            r"(0x[\da-f]+) \(most recent call first\):"
-            r"(?:.|\r\n|\r|\n)+?(?=Current thread|Thread|\Z)")
-        # Keep line for future improvments
-        # files_regex = r"File \"([^\"]+)\", line (\d+) in (\S+)"
-
-        main_re = "Main thread id:(?:\r\n|\r|\n)(0x[0-9a-f]+)"
-        main_id = 0
-        for match in re.finditer(main_re, fault):
-            main_id = int(match.group(1), base=16)
-
-        system_re = ("System threads ids:"
-                     "(?:\r\n|\r|\n)(0x[0-9a-f]+(?: 0x[0-9a-f]+)+)")
-        ignore_ids = []
-        start_idx = 0
-        for match in re.finditer(system_re, fault):
-            ignore_ids = [int(i, base=16) for i in match.group(1).split()]
-            start_idx = match.span()[1]
-        text = ""
-        for idx, match in enumerate(re.finditer(thread_regex, fault)):
-            if idx == 0:
-                text += fault[start_idx:match.span()[0]]
-            thread_id = int(match.group(2), base=16)
-            if thread_id != main_id:
-                if thread_id in ignore_ids:
-                    continue
-                if "wurlitzer.py" in match.group(0):
-                    # Wurlitzer threads are launched later
-                    continue
-                text += "\n" + match.group(0) + "\n"
-            else:
-                try:
-                    pattern = (r".*(?:/IPython/core/interactiveshell\.py|"
-                               r"\\IPython\\core\\interactiveshell\.py).*")
-                    match_internal = next(re.finditer(pattern, match.group(0)))
-                    end_idx = match_internal.span()[0]
-                except StopIteration:
-                    end_idx = None
-                text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
-        return text
 
     @Slot(str)
     def kernel_restarted_message(self, msg):
