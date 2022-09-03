@@ -60,7 +60,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     word: str
         Word to select on given row.
     """
-    sig_show_namespace = Signal(dict)
+    sig_show_namespace = Signal(dict, object)
     """
     Show the namespace
 
@@ -68,6 +68,8 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     ----------
     namespace: dict
         A namespace view created by spyder_kernels
+    shellwidget: ShellWidget
+        The shellwidget the request originated from
     """
     sig_update_actions_requested = Signal()
     """Update the actions"""
@@ -140,7 +142,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.results_browser = ResultsBrowser(self, self.color_scheme)
         self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
         self.results_browser.sig_show_namespace.connect(
-            self.sig_show_namespace)
+            self._show_namespace)
 
         self.finder = FinderWidget(self)
         self.finder.sig_find_text.connect(self.do_find)
@@ -154,6 +156,10 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         layout.addSpacing(1)
         layout.addWidget(self.finder)
         self.setLayout(layout)
+
+    def _show_namespace(self, namespace):
+        """Request for the given namespace to be shown in variable explorer."""
+        self.sig_show_namespace.emit(namespace, self.shellwidget)
 
     def _show_frames(self, frames, title, state):
         """Set current frames"""
