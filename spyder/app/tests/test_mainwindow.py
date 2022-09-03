@@ -1448,7 +1448,7 @@ def test_project_path(main_window, tmpdir, qtbot):
     projects = main_window.projects
 
     # Create a project
-    path = to_text_string(tmpdir.mkdir('project_path'))
+    path = str(tmpdir.mkdir('project_path'))
 
     assert path not in projects.get_conf('spyder_pythonpath', section='main')
 

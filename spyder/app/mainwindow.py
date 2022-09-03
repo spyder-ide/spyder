@@ -1606,6 +1606,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         path = tuple(p for p in new_path_dict)
         not_active_path = tuple(p for p in new_path_dict
                                 if not new_path_dict[p])
+
         if path != self.path or not_active_path != self.not_active_path:
             # Do not write unless necessary
             try:
@@ -1639,7 +1640,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def get_spyder_pythonpath(self):
         """
-        Return active Spyder PYTHONPATH plus project path as list of paths.
+        Return active Spyder PYTHONPATH plus project path as a list of paths.
         """
         path_dict = self.get_spyder_pythonpath_dict()
         path = [k for k, v in path_dict.items() if v]
