@@ -203,6 +203,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor)
         if editor is None:
             return
+
         # Prevent keyboard input from accidentally entering the
         # editor during repeated, rapid entry of debugging commands.
         editor.load(fname, lineno, processevents=False)
