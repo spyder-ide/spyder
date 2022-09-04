@@ -16,6 +16,7 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Signal, Slot
+from qtpy.QtWidgets import QSizePolicy, QWidget
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -24,6 +25,7 @@ from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.config.base import get_home_dir
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 from spyder.widgets.comboboxes import PathComboBox
 
 
@@ -48,6 +50,7 @@ class WorkingDirectoryToolbarSections:
 class WorkingDirectoryToolbarItems:
     PathComboBox = 'path_combo'
 
+
 # ---- Widgets
 # ----------------------------------------------------------------------------
 class WorkingDirectoryToolbar(ApplicationToolbar):
@@ -64,11 +67,24 @@ class WorkingDirectoryComboBox(PathComboBox):
 
     def sizeHint(self):
         """Recommended size when there are toolbars to the right."""
-        return QSize(250, 10)
+        return QSize(400, 10)
 
     def enterEvent(self, event):
         """Set current path as the tooltip of the widget on hover."""
         self.setToolTip(self.currentText())
+
+
+class WorkingDirectorySpacer(QWidget):
+    ID = 'working_directory_spacer'
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # Make it expand
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        # Set style
+        self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
 
 
 # ---- Container
@@ -102,6 +118,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
             adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
             id_=WorkingDirectoryToolbarItems.PathComboBox
         )
+        spacer = WorkingDirectorySpacer(self)
 
         # Widget Setup
         self.toolbar.setWindowTitle(title)
@@ -143,8 +160,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
             triggered=self._parent_directory,
         )
 
-        for item in [self.pathedit,
-                     browse_action, parent_action]:
+        for item in [spacer, self.pathedit, browse_action, parent_action]:
             self.add_item_to_toolbar(
                 item,
                 self.toolbar,
