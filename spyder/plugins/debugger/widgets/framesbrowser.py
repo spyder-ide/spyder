@@ -60,6 +60,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     word: str
         Word to select on given row.
     """
+
     sig_show_namespace = Signal(dict, object)
     """
     Show the namespace
@@ -72,12 +73,14 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         The shellwidget the request originated from
     """
     sig_update_actions_requested = Signal()
-    """Update the actions"""
+    """Update the widget actions."""
+
     sig_hide_finder_requested = Signal()
-    """Hide the finder widget"""
+    """Hide the finder widget."""
+
     sig_load_pdb_file = Signal(str, int)
     """
-    Called when pdb reaches a new line
+    This signal is emitted when Pdb reaches a new line.
 
     Parameters
     ----------
@@ -158,7 +161,9 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.setLayout(layout)
 
     def _show_namespace(self, namespace):
-        """Request for the given namespace to be shown in variable explorer."""
+        """
+        Request for the given namespace to be shown in the Variable Explorer.
+        """
         self.sig_show_namespace.emit(namespace, self.shellwidget)
 
     def _show_frames(self, frames, title, state):

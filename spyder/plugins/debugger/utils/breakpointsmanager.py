@@ -104,6 +104,7 @@ class BreakpointsManager(Manager, QObject, SpyderConfigurationObserver):
         ):
             self.debugger_panel.start_clean()
             self.debugger_panel.set_current_line_arrow(line_number)
+
             return
         self.debugger_panel.stop_clean()
 

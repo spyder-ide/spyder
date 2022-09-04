@@ -286,6 +286,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             codeeditor.breakpoints_manager is None
         ):
             return
+
         # Update debugging state
         widget = self.get_widget()
         pdb_state = widget.get_pdb_state()
@@ -403,18 +404,20 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         """
         if not self.get_conf('pdb_prevent_closing'):
             return True
+
         widget = self.get_widget()
 
         debugging = widget.get_pdb_state()
         if not debugging:
             return True
 
-        pdb_fname, _ = widget.get_pdb_last_step()
+        pdb_fname, __ = widget.get_pdb_last_step()
 
         if pdb_fname and filename:
             if osp.normcase(pdb_fname) == osp.normcase(filename):
                 widget.print_debug_file_msg()
                 return False
             return True
+
         widget.print_debug_file_msg()
         return False

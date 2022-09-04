@@ -109,7 +109,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     namespace: dict
         A namespace view created by spyder_kernels
     shellwidget: object
-        The shellwidget the resuest originated from
+        The shellwidget the request originated from
     """
 
     sig_debug_file = Signal()
@@ -131,12 +131,12 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     sig_pdb_state_changed = Signal(bool, str, int)
     """
-    Called every time a pdb interaction happens
+    This signal is emitted every time a Pdb interaction happens.
 
     Parameters
     ----------
     pdb_state: bool
-        wether the debugger is waiting for input
+        Whether the debugger is waiting for input
     filename: str
         The filename the debugger stepped in
     line_number: int
@@ -145,7 +145,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     sig_load_pdb_file = Signal(str, int)
     """
-    Called when pdb reaches a new line
+    This signal is emitted when Pdb reaches a new line.
 
     Parameters
     ----------
@@ -439,7 +439,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.sig_breakpoints_saved.connect(widget.set_breakpoints)
 
         shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
-
         shellwidget.sig_pdb_step.connect(widget.pdb_has_stopped)
 
         widget.sig_load_pdb_file.connect(self.sig_load_pdb_file)
