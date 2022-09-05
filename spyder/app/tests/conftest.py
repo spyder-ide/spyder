@@ -44,6 +44,71 @@ def read_asset_file(filename):
     return encoding.read(osp.join(LOCATION, filename))[0]
 
 
+def create_project(tmpdir):
+    """Create a simple project."""
+    # Create project directory
+    project = tmpdir.mkdir('test_project')
+    project_path = str(project)
+
+    # Create Spyder project
+    spy_project = EmptyProject(project_path)
+    CONF.set('project_explorer', 'current_project_path', project_path)
+
+    # Add a file to the project
+    p_file = project.join('file.py')
+    p_file.write(read_asset_file('script_outline_1.py'))
+    spy_project.set_recent_files([str(p_file)])
+
+
+def create_complex_project(tmpdir):
+    """Create a complex project."""
+    # Create project directories
+    project = tmpdir.mkdir('test_project')
+    project_subdir = project.mkdir('subdir')
+    project_sub_subdir = project_subdir.mkdir('sub_subdir')
+
+    # Create directories out of the project
+    out_of_project_1 = tmpdir.mkdir('out_of_project_1')
+    out_of_project_2 = tmpdir.mkdir('out_of_project_2')
+    out_of_project_1_subdir = out_of_project_1.mkdir('subdir')
+    out_of_project_2_subdir = out_of_project_2.mkdir('subdir')
+
+    project_path = str(project)
+    spy_project = EmptyProject(project_path)
+    CONF.set('project_explorer', 'current_project_path', project_path)
+
+    # Add some files to project. This is necessary to test that we get
+    # symbols for all these files.
+    abs_filenames = []
+    filenames_to_create = {
+        project: ['file1.py', 'file2.py', 'file3.txt', '__init__.py'],
+        project_subdir: ['a.py', '__init__.py'],
+        project_sub_subdir: ['b.py', '__init__.py'],
+        out_of_project_1: ['c.py'],
+        out_of_project_2: ['d.py', '__init__.py'],
+        out_of_project_1_subdir: ['e.py', '__init__.py'],
+        out_of_project_2_subdir: ['f.py']
+    }
+
+    for path in filenames_to_create.keys():
+        filenames = filenames_to_create[path]
+        for filename in filenames:
+            p_file = path.join(filename)
+            abs_filenames.append(str(p_file))
+            if osp.splitext(filename)[1] == '.py':
+                if path == project_subdir:
+                    code = read_asset_file('script_outline_2.py')
+                elif path == project_sub_subdir:
+                    code = read_asset_file('script_outline_3.py')
+                else:
+                    code = read_asset_file('script_outline_1.py')
+                p_file.write(code)
+            else:
+                p_file.write("Hello world!")
+
+    spy_project.set_recent_files(abs_filenames)
+
+
 # =============================================================================
 # ---- Pytest hooks
 # =============================================================================
@@ -127,18 +192,7 @@ def main_window(request, tmpdir, qtbot):
     preload_project = request.node.get_closest_marker('preload_project')
 
     if preload_project:
-        # Create project directory
-        project = tmpdir.mkdir('test_project')
-        project_path = str(project)
-
-        # Create Spyder project
-        spy_project = EmptyProject(project_path)
-        CONF.set('project_explorer', 'current_project_path', project_path)
-
-        # Add a file to the project
-        p_file = project.join('file.py')
-        p_file.write(read_asset_file('script_outline_1.py'))
-        spy_project.set_recent_files([str(p_file)])
+        create_project(tmpdir)
     else:
         CONF.set('project_explorer', 'current_project_path', None)
 
@@ -147,51 +201,7 @@ def main_window(request, tmpdir, qtbot):
         'preload_complex_project')
 
     if preload_complex_project:
-        # Create project
-        project = tmpdir.mkdir('test_project')
-        project_subdir = project.mkdir('subdir')
-        project_sub_subdir = project_subdir.mkdir('sub_subdir')
-
-        # Create directories out of the project
-        out_of_project_1 = tmpdir.mkdir('out_of_project_1')
-        out_of_project_2 = tmpdir.mkdir('out_of_project_2')
-        out_of_project_1_subdir = out_of_project_1.mkdir('subdir')
-        out_of_project_2_subdir = out_of_project_2.mkdir('subdir')
-
-        project_path = str(project)
-        spy_project = EmptyProject(project_path)
-        CONF.set('project_explorer', 'current_project_path', project_path)
-
-        # Add some files to project. This is necessary to test that we get
-        # symbols for all these files.
-        abs_filenames = []
-        filenames_to_create = {
-            project: ['file1.py', 'file2.py', 'file3.txt', '__init__.py'],
-            project_subdir: ['a.py', '__init__.py'],
-            project_sub_subdir: ['b.py', '__init__.py'],
-            out_of_project_1: ['c.py'],
-            out_of_project_2: ['d.py', '__init__.py'],
-            out_of_project_1_subdir: ['e.py', '__init__.py'],
-            out_of_project_2_subdir: ['f.py']
-        }
-
-        for path in filenames_to_create.keys():
-            filenames = filenames_to_create[path]
-            for filename in filenames:
-                p_file = path.join(filename)
-                abs_filenames.append(str(p_file))
-                if osp.splitext(filename)[1] == '.py':
-                    if path == project_subdir:
-                        code = read_asset_file('script_outline_2.py')
-                    elif path == project_sub_subdir:
-                        code = read_asset_file('script_outline_3.py')
-                    else:
-                        code = read_asset_file('script_outline_1.py')
-                    p_file.write(code)
-                else:
-                    p_file.write("Hello world!")
-
-        spy_project.set_recent_files(abs_filenames)
+        create_complex_project(tmpdir)
     else:
         if not preload_project:
             CONF.set('project_explorer', 'current_project_path', None)
