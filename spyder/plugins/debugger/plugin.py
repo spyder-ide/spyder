@@ -296,8 +296,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             pdb_state, filename, lineno)
 
     @Slot(bool)
-    def _update_current_codeeditor_pdb_state(
-            self, pdb_state):
+    def _update_current_codeeditor_pdb_state(self, pdb_state):
         """
         The pdb state has changed.
         """
