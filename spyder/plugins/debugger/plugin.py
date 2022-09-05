@@ -58,6 +58,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             self._update_current_codeeditor_pdb_state)
         widget.sig_debug_file.connect(self.debug_file)
         widget.sig_debug_cell.connect(self.debug_cell)
+        widget.sig_debug_selection.connect(self.debug_selection)
         widget.sig_toggle_breakpoints.connect(self._set_or_clear_breakpoint)
         widget.sig_toggle_conditional_breakpoints.connect(
             self._set_or_edit_conditional_breakpoint)
@@ -88,6 +89,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor_shortcuts = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
@@ -103,7 +105,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         # Add buttons to toolbar
         for name in [
                 DebuggerToolbarActions.DebugCurrentFile,
-                DebuggerToolbarActions.DebugCurrentCell]:
+                DebuggerToolbarActions.DebugCurrentCell,
+                DebuggerToolbarActions.DebugCurrentSelection,
+            ]:
             action = widget.get_action(name)
             self.main.debug_toolbar_actions += [action]
 
@@ -122,6 +126,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor_shortcuts = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
@@ -133,6 +138,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         names = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
         ]
         for name in names:
             action = widget.get_action(name)
@@ -154,6 +160,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         names = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
             MENU_SEPARATOR,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
@@ -180,6 +187,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         names = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ClearAllBreakpoints
@@ -357,6 +365,17 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor, error=False)
         if editor:
             editor.run_cell(method="debugcell")
+
+    @Slot()
+    def debug_selection(self):
+        """
+        Debug current selection or line.
+
+        It should only be called when an editor is available.
+        """
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.run_selection(prefix="%%debug\n")
 
     @Slot()
     def clear_all_breakpoints(self):

@@ -46,6 +46,7 @@ class DebuggerWidgetActions:
 class DebuggerToolbarActions:
     DebugCurrentFile = 'debug file'
     DebugCurrentCell = 'debug cell'
+    DebugCurrentSelection = 'debug selection'
 
 
 class DebuggerBreakpointActions:
@@ -92,6 +93,8 @@ class DebuggerWidget(ShellConnectMainWidget):
     """This signal is emitted to request the current file to be debugged."""
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
+    sig_debug_selection = Signal()
+    """This signal is emitted to request the current line to be debugged."""
 
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
@@ -231,6 +234,15 @@ class DebuggerWidget(ShellConnectMainWidget):
             tip=_("Debug cell"),
             icon=self.create_icon('debug_cell'),
             triggered=self.sig_debug_cell,
+            register_shortcut=True,
+        )
+
+        self.create_action(
+            DebuggerToolbarActions.DebugCurrentSelection,
+            text=_("Debug selection or current line"),
+            tip=_("Debug selection or current line"),
+            icon=self.create_icon('debug_selection'),
+            triggered=self.sig_debug_selection,
             register_shortcut=True,
         )
 

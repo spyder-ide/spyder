@@ -2890,10 +2890,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     systerm, post_mortem)
 
     @Slot()
-    def run_selection(self):
+    def run_selection(self, prefix=None):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
-        editorstack.run_selection()
+        editorstack.run_selection(prefix)
 
     @Slot()
     def run_to_line(self):
