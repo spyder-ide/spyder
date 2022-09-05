@@ -295,15 +295,16 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         codeeditor.breakpoints_manager.update_pdb_state(
             pdb_state, filename, lineno)
 
-    @Slot(bool, str, int)
+    @Slot(bool)
     def _update_current_codeeditor_pdb_state(
-            self, pdb_state, filename, line_number):
+            self, pdb_state):
         """
         The pdb state has changed.
         """
         codeeditor = self._get_current_editor()
         if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
+        filename, line_number = self.get_widget().get_pdb_last_step()
         codeeditor.breakpoints_manager.update_pdb_state(
             pdb_state, filename, line_number)
 

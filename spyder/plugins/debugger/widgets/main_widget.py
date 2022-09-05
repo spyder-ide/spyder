@@ -129,7 +129,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
 
-    sig_pdb_state_changed = Signal(bool, str, int)
+    sig_pdb_state_changed = Signal(bool)
     """
     This signal is emitted every time a Pdb interaction happens.
 
@@ -137,10 +137,6 @@ class DebuggerWidget(ShellConnectMainWidget):
     ----------
     pdb_state: bool
         Whether the debugger is waiting for input
-    filename: str
-        The filename the debugger stepped in
-    line_number: int
-        The line number the debugger stepped in
     """
 
     sig_load_pdb_file = Signal(str, int)
@@ -449,8 +445,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         """Set the current FramesBrowser."""
         sw = widget.shellwidget
         state = sw.is_waiting_pdb_input()
-        fname, lineno = sw.get_pdb_last_step()
-        self.sig_pdb_state_changed.emit(state, fname, lineno)
+        self.sig_pdb_state_changed.emit(state)
 
     def close_widget(self, widget):
         """Close widget."""
