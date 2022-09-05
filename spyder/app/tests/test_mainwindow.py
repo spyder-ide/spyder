@@ -1452,20 +1452,15 @@ def test_project_path(main_window, tmpdir, qtbot):
 
     # Ensure project path is added to IPython console
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = shell._control
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import sys; sys.path")
-    assert path in control.toPlainText()
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("clear")
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; os.environ.get('PYTHONPATH')")
-    assert path in control.toPlainText()
+        shell.execute("import sys; import os; "
+                      "sys_path = sys.path; "
+                      "os_path = os.environ.get('PYTHONPATH', [])")
+    assert path in shell.get_value("sys_path")
+    assert path in shell.get_value("os_path")
 
     projects.close_project()
 
@@ -1474,20 +1469,15 @@ def test_project_path(main_window, tmpdir, qtbot):
 
     # Ensure that project path is removed from IPython console
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = shell._control
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import sys; sys.path")
-    assert path not in control.toPlainText()
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("clear")
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; os.environ.get('PYTHONPATH')")
-    assert path not in control.toPlainText()
+        shell.execute("import sys; import os; "
+                      "sys_path = sys.path; "
+                      "os_path = os.environ.get('PYTHONPATH', [])")
+    assert path not in shell.get_value("sys_path")
+    assert path not in shell.get_value("os_path")
 
 
 @pytest.mark.slow
