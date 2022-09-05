@@ -109,6 +109,40 @@ def create_complex_project(tmpdir):
     spy_project.set_recent_files(abs_filenames)
 
 
+def create_namespace_project(tmpdir):
+    """Create a project that contains a namespace package."""
+    # Create project as example posted in:
+    # https://github.com/spyder-ide/spyder/issues/16406#issuecomment-917992317
+    project = tmpdir.mkdir('namespace-project')
+    ns_package = project.mkdir('namespace-package')
+    sub_package = ns_package.mkdir('sub-package')
+
+    project_path = str(project)
+    spy_project = EmptyProject(project_path)
+    CONF.set('project_explorer', 'current_project_path', project_path)
+
+    # Add some files to sub-package.
+    abs_filenames = []
+    filenames_to_create = {sub_package: ['module_1.py', '__init__.py']}
+
+    for path in filenames_to_create.keys():
+        filenames = filenames_to_create[path]
+        for filename in filenames:
+            p_file = path.join(filename)
+            abs_filenames.append(str(p_file))
+
+            # Use different files to be extra sure we're loading symbols in
+            # each case.
+            if filename == 'module.py':
+                code = read_asset_file('script_outline_4.py')
+            else:
+                code = read_asset_file('script_outline_1.py')
+
+            p_file.write(code)
+
+    spy_project.set_recent_files(abs_filenames)
+
+
 # =============================================================================
 # ---- Pytest hooks
 # =============================================================================
@@ -190,7 +224,6 @@ def main_window(request, tmpdir, qtbot):
 
     # Check if we need to load a simple project to the interface
     preload_project = request.node.get_closest_marker('preload_project')
-
     if preload_project:
         create_project(tmpdir)
     else:
@@ -199,11 +232,19 @@ def main_window(request, tmpdir, qtbot):
     # Check if we need to preload a complex project in a give test
     preload_complex_project = request.node.get_closest_marker(
         'preload_complex_project')
-
     if preload_complex_project:
         create_complex_project(tmpdir)
     else:
         if not preload_project:
+            CONF.set('project_explorer', 'current_project_path', None)
+
+    # Check if we need to preload a project with a namespace package
+    preload_namespace_project = request.node.get_closest_marker(
+        'preload_namespace_project')
+    if preload_namespace_project:
+        create_namespace_project(tmpdir)
+    else:
+        if not preload_complex_project:
             CONF.set('project_explorer', 'current_project_path', None)
 
     # Get config values passed in parametrize and apply them

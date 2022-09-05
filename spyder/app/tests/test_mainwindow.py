@@ -5181,5 +5181,52 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
            files.get_current_folder()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.preload_namespace_project
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
+@pytest.mark.known_leak
+def test_outline_namespace_package(main_window, qtbot, tmpdir):
+    """
+    Test that we show symbols in the Outline pane for projects that have
+    namespace packages, i.e. with no __init__.py file in its root directory.
+
+    This is a regression test for issue spyder-ide/spyder#16406.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Show outline explorer
+    outline_explorer = main_window.outlineexplorer
+    outline_explorer.toggle_view_action.setChecked(True)
+
+    # Get Python editor trees
+    treewidget = outline_explorer.get_widget().treewidget
+    editors_py = [
+        editor for editor in treewidget.editor_ids.keys()
+        if editor.get_language() == 'Python'
+    ]
+
+    def editors_filled():
+        return all(
+            [
+                len(treewidget.editor_tree_cache[editor.get_id()]) == 4
+                for editor in editors_py
+            ]
+        )
+
+    # Wait a bit for trees to be filled
+    qtbot.waitUntil(editors_filled, timeout=25000)
+    assert editors_filled()
+
+    # Remove test file from session
+    CONF.set('editor', 'filenames', [])
+
+
 if __name__ == "__main__":
     pytest.main()
