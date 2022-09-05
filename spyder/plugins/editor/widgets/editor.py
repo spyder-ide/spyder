@@ -2821,11 +2821,13 @@ class EditorStack(QWidget):
         """
         if prefix is None:
             prefix = ''
+
         text = self.get_current_editor().get_selection_as_executable_code()
         if text:
             self.exec_in_extconsole.emit(
                 prefix + text.rstrip(), self.focus_to_editor)
             return
+
         editor = self.get_current_editor()
         line = editor.get_current_line()
         text = line.lstrip()
