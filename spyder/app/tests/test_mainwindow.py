@@ -69,6 +69,8 @@ from spyder.utils import encoding
 from spyder.utils.misc import remove_backslashes
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
+from spyder.plugins.debugger.widgets.main_widget import (
+    DebuggerToolbarActions, DebuggerWidgetActions)
 
 
 # =============================================================================
@@ -5889,6 +5891,67 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.wait(500)
     assert shell.get_cwd() == get_home_dir() == workdir.get_workdir() == \
            files.get_current_folder()
+
+
+@pytest.mark.slow
+def test_debug_selection(main_window, qtbot):
+    """test debug selection."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    debug_widget = main_window.debugger.get_widget()
+    debug_selection_action = debug_widget.get_action(
+        DebuggerToolbarActions.DebugCurrentSelection)
+    continue_action = debug_widget.get_action(
+        DebuggerWidgetActions.Continue)
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code = 'print(1 + 2)\nprint(2 + 4)'
+    code_editor.set_text(code)
+
+    # debug line
+    with qtbot.waitSignal(shell.executed):
+        debug_selection_action.trigger()
+
+    assert shell.is_debugging()
+    assert "print(1 + 2)" in control.toPlainText()
+    assert "%%debug" in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        continue_action.trigger()
+
+    assert not shell.is_debugging()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%clear")
+
+    assert "print(1 + 2)" not in control.toPlainText()
+
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.Start, QTextCursor.KeepAnchor)
+    code_editor.setTextCursor(cursor)
+
+    # debug line
+    with qtbot.waitSignal(shell.executed):
+        debug_selection_action.trigger()
+
+    assert shell.is_debugging()
+
+    with qtbot.waitSignal(shell.executed):
+        continue_action.trigger()
+
+    assert not shell.is_debugging()
+    assert "print(1 + 2)" in control.toPlainText()
+    assert "print(2 + 4)" in control.toPlainText()
+    assert "%%debug" in control.toPlainText()
 
 
 if __name__ == "__main__":
