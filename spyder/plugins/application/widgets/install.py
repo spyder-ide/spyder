@@ -249,9 +249,16 @@ class UpdateInstallerDialog(QDialog):
 
             url = ('https://github.com/spyder-ide/spyder/releases/latest/'
                    f'download/{name}')
-            installer_dir_path = os.path.join(tmpdir, 'spyder', 'updates',
+            dir_path = os.path.join(tmpdir, 'spyder', 'updates')
+            os.makedirs(dir_path, exist_ok=True)
+            installer_dir_path = os.path.join(dir_path,
                                               self.latest_release_version)
             os.makedirs(installer_dir_path, exist_ok=True)
+            for file in os.listdir(dir_path):
+                if file not in [__version__, self.latest_release_version]:
+                    remove = os.path.join(dir_path, file)
+                    os.remove(remove)
+
             installer_path = os.path.join(installer_dir_path, name)
             if (not os.path.isfile(installer_path)):
                 logger.debug(
