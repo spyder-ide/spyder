@@ -2260,26 +2260,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         Check if a file can be closed taking into account debugging state.
         """
-        if not CONF.get('debugger', 'pdb_prevent_closing'):
+        debugger = self.main.get_plugin(Plugins.Debugger, error=False)
+        if debugger is None:
             return True
-
-        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
-        if ipyconsole is None:
-            return True
-
-        debugging = ipyconsole.get_pdb_state()
-        if not debugging:
-            return True
-
-        last_pdb_step = ipyconsole.get_pdb_last_step()
-
-        if 'fname' in last_pdb_step and filename:
-            if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
-                ipyconsole.print_debug_file_msg()
-                return False
-            return True
-        ipyconsole.print_debug_file_msg()
-        return False
+        return debugger.can_close_file(filename)
 
     @Slot()
     def close_file(self):
