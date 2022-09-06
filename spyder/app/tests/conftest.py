@@ -13,7 +13,10 @@ import threading
 import traceback
 
 # Third-party imports
-from qtpy.QtWidgets import QApplication
+from jupyter_client.manager import KernelManager
+from qtpy.QtCore import Qt
+from qtpy.QtTest import QTest
+from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 import psutil
 import pytest
 
@@ -21,6 +24,7 @@ import pytest
 from spyder.app import start
 from spyder.config.base import get_home_dir
 from spyder.config.manager import CONF
+from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
 from spyder.utils import encoding
 
@@ -35,10 +39,75 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 # (in milliseconds)
 SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 
+# Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
+# before import and eval it
+COMPILE_AND_EVAL_TIMEOUT = 30000
+
+# Time to wait for the IPython console to evaluate something (in
+# milliseconds)
+EVAL_TIMEOUT = 3000
+
+# Time to wait for the completion services to be up or give a response
+COMPLETION_TIMEOUT = 30000
+
+# Python 3.7
+PY37 = sys.version_info[:2] == (3, 7)
+
 
 # =============================================================================
 # ---- Auxiliary functions
 # =============================================================================
+def open_file_in_editor(main_window, fname, directory=None):
+    """Open a file using the Editor and its open file dialog"""
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, QFileDialog):
+            if directory is not None:
+                w.setDirectory(directory)
+            input_field = w.findChildren(QLineEdit)[0]
+            input_field.setText(fname)
+            QTest.keyClick(w, Qt.Key_Enter)
+
+
+def reset_run_code(qtbot, shell, code_editor, nsb):
+    """Reset state after a run code test"""
+    qtbot.waitUntil(lambda: not shell._executing)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%reset -f')
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+
+
+def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
+                     **kwargs):
+    """Start a new kernel, and return its Manager and Client"""
+    km = KernelManager(kernel_name=kernel_name)
+    if spykernel:
+        km._kernel_spec = SpyderKernelSpec()
+    km.start_kernel(**kwargs)
+    kc = km.client()
+    kc.start_channels()
+    try:
+        kc.wait_for_ready(timeout=startup_timeout)
+    except RuntimeError:
+        kc.stop_channels()
+        km.shutdown_kernel()
+        raise
+
+    return km, kc
+
+
+def find_desired_tab_in_window(tab_name, window):
+    all_tabbars = window.findChildren(QTabBar)
+    for current_tabbar in all_tabbars:
+        for tab_index in range(current_tabbar.count()):
+            if current_tabbar.tabText(tab_index) == str(tab_name):
+                return current_tabbar, tab_index
+    return None, None
+
+
 def read_asset_file(filename):
     """Read contents of an asset file."""
     return encoding.read(osp.join(LOCATION, filename))[0]
@@ -244,7 +313,7 @@ def main_window(request, tmpdir, qtbot):
     if preload_namespace_project:
         create_namespace_project(tmpdir)
     else:
-        if not preload_complex_project:
+        if not (preload_project or preload_complex_project):
             CONF.set('project_explorer', 'current_project_path', None)
 
     # Get config values passed in parametrize and apply them

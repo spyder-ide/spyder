@@ -27,7 +27,6 @@ import uuid
 from flaky import flaky
 import ipykernel
 from IPython.core import release as ipy_release
-from jupyter_client.manager import KernelManager
 from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
@@ -37,10 +36,8 @@ import pylint
 import pytest
 from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage, QTextCursor
-from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QInputDialog,
-                            QLineEdit, QTabBar, QWidget)
+from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
@@ -48,14 +45,16 @@ from spyder import __trouble_url__
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
-from spyder.app.tests.conftest import LOCATION, read_asset_file, SHELL_TIMEOUT
+from spyder.app.tests.conftest import (
+    COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
+    find_desired_tab_in_window, LOCATION, open_file_in_editor, PY37,
+    read_asset_file, reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
-from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -64,81 +63,6 @@ from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
 
 
-# =============================================================================
-# ---- Constants
-# =============================================================================
-# Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
-# before import and eval it
-COMPILE_AND_EVAL_TIMEOUT = 30000
-
-# Time to wait for the IPython console to evaluate something (in
-# milliseconds)
-EVAL_TIMEOUT = 3000
-
-# Time to wait for the completion services to be up or give a response
-COMPLETION_TIMEOUT = 30000
-
-# Python 3.7
-PY37 = sys.version_info[:2] == (3, 7)
-
-
-# =============================================================================
-# ---- Utility functions
-# =============================================================================
-def open_file_in_editor(main_window, fname, directory=None):
-    """Open a file using the Editor and its open file dialog"""
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, QFileDialog):
-            if directory is not None:
-                w.setDirectory(directory)
-            input_field = w.findChildren(QLineEdit)[0]
-            input_field.setText(fname)
-            QTest.keyClick(w, Qt.Key_Enter)
-
-
-def reset_run_code(qtbot, shell, code_editor, nsb):
-    """Reset state after a run code test"""
-    qtbot.waitUntil(lambda: not shell._executing)
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%reset -f')
-    qtbot.waitUntil(
-        lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
-    code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
-
-
-def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
-                     **kwargs):
-    """Start a new kernel, and return its Manager and Client"""
-    km = KernelManager(kernel_name=kernel_name)
-    if spykernel:
-        km._kernel_spec = SpyderKernelSpec()
-    km.start_kernel(**kwargs)
-    kc = km.client()
-    kc.start_channels()
-    try:
-        kc.wait_for_ready(timeout=startup_timeout)
-    except RuntimeError:
-        kc.stop_channels()
-        km.shutdown_kernel()
-        raise
-
-    return km, kc
-
-
-def find_desired_tab_in_window(tab_name, window):
-    all_tabbars = window.findChildren(QTabBar)
-    for current_tabbar in all_tabbars:
-        for tab_index in range(current_tabbar.count()):
-            if current_tabbar.tabText(tab_index) == str(tab_name):
-                return current_tabbar, tab_index
-    return None, None
-
-
-# =============================================================================
-# ---- Tests
-# =============================================================================
 @pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.single_instance
