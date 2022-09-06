@@ -46,6 +46,7 @@ class DebuggerWidgetActions:
 class DebuggerToolbarActions:
     DebugCurrentFile = 'debug file'
     DebugCurrentCell = 'debug cell'
+    DebugCurrentSelection = 'debug selection'
 
 
 class DebuggerBreakpointActions:
@@ -85,14 +86,40 @@ class DebuggerWidget(ShellConnectMainWidget):
     ENABLE_SPINNER = True
 
     # Signals
-    edit_goto = Signal((str, int, str), (str, int, str, bool))
+    sig_edit_goto = Signal(str, int, str)
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
+
     sig_show_namespace = Signal(dict, object)
+    """
+    Show the namespace
+
+    Parameters
+    ----------
+    namespace: dict
+        A namespace view created by spyder_kernels
+    shellwidget: object
+        The shellwidget the request originated from
+    """
 
     sig_debug_file = Signal()
     """This signal is emitted to request the current file to be debugged."""
 
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
+    sig_debug_selection = Signal()
+    """This signal is emitted to request the current line to be debugged."""
 
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
@@ -106,8 +133,27 @@ class DebuggerWidget(ShellConnectMainWidget):
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
 
-    sig_pdb_state_changed = Signal(bool, dict)
-    """Pdb state changed"""
+    sig_pdb_state_changed = Signal(bool)
+    """
+    This signal is emitted every time a Pdb interaction happens.
+
+    Parameters
+    ----------
+    pdb_state: bool
+        Whether the debugger is waiting for input
+    """
+
+    sig_load_pdb_file = Signal(str, int)
+    """
+    This signal is emitted when Pdb reaches a new line.
+
+    Parameters
+    ----------
+    filename: str
+        The filename the debugger stepped in
+    line_number: int
+        The line number the debugger stepped in
+    """
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -232,6 +278,15 @@ class DebuggerWidget(ShellConnectMainWidget):
             tip=_("Debug cell"),
             icon=self.create_icon('debug_cell'),
             triggered=self.sig_debug_cell,
+            register_shortcut=True,
+        )
+
+        self.create_action(
+            DebuggerToolbarActions.DebugCurrentSelection,
+            text=_("Debug selection or current line"),
+            tip=_("Debug selection or current line"),
+            icon=self.create_icon('debug_selection'),
+            triggered=self.sig_debug_selection,
             register_shortcut=True,
         )
 
@@ -365,13 +420,11 @@ class DebuggerWidget(ShellConnectMainWidget):
             color_scheme=color_scheme
         )
 
-        widget.edit_goto.connect(self.edit_goto)
+        widget.sig_edit_goto.connect(self.sig_edit_goto)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
         widget.sig_update_actions_requested.connect(self.update_actions)
 
-        widget.sig_show_namespace.connect(
-            lambda namespace: self.sig_show_namespace.emit(
-                namespace, shellwidget))
+        widget.sig_show_namespace.connect(self.sig_show_namespace)
         shellwidget.sig_prompt_ready.connect(widget.clear_if_needed)
         shellwidget.sig_pdb_prompt_ready.connect(widget.clear_if_needed)
 
@@ -395,21 +448,27 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.sig_breakpoints_saved.connect(widget.set_breakpoints)
 
         shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
+        shellwidget.sig_pdb_step.connect(widget.pdb_has_stopped)
+
+        widget.sig_load_pdb_file.connect(self.sig_load_pdb_file)
+
         return widget
 
     def switch_widget(self, widget, old_widget):
         """Set the current FramesBrowser."""
-        pass
+        sw = widget.shellwidget
+        state = sw.is_waiting_pdb_input()
+        self.sig_pdb_state_changed.emit(state)
 
     def close_widget(self, widget):
         """Close widget."""
-        widget.edit_goto.disconnect(self.edit_goto)
+        widget.sig_edit_goto.disconnect(self.sig_edit_goto)
         widget.sig_hide_finder_requested.disconnect(self.hide_finder)
         widget.sig_update_actions_requested.disconnect(self.update_actions)
 
         shellwidget = widget.shellwidget
 
-        widget.sig_show_namespace.disconnect()
+        widget.sig_show_namespace.disconnect(self.sig_show_namespace)
 
         try:
             shellwidget.sig_prompt_ready.disconnect(widget.clear_if_needed)
@@ -432,11 +491,24 @@ class DebuggerWidget(ShellConnectMainWidget):
         shellwidget.sig_pdb_state_changed.disconnect(
             self.sig_pdb_state_changed)
 
+        shellwidget.sig_pdb_step.disconnect(widget.pdb_has_stopped)
+        widget.sig_load_pdb_file.disconnect(self.sig_load_pdb_file)
+
         widget.close()
         widget.setParent(None)
 
     # ---- Public API
     # ------------------------------------------------------------------------
+    def print_debug_file_msg(self):
+        """Print message in the current console when a file can't be closed."""
+        widget = self.current_widget()
+        if widget is None:
+            return False
+        sw = widget.shellwidget
+        debug_msg = _('The current file cannot be closed because it is '
+                      'in debug mode.')
+        sw.append_html_message(debug_msg, before_prompt=True)
+
     @Slot(bool)
     def toggle_finder(self, checked):
         """Show or hide finder."""
@@ -444,6 +516,26 @@ class DebuggerWidget(ShellConnectMainWidget):
         if widget is None:
             return
         widget.toggle_finder(checked)
+
+    def get_pdb_state(self):
+        """Get debugging state of the current console."""
+        widget = self.current_widget()
+        if widget is None:
+            return False
+        sw = widget.shellwidget
+        if sw is not None:
+            return sw.is_waiting_pdb_input()
+        return False
+
+    def get_pdb_last_step(self):
+        """Get last pdb step of the current console."""
+        widget = self.current_widget()
+        if widget is None:
+            return None, None
+        sw = widget.shellwidget
+        if sw is not None:
+            return sw.get_pdb_last_step()
+        return None, None
 
     @Slot()
     def hide_finder(self):

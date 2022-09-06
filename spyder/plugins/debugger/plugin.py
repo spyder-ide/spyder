@@ -6,6 +6,9 @@
 
 """Debugger Plugin."""
 
+# Standard library imports
+import os.path as osp
+
 # Third-party imports
 from qtpy.QtCore import Slot
 
@@ -64,10 +67,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             self._update_current_codeeditor_pdb_state)
         widget.sig_debug_file.connect(self.debug_file)
         widget.sig_debug_cell.connect(self.debug_cell)
+        widget.sig_debug_selection.connect(self.debug_selection)
         widget.sig_toggle_breakpoints.connect(self._set_or_clear_breakpoint)
         widget.sig_toggle_conditional_breakpoints.connect(
             self._set_or_edit_conditional_breakpoint)
         widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
+
+        widget.sig_load_pdb_file.connect(
+            self._load_pdb_file_in_editor)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -85,7 +92,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget = self.get_widget()
 
         # The editor is available, connect signals.
-        widget.edit_goto.connect(editor.load)
+        widget.sig_edit_goto.connect(editor.load)
         editor.sig_codeeditor_created.connect(self._add_codeeditor)
         editor.sig_codeeditor_changed.connect(self._update_codeeditor)
         editor.sig_codeeditor_deleted.connect(self._remove_codeeditor)
@@ -94,6 +101,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor_shortcuts = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
@@ -107,18 +115,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             )
             editor.pythonfile_dependent_actions += [action]
 
-        # Add buttons to toolbar
-        for name in [
-                DebuggerToolbarActions.DebugCurrentFile,
-                DebuggerToolbarActions.DebugCurrentCell]:
-            action = self.get_action(name)
-
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
 
-        widget.edit_goto.disconnect(editor.load)
+        widget.sig_edit_goto.disconnect(editor.load)
 
         editor.sig_codeeditor_created.disconnect(self._add_codeeditor)
         editor.sig_codeeditor_changed.disconnect(self._update_codeeditor)
@@ -128,6 +130,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor_shortcuts = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
@@ -151,7 +154,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # StartDebug section
         for action in [DebuggerToolbarActions.DebugCurrentFile,
-                       DebuggerToolbarActions.DebugCurrentCell]:
+                       DebuggerToolbarActions.DebugCurrentCell,
+                       DebuggerToolbarActions.DebugCurrentSelection]:
             mainmenu.add_item_to_application_menu(
                 self.get_action(action),
                 menu_id=ApplicationMenus.Debug,
@@ -187,6 +191,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         names = [
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
+            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerWidgetActions.Next,
             DebuggerWidgetActions.Step,
             DebuggerWidgetActions.Return,
@@ -207,7 +212,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         toolbar = self.get_plugin(Plugins.Toolbar)
 
         for action in [DebuggerToolbarActions.DebugCurrentFile,
-                       DebuggerToolbarActions.DebugCurrentCell]:
+                       DebuggerToolbarActions.DebugCurrentCell,
+                       DebuggerToolbarActions.DebugCurrentSelection]:
             toolbar.add_item_to_application_toolbar(
                 self.get_action(action),
                 toolbar_id=ApplicationToolbars.Debug
@@ -218,7 +224,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         toolbar = self.get_plugin(Plugins.Toolbar)
 
         for action in [DebuggerToolbarActions.DebugCurrentFile,
-                       DebuggerToolbarActions.DebugCurrentCell]:
+                       DebuggerToolbarActions.DebugCurrentCell,
+                       DebuggerToolbarActions.DebugCurrentSelection]:
             toolbar.remove_item_from_application_toolbar(
                 action,
                 toolbar_id=ApplicationToolbars.Debug
@@ -226,6 +233,16 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     # ---- Private API
     # ------------------------------------------------------------------------
+    def _load_pdb_file_in_editor(self, fname, lineno):
+        """Load file using processevents."""
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is None:
+            return
+
+        # Prevent keyboard input from accidentally entering the
+        # editor during repeated, rapid entry of debugging commands.
+        editor.load(fname, lineno, processevents=False)
+
     def _show_namespace_in_variable_explorer(self, namespace, shellwidget):
         """
         Find the right variable explorer widget and show the namespace.
@@ -305,25 +322,25 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             codeeditor.breakpoints_manager is None
         ):
             return
-        # Update debugging state
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        if ipyconsole is None:
-            return
-        pdb_state = ipyconsole.get_pdb_state()
-        pdb_last_step = ipyconsole.get_pdb_last_step()
-        codeeditor.breakpoints_manager.update_pdb_state(
-            pdb_state, pdb_last_step)
 
-    @Slot(bool, dict)
-    def _update_current_codeeditor_pdb_state(self, pdb_state, pdb_last_step):
+        # Update debugging state
+        widget = self.get_widget()
+        pdb_state = widget.get_pdb_state()
+        filename, lineno = widget.get_pdb_last_step()
+        codeeditor.breakpoints_manager.update_pdb_state(
+            pdb_state, filename, lineno)
+
+    @Slot(bool)
+    def _update_current_codeeditor_pdb_state(self, pdb_state):
         """
         The pdb state has changed.
         """
         codeeditor = self._get_current_editor()
         if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
+        filename, line_number = self.get_widget().get_pdb_last_step()
         codeeditor.breakpoints_manager.update_pdb_state(
-            pdb_state, pdb_last_step)
+            pdb_state, filename, line_number)
 
     def _get_current_editor(self):
         """
@@ -393,6 +410,17 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             editor.run_cell(method="debugcell")
 
     @Slot()
+    def debug_selection(self):
+        """
+        Debug current selection or line.
+
+        It should only be called when an editor is available.
+        """
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.run_selection(prefix="%%debug\n")
+
+    @Slot()
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
         clear_all_breakpoints()
@@ -416,3 +444,27 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             return None
 
         codeeditor.breakpoints_manager.toogle_breakpoint(lineno)
+
+    def can_close_file(self, filename=None):
+        """
+        Check if a file can be closed taking into account debugging state.
+        """
+        if not self.get_conf('pdb_prevent_closing'):
+            return True
+
+        widget = self.get_widget()
+
+        debugging = widget.get_pdb_state()
+        if not debugging:
+            return True
+
+        pdb_fname, __ = widget.get_pdb_last_step()
+
+        if pdb_fname and filename:
+            if osp.normcase(pdb_fname) == osp.normcase(filename):
+                widget.print_debug_file_msg()
+                return False
+            return True
+
+        widget.print_debug_file_msg()
+        return False

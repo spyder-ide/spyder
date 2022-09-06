@@ -2807,7 +2807,7 @@ class EditorStack(QWidget):
         """
         self._run_lines_cursor(direction='down')
 
-    def run_selection(self):
+    def run_selection(self, prefix=None):
         """
         Run selected text or current line in console.
 
@@ -2819,15 +2819,21 @@ class EditorStack(QWidget):
         cursor there. If cursor is on last line and that line is empty, then do
         not move cursor.
         """
+        if prefix is None:
+            prefix = ''
+
         text = self.get_current_editor().get_selection_as_executable_code()
         if text:
-            self.exec_in_extconsole.emit(text.rstrip(), self.focus_to_editor)
+            self.exec_in_extconsole.emit(
+                prefix + text.rstrip(), self.focus_to_editor)
             return
+
         editor = self.get_current_editor()
         line = editor.get_current_line()
         text = line.lstrip()
         if text:
-            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+            self.exec_in_extconsole.emit(
+                prefix + text, self.focus_to_editor)
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
         if self.focus_to_editor:
