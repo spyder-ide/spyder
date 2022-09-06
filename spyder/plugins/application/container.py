@@ -292,7 +292,7 @@ class ApplicationContainer(PluginMainContainer):
             if update_available:
                 self.application_update_status.set_status_pending()
 
-                header = _("<b>Spyder {} is available!</b> ",
+                header = _("<b>Spyder {} is available!</b> "
                            "<i>(you have {})</i><br><br>").format(
                     latest_release, __version__)
                 footer = _(
