@@ -277,6 +277,12 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         css = self.get_stylesheet()
         is_macos = sys.platform == 'darwin'
 
+        # This removes a white dot that appears to the left of right corner
+        # widgets
+        css.QToolBar.setValues(
+            marginLeft='-1px',
+        )
+
         # QTabBar forces the corner widgets to be smaller than they should.
         # be. The added top margin allows the toolbuttons to expand to their
         # normal size.
@@ -350,7 +356,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
             bottom='-2px',
-            right='1px'
+            right='-1px'
         )
 
     def to_string(self):

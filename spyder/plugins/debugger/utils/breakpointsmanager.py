@@ -90,23 +90,22 @@ class BreakpointsManager(Manager, QObject, SpyderConfigurationObserver):
         # Update breakpoints if the number of lines in the file changes
         editor.blockCountChanged.connect(self.breakpoints_changed)
 
-    def update_pdb_state(self, state, last_step):
+    def update_pdb_state(self, state, filename, line_number):
         """
         Enable/disable debugging actions and handle pdb state change.
 
         Update debugger panel state.
         """
-        if state and "fname" in last_step:
-            fname = last_step["fname"]
-            line = last_step["lineno"]
-            if (
-                fname
-                and self.filename
-                and osp.normcase(fname) == osp.normcase(self.filename)
-            ):
-                self.debugger_panel.start_clean()
-                self.debugger_panel.set_current_line_arrow(line)
-                return
+        if (
+            state
+            and filename
+            and self.filename
+            and osp.normcase(filename) == osp.normcase(self.filename)
+        ):
+            self.debugger_panel.start_clean()
+            self.debugger_panel.set_current_line_arrow(line_number)
+            return
+
         self.debugger_panel.stop_clean()
 
     def set_filename(self, filename):

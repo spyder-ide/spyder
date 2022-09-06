@@ -523,6 +523,7 @@ DEFAULTS = [
               'debugger/search': 'Ctrl+F',
               'debugger/debug file': "Ctrl+F5",
               'debugger/debug cell': 'Alt+Shift+Return',
+              'debugger/debug selection': '',
               'debugger/next': "Ctrl+F10",
               'debugger/continue': "Ctrl+F12",
               'debugger/step': "Ctrl+F11",

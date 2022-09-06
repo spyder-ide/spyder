@@ -81,7 +81,7 @@ class IPythonConsole(SpyderDockablePlugin):
     This signal is emitted when the plugin focus changes.
     """
 
-    sig_edit_goto_requested = Signal((str, int, str), (str, int, str, bool))
+    sig_edit_goto_requested = Signal(str, int, str)
     """
     This signal will request to open a file in a given row and column
     using a code editor.
@@ -94,9 +94,6 @@ class IPythonConsole(SpyderDockablePlugin):
         Cursor starting row position.
     word: str
         Word to select on given row.
-    processevents: bool
-        True if the code editor need to process qt events when loading the
-        requested file.
     """
 
     sig_edit_new = Signal(str)
@@ -205,8 +202,6 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_edit_goto_requested[str, int, str, bool].connect(
-            self.sig_edit_goto_requested[str, int, str, bool])
         widget.sig_edit_new.connect(self.sig_edit_new)
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
@@ -282,8 +277,6 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
         self.sig_edit_goto_requested.connect(editor.load)
-        self.sig_edit_goto_requested[str, int, str, bool].connect(
-            self._load_file_in_editor)
         self.sig_edit_new.connect(editor.new)
         editor.sig_run_file_in_ipyclient.connect(
             self.run_script)
@@ -324,8 +317,6 @@ class IPythonConsole(SpyderDockablePlugin):
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         self.sig_edit_goto_requested.disconnect(editor.load)
-        self.sig_edit_goto_requested[str, int, str, bool].disconnect(
-            self._load_file_in_editor)
         self.sig_edit_new.disconnect(editor.new)
         editor.sig_run_file_in_ipyclient.disconnect(
             self.run_script)
@@ -361,10 +352,6 @@ class IPythonConsole(SpyderDockablePlugin):
 
     # ---- Private methods
     # -------------------------------------------------------------------------
-    def _load_file_in_editor(self, fname, lineno, word, processevents):
-        editor = self.get_plugin(Plugins.Editor)
-        editor.load(fname, lineno, word, processevents=processevents)
-
     def _on_project_loaded(self):
         projects = self.get_plugin(Plugins.Projects)
         self.get_widget().update_active_project_path(
@@ -682,24 +669,6 @@ class IPythonConsole(SpyderDockablePlugin):
         """Execute selected lines in the current console."""
         self.sig_unmaximize_plugin_requested.emit()
         self.get_widget().execute_code(lines, set_focus=not focus_to_editor)
-
-    def get_pdb_state(self):
-        """Get debugging state of the current console."""
-        return self.get_widget().get_pdb_state()
-
-    def get_pdb_last_step(self):
-        """Get last pdb step of the current console."""
-        return self.get_widget().get_pdb_last_step()
-
-    def print_debug_file_msg(self):
-        """
-        Print message in the current console when a file can't be closed.
-
-        Returns
-        -------
-        None.
-        """
-        self.get_widget().print_debug_file_msg()
 
     # ---- For working directory and path management
     def set_current_client_working_directory(self, directory):

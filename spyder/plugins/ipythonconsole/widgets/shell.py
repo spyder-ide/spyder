@@ -123,7 +123,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         The index in the stack
     """
 
-    sig_pdb_state_changed = Signal(bool, dict)
+    sig_pdb_state_changed = Signal(bool)
     """
     Called every time a pdb interaction happens
 
@@ -131,8 +131,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     ----------
     pdb_state: bool
         wether the debugger is waiting for input
-    pdb_step: dict
-        filename and line number of the last step
     """
 
     sig_pdb_prompt_ready = Signal()
