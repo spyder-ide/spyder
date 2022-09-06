@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   fill="none"
+   version="1.1"
+   id="svg50"
+   sodipodi:docname="debug_selection.svg"
+   inkscape:version="1.2 (dc2aeda, 2022-05-15)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata
+     id="metadata56">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs54" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1680"
+     inkscape:window-height="997"
+     id="namedview52"
+     showgrid="false"
+     inkscape:zoom="11.813498"
+     inkscape:cx="12.147122"
+     inkscape:cy="12.147122"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg50"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1" />
+  <path
+     fill-rule="evenodd"
+     clip-rule="evenodd"
+     d="M9.29289 17.7071C9.10536 17.5196 9 17.2652 9 17V5C9 4.73478 9.10536 4.48043 9.29289 4.29289C9.48043 4.10536 9.73478 4 10 4H12V2H9.5C8.95 2 8 2.45 8 3C8 2.45 7.05 2 6.5 2H4V4H6C6.26522 4 6.51957 4.10536 6.70711 4.29289C6.89464 4.48043 7 4.73478 7 5V17C7 17.2652 6.89464 17.5196 6.70711 17.7071C6.51957 17.8946 6.26522 18 6 18H4V20H6.5C7.05 20 8 19.55 8 19C8 19.55 8.95 20 9.5 20H11V18H10C9.73478 18 9.48043 17.8946 9.29289 17.7071Z"
+     fill="#FAFAFA"
+     id="path46" />
+  <path
+     d="m 15.326574,13.683734 h 1.4285 v 7 h -1.4285 z m 2.3809,0 5.2381,3.5 -5.2381,3.5 z m -4.7619,0 h 1.4286 v 7 h -1.4286 z"
+     fill="#37aefe"
+     id="path12" />
+</svg>

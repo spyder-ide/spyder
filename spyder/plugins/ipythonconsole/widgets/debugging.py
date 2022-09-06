@@ -363,8 +363,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
             # Emit executing
             self.executing.emit(line)
-            fname, lineno = self.get_pdb_last_step()
-            self.sig_pdb_state_changed.emit(False, fname, lineno)
+            self.sig_pdb_state_changed.emit(False)
 
         if self._pdb_input_ready:
             # Print the string to the console
@@ -611,8 +610,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # The previous code finished executing
             self.executed.emit(self._pdb_prompt)
             self.sig_pdb_prompt_ready.emit()
-            fname, lineno = self.get_pdb_last_step()
-            self.sig_pdb_state_changed.emit(True, fname, lineno)
+            self.sig_pdb_state_changed.emit(True)
 
         self._pdb_input_ready = True
 

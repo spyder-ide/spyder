@@ -47,6 +47,7 @@ class DebuggerWidgetActions:
 class DebuggerToolbarActions:
     DebugCurrentFile = 'debug file'
     DebugCurrentCell = 'debug cell'
+    DebugCurrentSelection = 'debug selection'
 
 
 class DebuggerBreakpointActions:
@@ -110,13 +111,15 @@ class DebuggerWidget(ShellConnectMainWidget):
     namespace: dict
         A namespace view created by spyder_kernels
     shellwidget: object
-        The shellwidget the resuest originated from
+        The shellwidget the request originated from
     """
 
     sig_debug_file = Signal()
     """This signal is emitted to request the current file to be debugged."""
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
+    sig_debug_selection = Signal()
+    """This signal is emitted to request the current line to be debugged."""
 
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
@@ -130,23 +133,19 @@ class DebuggerWidget(ShellConnectMainWidget):
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
 
-    sig_pdb_state_changed = Signal(bool, str, int)
+    sig_pdb_state_changed = Signal(bool)
     """
-    Called every time a pdb interaction happens
+    This signal is emitted every time a Pdb interaction happens.
 
     Parameters
     ----------
     pdb_state: bool
-        wether the debugger is waiting for input
-    filename: str
-        The filename the debugger stepped in
-    line_number: int
-        The line number the debugger stepped in
+        Whether the debugger is waiting for input
     """
 
     sig_load_pdb_file = Signal(str, int)
     """
-    Called when pdb reaches a new line
+    This signal is emitted when Pdb reaches a new line.
 
     Parameters
     ----------
@@ -287,6 +286,15 @@ class DebuggerWidget(ShellConnectMainWidget):
             tip=_("Debug cell"),
             icon=self.create_icon('debug_cell'),
             triggered=self.sig_debug_cell,
+            register_shortcut=True,
+        )
+
+        self.create_action(
+            DebuggerToolbarActions.DebugCurrentSelection,
+            text=_("Debug selection or current line"),
+            tip=_("Debug selection or current line"),
+            icon=self.create_icon('debug_selection'),
+            triggered=self.sig_debug_selection,
             register_shortcut=True,
         )
 
@@ -451,7 +459,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.sig_breakpoints_saved.connect(widget.set_breakpoints)
 
         shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
-
         shellwidget.sig_pdb_step.connect(widget.pdb_has_stopped)
 
         widget.sig_load_pdb_file.connect(self.sig_load_pdb_file)
@@ -462,8 +469,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         """Set the current FramesBrowser."""
         sw = widget.shellwidget
         state = sw.is_waiting_pdb_input()
-        fname, lineno = sw.get_pdb_last_step()
-        self.sig_pdb_state_changed.emit(state, fname, lineno)
+        self.sig_pdb_state_changed.emit(state)
 
     def close_widget(self, widget):
         """Close widget."""
