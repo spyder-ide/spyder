@@ -17,17 +17,22 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerWidget, DebuggerToolbarActions, DebuggerBreakpointActions)
+    DebuggerBreakpointActions, DebuggerToolbarActions, DebuggerWidget,
+    DebuggerWidgetActions)
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
-from spyder.plugins.mainmenu.api import ApplicationMenus
-from spyder.utils.qthelpers import MENU_SEPARATOR
+from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
+from spyder.plugins.toolbar.api import ApplicationToolbars
+
+
+# Localization
+_ = get_translation("spyder")
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin):
@@ -35,7 +40,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     NAME = 'debugger'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.VariableExplorer, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.Toolbar,
+                Plugins.VariableExplorer]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME
@@ -100,22 +106,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
         for name in editor_shortcuts:
-            action = widget.get_action(name)
+            action = self.get_action(name)
             CONF.config_shortcut(
                 action.trigger,
                 context=self.CONF_SECTION,
                 name=name,
-                parent=editor)
+                parent=editor
+            )
             editor.pythonfile_dependent_actions += [action]
-
-        # Add buttons to toolbar
-        for name in [
-                DebuggerToolbarActions.DebugCurrentFile,
-                DebuggerToolbarActions.DebugCurrentCell,
-                DebuggerToolbarActions.DebugCurrentSelection,
-            ]:
-            action = widget.get_action(name)
-            self.main.debug_toolbar_actions += [action]
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -137,18 +135,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
         for name in editor_shortcuts:
-            action = widget.get_action(name)
+            action = self.get_action(name)
             editor.pythonfile_dependent_actions.remove(action)
-
-        # Remove buttons from toolbar
-        names = [
-            DebuggerToolbarActions.DebugCurrentFile,
-            DebuggerToolbarActions.DebugCurrentCell,
-            DebuggerToolbarActions.DebugCurrentSelection,
-        ]
-        for name in names:
-            action = widget.get_action(name)
-            self.main.debug_toolbar_actions.remove(action)
 
     @on_plugin_available(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_available(self):
@@ -162,29 +150,39 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        widget = self.get_widget()
-        names = [
-            DebuggerToolbarActions.DebugCurrentFile,
-            DebuggerToolbarActions.DebugCurrentCell,
-            DebuggerToolbarActions.DebugCurrentSelection,
-            MENU_SEPARATOR,
-            DebuggerBreakpointActions.ToggleBreakpoint,
-            DebuggerBreakpointActions.ToggleConditionalBreakpoint,
-            DebuggerBreakpointActions.ClearAllBreakpoints,
-            MENU_SEPARATOR,
-        ]
+        mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        debug_menu_actions = []
+        # StartDebug section
+        for action in [DebuggerToolbarActions.DebugCurrentFile,
+                       DebuggerToolbarActions.DebugCurrentCell,
+                       DebuggerToolbarActions.DebugCurrentSelection]:
+            mainmenu.add_item_to_application_menu(
+                self.get_action(action),
+                menu_id=ApplicationMenus.Debug,
+                section=DebugMenuSections.StartDebug,
+                before_section=DebugMenuSections.ControlDebug)
 
-        for name in names:
-            if name is MENU_SEPARATOR:
-                action = name
-            else:
-                action = widget.get_action(name)
-            debug_menu_actions.append(action)
+        # ControlDebug section
+        for action in [DebuggerWidgetActions.Next,
+                       DebuggerWidgetActions.Step,
+                       DebuggerWidgetActions.Return,
+                       DebuggerWidgetActions.Continue,
+                       DebuggerWidgetActions.Stop]:
+            mainmenu.add_item_to_application_menu(
+                self.get_action(action),
+                menu_id=ApplicationMenus.Debug,
+                section=DebugMenuSections.ControlDebug,
+                before_section=DebugMenuSections.EditBreakpoints)
 
-        self.main.debug_menu_actions = (
-            debug_menu_actions + self.main.debug_menu_actions)
+        # Breakpoints section
+        for action in [DebuggerBreakpointActions.ToggleBreakpoint,
+                       DebuggerBreakpointActions.ToggleConditionalBreakpoint,
+                       DebuggerBreakpointActions.ClearAllBreakpoints]:
+            mainmenu.add_item_to_application_menu(
+                self.get_action(action),
+                menu_id=ApplicationMenus.Debug,
+                section=DebugMenuSections.EditBreakpoints,
+                before_section=DebugMenuSections.ListBreakpoints)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -194,6 +192,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             DebuggerToolbarActions.DebugCurrentFile,
             DebuggerToolbarActions.DebugCurrentCell,
             DebuggerToolbarActions.DebugCurrentSelection,
+            DebuggerWidgetActions.Next,
+            DebuggerWidgetActions.Step,
+            DebuggerWidgetActions.Return,
+            DebuggerWidgetActions.Continue,
+            DebuggerWidgetActions.Stop,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
             DebuggerBreakpointActions.ClearAllBreakpoints
@@ -202,6 +205,30 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             mainmenu.remove_item_from_application_menu(
                 name,
                 menu_id=ApplicationMenus.Debug
+            )
+
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+
+        for action in [DebuggerToolbarActions.DebugCurrentFile,
+                       DebuggerToolbarActions.DebugCurrentCell,
+                       DebuggerToolbarActions.DebugCurrentSelection]:
+            toolbar.add_item_to_application_toolbar(
+                self.get_action(action),
+                toolbar_id=ApplicationToolbars.Debug
+            )
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+
+        for action in [DebuggerToolbarActions.DebugCurrentFile,
+                       DebuggerToolbarActions.DebugCurrentCell,
+                       DebuggerToolbarActions.DebugCurrentSelection]:
+            toolbar.remove_item_from_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.Debug
             )
 
     # ---- Private API

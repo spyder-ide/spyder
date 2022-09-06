@@ -115,6 +115,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     sig_debug_file = Signal()
     """This signal is emitted to request the current file to be debugged."""
+
     sig_debug_cell = Signal()
     """This signal is emitted to request the current cell to be debugged."""
     sig_debug_selection = Signal()
@@ -224,7 +225,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         next_action = self.create_action(
             DebuggerWidgetActions.Next,
-            text=_("Run current line"),
+            text=_("Execute current line"),
             icon=self.create_icon('arrow-step-over'),
             triggered=lambda: self.debug_command("next"),
             register_shortcut=True
@@ -240,7 +241,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         step_action = self.create_action(
             DebuggerWidgetActions.Step,
-            text=_("Step into function or method of current line"),
+            text=_("Step into function or method"),
             icon=self.create_icon('arrow-step-in'),
             triggered=lambda: self.debug_command("step"),
             register_shortcut=True
@@ -248,7 +249,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         return_action = self.create_action(
             DebuggerWidgetActions.Return,
-            text=_("Run until current function or method returns"),
+            text=_("Execute until function or method returns"),
             icon=self.create_icon('arrow-step-out'),
             triggered=lambda: self.debug_command("return"),
             register_shortcut=True

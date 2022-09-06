@@ -102,36 +102,36 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
     """
-    Called when pdb reaches a new line
+    This signal is emitted when Pdb reaches a new line.
 
     Parameters
     ----------
     filename: str
-        The filename the debugger stepped in
+        The filename the debugger stepped in.
     line_number: int
-        The line number the debugger stepped in
+        The line number the debugger stepped in.
     """
 
     sig_pdb_stack = Signal(object, int)
     """
-    Called when the pdb stack changed
+    This signal is emitted when the Pdb stack changed.
 
     Parameters
     ----------
     pdb_stack: traceback.StackSummary
-        The current pdb stack
+        The current pdb stack.
     pdb_index: int
-        The index in the stack
+        The index in the stack.
     """
 
     sig_pdb_state_changed = Signal(bool)
     """
-    Called every time a pdb interaction happens
+    This signal is emitted every time a Pdb interaction happens.
 
     Parameters
     ----------
     pdb_state: bool
-        wether the debugger is waiting for input
+        Whether the debugger is waiting for input.
     """
 
     sig_pdb_prompt_ready = Signal()
@@ -142,6 +142,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     new_client = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
+
     # Kernel died and restarted (not user requested)
     sig_kernel_died_restarted = Signal()
     sig_prompt_ready = Signal()

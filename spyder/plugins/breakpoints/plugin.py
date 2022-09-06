@@ -22,7 +22,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.breakpoints.widgets.main_widget import BreakpointWidget
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
 
 # Localization
 _ = get_translation('spyder')
@@ -168,13 +168,16 @@ class Breakpoints(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         list_action = self.get_action(BreakpointsActions.ListBreakpoints)
         mainmenu.add_item_to_application_menu(
-            list_action, menu_id=ApplicationMenus.Debug)
+            list_action,
+            menu_id=ApplicationMenus.Debug,
+            section=DebugMenuSections.ListBreakpoints)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_item_from_application_menu(
-            BreakpointsActions.ListBreakpoints, menu_id=ApplicationMenus.Debug)
+            BreakpointsActions.ListBreakpoints,
+            menu_id=ApplicationMenus.Debug)
 
     # --- Private API
     # ------------------------------------------------------------------------

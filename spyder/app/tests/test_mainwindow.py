@@ -57,7 +57,8 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
-from spyder.plugins.debugger.widgets.main_widget import DebuggerWidgetActions
+from spyder.plugins.debugger.api import (
+    DebuggerWidgetActions, DebuggerToolbarActions)
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -295,7 +296,6 @@ def main_window(request, tmpdir, qtbot):
         # Start the window
         window = start.main()
         main_window.window = window
-
     else:
         window = main_window.window
 
@@ -303,6 +303,15 @@ def main_window(request, tmpdir, qtbot):
             # Create a new console to ensure new config is loaded
             # even if the same mainwindow instance is reused
             window.ipyconsole.create_new_client(give_focus=True)
+
+    # Add a handle to the "Debug file" button to access it quickly because
+    # it's used a lot.
+    toolbar = window.get_plugin(Plugins.Toolbar)
+    debug_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Debug)
+    debug_action = window.debugger.get_action(
+        DebuggerToolbarActions.DebugCurrentFile)
+    debug_button = debug_toolbar.widgetForAction(debug_action)
+    window.debug_button = debug_button
 
     QApplication.processEvents()
 
@@ -1015,8 +1024,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 
     # Main variables
     control = shell._control
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -1589,8 +1597,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     main_window.editor.load(test_file)
 
     # Click the debug button
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
@@ -1995,8 +2002,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     # debug button
     plugin_2 = get_random_plugin()
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
     qtbot.waitUntil(lambda: 'IPdb' in shell._control.toPlainText())
@@ -2164,8 +2170,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     main_window.editor.load(test_file)
 
     # Click the debug button
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
@@ -2240,8 +2245,7 @@ def test_stop_dbg(main_window, qtbot):
     main_window.editor.load(test_file)
 
     # Click the debug button
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
@@ -2283,8 +2287,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     control.setFocus()
 
     # Click the debug button
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
     qtbot.mouseClick(debug_button, Qt.LeftButton)
     qtbot.waitUntil(lambda: 'IPdb' in control.toPlainText())
 
@@ -2325,8 +2328,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
     control.setFocus()
 
     # Click the debug button
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
@@ -3017,8 +3019,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
 
     # Main variables
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Load test file
     main_window.editor.load(test_file)
@@ -3427,8 +3428,7 @@ def test_debug_unsaved_file(main_window, qtbot):
 
     # Main variables
     control = shell._control
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -3725,8 +3725,7 @@ def test_runcell_pdb(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Main variables
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -4099,8 +4098,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
 
     # Main variables
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -4452,8 +4450,7 @@ hello()
                     timeout=SHELL_TIMEOUT)
 
     # Main variables
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -4752,8 +4749,7 @@ def test_prevent_closing(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Main variables
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -4791,8 +4787,7 @@ def test_continue_first_line(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Main variables
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -5199,15 +5194,16 @@ foo(1)
     check_focus(run_selection_button)
 
     # Debug a file
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    debug_button = main_window.debug_button
     check_focus(debug_button)
 
     # Execute another debugging command
-    debug_command_action = main_window.debug_toolbar_actions[1]
-    debug_command_button = main_window.debug_toolbar.widgetForAction(
-        debug_command_action)
-    check_focus(debug_command_button)
+    toolbar = main_window.get_plugin(Plugins.Toolbar)
+    debug_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Debug)
+    debug_cell_action = main_window.debugger.get_action(
+        DebuggerToolbarActions.DebugCurrentCell)
+    debug_cell_button = debug_toolbar.widgetForAction(debug_cell_action)
+    check_focus(debug_cell_button)
 
 
 @pytest.mark.slow
