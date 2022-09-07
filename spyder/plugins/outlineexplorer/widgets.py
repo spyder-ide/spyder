@@ -93,7 +93,10 @@ class SymbolStatus:
             self.parent.remove_node(self)
             self.parent = None
 
-        if self.node.parent is not None:
+        if (
+            self.node.parent is not None
+            and hasattr(self.node.parent, 'remove_children')
+        ):
             self.node.parent.remove_children(self.node)
 
     def add_node(self, node):
@@ -152,6 +155,10 @@ class SymbolStatus:
         self.node = SymbolItem(None, self, self.name, self.kind,
                                self.position[0] + 1, self.status,
                                self.selected)
+
+    def set_path(self, new_path):
+        self.name = new_path
+        self.path = new_path
 
     def __repr__(self):
         return str(self)
@@ -513,12 +520,26 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor is None:
             # This is needed when we can't find an editor to attach
             # the outline explorer to.
-            # Fix spyder-ide/spyder#8813.
+            # Fixes spyder-ide/spyder#8813.
             return
+
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
-            root_item = self.editor_items[editor_id].node
+            items = self.editor_items[editor_id]
+
+            # Set path for items
+            items.set_path(new_filename)
+
+            # Change path of root item (i.e. the file name)
+            root_item = items.node
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
+
+            # Clear and re-populate the tree again.
+            # Fixes spyder-ide/spyder#15517
+            items.delete()
+            editor.request_symbols()
+
+            # Resort root items
             self.__sort_toplevel_items()
 
     def update_editors(self, language):
