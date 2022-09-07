@@ -15,14 +15,12 @@ import uuid
 from intervaltree import IntervalTree
 from pkg_resources import parse_version
 from qtpy import PYSIDE2
-from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 from spyder.utils.qthelpers import set_item_user_text
@@ -220,61 +218,6 @@ class SymbolItem(BaseTreeItem):
         self.setText(0, name)
         self.setExpanded(status)
         self.setSelected(selected)
-
-
-class TreeItem(QTreeWidgetItem):
-    """Class browser item base class."""
-    def __init__(self, oedata, parent, preceding):
-        if preceding is None:
-            QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
-        else:
-            if preceding is not parent:
-                # Preceding must be either the same as item's parent
-                # or have the same parent as item
-                while preceding.parent() is not parent:
-                    preceding = preceding.parent()
-                    if preceding is None:
-                        break
-            if preceding is None:
-                QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
-            else:
-                QTreeWidgetItem.__init__(self, parent, preceding,
-                                         QTreeWidgetItem.Type)
-        self.parent_item = parent
-        self.oedata = oedata
-        oedata.sig_update.connect(self.update)
-        self.update()
-
-    def level(self):
-        """Get fold level."""
-        return self.oedata.fold_level
-
-    def get_name(self):
-        """Get the item name."""
-        return self.oedata.def_name
-
-    def set_icon(self, icon):
-        self.setIcon(0, icon)
-
-    def setup(self):
-        self.setToolTip(0, _("Line %s") % str(self.line))
-
-    @property
-    def line(self):
-        """Get line number."""
-        block_number = self.oedata.get_block_number()
-        if block_number is not None:
-            return block_number + 1
-        return None
-
-    def update(self):
-        """Update the tree element."""
-        name = self.get_name()
-        self.setText(0, name)
-        parent_text = from_qvariant(self.parent_item.data(0, Qt.UserRole),
-                                    to_text_string)
-        set_item_user_text(self, parent_text + '/' + name)
-        self.setup()
 
 
 # ---- Treewidget
