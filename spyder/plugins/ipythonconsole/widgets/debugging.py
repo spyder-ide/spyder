@@ -285,16 +285,24 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     def _handle_input_request(self, msg):
         """Process an input request."""
         if (not self.spyder_kernel_comm.is_open() and
-                msg['content']['prompt'] == "ipdb> "):
+                "ipdb>" in msg['content']['prompt']):
             # Check if we can guess a path from the shell content:
             self._flush_pending_stream()
             cursor = self._get_end_cursor()
             cursor.setPosition(self._prompt_pos, QTextCursor.KeepAnchor)
             text = cursor.selection().toPlainText()
             match = re.search(r"> (.*\.py)\((\d+)\)", text)
+            state = None
             if match:
                 fname, lineno = match.groups()
-                self.sig_pdb_step.emit(fname, int(lineno))
+                state = {'step': {
+                    'fname': fname,
+                    'lineno': int(lineno)
+                    }}
+            prompt = msg['content']['prompt']
+            password = msg['content']['password']
+            self.pdb_input(prompt, password, state)
+            return
         return super(DebuggingWidget, self)._handle_input_request(msg)
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
@@ -316,14 +324,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         add_history: bool
             If not hidden, wether the line should be added to history
         """
-        # Send line to input if no comm
-        if not self.spyder_kernel_comm.is_open():
-            if not hidden:
-                self._append_plain_text(line + '\n')
-            self._finalize_input_request()
-            self.kernel_client.input(line)
-            return
-
         if not self.is_debugging():
             return
 
@@ -370,6 +370,12 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if self._pdb_input_ready:
             # Print the string to the console
             self._pdb_input_ready = False
+
+            if not self.spyder_kernel_comm.is_open():
+                # Send line to input if no comm
+                self.kernel_client.input(line)
+                return
+
             return self.call_kernel(interrupt=True).pdb_input_reply(
                 line, echo_stack_entry=echo_stack_entry)
 
