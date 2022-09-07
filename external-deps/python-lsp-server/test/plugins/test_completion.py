@@ -356,6 +356,26 @@ def test_completion_with_class_objects(config, workspace):
     assert completions[1]['kind'] == lsp.CompletionItemKind.TypeParameter
 
 
+def test_completion_with_function_objects(config, workspace):
+    doc_text = 'def foobar(): pass\nfoob'
+    com_position = {'line': 1, 'character': 4}
+    doc = Document(DOC_URI, workspace, doc_text)
+    config.capabilities['textDocument'] = {
+        'completion': {'completionItem': {'snippetSupport': True}}}
+    config.update({'plugins': {'jedi_completion': {
+        'include_params': True,
+        'include_function_objects': True,
+    }}})
+    completions = pylsp_jedi_completions(config, doc, com_position)
+    assert len(completions) == 2
+
+    assert completions[0]['label'] == 'foobar()'
+    assert completions[0]['kind'] == lsp.CompletionItemKind.Function
+
+    assert completions[1]['label'] == 'foobar() object'
+    assert completions[1]['kind'] == lsp.CompletionItemKind.TypeParameter
+
+
 def test_snippet_parsing(config, workspace):
     doc = 'divmod'
     completion_position = {'line': 0, 'character': 6}

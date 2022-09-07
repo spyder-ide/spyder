@@ -84,7 +84,8 @@ PYTHON_CONFIG = {
                     'enabled': True,
                     'include_params': False,
                     'include_class_objects': False,
-                    'fuzzy': False
+                    'include_function_objects': False,
+                    'fuzzy': False,
                 },
                 'jedi_definition': {
                     'enabled': True,
