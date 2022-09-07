@@ -213,6 +213,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             r'^({})?('.format(re.escape(self.other_output_prefix)) +
             r'[ \t]*\(*IPdb \[\d+\]\)*: |' +
             r'[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )')
+        # Reset debug state when debugging is done
+        self.sig_prompt_ready.connect(self.reset_debug_state)
 
     # --- Public API --------------------------------------------------
 
@@ -237,6 +239,9 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def set_debug_state(self, recursion_level):
         """Update the debug state."""
+        if recursion_level == self._pdb_recursion_level:
+            # Nothing to change
+            return
         if recursion_level > self._pdb_recursion_level:
             # Start debugging
             if self._pdb_recursion_level > 0:
@@ -254,9 +259,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
                 self._pdb_history_input_number = (
                     self._saved_pdb_history_input_number.pop(
                         recursion_level, 0))
-        else:
-            # This should not happen unless we missed some messages
-            pass
 
         # If debugging starts or stops, clear the input queue.
         self._pdb_recursion_level = recursion_level
@@ -374,6 +376,10 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._pdb_input_queue.append(
             (line, hidden, echo_stack_entry, add_history))
 
+    def reset_debug_state(self):
+        """Reset debug state if the debugger crashed."""
+        self.set_debug_state(0)
+
     # --- To Sort --------------------------------------------------
     def stop_debugging(self):
         """Stop debugging."""
@@ -460,7 +466,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             prompt, password = self._pdb_prompt
             self.kernel_client.iopub_channel.flush()
             self._reading = False
-            self._readline(prompt=prompt, callback=self._pdb_readline_callback,
+            self._readline(prompt=prompt,
+                           callback=self.pdb_execute,
                            password=password)
 
     # --- Private API --------------------------------------------------
@@ -577,12 +584,10 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         return super(DebuggingWidget, self).execute(
             source, hidden, interactive)
 
-    def _pdb_readline_callback(self, line):
-        """Callback used when the user inputs text in pdb."""
-        self.pdb_execute(line)
-
     def pdb_input(self, prompt, password=None, state=None):
         """Get input for a command."""
+
+        self.set_debug_state(1 + prompt.count("("))
 
         if state is not None and isinstance(state, dict):
             self.refresh_from_pdb(state)
@@ -603,7 +608,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # before writing a new prompt.
             self.kernel_client.iopub_channel.flush()
             self._waiting_pdb_input = True
-            self._readline(prompt=prompt, callback=self._pdb_readline_callback,
+            self._readline(prompt=prompt,
+                           callback=self.pdb_execute,
                            password=password)
             self._executing = False
             self._highlighter.highlighting_on = True
