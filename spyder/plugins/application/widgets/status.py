@@ -83,8 +83,9 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def start_installation(self, latest_release):
         self.installer.start_installation_update(latest_release)
 
-    def set_status_pending(self):
+    def set_status_pending(self, latest_release):
         self.set_value(PENDING)
+        self.installer.save_latest_release(latest_release)
         self.spinner.hide()
         self.spinner.stop()
 

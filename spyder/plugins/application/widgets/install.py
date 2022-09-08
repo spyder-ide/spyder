@@ -188,7 +188,7 @@ class UpdateInstallerDialog(QDialog):
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         reply.exec_()
         if reply.result() == QMessageBox.Yes:
-            self.start_installation_update()
+            self.start_installation_update(self.latest_release_version)
         else:
             self._change_update_installation_status(status=PENDING)
 
@@ -274,6 +274,9 @@ class UpdateInstallerDialog(QDialog):
             self._change_update_installation_status(status=CANCELLED)
         finally:
             self._change_update_installation_status(status=PENDING)
+
+    def save_latest_release(self, latest_release_version):
+        self.latest_release_version = latest_release_version
 
     def start_installation_update(self, latest_release_version):
         """Start the installation update thread and set downloading status."""

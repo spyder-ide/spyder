@@ -327,7 +327,8 @@ class ApplicationContainer(PluginMainContainer):
                     self.application_update_status.start_installation(
                         latest_release=latest_release)
                 elif(box.result() == QMessageBox.No):
-                    self.application_update_status.set_status_pending()
+                    self.application_update_status.set_status_pending(
+                        latest_release=latest_release)
                 check_updates = box.is_checked()
             elif feedback:
                 msg = _("Spyder is up to date.")
