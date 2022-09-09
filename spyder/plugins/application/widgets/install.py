@@ -123,7 +123,9 @@ class UpdateInstallerDialog(QDialog):
 
     # Signal to get the current status of the update installation
     # str: Status string
-    sig_installation_status = Signal(str)
+    sig_installation_status = Signal(str, str)
+
+
 
     def __init__(self, parent):
 
@@ -145,8 +147,6 @@ class UpdateInstallerDialog(QDialog):
             self._installation_widget.update_installation_progress)
         self.sig_installation_status.connect(
             self._installation_widget.update_installation_status)
-        self.sig_installation_status_finish.connect(
-            self.finished_installation)
 
         self._installation_widget.ok_button.clicked.connect(
             self.close_installer)
@@ -220,7 +220,7 @@ class UpdateInstallerDialog(QDialog):
         """Set the installation status."""
         logger.debug(f"Installation status: {status}")
         self.status = status
-        self.sig_installation_status.emit(self.status)
+        self.finished_installation(self.status)
         self.sig_installation_status.emit(self.status,
                                           self.latest_release_version)
 
