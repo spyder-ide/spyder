@@ -125,8 +125,6 @@ class UpdateInstallerDialog(QDialog):
     # str: Status string
     sig_installation_status = Signal(str, str)
 
-
-
     def __init__(self, parent):
 
         self.cancelled = False
