@@ -56,6 +56,7 @@ def create_outlineexplorer(qtbot):
 
         code_editor = CodeEditor(None)
         code_editor.set_language('py', filename)
+        code_editor.show()
         code_editor.set_text(text)
 
         editor = OutlineExplorerProxyEditor(code_editor, filename)
@@ -79,6 +80,7 @@ def create_outlineexplorer(qtbot):
 
         editor.update_outline_info(symbol_info)
         qtbot.addWidget(outlineexplorer)
+        qtbot.addWidget(code_editor)
         return outlineexplorer, expected_tree
     return _create_outlineexplorer
 
@@ -105,7 +107,7 @@ def test_outline_explorer(case, create_outlineexplorer):
 
     while len(stack) > 0:
         parent_tree, node = stack.pop(0)
-        this_tree = {node.name: []}
+        this_tree = {node.name: [], 'kind': node.kind}
         parent_tree.append(this_tree)
         this_stack = [(this_tree[node.name], child) for child in node.children]
         stack = this_stack + stack
@@ -122,10 +124,11 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     Regression test for spyder-ide/spyder#7729.
     """
     outlineexplorer, _ = create_outlineexplorer('text')
-    # Move the mouse cursor in the editor to line 31 :
+
+    # Move the mouse cursor in the editor to line 15
     editor = outlineexplorer.treewidget.current_editor
     editor._editor.go_to_line(15)
-    assert editor._editor.get_text_line(15) == "        return 2"
+    assert editor._editor.get_text_line(14) == "    def inner():"
 
     # Click on the 'Go to cursor position' button of the outline explorer's
     # toolbar :
@@ -142,10 +145,13 @@ def test_follow_cursor(create_outlineexplorer, qtbot):
     Test that the cursor is followed.
     """
     outlineexplorer, _ = create_outlineexplorer('text', follow_cursor=True)
-    # Move the mouse cursor in the editor to line 45 :
+
+    # Move the mouse cursor in the editor to line 52
     editor = outlineexplorer.treewidget.current_editor
-    editor._editor.go_to_line(45)
-    assert editor._editor.get_text_line(45) == "        self.x = 2"
+    editor._editor.go_to_line(52)
+    assert editor._editor.get_text_line(51) == \
+           "        super(Class1, self).__init__()"
+
     # __init__ is collapsed
     assert outlineexplorer.treewidget.currentItem().text(0) == '__init__'
 
@@ -158,8 +164,10 @@ def test_follow_cursor(create_outlineexplorer, qtbot):
     editor._editor.go_to_line(1)
     text = outlineexplorer.treewidget.currentItem().text(0)
     assert text == CASES['text']['file']
+
     editor._editor.go_to_line(37)
-    assert outlineexplorer.treewidget.currentItem().text(0) == 'b'
+    assert editor._editor.get_text_line(36) == "# %%%% cell level 3"
+    assert outlineexplorer.treewidget.currentItem().text(0) == 'cell level 3'
 
 
 @flaky(max_runs=10)
