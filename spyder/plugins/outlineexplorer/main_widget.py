@@ -165,11 +165,18 @@ class OutlineExplorerWidget(PluginMainWidget):
         pass
 
     def change_visibility(self, enable, force_focus=None):
-        """
-        Reimplemented to tell treewidget what the visibility state is.
-        """
+        """Reimplemented to tell treewidget what the visibility state is."""
         super().change_visibility(enable, force_focus)
-        self._change_treewidget_visibility(self.is_visible)
+
+        if self.windowwidget is not None:
+            # When the plugin is undocked Qt changes its visibility to False,
+            # probably because it's not part of the main window anymore. So, we
+            # need to set the treewidget visibility to True for it to be
+            # updated after writing new content in the editor.
+            # Fixes spyder-ide/spyder#16634
+            self._change_treewidget_visibility(True)
+        else:
+            self._change_treewidget_visibility(self.is_visible)
 
     # ---- Public API
     # -------------------------------------------------------------------------
