@@ -1919,9 +1919,11 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
 
         try:
-            if (self.format_on_save and
-                    finfo.editor.formatting_enabled and
-                    finfo.editor.is_python()):
+            if (
+                self.format_on_save
+                and finfo.editor.formatting_enabled
+                and finfo.editor.is_python()
+            ):
                 # Wait for document autoformat in case it is a Python file
                 # and then save.
                 # Just trigger the autoformat for Python files.
