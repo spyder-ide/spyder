@@ -98,10 +98,11 @@ class UpdateInstallation(QWidget):
 
         self.setLayout(general_layout)
 
-    def update_installation_status(self, status):
+    def update_installation_status(self, status, latestVersion):
         """Update installation status (downloading, installing, finished)."""
         self._progress_label.setText(status)
-        self.install_info.setText(INSTALL_INFO_MESSAGES[status])
+        self.install_info.setText(INSTALL_INFO_MESSAGES[status].format(
+            version=latestVersion))
         if status == INSTALLING:
             self._progress_bar.setRange(0, 0)
             self.cancel_button.setEnabled(False)
@@ -144,7 +145,7 @@ class UpdateInstallerDialog(QDialog):
             self._installation_widget.update_installation_progress)
         self.sig_installation_status.connect(
             self._installation_widget.update_installation_status)
-        self.sig_installation_status.connect(
+        self.sig_installation_status_finish.connect(
             self.finished_installation)
 
         self._installation_widget.ok_button.clicked.connect(
@@ -220,6 +221,8 @@ class UpdateInstallerDialog(QDialog):
         logger.debug(f"Installation status: {status}")
         self.status = status
         self.sig_installation_status.emit(self.status)
+        self.sig_installation_status.emit(self.status,
+                                          self.latest_release_version)
 
     def _progress_reporter(self, block_number, read_size, total_size):
         progress = 0
