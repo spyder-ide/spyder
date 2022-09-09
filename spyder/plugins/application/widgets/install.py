@@ -41,11 +41,11 @@ CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled update")
 
 INSTALL_INFO_MESSAGES = {
-    DOWNLOADING_INSTALLER: _("Downloading latest Spyder update"),
-    INSTALLING: _("Installing Spyder update"),
-    FINISHED: _("Spyder update installation finished"),
-    PENDING: _("Spyder update available to download"),
-    CHECKING: _("Checking for Spyder updates"),
+    DOWNLOADING_INSTALLER: _("Downloading Spyder {version}"),
+    INSTALLING: _("Installing Spyder {version}"),
+    FINISHED: _("Finished installing Spyder {version}"),
+    PENDING: _("Spyder {version} available to download"),
+    CHECKING: _("Checking for new Spyder version"),
     CANCELLED: _("Spyder update cancelled")
 }
 

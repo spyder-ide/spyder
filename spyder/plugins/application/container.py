@@ -290,13 +290,14 @@ class ApplicationContainer(PluginMainContainer):
         else:
 
             if update_available:
-                self.application_update_status.set_status_pending()
+                self.application_update_status.set_status_pending(
+                    latest_release=latest_release)
 
                 header = _("<b>Spyder {} is available!</b> "
                            "<i>(you have {})</i><br><br>").format(
                     latest_release, __version__)
                 footer = _(
-                    "For more information visit our "
+                    "For more information, visit our "
                     "<a href=\"{}\">installation guide</a>."
                 ).format(url_i)
                 if is_anaconda():
