@@ -850,3 +850,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for editor in self.editor_ids.keys():
             if editor.get_language().lower() == language:
                 editor.info = None
+
+    def change_visibility(self, is_visible):
+        """Actions to take when the widget visibility has changed."""
+        self.is_visible = is_visible
+        if is_visible:
+            self.update_all_editors()
