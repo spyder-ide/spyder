@@ -6,7 +6,7 @@
 
 """Outline explorer main widget."""
 
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout
 
 from spyder.api.widgets.main_widget import PluginMainWidget
@@ -178,6 +178,15 @@ class OutlineExplorerWidget(PluginMainWidget):
         else:
             self._change_treewidget_visibility(self.is_visible)
 
+    def create_window(self):
+        """
+        Reimplemented to tell treewidget what the visibility of the undocked
+        plugin is.
+        """
+        super().create_window()
+        self.windowwidget.sig_window_state_changed.connect(
+            self._handle_undocked_window_state)
+
     # ---- Public API
     # -------------------------------------------------------------------------
     def set_current_editor(self, editor, update, clear):
@@ -214,3 +223,16 @@ class OutlineExplorerWidget(PluginMainWidget):
         self.treewidget.is_visible = is_visible
         if is_visible:
             self.treewidget.update_all_editors()
+
+    @Slot(Qt.WindowStates)
+    def _handle_undocked_window_state(self, window_state):
+        """
+        Change treewidget visibility when the plugin is undocked and its
+        window state changes.
+        """
+        if window_state == Qt.WindowMinimized:
+            # There's no need to update the treewidget when the plugin is
+            # minimized.
+            self._change_treewidget_visibility(False)
+        else:
+            self._change_treewidget_visibility(True)
