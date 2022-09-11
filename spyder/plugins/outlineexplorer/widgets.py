@@ -165,6 +165,13 @@ class SymbolStatus:
         return '({0}, {1}, {2}, {3})'.format(
             self.position, self.name, self.id, self.status)
 
+    def __eq__(self, other):
+        return (
+            self.name == other.name
+            and self.kind == other.kind
+            and self.position == other.position
+        )
+
 
 # ---- Items
 # -----------------------------------------------------------------------------
@@ -560,6 +567,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Update tree with new items that come from the LSP."""
         current_tree = self.editor_tree_cache[editor_id]
         tree_info = []
+
+        # Create tree with items that come from the LSP
         for symbol in items:
             symbol_name = symbol['name']
             symbol_kind = symbol['kind']
@@ -572,6 +581,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 if (symbol_kind == SymbolKind.FIELD and
                         not self.display_variables):
                     continue
+
             # NOTE: This could be also a DocumentSymbol
             symbol_range = symbol['location']['range']
             symbol_start = symbol_range['start']['line']
@@ -581,64 +591,33 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_info.append((symbol_start, symbol_end + 1, symbol_repr))
 
         tree = IntervalTree.from_tuples(tree_info)
-        changes = tree - current_tree
-        deleted = current_tree - tree
 
-        if len(changes) == 0 and len(deleted) == 0:
+        # Compare with current tree to check if it's necessary to update it.
+        changes = tree - current_tree
+        if len(changes) == 0:
             self.sig_hide_spinner.emit()
             return False
 
-        adding_symbols = len(changes) > len(deleted)
-        deleted_iter = iter(sorted(deleted))
-        changes_iter = iter(sorted(changes))
+        # Create nodes with new tree
+        for entry in sorted(tree):
+            entry.data.create_node()
 
-        deleted_entry = next(deleted_iter, None)
-        changed_entry = next(changes_iter, None)
-        non_merged = 0
-
-        while deleted_entry is not None and changed_entry is not None:
-            deleted_entry_i = deleted_entry.data
-            changed_entry_i = changed_entry.data
-
-            if deleted_entry_i.name == changed_entry_i.name:
-                # Copy symbol status
-                changed_entry_i.clone_node(deleted_entry_i)
-                deleted_entry = next(deleted_iter, None)
-                changed_entry = next(changes_iter, None)
-            else:
-                if adding_symbols:
-                    # New symbol added
-                    changed_entry_i.create_node()
-                    non_merged += 1
-                    changed_entry = next(changes_iter, None)
-                else:
-                    # Symbol removed
-                    deleted_entry_i.delete()
-                    non_merged += 1
-                    deleted_entry = next(deleted_iter, None)
-
-        if deleted_entry is not None:
-            while deleted_entry is not None:
-                # Symbol removed
-                deleted_entry_i = deleted_entry.data
-                deleted_entry_i.delete()
-                non_merged += 1
-                deleted_entry = next(deleted_iter, None)
-
+        # Get root before deleting items
         root = self.editor_items[editor_id]
-        # tree_merge
-        if changed_entry is not None:
-            while changed_entry is not None:
-                # New symbol added
-                changed_entry_i = changed_entry.data
-                changed_entry_i.create_node()
-                non_merged += 1
-                changed_entry = next(changes_iter, None)
 
+        # Remove previous tree to create the new one.
+        # NOTE: This is twice as fast as detecting the symbols that changed
+        # and updating only those in current_tree.
+        self.editor_items[editor_id].delete()
+
+        # Recreate tree structure
         tree_copy = IntervalTree(tree)
         tree_copy.merge_overlaps(
-            data_reducer=self.merge_interval, data_initializer=root)
+            data_reducer=self.merge_interval,
+            data_initializer=root
+        )
 
+        # Save new tree and finish
         self.editor_tree_cache[editor_id] = tree
         self.sig_tree_updated.emit()
         self.sig_hide_spinner.emit()
