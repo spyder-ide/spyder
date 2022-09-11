@@ -8,13 +8,14 @@
 
 # Standard library imports
 import bisect
+import logging
 import os.path as osp
 import uuid
 
 # Third party imports
 from intervaltree import IntervalTree
 from pkg_resources import parse_version
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE_VERSION
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
 
@@ -26,8 +27,9 @@ from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.onecolumntree import OneColumnTree
 
-if PYSIDE2:
-    from qtpy import PYSIDE_VERSION
+
+# For logging
+logger = logging.getLogger(__name__)
 
 
 # ---- Constants
@@ -525,17 +527,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if items is None:
             return
 
+        if editor is None:
+            editor = self.current_editor
+
         # Only perform an update if the widget is visible.
         if not self.is_visible:
+            logger.debug(
+                f"Don't update tree of file {editor.fname} because plugin is "
+                f"not visible"
+            )
             self.sig_hide_spinner.emit()
             return
 
-        if editor is None:
-            editor = self.current_editor
-        editor_id = editor.get_id()
-        language = editor.get_language()
-
-        update = self.update_tree(items, editor_id, language)
+        update = self.update_tree(items, editor)
 
         if update:
             self.save_expanded_state()
@@ -563,8 +567,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         node.refresh()
         return node
 
-    def update_tree(self, items, editor_id, language):
+    def update_tree(self, items, editor):
         """Update tree with new items that come from the LSP."""
+        editor_id = editor.get_id()
+        language = editor.get_language()
         current_tree = self.editor_tree_cache[editor_id]
         tree_info = []
 
@@ -595,8 +601,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # Compare with current tree to check if it's necessary to update it.
         changes = tree - current_tree
         if len(changes) == 0:
+            logger.debug(
+                f"Current and new trees for file {editor.fname} are the same, "
+                f"so no update is necessary"
+            )
             self.sig_hide_spinner.emit()
             return False
+
+        logger.debug(f"Updating tree for file {editor.fname}")
 
         # Create nodes with new tree
         for entry in sorted(tree):
@@ -801,6 +813,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def start_symbol_services(self, language):
         """Show symbols for all `language` files."""
+        logger.debug(f"Start symbol services for language {language}")
+
         # Save all languages that can send info to this pane.
         self._languages.append(language)
 
@@ -821,6 +835,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
+        logger.debug(f"Stop symbol services for language {language}")
         try:
             self._languages.remove(language)
         except ValueError:
