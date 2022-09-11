@@ -264,7 +264,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.ordered_editor_ids = []
         self._current_editor = None
         self._languages = []
-        self.is_visible = True
+        self.is_visible = False
 
         self.currentItemChanged.connect(self.selection_switched)
         self.itemExpanded.connect(self.tree_item_expanded)
