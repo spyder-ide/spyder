@@ -427,18 +427,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.scrollToItem(item)
             self.root_item_selected(item)
             self.__hide_or_show_root_items(item)
-        if update:
-            self.save_expanded_state()
-            self.restore_expanded_state()
 
+        logger.debug(f"Set current editor to file {editor.fname}")
         self.current_editor = editor
 
         # Update tree with currently stored info or require symbols if
         # necessary.
-        if (editor.get_language().lower() in self._languages and
-                len(self.editor_tree_cache[editor_id]) == 0):
+        if (
+            editor.get_language().lower() in self._languages
+            and len(self.editor_tree_cache[editor_id]) == 0
+        ):
             if editor.info is not None:
-                self.update_editor(editor.info)
+                if update:
+                    self.update_editor(editor.info)
             elif editor.is_cloned:
                 editor.request_symbols()
 
