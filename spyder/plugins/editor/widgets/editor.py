@@ -1916,8 +1916,15 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
 
         try:
-            if self.format_on_save and finfo.editor.formatting_enabled:
-                # Wait for document autoformat and then save
+            if (
+                self.format_on_save
+                and finfo.editor.formatting_enabled
+                and finfo.editor.is_python()
+            ):
+                # Wait for document autoformat in case it is a Python file
+                # and then save.
+                # Just trigger the autoformat for Python files.
+                # See spyder-ide/spyder#19344
 
                 # Waiting for the autoformat to complete is needed
                 # when the file is going to be closed after saving.
