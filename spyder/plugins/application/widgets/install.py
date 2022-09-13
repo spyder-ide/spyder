@@ -98,11 +98,11 @@ class UpdateInstallation(QWidget):
 
         self.setLayout(general_layout)
 
-    def update_installation_status(self, status, latestVersion):
+    def update_installation_status(self, status, latest_version):
         """Update installation status (downloading, installing, finished)."""
         self._progress_label.setText(status)
         self.install_info.setText(INSTALL_INFO_MESSAGES[status].format(
-            version=latestVersion))
+            version=latest_version))
         if status == INSTALLING:
             self._progress_bar.setRange(0, 0)
             self.cancel_button.setEnabled(False)
