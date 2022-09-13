@@ -1403,10 +1403,10 @@ def test_kernel_crash(ipyconsole, qtbot):
         ipyconsole.create_new_client()
 
         # Assert that the console is showing an error
-        qtbot.waitUntil(lambda: ipyconsole.get_clients()[-1].is_error_shown,
+        qtbot.waitUntil(lambda: ipyconsole.get_clients()[-1].error_text,
                         timeout=6000)
         error_client = ipyconsole.get_clients()[-1]
-        assert error_client.is_error_shown
+        assert error_client.error_text
 
         # Assert the error contains the text we expect
         webview = error_client.infowidget
