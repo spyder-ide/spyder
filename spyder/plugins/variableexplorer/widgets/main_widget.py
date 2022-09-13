@@ -423,8 +423,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         # To update the Variable Explorer after execution
         shellwidget.executed.connect(nsb.refresh_namespacebrowser)
         shellwidget.sig_config_kernel_requested.connect(nsb.setup_kernel)
-        nsb.setup_kernel()
-
         return nsb
 
     def close_widget(self, nsb):

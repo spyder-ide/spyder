@@ -437,7 +437,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         shellwidget.sig_pdb_stack.connect(widget.set_from_pdb)
         shellwidget.sig_config_kernel_requested.connect(
             widget.on_config_kernel)
-        widget.on_config_kernel()
 
         widget.setup()
         widget.set_context_menu(

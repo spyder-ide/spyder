@@ -1638,8 +1638,12 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
 
     # Tests assume inline backend
     ipyconsole.set_conf('pdb_ignore_lib', not show_lib, section="debugger")
+    qtbot.wait(500)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
+    
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('get_ipython().pdb_ignore_lib')
 
     qtbot.keyClicks(control, '!s')
     with qtbot.waitSignal(shell.executed):
