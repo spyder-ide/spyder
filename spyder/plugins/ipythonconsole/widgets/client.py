@@ -119,7 +119,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
-        self.is_error_shown = False
         self.error_text = None
         self.restart_thread = None
         self.give_focus = give_focus
@@ -187,6 +186,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def _when_prompt_is_ready(self):
         """Configuration after the prompt is shown."""
+        if self.error_text:
+            # an error occured during startup, but after the prompt was sent
+            return
         self.start_successful = True
         # To hide the loading page
         self._hide_loading_page()
@@ -556,9 +558,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.hide()
             self.infowidget.show()
 
-        # Tell the client we're in error mode
-        self.is_error_shown = True
-
         # Stop shellwidget
         self.shellwidget.shutdown()
         self.remove_std_files(is_last_client=False)
@@ -664,7 +663,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.restart_thread.wait()
         shutdown_kernel = (
             is_last_client and not self.shellwidget.is_external_kernel
-            and not self.is_error_shown
+            and not self.error_text
         )
         self.shellwidget.shutdown(shutdown_kernel)
         self.remove_std_files(shutdown_kernel)
