@@ -18,6 +18,7 @@ import logging
 import os
 import os.path as osp
 from string import Template
+from subprocess import PIPE
 import time
 import traceback
 
@@ -671,7 +672,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def _restart_thread_main(self):
         """Restart the kernel in a thread."""
         try:
-            self.kernel_handler.restart_kernel()
+            self.kernel_manager.restart_kernel(
+                stderr=PIPE,
+                stdout=PIPE)
         except RuntimeError as e:
             self.restart_thread.error = e
 
@@ -689,6 +692,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 before_prompt=True
             )
         else:
+            self.kernel_handler.set_std_buffers()
             fault = self.kernel_handler.get_fault_text()
             if fault:
                 self.shellwidget._append_plain_text(

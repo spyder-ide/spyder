@@ -72,8 +72,6 @@ class KernelHandler(QObject):
         hostname=None,
         sshkey=None,
         password=None,
-        _stdout=None,
-        _stderr=None,
     ):
         super().__init__()
         # Connection Informations
@@ -94,9 +92,9 @@ class KernelHandler(QObject):
         self._shutdown_lock = Lock()
         self._stdout_thread = None
         self._stderr_thread = None
-        self.set_std_buffers(_stdout, _stderr)
+        self.set_std_buffers()
 
-    def set_std_buffers(self, stdout, stderr):
+    def set_std_buffers(self):
         """Set std buffers."""
         # Disconnect old threads
         if self._stdout_thread:
@@ -105,7 +103,12 @@ class KernelHandler(QObject):
         if self._stderr_thread:
             self._stderr_thread.sig_out.disconnect(self.sig_stderr)
             self._stderr_thread = None
+
         # Connect new threads
+        if self.kernel_manager is None:
+            return
+        stdout = self.kernel_manager.provisioner.process.stdout
+        stderr = self.kernel_manager.provisioner.process.stderr
         if stdout:
             self._stdout_thread = StdThread(self, stdout)
             self._stdout_thread.sig_out.connect(self.sig_stdout)
@@ -187,8 +190,6 @@ class KernelHandler(QObject):
             stdout=PIPE,
             env=kernel_spec.env,
         )
-        stdout = kernel_manager.provisioner.process.stdout
-        stderr = kernel_manager.provisioner.process.stderr
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -203,8 +204,6 @@ class KernelHandler(QObject):
             kernel_client=kernel_client,
             fault_filename=fault_filename,
             known_spyder_kernel=True,
-            _stdout=stdout,
-            _stderr=stderr,
         )
 
     @classmethod
@@ -413,19 +412,6 @@ class KernelHandler(QObject):
                     end_idx = None
                 text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
         return text
-
-    def restart_kernel(self):
-        """Restart kernel"""
-        if self.kernel_manager is None:
-            return
-
-        self.kernel_manager.restart_kernel(
-            stderr=PIPE,
-            stdout=PIPE)
-
-        stdout = self.kernel_manager.provisioner.process.stdout
-        stderr = self.kernel_manager.provisioner.process.stderr
-        self.set_std_buffers(stdout, stderr)
 
 
 class CachedKernelMixin:
