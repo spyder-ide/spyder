@@ -1637,13 +1637,16 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     control.setFocus()
 
     # Tests assume inline backend
+    qtbot.wait(1000)
     ipyconsole.set_conf('pdb_ignore_lib', not show_lib, section="debugger")
-    qtbot.wait(500)
+    qtbot.wait(1000)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
     
     with qtbot.waitSignal(shell.executed):
-        shell.execute('get_ipython().pdb_ignore_lib')
+        shell.execute(
+            '"value = " + str(get_ipython().pdb_session.pdb_ignore_lib)')
+    assert "value = " + str(not show_lib) in control.toPlainText()
 
     qtbot.keyClicks(control, '!s')
     with qtbot.waitSignal(shell.executed):
