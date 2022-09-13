@@ -566,8 +566,9 @@ def running_in_mac_app(pyexec=sys.executable):
 def get_spyder_umamba_path():
     """Return the path to the Micromamba executable bundled with Spyder."""
     if running_in_mac_app():
-        path = osp.join(osp.dirname(osp.dirname(__file__)),
-                        'bin', 'micromamba')
+        # TODO: Change to CONDA_EXE when
+        # conda-forge/conda-standalone-feedstock#45 is resolved
+        path = os.environ.get('CONDA_PYTHON_EXE')
     elif is_pynsist():
         path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
                                     'bin', 'micromamba.exe'))

@@ -73,8 +73,8 @@ def get_conda_activation_script(quote=False):
     # Use micromamba bundled with Spyder installers or find conda exe
     exe = get_spyder_umamba_path() or find_conda()
 
-    if osp.basename(exe).startswith('micromamba'):
-        # For Micromamba, use the executable
+    if osp.basename(exe) in ('micromamba.exe', '_conda.exe'):
+        # For stadalone conda, use the executable
         script_path = exe
     else:
         # Conda activation script is relative to executable
