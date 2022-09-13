@@ -1403,9 +1403,8 @@ def test_kernel_crash(ipyconsole, qtbot):
         ipyconsole.create_new_client()
 
         # Assert that the console is showing an error
-        qtbot.waitUntil(lambda: ipyconsole.get_clients()[-1].error_text,
-                        timeout=6000)
         error_client = ipyconsole.get_clients()[-1]
+        qtbot.waitUntil(lambda: bool(error_client.error_text), timeout=6000)
         assert error_client.error_text
 
         # Assert the error contains the text we expect
@@ -2435,8 +2434,10 @@ def test_old_kernel_version(ipyconsole, qtbot):
     client = w.get_current_client()
 
     # Make sure an error is shown
-    qtbot.waitUntil(lambda: client.error_text is not None)
-    assert '1.0.0' in client.error_text
+    control = client.get_control()
+    qtbot.waitUntil(
+        lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
+    assert "conda install spyder" in control.toPlainText()
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):

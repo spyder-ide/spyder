@@ -225,8 +225,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self.kernel_manager = kernel.kernel_manager
         self.kernel_handler = kernel
-        if self.is_spyder_kernel:
-            self.setup_spyder_kernel()
         # Send message to kernel to check status
         self.check_spyder_kernel()
         self.sig_shellwidget_created.emit(self)
@@ -372,29 +370,25 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if data is not None and 'text/plain' in data:
             spyder_kernel_info = ast.literal_eval(data['text/plain'])
             if not spyder_kernel_info:
-                # The running_under_pytest() part can be removed when
-                # spyder-kernels 3 is released. This is needed for
-                # the test_conda_env_activation test
-                if running_under_pytest():
-                    return
-
                 if self.is_spyder_kernel:
                     # spyder-kernels version < 3.0
-                    self.ipyclient.show_kernel_error(
+                    self.append_html_message(
                         ERROR_SPYDER_KERNEL_VERSION_OLD.format(
                             SPYDER_KERNELS_MIN_VERSION,
                             SPYDER_KERNELS_MAX_VERSION,
                             SPYDER_KERNELS_CONDA,
                             SPYDER_KERNELS_PIP
-                        )
+                        ),
+                        before_prompt=True
                     )
+                    self.kernel_handler.known_spyder_kernel = False
                 return
 
             version, pyexec = spyder_kernel_info
             if not check_version_range(version, SPYDER_KERNELS_VERSION):
+                # Development versions are acceptable
                 if "dev0" not in version:
-                    # Development versions are acceptable
-                    self.ipyclient.show_kernel_error(
+                    self.append_html_message(
                         ERROR_SPYDER_KERNEL_VERSION.format(
                             pyexec,
                             version,
@@ -402,13 +396,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                             SPYDER_KERNELS_MAX_VERSION,
                             SPYDER_KERNELS_CONDA,
                             SPYDER_KERNELS_PIP
-                        )
+                        ),
+                        before_prompt=True
                     )
+                    self.kernel_handler.known_spyder_kernel = False
                     return
 
-            if not self.is_spyder_kernel:
-                self.kernel_handler.known_spyder_kernel = True
-                self.setup_spyder_kernel()
+            self.kernel_handler.known_spyder_kernel = True
+            self.setup_spyder_kernel()
 
     def set_cwd(self, dirname, emit_cwd_change=False):
         """
