@@ -348,6 +348,8 @@ class KernelHandler(QObject):
                 os.remove(self.fault_filename)
             except FileNotFoundError:
                 pass
+            except PermissionError:
+                pass
 
     def open_comm(self, kernel_comm):
         """Open kernel comm"""
