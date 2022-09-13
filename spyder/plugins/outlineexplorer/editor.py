@@ -6,9 +6,6 @@
 
 """Outline explorer editor server"""
 
-# Third-party imports
-from intervaltree import IntervalTree
-
 # Local imports
 from spyder.plugins.outlineexplorer.api import OutlineExplorerProxy
 
