@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
 from spyder.app.utils import create_splash_screen
-from spyder.config.base import _, running_in_mac_app
+from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication
@@ -227,16 +227,12 @@ def main():
         args_reset = ['--reset']
 
     # Build the base command
-    if running_in_mac_app(sys.executable):
-        exe = env['EXECUTABLEPATH']
-        command = [f'"{exe}"']
+    if is_bootstrap:
+        script = osp.join(spyder_dir, 'bootstrap.py')
     else:
-        if is_bootstrap:
-            script = osp.join(spyder_dir, 'bootstrap.py')
-        else:
-            script = osp.join(spyder_dir, 'spyder', 'app', 'start.py')
+        script = osp.join(spyder_dir, 'spyder', 'app', 'start.py')
 
-        command = [f'"{sys.executable}"', f'"{script}"']
+    command = [f'"{sys.executable}"', f'"{script}"']
 
     # Adjust the command and/or arguments to subprocess depending on the OS
     shell = not IS_WINDOWS
