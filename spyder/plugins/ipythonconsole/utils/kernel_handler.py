@@ -354,6 +354,14 @@ class KernelHandler(QObject):
         kernel_comm.open_comm(self.kernel_client)
         self.kernel_comm = kernel_comm
 
+    def enable_faulthandler(self):
+        """Enable faulthandler."""
+        if not self.fault_filename:
+            return
+        
+        # To display faulthandler
+        self.kernel_comm.remote_call().enable_faulthandler(self.fault_filename)
+
     def get_fault_text(self):
         """Get a fault from a previous session."""
 

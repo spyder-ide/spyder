@@ -693,6 +693,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             )
         else:
             self.kernel_handler.set_std_buffers()
+
             fault = self.kernel_handler.get_fault_text()
             if fault:
                 self.shellwidget._append_plain_text(
