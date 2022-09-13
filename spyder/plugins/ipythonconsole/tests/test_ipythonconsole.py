@@ -11,7 +11,6 @@ Tests for the IPython console plugin.
 """
 
 # Standard library imports
-import codecs
 import glob
 import os
 import os.path as osp
@@ -35,7 +34,7 @@ import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import QMessageBox, QMainWindow
+from qtpy.QtWidgets import QMainWindow
 import sympy
 
 # Local imports
@@ -157,13 +156,6 @@ def ipyconsole(qtbot, request, tmpdir):
     else:
         test_dir = ''
 
-    # Instruct the console to not use a stderr file
-    no_stderr_file = request.node.get_closest_marker('no_stderr_file')
-    if no_stderr_file:
-        test_no_stderr = True
-    else:
-        test_no_stderr = False
-
     # Use the automatic backend if requested
     auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
@@ -213,7 +205,6 @@ def ipyconsole(qtbot, request, tmpdir):
     # Create the console and a new client and set environment
     os.environ['IPYCONSOLE_TESTING'] = 'True'
     stdfile.IPYCONSOLE_TEST_DIR = test_dir
-    stdfile.IPYCONSOLE_TEST_NO_STDERR = test_no_stderr
     window = MainWindowMock()
     console = IPythonConsole(parent=window, configuration=configuration)
 
@@ -290,7 +281,6 @@ def ipyconsole(qtbot, request, tmpdir):
     console.on_close()
     os.environ.pop('IPYCONSOLE_TESTING')
     stdfile.IPYCONSOLE_TEST_DIR = None
-    stdfile.IPYCONSOLE_TEST_NO_STDERR = False
 
     if os.name == 'nt' or known_leak:
         # Do not test for leaks
@@ -625,21 +615,6 @@ def test_conf_env_vars(ipyconsole, qtbot):
     assert shell.get_value('a') == 'False'
 
 
-@flaky(max_runs=3)
-@pytest.mark.no_stderr_file
-def test_no_stderr_file(ipyconsole, qtbot):
-    """Test that consoles can run without an stderr."""
-    # Wait until the window is fully up
-    shell = ipyconsole.get_current_shellwidget()
-
-    # Execute a simple assignment
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('a = 1')
-
-    # Assert we get the assigned value correctly
-    assert shell.get_value('a') == 1
-
-
 @pytest.mark.non_ascii_dir
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
@@ -956,21 +931,6 @@ def test_unicode_vars(ipyconsole, qtbot):
     shell.set_value('д', 20)
     qtbot.waitUntil(lambda: shell.get_value('д') == 20)
     assert shell.get_value('д') == 20
-
-
-@flaky(max_runs=3)
-def test_read_stderr(ipyconsole, qtbot):
-    """
-    Test the read operation of the stderr file of the kernel
-    """
-    client = ipyconsole.get_current_client()
-
-    # Set contents of the stderr file of the kernel
-    content = 'Test text'
-    stderr_file = client.stderr_obj.filename
-    codecs.open(stderr_file, 'w', 'cp437').write(content)
-    # Assert that content is correct
-    assert content == client.stderr_obj.get_contents()
 
 
 @flaky(max_runs=10)
@@ -1328,65 +1288,6 @@ def test_set_elapsed_time(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
-def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
-    """Test that consoles removes stderr when client is closed."""
-    client = ipyconsole.get_current_client()
-
-    # In a normal situation file should exist
-    monkeypatch.setattr(QMessageBox, 'question',
-                        classmethod(lambda *args: QMessageBox.Yes))
-    assert osp.exists(client.stderr_obj.filename)
-    ipyconsole.close_client(client=client)
-    assert not osp.exists(client.stderr_obj.filename)
-
-
-@flaky(max_runs=3)
-@pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
-    reason="Doesn't work on Windows and hangs sometimes on Mac")
-def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
-    """Test that console removes stderr when client and related clients
-    are closed."""
-    client = ipyconsole.get_current_client()
-
-    # New client with the same kernel
-    ipyconsole.create_client_for_kernel(client.connection_file)
-    assert len(ipyconsole.get_widget().get_related_clients(client)) == 1
-    other_client = ipyconsole.get_widget().get_related_clients(client)[0]
-    assert client.stderr_obj.filename == other_client.stderr_obj.filename
-
-    # In a normal situation file should exist
-    monkeypatch.setattr(QMessageBox, 'question',
-                        classmethod(lambda *args: QMessageBox.Yes))
-    assert osp.exists(client.stderr_obj.filename)
-    ipyconsole.close_client(client=client)
-    assert not osp.exists(client.stderr_obj.filename)
-
-
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
-def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
-    """Test that console doesn't remove stderr when a related client is not
-    closed."""
-    client = ipyconsole.get_current_client()
-
-    # New client with the same kernel
-    ipyconsole.create_client_for_kernel(client.connection_file)
-
-    assert len(ipyconsole.get_widget().get_related_clients(client)) == 1
-    other_client = ipyconsole.get_widget().get_related_clients(client)[0]
-    assert client.stderr_obj.filename == other_client.stderr_obj.filename
-
-    # In a normal situation file should exist
-    monkeypatch.setattr(QMessageBox, "question",
-                        classmethod(lambda *args: QMessageBox.No))
-    assert osp.exists(client.stderr_obj.filename)
-    ipyconsole.close_client(client=client)
-    assert osp.exists(client.stderr_obj.filename)
-
-
-@flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="Fails sometimes on macOS")
 def test_kernel_crash(ipyconsole, qtbot):
@@ -1433,13 +1334,11 @@ def test_remove_old_std_files(ipyconsole, qtbot):
     # Create empty std files in our temp dir to see if they are removed
     # correctly.
     tmpdir = get_temp_dir()
-    open(osp.join(tmpdir, 'foo.stderr'), 'a').close()
-    open(osp.join(tmpdir, 'foo.stdout'), 'a').close()
+    open(osp.join(tmpdir, 'foo.fault'), 'a').close()
 
     # Assert that only old std files are removed
     ipyconsole._remove_old_std_files()
-    assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
-    assert not osp.isfile(osp.join(tmpdir, 'foo.stdout'))
+    assert not osp.isfile(osp.join(tmpdir, 'foo.fault'))
 
     # The current kernel std files should be present
     for fname in glob.glob(osp.join(tmpdir, '*')):
@@ -1447,7 +1346,7 @@ def test_remove_old_std_files(ipyconsole, qtbot):
             assert osp.basename(fname).startswith('kernel')
             assert any(
                 [osp.basename(fname).endswith(ext)
-                 for ext in ('.stderr', '.stdout', '.fault')]
+                 for ext in ('.fault')]
             )
 
 
@@ -1825,19 +1724,19 @@ def test_stderr_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText())
     assert "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText()
     # Write a second time, makes sure it is not duplicated
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("\ntest_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
     # Wait for the poll
     qtbot.waitUntil(lambda: ipyconsole.get_widget().get_focus_widget(
         ).toPlainText().count("test_test") == 2)
@@ -1851,15 +1750,12 @@ def test_stdout_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stdout_obj.handle.flush()
-    with open(client.stdout_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import sys; print("test_test", file=sys.__stdout__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText(), timeout=5000)
-    assert "test_test" in ipyconsole.get_widget().get_focus_widget(
-        ).toPlainText()
 
 
 @flaky(max_runs=10)

@@ -371,7 +371,7 @@ class IPythonConsole(SpyderDockablePlugin):
         if os.name == 'nt':
             tmpdir = get_temp_dir()
             for fname in os.listdir(tmpdir):
-                if osp.splitext(fname)[1] in ('.stderr', '.stdout', '.fault'):
+                if osp.splitext(fname)[1] in ('.fault'):
                     try:
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:

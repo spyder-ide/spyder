@@ -307,7 +307,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
-        ffn = self.kernel_handler.get_fault_filename()
+        ffn = self.kernel_handler.fault_filename
         # Enable faulthandler
         if ffn:
             # To display faulthandler

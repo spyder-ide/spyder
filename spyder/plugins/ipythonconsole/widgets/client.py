@@ -34,11 +34,9 @@ from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import InstallerIPythonKernelError
-from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import add_actions, DialogManager
-from spyder.py3compat import to_text_string
 from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
@@ -164,7 +162,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.dialog_manager = DialogManager()
 
         # --- Standard files handling
-        self.std_poll_timer = None
         self.start_successful = False
 
     def __del__(self):
@@ -248,30 +245,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.set_info_page()
         self.shellwidget.show()
 
-    def _read_stderr(self):
-        """Read the stderr file of the kernel."""
-        # We need to read stderr_file as bytes to be able to
-        # detect its encoding with chardet
-        f = open(self.stderr_file, 'rb')
-
-        try:
-            stderr_text = f.read()
-
-            # This is needed to avoid showing an empty error message
-            # when the kernel takes too much time to start.
-            # See spyder-ide/spyder#8581.
-            if not stderr_text:
-                return ''
-
-            # This is needed since the stderr file could be encoded
-            # in something different to utf-8.
-            # See spyder-ide/spyder#4191.
-            encoding = get_coding(stderr_text)
-            stderr_text = to_text_string(stderr_text, encoding)
-            return stderr_text
-        finally:
-            f.close()
-
     def _show_mpl_backend_errors(self):
         """
         Show possible errors when setting the selected Matplotlib backend.
@@ -305,14 +278,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """
         if self.start_successful:
             return False
-        stderr = self.stderr_obj.get_contents()
-        if not stderr:
-            return False
-        # There is an error. If it is benign, ignore.
-        for line in stderr.splitlines():
-            if line and not self.is_benign_error(line):
-                return True
-        return False
+        return bool(self.error_text)
 
     def _connect_control_signals(self):
         """Connect signals of control widgets."""
@@ -389,77 +355,54 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return None
         return self.kernel_handler.connection_file
 
-    @property
-    def stderr_obj(self):
-        if self.kernel_handler is None:
-            return None
-        return self.kernel_handler.stderr_obj
-
-    @property
-    def stdout_obj(self):
-        if self.kernel_handler is None:
-            return None
-        return self.kernel_handler.stdout_obj
-
-    def start_std_poll(self):
-        """Start polling std files"""
-        self.std_poll_timer = QTimer(self)
-        self.std_poll_timer.timeout.connect(self.poll_std_file_change)
-        self.std_poll_timer.setInterval(1000)
-        self.std_poll_timer.start()
-        self.shellwidget.executed.connect(self.poll_std_file_change)
-
     def connect_kernel(self, kernel):
         """Connect kernel to client."""
         self._before_prompt_is_ready()
         self.kernel_handler = kernel
-        if kernel.stderr_obj is not None or kernel.stdout_obj is not None:
-            self.start_std_poll()
+        kernel.sig_stderr.connect(self.print_stderr)
+        kernel.sig_stdout.connect(self.print_stdout)
+
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel)
 
     def remove_std_files(self, is_last_client=True):
         """Remove stderr_file associated with the client."""
-        try:
-            self.shellwidget.executed.disconnect(self.poll_std_file_change)
-        except (TypeError, ValueError):
-            pass
-        if self.std_poll_timer is not None:
-            self.std_poll_timer.stop()
         if is_last_client and self.kernel_handler is not None:
             self.kernel_handler.remove_files()
 
-    @Slot()
-    def poll_std_file_change(self):
-        """Check if the stderr or stdout file just changed."""
-        self.shellwidget.call_kernel().flush_std()
-        starting = self.shellwidget._starting
-        if self.stderr_obj is not None:
-            stderr = self.stderr_obj.poll_file_change()
-            if stderr:
-                if self.is_benign_error(stderr):
-                    return
-                if self.shellwidget.isHidden():
-                    # Avoid printing the same thing again
-                    if self.error_text != '<tt>%s</tt>' % stderr:
-                        full_stderr = self.stderr_obj.get_contents()
-                        self.show_kernel_error('<tt>%s</tt>' % full_stderr)
-                if starting:
-                    self.shellwidget.banner = (
-                        stderr + '\n' + self.shellwidget.banner)
-                else:
-                    self.shellwidget._append_plain_text(
-                        '\n' + stderr, before_prompt=True)
+    @Slot(str)
+    def print_stderr(self, stderr):
+        """Print stderr written in PIPE."""
+        if not stderr:
+            return
+        if self.is_benign_error(stderr):
+            return
+        if self.shellwidget.isHidden():
+            error_text = '<tt>%s</tt>' % stderr
+            # Avoid printing the same thing again
+            if self.error_text != error_text:
+                if self.error_text:
+                    # Append to error text
+                    error_text = self.error_text + error_text
+                self.show_kernel_error(error_text)
+        if self.shellwidget._starting:
+            self.shellwidget.banner = (
+                stderr + '\n' + self.shellwidget.banner)
+        else:
+            self.shellwidget._append_plain_text(
+                stderr, before_prompt=True)
 
-        if self.stdout_obj is not None:
-            stdout = self.stdout_obj.poll_file_change()
-            if stdout:
-                if starting:
-                    self.shellwidget.banner = (
-                        stdout + '\n' + self.shellwidget.banner)
-                else:
-                    self.shellwidget._append_plain_text(
-                        '\n' + stdout, before_prompt=True)
+    @Slot(str)
+    def print_stdout(self, stdout):
+        """Print stdout written in PIPE."""
+        if not stdout:
+            return
+        if self.shellwidget._starting:
+            self.shellwidget.banner = (
+                stdout + '\n' + self.shellwidget.banner)
+        else:
+            self.shellwidget._append_plain_text(
+                stdout, before_prompt=True)
 
     def connect_shellwidget_signals(self):
         """Configure shellwidget after kernel is connected."""
@@ -710,9 +653,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Reconfigure client before the new kernel is connected again.
         self._before_prompt_is_ready()
 
-        # Replace std files to avoid catching old kernel errors
-        self.kernel_handler.replace_std_files()
-
         # Create and run restarting thread
         if (
             self.restart_thread is not None
@@ -731,9 +671,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def _restart_thread_main(self):
         """Restart the kernel in a thread."""
         try:
-            self.shellwidget.kernel_manager.restart_kernel(
-                stderr=self.stderr_obj.handle,
-                stdout=self.stdout_obj.handle)
+            self.kernel_handler.restart_kernel()
         except RuntimeError as e:
             self.restart_thread.error = e
 
@@ -786,17 +724,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        if self.stderr_obj is not None:
-            # If there are kernel creation errors, jupyter_client will
-            # try to restart the kernel and qtconsole prints a
-            # message about it.
-            # So we read the kernel's stderr_file and display its
-            # contents in the client instead of the usual message shown
-            # by qtconsole.
-            self.poll_std_file_change()
-        else:
-            self.shellwidget._append_html("<br>%s<hr><br>" % msg,
-                                          before_prompt=False)
+        self.shellwidget._append_html("<br>%s<hr><br>" % msg,
+                                      before_prompt=False)
 
     @Slot()
     def enter_array_inline(self):

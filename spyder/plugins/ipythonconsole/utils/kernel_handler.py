@@ -11,10 +11,11 @@ import os.path as osp
 import re
 from threading import Lock
 import uuid
+from subprocess import PIPE
 
 # Third-party imports
 from jupyter_core.paths import jupyter_runtime_dir
-from qtpy.QtCore import QThread
+from qtpy.QtCore import QThread, QObject, Signal
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
@@ -22,7 +23,7 @@ from spyder.api.translations import get_translation
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
-from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
+from spyder.plugins.ipythonconsole.utils.stdfile import std_filename
 
 
 # Localization
@@ -39,29 +40,47 @@ else:
     ssh_tunnel = openssh_tunnel
 
 
-class KernelHandler:
+class StdThread(QThread):
+    """Poll for changes in std buffers."""
+    sig_out = Signal(str)
+    
+    def __init__(self, parent, std_buffer):
+        super().__init__(parent)
+        self._std_buffer = std_buffer
+
+    def run(self):
+        txt = True
+        while txt:
+            txt = self._std_buffer.read1()
+            if txt:
+                self.sig_out.emit(txt.decode())
+
+
+class KernelHandler(QObject):
     """A class to store kernel connection informations."""
+
+    sig_stdout = Signal(str)
+    sig_stderr = Signal(str)
 
     def __init__(
         self,
         connection_file,
         kernel_manager=None,
         kernel_client=None,
-        stderr_obj=None,
-        stdout_obj=None,
-        fault_obj=None,
+        fault_filename=None,
         known_spyder_kernel=False,
         hostname=None,
         sshkey=None,
         password=None,
+        _stdout=None,
+        _stderr=None,
     ):
+        super().__init__()
         # Connection Informations
         self.connection_file = connection_file
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
-        self.stderr_obj = stderr_obj
-        self.stdout_obj = stdout_obj
-        self.fault_obj = fault_obj
+        self.fault_filename = fault_filename
         self.known_spyder_kernel = known_spyder_kernel
         self.hostname = hostname
         self.sshkey = sshkey
@@ -73,6 +92,28 @@ class KernelHandler:
         # Internal
         self.shutdown_thread = None
         self._shutdown_lock = Lock()
+        self._stdout_thread = None
+        self._stderr_thread = None
+        self.set_std_buffers(_stdout, _stderr)
+
+    def set_std_buffers(self, stdout, stderr):
+        """Set std buffers."""
+        # Disconnect old threads
+        if self._stdout_thread:
+            self._stdout_thread.sig_out.disconnect(self.sig_stdout)
+            self._stdout_thread = None
+        if self._stderr_thread:
+            self._stderr_thread.sig_out.disconnect(self.sig_stderr)
+            self._stderr_thread = None
+        # Connect new threads
+        if stdout:
+            self._stdout_thread = StdThread(self, stdout)
+            self._stdout_thread.sig_out.connect(self.sig_stdout)
+            self._stdout_thread.start()
+        if stderr:
+            self._stderr_thread = StdThread(self, stderr)
+            self._stderr_thread.sig_out.connect(self.sig_stderr)
+            self._stderr_thread.start()
 
     @staticmethod
     def new_connection_file():
@@ -130,9 +171,7 @@ class KernelHandler:
                 PERMISSION_ERROR_MSG.format(jupyter_runtime_dir())
             )
 
-        stderr_obj = StdFile(connection_file, ".stderr")
-        stdout_obj = StdFile(connection_file, ".stdout")
-        fault_obj = StdFile(connection_file, ".fault")
+        fault_filename = std_filename(connection_file, ".fault")
 
         # Kernel manager
         kernel_manager = SpyderKernelManager(
@@ -144,10 +183,12 @@ class KernelHandler:
         kernel_manager._kernel_spec = kernel_spec
 
         kernel_manager.start_kernel(
-            stderr=stderr_obj.handle,
-            stdout=stdout_obj.handle,
+            stderr=PIPE,
+            stdout=PIPE,
             env=kernel_spec.env,
         )
+        stdout = kernel_manager.provisioner.process.stdout
+        stderr = kernel_manager.provisioner.process.stderr
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -160,10 +201,10 @@ class KernelHandler:
             connection_file=connection_file,
             kernel_manager=kernel_manager,
             kernel_client=kernel_client,
-            stderr_obj=stderr_obj,
-            stdout_obj=stdout_obj,
-            fault_obj=fault_obj,
+            fault_filename=fault_filename,
             known_spyder_kernel=True,
+            _stdout=stdout,
+            _stderr=stderr,
         )
 
     @classmethod
@@ -295,65 +336,39 @@ class KernelHandler:
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,
+            fault_filename=self.fault_filename,
         )
-
-        # Copy std file
-        if self.stderr_obj is not None:
-            new_kernel.stderr_obj = self.stderr_obj.copy()
-        if self.stdout_obj is not None:
-            new_kernel.stdout_obj = self.stdout_obj.copy()
-        if self.fault_obj is not None:
-            new_kernel.fault_obj = self.fault_obj.copy()
-
         # Get new kernel_client
         new_kernel.init_kernel_client()
         return new_kernel
 
     def remove_files(self):
         """Remove std files."""
-        for obj in [self.stderr_obj, self.stderr_obj, self.fault_obj]:
-            if obj is not None:
-                obj.remove()
+        if self.fault_filename:
+            try:
+                os.remove(self.fault_filename)
+            except FileNotFoundError:
+                pass
 
     def open_comm(self, kernel_comm):
         """Open kernel comm"""
         kernel_comm.open_comm(self.kernel_client)
         self.kernel_comm = kernel_comm
 
-    def replace_std_files(self):
-        """Replace std files."""
-        for obj in [self.stderr_obj, self.stderr_obj, self.fault_obj]:
-            if obj is None:
-                continue
-            obj.remove()
-            fn = obj.filename
-            m = re.match(r"(.+_)(\d+)(.[a-z]+)", fn)
-            if m:
-                # Already a replaced file
-                path, n, ext = m.groups()
-                obj.filename = path + str(1 + int(n)) + ext
-                continue
-            m = re.match(r"(.+)(.[a-z]+)", fn)
-            if m:
-                # First replaced file
-                path, ext = m.groups()
-                obj.filename = path + "_1" + ext
-                continue
-            # No extension, should not happen
-            obj.filename += "_1"
-
-    def get_fault_filename(self):
-        """Get faulthandler filename"""
-        if self.fault_obj is None:
-            return
-        return self.fault_obj.filename
-
     def get_fault_text(self):
         """Get a fault from a previous session."""
 
-        if self.fault_obj is None:
+        if self.fault_filename is None:
             return
-        fault = self.fault_obj.get_contents()
+        try:
+            with open(self.fault_filename, 'r') as f:
+                fault = f.read()
+        except FileNotFoundError:
+            return
+        except UnicodeDecodeError as e:
+            return (
+                "Can not read fault file!\n" 
+                + "UnicodeDecodeError: " + str(e))
         if not fault:
             return
 
@@ -398,6 +413,19 @@ class KernelHandler:
                     end_idx = None
                 text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
         return text
+
+    def restart_kernel(self):
+        """Restart kernel"""
+        if self.kernel_manager is None:
+            return
+
+        self.kernel_manager.restart_kernel(
+            stderr=PIPE,
+            stdout=PIPE)
+
+        stdout = self.kernel_manager.provisioner.process.stdout
+        stderr = self.kernel_manager.provisioner.process.stderr
+        self.set_std_buffers(stdout, stderr)
 
 
 class CachedKernelMixin:
