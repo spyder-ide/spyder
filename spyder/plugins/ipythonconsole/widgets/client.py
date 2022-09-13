@@ -17,7 +17,6 @@ This is the widget used on all its tabs.
 import logging
 import os
 import os.path as osp
-import re
 from string import Template
 import time
 import traceback
