@@ -42,7 +42,7 @@ else:
 class StdThread(QThread):
     """Poll for changes in std buffers."""
     sig_out = Signal(str)
-    
+
     def __init__(self, parent, std_buffer):
         super().__init__(parent)
         self._std_buffer = std_buffer
@@ -90,7 +90,7 @@ class KernelHandler(QObject):
         self._stdout_thread = None
         self._stderr_thread = None
         self._fault_args = None
-        
+
         self.set_std_buffers()
 
     def set_std_buffers(self):
@@ -344,7 +344,7 @@ class KernelHandler(QObject):
     def faulthandler_setup(self, args):
         """Setup faulthandler"""
         self._fault_args = args
-    
+
     def enable_faulthandler(self):
         """Enable faulthandler"""
         # To display faulthandler
@@ -360,7 +360,7 @@ class KernelHandler(QObject):
             callback=print_callback
         ).get_fault_text(*self._fault_args)
         self._fault_args = None
-    
+
     def restart_kernel(self):
         """Restart kernel."""
         if self.kernel_manager is None:
