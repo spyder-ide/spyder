@@ -23,7 +23,6 @@ from spyder.api.translations import get_translation
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
-from spyder.plugins.ipythonconsole.utils.stdfile import std_filename
 
 
 # Localization
@@ -67,7 +66,6 @@ class KernelHandler(QObject):
         connection_file,
         kernel_manager=None,
         kernel_client=None,
-        fault_filename=None,
         known_spyder_kernel=False,
         hostname=None,
         sshkey=None,
@@ -78,7 +76,6 @@ class KernelHandler(QObject):
         self.connection_file = connection_file
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
-        self.fault_filename = fault_filename
         self.known_spyder_kernel = known_spyder_kernel
         self.hostname = hostname
         self.sshkey = sshkey
@@ -93,6 +90,7 @@ class KernelHandler(QObject):
         self._stdout_thread = None
         self._stderr_thread = None
         self.set_std_buffers()
+        self.fault_filename = None
 
     def set_std_buffers(self):
         """Set std buffers."""
@@ -174,8 +172,6 @@ class KernelHandler(QObject):
                 PERMISSION_ERROR_MSG.format(jupyter_runtime_dir())
             )
 
-        fault_filename = std_filename(connection_file, ".fault")
-
         # Kernel manager
         kernel_manager = SpyderKernelManager(
             connection_file=connection_file,
@@ -202,7 +198,6 @@ class KernelHandler(QObject):
             connection_file=connection_file,
             kernel_manager=kernel_manager,
             kernel_client=kernel_client,
-            fault_filename=fault_filename,
             known_spyder_kernel=True,
         )
 
@@ -335,34 +330,26 @@ class KernelHandler(QObject):
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,
-            fault_filename=self.fault_filename,
         )
         # Get new kernel_client
         new_kernel.init_kernel_client()
         return new_kernel
-
-    def remove_files(self):
-        """Remove std files."""
-        if self.fault_filename:
-            try:
-                os.remove(self.fault_filename)
-            except FileNotFoundError:
-                pass
-            except PermissionError:
-                pass
 
     def open_comm(self, kernel_comm):
         """Open kernel comm"""
         kernel_comm.open_comm(self.kernel_client)
         self.kernel_comm = kernel_comm
 
+    def faulthandler_setup(self, fault_filename):
+        """Setup faulthandler"""
+        self.fault_filename = fault_filename
+    
     def enable_faulthandler(self):
-        """Enable faulthandler."""
-        if not self.fault_filename:
-            return
-        
+        """Enable faulthandler"""
         # To display faulthandler
-        self.kernel_comm.remote_call().enable_faulthandler(self.fault_filename)
+        self.kernel_comm.remote_call(
+            callback=self.faulthandler_setup
+        ).enable_faulthandler()
 
     def get_fault_text(self):
         """Get a fault from a previous session."""
@@ -437,7 +424,6 @@ class CachedKernelMixin:
             return
         kernel = self._cached_kernel_properties[-1]
         kernel.close(now=True)
-        kernel.remove_files()
         self._cached_kernel_properties = None
 
     def check_cached_kernel_spec(self, kernel_spec):

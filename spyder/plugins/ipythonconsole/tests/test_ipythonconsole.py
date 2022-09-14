@@ -49,7 +49,6 @@ from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
-from spyder.plugins.ipythonconsole.utils import stdfile
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.utils.programs import get_temp_dir
@@ -61,7 +60,6 @@ from spyder.utils.conda import is_conda_env
 # =============================================================================
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
-NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 NEW_DIR = 'new_workingdir'
 
 
@@ -149,13 +147,6 @@ def ipyconsole(qtbot, request, tmpdir):
         )
         configuration.set('workingdir', 'startup/use_fixed_directory', False)
 
-    # Test the console with a non-ascii temp dir
-    non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
-    if non_ascii_dir:
-        test_dir = NON_ASCII_DIR
-    else:
-        test_dir = ''
-
     # Use the automatic backend if requested
     auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
@@ -204,7 +195,6 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Create the console and a new client and set environment
     os.environ['IPYCONSOLE_TESTING'] = 'True'
-    stdfile.IPYCONSOLE_TEST_DIR = test_dir
     window = MainWindowMock()
     console = IPythonConsole(parent=window, configuration=configuration)
 
@@ -280,7 +270,6 @@ def ipyconsole(qtbot, request, tmpdir):
     # Close
     console.on_close()
     os.environ.pop('IPYCONSOLE_TESTING')
-    stdfile.IPYCONSOLE_TEST_DIR = None
 
     if os.name == 'nt' or known_leak:
         # Do not test for leaks
@@ -613,22 +602,6 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
     # Assert we get the assigned value correctly
     assert shell.get_value('a') == 'False'
-
-
-@pytest.mark.non_ascii_dir
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
-def test_non_ascii_stderr_file(ipyconsole, qtbot):
-    """Test the creation of a console with a stderr file in a non-ascii dir."""
-    # Wait until the window is fully up
-    shell = ipyconsole.get_current_shellwidget()
-
-    # Execute a simple assignment
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('a = 1')
-
-    # Assert we get the assigned value
-    assert shell.get_value('a') == 1
 
 
 @flaky(max_runs=3)
@@ -1321,33 +1294,6 @@ def test_kernel_crash(ipyconsole, qtbot):
     finally:
         # Remove bad kernel config file
         os.remove(ipy_kernel_cfg)
-
-
-@flaky(max_runs=3)
-@pytest.mark.skipif(not os.name == 'nt', reason="Only necessary on Windows")
-def test_remove_old_std_files(ipyconsole, qtbot):
-    """Test that we are removing old std files."""
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
-
-    # Create empty std files in our temp dir to see if they are removed
-    # correctly.
-    tmpdir = get_temp_dir()
-    open(osp.join(tmpdir, 'foo.fault'), 'a').close()
-
-    # Assert that only old std files are removed
-    ipyconsole._remove_old_std_files()
-    assert not osp.isfile(osp.join(tmpdir, 'foo.fault'))
-
-    # The current kernel std files should be present
-    for fname in glob.glob(osp.join(tmpdir, '*')):
-        if osp.basename(fname) != 'test':
-            assert osp.basename(fname).startswith('kernel')
-            assert any(
-                [osp.basename(fname).endswith(ext)
-                 for ext in ('.fault')]
-            )
 
 
 @flaky(max_runs=3)

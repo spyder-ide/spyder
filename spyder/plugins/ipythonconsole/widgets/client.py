@@ -366,11 +366,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel)
 
-    def remove_std_files(self, is_last_client=True):
-        """Remove stderr_file associated with the client."""
-        if is_last_client and self.kernel_handler is not None:
-            self.kernel_handler.remove_files()
-
     @Slot(str)
     def print_stderr(self, stderr):
         """Print stderr written in PIPE."""
@@ -504,7 +499,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         # Stop shellwidget
         self.shellwidget.shutdown()
-        self.remove_std_files(is_last_client=False)
 
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
@@ -610,7 +604,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             and not self.error_text
         )
         self.shellwidget.shutdown(shutdown_kernel)
-        self.remove_std_files(shutdown_kernel)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
