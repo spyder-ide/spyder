@@ -182,12 +182,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.stderr_obj = stderr_obj
         self.stdout_obj = stdout_obj
         self.fault_obj = fault_obj
-        self.std_poll_timer = None
         if self.stderr_obj is not None or self.stdout_obj is not None:
-            self.std_poll_timer = QTimer(self)
-            self.std_poll_timer.timeout.connect(self.poll_std_file_change)
-            self.std_poll_timer.setInterval(1000)
-            self.std_poll_timer.start()
             self.shellwidget.executed.connect(self.poll_std_file_change)
 
         self.start_successful = False
@@ -419,8 +414,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.executed.disconnect(self.poll_std_file_change)
         except (TypeError, ValueError):
             pass
-        if self.std_poll_timer is not None:
-            self.std_poll_timer.stop()
         if is_last_client:
             if self.stderr_obj is not None:
                 self.stderr_obj.remove()
@@ -432,7 +425,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     @Slot()
     def poll_std_file_change(self):
         """Check if the stderr or stdout file just changed."""
-        self.shellwidget.call_kernel().flush_std()
         starting = self.shellwidget._starting
         if self.stderr_obj is not None:
             stderr = self.stderr_obj.poll_file_change()
