@@ -15,8 +15,10 @@ import faulthandler
 import json
 import logging
 import os
+import re
 import sys
 import traceback
+import tempfile
 import threading
 
 # Third-party imports
@@ -87,6 +89,7 @@ class SpyderKernel(IPythonKernel):
             'get_current_frames': self.get_current_frames,
             'request_pdb_stop': self.shell.request_pdb_stop,
             'raise_interrupt_signal': self.shell.raise_interrupt_signal,
+            'get_fault_text': self.get_fault_text,
             }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -106,11 +109,6 @@ class SpyderKernel(IPythonKernel):
         self.loopback_socket = None
 
     # -- Public API -----------------------------------------------------------
-    def do_shutdown(self, restart):
-        """Disable faulthandler if enabled before proceeding."""
-        self.disable_faulthandler()
-        super(SpyderKernel, self).do_shutdown(restart)
-
     def frontend_call(self, blocking=False, broadcast=True,
                       timeout=None, callback=None):
         """Call the frontend."""
@@ -126,30 +124,73 @@ class SpyderKernel(IPythonKernel):
             callback=callback,
             timeout=timeout)
 
-    def enable_faulthandler(self, fn):
+    def enable_faulthandler(self):
         """
         Open a file to save the faulthandling and identifiers for
         internal threads.
         """
-        self.disable_faulthandler()
-        f = open(fn, 'w')
-        self.faulthandler_handle = f
-        f.write("Main thread id:\n")
-        f.write(hex(threading.main_thread().ident))
-        f.write('\nSystem threads ids:\n')
-        f.write(" ".join([hex(thread.ident) for thread in threading.enumerate()
-                          if thread is not threading.main_thread()]))
-        f.write('\n')
-        faulthandler.enable(f)
+        self.faulthandler_handle = tempfile.NamedTemporaryFile(
+            'wt', suffix='.fault')
+        main_id = threading.main_thread().ident
+        system_ids = [
+            thread.ident for thread in threading.enumerate()
+            if thread is not threading.main_thread()
+        ]
+        faulthandler.enable(self.faulthandler_handle)
+        return self.faulthandler_handle.name, main_id, system_ids
 
-    def disable_faulthandler(self):
-        """
-        Cancel the faulthandling, close the file handle and remove the file.
-        """
-        if self.faulthandler_handle:
-            faulthandler.disable()
-            self.faulthandler_handle.close()
-            self.faulthandler_handle = None
+    def get_fault_text(self, fault_filename, main_id, ignore_ids):
+        """Get fault text from old run."""
+        # Read file
+        try:
+            with open(fault_filename, 'r') as f:
+                fault = f.read()
+        except FileNotFoundError:
+            return
+        except UnicodeDecodeError as e:
+            return (
+                "Can not read fault file!\n" 
+                + "UnicodeDecodeError: " + str(e))
+        # Remove file
+        try:
+            os.remove(fault_filename)
+        except FileNotFoundError:
+            pass
+        except PermissionError:
+            pass
+
+        # Process file
+        if not fault:
+            return
+
+        thread_regex = (
+            r"(Current thread|Thread) "
+            r"(0x[\da-f]+) \(most recent call first\):"
+            r"(?:.|\r\n|\r|\n)+?(?=Current thread|Thread|\Z)")
+        # Keep line for future improvments
+        # files_regex = r"File \"([^\"]+)\", line (\d+) in (\S+)"
+        text = ""
+        for idx, match in enumerate(re.finditer(thread_regex, fault)):
+            if idx == 0:
+                text += fault[0:match.span()[0]]
+            thread_id = int(match.group(2), base=16)
+            if thread_id != main_id:
+                if thread_id in ignore_ids:
+                    continue
+                if "wurlitzer.py" in match.group(0):
+                    # Wurlitzer threads are launched later
+                    continue
+                text += "\n" + match.group(0) + "\n"
+            else:
+                try:
+                    pattern = (r".*(?:/IPython/core/interactiveshell\.py|"
+                               r"\\IPython\\core\\interactiveshell\.py).*")
+                    match_internal = next(re.finditer(pattern, match.group(0)))
+                    end_idx = match_internal.span()[0]
+                except StopIteration:
+                    end_idx = None
+                text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
+        return text
 
     def get_system_threads_id(self):
         """Return the list of system threads id."""
