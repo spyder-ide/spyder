@@ -643,6 +643,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         sw.kernel_manager.stop_restarter()
         sw.kernel_manager.autorestart = False
 
+        # Disconnect the std pipes so errors will not mess with the restart
+        self.kernel_handler.disconnect_std_pipes()
+
         # Reconfigure client before the new kernel is connected again.
         self._before_prompt_is_ready()
 
@@ -682,7 +685,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 before_prompt=True
             )
         else:
-            self.kernel_handler.set_std_buffers()
+            self.kernel_handler.connect_std_pipes()
 
             # Reset Pdb state and reopen comm
             sw.reset_kernel_state()

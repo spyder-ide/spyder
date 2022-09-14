@@ -91,18 +91,11 @@ class KernelHandler(QObject):
         self._stderr_thread = None
         self._fault_args = None
 
-        self.set_std_buffers()
+        self.connect_std_pipes()
 
-    def set_std_buffers(self):
-        """Set std buffers."""
-        # Disconnect old threads
-        if self._stdout_thread:
-            self._stdout_thread.sig_out.disconnect(self.sig_stdout)
-            self._stdout_thread = None
-        if self._stderr_thread:
-            self._stderr_thread.sig_out.disconnect(self.sig_stderr)
-            self._stderr_thread = None
-
+    def connect_std_pipes(self):
+        """Connect to std pipes."""
+        self.disconnect_std_pipes()
         # Connect new threads
         if self.kernel_manager is None:
             return
@@ -116,6 +109,15 @@ class KernelHandler(QObject):
             self._stderr_thread = StdThread(self, stderr)
             self._stderr_thread.sig_out.connect(self.sig_stderr)
             self._stderr_thread.start()
+    
+    def disconnect_std_pipes(self):
+        """Disconnect old std pipes."""
+        if self._stdout_thread:
+            self._stdout_thread.sig_out.disconnect(self.sig_stdout)
+            self._stdout_thread = None
+        if self._stderr_thread:
+            self._stderr_thread.sig_out.disconnect(self.sig_stderr)
+            self._stderr_thread = None
 
     @staticmethod
     def new_connection_file():
