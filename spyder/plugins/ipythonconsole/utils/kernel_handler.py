@@ -89,8 +89,9 @@ class KernelHandler(QObject):
         self._shutdown_lock = Lock()
         self._stdout_thread = None
         self._stderr_thread = None
+        self._fault_args = None
+        
         self.set_std_buffers()
-        self.fault_filename = None
 
     def set_std_buffers(self):
         """Set std buffers."""
@@ -340,9 +341,9 @@ class KernelHandler(QObject):
         kernel_comm.open_comm(self.kernel_client)
         self.kernel_comm = kernel_comm
 
-    def faulthandler_setup(self, fault_filename):
+    def faulthandler_setup(self, args):
         """Setup faulthandler"""
-        self.fault_filename = fault_filename
+        self._fault_args = args
     
     def enable_faulthandler(self):
         """Enable faulthandler"""
@@ -351,64 +352,23 @@ class KernelHandler(QObject):
             callback=self.faulthandler_setup
         ).enable_faulthandler()
 
-    def get_fault_text(self):
+    def get_fault_text(self, print_callback):
         """Get a fault from a previous session."""
-
-        if self.fault_filename is None:
+        if self._fault_args is None:
             return
-        try:
-            with open(self.fault_filename, 'r') as f:
-                fault = f.read()
-        except FileNotFoundError:
+        self.kernel_comm.remote_call(
+            callback=print_callback
+        ).get_fault_text(*self._fault_args)
+        self._fault_args = None
+    
+    def restart_kernel(self):
+        """Restart kernel."""
+        if self.kernel_manager is None:
             return
-        except UnicodeDecodeError as e:
-            return (
-                "Can not read fault file!\n" 
-                + "UnicodeDecodeError: " + str(e))
-        if not fault:
-            return
-
-        thread_regex = (
-            r"(Current thread|Thread) "
-            r"(0x[\da-f]+) \(most recent call first\):"
-            r"(?:.|\r\n|\r|\n)+?(?=Current thread|Thread|\Z)")
-        # Keep line for future improvments
-        # files_regex = r"File \"([^\"]+)\", line (\d+) in (\S+)"
-
-        main_re = "Main thread id:(?:\r\n|\r|\n)(0x[0-9a-f]+)"
-        main_id = 0
-        for match in re.finditer(main_re, fault):
-            main_id = int(match.group(1), base=16)
-
-        system_re = ("System threads ids:"
-                     "(?:\r\n|\r|\n)(0x[0-9a-f]+(?: 0x[0-9a-f]+)+)")
-        ignore_ids = []
-        start_idx = 0
-        for match in re.finditer(system_re, fault):
-            ignore_ids = [int(i, base=16) for i in match.group(1).split()]
-            start_idx = match.span()[1]
-        text = ""
-        for idx, match in enumerate(re.finditer(thread_regex, fault)):
-            if idx == 0:
-                text += fault[start_idx:match.span()[0]]
-            thread_id = int(match.group(2), base=16)
-            if thread_id != main_id:
-                if thread_id in ignore_ids:
-                    continue
-                if "wurlitzer.py" in match.group(0):
-                    # Wurlitzer threads are launched later
-                    continue
-                text += "\n" + match.group(0) + "\n"
-            else:
-                try:
-                    pattern = (r".*(?:/IPython/core/interactiveshell\.py|"
-                               r"\\IPython\\core\\interactiveshell\.py).*")
-                    match_internal = next(re.finditer(pattern, match.group(0)))
-                    end_idx = match_internal.span()[0]
-                except StopIteration:
-                    end_idx = None
-                text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
-        return text
+        self.kernel_manager.restart_kernel(
+            stderr=PIPE,
+            stdout=PIPE,
+        )
 
 
 class CachedKernelMixin:
