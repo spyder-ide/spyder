@@ -260,6 +260,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.update_timers = {}
+        self.starting = {}
         self.editors_to_update = {}
         self.ordered_editor_ids = []
         self._current_editor = None
@@ -512,6 +513,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     pass
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
+        else:
+            if self.starting.get(language):
+                logger.debug("Finish updating files at startup")
+                self.starting[language] = False
 
     def update_all_editors(self, reset_info=False):
         """Update all editors with LSP support."""
@@ -537,6 +542,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 f"Don't update tree of file {editor.fname} because plugin is "
                 f"not visible"
             )
+
+            # This keeps track of files that have been modified while the
+            # Outline is hidden. That way we'll only update those when the user
+            # makes it visible.
+            language = editor.get_language().lower()
+            if not self.starting[language]:
+                if editor.is_tree_updated:
+                    editor.is_tree_updated = False
+
             self.sig_hide_spinner.emit()
             return
 
@@ -601,11 +615,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Compare with current tree to check if it's necessary to update it.
         changes = tree - current_tree
-        if len(changes) == 0:
+        if tree and len(changes) == 0:
             logger.debug(
                 f"Current and new trees for file {editor.fname} are the same, "
                 f"so no update is necessary"
             )
+            editor.is_tree_updated = True
             self.sig_hide_spinner.emit()
             return False
 
@@ -632,6 +647,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Save new tree and finish
         self.editor_tree_cache[editor_id] = tree
+        editor.is_tree_updated = True
         self.sig_tree_updated.emit()
         self.sig_hide_spinner.emit()
         return True
@@ -640,9 +656,23 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor in self.editor_ids:
             if self.current_editor is editor:
                 self.current_editor = None
+
+            logger.debug(f"Removing tree of file f{editor.fname}")
+
             editor_id = self.editor_ids.pop(editor)
+            language = editor.get_language().lower()
+
             if editor_id in self.ordered_editor_ids:
                 self.ordered_editor_ids.remove(editor_id)
+
+            # Remove editor from the list that it's waiting to be updated
+            # because it's not necessary anymore.
+            if (
+                language in self._languages
+                and editor in self.editors_to_update[language]
+            ):
+                self.editors_to_update[language].remove(editor)
+
             if editor_id not in list(self.editor_ids.values()):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
@@ -824,9 +854,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # the interface at startup.
         timer = QTimer(self)
         timer.setSingleShot(True)
-        timer.setInterval(700)
+        timer.setInterval(150)
         timer.timeout.connect(lambda: self.update_editors(language))
         self.update_timers[language] = timer
+        self.starting[language] = True
 
         # Set editors that need to be updated per language
         self.set_editors_to_update(language)
@@ -849,5 +880,31 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def change_visibility(self, is_visible):
         """Actions to take when the widget visibility has changed."""
         self.is_visible = is_visible
+
         if is_visible:
-            self.update_all_editors()
+            # Udpdate outdated trees for all LSP languages
+            for language in self._languages:
+                # Don't run this while trees are being updated after their LSP
+                # started.
+                if not self.starting[language]:
+                    # Check which editors need to be updated
+                    for editor in self.editor_ids.keys():
+                        if (
+                            editor.get_language().lower() == language
+                            and not editor.is_tree_updated
+                            and editor not in self.editors_to_update[language]
+                        ):
+                            self.editors_to_update[language].append(editor)
+
+                    # Update editors
+                    if self.editors_to_update[language]:
+                        logger.debug(
+                            f"Updating outdated trees for {language} files "
+                            f"because the plugin has become visible"
+                        )
+                        self.update_editors(language)
+
+            # Udpdate current tree if it has info available
+            ce = self.current_editor
+            if ce and ce.info and not ce.is_tree_updated:
+                self.update_editor(ce.info, ce)
