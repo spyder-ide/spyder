@@ -292,6 +292,7 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
     code_editor, outlineexplorer = completions_codeeditor_outline
     treewidget = outlineexplorer.treewidget
+    treewidget.is_visible = True
 
     case_info = CASES['text']
     filename = case_info['file']
@@ -411,6 +412,7 @@ def test_empty_file(qtbot, completions_codeeditor_outline):
     """
     code_editor, outlineexplorer = completions_codeeditor_outline
     treewidget = outlineexplorer.treewidget
+    treewidget.is_visible = True
 
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
