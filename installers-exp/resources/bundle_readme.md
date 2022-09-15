@@ -1,49 +1,48 @@
-Welcome to the napari installation contents
+Welcome to the Spyder installation contents
 -------------------------------------------
 
-This is the base installation of napari, a fast n-dimensional image viewer written in Python.
+This is the base installation of Spyder, the Scientific Python Development Environment.
 
-## How do I run napari?
+## How do I run Spyder?
 
 In most cases, you would run it through the platform-specific shortcut we created for your
-convenience. In other words, _not_ through this directory! You should be able to see a
-`napari (x.y.z)` menu item, where `x.y.z` is the installed version.
+convenience. In other words, _not_ through this directory!
 
 * Linux: check your desktop launcher.
 * MacOS: check `~/Applications` or the Launchpad.
 * Windows: check the Start Menu or the Desktop.
 
 We generally recommend using the shortcut because it will pre-activate the `conda` environment for
-you! That said, you can also execute the `napari` executable directly from these locations:
+you! That said, you can also execute the `spyder` executable directly from these locations:
 
 * Linux and macOS: find it under `bin`, next to this file.
 * Windows: navigate to `Scripts`, next to this file.
 
-In unmodified installations, this _should_ be enough to launch `napari`, but sometimes you will
+In unmodified installations, this _should_ be enough to launch `spyder`, but sometimes you will
 need to activate the `conda` environment to ensure all dependencies are importable.
 
-## What does `conda` have to do with `napari`?
+## What does `conda` have to do with `spyder`?
 
-The `napari` installer uses `conda` packages to bundle all its dependencies (Python, qt, etc).
+The Spyder installer uses `conda` packages to bundle all its dependencies (Python, qt, etc).
 This directory is actually a full `conda` installation! If you have used `conda` before, this
 is equivalent to what you usually call the `base` environment.
 
-## Can I modify the `napari` installation?
+## Can I modify the `spyder` installation?
 
 Yes. In practice, you can consider it a `conda` environment. You can even activate it as usual,
 provided you specify the full path to the location, instead of the _name_.
 
 ```
 # macOS
-$ conda activate ~/Library/napari-x.y.z
+$ conda activate ~/Library/spyder-x.y.z
 # Linux
-$ conda activate ~/.local/napari-x.y.z
+$ conda activate ~/.local/spyder-x.y.z
 # Windows
-$ conda activate %LOCALAPPDATA%/napari-x.y.z
+$ conda activate %LOCALAPPDATA%/spyder-x.y.z
 ```
 
 Then you will be able to run `conda` and `pip` as usual. That said, we advise against this advanced
-manipulation. It can render `napari` unusable if not done carefully! You might need to reinstall it
+manipulation. It can render `spyder` unusable if not done carefully! You might need to reinstall it
 in that case.
 
 ## What is `_conda.exe`?
@@ -54,4 +53,4 @@ reinstalling anything. Again, consider this an advanced tool only meant for expe
 
 ## More information
 
-Check our online documentation at https://napari.org/
+Check our online documentation at https://www.spyder-ide.org/

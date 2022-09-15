@@ -239,7 +239,7 @@ def _definitions(version=_version(), extra_specs=None, spy_repo=SPYREPO):
         definitions["default_prefix"] = os.path.join(
             "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
         )
-        definitions["license_file"] = str(resources / "bundle_license.txt")
+        definitions["license_file"] = str(spy_repo / "LICENSE.txt")
         definitions["installer_type"] = "sh"
 
     if MACOS:
