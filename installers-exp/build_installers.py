@@ -133,8 +133,10 @@ def _generate_background_images(installer_type, outpath="resources"):
         clean_these_files.append(output)
 
     if installer_type in ("pkg", "all"):
+        _logo = Image.new("RGBA", logo.size, "WHITE")
+        _logo.paste(logo, mask=logo)
         background = Image.new("RGBA", (1227, 600), (0, 0, 0, 0))
-        background.paste(logo.resize((148, 148)), (95, 418))
+        background.paste(_logo.resize((148, 148)), (95, 418))
         output = Path(outpath, "spyder_1227x600.png")
         background.save(output, format="png")
         clean_these_files.append(output)
@@ -268,7 +270,7 @@ def _definitions(version=_version(), extra_specs=None, spy_repo=SPYREPO):
             {
                 "welcome_image": str(resources / "spyder_164x314.png"),
                 "header_image": str(resources / "spyder_150x57.png"),
-                "icon_image": str(spy_repo / "napari" / "resources" / "icon.ico"),
+                "icon_image": str(resources / "icon.ico"),
                 "register_python_default": False,
                 "default_prefix": os.path.join(
                     "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
@@ -307,7 +309,7 @@ def _constructor(version=_version(), extra_specs=None, spy_repo=SPYREPO):
     Parameters
     ----------
     version: str
-        Version of `napari` to be built. Defaults to the
+        Version of `spyder` to be built. Defaults to the
         one detected by `importlib` from the source code.
     extra_specs: list of str
         Additional packages to be included in the installer.
