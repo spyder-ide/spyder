@@ -1,0 +1,41 @@
+{% set name = "spyder" %}
+{% set version = "5.4.0.dev0" %}
+{% set build = 0 %}
+
+package:
+  name: spyder-menu
+  version: {{ version }}
+
+source:
+  path: /Users/rclary/Documents/Repos/Spyder-IDE/spyder
+
+build:
+  noarch: python
+  number: {{ build }}
+  script:
+    - mkdir -p "${PREFIX}/Menu"
+    - sed "s/__PKG_VERSION__/{{ PKG_VERSION }}/" "{{ SRC_DIR }}/installers-exp/menuinst_config.json" > "{{ PREFIX }}/Menu/spyder-menu.json"
+    - cp "{{ SRC_DIR }}/img_src/spyder.png" "{{ PREFIX }}/Menu/spyder.png"
+    - cp "{{ SRC_DIR }}/img_src/spyder.icns" "{{ PREFIX }}/Menu/spyder.icns"
+    - cp "{{ SRC_DIR }}/img_src/spyder.ico" "{{ PREFIX }}/Menu/spyder.ico"
+
+requirements:
+  build:
+    - sed  # [unix]
+  run:
+    - spyder
+
+# test:
+#   imports:
+#     - spyder
+#   commands:
+#     - test -f ${CONDA_PREFIX}/Menu/spyder-menu.json
+
+about:
+  home: https://www.spyder-ide.org/
+  license: MIT
+  license_file: LICENSE.txt
+  summary: provides menu icons for Spyder
+  description: provides menu icons for Spyder
+  doc_url: https://docs.spyder-ide.org/
+  dev_url: https://github.com/spyder-ide/spyder

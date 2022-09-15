@@ -1,0 +1,8 @@
+name: spy-inst
+channels:
+  - napari/label/bundle_tools
+  - conda-forge
+dependencies:
+  - boa
+  - conda-standalone
+  - constructor

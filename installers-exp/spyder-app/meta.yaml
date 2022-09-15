@@ -1,0 +1,119 @@
+{% set name = "spyder" %}
+{% set version = "5.4.0.dev0" %}
+{% set build = 0 %}
+
+package:
+  name: spyder
+  version: {{ version }}
+
+source:
+  path: /Users/rclary/Documents/Repos/Spyder-IDE/spyder
+
+patches:
+  # See spyder-ide/spyder#8316
+  - osx-zmq.patch
+
+build:
+  number: {{ build }}
+  entry_points:
+    - spyder = spyder.app.start:main
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+  host:
+    - python
+    - pip
+    - setuptools
+  run:
+    - python
+    - applaunchservices >=0.3.0  # [osx]
+    - atomicwrites >=1.2.0
+    - chardet >=2.0.0
+    - cloudpickle >=0.5.0
+    - cookiecutter >=1.6.0
+    - diff-match-patch >=20181111
+    - intervaltree >=3.0.2
+    - ipython >=7.31.1,<8.0.0
+    - jedi >=0.17.2,<0.19.0
+    - jellyfish >=0.7
+    - jsonschema >=3.2.0
+    - keyring >=17.0.0
+    - nbconvert >=4.0
+    - numpydoc >=0.6.0
+    - paramiko >=2.4.0  # [win]
+    - parso >=0.7.0,<0.9.0
+    - pexpect >=4.4.0
+    - pickleshare >=0.4
+    # This is here to work around a bug in mamba
+    - ptyprocess >=0.5  # [win]
+    - psutil >=5.3
+    - pygments >=2.0
+    - pylint >=2.5.0,<3.0
+    - python-lsp-black >=1.2.0
+    - pyls-spyder >=0.4.0
+    - pyqt >=5.6,<5.16
+    - pyqtwebengine <5.16
+    - python.app  # [osx]
+    - python-lsp-server >=1.5.0,<1.6.0
+    - pyxdg >=0.26  # [linux]
+    - pyzmq >=22.1.0
+    - qdarkstyle >=3.0.2,<3.1.0
+    - qstylizer >=0.1.10
+    - qtawesome >=1.0.2
+    - qtconsole >=5.3.2,<5.4.0
+    - qtpy >=2.1.0
+    - rtree >=0.9.7
+    - setuptools >=49.6.0
+    - sphinx >=0.6.6
+    - spyder-kernels >=2.3.3,<2.4.0
+    - textdistance >=4.2.0
+    - three-merge >=0.1.1
+    - watchdog >=0.10.3
+    # This is here to workaround an inconsistency with flake8
+    # See: https://github.com/conda-forge/flake8-feedstock/issues/52
+    - importlib-metadata <4.3  # [py < 38]
+  run_constrained:
+    - menuinst >=1.4.17
+
+# test:
+#   requires:
+#     - pip
+#   commands:
+#     - USER=test spyder -h  # [unix]
+#     - spyder -h  # [win]
+#     # Pip fails when running but the package is installed correctly
+#     - python -m pip check  # [not aarch64]
+#   imports:
+#     - spyder
+
+about:
+  home: https://www.spyder-ide.org/
+  license: MIT
+  license_file: LICENSE.txt
+  summary: The Scientific Python Development Environment
+  description: |
+    Spyder is a powerful scientific environment written in Python, for Python,
+    and designed by and for scientists, engineers and data analysts.
+    It features a unique combination of the advanced editing, analysis,
+    debugging and profiling functionality of a comprehensive development tool
+    with the data exploration, interactive execution, deep inspection and
+    beautiful visualization capabilities of a scientific package.\n
+    Furthermore, Spyder offers built-in integration with many popular
+    scientific packages, including NumPy, SciPy, Pandas, IPython, QtConsole,
+    Matplotlib, SymPy, and more.\n
+    Beyond its many built-in features, Spyder can be extended even further via
+    third-party plugins.\n
+    Spyder can also be used as a PyQt5 extension library, allowing you to build
+    upon its functionality and embed its components, such as the interactive
+    console or advanced editor, in your own software.
+  doc_url: https://docs.spyder-ide.org/
+  dev_url: https://github.com/spyder-ide/spyder
+
+extra:
+  recipe-maintainers:
+    - ccordoba12
+    - dalthviz
+    - andfoy
+    - steff456
