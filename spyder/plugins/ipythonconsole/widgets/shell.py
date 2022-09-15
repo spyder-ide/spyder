@@ -138,7 +138,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For ShellWidget
     sig_focus_changed = Signal()
-    new_client = Signal()
+    sig_new_client = Signal()
     sig_kernel_restarted_message = Signal(str)
 
     # Kernel died and restarted (not user requested)
@@ -218,8 +218,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Connect to kernel."""
         # Kernel client
         kernel_client = kernel.kernel_client
-        kernel_client.stopped_channels.connect(
-            lambda: self.sig_shellwidget_deleted.emit(self))
+        kernel_client.stopped_channels.connect(self.notify_deleted)
         kernel_client.start_channels()
         self.kernel_client = kernel_client
 
@@ -228,6 +227,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Send message to kernel to check status
         self.check_spyder_kernel()
         self.sig_shellwidget_created.emit(self)
+    
+    def notify_deleted(self):
+        """Notify that the shellwidget was deleted."""
+        self.sig_shellwidget_deleted.emit(self)
 
     def shutdown(self, shutdown_kernel=True):
         """Shutdown connection and kernel."""
@@ -759,13 +762,13 @@ the sympy module (e.g. plot)
             parent=self)
 
         new_tab = self.config_shortcut(
-            lambda: self.new_client.emit(),
+            self.sig_new_client,
             context='ipython_console',
             name='new tab',
             parent=self)
 
         reset_namespace = self.config_shortcut(
-            lambda: self._reset_namespace(),
+            self._reset_namespace,
             context='ipython_console',
             name='reset namespace',
             parent=self)
