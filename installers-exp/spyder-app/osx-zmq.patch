@@ -1,0 +1,14 @@
+diff --git a/spyder/app/start.py b/spyder/app/start.py
+index bbeac112a..4883c6c47 100644
+--- a/spyder/app/start.py
++++ b/spyder/app/start.py
+@@ -18,7 +18,8 @@ import time
+ 
+ # To prevent a race condition with ZMQ
+ # See spyder-ide/spyder#5324.
+-import zmq
++if not sys.platform == 'darwin':
++    import zmq
+ 
+ # Load GL library to prevent segmentation faults on some Linux systems
+ # See spyder-ide/spyder#3226 and spyder-ide/spyder#3332.
