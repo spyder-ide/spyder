@@ -218,8 +218,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Connect to kernel."""
         # Kernel client
         kernel_client = kernel.kernel_client
-        kernel_client.stopped_channels.connect(
-            lambda: self.sig_shellwidget_deleted.emit(self))
+        kernel_client.stopped_channels.connect(self.notify_deleted)
         kernel_client.start_channels()
         self.kernel_client = kernel_client
 
@@ -228,6 +227,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Send message to kernel to check status
         self.check_spyder_kernel()
         self.sig_shellwidget_created.emit(self)
+
+    def notify_deleted(self):
+        """Notify that the shellwidget was deleted."""
+        self.sig_shellwidget_deleted.emit(self)
 
     def shutdown(self, shutdown_kernel=True):
         """Shutdown connection and kernel."""
