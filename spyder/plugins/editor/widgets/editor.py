@@ -3063,6 +3063,7 @@ class EditorSplitter(QSplitter):
         if focus_widget is not None:
             focus_widget.setFocus()
 
+    @Slot()
     def editorstack_closed(self):
         try:
             logger.debug("method 'editorstack_closed':")

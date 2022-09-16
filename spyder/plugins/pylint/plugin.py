@@ -201,6 +201,7 @@ class Pylint(SpyderDockablePlugin):
         """
         return self.get_widget().get_filename()
 
+    @Slot()
     def start_code_analysis(self, filename=None):
         """
         Perform code analysis for given `filename`.

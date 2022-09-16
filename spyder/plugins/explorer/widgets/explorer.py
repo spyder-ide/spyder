@@ -1247,6 +1247,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             selected_path = osp.dirname(selected_path)
         return fixpath(selected_path)
 
+    @Slot()
     def new_folder(self, basedir=None):
         """New folder."""
 
@@ -1278,6 +1279,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                       "</b><br><br>Error message:<br>%s"
                       ) % (fname, str(error)))
 
+    @Slot()
     def new_file(self, basedir=None):
         """New file"""
 
@@ -1457,6 +1459,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             else:
                 pass
 
+    @Slot()
     def open_interpreter(self, fnames=None):
         """Open interpreter"""
         if fnames is None:
@@ -1683,6 +1686,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             return
         self.sig_file_created.emit(script)
 
+    @Slot()
     def convert_notebooks(self):
         """Convert IPython notebooks to Python scripts in editor"""
         fnames = self.get_selected_filenames()
@@ -1691,6 +1695,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         for fname in fnames:
             self.convert_notebook(fname)
 
+    @Slot()
     def new_package(self, basedir=None):
         """New package"""
 
@@ -1701,6 +1706,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         subtitle = _('Package name:')
         self.create_new_folder(basedir, title, subtitle, is_package=True)
 
+    @Slot()
     def new_module(self, basedir=None):
         """New module"""
 

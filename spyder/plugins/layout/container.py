@@ -282,6 +282,7 @@ class LayoutContainer(PluginMainContainer):
 
         return self._spyder_layouts[layout_id]
 
+    @Slot()
     def show_save_layout(self):
         """Show the save layout dialog."""
         names = self.get_conf('names')
@@ -341,6 +342,7 @@ class LayoutContainer(PluginMainContainer):
 
             self.update_layout_menu_actions()
 
+    @Slot()
     def show_layout_settings(self):
         """Layout settings dialog."""
         names = self.get_conf('names')

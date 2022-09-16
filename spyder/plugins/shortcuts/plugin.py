@@ -15,7 +15,7 @@ import configparser
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QAction, QShortcut
 
@@ -129,6 +129,7 @@ class Shortcuts(SpyderPluginV2):
         if self._conf:
             self._conf.reset_shortcuts()
 
+    @Slot()
     def show_summary(self):
         """Reset shortcuts."""
         dlg = ShortcutsSummaryDialog(None)

@@ -512,6 +512,7 @@ class ArrayView(QTableView):
             # See isue 7880
             pass
 
+    @Slot()
     def resize_to_contents(self):
         """Resize cells to contents"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -616,6 +617,7 @@ class ArrayEditorWidget(QWidget):
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
 
+    @Slot()
     def change_format(self):
         """Change display format"""
         format, valid = QInputDialog.getText(self, _( 'Format'),

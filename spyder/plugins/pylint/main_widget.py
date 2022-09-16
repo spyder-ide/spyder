@@ -690,6 +690,7 @@ class PylintWidget(PluginMainWidget):
 
         self.filecombo.selected()
 
+    @Slot()
     def start_code_analysis(self, filename=None):
         """
         Perform code analysis for given `filename`.
