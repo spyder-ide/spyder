@@ -170,9 +170,11 @@ class SpyderKernel(IPythonKernel):
         # Keep line for future improvments
         # files_regex = r"File \"([^\"]+)\", line (\d+) in (\S+)"
         text = ""
+        start_idx = 0
         for idx, match in enumerate(re.finditer(thread_regex, fault)):
-            if idx == 0:
-                text += fault[0:match.span()[0]]
+            # Add anything non-matched
+            text += fault[start_idx:match.span()[0]]
+            start_idx = match.span()[1]
             thread_id = int(match.group(2), base=16)
             if thread_id != main_id:
                 if thread_id in ignore_ids:
@@ -190,6 +192,8 @@ class SpyderKernel(IPythonKernel):
                 except StopIteration:
                     end_idx = None
                 text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
+        # Add anything after match
+        text += fault[start_idx:]
         return text
 
     def get_system_threads_id(self):
@@ -966,6 +970,3 @@ class SpyderKernel(IPythonKernel):
         self.shell.register_debugger_sigint()
         # Reset tracing function so that pdb.set_trace works
         sys.settrace(None)
-        # Flush C standard streams.
-        sys.__stderr__.flush()
-        sys.__stdout__.flush()

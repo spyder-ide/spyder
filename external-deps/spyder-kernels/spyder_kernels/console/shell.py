@@ -59,6 +59,9 @@ class SpyderShell(ZMQInteractiveShell):
             sys.executable
         )
 
+        # register post_execute
+        self.events.register('post_execute', self.do_post_execute)
+
     def ask_exit(self):
         """Engage the exit actions."""
         if self.active_eventloop != "inline":
@@ -299,3 +302,9 @@ class SpyderShell(ZMQInteractiveShell):
         debugger._cmd_input_line = line
         # Interrupts eventloop if needed
         self.kernel.interrupt_eventloop()
+    
+    def do_post_execute(self):
+        """Flush __std*__ after execution."""
+        # Flush C standard streams.
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
