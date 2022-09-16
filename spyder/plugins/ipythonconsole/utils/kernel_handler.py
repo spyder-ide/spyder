@@ -292,6 +292,12 @@ class KernelHandler(QObject):
 
     def after_shutdown(self):
         """Cleanup after shutdown"""
+        if self._stdout_thread is not None:
+            self._stdout_thread.wait()
+            self._stdout_thread = None
+        if self._stderr_thread is not None:
+            self._stderr_thread.wait()
+            self._stderr_thread = None
         if self.kernel_comm is not None:
             self.kernel_comm.remove(only_closing=True)
         self.shutdown_thread = None
