@@ -4423,7 +4423,7 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Inspect current object"),
             icon=ima.icon('MessageBoxInformation'),
             shortcut=CONF.get_shortcut('editor', 'inspect current object'),
-            triggered=self.sig_show_object_info.emit)
+            triggered=self.sig_show_object_info)
 
         # Run actions
         self.run_cell_action = create_action(

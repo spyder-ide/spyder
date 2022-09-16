@@ -193,7 +193,7 @@ class EditorStack(QWidget):
     opened_files_list_changed = Signal()
     active_languages_stats = Signal(set)
     todo_results_changed = Signal()
-    update_code_analysis_actions = Signal()
+    sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
     sig_breakpoints_saved = Signal()
@@ -492,13 +492,13 @@ class EditorStack(QWidget):
             parent=self)
 
         new_file = CONF.config_shortcut(
-            lambda: self.sig_new_file[()].emit(),
+            self.sig_new_file[()],
             context='Editor',
             name='New file',
             parent=self)
 
         open_file = CONF.config_shortcut(
-            lambda: self.plugin_load[()].emit(),
+            self.plugin_load[()],
             context='Editor',
             name='Open file',
             parent=self)
@@ -516,7 +516,7 @@ class EditorStack(QWidget):
             parent=self)
 
         save_as = CONF.config_shortcut(
-            lambda: self.sig_save_as.emit(),
+            self.sig_save_as,
             context='Editor',
             name='Save As',
             parent=self)
@@ -528,43 +528,43 @@ class EditorStack(QWidget):
             parent=self)
 
         prev_edit_pos = CONF.config_shortcut(
-            lambda: self.sig_prev_edit_pos.emit(),
+            self.sig_prev_edit_pos,
             context="Editor",
             name="Last edit location",
             parent=self)
 
         prev_cursor = CONF.config_shortcut(
-            lambda: self.sig_prev_cursor.emit(),
+            self.sig_prev_cursor,
             context="Editor",
             name="Previous cursor position",
             parent=self)
 
         next_cursor = CONF.config_shortcut(
-            lambda: self.sig_next_cursor.emit(),
+            self.sig_next_cursor,
             context="Editor",
             name="Next cursor position",
             parent=self)
 
         zoom_in_1 = CONF.config_shortcut(
-            lambda: self.zoom_in.emit(),
+            self.zoom_in,
             context="Editor",
             name="zoom in 1",
             parent=self)
 
         zoom_in_2 = CONF.config_shortcut(
-            lambda: self.zoom_in.emit(),
+            self.zoom_in,
             context="Editor",
             name="zoom in 2",
             parent=self)
 
         zoom_out = CONF.config_shortcut(
-            lambda: self.zoom_out.emit(),
+            self.zoom_out,
             context="Editor",
             name="zoom out",
             parent=self)
 
         zoom_reset = CONF.config_shortcut(
-            lambda: self.zoom_reset.emit(),
+            self.zoom_reset,
             context="Editor",
             name="zoom reset",
             parent=self)
@@ -618,25 +618,25 @@ class EditorStack(QWidget):
             parent=self)
 
         prev_warning = CONF.config_shortcut(
-            lambda: self.sig_prev_warning.emit(),
+            self.sig_prev_warning,
             context="Editor",
             name="Previous warning",
             parent=self)
 
         next_warning = CONF.config_shortcut(
-            lambda: self.sig_next_warning.emit(),
+            self.sig_next_warning,
             context="Editor",
             name="Next warning",
             parent=self)
 
         split_vertically = CONF.config_shortcut(
-            lambda: self.sig_split_vertically.emit(),
+            self.sig_split_vertically,
             context="Editor",
             name="split vertically",
             parent=self)
 
         split_horizontally = CONF.config_shortcut(
-            lambda: self.sig_split_horizontally.emit(),
+            self.sig_split_horizontally,
             context="Editor",
             name="split horizontally",
             parent=self)
@@ -820,7 +820,7 @@ class EditorStack(QWidget):
             self.switcher_manager = EditorSwitcherManager(
                 self.get_plugin(),
                 self.switcher_dlg,
-                lambda: self.get_current_editor(),
+                self.get_current_editor,
                 lambda: self,
                 section=self.get_plugin_title())
 
@@ -1439,7 +1439,7 @@ class EditorStack(QWidget):
             _("Split vertically"),
             icon=ima.icon('versplit'),
             tip=_("Split vertically this editor window"),
-            triggered=lambda: self.sig_split_vertically.emit(),
+            triggered=self.sig_split_vertically,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split vertically'),
             context=Qt.WidgetShortcut)
@@ -1449,7 +1449,7 @@ class EditorStack(QWidget):
             _("Split horizontally"),
             icon=ima.icon('horsplit'),
             tip=_("Split horizontally this editor window"),
-            triggered=lambda: self.sig_split_horizontally.emit(),
+            triggered=self.sig_split_horizontally,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split horizontally'),
             context=Qt.WidgetShortcut)
@@ -1664,7 +1664,7 @@ class EditorStack(QWidget):
             self.sig_close_file.emit(str(id(self)), filename)
 
             self.opened_files_list_changed.emit()
-            self.update_code_analysis_actions.emit()
+            self.sig_update_code_analysis_actions.emit()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
 
@@ -2407,7 +2407,7 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_outlineexplorer(index, update=False)
-            self.update_code_analysis_actions.emit()
+            self.sig_update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
@@ -2512,8 +2512,7 @@ class EditorStack(QWidget):
         self.add_to_data(finfo, set_current, add_where)
         finfo.sig_send_to_help.connect(self.send_to_help)
         finfo.sig_show_object_info.connect(self.inspect_current_object)
-        finfo.todo_results_changed.connect(
-            lambda: self.todo_results_changed.emit())
+        finfo.todo_results_changed.connect(self.todo_results_changed)
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
@@ -2528,7 +2527,7 @@ class EditorStack(QWidget):
         editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
-            lambda: self.update_code_analysis_actions.emit())
+            self.sig_update_code_analysis_actions)
         editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
         language = get_file_language(fname, txt)
         editor.setup_editor(
@@ -2599,9 +2598,9 @@ class EditorStack(QWidget):
             lambda state: self.modification_changed(
                 state, editor_id=id(editor)))
         editor.focus_in.connect(self.focus_changed)
-        editor.zoom_in.connect(lambda: self.zoom_in.emit())
-        editor.zoom_out.connect(lambda: self.zoom_out.emit())
-        editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
+        editor.zoom_in.connect(self.zoom_in)
+        editor.zoom_out.connect(self.zoom_out)
+        editor.zoom_reset.connect(self.zoom_reset)
         editor.sig_eol_chars_changed.connect(
             lambda eol_chars: self.refresh_eol_chars(eol_chars))
         editor.sig_next_cursor.connect(self.sig_next_cursor)
@@ -3037,7 +3036,7 @@ class EditorSplitter(QSplitter):
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
-        self.editorstack.destroyed.connect(lambda: self.editorstack_closed())
+        self.editorstack.destroyed.connect(self.editorstack_closed)
         self.editorstack.sig_split_vertically.connect(
                      lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(

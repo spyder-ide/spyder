@@ -1840,7 +1840,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         control = shellwidget._control
 
         # Create new clients with Ctrl+T shortcut
-        shellwidget.new_client.connect(self.create_new_client)
+        shellwidget.sig_new_client.connect(self.create_new_client)
 
         # For tracebacks
         control.sig_go_to_error_requested.connect(self.go_to_error)

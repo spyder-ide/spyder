@@ -124,14 +124,14 @@ class LayoutContainer(PluginMainContainer):
         self._save_layout_action = self.create_action(
             LayoutContainerActions.SaveLayoutAction,
             _("Save current layout"),
-            triggered=lambda: self.show_save_layout(),
+            triggered=self.show_save_layout,
             context=Qt.ApplicationShortcut,
             register_shortcut=False,
         )
         self._show_preferences_action = self.create_action(
             LayoutContainerActions.ShowLayoutPreferencesAction,
             text=_("Layout preferences"),
-            triggered=lambda: self.show_layout_settings(),
+            triggered=self.show_layout_settings,
             context=Qt.ApplicationShortcut,
             register_shortcut=False,
         )

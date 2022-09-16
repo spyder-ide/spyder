@@ -337,7 +337,7 @@ class FileAssociationsWidget(QWidget):
         self.setLayout(layout)
 
         # Signals
-        self.button_add.clicked.connect(lambda: self.add_association())
+        self.button_add.clicked.connect(self.add_association)
         self.button_remove.clicked.connect(self.remove_association)
         self.button_edit.clicked.connect(self.edit_association)
         self.button_add_application.clicked.connect(self.add_application)

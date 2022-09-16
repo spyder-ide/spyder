@@ -500,7 +500,7 @@ class PylintWidget(PluginMainWidget):
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
-            triggered=lambda: self.sig_start_analysis_requested.emit(),
+            triggered=self.sig_start_analysis_requested,
         )
         self.browse_action = self.create_action(
             PylintWidgetActions.BrowseFile,

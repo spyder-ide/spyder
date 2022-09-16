@@ -801,12 +801,11 @@ class ArrayEditor(BaseDialog):
         # disable format button for int type
         btn_format.setEnabled(is_float(self.arraywidget.data.dtype))
         btn_layout_bottom.addWidget(btn_format)
-        btn_format.clicked.connect(lambda: self.arraywidget.change_format())
+        btn_format.clicked.connect(self.arraywidget.change_format)
 
         btn_resize = QPushButton(_("Resize"))
         btn_layout_bottom.addWidget(btn_resize)
-        btn_resize.clicked.connect(
-            lambda: self.arraywidget.view.resize_to_contents())
+        btn_resize.clicked.connect(self.arraywidget.view.resize_to_contents)
 
         self.bgcolor = QCheckBox(_('Background color'))
         self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)

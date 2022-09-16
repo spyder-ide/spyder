@@ -77,7 +77,7 @@ class Shortcuts(SpyderPluginV2):
         self.create_action(
             ShortcutActions.ShortcutSummaryAction,
             text=_("Shortcuts Summary"),
-            triggered=lambda: self.show_summary(),
+            triggered=self.show_summary,
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
         )
