@@ -194,10 +194,6 @@ def _spyder_env(
         # "channels": same as _base_env(), omit to inherit :)
         "specs": [
             f"spyder={spyder_version}",
-            f"spyder-menu={spyder_version}",
-            # "conda",
-            # "mamba",
-            # "pip",
         ]
         + (extra_specs or []),
         # "exclude": exclude, # TODO: not supported yet in constructor
@@ -226,7 +222,7 @@ def _definitions(version=_version(), extra_specs=None, spy_repo=SPYREPO):
             },
         },
         "menu_packages": [
-            "spyder-menu",
+            "spyder",
         ],
         "extra_files": {
             str(resources / "bundle_readme.md"): "README.txt",
