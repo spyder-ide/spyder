@@ -365,12 +365,15 @@ class PylintWidget(PluginMainWidget):
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
 
-        # Needed due to changes in Pylint 2.14.0
-        # See spyder-ide/spyder#18175
         if os.name == 'nt':
+            # Needed due to changes in Pylint 2.14.0
+            # See spyder-ide/spyder#18175
             home_dir = get_home_dir()
             user_profile = os.environ.get("USERPROFILE", home_dir)
             processEnvironment.insert("USERPROFILE", user_profile)
+            # Needed for Windows installations using standalone Python and pip.
+            # See spyder-ide/spyder#19385
+            processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
 
         # resolve spyder-ide/spyder#14262
         if running_in_mac_app():
