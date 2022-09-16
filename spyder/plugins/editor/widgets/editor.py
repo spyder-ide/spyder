@@ -879,13 +879,15 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.add_bookmark(slot_num)
 
-    def inspect_current_object(self, pos=None):
+    @Slot()
+    @Slot(bool)
+    def inspect_current_object(self, clicked=False):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
         cursor = None
         offset = editor.get_position('cursor')
-        if pos:
+        if clicked:
             cursor = editor.get_last_hover_cursor()
             if cursor:
                 offset = cursor.position()
@@ -894,7 +896,7 @@ class EditorStack(QWidget):
 
         line, col = editor.get_cursor_line_column(cursor)
         editor.request_hover(line, col, offset,
-                             show_hint=False, clicked=bool(pos))
+                             show_hint=False, clicked=clicked)
 
     @Slot(str, bool)
     def display_help(self, help_text, clicked):
