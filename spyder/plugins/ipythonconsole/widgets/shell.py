@@ -227,7 +227,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Send message to kernel to check status
         self.check_spyder_kernel()
         self.sig_shellwidget_created.emit(self)
-    
+
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""
         self.sig_shellwidget_deleted.emit(self)

@@ -109,14 +109,14 @@ class KernelHandler(QObject):
             self._stderr_thread = StdThread(self, stderr)
             self._stderr_thread.sig_out.connect(self.sig_stderr)
             self._stderr_thread.start()
-    
+
     def disconnect_std_pipes(self):
         """Disconnect old std pipes."""
         if self._stdout_thread:
             self._stdout_thread.sig_out.disconnect(self.sig_stdout)
         if self._stderr_thread:
             self._stderr_thread.sig_out.disconnect(self.sig_stderr)
-    
+
     def close_std_threads(self):
         """Close std threads."""
         if self._stdout_thread is not None:
@@ -280,7 +280,7 @@ class KernelHandler(QObject):
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
             km.stop_restarter()
-            
+
             self.disconnect_std_pipes()
 
             if now:
