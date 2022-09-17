@@ -1642,7 +1642,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     qtbot.wait(1000)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
-    
+
     with qtbot.waitSignal(shell.executed):
         shell.execute(
             '"value = " + str(get_ipython().pdb_session.pdb_ignore_lib)')

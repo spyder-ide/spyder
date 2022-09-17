@@ -1341,7 +1341,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         related_clients = []
         for cl in self.clients:
             if connection_file in cl.connection_file:
-                if (cl.kernel_handler is not None and
+                if (
+                    cl.kernel_handler is not None and
                     hostname == cl.kernel_handler.hostname and
                     sshkey == cl.kernel_handler.sshkey and
                     password == cl.kernel_handler.password
