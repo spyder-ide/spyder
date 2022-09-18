@@ -238,6 +238,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.close_action = None
         self._toolbars_already_rendered = False
         self._is_maximized = False
+        self._was_undocked = False
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
@@ -775,7 +776,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         window.show()
 
     @Slot()
-    def close_window(self, save_undocked=False):
+    def close_window(self, save_undocked=False, switch_to_plugin=True):
         """
         Close QMainWindow instance that contains this widget.
 
@@ -783,6 +784,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         ----------
         save_undocked : bool, optional
             True if the undocked state needs to be saved. The default is False.
+        switch_to_plugin : bool, optional
+            Whether to switch to the plugin after closing the window. The
+            default is True.
 
         Returns
         -------
@@ -812,7 +816,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
             if self.dockwidget is not None:
                 self.sig_update_ancestor_requested.emit()
-                self.get_plugin().switch_to_plugin()
+                if switch_to_plugin:
+                    # This is necessary to restore the main window layout when
+                    # there's a maximized plugin on it before docking back this
+                    # plugin.
+                    self.get_plugin().switch_to_plugin()
                 self.dockwidget.setWidget(self)
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
@@ -872,15 +880,38 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         if not self.dockwidget:
             return
 
-        # Dock plugin if it's undocked before hiding it.
-        if self.windowwidget is not None:
-            self.close_window(save_undocked=True)
+        # To check if the plugin needs to be undocked at the end
+        undock = False
 
         if checked:
             self.dockwidget.show()
             self.dockwidget.raise_()
             self.is_visible = True
+
+            # We need to undock the plugin if that was its state before
+            # toggling its visibility.
+            if (
+                # Don't run this while the window is being created to not
+                # affect setting up the layout at startup.
+                not self._plugin.main.is_setting_up
+                and self._was_undocked
+            ):
+                undock = True
         else:
+            if self.windowwidget is not None:
+                # This avoids trying to close the window twice: once when
+                # calling close_window below and the other when Qt calls the
+                # closeEvent of windowwidget
+                self.windowwidget.blockSignals(True)
+
+                # Dock plugin if it's undocked before hiding it.
+                self.close_window(switch_to_plugin=False)
+
+                # Save undocked state to restore it afterwards.
+                self._was_undocked = True
+            else:
+                self._was_undocked = False
+
             self.dockwidget.hide()
             self.is_visible = False
 
@@ -891,6 +922,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             self.blockSignals(False)
 
         self.sig_toggle_view_changed.emit(checked)
+
+        if undock:
+            # We undock the plugin at this point so that the View menu is
+            # updated correctly.
+            self.create_window()
 
     def create_dockwidget(self, mainwindow):
         """
