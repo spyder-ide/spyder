@@ -34,11 +34,11 @@ _ = get_translation('spyder')
 
 # --- Constants
 # ----------------------------------------------------------------------------
-COLUMN_COUNT = 4
+COLUMN_COUNT = 3
 EXTRA_COLUMNS = 1
-COL_FILE, COL_LINE, COL_CONDITION, COL_BLANK, COL_FULL = list(
+COL_FILE, COL_LINE, COL_CONDITION, COL_FULL = list(
     range(COLUMN_COUNT + EXTRA_COLUMNS))
-COLUMN_HEADERS = (_("File"), _("Line"), _("Condition"), (""))
+COLUMN_HEADERS = (_("File"), _("Line"), _("Condition"))
 
 
 class BreakpointTableViewActions:
@@ -85,7 +85,7 @@ class BreakpointTableModel(QAbstractTableModel):
             for item in data[key]:
                 # Store full file name in last position, which is not shown
                 self.breakpoints.append((disambiguate_fname(files, key),
-                                         item[0], item[1], "", key))
+                                         item[0], item[1], key))
         self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
@@ -110,8 +110,6 @@ class BreakpointTableModel(QAbstractTableModel):
         elif column == COL_LINE:
             pass
         elif column == COL_CONDITION:
-            pass
-        elif column == COL_BLANK:
             pass
 
         self.reset()
@@ -201,6 +199,7 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         self.adjust_columns()
         self.columnAt(0)
         self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().hide()
 
     # --- SpyderWidgetMixin API
     # ------------------------------------------------------------------------

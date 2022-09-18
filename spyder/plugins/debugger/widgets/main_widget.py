@@ -13,7 +13,7 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QHBoxLayout
+from qtpy.QtWidgets import QHBoxLayout, QSplitter
 
 # Local imports
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
@@ -181,7 +181,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent)
+        super().__init__(name, plugin, parent, set_layout=False)
 
         # Widgets
         self.context_menu = None
@@ -189,11 +189,19 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.breakpoints_table = BreakpointTableView(self, {})
 
         # Layout
+        # Create the layout.
+        self.splitter = splitter = QSplitter()
+        splitter.addWidget(self._stack)
+        splitter.addWidget(self.breakpoints_table)
+        splitter.setContentsMargins(0, 0, 0, 0)
+        
         layout = QHBoxLayout()
-        layout.addWidget(self._stack)
-        layout.addWidget(self.breakpoints_table)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(splitter)
         self.setLayout(layout)
-        self.breakpoints_table.hide()
+        self.breakpoints_table.setVisible(
+            self.get_conf('breakpoints_table_visible'))
 
         # Signals
         bpt = self.breakpoints_table
@@ -690,7 +698,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         breakpoints_dict = self.get_conf(
             "breakpoints",
             default={},
-            section='debugger',
         )
         for filename in list(breakpoints_dict.keys()):
             if not osp.isfile(filename):
@@ -725,6 +732,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def list_breakpoints(self):
         """Show breakpoints state and switch to plugin."""
+        self.set_conf('breakpoints_table_visible', True)
         self.breakpoints_table.show()
         self.sig_switch_to_plugin_requested.emit()
 
@@ -732,5 +740,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         """Show and hide breakpoints pannel."""
         if self.breakpoints_table.isVisible():
             self.breakpoints_table.hide()
+            self.set_conf('breakpoints_table_visible', False)
         else:
             self.breakpoints_table.show()
+            self.set_conf('breakpoints_table_visible', True)

@@ -32,19 +32,20 @@ class ShellConnectMainWidget(PluginMainWidget):
     * The current widget in the stack will display the content associated to
       the console with focus.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, set_layout=True, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Widgets
         self._stack = QStackedWidget(self)
         self._shellwidgets = {}
 
-        # Layout
-        layout = QVBoxLayout()
-        layout.setSpacing(0)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._stack)
-        self.setLayout(layout)
+        if set_layout:
+            # Layout
+            layout = QVBoxLayout()
+            layout.setSpacing(0)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self._stack)
+            self.setLayout(layout)
 
     def update_style(self):
         self._stack.setStyleSheet("QStackedWidget {padding: 0px; border: 0px}")
