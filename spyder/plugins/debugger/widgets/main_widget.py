@@ -140,11 +140,11 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
-    
+
     sig_clear_breakpoint = Signal(str, int)
     """
     Clear Single breakpoint.
-    
+
     Parameters
     ----------
     filename: str
@@ -174,7 +174,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     line_number: int
         The line number the debugger stepped in
     """
-    
+
     sig_switch_to_plugin_requested = Signal()
     """
     This signal will request to change the focus to the plugin.
@@ -216,7 +216,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def setup(self):
         """Setup the widget."""
-        
+
         self.breakpoints_table.setup()
         self.set_data()
 
@@ -362,14 +362,14 @@ class DebuggerWidget(ShellConnectMainWidget):
             tip=_("Clear breakpoints in all files"),
             triggered=self.sig_clear_all_breakpoints
         )
-        
+
         self.create_action(
             DebuggerBreakpointActions.ShowBreakpointsTable,
             _("List breakpoints"),
             triggered=self.list_breakpoints,
             icon=self.create_icon('dictedit'),
         )
-        
+
         toggle_breakpoints_action = self.create_action(
             DebuggerBreakpointActions.ToggleBreakpointsTable,
             _("Toggle breakpoints table"),
@@ -471,7 +471,7 @@ class DebuggerWidget(ShellConnectMainWidget):
                 DebuggerWidgetActions.Stop]:
             action = self.get_action(action_name)
             action.setEnabled(pdb_prompt)
-        
+
         rows = self.breakpoints_table.selectionModel().selectedRows()
         c_row = rows[0] if rows else None
 
@@ -682,7 +682,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         focus_to_editor = self.get_conf("focus_to_editor", section="editor")
         widget.shellwidget.pdb_execute_command(
             command, focus_to_editor=focus_to_editor)
-    
+
     def _load_data(self):
         """
         Load breakpoint data from configuration file.
@@ -722,12 +722,12 @@ class DebuggerWidget(ShellConnectMainWidget):
         if data is None:
             data = self._load_data()
         self.breakpoints_table.set_data(data)
-    
+
     def list_breakpoints(self):
         """Show breakpoints state and switch to plugin."""
         self.breakpoints_table.show()
         self.sig_switch_to_plugin_requested.emit()
-        
+
     def toggle_breakpoints_table(self):
         """Show and hide breakpoints pannel."""
         if self.breakpoints_table.isVisible():
