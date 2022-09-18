@@ -376,7 +376,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         )
         self.lock_unlock_action = self.create_action(
             name=PluginMainWidgetActions.LockUnlockPosition,
-            text=_("Unlock position"),
+            text=_("Move to another position"),
             tip=_("Unlock to move pane to another position"),
             icon=self.create_icon('drag_dock_widget'),
             triggered=self.lock_unlock_position,
@@ -465,7 +465,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 method = getattr(self.lock_unlock_action, method_name)
                 method(_("Lock pane to the current position"))
         else:
-            self.lock_unlock_action.setText(_('Unlock position'))
+            self.lock_unlock_action.setText(_('Move to another position'))
             self.lock_unlock_action.setIcon(
                 self.create_icon('drag_dock_widget'))
             for method_name in ['setToolTip', 'setStatusTip']:

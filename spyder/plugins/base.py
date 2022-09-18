@@ -202,7 +202,7 @@ class BasePluginWidgetMixin(object):
 
         self._lock_unlock_action = create_action(
             self,
-            text=_("Unlock position"),
+            text=_("Move to another position"),
             tip=_("Unlock to move pane to another position"),
             icon=ima.icon('drag_dock_widget'),
             triggered=self._lock_unlock_position,
@@ -494,7 +494,7 @@ class BasePluginWidgetMixin(object):
                 method = getattr(self._lock_unlock_action, method_name)
                 method(_("Lock pane to the current position"))
         else:
-            self._lock_unlock_action.setText(_('Unlock position'))
+            self._lock_unlock_action.setText(_('Move to another position'))
             self._lock_unlock_action.setIcon(ima.icon('drag_dock_widget'))
             for method_name in ['setToolTip', 'setStatusTip']:
                 method = getattr(self._lock_unlock_action, method_name)
