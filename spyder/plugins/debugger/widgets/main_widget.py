@@ -8,8 +8,12 @@
 Debugger Main Plugin Widget.
 """
 
+# Standard library imports
+import os.path as osp
+
 # Third party imports
 from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QHBoxLayout
 
 # Local imports
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
@@ -18,6 +22,8 @@ from spyder.config.manager import CONF
 from spyder.config.gui import get_color_scheme
 from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
+from spyder.plugins.debugger.widgets.breakpoint_table_view import (
+    BreakpointTableView, BreakpointTableViewActions)
 
 # Localization
 _ = get_translation('spyder')
@@ -53,6 +59,8 @@ class DebuggerBreakpointActions:
     ToggleBreakpoint = 'toggle breakpoint'
     ToggleConditionalBreakpoint = 'toggle conditional breakpoint'
     ClearAllBreakpoints = 'clear all breakpoints'
+    ShowBreakpointsTable = 'show breakpoint table'
+    ToggleBreakpointsTable = 'toggle breakpoint table'
 
 
 class DebuggerWidgetOptionsMenuSections:
@@ -132,6 +140,18 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     sig_clear_all_breakpoints = Signal()
     """Clear all breakpoints in all files."""
+    
+    sig_clear_breakpoint = Signal(str, int)
+    """
+    Clear Single breakpoint.
+    
+    Parameters
+    ----------
+    filename: str
+        The filename
+    line_number: int
+        The line number
+    """
 
     sig_pdb_state_changed = Signal(bool)
     """
@@ -154,6 +174,11 @@ class DebuggerWidget(ShellConnectMainWidget):
     line_number: int
         The line number the debugger stepped in
     """
+    
+    sig_switch_to_plugin_requested = Signal()
+    """
+    This signal will request to change the focus to the plugin.
+    """
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -161,6 +186,25 @@ class DebuggerWidget(ShellConnectMainWidget):
         # Widgets
         self.context_menu = None
         self.empty_context_menu = None
+        self.breakpoints_table = BreakpointTableView(self, {})
+
+        # Layout
+        layout = QHBoxLayout()
+        layout.addWidget(self._stack)
+        layout.addWidget(self.breakpoints_table)
+        self.setLayout(layout)
+        self.breakpoints_table.hide()
+
+        # Signals
+        bpt = self.breakpoints_table
+        bpt.sig_clear_all_breakpoints_requested.connect(
+            self.sig_clear_all_breakpoints)
+        bpt.sig_clear_breakpoint_requested.connect(
+            self.sig_clear_breakpoint)
+        bpt.sig_edit_goto_requested.connect(self.sig_edit_goto)
+        bpt.sig_conditional_breakpoint_requested.connect(
+            self.sig_toggle_conditional_breakpoints)
+        self.sig_breakpoints_saved.connect(self.set_data)
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -172,6 +216,10 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def setup(self):
         """Setup the widget."""
+        
+        self.breakpoints_table.setup()
+        self.set_data()
+
         # ---- Options menu actions
         exclude_internal_action = self.create_action(
             DebuggerWidgetActions.ToggleExcludeInternal,
@@ -314,6 +362,20 @@ class DebuggerWidget(ShellConnectMainWidget):
             tip=_("Clear breakpoints in all files"),
             triggered=self.sig_clear_all_breakpoints
         )
+        
+        self.create_action(
+            DebuggerBreakpointActions.ShowBreakpointsTable,
+            _("List breakpoints"),
+            triggered=self.list_breakpoints,
+            icon=self.create_icon('dictedit'),
+        )
+        
+        toggle_breakpoints_action = self.create_action(
+            DebuggerBreakpointActions.ToggleBreakpointsTable,
+            _("Toggle breakpoints table"),
+            triggered=self.toggle_breakpoints_table,
+            icon=self.create_icon('view_split_vertical'),
+        )
 
         # ---- Context menu actions
         self.view_locals_action = self.create_action(
@@ -344,7 +406,9 @@ class DebuggerWidget(ShellConnectMainWidget):
                      stop_action,
                      enter_debug_action,
                      inspect_action,
-                     search_action]:
+                     search_action,
+                     toggle_breakpoints_action,
+                     ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -407,6 +471,18 @@ class DebuggerWidget(ShellConnectMainWidget):
                 DebuggerWidgetActions.Stop]:
             action = self.get_action(action_name)
             action.setEnabled(pdb_prompt)
+        
+        rows = self.breakpoints_table.selectionModel().selectedRows()
+        c_row = rows[0] if rows else None
+
+        enabled = (bool(self.breakpoints_table.model.breakpoints)
+                   and c_row is not None)
+        clear_action = self.get_action(
+            BreakpointTableViewActions.ClearBreakpoint)
+        edit_action = self.get_action(
+            BreakpointTableViewActions.EditBreakpoint)
+        clear_action.setEnabled(enabled)
+        edit_action.setEnabled(enabled)
 
     # ---- ShellConnectMainWidget API
     # ------------------------------------------------------------------------
@@ -606,3 +682,55 @@ class DebuggerWidget(ShellConnectMainWidget):
         focus_to_editor = self.get_conf("focus_to_editor", section="editor")
         widget.shellwidget.pdb_execute_command(
             command, focus_to_editor=focus_to_editor)
+    
+    def _load_data(self):
+        """
+        Load breakpoint data from configuration file.
+        """
+        breakpoints_dict = self.get_conf(
+            "breakpoints",
+            default={},
+            section='debugger',
+        )
+        for filename in list(breakpoints_dict.keys()):
+            if not osp.isfile(filename):
+                breakpoints_dict.pop(filename)
+                continue
+            # Make sure we don't have the same file under different names
+            new_filename = osp.normcase(filename)
+            if new_filename != filename:
+                bp = breakpoints_dict.pop(filename)
+                if new_filename in breakpoints_dict:
+                    breakpoints_dict[new_filename].extend(bp)
+                else:
+                    breakpoints_dict[new_filename] = bp
+
+        return breakpoints_dict
+
+    # --- Public API
+    # ------------------------------------------------------------------------
+    def set_data(self, data=None):
+        """
+        Set breakpoint data on widget.
+
+        Parameters
+        ----------
+        data: dict, optional
+            Breakpoint data to use. If None, data from the configuration
+            will be loaded. Default is None.
+        """
+        if data is None:
+            data = self._load_data()
+        self.breakpoints_table.set_data(data)
+    
+    def list_breakpoints(self):
+        """Show breakpoints state and switch to plugin."""
+        self.breakpoints_table.show()
+        self.sig_switch_to_plugin_requested.emit()
+        
+    def toggle_breakpoints_table(self):
+        """Show and hide breakpoints pannel."""
+        if self.breakpoints_table.isVisible():
+            self.breakpoints_table.hide()
+        else:
+            self.breakpoints_table.show()

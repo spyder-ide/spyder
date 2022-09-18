@@ -130,6 +130,7 @@ class IconManager():
             'filesaveas':              [('mdi.content-save-edit',), {'color': self.MAIN_FG_COLOR}],
             'print':                   [('mdi.printer',), {'color': self.MAIN_FG_COLOR}],
             'fileclose':               [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
+            'view_split_vertical':     [('mdi.view-split-vertical',), {'color': self.MAIN_FG_COLOR}],
             'breakpoint_transparent':  [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.COLOR_ERROR_1, 'opacity': 0.75, 'scale_factor': 0.9}],
             'breakpoint_big':          [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9} ],
             'breakpoint_cond_big':     [('mdi.help-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9},],

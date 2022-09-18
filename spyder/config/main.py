@@ -330,10 +330,6 @@ DEFAULTS = [
               'exclude_case_sensitive': False,
               'max_results': 1000,
               }),
-            ('breakpoints',
-             {
-              'enable': True,
-              }),
             ('completions',
              {
                'enable': True,
@@ -531,6 +527,7 @@ DEFAULTS = [
               'debugger/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
+              'debugger/show breakpoint table': "",
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',

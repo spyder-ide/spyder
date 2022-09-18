@@ -890,7 +890,7 @@ class Layout(SpyderPluginV2):
         order = ['editor', 'ipython_console', 'variable_explorer',
                  'debugger', 'help', 'plots', None, 'explorer',
                  'outline_explorer', 'project_explorer', 'find_in_files', None,
-                 'historylog', 'profiler', 'breakpoints', 'pylint', None,
+                 'historylog', 'profiler', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
 
         for plugin in self.get_dockable_plugins():

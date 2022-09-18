@@ -14,7 +14,6 @@ class Plugins:
     All = "all"   # Wildcard to populate REQUIRES with all available plugins
     Appearance = 'appearance'
     Application = 'application'
-    Breakpoints = 'breakpoints'
     Completions = 'completions'
     Console = 'internal_console'
     Debugger = 'debugger'
