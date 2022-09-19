@@ -30,13 +30,13 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_home_dir, running_under_pytest)
+from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
     KernelConnectionDialog, PageControlWidget)
-from spyder.plugins.ipythonconsole.utils.kernel_handler import (
-    CachedKernelMixin, KernelHandler)
+from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
