@@ -3,7 +3,8 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-"""Kernel connection manager."""
+
+"""Kernel handler."""
 
 # Standard library imports
 import os
@@ -40,7 +41,10 @@ else:
 
 
 class KernelHandler:
-    """A class to store kernel connection informations."""
+    """
+    A class to handle the kernel in several ways and store kernel connection
+    information.
+    """
 
     def __init__(
         self,

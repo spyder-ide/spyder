@@ -10,8 +10,7 @@ import atexit
 import os
 
 from qtpy.QtWidgets import QApplication, QMessageBox
-if not os.name == 'nt':
-    import pexpect
+import pexpect
 
 from spyder.config.base import _
 

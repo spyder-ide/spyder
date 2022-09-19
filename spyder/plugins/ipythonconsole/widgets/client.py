@@ -188,6 +188,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # an error occured during startup, but after the prompt was sent
             return
         self.start_successful = True
+
         # To hide the loading page
         self._hide_loading_page()
 
@@ -383,14 +384,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.std_poll_timer.start()
         self.shellwidget.executed.connect(self.poll_std_file_change)
 
-    def connect_kernel(self, kernel):
-        """Connect kernel to client."""
+    def connect_kernel(self, kernel_handler):
+        """Connect kernel to client using our handler."""
         self._before_prompt_is_ready()
-        self.kernel_handler = kernel
-        if kernel.stderr_obj is not None or kernel.stdout_obj is not None:
+        self.kernel_handler = kernel_handler
+        if (
+            kernel_handler.stderr_obj is not None
+            or kernel_handler.stdout_obj is not None
+        ):
             self.start_std_poll()
+        
         # Actually do the connection
-        self.shellwidget.connect_kernel(kernel)
+        self.shellwidget.connect_kernel(kernel_handler)
 
     def remove_std_files(self, is_last_client=True):
         """Remove stderr_file associated with the client."""
