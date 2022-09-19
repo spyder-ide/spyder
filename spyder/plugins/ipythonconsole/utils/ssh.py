@@ -9,9 +9,8 @@
 import atexit
 import os
 
-from qtpy.QtWidgets import QMessageBox
-if not os.name == 'nt':
-    import pexpect
+from qtpy.QtWidgets import QApplication, QMessageBox
+import pexpect
 
 from spyder.config.base import _
 
@@ -20,7 +19,7 @@ def _stop_tunnel(cmd):
     pexpect.run(cmd)
 
 
-def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
+def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1',
                    keyfile=None, password=None, timeout=0.4):
     """
     We decided to replace pyzmq's openssh_tunnel method to work around
@@ -68,7 +67,8 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
                 question = _("The authenticity of host <b>%s</b> can't be "
                              "established. Are you sure you want to continue "
                              "connecting?") % host
-                reply = QMessageBox.question(self, _('Warning'), question,
+                reply = QMessageBox.question(QApplication.activeWindow(),
+                                             _('Warning'), question,
                                              QMessageBox.Yes | QMessageBox.No,
                                              QMessageBox.No)
                 if reply == QMessageBox.Yes:

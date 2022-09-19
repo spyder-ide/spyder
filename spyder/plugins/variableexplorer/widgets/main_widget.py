@@ -412,44 +412,29 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def create_new_widget(self, shellwidget):
         """Create new NamespaceBrowser."""
         nsb = NamespaceBrowser(self)
-        nsb.sig_hide_finder_requested.connect(
-            self.hide_finder)
-        nsb.sig_free_memory_requested.connect(
-            self.free_memory)
-        nsb.sig_start_spinner_requested.connect(
-            self.start_spinner)
-        nsb.sig_stop_spinner_requested.connect(
-            self.stop_spinner)
+        nsb.sig_hide_finder_requested.connect(self.hide_finder)
+        nsb.sig_free_memory_requested.connect(self.free_memory)
+        nsb.sig_start_spinner_requested.connect(self.start_spinner)
+        nsb.sig_stop_spinner_requested.connect(self.stop_spinner)
         nsb.set_shellwidget(shellwidget)
         nsb.setup()
         self._set_actions_and_menus(nsb)
 
         # To update the Variable Explorer after execution
-        shellwidget.executed.connect(
-            nsb.refresh_namespacebrowser)
-        shellwidget.sig_kernel_started.connect(
-            nsb.on_kernel_started)
-        shellwidget.sig_kernel_reset.connect(
-            nsb.on_kernel_started)
-
+        shellwidget.executed.connect(nsb.refresh_namespacebrowser)
+        shellwidget.sig_config_kernel_requested.connect(nsb.setup_kernel)
         return nsb
 
     def close_widget(self, nsb):
         """Close NamespaceBrowser."""
-        nsb.sig_hide_finder_requested.disconnect(
-            self.hide_finder)
-        nsb.sig_free_memory_requested.disconnect(
-            self.free_memory)
-        nsb.sig_start_spinner_requested.disconnect(
-            self.start_spinner)
-        nsb.sig_stop_spinner_requested.disconnect(
-            self.stop_spinner)
-        nsb.shellwidget.executed.disconnect(
-            nsb.refresh_namespacebrowser)
-        nsb.shellwidget.sig_kernel_started.disconnect(
-            nsb.on_kernel_started)
-        nsb.shellwidget.sig_kernel_reset.disconnect(
-            nsb.on_kernel_started)
+        nsb.sig_hide_finder_requested.disconnect(self.hide_finder)
+        nsb.sig_free_memory_requested.disconnect(self.free_memory)
+        nsb.sig_start_spinner_requested.disconnect(self.start_spinner)
+        nsb.sig_stop_spinner_requested.disconnect(self.stop_spinner)
+        nsb.shellwidget.executed.disconnect(nsb.refresh_namespacebrowser)
+        nsb.shellwidget.sig_config_kernel_requested.disconnect(
+            nsb.setup_kernel)
+
         nsb.close()
         nsb.setParent(None)
 
