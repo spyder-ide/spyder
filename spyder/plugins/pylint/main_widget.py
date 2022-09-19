@@ -31,7 +31,8 @@ from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import get_conf_path, running_in_mac_app
+from spyder.config.base import get_conf_path, is_pynsist, running_in_mac_app
+from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
@@ -373,7 +374,8 @@ class PylintWidget(PluginMainWidget):
             processEnvironment.insert("USERPROFILE", user_profile)
             # Needed for Windows installations using standalone Python and pip.
             # See spyder-ide/spyder#19385
-            processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
+            if not is_pynsist() and not is_anaconda():
+                processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
 
         # resolve spyder-ide/spyder#14262
         if running_in_mac_app():
