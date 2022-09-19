@@ -158,7 +158,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # Request plugins to send additional configuration to the kernel
     sig_config_kernel_requested = Signal()
 
-    # To notify of kernel connection / deconnection
+    # To notify of kernel connection / disconnection
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
 
@@ -175,7 +175,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
-        self.kernel_handler = False
+        self.kernel_handler = None
         self._cwd = ''
 
         # Keyboard shortcuts
@@ -214,16 +214,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return False
         return self.kernel_handler.known_spyder_kernel
 
-    def connect_kernel(self, kernel):
-        """Connect to kernel."""
+    def connect_kernel(self, kernel_handler):
+        """Connect to the kernel using our handler."""
         # Kernel client
-        kernel_client = kernel.kernel_client
+        kernel_client = kernel_handler.kernel_client
         kernel_client.stopped_channels.connect(self.notify_deleted)
         kernel_client.start_channels()
         self.kernel_client = kernel_client
 
-        self.kernel_manager = kernel.kernel_manager
-        self.kernel_handler = kernel
+        self.kernel_manager = kernel_handler.kernel_manager
+        self.kernel_handler = kernel_handler
+        
         # Send message to kernel to check status
         self.check_spyder_kernel()
         self.sig_shellwidget_created.emit(self)
@@ -238,12 +239,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
         self.shutting_down = True
         self.close_kernel(shutdown_kernel)
-        super(ShellWidget, self).shutdown()
+        super().shutdown()
 
     def close_kernel(self, shutdown_kernel=True):
         """Close the kernel"""
         self.kernel_handler.close(shutdown_kernel)
-        # reset state
+
+        # Reset state
         self.reset_kernel_state()
 
     def reset_kernel_state(self):
@@ -292,11 +294,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Setup spyder kernel"""
         self.kernel_handler.open_comm(self.spyder_kernel_comm)
 
-        # For completion
+        # For completions
         self.kernel_client.control_channel.message_received.connect(
             self._dispatch)
+
         # Redefine the complete method to work while debugging.
         self._redefine_complete_for_dbg(self.kernel_client)
+
         # Send configuration
         self.send_spyder_kernel_configuration()
 
@@ -311,6 +315,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_color_scheme(self.syntax_style, reset=False)
 
         ffn = self.kernel_handler.get_fault_filename()
+
         # Enable faulthandler
         if ffn:
             # To display faulthandler

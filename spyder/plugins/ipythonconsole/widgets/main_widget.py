@@ -826,8 +826,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             elif restart and restart_all:
                 self.restart_kernel(client, ask_before_restart=False)
 
-        if (((pylab_restart and current_client_backend_require_restart)
-             or restart_needed) and restart_current and current_client):
+        if (
+            (
+                (pylab_restart and current_client_backend_require_restart)
+                 or restart_needed
+            )
+            and restart_current
+            and current_client
+        ):
             self.restart_kernel(current_client, ask_before_restart=False)
 
     # ---- Private methods
@@ -950,6 +956,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         (connection_file, hostname, sshkey, password, ok) = connect_output
         if not ok:
             return
+
         try:
             # Fix path
             connection_file = self.find_connection_file(connection_file)
@@ -958,6 +965,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                                  _("Unable to connect to "
                                    "<b>%s</b>") % connection_file)
             return
+
         self.create_client_for_kernel(
             connection_file, hostname, sshkey, password)
 
@@ -1069,6 +1077,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.activateWindow()
         client.get_control().setFocus()
         self.update_tabs_text()
+
         # Register client
         self.register_client(client)
 
@@ -1311,6 +1320,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
         )
+
         # Add client to widget
         self.add_tab(
             client, name=client.get_name(), filename=filename,
@@ -1322,6 +1332,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             is_pylab=is_pylab,
             is_sympy=is_sympy
         )
+
         try:
             kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
         except Exception as e:
@@ -1358,6 +1369,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 new_slave_ord = ord(cl.id_['str_id'])
                 if new_slave_ord > slave_ord:
                     slave_ord = new_slave_ord
+
             # Set full client name
             client_id = dict(int_id=master_client.id_['int_id'],
                              str_id=chr(slave_ord + 1))
@@ -1365,6 +1377,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # If we couldn't find a client with the same connection file,
             # it means this is a new master client
             self.master_clients += 1
+
             # Set full client name
             client_id = dict(int_id=str(self.master_clients), str_id='A')
 
@@ -1580,7 +1593,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.close_client(is_last_client)
             open_clients.remove(client)
 
-        # wait all closing KernelHandler.
+        # Wait for all KernelHandler's to shutdown.
         for client in self.clients:
             if client.kernel_handler:
                 client.kernel_handler.wait_shutdown_thread()
