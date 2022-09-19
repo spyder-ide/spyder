@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = 2.x
-	commit = 6fdd9a31281c8ccec09c924609a8e2587e753455
-	parent = a3f49fa9ba51f40e6fe1e8d52768265b1da2f21f
+	branch = light_remove_flush_std
+	commit = 891390f8d6854a5b5aebec475b04fa8c00ff490a
+	parent = 6c58ccef26d186f1001b73e8ecde30b1c37487eb
 	method = merge
-	cmdver = 0.4.3
+	cmdver = 0.4.1
