@@ -16,7 +16,7 @@ from textwrap import dedent
 from threading import Lock
 
 # Third party imports
-from qtpy.QtCore import Signal, QThread
+from qtpy.QtCore import Signal, QThread, Slot
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
@@ -66,7 +66,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For ShellWidget
     sig_focus_changed = Signal()
-    new_client = Signal()
+    sig_new_client = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
     sig_kernel_restarted = Signal()
@@ -519,6 +519,7 @@ the sympy module (e.g. plot)
         # Stop reading as any input has been removed.
         self._reading = False
 
+    @Slot()
     def _reset_namespace(self):
         warning = self.get_conf('show_reset_namespace_warning')
         self.reset_namespace(warning=warning)
@@ -657,13 +658,13 @@ the sympy module (e.g. plot)
             parent=self)
 
         new_tab = self.config_shortcut(
-            lambda: self.new_client.emit(),
+            self.sig_new_client,
             context='ipython_console',
             name='new tab',
             parent=self)
 
         reset_namespace = self.config_shortcut(
-            lambda: self._reset_namespace(),
+            self._reset_namespace,
             context='ipython_console',
             name='reset namespace',
             parent=self)

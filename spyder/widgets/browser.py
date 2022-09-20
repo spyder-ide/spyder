@@ -128,7 +128,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             name=WebViewActions.Back,
             text=_("Back"),
             icon=self.create_icon('previous'),
-            triggered=lambda: original_back_action.trigger(),
+            triggered=original_back_action.trigger,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -137,7 +137,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             name=WebViewActions.Forward,
             text=_("Forward"),
             icon=self.create_icon('next'),
-            triggered=lambda: original_forward_action.trigger(),
+            triggered=original_forward_action.trigger,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -145,7 +145,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         select_all_action = self.create_action(
             name=WebViewActions.SelectAll,
             text=_("Select all"),
-            triggered=lambda: original_select_action.trigger(),
+            triggered=original_select_action.trigger,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -153,7 +153,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         copy_action = self.create_action(
             name=WebViewActions.Copy,
             text=_("Copy"),
-            triggered=lambda: original_copy_action.trigger(),
+            triggered=original_copy_action.trigger,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -178,7 +178,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         inspect_action = self.create_action(
             name=WebViewActions.Inspect,
             text=_("Inspect"),
-            triggered=lambda: original_inspect_action.trigger(),
+            triggered=original_inspect_action.trigger,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -187,7 +187,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             name=WebViewActions.Refresh,
             text=_("Refresh"),
             icon=self.create_icon('refresh'),
-            triggered=lambda: original_refresh_action.trigger(),
+            triggered=original_refresh_action.trigger,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -196,7 +196,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             name=WebViewActions.Stop,
             text=_("Stop"),
             icon=self.create_icon('stop'),
-            triggered=lambda: original_stop_action.trigger(),
+            triggered=original_stop_action.trigger,
             context=Qt.WidgetWithChildrenShortcut,
         )
 

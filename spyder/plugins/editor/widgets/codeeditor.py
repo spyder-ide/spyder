@@ -176,7 +176,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_filename_changed = Signal(str)
     sig_bookmarks_changed = Signal()
     go_to_definition = Signal(str, int, int)
-    sig_show_object_info = Signal(int)
+    sig_show_object_info = Signal(bool)
     sig_run_selection = Signal()
     sig_run_to_line = Signal()
     sig_run_from_line = Signal()
@@ -2324,8 +2324,7 @@ class CodeEditor(TextEditBaseWidget):
         elif self.in_comment_or_string():
             self.unindent()
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
-            position = self.get_position('cursor')
-            self.show_object_info(position)
+            self.show_object_info()
         else:
             # if the line ends with any other character but comma
             self.unindent()
@@ -2761,9 +2760,10 @@ class CodeEditor(TextEditBaseWidget):
         force = True
         self.sig_show_completion_object_info.emit(name, signature, force)
 
-    def show_object_info(self, position):
+    @Slot()
+    def show_object_info(self):
         """Trigger a calltip"""
-        self.sig_show_object_info.emit(position)
+        self.sig_show_object_info.emit(True)
 
     # -----blank spaces
     def set_blanks_enabled(self, state):
@@ -4423,7 +4423,7 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Inspect current object"),
             icon=ima.icon('MessageBoxInformation'),
             shortcut=CONF.get_shortcut('editor', 'inspect current object'),
-            triggered=self.sig_show_object_info.emit)
+            triggered=self.sig_show_object_info)
 
         # Run actions
         self.run_cell_action = create_action(
