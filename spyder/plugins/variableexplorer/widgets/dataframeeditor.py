@@ -1297,6 +1297,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.dataModel.bgcolor(state)
         self.bgcolor_global.setEnabled(not self.is_series and state > 0)
 
+    @Slot()
     def change_format(self):
         """
         Ask user for display format for floats and use it.
@@ -1365,6 +1366,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         """Fetch more data for the index (rows)."""
         self.table_index.model().fetch_more()
 
+    @Slot()
     def resize_to_contents(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.dataTable.resizeColumnsToContents()

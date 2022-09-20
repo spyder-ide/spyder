@@ -161,7 +161,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         except TypeError:
             pass
 
-    def refresh_namespacebrowser(self, interrupt=True):
+    def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
         self.shellwidget.call_kernel(
             interrupt=interrupt,
@@ -173,15 +173,15 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             callback=self.set_var_properties
         ).get_var_properties()
 
-    def set_namespace_view_settings(self):
+    def set_namespace_view_settings(self, interrupt=True):
         """Set the namespace view settings"""
         settings = self.get_view_settings()
         self.shellwidget.call_kernel(
-            interrupt=True
+            interrupt=interrupt
         ).set_namespace_view_settings(settings)
 
-    def on_kernel_started(self):
-        self.set_namespace_view_settings()
+    def setup_kernel(self):
+        self.set_namespace_view_settings(interrupt=False)
         self.refresh_namespacebrowser(interrupt=False)
 
     def process_remote_view(self, remote_view):

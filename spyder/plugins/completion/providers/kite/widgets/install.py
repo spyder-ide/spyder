@@ -257,10 +257,8 @@ class KiteInstallation(QWidget):
         self.setLayout(general_layout)
 
         # Signals
-        self._progress_filter.sig_hover_enter.connect(
-            lambda: self.cancel_button.show())
-        self._progress_filter.sig_hover_leave.connect(
-            lambda: self.cancel_button.hide())
+        self._progress_filter.sig_hover_enter.connect(self.cancel_button.show)
+        self._progress_filter.sig_hover_leave.connect(self.cancel_button.hide)
 
     def update_installation_status(self, status):
         """Update installation status (downloading, installing, finished)."""

@@ -217,7 +217,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
             box.setText(default)
             box.textChanged.connect(lambda x=None: self.render())
 
-        box.get_value = lambda: box.text()
+        box.get_value = box.text
         box.set_value = lambda text: box.setText(text)
 
         return box
@@ -257,7 +257,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
                 box.addItem(choice, choice)
 
         box.setting = setting
-        box.get_value = lambda: box.currentData()
+        box.get_value = box.currentData
 
         return box
 
