@@ -1799,19 +1799,19 @@ def test_stderr_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText())
     assert "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText()
     # Write a second time, makes sure it is not duplicated
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("\ntest_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
     # Wait for the poll
     qtbot.waitUntil(lambda: ipyconsole.get_widget().get_focus_widget(
         ).toPlainText().count("test_test") == 2)
@@ -1825,15 +1825,12 @@ def test_stdout_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stdout_obj.handle.flush()
-    with open(client.stdout_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import sys; print("test_test", file=sys.__stdout__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText(), timeout=5000)
-    assert "test_test" in ipyconsole.get_widget().get_focus_widget(
-        ).toPlainText()
 
 
 @flaky(max_runs=10)
