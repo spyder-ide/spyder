@@ -174,7 +174,7 @@ class Projects(SpyderDockablePlugin):
                 lambda v: self.main.set_window_title())
             self.main.restore_scrollbar_position.connect(
                 self.restore_scrollbar_position)
-            self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
+            self.sig_pythonpath_changed.connect(self.main.update_python_path)
 
         self.register_project_type(self, EmptyProject)
         self.setup()
@@ -1015,6 +1015,8 @@ class Projects(SpyderDockablePlugin):
 
     def _run_file_in_ipyconsole(self, fname):
         self.ipyconsole.run_script(
-            fname, osp.dirname(fname), '', False, False, False, True,
-            False
+            filename=fname,
+            wdir=osp.dirname(fname),
+            current_client=False,
+            clear_variables=True
         )

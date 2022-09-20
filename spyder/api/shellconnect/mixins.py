@@ -35,8 +35,6 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
-        ipyconsole.sig_external_spyder_kernel_connected.connect(
-            self.on_connection_to_external_spyder_kernel)
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
@@ -50,8 +48,6 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.disconnect(self.remove_shellwidget)
-        ipyconsole.sig_external_spyder_kernel_connected.disconnect(
-            self.on_connection_to_external_spyder_kernel)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -117,16 +113,3 @@ class ShellConnectMixin:
             The widget corresponding to the shellwidget, or None if not found.
         """
         return self.get_widget().get_widget_for_shellwidget(shellwidget)
-
-    def on_connection_to_external_spyder_kernel(self, shellwidget):
-        """
-        Actions to take when the IPython console connects to an
-        external Spyder kernel.
-
-        Parameters
-        ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
-            The shell widget that was connected to the external Spyder
-            kernel.
-        """
-        pass

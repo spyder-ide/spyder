@@ -17,7 +17,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QRegExp, QSize, Qt, Signal
+from qtpy.QtCore import QRegExp, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QCursor, QRegExpValidator
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QLabel, QLineEdit,
@@ -337,7 +337,7 @@ class FileAssociationsWidget(QWidget):
         self.setLayout(layout)
 
         # Signals
-        self.button_add.clicked.connect(lambda: self.add_association())
+        self.button_add.clicked.connect(self.add_association)
         self.button_remove.clicked.connect(self.remove_association)
         self.button_edit.clicked.connect(self.edit_association)
         self.button_add_application.clicked.connect(self.add_application)
@@ -442,6 +442,7 @@ class FileAssociationsWidget(QWidget):
         self._data = {} if data is None else data
         self._update_extensions()
 
+    @Slot()
     def add_association(self, value=None):
         """Add extension file association."""
         if value is None:

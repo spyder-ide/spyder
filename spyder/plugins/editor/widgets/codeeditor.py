@@ -59,14 +59,11 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            TextDocumentSyncKind,
                                            DiagnosticSeverity)
-from spyder.plugins.editor.panels import (ClassFunctionDropdown,
-                                          DebuggerPanel, EdgeLine,
-                                          FoldingPanel, IndentationGuide,
-                                          LineNumberArea, PanelsManager,
-                                          ScrollFlagArea)
+from spyder.plugins.editor.panels import (
+    ClassFunctionDropdown, EdgeLine, FoldingPanel, IndentationGuide,
+    LineNumberArea, PanelsManager, ScrollFlagArea)
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 get_file_language)
-from spyder.plugins.editor.utils.debugger import DebuggerManager
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.panels.utils import (
@@ -168,22 +165,16 @@ class CodeEditor(TextEditBaseWidget):
     edge_line = None
     indent_guides = None
 
-    sig_breakpoints_changed = Signal()
-    sig_repaint_breakpoints = Signal()
-    sig_debug_stop = Signal((int,), ())
-    sig_debug_start = Signal()
-    sig_breakpoints_saved = Signal()
     sig_filename_changed = Signal(str)
     sig_bookmarks_changed = Signal()
     go_to_definition = Signal(str, int, int)
-    sig_show_object_info = Signal(int)
+    sig_show_object_info = Signal(bool)
     sig_run_selection = Signal()
     sig_run_to_line = Signal()
     sig_run_from_line = Signal()
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
     sig_re_run_last_cell = Signal()
-    sig_debug_cell = Signal()
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
     sig_refresh_formatting = Signal(bool)
@@ -363,12 +354,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Folding
         self.panels.register(FoldingPanel())
-
-        # Debugger panel (Breakpoints)
-        self.debugger = DebuggerManager(self)
-        self.panels.register(DebuggerPanel())
-        # Update breakpoints if the number of lines in the file changes
-        self.blockCountChanged.connect(self.sig_breakpoints_changed)
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
@@ -842,7 +827,6 @@ class CodeEditor(TextEditBaseWidget):
                      show_class_func_dropdown=False,
                      indent_guides=False,
                      scroll_past_end=False,
-                     show_debug_panel=True,
                      folding=True,
                      remove_trailing_spaces=False,
                      remove_trailing_newlines=False,
@@ -920,7 +904,6 @@ class CodeEditor(TextEditBaseWidget):
             Default False.
         scroll_past_end: Enable/Disable possibility to scroll file passed
             its end. Default False.
-        show_debug_panel: Enable/Disable debug panel. Default True.
         folding: Enable/Disable code folding. Default True.
         remove_trailing_spaces: Remove trailing whitespaces on lines.
             Default False.
@@ -938,17 +921,11 @@ class CodeEditor(TextEditBaseWidget):
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
 
-        # Show/hide the debug panel depending on the language and parameter
-        self.set_debug_panel(show_debug_panel, language)
-
         # Show/hide folding panel depending on parameter
         self.toggle_code_folding(folding)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
-
-        # Debugging
-        self.debugger.set_filename(filename)
 
         # Edge line
         self.edge_line.set_enabled(edge_line)
@@ -2040,30 +2017,6 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # -------------------------------------------------------------------------
-    def set_debug_panel(self, show_debug_panel, language):
-        """Enable/disable debug panel."""
-        debugger_panel = self.panels.get(DebuggerPanel)
-        if (is_text_string(language) and
-                language.lower() in ALL_LANGUAGES['Python'] and
-                show_debug_panel):
-            debugger_panel.setVisible(True)
-        else:
-            debugger_panel.setVisible(False)
-
-    def update_debugger_panel_state(self, state, last_step, force=False):
-        """Update debugger panel state."""
-        debugger_panel = self.panels.get(DebuggerPanel)
-        if force:
-            debugger_panel.start_clean()
-            return
-        elif state and 'fname' in last_step:
-            fname = last_step['fname']
-            if (fname and self.filename
-                    and osp.normcase(fname) == osp.normcase(self.filename)):
-                debugger_panel.start_clean()
-                return
-        debugger_panel.stop_clean()
-
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
         folding_panel = self.panels.get(FoldingPanel)
@@ -2324,8 +2277,7 @@ class CodeEditor(TextEditBaseWidget):
         elif self.in_comment_or_string():
             self.unindent()
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
-            position = self.get_position('cursor')
-            self.show_object_info(position)
+            self.show_object_info()
         else:
             # if the line ends with any other character but comma
             self.unindent()
@@ -2761,9 +2713,10 @@ class CodeEditor(TextEditBaseWidget):
         force = True
         self.sig_show_completion_object_info.emit(name, signature, force)
 
-    def show_object_info(self, position):
+    @Slot()
+    def show_object_info(self):
         """Trigger a calltip"""
-        self.sig_show_object_info.emit(position)
+        self.sig_show_object_info.emit(True)
 
     # -----blank spaces
     def set_blanks_enabled(self, state):
@@ -4423,7 +4376,7 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Inspect current object"),
             icon=ima.icon('MessageBoxInformation'),
             shortcut=CONF.get_shortcut('editor', 'inspect current object'),
-            triggered=self.sig_show_object_info.emit)
+            triggered=self.sig_show_object_info)
 
         # Run actions
         self.run_cell_action = create_action(
@@ -4451,10 +4404,6 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Run from current line"),
             shortcut=CONF.get_shortcut('editor', 'run from line'),
             triggered=self.sig_run_from_line)
-        self.debug_cell_action = create_action(
-            self, _("Debug cell"), icon=ima.icon('debug_cell'),
-            shortcut=CONF.get_shortcut('editor', 'debug cell'),
-            triggered=self.sig_debug_cell)
 
         # Zoom actions
         zoom_in_action = create_action(

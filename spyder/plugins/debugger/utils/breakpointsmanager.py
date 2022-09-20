@@ -10,16 +10,20 @@ Contains the text debugger manager.
 import os.path as osp
 
 from qtpy.QtWidgets import QInputDialog, QLineEdit
+from qtpy.QtCore import Signal, QObject
 
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.api.manager import Manager
 from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.api.manager import Manager
 from spyder.plugins.editor.utils.editor import BlockUserData
+from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 
 
 def _load_all_breakpoints():
-    bp_dict = CONF.get('run', 'breakpoints', {})
+    bp_dict = CONF.get("debugger", "breakpoints", {})
     for filename in list(bp_dict.keys()):
         # Make sure we don't have the same file under different names
         new_filename = osp.normcase(filename)
@@ -43,11 +47,11 @@ def load_breakpoints(filename):
 def save_breakpoints(filename, breakpoints):
     bp_dict = _load_all_breakpoints()
     bp_dict[osp.normcase(filename)] = breakpoints
-    CONF.set('run', 'breakpoints', bp_dict)
+    CONF.set("debugger", "breakpoints", bp_dict)
 
 
 def clear_all_breakpoints():
-    CONF.set('run', 'breakpoints', {})
+    CONF.set("debugger", "breakpoints", {})
 
 
 def clear_breakpoint(filename, lineno):
@@ -59,37 +63,81 @@ def clear_breakpoint(filename, lineno):
         save_breakpoints(filename, breakpoints)
 
 
-class DebuggerManager(Manager):
+class BreakpointsManager(Manager, QObject, SpyderConfigurationObserver):
     """
     Manages adding/removing breakpoint from the editor.
     """
+    CONF_SECTION = 'debugger'
+
+    sig_breakpoints_saved = Signal()
+    sig_repaint_breakpoints = Signal()
+
     def __init__(self, editor):
-        super(DebuggerManager, self).__init__(editor)
-        self.filename = None
+        super().__init__(editor)
+        self.filename = editor.filename
         self._breakpoint_blocks = {}
         self.breakpoints = []
-        self.editor.sig_breakpoints_changed.connect(self.breakpoints_changed)
-        self.editor.sig_filename_changed.connect(self.set_filename)
+
+        # Debugger panel (Breakpoints)
+        self.debugger_panel = DebuggerPanel(self)
+        editor.panels.register(self.debugger_panel)
+        self.debugger_panel.order_in_zone = -1
+        self.update_panel_visibility()
+
+        # Load breakpoints
+        self.load_breakpoints()
+
+        # Update breakpoints if the number of lines in the file changes
+        editor.blockCountChanged.connect(self.breakpoints_changed)
+
+    def update_pdb_state(self, state, filename, line_number):
+        """
+        Enable/disable debugging actions and handle pdb state change.
+
+        Update debugger panel state.
+        """
+        if (
+            state
+            and filename
+            and self.filename
+            and osp.normcase(filename) == osp.normcase(self.filename)
+        ):
+            self.debugger_panel.start_clean()
+            self.debugger_panel.set_current_line_arrow(line_number)
+            return
+
+        self.debugger_panel.stop_clean()
 
     def set_filename(self, filename):
         if filename is None:
             return
-        if self.filename != filename:
-            old_filename = self.filename
-            self.filename = filename
-            if self.breakpoints:
-                save_breakpoints(old_filename, [])  # clear old breakpoints
-                self.save_breakpoints()
+        if self.filename == filename:
+            return
+        old_filename = self.filename
+        self.filename = filename
+        if self.breakpoints:
+            save_breakpoints(old_filename, [])  # clear old breakpoints
+            self.save_breakpoints()
 
-    def toogle_breakpoint(self, line_number=None, condition=None,
-                          edit_condition=False):
+    def update_panel_visibility(self):
+        """Update the panel visibility."""
+        self.debugger_panel.setVisible(
+            self.get_conf('breakpoints_panel', default=True))
+
+    @on_conf_change(option='breakpoints_panel')
+    def on_breakpoints_panel_update(self, value):
+        self.update_panel_visibility()
+
+    def toogle_breakpoint(
+        self, line_number=None, condition=None, edit_condition=False
+    ):
         """Add/remove breakpoint."""
         if not self.editor.is_python_like():
             return
         if line_number is None:
             block = self.editor.textCursor().block()
         else:
-            block = self.editor.document().findBlockByNumber(line_number-1)
+            block = self.editor.document().findBlockByNumber(line_number - 1)
         data = block.userData()
         if not data:
             data = BlockUserData(self.editor)
@@ -101,24 +149,26 @@ class DebuggerManager(Manager):
             data.breakpoint_condition = condition
         if edit_condition:
             condition = data.breakpoint_condition
-            condition, valid = QInputDialog.getText(self.editor,
-                                                    _('Breakpoint'),
-                                                    _("Condition:"),
-                                                    QLineEdit.Normal,
-                                                    condition)
+            condition, valid = QInputDialog.getText(
+                self.editor,
+                _("Breakpoint"),
+                _("Condition:"),
+                QLineEdit.Normal,
+                condition,
+            )
             if not valid:
                 return
             data.breakpoint = True
             data.breakpoint_condition = str(condition) if condition else None
         if data.breakpoint:
             text = to_text_string(block.text()).strip()
-            if len(text) == 0 or text.startswith(('#', '"', "'")):
+            if len(text) == 0 or text.startswith(("#", '"', "'")):
                 data.breakpoint = False
             else:
                 self._breakpoint_blocks[id(block)] = block
         block.setUserData(data)
         self.editor.sig_flags_changed.emit()
-        self.editor.sig_breakpoints_changed.emit()
+        self.breakpoints_changed()
 
     def get_breakpoints(self):
         """Get breakpoints"""
@@ -132,7 +182,8 @@ class DebuggerManager(Manager):
                     pruned_breakpoint_blocks[block_id] = block
                     line_number = block.blockNumber() + 1
                     breakpoints.append(
-                        (line_number, data.breakpoint_condition))
+                        (line_number, data.breakpoint_condition)
+                    )
         self._breakpoint_blocks = pruned_breakpoint_blocks
         return breakpoints
 
@@ -144,7 +195,7 @@ class DebuggerManager(Manager):
             # data.breakpoint_condition = None  # not necessary, but logical
         self._breakpoint_blocks = {}
         # Inform the editor that the breakpoints are changed
-        self.editor.sig_breakpoints_changed.emit()
+        self.breakpoints_changed()
         # Inform the editor that the flags must be updated
         self.editor.sig_flags_changed.emit()
 
@@ -161,7 +212,7 @@ class DebuggerManager(Manager):
         if self.breakpoints != breakpoints:
             self.breakpoints = breakpoints
             self.save_breakpoints()
-            self.editor.sig_repaint_breakpoints.emit()
+            self.sig_repaint_breakpoints.emit()
 
     def save_breakpoints(self):
         breakpoints = repr(self.breakpoints)
@@ -173,7 +224,7 @@ class DebuggerManager(Manager):
         else:
             breakpoints = []
         save_breakpoints(filename, breakpoints)
-        self.editor.sig_breakpoints_saved.emit()
+        self.sig_breakpoints_saved.emit()
 
     def load_breakpoints(self):
         self.set_breakpoints(load_breakpoints(self.filename))

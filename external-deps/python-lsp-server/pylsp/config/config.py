@@ -32,7 +32,7 @@ class PluginManager(pluggy.PluginManager):
         try:
             return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
         except Exception as e:  # pylint: disable=broad-except
-            log.warning(f"Failed to load hook {hook_name}: {e}")
+            log.warning(f"Failed to load hook {hook_name}: {e}", exc_info=True)
             return []
 
 

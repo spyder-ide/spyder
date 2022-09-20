@@ -673,12 +673,12 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
 
     def create_shortcuts(self):
         array_inline = CONF.config_shortcut(
-            lambda: self.enter_array_inline(),
+            self.enter_array_inline,
             context='array_builder',
             name='enter array inline',
             parent=self)
         array_table = CONF.config_shortcut(
-            lambda: self.enter_array_table(),
+            self.enter_array_table,
             context='array_builder',
             name='enter array table',
             parent=self)

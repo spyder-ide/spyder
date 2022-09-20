@@ -363,8 +363,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
             # Emit executing
             self.executing.emit(line)
-            self.sig_pdb_state_changed.emit(
-                False, self.get_pdb_last_step())
+            self.sig_pdb_state_changed.emit(False)
 
         if self._pdb_input_ready:
             # Print the string to the console
@@ -383,39 +382,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             self.interrupt_kernel()
         self.pdb_execute_command("exit")
 
-    def set_spyder_breakpoints(self):
-        """Set Spyder breakpoints into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_configuration({
-            'breakpoints': self.get_conf(
-                'breakpoints', default={}, section='run')
-        })
-
-    def set_pdb_ignore_lib(self, pdb_ignore_lib):
-        """Set pdb_ignore_lib into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_configuration({
-            'pdb_ignore_lib': pdb_ignore_lib
-        })
-
-    def set_pdb_execute_events(self, pdb_execute_events):
-        """Set pdb_execute_events into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_configuration({
-            'pdb_execute_events': pdb_execute_events
-        })
-
-    def set_pdb_use_exclamation_mark(self, pdb_use_exclamation_mark):
-        """Set pdb_use_exclamation_mark into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_configuration({
-            'pdb_use_exclamation_mark': pdb_use_exclamation_mark
-        })
-
-    def set_pdb_stop_first_line(self, pdb_stop_first_line):
-        """Set pdb_stop_first_line into a debugging session"""
-        self.call_kernel(interrupt=True).set_pdb_configuration({
-            'pdb_stop_first_line': pdb_stop_first_line
-        })
-
     def is_pdb_using_exclamantion_mark(self):
-        return self.get_conf('pdb_use_exclamation_mark')
+        return self.get_conf('pdb_use_exclamation_mark', section='debugger')
 
     def do_where(self):
         """Where was called, go to the current location."""
@@ -465,11 +433,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def get_pdb_last_step(self):
         """Get last pdb step retrieved from a Pdb session."""
-        fname, lineno = self._pdb_frame_loc
-        if fname is None:
-            return {}
-        return {'fname': fname,
-                'lineno': lineno}
+        return self._pdb_frame_loc
 
     def is_debugging(self):
         """Check if we are debugging."""
@@ -646,7 +610,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # The previous code finished executing
             self.executed.emit(self._pdb_prompt)
             self.sig_pdb_prompt_ready.emit()
-            self.sig_pdb_state_changed.emit(True, self.get_pdb_last_step())
+            self.sig_pdb_state_changed.emit(True)
 
         self._pdb_input_ready = True
 

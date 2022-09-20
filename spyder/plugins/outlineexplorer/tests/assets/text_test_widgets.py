@@ -30,13 +30,20 @@ def func2():
 
 # ---- other functions
 
+# %%% cell level 2
 def a():
     pass
 
+# %%%% cell level 3
 def b():
     pass
 
+# %%%%% cell level 4
 def c():
+    pass
+
+# %%%% cell level 3-1
+def func3():
     pass
 
 # %% classes
