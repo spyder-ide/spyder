@@ -1298,8 +1298,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.switcher_manager = EditorSwitcherManager(
             self,
             self.main.switcher,
-            lambda: self.get_current_editor(),
-            lambda: self.get_current_editorstack(),
+            self.get_current_editor,
+            self.get_current_editorstack,
             section=self.get_plugin_title())
 
     def update_source_menu(self, options, **kwargs):
@@ -1573,8 +1573,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.run_cell_in_ipyclient.connect(self.run_cell_in_ipyclient)
         editorstack.debug_cell_in_ipyclient.connect(
             self.debug_cell_in_ipyclient)
-        editorstack.update_plugin_title.connect(
-                                   lambda: self.sig_update_plugin_title.emit())
+        editorstack.update_plugin_title.connect(self.sig_update_plugin_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
@@ -1599,9 +1598,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_perform_completion_request.connect(
             self.send_completion_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
-        editorstack.update_code_analysis_actions.connect(
+        editorstack.sig_update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
-        editorstack.update_code_analysis_actions.connect(
+        editorstack.sig_update_code_analysis_actions.connect(
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)

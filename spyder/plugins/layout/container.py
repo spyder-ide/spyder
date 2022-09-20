@@ -124,14 +124,14 @@ class LayoutContainer(PluginMainContainer):
         self._save_layout_action = self.create_action(
             LayoutContainerActions.SaveLayoutAction,
             _("Save current layout"),
-            triggered=lambda: self.show_save_layout(),
+            triggered=self.show_save_layout,
             context=Qt.ApplicationShortcut,
             register_shortcut=False,
         )
         self._show_preferences_action = self.create_action(
             LayoutContainerActions.ShowLayoutPreferencesAction,
             text=_("Layout preferences"),
-            triggered=lambda: self.show_layout_settings(),
+            triggered=self.show_layout_settings,
             context=Qt.ApplicationShortcut,
             register_shortcut=False,
         )
@@ -282,6 +282,7 @@ class LayoutContainer(PluginMainContainer):
 
         return self._spyder_layouts[layout_id]
 
+    @Slot()
     def show_save_layout(self):
         """Show the save layout dialog."""
         names = self.get_conf('names')
@@ -341,6 +342,7 @@ class LayoutContainer(PluginMainContainer):
 
             self.update_layout_menu_actions()
 
+    @Slot()
     def show_layout_settings(self):
         """Layout settings dialog."""
         names = self.get_conf('names')

@@ -113,7 +113,7 @@ class Breakpoints(SpyderDockablePlugin):
         self.create_action(
             BreakpointsActions.ListBreakpoints,
             _("List breakpoints"),
-            triggered=lambda: self.switch_to_plugin(),
+            triggered=self.switch_to_plugin,
             icon=self.get_icon(),
         )
 
