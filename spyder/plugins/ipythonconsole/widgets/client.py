@@ -187,6 +187,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # an error occured during startup, but after the prompt was sent
             return
         self.start_successful = True
+
         # To hide the loading page
         self._hide_loading_page()
 
@@ -355,15 +356,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return None
         return self.kernel_handler.connection_file
 
-    def connect_kernel(self, kernel):
-        """Connect kernel to client."""
+    def connect_kernel(self, kernel_handler):
+        """Connect kernel to client using our handler."""
         self._before_prompt_is_ready()
-        self.kernel_handler = kernel
-        kernel.sig_stderr.connect(self.print_stderr)
-        kernel.sig_stdout.connect(self.print_stdout)
+        self.kernel_handler = kernel_handler
+        kernel_handler.sig_stderr.connect(self.print_stderr)
+        kernel_handler.sig_stdout.connect(self.print_stdout)
 
         # Actually do the connection
-        self.shellwidget.connect_kernel(kernel)
+        self.shellwidget.connect_kernel(kernel_handler)
 
     @Slot(str)
     def print_stderr(self, stderr):
