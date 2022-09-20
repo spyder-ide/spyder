@@ -39,7 +39,7 @@ class DebuggerConfigPage(PluginConfigPage):
         pdb_run_lines_group.setLayout(pdb_run_lines_layout)
 
         # Debug Group
-        debug_group = QGroupBox(_("Debug"))
+        debug_group = QGroupBox(_("Interaction"))
         debug_layout = QVBoxLayout()
 
         prevent_closing_box = newcb(

@@ -54,6 +54,7 @@ def pylsp_completions(config, document, position):
 
     should_include_params = settings.get('include_params')
     should_include_class_objects = settings.get('include_class_objects', True)
+    should_include_function_objects = settings.get('include_function_objects', True)
 
     max_to_resolve = settings.get('resolve_at_most', 25)
     modules_to_cache_for = settings.get('cache_for', None)
@@ -63,6 +64,7 @@ def pylsp_completions(config, document, position):
 
     include_params = snippet_support and should_include_params and use_snippets(document, position)
     include_class_objects = snippet_support and should_include_class_objects and use_snippets(document, position)
+    include_function_objects = snippet_support and should_include_function_objects and use_snippets(document, position)
 
     ready_completions = [
         _format_completion(
@@ -78,6 +80,19 @@ def pylsp_completions(config, document, position):
     if include_class_objects:
         for i, c in enumerate(completions):
             if c.type == 'class':
+                completion_dict = _format_completion(
+                    c,
+                    False,
+                    resolve=resolve_eagerly,
+                    resolve_label_or_snippet=(i < max_to_resolve)
+                )
+                completion_dict['kind'] = lsp.CompletionItemKind.TypeParameter
+                completion_dict['label'] += ' object'
+                ready_completions.append(completion_dict)
+
+    if include_function_objects:
+        for i, c in enumerate(completions):
+            if c.type == 'function':
                 completion_dict = _format_completion(
                     c,
                     False,

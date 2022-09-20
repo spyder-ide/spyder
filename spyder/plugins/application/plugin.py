@@ -43,7 +43,7 @@ class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.Editor]
+                Plugins.Editor, Plugins.StatusBar]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
@@ -101,7 +101,20 @@ class Application(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         self.get_container().sig_load_log_file.connect(editor.load)
 
+    @on_plugin_available(plugin=Plugins.StatusBar)
+    def on_statusbar_available(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        statusbar.add_status_widget(self.application_update_status)
+
     # -------------------------- PLUGIN TEARDOWN ------------------------------
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        # Remove status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        statusbar.remove_status_widget(self.application_update_status.ID)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -443,3 +456,7 @@ class Application(SpyderPluginV2):
     def debug_logs_menu(self):
         return self.get_container().get_menu(
             ApplicationPluginMenus.DebugLogsMenu)
+
+    @property
+    def application_update_status(self):
+        return self.get_container().application_update_status

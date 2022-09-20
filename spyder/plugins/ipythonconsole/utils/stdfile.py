@@ -21,26 +21,29 @@ from spyder.utils.encoding import get_coding
 from spyder.utils.programs import get_temp_dir
 
 
-def std_filename(connection_file, extension, std_dir=None):
+# For testing
+IPYCONSOLE_TEST_DIR = None
+IPYCONSOLE_TEST_NO_STDERR = False
+
+
+def std_filename(connection_file, extension):
     """Filename to save kernel output."""
     json_file = osp.basename(connection_file)
     file = json_file.split('.json')[0] + extension
-    if std_dir is not None:
-        file = osp.join(std_dir, file)
-    else:
-        try:
-            file = osp.join(get_temp_dir(), file)
-        except (IOError, OSError):
-            file = None
-    return file
+    if IPYCONSOLE_TEST_DIR is not None:
+        return osp.join(IPYCONSOLE_TEST_DIR, file)
+    try:
+        return osp.join(get_temp_dir(), file)
+    except (IOError, OSError):
+        return None
 
 
 class StdFile:
-    def __init__(self, connection_file, extension=None, std_dir=None):
+    def __init__(self, connection_file, extension=None):
         if extension is None:
             self.filename = connection_file
         else:
-            self.filename = std_filename(connection_file, extension, std_dir)
+            self.filename = std_filename(connection_file, extension)
         self._mtime = 0
         self._cursor = 0
         self._handle = None
@@ -48,6 +51,8 @@ class StdFile:
     @property
     def handle(self):
         """Get handle to file."""
+        if IPYCONSOLE_TEST_NO_STDERR:
+            return None
         if self._handle is None and self.filename is not None:
             # Needed to prevent any error that could appear.
             # See spyder-ide/spyder#6267.
@@ -67,9 +72,12 @@ class StdFile:
             if self._handle is not None:
                 self._handle.close()
             os.remove(self.filename)
-            self._handle = None
         except Exception:
             pass
+
+        self._handle = None
+        self._mtime = 0
+        self._cursor = 0
 
     def get_contents(self):
         """Get the contents of the std kernel file."""

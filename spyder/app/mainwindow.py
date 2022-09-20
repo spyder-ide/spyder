@@ -250,16 +250,12 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.source_menu_actions = []
         self.run_menu = None
         self.run_menu_actions = []
-        self.debug_menu = None
-        self.debug_menu_actions = []
 
         # TODO: Move to corresponding Plugins
         self.file_toolbar = None
         self.file_toolbar_actions = []
         self.run_toolbar = None
         self.run_toolbar_actions = []
-        self.debug_toolbar = None
-        self.debug_toolbar_actions = []
 
         self.menus = []
 
@@ -675,8 +671,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
         logger.info("Updating PYTHONPATH")
-        path_dict = self.get_spyder_pythonpath_dict()
-        self.update_python_path(path_dict)
+        self.load_python_path()
+        self.update_python_path()
 
         logger.info("Applying theme configuration...")
         ui_theme = self.get_conf('ui_theme', section='appearance')
@@ -841,7 +837,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.source_menu = mainmenu.get_application_menu("source_menu")
         self.source_menu.aboutToShow.connect(self.update_source_menu)
         self.run_menu = mainmenu.get_application_menu("run_menu")
-        self.debug_menu = mainmenu.get_application_menu("debug_menu")
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -914,7 +909,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         toolbar = self.toolbar
         self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
         self.run_toolbar = toolbar.get_application_toolbar("run_toolbar")
-        self.debug_toolbar = toolbar.get_application_toolbar("debug_toolbar")
 
         # Tools + External Tools (some of this depends on the Application
         # plugin)
@@ -957,7 +951,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         add_actions(self.search_menu, self.search_menu_actions)
         add_actions(self.source_menu, self.source_menu_actions)
         add_actions(self.run_menu, self.run_menu_actions)
-        add_actions(self.debug_menu, self.debug_menu_actions)
 
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
@@ -1598,24 +1591,31 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def save_python_path(self, new_path_dict):
         """
-        Save path in Spyder configuration folder.
+        Save Spyder PYTHONPATH to configuration folder and update attributes.
 
         `new_path_dict` is an OrderedDict that has the new paths as keys and
         the state as values. The state is `True` for active and `False` for
         inactive.
         """
-        path = [p for p in new_path_dict]
-        not_active_path = [p for p in new_path_dict if not new_path_dict[p]]
-        try:
-            encoding.writelines(path, self.SPYDER_PATH)
-            encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
-        except EnvironmentError as e:
-            logger.error(str(e))
-        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
+        path = tuple(p for p in new_path_dict)
+        not_active_path = tuple(p for p in new_path_dict
+                                if not new_path_dict[p])
+
+        if path != self.path or not_active_path != self.not_active_path:
+            # Do not write unless necessary
+            try:
+                encoding.writelines(path, self.SPYDER_PATH)
+                encoding.writelines(not_active_path,
+                                    self.SPYDER_NOT_ACTIVE_PATH)
+            except EnvironmentError as e:
+                logger.error(str(e))
+
+            self.path = path
+            self.not_active_path = not_active_path
 
     def get_spyder_pythonpath_dict(self):
         """
-        Return Spyder PYTHONPATH.
+        Return Spyder PYTHONPATH plus project path as dictionary of paths.
 
         The returned ordered dictionary has the paths as keys and the state
         as values. The state is `True` for active and `False` for inactive.
@@ -1623,8 +1623,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         Example:
             OrderedDict([('/some/path, True), ('/some/other/path, False)])
         """
-        self.load_python_path()
-
         path_dict = OrderedDict()
         for path in self.path:
             path_dict[path] = path not in self.not_active_path
@@ -1636,28 +1634,40 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def get_spyder_pythonpath(self):
         """
-        Return Spyder PYTHONPATH.
+        Return active Spyder PYTHONPATH plus project path as a list of paths.
         """
         path_dict = self.get_spyder_pythonpath_dict()
         path = [k for k, v in path_dict.items() if v]
         return path
 
-    def update_python_path(self, new_path_dict):
-        """Update python path on Spyder interpreter and kernels."""
-        # Load previous path
-        path_dict = self.get_spyder_pythonpath_dict()
+    def update_python_path(self, new_path_dict=None):
+        """
+        Update python path on Spyder interpreter and kernels.
 
-        # Save path
-        if path_dict != new_path_dict:
-            # It doesn't include the project_path
+        The new_path_dict should not include the project path.
+        """
+        # Load existing path plus project path
+        old_path_dict_p = self.get_spyder_pythonpath_dict()
+
+        # Save new path
+        if new_path_dict is not None:
             self.save_python_path(new_path_dict)
 
-        # Load new path
-        new_path_dict_p = self.get_spyder_pythonpath_dict()  # Includes project
+        # Update project path
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        if projects:
+            self.project_path = tuple(projects.get_pythonpath())
 
-        # Any plugin that needs to do some work based on this signal should
-        # connect to it on plugin registration
-        self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
+        # Load new path plus project path
+        new_path_dict_p = self.get_spyder_pythonpath_dict()
+
+        if new_path_dict_p != old_path_dict_p:
+            # Do not notify observers unless necessary
+            self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
+
+            # Any plugin that needs to do some work based on this signal should
+            # connect to it on plugin registration
+            self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
 
     @Slot()
     def show_path_manager(self):
@@ -1685,16 +1695,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             self._path_manager.activateWindow()
             self._path_manager.raise_()
             self._path_manager.setFocus()
-
-    def pythonpath_changed(self):
-        """Project's PYTHONPATH contribution has changed."""
-        projects = self.get_plugin(Plugins.Projects, error=False)
-
-        self.project_path = ()
-        if projects:
-            self.project_path = tuple(projects.get_pythonpath())
-        path_dict = self.get_spyder_pythonpath_dict()
-        self.update_python_path(path_dict)
 
     # ---- Preferences
     # -------------------------------------------------------------------------

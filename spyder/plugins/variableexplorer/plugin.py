@@ -62,13 +62,3 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
-
-    # ---- Public API
-    # ------------------------------------------------------------------------
-    def on_connection_to_external_spyder_kernel(self, shellwidget):
-        """Send namespace view settings to the kernel."""
-        widget = self.get_widget_for_shellwidget(shellwidget)
-        if widget is None:
-            return
-        widget.set_namespace_view_settings()
-        widget.refresh_namespacebrowser()

@@ -10,6 +10,7 @@ Tests for EditorStack save methods.
 
 # Standard library imports
 import os.path as osp
+from textwrap import dedent
 from unittest.mock import Mock
 
 # Third party imports
@@ -298,37 +299,85 @@ def test_save_as(editor_bot, mocker):
 
 
 @pytest.mark.show_save_dialog
-def test_save_as_with_outline(editor_bot, mocker, tmpdir):
+def test_save_as_with_outline(completions_editor, mocker, qtbot, tmpdir):
     """
-    Test EditorStack.save_as() when the outline explorer is not None.
+    Test EditorStack.save_as() when the outline explorer is active.
 
-    Regression test for spyder-ide/spyder#7754.
+    Regression test for issues spyder-ide/spyder#7754 and
+    spyder-ide/spyder#15517.
     """
-    editorstack, qtbot = editor_bot
+    file_path, editorstack, code_editor, completion_plugin = completions_editor
+    proxy = code_editor.oe_proxy
 
-    # Set and assert the initial state.
-    editorstack.tabs.setCurrentIndex(1)
-    assert editorstack.get_current_filename() == 'secondtab.py'
-
-    # Add an outline explorer to the editor stack and refresh it.
-    editorstack.set_outlineexplorer(OutlineExplorerWidget(None, None, None))
+    # Set outline explorer to editor stack and refresh it.
+    outline_explorer = OutlineExplorerWidget(None, None, None)
+    treewidget = outline_explorer.treewidget
+    outline_explorer.show()
+    editorstack.set_outlineexplorer(outline_explorer)
     qtbot.addWidget(editorstack.outlineexplorer)
-    for finfo in editorstack.data:
-        editorstack.outlineexplorer.register_editor(finfo.editor.oe_proxy)
+    editorstack.outlineexplorer.register_editor(proxy)
+
+    outline_explorer.start_symbol_services('python')
     editorstack.refresh()
+
+    # Add some code to the test file and save it
+    code = dedent("""
+        def foo(x):
+            return x
+
+        def bar(y):
+            return y
+    """)
+
+    code_editor.set_text(code)
+    editorstack.save(force=True)
+
+    # Notify changes
+    with qtbot.waitSignal(
+        code_editor.completions_response_signal, timeout=30000
+    ):
+        code_editor.document_did_change()
+
+    # Wait until the outline is filled
+    qtbot.waitUntil(
+        lambda: len(treewidget.editor_tree_cache[proxy.get_id()]) > 0,
+        timeout=5000
+    )
 
     # No save name.
     mocker.patch.object(editorstack, 'select_savename', return_value=None)
     assert editorstack.save_as() is False
-    assert editorstack.get_filenames() == ['foo.py', 'secondtab.py', __file__]
 
-    # Save secondtab.py as foo2.py in a tmpdir
+    # Save file as foo2.py in tmpdir
     new_filename = osp.join(tmpdir.strpath, 'foo2.py')
     editorstack.select_savename.return_value = new_filename
     assert not osp.exists(new_filename)
-    assert editorstack.save_as() is True
-    assert editorstack.get_filenames() == ['foo.py', new_filename, __file__]
+
+    # Symbols should have been requested for the renamed file, which emits the
+    # signals below.
+    with qtbot.waitSignals(
+        [proxy.sig_start_outline_spinner,
+         proxy.sig_outline_explorer_data_changed],
+        timeout=30000
+    ):
+        assert editorstack.save_as() is True
+
+    assert editorstack.get_filenames() == [new_filename]
     assert osp.exists(new_filename)
+
+    # Wait until the outline is filled
+    qtbot.waitUntil(
+        lambda: len(treewidget.editor_tree_cache[proxy.get_id()]) > 0,
+        timeout=5000
+    )
+
+    # Assert root and symbol items have the right path.
+    items = treewidget.editor_items[proxy.get_id()]
+    root_item = items.node
+
+    assert root_item.path == new_filename
+    assert items.path == new_filename
+    assert all([item.path == new_filename for item in items.children])
 
 
 def test_save_copy_as(editor_bot, mocker):

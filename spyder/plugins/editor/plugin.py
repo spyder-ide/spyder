@@ -1190,8 +1190,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.switcher_manager = EditorSwitcherManager(
             self,
             self.main.switcher,
-            lambda: self.get_current_editor(),
-            lambda: self.get_current_editorstack(),
+            self.get_current_editor,
+            self.get_current_editorstack,
             section=self.get_plugin_title())
 
     def update_source_menu(self, options, **kwargs):
@@ -1464,8 +1464,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                     self.exec_in_extconsole.emit(text, option))
         editorstack.sig_run_cell_in_ipyclient.connect(
             self.sig_run_cell_in_ipyclient)
-        editorstack.update_plugin_title.connect(
-                                   lambda: self.sig_update_plugin_title.emit())
+        editorstack.update_plugin_title.connect(self.sig_update_plugin_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
@@ -1490,9 +1489,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_perform_completion_request.connect(
             self.send_completion_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
-        editorstack.update_code_analysis_actions.connect(
+        editorstack.sig_update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
-        editorstack.update_code_analysis_actions.connect(
+        editorstack.sig_update_code_analysis_actions.connect(
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)
@@ -1577,12 +1576,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         help_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
 
+        # TODO: Rewrite when the editor is moved to the new API
+        from spyder.plugins.debugger.api import DebuggerToolbarActions
+        debug_toolbar_actions = []
+        for action_name in [DebuggerToolbarActions.DebugCurrentFile,
+                            DebuggerToolbarActions.DebugCurrentCell]:
+            action = self.main.debugger.get_action(action_name)
+            debug_toolbar_actions.append(action)
+
         self.toolbar_list = ((_("File toolbar"), "file_toolbar",
                               self.main.file_toolbar_actions),
                              (_("Run toolbar"), "run_toolbar",
                               self.main.run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
-                              self.main.debug_toolbar_actions))
+                              debug_toolbar_actions))
 
         self.menu_list = ((_("&File"), file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),

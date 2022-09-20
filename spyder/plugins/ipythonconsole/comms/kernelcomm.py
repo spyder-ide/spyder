@@ -37,6 +37,16 @@ class KernelComm(CommBase, QObject):
         # Register handlers
         self.register_call_handler('_async_error', self._async_error)
 
+    def is_open(self, comm_id=None):
+        """Check to see if the comm is open."""
+        valid_comms = [
+            comm for comm in self._comms
+            if self._comms[comm]['status'] in ['opening', 'ready']
+        ]
+        if comm_id is None:
+            return len(valid_comms) > 0
+        return comm_id in valid_comms
+
     @contextmanager
     def comm_channel_manager(self, comm_id, queue_message=False):
         """Use control_channel instead of shell_channel."""
@@ -63,7 +73,7 @@ class KernelComm(CommBase, QObject):
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 
-    def remove(self, comm_id=None):
+    def remove(self, comm_id=None, only_closing=False):
         """
         Remove the comm without notifying the other side.
 
@@ -71,6 +81,8 @@ class KernelComm(CommBase, QObject):
         """
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
+            if only_closing and self._comms[comm_id]['status'] != 'closing':
+                continue
             del self._comms[comm_id]
 
     def close(self, comm_id=None):
