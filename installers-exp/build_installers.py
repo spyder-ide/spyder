@@ -47,7 +47,7 @@ from distutils.spawn import find_executable
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent, indent
-from functools import lru_cache, partial
+from functools import partial
 from subprocess import check_call, check_output
 
 from ruamel.yaml import YAML
@@ -90,7 +90,6 @@ def _use_local():
     return os.environ.get("CONSTRUCTOR_USE_LOCAL")
 
 
-@lru_cache
 def _version():
     from importlib.util import spec_from_file_location, module_from_spec
     spec = spec_from_file_location("spyder", SPYREPO / "spyder" / "__init__.py")
@@ -380,7 +379,9 @@ def licenses():
     return zipname.resolve()
 
 
-def main(extra_specs=None, spy_repo=SPYREPO):
+def main(extra_specs=None, spy_repo=SPYREPO, no_conda_build=False):
+    spy_repo = Path(spy_repo)  # Enforce Path type
+
     try:
         cwd = os.getcwd()
         workdir = spy_repo / "installers-exp" / "dist"
@@ -401,51 +402,45 @@ def main(extra_specs=None, spy_repo=SPYREPO):
 def cli(argv=None):
     p = ArgumentParser(argv)
     p.add_argument(
-        "--version",
-        action="store_true",
+        "--version", action="store_true",
         help="Print local Spyder version and exit.",
     )
     p.add_argument(
-        "--installer-version",
-        action="store_true",
+        "--installer-version", action="store_true",
         help="Print installer version and exit.",
     )
     p.add_argument(
-        "--arch",
-        action="store_true",
+        "--arch", action="store_true",
         help="Print machine architecture tag and exit.",
     )
     p.add_argument(
-        "--ext",
-        action="store_true",
+        "--ext", action="store_true",
         help="Print installer extension for this platform and exit.",
     )
     p.add_argument(
-        "--artifact-name",
-        action="store_true",
+        "--artifact-name", action="store_true",
         help="Print computed artifact name and exit.",
     )
     p.add_argument(
-        "--extra-specs",
-        nargs="+",
+        "--extra-specs", nargs="+",
         help="One or more extra conda specs to add to the installer",
     )
     p.add_argument(
-        "--licenses",
-        action="store_true",
+        "--licenses", action="store_true",
         help="Post-process licenses AFTER having built the installer. "
         "This must be run as a separate step.",
     )
     p.add_argument(
-        "--images",
-        action="store_true",
+        "--images", action="store_true",
         help="Generate background images from the logo (test only)",
     )
     p.add_argument(
-        "--location",
-        default=SPYREPO,
+        "--location", default=SPYREPO, type=os.path.abspath,
         help="Path to spyder source repository",
-        type=os.path.abspath,
+    )
+    p.add_argument(
+        "--no-conda-build", action="store_true",
+        help="Do not build conda packages for external-deps"
     )
     return p.parse_args()
 
@@ -474,4 +469,6 @@ if __name__ == "__main__":
         _generate_background_images(spy_repo=args.location)
         sys.exit()
 
-    print("Created", main(extra_specs=args.extra_specs, spy_repo=args.location))
+    out = main(extra_specs=args.extra_specs, spy_repo=args.location,
+               no_conda_build=args.no_conda_build)
+    print("Created", out)
