@@ -273,7 +273,7 @@ class HistoryWidget(PluginMainWidget):
         self.tabwidget.setTabToolTip(index, filename)
 
         # Signals
-        editor.sig_focus_changed.connect(lambda: self.sig_focus_changed.emit())
+        editor.sig_focus_changed.connect(self.sig_focus_changed)
 
     @Slot(str, str)
     def append_to_history(self, filename, command):

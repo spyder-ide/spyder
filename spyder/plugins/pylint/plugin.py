@@ -74,8 +74,7 @@ class Pylint(SpyderDockablePlugin):
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_start_analysis_requested.connect(
-            lambda: self.start_code_analysis())
+        widget.sig_start_analysis_requested.connect(self.start_code_analysis)
 
         # Add action to application menus
         pylint_act = self.create_action(
@@ -83,7 +82,7 @@ class Pylint(SpyderDockablePlugin):
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("pylint"),
-            triggered=lambda: self.start_code_analysis(),
+            triggered=self.start_code_analysis,
             context=Qt.ApplicationShortcut,
             register_shortcut=True
         )
@@ -202,6 +201,7 @@ class Pylint(SpyderDockablePlugin):
         """
         return self.get_widget().get_filename()
 
+    @Slot()
     def start_code_analysis(self, filename=None):
         """
         Perform code analysis for given `filename`.
