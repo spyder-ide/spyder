@@ -6,3 +6,4 @@ dependencies:
   - boa
   - conda-standalone
   - constructor
+  - ruamel.yaml.jinja2
