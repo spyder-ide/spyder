@@ -200,7 +200,7 @@ def _spyder_env(
 
 
 def _definitions(version=_version(), extra_specs=None, spy_repo=SPYREPO):
-    resources = spy_repo / "installers-exp" / "resources"
+    resources = spy_repo / "installers-conda" / "resources"
     base_env = _base_env()
     spyder_env = _spyder_env(spyder_version=version, extra_specs=extra_specs)
     condarc = _get_condarc()
@@ -251,7 +251,7 @@ def _definitions(version=_version(), extra_specs=None, spy_repo=SPYREPO):
         definitions["welcome_file"] = str(welcome_file)
         definitions["conclusion_text"] = ""
         definitions["readme_text"] = ""
-        definitions["post_install"] = str(spy_repo / "installers-exp" / "post-install.sh")
+        definitions["post_install"] = str(spy_repo / "installers-conda" / "post-install.sh")
         signing_identity = os.environ.get("CONSTRUCTOR_SIGNING_IDENTITY")
         if signing_identity:
             definitions["signing_identity_name"] = signing_identity
@@ -384,7 +384,7 @@ def main(extra_specs=None, spy_repo=SPYREPO, no_conda_build=False):
 
     try:
         cwd = os.getcwd()
-        workdir = spy_repo / "installers-exp" / "dist"
+        workdir = spy_repo / "installers-conda" / "dist"
         workdir.mkdir(exist_ok=True)
         os.chdir(workdir)
         _constructor(extra_specs=extra_specs, spy_repo=spy_repo)
