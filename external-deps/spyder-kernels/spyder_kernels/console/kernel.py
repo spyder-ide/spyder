@@ -84,7 +84,6 @@ class SpyderKernel(IPythonKernel):
             'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
             'pdb_input_reply': self.shell.pdb_input_reply,
             'enable_faulthandler': self.enable_faulthandler,
-            "flush_std": self.flush_std,
             'get_current_frames': self.get_current_frames,
             'request_pdb_stop': self.shell.request_pdb_stop,
             'raise_interrupt_signal': self.shell.raise_interrupt_signal,
@@ -126,11 +125,6 @@ class SpyderKernel(IPythonKernel):
             comm_id=comm_id,
             callback=callback,
             timeout=timeout)
-
-    def flush_std(self):
-        """Flush C standard streams."""
-        sys.__stderr__.flush()
-        sys.__stdout__.flush()
 
     def enable_faulthandler(self, fn):
         """
