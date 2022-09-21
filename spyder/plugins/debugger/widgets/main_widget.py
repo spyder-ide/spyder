@@ -266,7 +266,8 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         goto_cursor_action = self.create_action(
             DebuggerWidgetActions.GotoCursor,
-            text=_("Show in editor"),
+            text=_("Show in the editor the file and line where the debugger "
+                   "is placed"),
             icon=self.create_icon('fromcursor'),
             triggered=self.goto_current_step,
             register_shortcut=True
