@@ -302,12 +302,6 @@ class SpyderShell(ZMQInteractiveShell):
         debugger._cmd_input_line = line
         # Interrupts eventloop if needed
         self.kernel.interrupt_eventloop()
-    
-    def do_post_execute(self):
-        """Flush __std*__ after execution."""
-        # Flush C standard streams.
-        sys.__stderr__.flush()
-        sys.__stdout__.flush()
 
     def do_post_execute(self):
         """Flush __std*__ after execution."""
