@@ -381,19 +381,21 @@ class IconManager():
             platforms due to a Qt bug. See spyder-ide/spyder#1314.
         """
         icon_path = get_image_path(name)
+        icon = QIcon(icon_path)
+        icon0 = QIcon()
+
         if resample:
             # This only applies to the Spyder 2 icons
-            icon = QIcon(icon_path)
-            icon0 = QIcon()
             for size in (16, 24, 32, 48, 96, 128, 256, 512):
                 icon0.addPixmap(icon.pixmap(size, size))
             return icon0
         else:
-            icon = QIcon()
-
             # Normal state
-            normal_state = QPixmap(icon_path)
-            icon.addPixmap(normal_state, QIcon.Normal)
+            # NOTE: We take pixmaps as large as the ones below to not have
+            # pixelated icons on high dpi screens.
+            # Fixes spyder-ide/spyder#19520
+            normal_state = icon.pixmap(512, 512)
+            icon0.addPixmap(normal_state, QIcon.Normal)
 
             # This is the color GammaRay reports for icons in disabled
             # buttons, both for the dark and light themes
@@ -401,14 +403,14 @@ class IconManager():
 
             # Paint icon with the previous color to get the disabled state.
             # Taken from https://stackoverflow.com/a/65618075/438386
-            disabled_state = QPixmap(icon_path)
+            disabled_state = icon.pixmap(512, 512)
             qp = QPainter(disabled_state)
             qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
             qp.fillRect(disabled_state.rect(), disabled_color)
             qp.end()
-            icon.addPixmap(disabled_state, QIcon.Disabled)
+            icon0.addPixmap(disabled_state, QIcon.Disabled)
 
-            return icon
+            return icon0
 
     def icon(self, name, scale_factor=None, resample=False):
         theme = CONF.get('appearance', 'icon_theme')
