@@ -684,6 +684,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
 
         # Send the input request.
         self._cmd_input_line = None
@@ -731,11 +733,10 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         return line
 
     def postcmd(self, stop, line):
-        """
-        Notify spyder about (possibly) changed frame
-
-        Note: The PDB commands “up”, “down” and “jump” change the current frame.
-        """
+        """Hook method executed just after a command dispatch is finished."""
+        # Flush in case the command produced output on underlying outputs
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
         self.publish_pdb_state()
         return super(SpyderPdb, self).postcmd(stop, line)
 

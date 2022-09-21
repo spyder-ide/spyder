@@ -1799,19 +1799,19 @@ def test_stderr_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText())
     assert "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText()
     # Write a second time, makes sure it is not duplicated
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("\ntest_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
     # Wait for the poll
     qtbot.waitUntil(lambda: ipyconsole.get_widget().get_focus_widget(
         ).toPlainText().count("test_test") == 2)
@@ -1825,15 +1825,12 @@ def test_stdout_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stdout_obj.handle.flush()
-    with open(client.stdout_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import sys; print("test_test", file=sys.__stdout__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText(), timeout=5000)
-    assert "test_test" in ipyconsole.get_widget().get_focus_widget(
-        ).toPlainText()
 
 
 @flaky(max_runs=10)
@@ -1886,6 +1883,8 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("%matplotlib " + backend)
+    qtbot.wait(1000)
+
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug print()")
     with qtbot.waitSignal(shell.executed):
@@ -2139,14 +2138,18 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
+    qtbot.wait(1000)
 
     # Create a Matplotlib plot
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt; plt.plot(range(10))")
+    qtbot.wait(1000)
 
     # Get kernel pid
     with qtbot.waitSignal(shell.executed):
         shell.execute("import os; pid = os.getpid()")
+    qtbot.wait(1000)
+
     kernel_pid = shell.get_value('pid')
 
     # Close current tab
