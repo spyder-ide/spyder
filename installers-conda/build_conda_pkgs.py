@@ -52,7 +52,8 @@ class BuildCondaPkg():
         self._patched_build = False
 
     def _get_version(self):
-        spec = spec_from_file_location(self.ver_path.parent.name, self.ver_path)
+        spec = spec_from_file_location(self.ver_path.parent.name,
+                                       self.ver_path)
         mod = module_from_spec(spec)
         spec.loader.exec_module(mod)
         return mod.__version__
@@ -128,7 +129,9 @@ class BuildCondaPkg():
             self.patch_build()
 
             self.logger.info("Building conda package...")
-            # check_call(["mamba", "mambabuild", str(self.fdstk_path / "recipe")])
+            check_call(
+                ["mamba", "mambabuild", str(self.fdstk_path / "recipe")]
+            )
 
         finally:
             self._patched_meta = False
@@ -159,6 +162,10 @@ class SpyderCondaPkg(BuildCondaPkg):
     def _patch_meta(self):
         self.yaml['build'].pop('osx_is_app', None)
         self.yaml.pop('app', None)
+
+        patches = self.yaml['source'].get('patches', [])
+        patches.append("../../installers-conda.patch")
+        self.yaml['source']['patches'] = patches
 
     def _patch_build(self):
         file = self.fdstk_path / "recipe" / "build.sh"
