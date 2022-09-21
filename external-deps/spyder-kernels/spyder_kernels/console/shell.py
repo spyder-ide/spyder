@@ -308,3 +308,9 @@ class SpyderShell(ZMQInteractiveShell):
         # Flush C standard streams.
         sys.__stderr__.flush()
         sys.__stdout__.flush()
+
+    def do_post_execute(self):
+        """Flush __std*__ after execution."""
+        # Flush C standard streams.
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
