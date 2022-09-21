@@ -28,6 +28,7 @@ import platform
 import sys
 import zipfile
 from argparse import ArgumentParser
+from datetime import timedelta
 from distutils.spawn import find_executable
 from functools import partial
 from importlib.util import spec_from_file_location, module_from_spec
@@ -35,6 +36,7 @@ from pathlib import Path
 from ruamel.yaml import YAML
 from subprocess import check_call, check_output
 from textwrap import dedent, indent
+from time import time
 
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -357,13 +359,15 @@ def licenses():
 
 
 def main():
+    t0 = time()
     try:
         DIST.mkdir(exist_ok=True)
         _constructor()
         assert Path(OUTPUT_FILE).exists()
         print("Created", OUTPUT_FILE)
     finally:
-        pass
+        elapse = timedelta(seconds=int(time() - t0))
+        print(f"Build time: {elapse}")
 
 
 if __name__ == "__main__":
