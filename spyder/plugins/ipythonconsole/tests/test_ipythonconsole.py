@@ -1884,6 +1884,7 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
     with qtbot.waitSignal(shell.executed):
         shell.execute("%matplotlib " + backend)
     qtbot.wait(1000)
+
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug print()")
     with qtbot.waitSignal(shell.executed):
@@ -2138,14 +2139,17 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     qtbot.wait(1000)
+
     # Create a Matplotlib plot
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt; plt.plot(range(10))")
     qtbot.wait(1000)
+
     # Get kernel pid
     with qtbot.waitSignal(shell.executed):
         shell.execute("import os; pid = os.getpid()")
     qtbot.wait(1000)
+
     kernel_pid = shell.get_value('pid')
 
     # Close current tab
