@@ -3,15 +3,15 @@ Build local conda packages
 """
 
 import re
-from textwrap import dedent
 from argparse import ArgumentParser
-from shutil import rmtree
-from pathlib import Path
-from ruamel.yaml import YAML
-from subprocess import check_call
+from datetime import timedelta
 from importlib.util import spec_from_file_location, module_from_spec
 from logging import Formatter, StreamHandler, getLogger
-from datetime import timedelta
+from pathlib import Path
+from ruamel.yaml import YAML
+from shutil import rmtree
+from subprocess import check_call
+from textwrap import dedent
 from time import time
 
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -22,6 +22,7 @@ logger.addHandler(h)
 logger.setLevel('INFO')
 
 HERE = Path(__file__).parent
+RESOURCES = HERE / "resources"
 EXTDEPS = HERE.parent / "external-deps"
 
 
@@ -164,7 +165,7 @@ class SpyderCondaPkg(BuildCondaPkg):
         self.yaml.pop('app', None)
 
         patches = self.yaml['source'].get('patches', [])
-        patches.append("../../installers-conda.patch")
+        patches.append(str(RESOURCES / "installers-conda.patch"))
         self.yaml['source']['patches'] = patches
 
     def _patch_build(self):
@@ -173,14 +174,15 @@ class SpyderCondaPkg(BuildCondaPkg):
         text += dedent(
             """
             mkdir -p "${PREFIX}/Menu"
-            sed "s/__PKG_VERSION__/${PKG_VERSION}/" "${SRC_DIR}/installers-conda/menuinst_config.json" > "${PREFIX}/Menu/spyder-menu.json"
+            sed "s/__PKG_VERSION__/${PKG_VERSION}/" """
+            """"${SRC_DIR}/installers-conda/resources/spyder-menu.json" """
+            """> "${PREFIX}/Menu/spyder-menu.json"
             cp "${SRC_DIR}/img_src/spyder.png" "${PREFIX}/Menu/spyder.png"
             cp "${SRC_DIR}/img_src/spyder.icns" "${PREFIX}/Menu/spyder.icns"
             cp "${SRC_DIR}/img_src/spyder.ico" "${PREFIX}/Menu/spyder.ico"
 
             """
         )
-
         file.write_text(text)
 
 
