@@ -162,7 +162,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.dialog_manager = DialogManager()
 
         # --- Standard files handling
-        self.std_poll_timer = None
         self.start_successful = False
 
     def __del__(self):
@@ -378,10 +377,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def start_std_poll(self):
         """Start polling std files"""
-        self.std_poll_timer = QTimer(self)
-        self.std_poll_timer.timeout.connect(self.poll_std_file_change)
-        self.std_poll_timer.setInterval(1000)
-        self.std_poll_timer.start()
         self.shellwidget.executed.connect(self.poll_std_file_change)
 
     def connect_kernel(self, kernel_handler):
@@ -403,15 +398,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.executed.disconnect(self.poll_std_file_change)
         except (TypeError, ValueError):
             pass
-        if self.std_poll_timer is not None:
-            self.std_poll_timer.stop()
         if is_last_client and self.kernel_handler is not None:
             self.kernel_handler.remove_files()
 
     @Slot()
     def poll_std_file_change(self):
         """Check if the stderr or stdout file just changed."""
-        self.shellwidget.call_kernel().flush_std()
         starting = self.shellwidget._starting
         if self.stderr_obj is not None:
             stderr = self.stderr_obj.poll_file_change()
