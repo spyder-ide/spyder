@@ -34,7 +34,7 @@ from numpy.testing import assert_array_equal
 from pkg_resources import parse_version
 import pylint
 import pytest
-from qtpy import PYQT_VERSION
+from qtpy import PYQT_VERSION, PYQT5
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
@@ -1665,7 +1665,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    os.name == 'nt' or running_in_ci() and PYQT_VERSION >= '5.9',
+    os.name == 'nt' or running_in_ci() and (PYQT5 and PYQT_VERSION >= '5.9'),
     reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
 def test_issue_4066(main_window, qtbot):
     """
