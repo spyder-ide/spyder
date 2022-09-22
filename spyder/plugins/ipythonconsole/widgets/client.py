@@ -412,7 +412,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Remove stderr_file associated with the client."""
         try:
             self.shellwidget.executed.disconnect(self.poll_std_file_change)
-        except (TypeError, ValueError):
+        except (TypeError, RuntimeError):
             pass
         if is_last_client:
             if self.stderr_obj is not None:
