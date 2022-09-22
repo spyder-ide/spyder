@@ -10,7 +10,9 @@ on:
       - '**.sh'
       - '!**.md'
       - '!installers/Windows/**'
+      - '!installers-conda/**'
       - '!.github/workflows/installer-win.yml'
+      - '!.github/workflows/installers-conda.yml'
 
   release:
     types:
