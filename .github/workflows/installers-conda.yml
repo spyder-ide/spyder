@@ -1,0 +1,118 @@
+on:
+  pull_request:
+    paths:
+      - 'installers-conda/**'
+      - '.github/workflows/installers-conda.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!**.md'
+      - '!installers/**'
+      - '!.github/workflows/installer-win.yml'
+      - '!.github/workflows/installer-macos.yml'
+
+  release:
+    types:
+      - created
+
+name: Create conda-based installers for Windows, macOS, and Linux
+
+jobs:
+  build:
+    name: Build installer for ${{ matrix.target-platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-11
+            python-version: "3.9"
+            target-platform: "osx-64"
+    defaults:
+      run:
+        shell: bash -l {0}
+        working-directory: ${{ github.workspace }}/installers-conda
+    env:
+      DISTDIR: ${{ github.workspace }}/installers-conda/dist
+      MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
+      APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
+      CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Build Environment
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: installers-conda/build-environment.yml
+          extra-specs: python=${{ matrix.python-version }}
+
+      - name: Build Conda Packages
+        run: |
+          [[ $GITHUB_EVENT_NAME != "release" ]] && args=("--build" "spyder") || args=()
+          python build_conda_pkgs.py ${args[@]}
+
+      - name: Create Keychain
+        if: github.event_name == 'release' && startsWith(matrix.os, 'macos')
+        run: ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
+
+      - name: Build Package Installer
+        run: |
+          _codesign=$(which codesign)
+          if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
+              # Find correct codesign
+              echo "Moving $_codesign..."
+              mv $_codesign ${_codesign}.bak
+          fi
+          [[ "$GITHUB_EVENT_NAME" == "release" ]] && args=("--no-local") || args=()
+          python build_installers.py "${args[@]}"
+          PKG_FILE=$(python build_installers.py --artifact-name)
+          PKG_NAME=$(basename $PKG_FILE)
+          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+
+      - name: Test Application Bundle
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          installer -dumplog -pkg $PKG_FILE -target CurrentUserHomeDirectory
+          app_path=$HOME/Applications/Spyder.app
+          if [[ -e "$app_path" ]]; then
+              ls -al $app_path/Contents/MacOS
+              cat $app_path/Contents/MacOS/Spyder
+              echo ""
+          else
+              echo "$app_path does not exist"
+          fi
+
+      - name: Notarize package installer
+        if: github.event_name == 'release' && startsWith(matrix.os, 'macos')
+        run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ env.PKG_FILE }}
+          name: ${{ env.PKG_NAME }}
+
+      - name: Get Release
+        if: github.event_name == 'release'
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: bruceadams/get-release@v1.2.0
+
+      - name: Upload Release Asset
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ${{ env.PKG_FILE }}
+          asset_name: ${{ env.PKG_NAME }}
+          asset_content_type: application/octet-stream
