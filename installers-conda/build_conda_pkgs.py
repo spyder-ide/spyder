@@ -1,14 +1,16 @@
 """
 Build local conda packages
 """
-
+import os
 import re
 from argparse import ArgumentParser
 from datetime import timedelta
+from git import Repo
 from importlib.util import spec_from_file_location, module_from_spec
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 from ruamel.yaml import YAML
+from setuptools_scm import get_version
 from shutil import rmtree
 from subprocess import check_call
 from textwrap import dedent
@@ -59,20 +61,6 @@ class BuildCondaPkg():
         spec.loader.exec_module(mod)
         return mod.__version__
 
-    def _git_init_src_path(self):
-        if (self.src_path / ".git").exists():
-            rmtree(self.src_path / ".git", ignore_errors=True)
-
-        self.logger.info(f"Initializing git repo at {self.src_path}...")
-        check_call(["git", "init", "-q", str(self.src_path)])
-        check_call(["git", "-C", str(self.src_path), "add", "-A"])
-        check_call(["git", "-C", str(self.src_path), "commit", "-qm", "build"])
-
-    def _git_clean_src_path(self):
-        git_path = self.src_path / ".git"
-        self.logger.info(f"Removing {git_path}...")
-        rmtree(git_path, ignore_errors=True)
-
     def _clone_feedstock(self):
         if self.fdstk_path.exists():
             self.logger.info(f"Removing existing {self.fdstk_path}...")
@@ -121,10 +109,13 @@ class BuildCondaPkg():
         self._patch_build()
         self._patched_build = True
 
+    def _build_cleanup(self):
+        pass
+
     def build(self):
         t0 = time()
         try:
-            self._git_init_src_path()
+            # self._git_init_src_path()
             self._clone_feedstock()
             self.patch_meta()
             self.patch_build()
@@ -141,7 +132,7 @@ class BuildCondaPkg():
                 self.logger.info(f"Removing {self.fdstk_path}...")
                 rmtree(self.fdstk_path, ignore_errors=True)
 
-            self._git_clean_src_path()
+            self._build_cleanup()
 
             elapse = timedelta(seconds=int(time() - t0))
             self.logger.info(f"Build time = {elapse}")
@@ -151,14 +142,6 @@ class SpyderCondaPkg(BuildCondaPkg):
     src_path = HERE.parent
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     ver_path = src_path / "spyder" / "__init__.py"
-
-    def _git_init_src_path(self):
-        # Do not initialize repo
-        pass
-
-    def _git_clean_src_path(self):
-        # Do not remove .git
-        pass
 
     def _patch_meta(self):
         self.yaml['build'].pop('osx_is_app', None)
@@ -187,9 +170,25 @@ class SpyderCondaPkg(BuildCondaPkg):
 
 
 class PylspCondaPkg(BuildCondaPkg):
-    src_path = EXTDEPS / "python-lsp-server"
+    src_path = Path(os.environ.get('PYTHON_LSP_SERVER_SOURCE',
+                                   HERE / "python-lsp-server"))
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
-    ver_path = src_path / "pylsp" / "_version.py"
+
+    def _get_version(self):
+        self._build_cleanup()  # Remove existing if HERE
+
+        if not self.src_path.exists():
+            # Clone from remote
+            Repo.clone_from(
+                "https://github.com/python-lsp/python-lsp-server.git",
+                to_path=self.src_path, shallow_exclude="v1.4.1"
+            )
+        return get_version(self.src_path)
+
+    def _build_cleanup(self):
+        if self.src_path == HERE / "python-lsp-server":
+            logger.info(f"Removing {self.src_path}...")
+            rmtree(self.src_path, ignore_errors=True)
 
 
 class QdarkstyleCondaPkg(BuildCondaPkg):
@@ -219,30 +218,43 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
 
 
 if __name__ == "__main__":
+    repos = {
+        "spyder": SpyderCondaPkg,
+        "python-lsp-server": PylspCondaPkg,
+        "qdarkstyle": QdarkstyleCondaPkg,
+        "qtconsole": QtconsoleCondaPkg,
+        "spyder-kernels": SpyderKernelsCondaPkg
+    }
+
     p = ArgumentParser(
-        usage="python build_conda_pkgs.py [--skip-external-deps] [--debug]",
-        epilog=dedent(
+        description=dedent(
             """
             Build conda packages from local spyder and external-deps sources.
+            Alternative git repo for python-lsp-server may be provided by
+            setting the environment variable PYTHON_LSP_SERVER_SOURCE,
+            otherwise the upstream remote will be used. All other external-deps
+            use the subrepo source within the spyder repo.
             """
-        )
+        ),
+        usage="python build_conda_pkgs.py "
+              "[--build subrepo [subrepo] ...] [--debug]",
     )
-    p.add_argument('--skip-external-deps', action='store_true', default=False,
-                   help="Do not build conda packages for external-deps.")
-    p.add_argument('--debug', action='store_true', default=False,
-                   help="Do not remove cloned feedstocks")
+    p.add_argument(
+        '--debug', action='store_true', default=False,
+        help="Do not remove cloned feedstocks"
+    )
+    p.add_argument(
+        '--build', nargs="+", default=repos.keys(),
+        help=("Space-separated list of repos to build. "
+              f"Default is {list(repos.keys())}")
+    )
     args = p.parse_args()
 
-    logger.info("Building local conda packages...")
+    logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
 
-    SpyderCondaPkg(debug=args.debug).build()
-
-    if not args.skip_external_deps:
-        PylspCondaPkg(debug=args.debug).build()
-        QdarkstyleCondaPkg(debug=args.debug).build()
-        QtconsoleCondaPkg(debug=args.debug).build()
-        SpyderKernelsCondaPkg(debug=args.debug).build()
+    for k in args.build:
+        repos[k](debug=args.debug).build()
 
     elapse = timedelta(seconds=int(time() - t0))
     logger.info(f"Total build time = {elapse}")
