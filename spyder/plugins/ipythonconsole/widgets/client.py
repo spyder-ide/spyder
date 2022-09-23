@@ -360,6 +360,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Connect kernel to client using our handler."""
         self._before_prompt_is_ready()
         self.kernel_handler = kernel_handler
+
+        # Connect standard streams.
         kernel_handler.sig_stderr.connect(self.print_stderr)
         kernel_handler.sig_stdout.connect(self.print_stdout)
 
@@ -371,8 +373,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Print stderr written in PIPE."""
         if not stderr:
             return
+
         if self.is_benign_error(stderr):
             return
+
         if self.shellwidget.isHidden():
             error_text = '<tt>%s</tt>' % stderr
             # Avoid printing the same thing again
@@ -381,6 +385,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     # Append to error text
                     error_text = self.error_text + error_text
                 self.show_kernel_error(error_text)
+
         if self.shellwidget._starting:
             self.shellwidget.banner = (
                 stderr + '\n' + self.shellwidget.banner)
@@ -393,6 +398,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Print stdout written in PIPE."""
         if not stdout:
             return
+
         if self.shellwidget._starting:
             self.shellwidget.banner = (
                 stdout + '\n' + self.shellwidget.banner)

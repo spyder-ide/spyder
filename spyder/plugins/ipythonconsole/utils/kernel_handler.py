@@ -10,13 +10,13 @@
 import os
 import os.path as osp
 import re
+from subprocess import PIPE
 from threading import Lock
 import uuid
-from subprocess import PIPE
 
 # Third-party imports
 from jupyter_core.paths import jupyter_runtime_dir
-from qtpy.QtCore import QThread, QObject, Signal
+from qtpy.QtCore import QObject, QThread, Signal
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
@@ -103,8 +103,10 @@ class KernelHandler(QObject):
         # Connect new threads
         if self.kernel_manager is None:
             return
+
         stdout = self.kernel_manager.provisioner.process.stdout
         stderr = self.kernel_manager.provisioner.process.stderr
+
         if stdout:
             self._stdout_thread = StdThread(self, stdout)
             self._stdout_thread.sig_out.connect(self.sig_stdout)
