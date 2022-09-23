@@ -6,4 +6,6 @@ dependencies:
   - boa
   - conda-standalone
   - constructor
+  - gitpython
   - ruamel.yaml.jinja2
+  - setuptools_scm
