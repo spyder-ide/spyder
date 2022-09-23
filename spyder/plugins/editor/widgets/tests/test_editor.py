@@ -628,7 +628,7 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
     editor_stack, editor, finder = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
     editor.set_text(text)
-    finder.show()
+    editor_stack.show()
     finder.show_replace()
 
     qtbot.wait(100)
