@@ -1,4 +1,4 @@
-From aaf106966bf500d5c2d6200e7b9f851bfb28c767 Mon Sep 17 00:00:00 2001
+From 4fc591ffa69a8f3f2b4030e4395818962be71f79 Mon Sep 17 00:00:00 2001
 From: Ryan Clary <9618975+mrclary@users.noreply.github.com>
 Date: Mon, 12 Sep 2022 23:56:56 -0700
 Subject: [PATCH 1/2] Revise usage of running_in_mac_app
@@ -187,21 +187,21 @@ index 91c411bdf..c274f5872 100644
          self.error_output = ''
          self.running = True
 diff --git a/spyder/plugins/pylint/main_widget.py b/spyder/plugins/pylint/main_widget.py
-index a76d6fbf9..df4f00dab 100644
+index aa35d27d2..7fe5793db 100644
 --- a/spyder/plugins/pylint/main_widget.py
 +++ b/spyder/plugins/pylint/main_widget.py
 @@ -31,7 +31,7 @@
  from spyder.api.config.decorators import on_conf_change
  from spyder.api.translations import get_translation
  from spyder.api.widgets.main_widget import PluginMainWidget
--from spyder.config.base import get_conf_path, running_in_mac_app
-+from spyder.config.base import get_conf_path
+-from spyder.config.base import get_conf_path, is_pynsist, running_in_mac_app
++from spyder.config.base import get_conf_path, is_pynsist
+ from spyder.config.utils import is_anaconda
  from spyder.plugins.pylint.utils import get_pylintrc_path
  from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
- from spyder.utils.icon_manager import ima
-@@ -372,11 +372,6 @@ def _start(self):
-             user_profile = os.environ.get("USERPROFILE", home_dir)
-             processEnvironment.insert("USERPROFILE", user_profile)
+@@ -377,11 +377,6 @@ def _start(self):
+             if not is_pynsist() and not is_anaconda():
+                 processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
  
 -        # resolve spyder-ide/spyder#14262
 -        if running_in_mac_app():
@@ -251,7 +251,7 @@ index 49f894e7c..018e02130 100644
 2.37.3
 
 
-From eadd3399de480315769cae4b97a2ebc6e26013d7 Mon Sep 17 00:00:00 2001
+From 2f66ddf6fed81c3da069761eb046c2abd52e694c Mon Sep 17 00:00:00 2001
 From: Ryan Clary <9618975+mrclary@users.noreply.github.com>
 Date: Mon, 12 Sep 2022 23:58:36 -0700
 Subject: [PATCH 2/2] Update standalone conda executable.
