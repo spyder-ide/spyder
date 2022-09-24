@@ -36,6 +36,7 @@ class DebuggerWidgetActions:
     Step = "step"
     Return = "return"
     Stop = "stop"
+    GotoCursor = "go to editor"
 
     # Toggles
     ToggleExcludeInternal = 'toggle_exclude_internal_action'
@@ -263,6 +264,15 @@ class DebuggerWidget(ShellConnectMainWidget):
             register_shortcut=True
         )
 
+        goto_cursor_action = self.create_action(
+            DebuggerWidgetActions.GotoCursor,
+            text=_("Show in the editor the file and line where the debugger "
+                   "is placed"),
+            icon=self.create_icon('fromcursor'),
+            triggered=self.goto_current_step,
+            register_shortcut=True
+        )
+
         self.create_action(
             DebuggerToolbarActions.DebugCurrentFile,
             text=_("&Debug file"),
@@ -342,6 +352,7 @@ class DebuggerWidget(ShellConnectMainWidget):
                      step_action,
                      return_action,
                      stop_action,
+                     goto_cursor_action,
                      enter_debug_action,
                      inspect_action,
                      search_action]:
@@ -404,7 +415,9 @@ class DebuggerWidget(ShellConnectMainWidget):
                 DebuggerWidgetActions.Continue,
                 DebuggerWidgetActions.Step,
                 DebuggerWidgetActions.Return,
-                DebuggerWidgetActions.Stop]:
+                DebuggerWidgetActions.Stop,
+                DebuggerWidgetActions.GotoCursor,
+                ]:
             action = self.get_action(action_name)
             action.setEnabled(pdb_prompt)
 
@@ -499,6 +512,12 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     # ---- Public API
     # ------------------------------------------------------------------------
+    def goto_current_step(self):
+        """Go to last pdb step."""
+        fname, lineno = self.get_pdb_last_step()
+        if fname:
+            self.sig_load_pdb_file.emit(fname, lineno)
+
     def print_debug_file_msg(self):
         """Print message in the current console when a file can't be closed."""
         widget = self.current_widget()
