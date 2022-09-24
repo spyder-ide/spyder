@@ -32,11 +32,19 @@ from datetime import timedelta
 from distutils.spawn import find_executable
 from functools import partial
 from importlib.util import spec_from_file_location, module_from_spec
+from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 from ruamel.yaml import YAML
-from subprocess import check_call, check_output
+from subprocess import check_call
 from textwrap import dedent, indent
 from time import time
+
+fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
+h = StreamHandler()
+h.setFormatter(fmt)
+logger = getLogger('BuildInstallers')
+logger.addHandler(h)
+logger.setLevel('INFO')
 
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -313,21 +321,11 @@ def _constructor():
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "strict"
 
-    print("+++++++++++++++++")
-    print("Command:", " ".join(cmd_args))
-    print("Configuration:")
-    yaml.dump(definitions, sys.stdout, transform=indent4)
-    print("\nConda config:\n")
-    print(
-        indent4(check_output(["conda", "config", "--show-sources"],
-                             text=True, env=env))
-    )
-    print("Conda info:")
-    print(indent4(check_output(["conda", "info"], text=True, env=env)))
-    print("+++++++++++++++++")
+    logger.info("Command: " + " ".join(cmd_args))
+    logger.info("Configuration:")
+    yaml.dump(definitions, sys.stdout)
 
-    file = DIST / "construct.yaml"
-    yaml.dump(definitions, file)
+    yaml.dump(definitions, DIST / "construct.yaml")
 
     check_call(cmd_args, env=env)
 
@@ -364,10 +362,10 @@ def main():
         DIST.mkdir(exist_ok=True)
         _constructor()
         assert Path(OUTPUT_FILE).exists()
-        print("Created", OUTPUT_FILE)
+        logger.info(f"Created {OUTPUT_FILE}")
     finally:
         elapse = timedelta(seconds=int(time() - t0))
-        print(f"Build time: {elapse}")
+        logger.info(f"Build time: {elapse}")
 
 
 if __name__ == "__main__":
