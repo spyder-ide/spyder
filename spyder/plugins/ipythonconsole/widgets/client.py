@@ -364,6 +364,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Connect standard streams.
         kernel_handler.sig_stderr.connect(self.print_stderr)
         kernel_handler.sig_stdout.connect(self.print_stdout)
+        kernel_handler.sig_fault.connect(self.print_fault)
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler)
@@ -713,7 +714,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             if reset:
                 sw.reset(clear=True)
             
-            self.kernel_handler.get_fault_text(self.print_fault_text)
+            self.kernel_handler.poll_fault_text()
 
             sw._append_html(_("<br>Restarting kernel...<br>"),
                             before_prompt=True)
@@ -724,10 +725,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.restart_thread = None
         self.sig_execution_state_changed.emit()
     
-    def print_fault_text(self, fault):
+    def print_fault(self, fault):
         """Print fault text."""
-        if not fault:
-            return
         self.shellwidget._append_plain_text(
             '\n' + fault, before_prompt=True)
 

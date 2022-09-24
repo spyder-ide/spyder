@@ -64,6 +64,7 @@ class KernelHandler(QObject):
 
     sig_stdout = Signal(str)
     sig_stderr = Signal(str)
+    sig_fault = Signal(str)
 
     def __init__(
         self,
@@ -370,14 +371,20 @@ class KernelHandler(QObject):
             callback=self.faulthandler_setup
         ).enable_faulthandler()
 
-    def get_fault_text(self, print_callback):
+    def poll_fault_text(self):
         """Get a fault from a previous session."""
         if self._fault_args is None:
             return
         self.kernel_comm.remote_call(
-            callback=print_callback
+            callback=self.emit_fault_text
         ).get_fault_text(*self._fault_args)
         self._fault_args = None
+
+    def emit_fault_text(self, fault):
+        """Emit fault text"""
+        if not fault:
+            return
+        self.sig_fault.emit(fault)
 
     def restart_kernel(self):
         """Restart kernel."""
