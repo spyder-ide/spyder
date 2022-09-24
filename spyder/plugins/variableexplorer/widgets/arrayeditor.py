@@ -512,6 +512,7 @@ class ArrayView(QTableView):
             # See isue 7880
             pass
 
+    @Slot()
     def resize_to_contents(self):
         """Resize cells to contents"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -616,6 +617,7 @@ class ArrayEditorWidget(QWidget):
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
 
+    @Slot()
     def change_format(self):
         """Change display format"""
         format, valid = QInputDialog.getText(self, _( 'Format'),
@@ -801,12 +803,11 @@ class ArrayEditor(BaseDialog):
         # disable format button for int type
         btn_format.setEnabled(is_float(self.arraywidget.data.dtype))
         btn_layout_bottom.addWidget(btn_format)
-        btn_format.clicked.connect(lambda: self.arraywidget.change_format())
+        btn_format.clicked.connect(self.arraywidget.change_format)
 
         btn_resize = QPushButton(_("Resize"))
         btn_layout_bottom.addWidget(btn_resize)
-        btn_resize.clicked.connect(
-            lambda: self.arraywidget.view.resize_to_contents())
+        btn_resize.clicked.connect(self.arraywidget.view.resize_to_contents)
 
         self.bgcolor = QCheckBox(_('Background color'))
         self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)

@@ -315,7 +315,6 @@ def test_exclude_regexp_error(findinfiles, qtbot):
 
 @flaky(max_runs=5)
 @pytest.mark.skipif(not running_in_ci(), reason="Only works on CIs")
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_no_empty_file_items(findinfiles, qtbot):
     """
     Test that a search that hits the max number of results doesn't generate
@@ -333,11 +332,21 @@ def test_no_empty_file_items(findinfiles, qtbot):
     # Assert the results are the expected ones to reproduce the bug this test
     # tries to catch. In other words, this is here to prevent future changes to
     # our test files that would render this test useless.
-    results = {
-        'spam.py': [(2, 7), (5, 1), (7, 12)],
-        'spam.txt': [(1, 0), (1, 5), (3, 22)]
-    }
-    assert process_search_results(findinfiles.result_browser.data) == results
+    # Depending on OS the results could differ so here the only two possible
+    # results get listed:
+    results = [
+        {
+            'spam.py': [(2, 7), (5, 1), (7, 12)],
+            'spam.txt': [(1, 0), (1, 5), (3, 22)]
+        },
+        {
+            'spam.cpp': [(2, 9), (6, 15), (8, 2), (11, 4), (11, 10), (13, 12)]
+        }
+    ]    
+    assert (
+        process_search_results(findinfiles.result_browser.data) == results[0] or
+        process_search_results(findinfiles.result_browser.data) == results[1]
+    )
 
     # Assert that the files with results are exactly the same as those
     # displayed in the results browser.

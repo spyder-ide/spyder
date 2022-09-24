@@ -58,7 +58,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9.5'
+          python-version: '3.9.14'
           architecture: 'x64'
       - name: Install Dependencies
         run: |

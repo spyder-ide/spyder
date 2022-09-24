@@ -58,6 +58,7 @@ from spyder.plugins.debugger.api import (
     DebuggerWidgetActions, DebuggerToolbarActions)
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
+from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
@@ -120,6 +121,12 @@ def test_leaks(main_window, qtbot):
 
     Many other ways of leaking exist but are not covered here.
     """
+    def wait_all_shutdown():
+        objects = gc.get_objects()
+        for o in objects:
+            if isinstance(o, KernelHandler):
+                o.wait_shutdown_thread()
+
     def ns_fun(main_window, qtbot):
         # Wait until the window is fully up
         shell = main_window.ipyconsole.get_current_shellwidget()
@@ -129,7 +136,7 @@ def test_leaks(main_window, qtbot):
         # Count initial objects
         # Only one of each should be present, but because of many leaks,
         # this is most likely not the case. Here only closing is tested
-        shell.wait_all_shutdown()
+        wait_all_shutdown()
         gc.collect()
         objects = gc.get_objects()
         n_code_editor_init = 0
@@ -160,8 +167,7 @@ def test_leaks(main_window, qtbot):
         main_window.ipyconsole.restart()
 
         # Wait until the shells are closed
-        shell = main_window.ipyconsole.get_current_shellwidget()
-        shell.wait_all_shutdown()
+        wait_all_shutdown()
         return n_shell_init, n_code_editor_init
 
     n_shell_init, n_code_editor_init = ns_fun(main_window, qtbot)

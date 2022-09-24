@@ -122,7 +122,7 @@ class FileInfo(QObject):
     edit_goto = Signal(str, int, str)
     sig_send_to_help = Signal(str, str, bool)
     sig_filename_changed = Signal(str)
-    sig_show_object_info = Signal(int)
+    sig_show_object_info = Signal(bool)
     sig_show_completion_object_info = Signal(str, str)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):

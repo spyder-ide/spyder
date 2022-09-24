@@ -50,6 +50,7 @@ from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
+from spyder.plugins.ipythonconsole.utils import stdfile
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.utils.programs import get_temp_dir
@@ -159,9 +160,9 @@ def ipyconsole(qtbot, request, tmpdir):
     # Instruct the console to not use a stderr file
     no_stderr_file = request.node.get_closest_marker('no_stderr_file')
     if no_stderr_file:
-        test_no_stderr = 'True'
+        test_no_stderr = True
     else:
-        test_no_stderr = ''
+        test_no_stderr = False
 
     # Use the automatic backend if requested
     auto_backend = request.node.get_closest_marker('auto_backend')
@@ -211,8 +212,8 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Create the console and a new client and set environment
     os.environ['IPYCONSOLE_TESTING'] = 'True'
-    os.environ['IPYCONSOLE_TEST_DIR'] = test_dir
-    os.environ['IPYCONSOLE_TEST_NO_STDERR'] = test_no_stderr
+    stdfile.IPYCONSOLE_TEST_DIR = test_dir
+    stdfile.IPYCONSOLE_TEST_NO_STDERR = test_no_stderr
     window = MainWindowMock()
     console = IPythonConsole(parent=window, configuration=configuration)
 
@@ -288,8 +289,8 @@ def ipyconsole(qtbot, request, tmpdir):
     # Close
     console.on_close()
     os.environ.pop('IPYCONSOLE_TESTING')
-    os.environ.pop('IPYCONSOLE_TEST_DIR')
-    os.environ.pop('IPYCONSOLE_TEST_NO_STDERR')
+    stdfile.IPYCONSOLE_TEST_DIR = None
+    stdfile.IPYCONSOLE_TEST_NO_STDERR = False
 
     if os.name == 'nt' or known_leak:
         # Do not test for leaks
@@ -1306,7 +1307,8 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     # Set time to 2 minutes ago.
     client.t0 -= 120
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
-        ipyconsole.get_widget().set_client_elapsed_time(client)
+        client.timer.timeout.connect(client.show_time)
+        client.timer.start(1000)
     assert ('00:02:00' in main_widget.time_label.text() or
             '00:02:01' in main_widget.time_label.text())
 
@@ -1401,10 +1403,9 @@ def test_kernel_crash(ipyconsole, qtbot):
         ipyconsole.create_new_client()
 
         # Assert that the console is showing an error
-        qtbot.waitUntil(lambda: ipyconsole.get_clients()[-1].is_error_shown,
-                        timeout=6000)
         error_client = ipyconsole.get_clients()[-1]
-        assert error_client.is_error_shown
+        qtbot.waitUntil(lambda: bool(error_client.error_text), timeout=6000)
+        assert error_client.error_text
 
         # Assert the error contains the text we expect
         webview = error_client.infowidget
@@ -1636,9 +1637,16 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     control.setFocus()
 
     # Tests assume inline backend
+    qtbot.wait(1000)
     ipyconsole.set_conf('pdb_ignore_lib', not show_lib, section="debugger")
+    qtbot.wait(1000)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            '"value = " + str(get_ipython().pdb_session.pdb_ignore_lib)')
+    assert "value = " + str(not show_lib) in control.toPlainText()
 
     qtbot.keyClicks(control, '!s')
     with qtbot.waitSignal(shell.executed):
@@ -1817,19 +1825,19 @@ def test_stderr_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText())
     assert "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText()
     # Write a second time, makes sure it is not duplicated
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("\ntest_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
     # Wait for the poll
     qtbot.waitUntil(lambda: ipyconsole.get_widget().get_focus_widget(
         ).toPlainText().count("test_test") == 2)
@@ -1843,15 +1851,12 @@ def test_stdout_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stdout_obj.handle.flush()
-    with open(client.stdout_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import sys; print("test_test", file=sys.__stdout__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText(), timeout=5000)
-    assert "test_test" in ipyconsole.get_widget().get_focus_widget(
-        ).toPlainText()
 
 
 @flaky(max_runs=10)
@@ -1904,6 +1909,8 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("%matplotlib " + backend)
+    qtbot.wait(1000)
+
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug print()")
     with qtbot.waitSignal(shell.executed):
@@ -2158,14 +2165,18 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
+    qtbot.wait(1000)
 
     # Create a Matplotlib plot
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt; plt.plot(range(10))")
+    qtbot.wait(1000)
 
     # Get kernel pid
     with qtbot.waitSignal(shell.executed):
         shell.execute("import os; pid = os.getpid()")
+    qtbot.wait(1000)
+
     kernel_pid = shell.get_value('pid')
 
     # Close current tab
@@ -2412,14 +2423,12 @@ def test_old_kernel_version(ipyconsole, qtbot):
     """
     # Set a false _spyder_kernels_version in the cached kernel
     w = ipyconsole.get_widget()
-    # create new client so PYTEST_CURRENT_TEST is the same
-    w.create_new_client()
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    kc = w._cached_kernel_properties[-1][2]
+    kc = w._cached_kernel_properties[-1].kernel_client
     kc.start_channels()
     kc.execute("get_ipython()._spyder_kernels_version = ('1.0.0', '')")
     # Cleanup the kernel_client so it can be used again
@@ -2435,8 +2444,10 @@ def test_old_kernel_version(ipyconsole, qtbot):
     client = w.get_current_client()
 
     # Make sure an error is shown
-    qtbot.waitUntil(lambda: client.error_text is not None)
-    assert '1.0.0' in client.error_text
+    control = client.get_control()
+    qtbot.waitUntil(
+        lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
+    assert "conda install spyder" in control.toPlainText()
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):
