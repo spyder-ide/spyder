@@ -19,7 +19,7 @@ from qtpy.QtGui import QKeySequence
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin
+from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
 from spyder.api.translations import get_translation
 from spyder.api.widgets.menus import MENU_SEPARATOR, SpyderMenu
 from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
@@ -70,7 +70,8 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
         create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
         create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
-        create_app_menu(ApplicationMenus.Projects, _("&Projects"))
+        if self.is_plugin_enabled(Plugins.Projects):
+            create_app_menu(ApplicationMenus.Projects, _("&Projects"))
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.View, _("&View"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
