@@ -129,7 +129,12 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
 
         def get_option(option, default=None):
             return options_dict.get(option)
+
+        def set_option(option, value):
+            options_dict[option] = value
+
         editor.get_option = get_option
+        editor.set_option = set_option
 
         editor.setup_open_files()
         return editor, expected_filenames, expected_current_filename

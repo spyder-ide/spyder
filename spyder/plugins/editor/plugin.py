@@ -477,7 +477,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if self.projects is not None:
             active_project_path = self.projects.get_active_project_path()
         if not active_project_path:
-            self.set_open_filenames()
+            filenames = self.get_open_filenames()
+            self.set_option('filenames', filenames)
         else:
             self.projects.set_project_filenames(
                 [finfo.filename for finfo in editorstack.data])
@@ -3432,18 +3433,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         filenames = []
         filenames += [finfo.filename for finfo in editorstack.data]
         return filenames
-
-    def set_open_filenames(self):
-        """
-        Set the recent opened files on editor based on active project.
-
-        If no project is active, then editor filenames are saved, otherwise
-        the opened filenames are stored in the project config info.
-        """
-        if self.projects is not None:
-            if not self.projects.get_active_project():
-                filenames = self.get_open_filenames()
-                self.set_option('filenames', filenames)
 
     def setup_open_files(self, close_previous_files=True):
         """
