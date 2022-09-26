@@ -267,6 +267,8 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def on_config_kernel(self):
         """Ask shellwidget to send Pdb configuration to kernel."""
+        self.shellwidget.spyder_kernel_comm.register_call_handler(
+            "show_traceback", self.show_exception)
         self.shellwidget.call_kernel().set_pdb_configuration({
             'breakpoints': self.get_conf("breakpoints", default={}),
             'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
@@ -279,11 +281,17 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def on_unconfig_kernel(self):
         """Ask shellwidget to stop sending stack."""
+        if not self.shellwidget.is_spyder_kernel:
+            return
+        self.shellwidget.spyder_kernel_comm.register_call_handler(
+            "show_traceback", None)
         self.shellwidget.call_kernel().set_pdb_configuration(
             {'pdb_publish_stack': False})
 
     def set_pdb_configuration(self, configuration):
         """Set configuration into a debugging session."""
+        if not self.shellwidget.is_spyder_kernel:
+            return
         self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
             configuration)
 

@@ -1842,10 +1842,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 is_new_client = True
 
         if client is not None:
+            if is_new_client:
+                # No time to check the version, use runfile
+                is_spyder_kernel = client.kernel_handler.known_spyder_kernel
+            else:
+                is_spyder_kernel = client.shellwidget.is_spyder_kernel
+
             if method is None:
                 method = "runfile"
             # If spyder-kernels, use runfile
-            if client.shellwidget.is_spyder_kernel:
+            if is_spyder_kernel:
                 line = method + "('%s'" % (norm(filename))
                 if args:
                     line += ", args='%s'" % norm(args)

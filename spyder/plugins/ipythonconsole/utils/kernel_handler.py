@@ -7,6 +7,7 @@
 """Kernel handler."""
 
 # Standard library imports
+import ast
 import os
 import os.path as osp
 import re
@@ -15,11 +16,12 @@ import uuid
 
 # Third-party imports
 from jupyter_core.paths import jupyter_runtime_dir
-from qtpy.QtCore import QThread
+from qtpy.QtCore import QThread, Signal, QObject
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.translations import get_translation
+from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
@@ -40,11 +42,13 @@ else:
     ssh_tunnel = openssh_tunnel
 
 
-class KernelHandler:
+class KernelHandler(QObject):
     """
     A class to handle the kernel in several ways and store kernel connection
     information.
     """
+
+    sig_kernel_info = Signal(object)
 
     def __init__(
         self,
@@ -59,6 +63,7 @@ class KernelHandler:
         sshkey=None,
         password=None,
     ):
+        super().__init__()
         # Connection Informations
         self.connection_file = connection_file
         self.kernel_manager = kernel_manager
@@ -77,6 +82,32 @@ class KernelHandler:
         # Internal
         self.shutdown_thread = None
         self._shutdown_lock = Lock()
+
+        # Check kernel version
+        self.spyder_kernel_info = None
+        kernel_client.start_channels()
+        code = "getattr(get_ipython(), '_spyder_kernels_version', False)"
+        kernel_client.shell_channel.message_received.connect(self._dispatch)
+        self._local_uuid = str(uuid.uuid1())
+        kernel_client.execute(
+            '', silent=True, user_expressions={ self._local_uuid:code })
+
+    def _dispatch(self, msg):
+        """Listen for spyder_kernel_info."""
+        user_exp = msg['content'].get('user_expressions')
+        if not user_exp:
+            return
+        for expression in user_exp:
+            if expression == self._local_uuid:
+                self.kernel_client.shell_channel.message_received.disconnect(
+                    self._dispatch)
+                # Process kernel reply
+                data = user_exp[expression].get('data')
+                if data is not None and 'text/plain' in data:
+                    self.spyder_kernel_info = ast.literal_eval(
+                        data['text/plain'])
+                    self.sig_kernel_info.emit(self.spyder_kernel_info)
+
 
     @staticmethod
     def new_connection_file():
@@ -175,20 +206,24 @@ class KernelHandler:
         cls, connection_file, hostname=None, sshkey=None, password=None
     ):
         """Create kernel for given connection file."""
-        new_kernel = cls(
+        return cls(
             connection_file,
             hostname=hostname,
             sshkey=sshkey,
             password=password,
+            kernel_client=cls.init_kernel_client(
+                connection_file,
+                hostname,
+                sshkey,
+                password
+            )
         )
-        # Get new kernel_client
-        new_kernel.init_kernel_client()
-        return new_kernel
 
-    def init_kernel_client(self):
+    @classmethod
+    def init_kernel_client(cls, connection_file, hostname, sshkey, password):
         """Create kernel client."""
         kernel_client = SpyderKernelClient(
-            connection_file=self.connection_file
+            connection_file=connection_file
         )
 
         # This is needed for issue spyder-ide/spyder#9304.
@@ -204,7 +239,7 @@ class KernelHandler:
                 + str(e)
             )
 
-        if self.hostname is not None:
+        if hostname is not None:
             try:
                 connection_info = dict(
                     ip=kernel_client.ip,
@@ -221,15 +256,15 @@ class KernelHandler:
                     kernel_client.stdin_port,
                     kernel_client.hb_port,
                     kernel_client.control_port,
-                ) = self.tunnel_to_kernel(
-                    connection_info, self.hostname, self.sshkey, self.password
+                ) = cls.tunnel_to_kernel(
+                    connection_info, hostname, sshkey, password
                 )
             except Exception as e:
                 raise RuntimeError(
                     _("Could not open ssh tunnel. The error was:\n\n")
                     + str(e)
                 )
-        self.kernel_client = kernel_client
+        return kernel_client
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
@@ -292,26 +327,38 @@ class KernelHandler:
     def copy(self):
         """Copy kernel."""
         # Copy kernel infos
-        new_kernel = self.__class__(
+
+        # Copy std file
+        stderr_obj = None
+        if self.stderr_obj is not None:
+            stderr_obj = self.stderr_obj.copy()
+        stdout_obj = None
+        if self.stdout_obj is not None:
+            stdout_obj = self.stdout_obj.copy()
+        fault_obj = None
+        if self.fault_obj is not None:
+            fault_obj = self.fault_obj.copy()
+
+        # Get new kernel_client
+        kernel_client = self.init_kernel_client(
+            self.connection_file,
+            self.hostname,
+            self.sshkey,
+            self.password,
+        )
+
+        return self.__class__(
             connection_file=self.connection_file,
             kernel_manager=self.kernel_manager,
             known_spyder_kernel=self.known_spyder_kernel,
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,
+            stderr_obj=stderr_obj,
+            stdout_obj=stdout_obj,
+            fault_obj=fault_obj,
+            kernel_client=kernel_client,
         )
-
-        # Copy std file
-        if self.stderr_obj is not None:
-            new_kernel.stderr_obj = self.stderr_obj.copy()
-        if self.stdout_obj is not None:
-            new_kernel.stdout_obj = self.stdout_obj.copy()
-        if self.fault_obj is not None:
-            new_kernel.fault_obj = self.fault_obj.copy()
-
-        # Get new kernel_client
-        new_kernel.init_kernel_client()
-        return new_kernel
 
     def remove_files(self):
         """Remove std files."""
@@ -319,10 +366,15 @@ class KernelHandler:
             if obj is not None:
                 obj.remove()
 
-    def open_comm(self, kernel_comm):
+    def get_kernel_comm(self, handlers):
         """Open kernel comm"""
-        kernel_comm.open_comm(self.kernel_client)
-        self.kernel_comm = kernel_comm
+        if self.kernel_comm is None:
+            self.kernel_comm = KernelComm()
+            for request_id in handlers:
+                self.kernel_comm.register_call_handler(
+                    request_id, handlers[request_id])
+            self.kernel_comm.open_comm(self.kernel_client)
+        return self.kernel_comm
 
     def replace_std_files(self):
         """Replace std files."""

@@ -191,14 +191,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To hide the loading page
         self._hide_loading_page()
 
-        # Show possible errors when setting Matplotlib backend
-        self._show_mpl_backend_errors()
-
-        # To show if special console is valid
-        self._check_special_console_error()
-
         # Set the initial current working directory in the kernel
         self._set_initial_cwd_in_kernel()
+
+        self.shellwidget.check_spyder_kernel_start_errors()
 
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
@@ -245,19 +241,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.info_page = self.blank_page
             self.set_info_page()
         self.shellwidget.show()
-
-    def _show_mpl_backend_errors(self):
-        """
-        Show possible errors when setting the selected Matplotlib backend.
-        """
-        if self.shellwidget.is_spyder_kernel:
-            self.shellwidget.call_kernel().show_mpl_backend_errors()
-
-    def _check_special_console_error(self):
-        """Check if the dependecies for special consoles are available."""
-        self.shellwidget.call_kernel(
-            callback=self._show_special_console_error
-            ).is_special_kernel_valid()
 
     def _show_special_console_error(self, missing_dependency):
         if missing_dependency is not None:
@@ -669,7 +652,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 self.infowidget.hide()
 
         # Close comm
-        sw.spyder_kernel_comm.close()
+        if sw.is_spyder_kernel:
+            sw.spyder_kernel_comm.close()
 
         if self._abort_kernel_restart():
             return
@@ -713,7 +697,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         sw = self.shellwidget
 
         if self._abort_kernel_restart():
-            sw.spyder_kernel_comm.remove()
+            if sw.is_spyder_kernel:
+                sw.spyder_kernel_comm.remove()
             return
 
         if self.restart_thread and self.restart_thread.error is not None:
@@ -731,13 +716,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw.reset_kernel_state()
 
             # Reopen comm
-            sw.spyder_kernel_comm.remove()
-            try:
-                sw.spyder_kernel_comm.open_comm(sw.kernel_client)
-            except AttributeError:
-                # An error occurred while opening our comm channel.
-                # Aborting!
-                return
+            if sw.is_spyder_kernel:
+                sw.spyder_kernel_comm.remove()
+                try:
+                    sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+                except AttributeError:
+                    # An error occurred while opening our comm channel.
+                    # Aborting!
+                    return
 
             # Start autorestart mechanism
             sw.kernel_manager.autorestart = True

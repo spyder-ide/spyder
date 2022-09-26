@@ -52,7 +52,7 @@ from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils import stdfile
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
-from spyder.plugins.ipythonconsole.widgets import ClientWidget
+from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.conda import is_conda_env
 
@@ -1189,7 +1189,7 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     Test that kernel is restarted correctly
     """
     # Mock method we want to check
-    mocker.patch.object(ClientWidget, "_show_mpl_backend_errors")
+    mocker.patch.object(ShellWidget, "check_spyder_kernel_start_errors")
 
     ipyconsole.create_new_client()
 
@@ -1220,7 +1220,7 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
 
     # Check that we try to show Matplotlib backend errors at the beginning and
     # after the restart.
-    assert ClientWidget._show_mpl_backend_errors.call_count == 2
+    assert ShellWidget.check_spyder_kernel_start_errors.call_count == 2
 
 
 @flaky(max_runs=3)
@@ -1637,9 +1637,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     control.setFocus()
 
     # Tests assume inline backend
-    qtbot.wait(1000)
     ipyconsole.set_conf('pdb_ignore_lib', not show_lib, section="debugger")
-    qtbot.wait(1000)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
@@ -2428,16 +2426,10 @@ def test_old_kernel_version(ipyconsole, qtbot):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    kc = w._cached_kernel_properties[-1].kernel_client
-    kc.start_channels()
+    km = w._cached_kernel_properties[-1]
+    kc = km.kernel_client
     kc.execute("get_ipython()._spyder_kernels_version = ('1.0.0', '')")
-    # Cleanup the kernel_client so it can be used again
-    kc.stop_channels()
-    kc._shell_channel = None
-    kc._iopub_channel = None
-    kc._stdin_channel = None
-    kc._hb_channel = None
-    kc._control_channel = None
+    km.spyder_kernel_info = ('1.0.0', '')
 
     # Create new client
     w.create_new_client()

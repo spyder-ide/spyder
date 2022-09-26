@@ -268,8 +268,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     def _pdb_cmd_prefix(self):
         """Return the command prefix"""
         prefix = ''
-        if (self.spyder_kernel_comm.is_open() and
-                self.is_pdb_using_exclamantion_mark()):
+        if (self.is_spyder_kernel and self.is_pdb_using_exclamantion_mark()):
             prefix = '!'
         return prefix
 
@@ -284,8 +283,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def _handle_input_request(self, msg):
         """Process an input request."""
-        if (not self.spyder_kernel_comm.is_open() and
-                "ipdb>" in msg['content']['prompt']):
+        if (not self.is_spyder_kernel and "ipdb>" in msg['content']['prompt']):
             # Check if we can guess a path from the shell content:
             self._flush_pending_stream()
             cursor = self._get_end_cursor()
@@ -371,7 +369,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # Print the string to the console
             self._pdb_input_ready = False
 
-            if not self.spyder_kernel_comm.is_open():
+            if not self.is_spyder_kernel:
                 # Send line to input if no comm
                 self.kernel_client.input(line)
                 return
@@ -389,8 +387,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     # --- To Sort --------------------------------------------------
     def stop_debugging(self):
         """Stop debugging."""
-        if (self.spyder_kernel_comm.is_open() and
-                not self.is_waiting_pdb_input()):
+        if (self.is_spyder_kernel and not self.is_waiting_pdb_input()):
             self.interrupt_kernel()
         self.pdb_execute_command("exit")
 

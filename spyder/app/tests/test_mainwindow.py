@@ -996,6 +996,9 @@ def test_run_cython_code(main_window, qtbot):
     # Load test file
     main_window.editor.load(osp.join(LOCATION, 'pyx_script.pyx'))
 
+    # wait for comm to open
+    qtbot.waitUntil(lambda: shell.is_spyder_kernel)
+
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
@@ -4465,9 +4468,8 @@ def test_pdb_without_comm(main_window, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
-
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("get_ipython().kernel.frontend_comm.close()")
+    shell.spyder_kernel_comm.close()
+    shell.spyder_kernel_comm = None
     shell.execute("%debug print()")
     qtbot.waitUntil(lambda: "IPdb [1]:" in control.toPlainText())
     qtbot.keyClicks(control, "print('Two: ' + str(1+1))")

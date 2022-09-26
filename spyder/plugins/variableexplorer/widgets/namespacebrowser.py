@@ -163,6 +163,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
+        if not self.shellwidget.is_spyder_kernel:
+            return
         self.shellwidget.call_kernel(
             interrupt=interrupt,
             callback=self.process_remote_view
@@ -175,6 +177,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def set_namespace_view_settings(self, interrupt=True):
         """Set the namespace view settings"""
+        if not self.shellwidget.is_spyder_kernel:
+            return
         settings = self.get_view_settings()
         self.shellwidget.call_kernel(
             interrupt=interrupt
@@ -273,6 +277,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def load_data(self, filename, ext):
         """Load data from a file."""
+        if not self.shellwidget.is_spyder_kernel:
+            return
         overwrite = False
         if self.editor.var_properties:
             message = _('Do you want to overwrite old '
@@ -350,6 +356,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             QMessageBox.critical(self, _("Save data"), save_data_message)
 
     def save_namespace(self, filename):
+        if not self.shellwidget.is_spyder_kernel:
+            return
         try:
             return self.shellwidget.call_kernel(
                 blocking=True,
