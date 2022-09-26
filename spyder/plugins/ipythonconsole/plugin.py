@@ -608,7 +608,7 @@ class IPythonConsole(SpyderDockablePlugin):
             force_wdir)
 
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 method='runcell', focus_to_editor=False):
+                 method='runcell', focus_to_editor=False, post_mortem=False):
         """
         Run cell in current or dedicated client.
 
@@ -631,6 +631,9 @@ class IPythonConsole(SpyderDockablePlugin):
         focus_to_editor: bool
             Whether to give focus to the editor after running the cell. If
             False, focus is given to the console.
+        post_mortem : bool, optional
+            True if in case of error the execution should enter in
+            post-mortem mode, False otherwise.
 
         Returns
         -------
@@ -639,7 +642,7 @@ class IPythonConsole(SpyderDockablePlugin):
         self.sig_unmaximize_plugin_requested.emit()
         self.get_widget().run_cell(
             code, cell_name, filename, run_cell_copy, method=method,
-            focus_to_editor=focus_to_editor)
+            focus_to_editor=focus_to_editor, post_mortem=post_mortem)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """
