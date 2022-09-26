@@ -310,6 +310,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
+        # set cwd
+        self.set_cwd()
+
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
@@ -412,7 +415,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.kernel_handler.known_spyder_kernel = True
             self.setup_spyder_kernel()
 
-    def set_cwd(self, dirname, emit_cwd_change=False):
+    def set_cwd(self, dirname=None, emit_cwd_change=False):
         """
         Set shell current working directory.
 
@@ -424,6 +427,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             Whether to emit a Qt signal that informs other panes in Spyder that
             the current working directory has changed.
         """
+        if dirname is None:
+            dirname = self._cwd
+        if not dirname:
+            return
         if os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
