@@ -642,9 +642,22 @@ class IPythonConsoleWidget(PluginMainWidget):
     def update_actions(self):
         client = self.get_current_client()
         if client is not None:
+            # Executing state
             executing = client.is_client_executing()
             self.interrupt_action.setEnabled(executing)
             self.stop_button.setEnabled(executing)
+
+            # Client is loading or showing a kernel error
+            if (
+                client.infowidget is not None
+                and client.info_page is not None
+            ):
+                error_or_loading = client.info_page != client.blank_page
+                self.restart_action.setEnabled(not error_or_loading)
+                self.reset_action.setEnabled(not error_or_loading)
+                self.env_action.setEnabled(not error_or_loading)
+                self.syspath_action.setEnabled(not error_or_loading)
+                self.show_time_action.setEnabled(not error_or_loading)
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
