@@ -328,11 +328,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         We also ignore errors about comms, which are irrelevant.
         """
+        if not self.has_spyder_kernels():
+            return True
+
         if self.start_successful:
             return False
+
         stderr = self.stderr_obj.get_contents()
         if not stderr:
             return False
+
         # There is an error. If it is benign, ignore.
         for line in stderr.splitlines():
             if line and not self.is_benign_error(line):
