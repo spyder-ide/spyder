@@ -833,7 +833,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 interpreter=pyexec,
                 version=SPYDER_KERNELS_VERSION)
 
-            if not has_spyder_kernels and not running_under_pytest():
+            if (
+                not has_spyder_kernels
+                # This is necessary to show this message for some tests and not
+                # do it for others.
+                and os.environ.get('SPY_TEST_SHOW_RESTART_MESSAGE')
+            ):
                 self.show_kernel_error(
                     _("The Python environment or installation whose "
                       "interpreter is located at"
