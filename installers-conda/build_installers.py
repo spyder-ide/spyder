@@ -19,23 +19,22 @@ CONSTRUCTOR_SIGNING_CERTIFICATE:
 import json
 import os
 import platform
+import re
 import sys
 import zipfile
 from argparse import ArgumentParser
 from datetime import timedelta
 from distutils.spawn import find_executable
 from functools import partial
-from importlib.util import spec_from_file_location, module_from_spec
-from logging import Formatter, StreamHandler, getLogger
+from logging import getLogger
 from pathlib import Path
 from ruamel.yaml import YAML
 from subprocess import check_call
 from textwrap import dedent, indent
 from time import time
 
-fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
-h = StreamHandler()
-h.setFormatter(fmt)
+from build_conda_pkgs import HERE, DIST, RESOURCES, SPECS, h, get_version, PKGS
+
 logger = getLogger('BuildInstallers')
 logger.addHandler(h)
 logger.setLevel('INFO')
@@ -45,9 +44,6 @@ yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
 APP = "Spyder"
-HERE = Path(__file__).parent
-RESOURCES = HERE / "resources"
-DIST = HERE / "dist"
 SPYREPO = HERE.parent
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
@@ -67,21 +63,8 @@ elif MACOS:
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
 
-
-def _version():
-    spec = spec_from_file_location(
-        "spyder", SPYREPO / "spyder" / "__init__.py")
-    mod = module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.__version__
-
-
 # ---- Parse arguments
 p = ArgumentParser()
-p.add_argument(
-    "--version", default=_version(),
-    help="Specify Spyder version; default is determined from source code"
-)
 p.add_argument(
     "--no-local", action="store_true",
     help="Do not use local conda packages"
@@ -121,8 +104,28 @@ p.add_argument(
 )
 args = p.parse_args()
 
-OUTPUT_FILE = DIST / f"{APP}-{args.version}-{OS}-{ARCH}.{EXT}"
-INSTALLER_DEFAULT_PATH_STEM = f"{APP}-{args.version}"
+SPYVER = get_version(SPYREPO).strip().split("+")[0]
+
+try:
+    specs = yaml.load(SPECS.read_text())
+except Exception:
+    specs = {k: "" for k in PKGS}
+
+for spec in args.extra_specs:
+    k, *v = re.split('([<>= ]+)', spec)
+    specs[k] = "".join(v).strip() or ""
+    if k == "spyder":
+        if v[-1]:
+            SPYVER = v[-1]
+        else:
+            specs[k] = SPYVER
+
+for k, v in specs.items():
+    if not v.startswith(("<", ">", "=")):
+        specs[k] = "=" + v
+
+OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
+INSTALLER_DEFAULT_PATH_STEM = f"{APP}-{SPYVER}"
 
 
 def _generate_background_images(installer_type):
@@ -188,7 +191,7 @@ def _definitions():
         "name": APP,
         "company": "Spyder-IDE",
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
-        "version": args.version.replace("+", "_"),
+        "version": SPYVER,
         "channels": [
             "napari/label/bundle_tools",
             "spyder-ide",
@@ -205,8 +208,8 @@ def _definitions():
         "initialize_by_default": False,
         "license_file": str(RESOURCES / "bundle_license.rtf"),
         "extra_envs": {
-            f"spyder-{args.version}": {
-                "specs": [f"spyder={args.version}"] + args.extra_specs,
+            f"spyder-{SPYVER}": {
+                "specs": [k + v for k, v in specs.items()],
             },
         },
         "menu_packages": [
@@ -232,7 +235,7 @@ def _definitions():
             (RESOURCES / "osx_pkg_welcome.rtf.tmpl").read_text()
         welcome_file = DIST / "osx_pkg_welcome.rtf"
         welcome_file.write_text(
-            welcome_text_tmpl.replace("__VERSION__", args.version))
+            welcome_text_tmpl.replace("__VERSION__", SPYVER))
 
         # These two options control the default install location:
         # ~/<default_location_pkg>/<pkg_name>
