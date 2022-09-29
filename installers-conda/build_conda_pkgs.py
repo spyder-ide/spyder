@@ -1,12 +1,35 @@
 """
-Build local conda packages
+Build conda packages to local channel.
+
+This module builds conda packages for spyder and external-deps for
+inclusion in the conda-based installer. The Following classes are
+provided for each package:
+    SpyderCondaPkg
+    PylspCondaPkg
+    QdarkstyleCondaPkg
+    QtconsoleCondaPkg
+    SpyderKernelsCondaPkg
+
+spyder will be packaged from this repository (in its checked-out state).
+qdarkstyle, qtconsole, and spyder-kernels will be packaged from the
+external-deps directory of this repository (in its checked-out state).
+python-lsp-server, however, will be packaged from the upstream remote
+at the same commit as the external-deps state.
+
+Alternatively, any external-deps may be packaged from a local git repository
+(in its checked out state) by setting the appropriate environment variable
+from the following:
+    PYTHON_LSP_SERVER_SOURCE
+    QDARKSTYLE_SOURCE
+    QTCONSOLE_SOURCE
+    SPYDER_KERNELS_SOURCE
 """
 import os
 import re
 from argparse import ArgumentParser
+from configparser import ConfigParser
 from datetime import timedelta
 from git import Repo
-from importlib.util import spec_from_file_location, module_from_spec
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 from ruamel.yaml import YAML
@@ -24,14 +47,22 @@ logger.addHandler(h)
 logger.setLevel('INFO')
 
 HERE = Path(__file__).parent
+DIST = HERE / "dist"
 RESOURCES = HERE / "resources"
 EXTDEPS = HERE.parent / "external-deps"
+SPECS = DIST / "specs.yaml"
+
+DIST.mkdir(exist_ok=True)
 
 
 class BuildCondaPkg():
+    name = None
     src_path = None
     feedstock = None
-    ver_path = None
+    shallow_ver = None
+
+    _yaml = YAML(typ='jinja2')
+    _yaml.indent(mapping=2, sequence=4, offset=2)
 
     def __init__(self, data={}, debug=False):
         # ---- Setup logger
@@ -42,24 +73,39 @@ class BuildCondaPkg():
 
         self.debug = debug
 
-        self.data = {'version': self._get_version()}
+        self._get_source()
+        self._get_version()
+
+        self.data = {'version': self.version}
         self.data.update(data)
 
         self.fdstk_path = HERE / self.feedstock.split("/")[-1]
 
-        self._yaml = YAML(typ='jinja2')
-        self._yaml.indent(mapping=2, sequence=4, offset=2)
         self.yaml = None
 
         self._patched_meta = False
         self._patched_build = False
 
+    def _get_source(self):
+        self._build_cleanup()  # Remove existing if HERE
+
+        if not self.src_path.exists():
+            cfg = ConfigParser()
+            cfg.read(EXTDEPS / self.name / '.gitrepo')
+            # Clone from remote
+            repo = Repo.clone_from(
+                cfg['subrepo']['remote'],
+                to_path=self.src_path, shallow_exclude=self.shallow_ver
+            )
+            repo.git.checkout(cfg['subrepo']['commit'])
+
+    def _build_cleanup(self):
+        if self.src_path == HERE / self.name:
+            logger.info(f"Removing {self.src_path}...")
+            rmtree(self.src_path, ignore_errors=True)
+
     def _get_version(self):
-        spec = spec_from_file_location(self.ver_path.parent.name,
-                                       self.ver_path)
-        mod = module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        return mod.__version__
+        self.version = get_version(self.src_path).split('+')[0]
 
     def _clone_feedstock(self):
         if self.fdstk_path.exists():
@@ -109,9 +155,6 @@ class BuildCondaPkg():
         self._patch_build()
         self._patched_build = True
 
-    def _build_cleanup(self):
-        pass
-
     def build(self):
         t0 = time()
         try:
@@ -120,7 +163,8 @@ class BuildCondaPkg():
             self.patch_meta()
             self.patch_build()
 
-            self.logger.info("Building conda package...")
+            self.logger.info("Building conda package "
+                             f"{self.name}={self.version}...")
             check_call(
                 ["mamba", "mambabuild", str(self.fdstk_path / "recipe")]
             )
@@ -139,9 +183,10 @@ class BuildCondaPkg():
 
 
 class SpyderCondaPkg(BuildCondaPkg):
+    name = "spyder"
     src_path = HERE.parent
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
-    ver_path = src_path / "spyder" / "__init__.py"
+    shallow_ver = "v5.3.2"
 
     def _patch_meta(self):
         self.yaml['build'].pop('osx_is_app', None)
@@ -161,41 +206,30 @@ class SpyderCondaPkg(BuildCondaPkg):
 
 
 class PylspCondaPkg(BuildCondaPkg):
-    src_path = Path(os.environ.get('PYTHON_LSP_SERVER_SOURCE',
-                                   HERE / "python-lsp-server"))
+    name = "python-lsp-server"
+    src_path = Path(
+        os.environ.get('PYTHON_LSP_SERVER_SOURCE', HERE / name)
+    )
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
-
-    def _get_version(self):
-        self._build_cleanup()  # Remove existing if HERE
-
-        if not self.src_path.exists():
-            # Clone from remote
-            Repo.clone_from(
-                "https://github.com/python-lsp/python-lsp-server.git",
-                to_path=self.src_path, shallow_exclude="v1.4.1"
-            )
-        return get_version(self.src_path)
-
-    def _build_cleanup(self):
-        if self.src_path == HERE / "python-lsp-server":
-            logger.info(f"Removing {self.src_path}...")
-            rmtree(self.src_path, ignore_errors=True)
+    shallow_ver = "v1.4.1"
 
 
 class QdarkstyleCondaPkg(BuildCondaPkg):
-    src_path = EXTDEPS / "qdarkstyle"
+    name = "qdarkstyle"
+    src_path = Path(
+        os.environ.get('QDARKSTYLE_SOURCE', HERE / name)
+    )
     feedstock = "https://github.com/conda-forge/qdarkstyle-feedstock"
-    ver_path = src_path / "qdarkstyle" / "__init__.py"
-
-    def _get_version(self):
-        text = self.ver_path.read_text()
-        return re.search('__version__ = "(.*)"', text).group(1)
+    shallow_ver = "v3.0.2"
 
 
 class QtconsoleCondaPkg(BuildCondaPkg):
-    src_path = EXTDEPS / "qtconsole"
+    name = "qtconsole"
+    src_path = Path(
+        os.environ.get('QTCONSOLE_SOURCE', HERE / name)
+    )
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
-    ver_path = src_path / "qtconsole" / "_version.py"
+    shallow_ver = "5.3.1"
 
     def _patch_meta(self):
         for out in self.yaml['outputs']:
@@ -203,20 +237,23 @@ class QtconsoleCondaPkg(BuildCondaPkg):
 
 
 class SpyderKernelsCondaPkg(BuildCondaPkg):
-    src_path = EXTDEPS / "spyder-kernels"
+    name = "spyder-kernels"
+    src_path = Path(
+        os.environ.get('SPYDER_KERNELS_SOURCE', HERE / name)
+    )
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
-    ver_path = src_path / "spyder_kernels" / "_version.py"
+    shallow_ver = "v2.3.1"
 
+
+PKGS = {
+    SpyderCondaPkg.name: SpyderCondaPkg,
+    PylspCondaPkg.name: PylspCondaPkg,
+    QdarkstyleCondaPkg.name: QdarkstyleCondaPkg,
+    QtconsoleCondaPkg.name: QtconsoleCondaPkg,
+    SpyderKernelsCondaPkg.name: SpyderKernelsCondaPkg
+}
 
 if __name__ == "__main__":
-    repos = {
-        "spyder": SpyderCondaPkg,
-        "python-lsp-server": PylspCondaPkg,
-        "qdarkstyle": QdarkstyleCondaPkg,
-        "qtconsole": QtconsoleCondaPkg,
-        "spyder-kernels": SpyderKernelsCondaPkg
-    }
-
     p = ArgumentParser(
         description=dedent(
             """
@@ -235,17 +272,29 @@ if __name__ == "__main__":
         help="Do not remove cloned feedstocks"
     )
     p.add_argument(
-        '--build', nargs="+", default=repos.keys(),
-        help=("Space-separated list of repos to build. "
-              f"Default is {list(repos.keys())}")
+        '--build', nargs="+", default=PKGS.keys(),
+        help=("Space-separated list of packages to build. "
+              f"Default is {list(PKGS.keys())}")
     )
     args = p.parse_args()
 
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
 
+    yaml = YAML()
+    yaml.indent(mapping=2, sequence=4, offset=2)
+
     for k in args.build:
-        repos[k](debug=args.debug).build()
+        if SPECS.exists():
+            specs = yaml.load(SPECS.read_text())
+        else:
+            specs = {k: "" for k in PKGS}
+
+        pkg = PKGS[k](debug=args.debug)
+        pkg.build()
+        specs[k] = pkg.version
+
+        yaml.dump(specs, SPECS)
 
     elapse = timedelta(seconds=int(time() - t0))
     logger.info(f"Total build time = {elapse}")
