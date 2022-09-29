@@ -341,11 +341,21 @@ def test_no_empty_file_items(findinfiles, qtbot):
         },
         {
             'spam.cpp': [(2, 9), (6, 15), (8, 2), (11, 4), (11, 10), (13, 12)]
+        },
+        {
+            'spam.txt': [(1, 0), (1, 5), (3, 22)],
+            'spam.cpp': [(2, 9), (6, 15), (8, 2)]
+        },
+        {
+            'spam.py': [(2, 7), (5, 1), (7, 12)],
+            'spam.cpp': [(2, 9), (6, 15), (8, 2)]
         }
-    ]    
+    ]
     assert (
         process_search_results(findinfiles.result_browser.data) == results[0] or
-        process_search_results(findinfiles.result_browser.data) == results[1]
+        process_search_results(findinfiles.result_browser.data) == results[1] or
+        process_search_results(findinfiles.result_browser.data) == results[2] or
+        process_search_results(findinfiles.result_browser.data) == results[3]
     )
 
     # Assert that the files with results are exactly the same as those
