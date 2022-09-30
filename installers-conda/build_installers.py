@@ -33,15 +33,11 @@ from subprocess import check_call
 from textwrap import dedent, indent
 from time import time
 
-from build_conda_pkgs import HERE, DIST, RESOURCES, SPECS, h, get_version, PKGS
+from build_conda_pkgs import HERE, DIST, RESOURCES, SPECS, h, get_version
 
 logger = getLogger('BuildInstallers')
 logger.addHandler(h)
 logger.setLevel('INFO')
-
-yaml = YAML()
-yaml.indent(mapping=2, sequence=4, offset=2)
-indent4 = partial(indent, prefix="    ")
 
 APP = "Spyder"
 SPYREPO = HERE.parent
@@ -104,25 +100,25 @@ p.add_argument(
 )
 args = p.parse_args()
 
+yaml = YAML()
+yaml.indent(mapping=2, sequence=4, offset=2)
+indent4 = partial(indent, prefix="    ")
+
 SPYVER = get_version(SPYREPO).strip().split("+")[0]
 
+specs = {"spyder": "=" + SPYVER}
 try:
-    specs = yaml.load(SPECS.read_text())
+    logger.info(f"Reading specs from {SPECS}...")
+    _specs = yaml.load(SPECS.read_text())
+    specs.update({k: "=" + v for k, v in _specs.items()})
 except Exception:
-    specs = {k: "" for k in PKGS}
+    logger.info(f"Did not read specs from {SPECS}")
 
 for spec in args.extra_specs:
     k, *v = re.split('([<>= ]+)', spec)
-    specs[k] = "".join(v).strip() or ""
+    specs[k] = "".join(v).strip()
     if k == "spyder":
-        if v[-1]:
-            SPYVER = v[-1]
-        else:
-            specs[k] = SPYVER
-
-for k, v in specs.items():
-    if not v.startswith(("<", ">", "=")):
-        specs[k] = "=" + v
+        SPYVER = v[-1]
 
 OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP}-{SPYVER}"
