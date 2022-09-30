@@ -166,9 +166,9 @@ jobs:
 
       - name: Create Local Conda Channel
         run: |
-          files=($(ls artifacts))
-          echo $files
-          for file in $files; do
+          files=($(find $PWD/artifacts -name *.tar.bz2))
+          echo ${files[@]}
+          for file in ${files[@]}; do
               tar -C $CONDA_PREFIX -xf $file
           done
 
