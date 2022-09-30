@@ -38,7 +38,7 @@ jobs:
         working-directory: ${{ github.workspace }}/installers-conda
     env:
       DISTDIR: ${{ github.workspace }}/installers-conda/dist
-      artifact_name: spyder_${{ matrix.platform }}_${{ matrix.python-version }}
+      artifact_name: spyder_${{ matrix.target-platform }}_${{ matrix.python-version }}
 
     steps:
       - name: Checkout Code
@@ -80,12 +80,15 @@ jobs:
             target-platform: "osx-arm64"
           - os: macos-11
             target-platform: "osx-64"
+            python-version: "3.9"
             pkg: "python-lsp-server"
           - os: macos-11
             target-platform: "osx-64"
+            python-version: "3.9"
             pkg: "qdarkstyle"
           - os: macos-11
             target-platform: "osx-64"
+            python-version: "3.9"
             pkg: "qtconsole"
     defaults:
       run:
@@ -94,7 +97,7 @@ jobs:
     env:
       DISTDIR: ${{ github.workspace }}/installers-conda/dist
       pkg: ${{ matrix.pkg }}
-      artifact_name: ${{ matrix.pkg }}_${{ matrix.platform }}_${{ matrix.python-version }}
+      artifact_name: ${{ matrix.pkg }}_${{ matrix.target-platform }}_${{ matrix.python-version }}
 
     steps:
       - name: Checkout Code
