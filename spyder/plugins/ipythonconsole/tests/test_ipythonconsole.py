@@ -1895,8 +1895,6 @@ def test_startup_code_pdb(ipyconsole, qtbot):
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
     """Check if setting an event loop while debugging works."""
     # Skip failing tests
-    if backend == 'tk' and os.name == 'nt':
-        return
     if backend == 'osx' and sys.platform != "darwin":
         return
     if backend == 'qt5' and not os.name == "nt" and running_in_ci():
