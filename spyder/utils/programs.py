@@ -351,8 +351,7 @@ def get_user_environment_variables():
     Returns
     -------
     env_var : dict
-        Key-value pairs of environment variables
-
+        Key-value pairs of environment variables.
     """
     if os.name == 'nt':
         cmd = "set"

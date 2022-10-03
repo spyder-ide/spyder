@@ -15,7 +15,7 @@ import os
 from qtpy.QtWidgets import QMessageBox
 try:
     import winreg
-except ImportError:
+except Exception:
     pass
 
 # Local imports
@@ -159,7 +159,7 @@ class UserEnvDialog(RemoteEnvDialog):
         """Reimplement Qt method"""
         if os.name == 'nt':
             set_user_env(listdict2envdict(self.get_value()), parent=self)
-        super(UserEnvDialog, self).accept()
+        super().accept()
 
 
 def test():
