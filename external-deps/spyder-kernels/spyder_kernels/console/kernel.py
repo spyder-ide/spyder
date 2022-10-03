@@ -204,9 +204,9 @@ class SpyderKernel(IPythonKernel):
             properties = {}
             for name, value in list(data.items()):
                 properties[name] = {
-                    'is_list':  isinstance(value, (tuple, list)),
-                    'is_dict':  isinstance(value, dict),
-                    'is_set': isinstance(value, set),
+                    'is_list':  self._is_list(value),
+                    'is_dict':  self._is_dict(value),
+                    'is_set': self._is_set(value),
                     'len': self._get_len(value),
                     'is_array': self._is_array(value),
                     'is_image': self._is_image(value),
@@ -660,6 +660,30 @@ class SpyderKernel(IPythonKernel):
             from pandas import Series
             return isinstance(var, Series)
         except:
+            return False
+
+    def _is_list(self, var):
+        """Return True if variable is a list or tuple."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, (tuple, list))
+        except Exception:
+            return False
+
+    def _is_dict(self, var):
+        """Return True if variable is a dictionary."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, dict)
+        except Exception:
+            return False
+
+    def _is_set(self, var):
+        """Return True if variable is a set."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, set)
+        except Exception:
             return False
 
     def _get_array_shape(self, var):
