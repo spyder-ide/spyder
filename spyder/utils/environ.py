@@ -22,7 +22,7 @@ except Exception:
 from spyder.config.base import _
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
-from spyder.utils.programs import get_user_environment_variables
+from spyder.utils.programs import run_shell_command
 
 
 def envdict2listdict(envdict):
@@ -40,6 +40,30 @@ def listdict2envdict(listdict):
         if isinstance(val, list):
             listdict[key] = os.path.pathsep.join(val)
     return listdict
+
+
+def get_user_environment_variables():
+    """
+    Get user environment variables from a subprocess.
+
+    Returns
+    -------
+    env_var : dict
+        Key-value pairs of environment variables.
+    """
+    if os.name == 'nt':
+        cmd = "set"
+    else:
+        cmd = "printenv"
+    proc = run_shell_command(cmd)
+    stdout, stderr = proc.communicate()
+    res = stdout.decode().strip().split(os.linesep)
+    env_var = {}
+    for kv in res:
+        k, v = kv.split('=', 1)
+        env_var[k] = v
+
+    return env_var
 
 
 def get_user_env():

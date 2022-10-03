@@ -344,30 +344,6 @@ def get_username():
     return username
 
 
-def get_user_environment_variables():
-    """
-    Get user environment variables from a subprocess.
-
-    Returns
-    -------
-    env_var : dict
-        Key-value pairs of environment variables.
-    """
-    if os.name == 'nt':
-        cmd = "set"
-    else:
-        cmd = "printenv"
-    proc = run_shell_command(cmd)
-    stdout, stderr = proc.communicate()
-    res = stdout.decode().strip().split(os.linesep)
-    env_var = {}
-    for kv in res:
-        k, v = kv.split('=', 1)
-        env_var[k] = v
-
-    return env_var
-
-
 def _get_win_reg_info(key_path, hive, flag, subkeys):
     """
     See: https://stackoverflow.com/q/53132434
