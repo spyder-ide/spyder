@@ -99,7 +99,7 @@ class RemoteEnvDialog(CollectionsEditor):
 
     def __init__(self, environ, parent=None,
                  title=_("Environment variables"), readonly=True):
-        super(RemoteEnvDialog, self).__init__(parent)
+        super().__init__(parent)
         try:
             self.setup(
                 envdict2listdict(environ),
@@ -135,8 +135,7 @@ class UserEnvDialog(RemoteEnvDialog):
             title = _(r"HKEY_CURRENT_USER\Environment")
             readonly = False
 
-        super(UserEnvDialog, self).__init__(get_user_env(), parent,
-                                            title, readonly)
+        super().__init__(get_user_env(), parent, title, readonly)
 
         if os.name == 'nt':
             if parent is None:
