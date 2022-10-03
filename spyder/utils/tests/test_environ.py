@@ -34,6 +34,11 @@ def test_environ(environ_dialog, qtbot):
     environ_dialog.show()
     assert environ_dialog
 
+    # All platforms should have a path environment variable, but
+    # Windows may have mixed case.
+    keys = {k.lower() for k in environ_dialog.get_value()}
+    assert "path" in keys
+
 
 if __name__ == "__main__":
     pytest.main()
