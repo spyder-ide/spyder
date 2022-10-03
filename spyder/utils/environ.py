@@ -98,12 +98,12 @@ class RemoteEnvDialog(CollectionsEditor):
     """Remote process environment variables dialog."""
 
     def __init__(self, environ, parent=None,
-                 title="Environment variables", readonly=True):
+                 title=_("Environment variables"), readonly=True):
         super(RemoteEnvDialog, self).__init__(parent)
         try:
             self.setup(
                 envdict2listdict(environ),
-                title=_(title),
+                title=title,
                 readonly=readonly,
                 icon=ima.icon('environ')
             )
@@ -129,10 +129,10 @@ class UserEnvDialog(RemoteEnvDialog):
     """User Environment Variables Viewer/Editor"""
 
     def __init__(self, parent=None):
-        title = "User Environment variables"
+        title = _("User Environment variables")
         readonly = True
         if os.name == 'nt':
-            title = r"HKEY_CURRENT_USER\Environment"
+            title = _(r"HKEY_CURRENT_USER\Environment")
             readonly = False
 
         super(UserEnvDialog, self).__init__(get_user_env(), parent,
