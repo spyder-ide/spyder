@@ -322,41 +322,22 @@ def test_no_empty_file_items(findinfiles, qtbot):
 
     This is a regression test for issue spyder-ide/spyder#16256
     """
+    max_results = 6
     findinfiles.set_search_text("spam")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
-    findinfiles.set_conf('max_results', 6)
+    findinfiles.set_conf('max_results', max_results)
 
     with qtbot.waitSignal(findinfiles.sig_max_results_reached):
         findinfiles.find()
 
-    # Assert the results are the expected ones to reproduce the bug this test
-    # tries to catch. In other words, this is here to prevent future changes to
-    # our test files that would render this test useless.
-    # Depending on OS the results could differ so here the only two possible
-    # results get listed:
-    results = [
-        {
-            'spam.py': [(2, 7), (5, 1), (7, 12)],
-            'spam.txt': [(1, 0), (1, 5), (3, 22)]
-        },
-        {
-            'spam.cpp': [(2, 9), (6, 15), (8, 2), (11, 4), (11, 10), (13, 12)]
-        },
-        {
-            'spam.txt': [(1, 0), (1, 5), (3, 22)],
-            'spam.cpp': [(2, 9), (6, 15), (8, 2)]
-        },
-        {
-            'spam.py': [(2, 7), (5, 1), (7, 12)],
-            'spam.cpp': [(2, 9), (6, 15), (8, 2)]
-        }
-    ]
-    assert (
-        process_search_results(findinfiles.result_browser.data) == results[0] or
-        process_search_results(findinfiles.result_browser.data) == results[1] or
-        process_search_results(findinfiles.result_browser.data) == results[2] or
-        process_search_results(findinfiles.result_browser.data) == results[3]
-    )
+    # Assert that the results all come from the expected files and that there
+    # are the correct number of them.  (We do not list the exact results
+    # expected because os.walk (used by findinfiles) gives an arbitrary file
+    # ordering.)
+    spamfiles = set(['spam.py', 'spam.txt', 'spam.cpp'])
+    find_results = process_search_results(findinfiles.result_browser.data)
+    assert set(find_results.keys()).issubset(spamfiles)
+    assert sum(len(finds) for finds in find_results.values()) == max_results
 
     # Assert that the files with results are exactly the same as those
     # displayed in the results browser.
