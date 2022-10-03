@@ -58,7 +58,7 @@ jobs:
           python build_conda_pkgs.py ${args[@]}
 
       - name: Create Keychain
-        if: github.event_name == 'release' && startsWith(matrix.os, 'macos')
+        if: github.event_name == 'release' && runner.os == 'macOS'
         run: ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
 
       - name: Build Package Installer
@@ -69,28 +69,27 @@ jobs:
               echo "Moving $_codesign..."
               mv $_codesign ${_codesign}.bak
           fi
-          [[ "$GITHUB_EVENT_NAME" == "release" ]] && args=("--no-local") || args=()
-          python build_installers.py "${args[@]}"
+          python build_installers.py
           PKG_FILE=$(python build_installers.py --artifact-name)
           PKG_NAME=$(basename $PKG_FILE)
           echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
 
       - name: Test Application Bundle
-        if: startsWith(matrix.os, 'macos')
+        if: runner.os == 'macOS'
         run: |
-          installer -dumplog -pkg $PKG_FILE -target CurrentUserHomeDirectory
+          installer -dumplog -pkg $PKG_FILE -target CurrentUserHomeDirectory 2>&1
           app_path=$HOME/Applications/Spyder.app
           if [[ -e "$app_path" ]]; then
               ls -al $app_path/Contents/MacOS
-              cat $app_path/Contents/MacOS/Spyder
+              cat $app_path/Contents/Info.plist
               echo ""
           else
               echo "$app_path does not exist"
           fi
 
       - name: Notarize package installer
-        if: github.event_name == 'release' && startsWith(matrix.os, 'macos')
+        if: github.event_name == 'release' && runner.os == 'macOS'
         run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
 
       - name: Upload Artifact

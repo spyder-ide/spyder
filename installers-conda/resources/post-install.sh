@@ -35,18 +35,26 @@ echo "Args = $@"
 echo "$(declare -p)"
 
 if [[ -e "$app_path" ]]; then
+    if [[ ! -e "/usr/libexec/PlistBuddy" ]]; then
+        echo "/usr/libexec/PlistBuddy not installed"
+        exit 1
+    fi
+
     echo "Creating python symbolic link..."
     ln -sf "$PREFIX/bin/python" "$app_path/Contents/MacOS/python"
 
     echo "Modifying application executable..."
-cat <<EOF > $app_path/Contents/MacOS/__NAME__
-#!/bin/bash
-eval "\$(/bin/bash -l -c "declare -x")"
-eval "\$("$ROOT_PREFIX/_conda.exe" shell.bash activate "$PREFIX")"
-export SPYDER_APP=0
-\$(dirname \$BASH_SOURCE)/python $PREFIX/bin/spyder "\$@"
+    cp -fp "$PREFIX/Menu/__NAME__" "$app_path/Contents/MacOS/__NAME__"
 
-EOF
+    echo "Patching Info.plist..."
+    plist=$app_path/Contents/Info.plist
+    /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" $plist || true
+    /usr/libexec/PlistBuddy -c "Add :LSEnvironment:ROOT_PREFIX string" $plist || true
+    /usr/libexec/PlistBuddy -c "Set :LSEnvironment:ROOT_PREFIX $ROOT_PREFIX" $plist
+    /usr/libexec/PlistBuddy -c "Add :LSEnvironment:PREFIX string" $plist || true
+    /usr/libexec/PlistBuddy -c "Set :LSEnvironment:PREFIX $PREFIX" $plist
+    /usr/libexec/PlistBuddy -c "Add :LSEnvironment:SPYDER_APP string" $plist || true
+    /usr/libexec/PlistBuddy -c "Set :LSEnvironment:SPYDER_APP $app_path" $plist
 else
     echo "$app_path does not exist"
 fi
