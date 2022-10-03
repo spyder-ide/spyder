@@ -152,21 +152,12 @@ class SpyderCondaPkg(BuildCondaPkg):
         self.yaml['source']['patches'] = patches
 
     def _patch_build(self):
-        file = self.fdstk_path / "recipe" / "build.sh"
-        text = file.read_text()
-        text += dedent(
-            """
-            mkdir -p "${PREFIX}/Menu"
-            sed "s/__PKG_VERSION__/${PKG_VERSION}/" """
-            """"${SRC_DIR}/installers-conda/resources/spyder-menu.json" """
-            """> "${PREFIX}/Menu/spyder-menu.json"
-            cp "${SRC_DIR}/img_src/spyder.png" "${PREFIX}/Menu/spyder.png"
-            cp "${SRC_DIR}/img_src/spyder.icns" "${PREFIX}/Menu/spyder.icns"
-            cp "${SRC_DIR}/img_src/spyder.ico" "${PREFIX}/Menu/spyder.ico"
-
-            """
-        )
-        file.write_text(text)
+        if os.name == 'posix':
+            file = self.fdstk_path / "recipe" / "build.sh"
+            build_patch = RESOURCES / "build-patch.sh"
+            text = file.read_text()
+            text += build_patch.read_text()
+            file.write_text(text)
 
 
 class PylspCondaPkg(BuildCondaPkg):
@@ -237,7 +228,7 @@ if __name__ == "__main__":
             """
         ),
         usage="python build_conda_pkgs.py "
-              "[--build subrepo [subrepo] ...] [--debug]",
+              "[--build BUILD [BUILD] ...] [--debug]",
     )
     p.add_argument(
         '--debug', action='store_true', default=False,
