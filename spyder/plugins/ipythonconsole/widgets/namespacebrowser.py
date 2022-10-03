@@ -9,24 +9,21 @@ Widget that handle communications between the IPython Console and
 the Variable Explorer
 """
 
+# Standard library imports
 import logging
-import time
-try:
-    time.monotonic  # time.monotonic new in 3.3
-except AttributeError:
-    time.monotonic = time.time
-
 from pickle import PicklingError, UnpicklingError
+import time
 
-from qtpy.QtWidgets import QMessageBox
-
+# Third-party imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-
-from spyder.config.base import _
-from spyder.py3compat import PY2, to_text_string, TimeoutError
+from qtpy.QtWidgets import QMessageBox
 from spyder_kernels.comms.commbase import CommError
 
+# Local imports
+from spyder.config.base import _
 
+
+# For logging
 logger = logging.getLogger(__name__)
 
 # Max time before giving up when making a blocking call to the kernel
