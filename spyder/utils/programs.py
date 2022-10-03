@@ -696,8 +696,7 @@ def run_python_script(package=None, module=None, args=[], p_args=[]):
     package=None -> module is in sys.path (standard library modules)
     """
     assert module is not None
-    assert (isinstance(args, (tuple, list))
-            and isinstance(p_args, (tuple, list)))
+    assert isinstance(args, (tuple, list)) and isinstance(p_args, (tuple, list))
     path = python_script_exists(package, module)
     run_program(sys.executable, p_args + [path] + args)
 
