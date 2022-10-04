@@ -10,12 +10,9 @@
 import logging
 import os
 import subprocess
-import tempfile
-import threading
-from urllib.request import urlretrieve
 
 # Third-party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt, QThread, Signal
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
                             QWidget)
@@ -23,9 +20,11 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 # Local imports
 from spyder import __version__
 from spyder.api.translations import get_translation
+from spyder.config.base import is_pynsist
 from spyder.utils.icon_manager import ima
-from spyder.utils.programs import is_module_installed
+from spyder.workers.updates import WorkerDownloadInstaller
 
+# Logger setup
 logger = logging.getLogger(__name__)
 
 # Localization
@@ -34,6 +33,7 @@ _ = get_translation('spyder')
 # Update installation process statuses
 NO_STATUS = __version__
 DOWNLOADING_INSTALLER = _("Downloading update")
+DOWNLOAD_FINISHED = _("Download finished")
 INSTALLING = _("Installing update")
 FINISHED = _("Installation finished")
 PENDING = _("Update available")
@@ -42,6 +42,7 @@ CANCELLED = _("Cancelled update")
 
 INSTALL_INFO_MESSAGES = {
     DOWNLOADING_INSTALLER: _("Downloading Spyder {version}"),
+    DOWNLOAD_FINISHED: _("Finished downloading Spyder {version}"),
     INSTALLING: _("Installing Spyder {version}"),
     FINISHED: _("Finished installing Spyder {version}"),
     PENDING: _("Spyder {version} available to download"),
@@ -50,18 +51,11 @@ INSTALL_INFO_MESSAGES = {
 }
 
 
-class UpdateInstallationCancelledException(Exception):
-    """Update installation was cancelled."""
-    pass
-
-
 class UpdateInstallation(QWidget):
     """Update progress installation widget."""
 
     def __init__(self, parent):
         super().__init__(parent)
-
-        # Left side
         action_layout = QVBoxLayout()
         progress_layout = QHBoxLayout()
         self._progress_widget = QWidget(self)
@@ -116,25 +110,52 @@ class UpdateInstallation(QWidget):
 class UpdateInstallerDialog(QDialog):
     """Update installer dialog."""
 
-    # Signal to get the download progress
-    # int: Download progress
-    # int: Total download size
     sig_download_progress = Signal(int, int)
+    """
+    Signal to get the download progress.
 
-    # Signal to get the current status of the update installation
-    # str: Status string
+    Parameters
+    ----------
+    current_value: int
+        Number of bits downloaded until now.
+    total: int
+        Total expected number of bits to be downloaded.
+    """
+
     sig_installation_status = Signal(str, str)
+    """
+    Signal to get the current status of the update installation.
+
+    Parameters
+    ----------
+    status: str
+        Status string.
+    latest_release: str
+        Latest release version detected.
+    """
+
+    sig_install_on_close_requested = Signal(str)
+    """
+    Signal to request running the downloaded installer on close.
+
+    Parameters
+    ----------
+    installer_path: str
+        Path to installer executable.
+    """
 
     def __init__(self, parent):
-
         self.cancelled = False
         self.status = NO_STATUS
-        self.thread_install_update = None
+        self.download_thread = None
+        self.download_worker = None
+        self.installer_path = None
         super().__init__(parent)
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
         self._installation_widget = UpdateInstallation(self)
         self.latest_release_version = ""
+
         # Layout
         installer_layout = QVBoxLayout()
         installer_layout.addWidget(self._installation_widget)
@@ -149,62 +170,10 @@ class UpdateInstallerDialog(QDialog):
         self._installation_widget.ok_button.clicked.connect(
             self.close_installer)
         self._installation_widget.cancel_button.clicked.connect(
-            self.cancel_install)
+            self.cancel_installation)
 
         # Show installation widget
         self.setup()
-
-    def setup(self):
-        """Setup visibility of widgets."""
-        self._installation_widget.setVisible(True)
-        self.adjustSize()
-
-    def cancel_install(self):
-        """Cancel the installation in progress."""
-        reply = QMessageBox.critical(
-            self._parent, 'Spyder',
-            _('Do you really want to cancel the Spyder update installation?'),
-            QMessageBox.Yes, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.cancelled = True
-            self.cancel_thread_install_update()
-            self.setup()
-            self.accept()
-            return True
-        return False
-
-    def continue_install(self):
-        """
-        Continue the installation in progress by downloading the installer.
-        """
-        reply = QMessageBox(icon=QMessageBox.Question,
-                            text=_("Would you like to automatically download "
-                                   "and install the latest version of Spyder?"
-                                   "<br><br>"),
-                            parent=self._parent)
-        reply.setWindowTitle("Spyder")
-        reply.setAttribute(Qt.WA_ShowWithoutActivating)
-        reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        reply.exec_()
-        if reply.result() == QMessageBox.Yes:
-            self.start_installation_update(self.latest_release_version)
-        else:
-            self._change_update_installation_status(status=PENDING)
-
-    def finished_installation(self, status):
-        """Handle finished installation."""
-        if status == FINISHED or status == PENDING:
-            self.setup()
-            self.accept()
-
-    def close_installer(self):
-        """Close the installation dialog."""
-        if (self.status == FINISHED
-                or self.status == CANCELLED):
-            self.setup()
-            self.accept()
-        else:
-            self.hide()
 
     def reject(self):
         """Reimplemented Qt method."""
@@ -214,77 +183,128 @@ class UpdateInstallerDialog(QDialog):
         else:
             super(UpdateInstallerDialog, self).reject()
 
-    def _change_update_installation_status(self, status=NO_STATUS):
-        """Set the installation status."""
-        logger.debug(f"Installation status: {status}")
-        self.status = status
-        self.finished_installation(self.status)
-        self.sig_installation_status.emit(self.status,
-                                          self.latest_release_version)
-
-    def _progress_reporter(self, block_number, read_size, total_size):
-        progress = 0
-        if total_size > 0:
-            progress = block_number * read_size
-        if self.cancelled:
-            raise UpdateInstallationCancelledException()
-        else:
-            self.sig_download_progress.emit(progress, total_size)
-
-    def cancel_thread_install_update(self):
-        self._change_update_installation_status(status=CANCELLED)
-        self.thread_install_update.join()
-
-    def _download_install(self):
-        try:
-            logger.debug("Downloading installer executable")
-            tmpdir = tempfile.gettempdir()
-            is_full_installer = (is_module_installed('numpy') or
-                                 is_module_installed('pandas'))
-            if os.name == 'nt':
-                name = 'Spyder_64bit_{}.exe'.format('full' if is_full_installer
-                                                    else 'lite')
-            else:
-                name = 'Spyder{}.dmg'.format('' if is_full_installer
-                                             else '-Lite')
-
-            url = ('https://github.com/spyder-ide/spyder/releases/latest/'
-                   f'download/{name}')
-            dir_path = os.path.join(tmpdir, 'spyder', 'updates')
-            os.makedirs(dir_path, exist_ok=True)
-            installer_dir_path = os.path.join(dir_path,
-                                              self.latest_release_version)
-            os.makedirs(installer_dir_path, exist_ok=True)
-            for file in os.listdir(dir_path):
-                if file not in [__version__, self.latest_release_version]:
-                    remove = os.path.join(dir_path, file)
-                    os.remove(remove)
-
-            installer_path = os.path.join(installer_dir_path, name)
-            if (not os.path.isfile(installer_path)):
-                logger.debug(
-                    f"Downloading installer from {url} to {installer_path}")
-                download = urlretrieve(url,
-                                       installer_path,
-                                       reporthook=self._progress_reporter)
-            self._change_update_installation_status(status=INSTALLING)
-            cmd = ('start' if os.name == 'nt' else 'open')
-            subprocess.run(' '.join([cmd, installer_path]), shell=True)
-
-        except UpdateInstallationCancelledException:
-            self._change_update_installation_status(status=CANCELLED)
-        finally:
-            self._change_update_installation_status(status=PENDING)
+    def setup(self):
+        """Setup visibility of widgets."""
+        self._installation_widget.setVisible(True)
+        self.adjustSize()
 
     def save_latest_release(self, latest_release_version):
         self.latest_release_version = latest_release_version
 
-    def start_installation_update(self, latest_release_version):
-        """Start the installation update thread and set downloading status."""
+    def start_installation(self, latest_release_version):
+        """Start the update download and set downloading status."""
         self.latest_release_version = latest_release_version
         self.cancelled = False
         self._change_update_installation_status(
             status=DOWNLOADING_INSTALLER)
-        self.thread_install_update = threading.Thread(
-            target=self._download_install)
-        self.thread_install_update.start()
+        self.download_thread = QThread(None)
+        self.download_worker = WorkerDownloadInstaller(
+            self, self.latest_release_version)
+        self.download_worker.sig_ready.connect(self.confirm_installation)
+        self.download_worker.sig_ready.connect(self.download_thread.quit)
+        self.download_worker.sig_download_progress.connect(
+            self.sig_download_progress.emit)
+        self.download_worker.moveToThread(self.download_thread)
+        self.download_thread.started.connect(self.download_worker.start)
+        self.download_thread.start()
+
+    def cancel_installation(self):
+        """Cancel the installation in progress."""
+        reply = QMessageBox.critical(
+            self._parent, 'Spyder',
+            _('Do you really want to cancel the Spyder update installation?'),
+            QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.cancelled = True
+            self._cancel_download()
+            self.finish_installation()
+            return True
+        return False
+
+    def continue_installation(self):
+        """
+        Continue the installation in progress.
+
+        Download the installer if needed or prompt to install.
+        """
+        reply = QMessageBox(icon=QMessageBox.Question,
+                            text=_("Would you like to update Spyder to "
+                                   "the latest version?"
+                                   "<br><br>"),
+                            parent=self._parent)
+        reply.setWindowTitle("Spyder")
+        reply.setAttribute(Qt.WA_ShowWithoutActivating)
+        reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        reply.exec_()
+        if reply.result() == QMessageBox.Yes:
+            self.start_installation(self.latest_release_version)
+        else:
+            self._change_update_installation_status(status=PENDING)
+
+    def confirm_installation(self, installer_path):
+        """
+        Ask users if they want to proceed with the installer execution.
+        """
+        if self.cancelled:
+            return
+        self._change_update_installation_status(status=DOWNLOAD_FINISHED)
+        self.installer_path = installer_path
+        msg_box = QMessageBox(icon=QMessageBox.Question,
+                              text=_("Would you like to proceed with the "
+                                     "installation?<br><br>"),
+                              parent=self._parent)
+        msg_box.setWindowTitle("Spyder")
+        msg_box.setAttribute(Qt.WA_ShowWithoutActivating)
+        if is_pynsist():
+            # Only add yes button for Windows installer
+            # since it has the logic to restart Spyder
+            yes_button = msg_box.addButton(QMessageBox.Yes)
+        else:
+            yes_button = None
+        after_closing_button = msg_box.addButton(
+            _("After closing"), QMessageBox.YesRole)
+        msg_box.addButton(QMessageBox.No)
+        msg_box.exec_()
+        if msg_box.clickedButton() == yes_button:
+            self._change_update_installation_status(status=INSTALLING)
+            cmd = ('start' if os.name == 'nt' else 'open')
+            if self.installer_path:
+                subprocess.Popen(
+                    ' '.join([cmd, self.installer_path]), shell=True)
+            self._change_update_installation_status(status=PENDING)
+        elif msg_box.clickedButton() == after_closing_button:
+            self.sig_install_on_close_requested.emit(self.installer_path)
+            self._change_update_installation_status(status=PENDING)
+        else:
+            self._change_update_installation_status(status=PENDING)
+
+    def finish_installation(self):
+        """Handle finished installation."""
+        self.setup()
+        self.accept()
+
+    def close_installer(self):
+        """Close the installation dialog."""
+        if (self.status == FINISHED
+                or self.status == CANCELLED):
+            self.finish_installation()
+        else:
+            self.hide()
+
+    def _change_update_installation_status(self, status=NO_STATUS):
+        """Set the installation status."""
+        logger.debug(f"Installation status: {status}")
+        self.status = status
+        if status == DOWNLOAD_FINISHED:
+            self.close_installer()
+        elif status == FINISHED or status == PENDING:
+            self.finish_installation()
+        self.sig_installation_status.emit(
+            self.status, self.latest_release_version)
+
+    def _cancel_download(self):
+        self._change_update_installation_status(status=CANCELLED)
+        self.download_worker.cancelled = True
+        self.download_thread.quit()
+        self.download_thread.wait()
+        self._change_update_installation_status(status=PENDING)

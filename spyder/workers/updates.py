@@ -6,10 +6,15 @@
 
 # Standard library imports
 import json
+import logging
 import os
+import os.path as osp
 import re
 import ssl
 import sys
+import tempfile
+from urllib.request import urlopen, urlretrieve
+from urllib.error import URLError, HTTPError
 
 # Third party imports
 from qtpy.QtCore import QObject, Signal
@@ -17,16 +22,17 @@ from qtpy.QtCore import QObject, Signal
 # Local imports
 from spyder import __version__
 from spyder.config.base import _, is_stable_version
-from spyder.py3compat import PY3, is_text_string
+from spyder.py3compat import is_text_string
 from spyder.config.utils import is_anaconda
-from spyder.utils.programs import check_version
+from spyder.utils.programs import check_version, is_module_installed
+
+# Logger setup
+logger = logging.getLogger(__name__)
 
 
-if PY3:
-    from urllib.request import urlopen
-    from urllib.error import URLError, HTTPError
-else:
-    from urllib2 import urlopen, URLError, HTTPError
+class UpdateDownloadCancelledException(Exception):
+    """Download for installer to update was cancelled."""
+    pass
 
 
 class WorkerUpdates(QObject):
@@ -142,3 +148,86 @@ class WorkerUpdates(QObject):
                 self.sig_ready.emit()
             except RuntimeError:
                 pass
+
+
+class WorkerDownloadInstaller(QObject):
+    """
+    Worker that donwloads standalone installers for Windows
+    and MacOS without blocking the Spyder user interface.
+    """
+    sig_ready = Signal(str)
+    sig_download_progress = Signal(int, int)
+
+    def __init__(self, parent, latest_release_version):
+        QObject.__init__(self)
+        self._parent = parent
+        self.latest_release_version = latest_release_version
+        self.error = None
+        self.cancelled = False
+        self.installer_path = None
+
+    def _progress_reporter(self, block_number, read_size, total_size):
+        """Calculate download progress and notify."""
+        progress = 0
+        if total_size > 0:
+            progress = block_number * read_size
+        if self.cancelled:
+            raise UpdateDownloadCancelledException()
+        self.sig_download_progress.emit(progress, total_size)
+
+    def _download_installer(self):
+        """Donwload latest Spyder standalone installer executable."""
+        logger.debug("Downloading installer executable")
+        tmpdir = tempfile.gettempdir()
+        is_full_installer = (is_module_installed('numpy') or
+                             is_module_installed('pandas'))
+        if os.name == 'nt':
+            name = 'Spyder_64bit_{}.exe'.format('full' if is_full_installer
+                                                else 'lite')
+        else:
+            name = 'Spyder{}.dmg'.format('' if is_full_installer
+                                            else '-Lite')
+
+        url = ('https://github.com/spyder-ide/spyder/releases/latest/'
+               f'download/{name}')
+        dir_path = osp.join(tmpdir, 'spyder', 'updates')
+        os.makedirs(dir_path, exist_ok=True)
+        installer_dir_path = osp.join(
+            dir_path, self.latest_release_version)
+        os.makedirs(installer_dir_path, exist_ok=True)
+        for file in os.listdir(dir_path):
+            if file not in [__version__, self.latest_release_version]:
+                remove = osp.join(dir_path, file)
+                os.remove(remove)
+
+        installer_path = osp.join(installer_dir_path, name)
+        self.installer_path = installer_path
+        if (not osp.isfile(installer_path)):
+            logger.debug(
+                f"Downloading installer from {url} to {installer_path}")
+            urlretrieve(
+                url, installer_path, reporthook=self._progress_reporter)
+        else:
+            self._progress_reporter(1, 1)
+
+    def start(self):
+        """Main method of the WorkerDownloadInstaller worker."""
+        error_msg = None
+        try:
+            self._download_installer()
+        except UpdateDownloadCancelledException:
+            if self.installer_path:
+               os.remove(self.installer_path)
+            return
+        except HTTPError:
+            error_msg = _('Unable to retrieve installer information.')
+        except URLError:
+            error_msg = _('Unable to connect to the internet. <br><br>Make '
+                          'sure the connection is working properly.')
+        except Exception:
+            error_msg = _('Unable to download installer.')
+        self.error = error_msg
+        try:
+            self.sig_ready.emit(self.installer_path)
+        except RuntimeError:
+            pass
