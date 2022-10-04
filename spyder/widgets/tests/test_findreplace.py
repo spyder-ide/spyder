@@ -26,7 +26,7 @@ def findreplace_editor(qtbot, request):
     """Set up PathManager."""
     editor = CodeEditor()
     editor.setup_editor()
-    widget = FindReplace(None)
+    widget = FindReplace(editor)
     widget.set_editor(editor)
     qtbot.addWidget(widget)
     qtbot.addWidget(editor)

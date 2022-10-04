@@ -67,7 +67,7 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
     qtbot.keyClicks(code_editor, 'some')
     qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
     qtbot.keyClicks(code_editor, '  None')
-    code_editor.moveCursor(cursor.End - 6)
+    code_editor.moveCursor(cursor.StartOfWord)
     qtbot.keyPress(code_editor, Qt.Key_Backspace)
     qtbot.wait(2000)
     assert completion.isHidden()
