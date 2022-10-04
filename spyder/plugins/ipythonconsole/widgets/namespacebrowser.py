@@ -12,6 +12,7 @@ the Variable Explorer
 # Standard library imports
 import logging
 from pickle import PicklingError, UnpicklingError
+import tarfile
 import time
 
 # Third-party imports
@@ -21,6 +22,7 @@ from spyder_kernels.comms.commbase import CommError
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.utils import IMPORT_EXT
 
 
 # For logging
@@ -165,6 +167,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return msg
         except TimeoutError:
             msg = _("Data is too big to be loaded")
+            return msg
+        except tarfile.ReadError:
+            # Fixes spyder-ide/spyder#19126
+            msg = _(f"The file could not be opened successfully. Recall that "
+                    f"the Variable Explorer supports the following file "
+                    f"extensions to import data:"
+                    f"<br><br><tt>{', '.join(IMPORT_EXT)}</tt>")
             return msg
         except (UnpicklingError, RuntimeError, CommError):
             return None
