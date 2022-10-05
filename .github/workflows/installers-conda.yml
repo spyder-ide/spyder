@@ -20,76 +20,14 @@ on:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 jobs:
-  build-spyder-conda-pkg:
-    name: Build spyder for ${{ matrix.target-platform }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        target-platform: ["osx-64", "osx-arm64"]
-        python-version: ["3.9"]
-        include:
-          - os: macos-11
-            target-platform: "osx-64"
-          - os: macos-latest
-            target-platform: "osx-arm64"
-    defaults:
-      run:
-        shell: bash -l {0}
-        working-directory: ${{ github.workspace }}/installers-conda
-    env:
-      DISTDIR: ${{ github.workspace }}/installers-conda/dist
-      artifact_name: spyder_${{ matrix.target-platform }}_${{ matrix.python-version }}
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Setup Build Environment
-        uses: mamba-org/provision-with-micromamba@main
-        with:
-          environment-file: installers-conda/build-environment.yml
-          extra-specs: python=${{ matrix.python-version }}
-
-      - name: Build Spyder Conda Package
-        run: python build_conda_pkgs.py --build spyder
-
-      - name: Build Artifact
-        run: tar -a -C $CONDA_PREFIX -cf $PWD/${artifact_name}.tar.bz2 conda-bld
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          path: ${{ github.workspace }}/installers-conda/${{ env.artifact_name }}.tar.bz2
-          name: ${{ env.artifact_name }}
-
-  build-conda-pkgs:
-    name: Build ${{ matrix.pkg }} for ${{ matrix.target-platform }}
-    runs-on: ${{ matrix.os }}
+  build-noarch-conda-pkgs:
+    name: Build ${{ matrix.pkg }}
+    runs-on: ubuntu-latest
     if: github.event_name != 'release'
     strategy:
       matrix:
-        target-platform: ["osx-64", "osx-arm64"]
-        pkg: ["spyder-kernels"]
+        pkg: ["python-lsp-server", "qdarkstyle", "qtconsole"]
         python-version: ["3.9"]
-        include:
-          - os: macos-11
-            target-platform: "osx-64"
-          - os: macos-latest
-            target-platform: "osx-arm64"
-          - os: macos-11
-            target-platform: "osx-64"
-            python-version: "3.9"
-            pkg: "python-lsp-server"
-          - os: macos-11
-            target-platform: "osx-64"
-            python-version: "3.9"
-            pkg: "qdarkstyle"
-          - os: macos-11
-            target-platform: "osx-64"
-            python-version: "3.9"
-            pkg: "qtconsole"
     defaults:
       run:
         shell: bash -l {0}
@@ -97,7 +35,7 @@ jobs:
     env:
       DISTDIR: ${{ github.workspace }}/installers-conda/dist
       pkg: ${{ matrix.pkg }}
-      artifact_name: ${{ matrix.pkg }}_${{ matrix.target-platform }}_${{ matrix.python-version }}
+      artifact_name: ${{ matrix.pkg }}_${{ matrix.python-version }}
 
     steps:
       - name: Checkout Code
@@ -126,15 +64,15 @@ jobs:
   build-installers:
     name: Build installer for ${{ matrix.target-platform }}
     runs-on: ${{ matrix.os }}
-    needs: [build-spyder-conda-pkg, build-conda-pkgs]
+    needs: build-noarch-conda-pkgs
     strategy:
       matrix:
+        target-platform: ["osx-64", "osx-arm64"]
+        python-version: ["3.9"]
         include:
           - os: macos-11
-            python-version: "3.9"
             target-platform: "osx-64"
           - os: macos-latest
-            python-version: "3.9"
             target-platform: "osx-arm64"
     defaults:
       run:
@@ -175,6 +113,14 @@ jobs:
           mamba index $CONDA_PREFIX/conda-bld
 
           mamba search -c $CONDA_PREFIX/conda-bld --override-channels
+
+      - name: Build ${{ matrix.target-platform }} conda packages
+        run: |
+          pkgs=("spyder")
+          if [[ $GITHUB_EVENT_NAME != "release" ]]; then
+              pkgs+=("spyder-kernels")
+          fi
+          python build_conda_pkgs.py --build ${pkgs[@]}
 
       - name: Create Keychain
         if: github.event_name == 'release' && runner.os == 'macOS'
