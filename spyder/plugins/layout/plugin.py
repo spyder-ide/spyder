@@ -833,7 +833,12 @@ class Layout(SpyderPluginV2):
                 plugin._toggle_view_action.setChecked(True)
                 plugin._widget._is_visible = False
 
-        plugin.change_visibility(True, force_focus=force_focus)
+        try:
+            # New API
+            plugin.change_visibility(True, force_focus=force_focus)
+        except AttributeError:
+            # Old API
+            plugin._visibility_changed(True)
 
     # ---- Menus and actions
     # -------------------------------------------------------------------------

@@ -5195,5 +5195,34 @@ def test_outline_namespace_package(main_window, qtbot, tmpdir):
     CONF.set('editor', 'filenames', [])
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(
+    sys.platform == 'darwin',
+    reason="Only works on Windows and Linux")
+def test_switch_to_plugin(main_window, qtbot):
+    """
+    Test that switching between the two most important plugins, the Editor and
+    the IPython console, is working as expected.
+
+    This is a regression test for issue spyder-ide/spyder#19374.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Switch to the IPython console and check the focus is there
+    qtbot.keyClick(main_window, Qt.Key_I,
+                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+    assert QApplication.focusWidget() is control
+
+    # Switch to the editor and assert the focus is there
+    qtbot.keyClick(main_window, Qt.Key_E,
+                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+    code_editor = main_window.editor.get_current_editor()
+    assert QApplication.focusWidget() is code_editor
+
+
 if __name__ == "__main__":
     pytest.main()
