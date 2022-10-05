@@ -15,6 +15,7 @@ import pytest
 from qtpy.QtCore import QTimer
 
 # Local imports
+from spyder.utils.environ import get_user_environment_variables, UserEnvDialog
 from spyder.utils.test import close_message_box
 
 
@@ -22,11 +23,19 @@ from spyder.utils.test import close_message_box
 def environ_dialog(qtbot):
     "Setup the Environment variables Dialog."
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
-    from spyder.utils.environ import UserEnvDialog
     dialog = UserEnvDialog()
     qtbot.addWidget(dialog)
 
     return dialog
+
+
+def test_get_user_environment_variables():
+    """Test get_user_environment_variables function"""
+
+    # All platforms should have a path environment variable, but
+    # Windows may have mixed case.
+    keys = {k.lower() for k in get_user_environment_variables()}
+    assert "path" in keys
 
 
 def test_environ(environ_dialog, qtbot):
