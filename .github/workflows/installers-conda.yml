@@ -54,7 +54,7 @@ jobs:
 
       - name: Build Conda Packages
         run: |
-          [[ $GITHUB_EVENT_NAME != "release" ]] && args=("--build" "spyder") || args=()
+          [[ $GITHUB_EVENT_NAME = "release" ]] && args=("--build" "spyder") || args=()
           python build_conda_pkgs.py ${args[@]}
 
       - name: Create Keychain
@@ -64,15 +64,17 @@ jobs:
           CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
           echo "CNAME=$CNAME" >> $GITHUB_ENV
 
-      - name: Build Package Installer
-        run: |
           _codesign=$(which codesign)
           if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
               # Find correct codesign
               echo "Moving $_codesign..."
               mv $_codesign ${_codesign}.bak
           fi
-          python build_installers.py --cert-id=$CNAME
+
+      - name: Build Package Installer
+        run: |
+          [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
+          python build_installers.py ${args[@]}
           PKG_FILE=$(python build_installers.py --artifact-name)
           PKG_NAME=$(basename $PKG_FILE)
           echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
