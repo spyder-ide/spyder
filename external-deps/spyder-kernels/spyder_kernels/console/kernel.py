@@ -129,8 +129,18 @@ class SpyderKernel(IPythonKernel):
         Open a file to save the faulthandling and identifiers for
         internal threads.
         """
+        fault_dir = None
+        if sys.platform.startswith('linux'):
+            # Do not use /tmp for temporary files
+            try:
+                from xdg.BaseDirectory import xdg_data_home
+                fault_dir = xdg_data_home
+                os.makedirs(fault_dir, exist_ok=True)
+            except Exception:
+                fault_dir = None
+
         self.faulthandler_handle = tempfile.NamedTemporaryFile(
-            'wt', suffix='.fault')
+            'wt', suffix='.fault', dir=fault_dir)
         main_id = threading.main_thread().ident
         system_ids = [
             thread.ident for thread in threading.enumerate()
@@ -151,6 +161,7 @@ class SpyderKernel(IPythonKernel):
             return (
                 "Can not read fault file!\n" 
                 + "UnicodeDecodeError: " + str(e))
+
         # Remove file
         try:
             os.remove(fault_filename)
@@ -167,8 +178,9 @@ class SpyderKernel(IPythonKernel):
             r"(Current thread|Thread) "
             r"(0x[\da-f]+) \(most recent call first\):"
             r"(?:.|\r\n|\r|\n)+?(?=Current thread|Thread|\Z)")
-        # Keep line for future improvments
+        # Keep line for future improvements
         # files_regex = r"File \"([^\"]+)\", line (\d+) in (\S+)"
+
         text = ""
         start_idx = 0
         for idx, match in enumerate(re.finditer(thread_regex, fault)):
@@ -192,6 +204,7 @@ class SpyderKernel(IPythonKernel):
                 except StopIteration:
                     end_idx = None
                 text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
+
         # Add anything after match
         text += fault[start_idx:]
         return text

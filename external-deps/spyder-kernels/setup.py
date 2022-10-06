@@ -43,6 +43,7 @@ REQUIREMENTS = [
     'packaging',
     'pyzmq>=22.1.0',
     'wurlitzer>=1.0.3;platform_system!="Windows"',
+    'pyxdg>=0.26;platform_system=="Linux"',
 ]
 
 TEST_REQUIREMENTS = [
