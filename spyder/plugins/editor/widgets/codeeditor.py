@@ -558,6 +558,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters = []
         self.completion_args = None
         self.folding_supported = False
+        self._folding_info = None
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
@@ -1974,7 +1975,12 @@ class CodeEditor(TextEditBaseWidget):
     def finish_code_folding(self):
         """Finish processing code folding."""
         folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.update_folding(self._folding_info)
+
+        # Check if we actually have folding info to update before trying to do
+        # it.
+        # Fixes spyder-ide/spyder#19514
+        if self._folding_info is not None:
+            folding_panel.update_folding(self._folding_info)
 
         # Update indent guides, which depend on folding
         if self.indent_guides._enabled and len(self.patch) > 0:

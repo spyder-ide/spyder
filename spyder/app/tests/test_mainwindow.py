@@ -35,7 +35,7 @@ from numpy.testing import assert_array_equal
 from pkg_resources import parse_version
 import pylint
 import pytest
-from qtpy import PYQT_VERSION
+from qtpy import PYQT_VERSION, PYQT5
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
@@ -1683,7 +1683,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    os.name == 'nt' or running_in_ci() and PYQT_VERSION >= '5.9',
+    os.name == 'nt' or running_in_ci() and (PYQT5 and PYQT_VERSION >= '5.9'),
     reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
 def test_issue_4066(main_window, qtbot):
     """
@@ -5604,6 +5604,35 @@ def test_outline_namespace_package(main_window, qtbot, tmpdir):
 
     # Remove test file from session
     CONF.set('editor', 'filenames', [])
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    sys.platform == 'darwin',
+    reason="Only works on Windows and Linux")
+def test_switch_to_plugin(main_window, qtbot):
+    """
+    Test that switching between the two most important plugins, the Editor and
+    the IPython console, is working as expected.
+
+    This is a regression test for issue spyder-ide/spyder#19374.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Switch to the IPython console and check the focus is there
+    qtbot.keyClick(main_window, Qt.Key_I,
+                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+    assert QApplication.focusWidget() is control
+
+    # Switch to the editor and assert the focus is there
+    qtbot.keyClick(main_window, Qt.Key_E,
+                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+    code_editor = main_window.editor.get_current_editor()
+    assert QApplication.focusWidget() is code_editor
 
 
 if __name__ == "__main__":

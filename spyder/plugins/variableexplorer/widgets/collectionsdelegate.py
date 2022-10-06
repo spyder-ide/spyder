@@ -145,6 +145,7 @@ class CollectionsDelegate(QItemDelegate):
                                      message.format(module=module))
                 return
         except Exception as msg:
+            self.sig_editor_shown.emit()
             QMessageBox.critical(
                 self.parent(), _("Error"),
                 _("Spyder was unable to retrieve the value of "

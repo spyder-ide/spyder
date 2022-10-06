@@ -919,7 +919,8 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         self.CONF_SECTION = (parent.CONF_SECTION
                              if parent is not None else 'completions')
 
-        super().__init__(parent)
+        QObject.__init__(self, parent)
+        CompletionConfigurationObserver.__init__(self)
         self.main = parent
         self.config = config
 
