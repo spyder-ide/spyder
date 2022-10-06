@@ -217,7 +217,17 @@ class SpyderCondaPkg(BuildCondaPkg):
             text = file.read_text()
             text += build_patch.read_text()
             file.write_text(text)
-
+        if os.name == 'nt':
+            file = self.fdstk_path / "recipe" / "bld.bat"
+            text = file.read_text()
+            text = text.replace(
+                r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
+                """powershell -Command"""
+                r""" "(gc %SRC_DIR%\installers-conda\resources\spyder-menu.json)"""
+                r""" -replace '__PKG_VERSION__', '%PKG_VERSION%' | """
+                r"""Out-File -encoding ASCII %MENU_DIR%\spyder-menu.json" """
+            )
+            file.write_text(text)
 
 class PylspCondaPkg(BuildCondaPkg):
     name = "python-lsp-server"
