@@ -151,6 +151,9 @@ class BuildCondaPkg():
             self.yaml['source']['patches'] = patches
 
         self.yaml.pop('test', None)
+        if 'outputs' in self.yaml:
+            for out in self.yaml['outputs']:
+                out.pop('test', None)
 
         self._patch_meta()
 
