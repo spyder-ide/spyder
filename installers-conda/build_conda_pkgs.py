@@ -145,10 +145,7 @@ class BuildCondaPkg():
 
         self.yaml = self._yaml.load(text)
 
-        patches = self.yaml["source"].pop("patches", None)
         self.yaml['source'] = {'path': str(self.src_path)}
-        if patches:
-            self.yaml['source']['patches'] = patches
 
         self.yaml.pop('test', None)
         if 'outputs' in self.yaml:
