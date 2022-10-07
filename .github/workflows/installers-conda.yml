@@ -111,8 +111,9 @@ jobs:
         run: |
           files=($(find $PWD/artifacts -name *.tar.bz2))
           echo ${files[@]}
+          cd $CONDA_PREFIX
           for file in ${files[@]}; do
-              tar -C $CONDA_PREFIX -xf $file
+              tar -xf $file
           done
 
           mamba index $CONDA_PREFIX/conda-bld
