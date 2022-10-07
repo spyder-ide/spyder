@@ -28,8 +28,6 @@ import time
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 
-from install_dev_repos import REPOS, install_repo
-
 # ---- Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
@@ -74,14 +72,35 @@ assert args.gui in (None, 'pyqt5', 'pyside2'), \
 
 # ---- Install sub repos
 
+from install_dev_repos import REPOS, install_repo
+from spyder import get_versions
+from spyder.config.base import get_conf_path
+from spyder.utils import vcs
+
 installed_dev_repo = False
 if not args.no_install:
+    prev_branch = None
+    boot_branch_file = Path(get_conf_path("boot_branch.txt"))
+    if boot_branch_file.exists():
+        prev_branch = boot_branch_file.read_text()
+
+    revision, branch = vcs.get_git_revision(Path(__file__).parent)
+    boot_branch_file.write_text(branch)
+
+    logger.info("Previous branch: %s; current branch: %s", prev_branch, branch)
+
+    if "master" in (branch, prev_branch) and branch != prev_branch:
+        logger.info("Detected branch change to/from master. "
+                    "Will reinstall spyder in editable mode.")
+        REPOS["spyder"]["editable"] = False
+
     for name in REPOS.keys():
         if not REPOS[name]['editable']:
             install_repo(name)
             installed_dev_repo = True
         else:
             logger.info("%s installed in editable mode", name)
+
 if installed_dev_repo:
     logger.info("Restarting bootstrap to pick up installed subrepos")
     if '--' in sys.argv:
@@ -138,7 +157,6 @@ else:
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
-from spyder import get_versions
 versions = get_versions(reporev=True)
 logger.info("Imported Spyder %s - Revision %s, Branch: %s; "
             "[Python %s %dbits, Qt %s, %s %s on %s]",
