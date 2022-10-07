@@ -75,7 +75,7 @@ assert args.gui in (None, 'pyqt5', 'pyside2'), \
 from install_dev_repos import REPOS, install_repo
 from spyder import get_versions
 from spyder.config.base import get_conf_path
-from spyder.utils import vcs
+from spyder.utils.programs import find_git, run_program
 
 installed_dev_repo = False
 if not args.no_install:
@@ -84,13 +84,17 @@ if not args.no_install:
     if boot_branch_file.exists():
         prev_branch = boot_branch_file.read_text()
 
-    revision, branch = vcs.get_git_revision(Path(__file__).parent)
+    res, err = run_program(
+        find_git(), ['merge-base', '--fork-point', 'master']
+    ).communicate()
+    branch = "master" if res else "not master"
     boot_branch_file.write_text(branch)
 
-    logger.info("Previous branch: %s; current branch: %s", prev_branch, branch)
+    logger.info("Previous root branch: %s; current root branch: %s",
+                prev_branch, branch)
 
-    if "master" in (branch, prev_branch) and branch != prev_branch:
-        logger.info("Detected branch change to/from master. "
+    if branch != prev_branch:
+        logger.info("Detected root branch change to/from master. "
                     "Will reinstall spyder in editable mode.")
         REPOS["spyder"]["editable"] = False
 
