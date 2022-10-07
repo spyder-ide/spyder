@@ -257,7 +257,7 @@ def _definitions():
             {
                 "welcome_image": str(DIST / "spyder_164x314.png"),
                 "header_image": str(DIST / "spyder_150x57.png"),
-                "icon_image": str(DIST / "icon.ico"),
+                "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
                 "register_python_default": False,
                 "default_prefix": os.path.join(
                     "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
