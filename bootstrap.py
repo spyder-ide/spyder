@@ -84,10 +84,10 @@ if not args.no_install:
     if boot_branch_file.exists():
         prev_branch = boot_branch_file.read_text()
 
-    res, err = run_program(
+    result, error = run_program(
         find_git(), ['merge-base', '--fork-point', 'master']
     ).communicate()
-    branch = "master" if res else "not master"
+    branch = "master" if result else "not master"
     boot_branch_file.write_text(branch)
 
     logger.info("Previous root branch: %s; current root branch: %s",
@@ -95,7 +95,7 @@ if not args.no_install:
 
     if branch != prev_branch:
         logger.info("Detected root branch change to/from master. "
-                    "Will reinstall spyder in editable mode.")
+                    "Will reinstall Spyder in editable mode.")
         REPOS["spyder"]["editable"] = False
 
     for name in REPOS.keys():
