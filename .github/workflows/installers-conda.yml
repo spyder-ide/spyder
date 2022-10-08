@@ -109,16 +109,19 @@ jobs:
 
       - name: Create Local Conda Channel
         run: |
+          CONDA_BLD_PATH=$HOME/conda-bld
+          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
+
           files=($(find $PWD/artifacts -name *.tar.bz2))
           echo ${files[@]}
-          cd $CONDA_PREFIX
+          cd $(dirname $CONDA_BLD_PATH)
           for file in ${files[@]}; do
               tar -xf $file
           done
 
-          mamba index $CONDA_PREFIX/conda-bld
+          mamba index $CONDA_BLD_PATH
 
-          mamba search -c $CONDA_PREFIX/conda-bld --override-channels
+          mamba search -c $CONDA_BLD_PATH --override-channels
 
       - name: Build ${{ matrix.target-platform }} conda packages
         run: |
