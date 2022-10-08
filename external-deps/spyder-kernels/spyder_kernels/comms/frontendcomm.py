@@ -127,12 +127,7 @@ class FrontendComm(CommBase):
 
     def notify_comm_ready(self, comm):
         """Send messages about comm readiness to frontend."""
-        # Send pickle.HIGHEST_PROTOCOL
-        self.remote_call(comm.comm_id)._set_pickle_protocol(
-            pickle.HIGHEST_PROTOCOL)
-
-        # Notify the frontend that the comm is ready
-        self.remote_call(comm.comm_id).comm_ready()
+        self.remote_call(comm.comm_id)._comm_ready()
 
         # Cached messages for that comm
         if comm.comm_id in self._cached_messages:
