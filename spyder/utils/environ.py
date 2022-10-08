@@ -10,13 +10,13 @@ Environment variable utilities.
 
 # Standard library imports
 import os
-
-# Third party imports
-from qtpy.QtWidgets import QMessageBox
 try:
     import winreg
 except Exception:
     pass
+
+# Third party imports
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.base import _
@@ -153,10 +153,10 @@ class UserEnvDialog(RemoteEnvDialog):
     """User Environment Variables Viewer/Editor"""
 
     def __init__(self, parent=None):
-        title = _("User Environment variables")
+        title = _("User environment variables")
         readonly = True
         if os.name == 'nt':
-            title = _(r"HKEY_CURRENT_USER\Environment")
+            title = _(r"User environment variables in Windows registry")
             readonly = False
 
         super().__init__(get_user_env(), parent, title, readonly)

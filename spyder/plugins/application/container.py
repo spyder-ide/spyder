@@ -167,11 +167,11 @@ class ApplicationContainer(PluginMainContainer):
 
         # Tools actions
         if os.name == 'nt':
-            tip = ("Show and edit current user environment variables in "
-                   "Windows registry (i.e. for all sessions)")
+            tip = _("Show and edit current user environment variables in "
+                    "Windows registry (i.e. for all sessions)")
         else:
-            tip = ("Show current user environment variables (i.e. for all "
-                   "sessions)")
+            tip = _("Show current user environment variables (i.e. for all "
+                    "sessions)")
         self.user_env_action = self.create_action(
             ApplicationActions.SpyderUserEnvVariables,
             _("Current user environment variables..."),
