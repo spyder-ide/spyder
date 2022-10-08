@@ -48,6 +48,8 @@ class FrontendComm(CommBase):
             self._comm_name, self._comm_open)
         self.comm_lock = threading.Lock()
         self._cached_messages = {}
+        self._pending_comms = []
+        self._iopub_ready = False
 
     def close(self, comm_id=None):
         """Close the comm and notify the other side."""
@@ -123,6 +125,28 @@ class FrontendComm(CommBase):
             self._cached_messages[comm_id] = []
         self._cached_messages[comm_id].append(msg)
 
+    def notify_comm_ready(self, comm):
+        """Send messages about comm readiness to frontend."""
+        # Send pickle.HIGHEST_PROTOCOL
+        self.remote_call(comm.comm_id)._set_pickle_protocol(
+            pickle.HIGHEST_PROTOCOL)
+
+        # Notify the frontend that the comm is ready
+        self.remote_call(comm.comm_id).comm_ready()
+
+        # Cached messages for that comm
+        if comm.comm_id in self._cached_messages:
+            for msg in self._cached_messages[comm.comm_id]:
+                comm.handle_msg(msg)
+            self._cached_messages.pop(comm.comm_id)
+
+    def notify_iopub_ready(self):
+        """Notify frontend that the iopub is ready"""
+        self._iopub_ready = True
+        for comm in self._pending_comms:
+            self.notify_comm_ready(comm)
+        self._pending_comms = []
+
     # --- Private --------
     def _wait_reply(self, comm_id, call_id, call_name, timeout, retry=True):
         """Wait until the frontend replies to a request."""
@@ -145,13 +169,12 @@ class FrontendComm(CommBase):
         self._register_comm(comm)
         self._set_pickle_protocol(
             msg['content']['data']['pickle_highest_protocol'])
-        self.remote_call()._set_pickle_protocol(pickle.HIGHEST_PROTOCOL)
-        # Handle cached messages
-        if comm.comm_id in self._cached_messages:
-            for msg in self._cached_messages[comm.comm_id]:
-                comm.handle_msg(msg)
-            self._cached_messages.pop(comm.comm_id)
 
+        if not self._iopub_ready:
+            # Frontend will not recieve comm messages
+            self._pending_comms.append(comm)
+            return
+        self.notify_comm_ready(comm)
 
     def _comm_close(self, msg):
         """Close comm."""

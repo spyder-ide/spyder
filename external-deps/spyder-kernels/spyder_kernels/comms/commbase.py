@@ -249,7 +249,6 @@ class CommBase:
         """Set the pickle protocol used to send data."""
         protocol = min(protocol, pickle.HIGHEST_PROTOCOL)
         self._comms[self.calling_comm_id]['pickle_protocol'] = protocol
-        self._comms[self.calling_comm_id]['status'] = 'ready'
 
     @property
     def _comm_name(self):
@@ -390,6 +389,7 @@ class CommBase:
 
     def on_incoming_call(self, call_dict):
         """A call was received"""
+        self._comms[self.calling_comm_id]['status'] = 'ready'
         if "pickle_highest_protocol" in call_dict:
             self._set_pickle_protocol(call_dict["pickle_highest_protocol"])
 
