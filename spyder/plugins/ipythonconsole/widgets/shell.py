@@ -171,6 +171,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
+        self.spyder_kernel_comm.sig_comm_ready.connect(
+            self.configure_comm)
         super(ShellWidget, self).__init__(*args, **kw)
         self.ipyclient = ipyclient
         self.additional_options = additional_options
@@ -196,7 +198,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'set_debug_state': self.set_debug_state,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
-            'comm_ready': self.configure_comm,
         })
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
