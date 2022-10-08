@@ -41,7 +41,8 @@ class KernelComm(CommBase, QObject):
         """Check to see if the comm is open."""
         valid_comms = [
             comm for comm in self._comms
-            if self._comms[comm]['status'] in ['opening', 'ready']
+            # Only open if we got a message from the kernel
+            if self._comms[comm]['status'] == 'ready'
         ]
         if comm_id is None:
             return len(valid_comms) > 0
@@ -165,9 +166,6 @@ class KernelComm(CommBase, QObject):
 
         def got_reply():
             return call_id in self._reply_inbox
-
-        if not self.is_ready(comm_id):
-            timeout = max(timeout, TIMEOUT_KERNEL_START)
 
         timeout_msg = "Timeout while waiting for {}".format(
             self._reply_waitlist)

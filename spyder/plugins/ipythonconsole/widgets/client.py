@@ -191,12 +191,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To hide the loading page
         self._hide_loading_page()
 
-        # Show possible errors when setting Matplotlib backend
-        self._show_mpl_backend_errors()
-
-        # To show if special console is valid
-        self._check_special_console_error()
-
         # Set the initial current working directory in the kernel
         self._set_initial_cwd_in_kernel()
 
@@ -245,19 +239,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.info_page = self.blank_page
             self.set_info_page()
         self.shellwidget.show()
-
-    def _show_mpl_backend_errors(self):
-        """
-        Show possible errors when setting the selected Matplotlib backend.
-        """
-        if self.shellwidget.is_spyder_kernel:
-            self.shellwidget.call_kernel().show_mpl_backend_errors()
-
-    def _check_special_console_error(self):
-        """Check if the dependecies for special consoles are available."""
-        self.shellwidget.call_kernel(
-            callback=self._show_special_console_error
-            ).is_special_kernel_valid()
 
     def _show_special_console_error(self, missing_dependency):
         if missing_dependency is not None:
@@ -701,6 +682,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Reopen comm
             sw.spyder_kernel_comm.remove()
             try:
+                sw._comm_configured = False
                 sw.spyder_kernel_comm.open_comm(sw.kernel_client)
             except AttributeError:
                 # An error occurred while opening our comm channel.
@@ -713,14 +695,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
             if reset:
                 sw.reset(clear=True)
-            
-            self.kernel_handler.poll_fault_text()
 
             sw._append_html(_("<br>Restarting kernel...<br>"),
                             before_prompt=True)
             sw.insert_horizontal_ruler()
-
-            sw.send_spyder_kernel_configuration()
 
         self.restart_thread = None
         self.sig_execution_state_changed.emit()

@@ -130,6 +130,9 @@ class HelpWidget(RichJupyterWidget):
 
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
+        if not self.is_comm_ready():
+            # No way of checking
+            return False
         try:
             return self.call_kernel(
                 blocking=True

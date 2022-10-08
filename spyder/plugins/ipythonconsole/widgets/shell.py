@@ -190,11 +190,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_manager = None
         self.kernel_client = None
+        self._comm_configured = False
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
             'set_debug_state': self.set_debug_state,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
+            'comm_ready': self.configure_comm,
         })
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -285,6 +287,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             display_error=display_error
         )
 
+    def is_comm_ready(self):
+        """Check if comm is ready"""
+        return self.spyder_kernel_comm.is_ready()
+
     @property
     def is_external_kernel(self):
         """Check if this is an external kernel."""
@@ -301,16 +307,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Redefine the complete method to work while debugging.
         self._redefine_complete_for_dbg(self.kernel_client)
 
-        # Send configuration
-        self.send_spyder_kernel_configuration()
-
-    def pop_execute_queue(self):
-        """Pop one waiting instruction."""
-        if self._execute_queue:
-            self.execute(*self._execute_queue.pop(0))
-
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
+        # Set current cwd
+        self.set_cwd()
+
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
@@ -320,12 +321,35 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Give a chance to plugins to configure the kernel
         self.sig_config_kernel_requested.emit()
 
+    def configure_comm(self):
+        """The kernel signals that the comm can be used"""
+        if self._comm_configured:
+            return
+        self._comm_configured = True
+        # Check for fault and send config
+        self.kernel_handler.poll_fault_text()
+
+        # Show possible errors when setting Matplotlib backend
+        self.call_kernel().show_mpl_backend_errors()
+    
+        # Check if the dependecies for special consoles are available.
+        self.call_kernel(
+            callback=self.ipyclient._show_special_console_error
+            ).is_special_kernel_valid()
+
+        self.send_spyder_kernel_configuration()
+
+    def pop_execute_queue(self):
+        """Pop one waiting instruction."""
+        if self._execute_queue:
+            self.execute(*self._execute_queue.pop(0))
+
     def interrupt_kernel(self):
         """Attempts to interrupt the running kernel."""
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
         self._execute_queue = []
-        if self.is_spyder_kernel:
+        if self.is_spyder_kernel and self.is_comm_ready():
             self._reading = False
             self.call_kernel(interrupt=True).raise_interrupt_signal()
         else:
@@ -409,7 +433,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.kernel_handler.known_spyder_kernel = True
             self.setup_spyder_kernel()
 
-    def set_cwd(self, dirname, emit_cwd_change=False):
+    def set_cwd(self, dirname=None, emit_cwd_change=False):
         """
         Set shell current working directory.
 
@@ -421,16 +445,28 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             Whether to emit a Qt signal that informs other panes in Spyder that
             the current working directory has changed.
         """
-        if os.name == 'nt':
+        if self.ipyclient.hostname is not None:
+            # Only sync for local kernels
+            return
+
+        if dirname is None:
+            if not self._cwd:
+                return
+            dirname = self._cwd
+        elif os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
 
-        if self.ipyclient.hostname is None:
-            self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
-            self._cwd = dirname
-            if emit_cwd_change:
-                self.sig_working_directory_changed.emit(self._cwd)
+        if self.is_comm_ready():
+            # Otherwise cwd will be sent later
+            self.call_kernel(
+                interrupt=self.is_debugging()
+            ).set_cwd(dirname)
+
+        self._cwd = dirname
+        if emit_cwd_change:
+            self.sig_working_directory_changed.emit(self._cwd)
 
     def get_cwd(self):
         """
@@ -450,7 +486,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         Update working directory in Spyder after getting its value from the
         kernel.
         """
-        if self.kernel_client is None:
+        if not self.is_comm_ready():
+            # Frontend sends first
             return
         self.call_kernel(callback=self.on_getting_cwd).get_cwd()
 
@@ -478,6 +515,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._syntax_style_changed()
         if reset:
             self.reset(clear=True)
+        if not self.is_comm_ready():
+            # Will be sent later
+            return
         if not dark_color:
             # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
