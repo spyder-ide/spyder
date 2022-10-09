@@ -31,16 +31,12 @@ from spyder.config.base import (get_conf_path, get_debug_level, is_pynsist,
                                 running_in_mac_app)
 from spyder.plugins.application.widgets.status import ApplicationUpdateStatus
 from spyder.plugins.console.api import ConsoleActions
+from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.workers.updates import WorkerUpdates
-
-
-WinUserEnvDialog = None
-if os.name == 'nt':
-    from spyder.utils.environ import WinUserEnvDialog
 
 # Localization
 _ = get_translation('spyder')
@@ -70,7 +66,7 @@ class ApplicationActions:
     SpyderAbout = "spyder_about_action"
 
     # Tools
-    SpyderWindowsEnvVariables = "spyder_windows_env_variables_action"
+    SpyderUserEnvVariables = "spyder_user_env_variables_action"
 
     # File
     # The name of the action needs to match the name of the shortcut
@@ -170,17 +166,18 @@ class ApplicationContainer(PluginMainContainer):
             menurole=QAction.AboutRole)
 
         # Tools actions
-        if WinUserEnvDialog is not None:
-            self.winenv_action = self.create_action(
-                ApplicationActions.SpyderWindowsEnvVariables,
-                _("Current user environment variables..."),
-                icon=self.create_icon('win_env'),
-                tip=_("Show and edit current user environment "
-                      "variables in Windows registry "
-                      "(i.e. for all sessions)"),
-                triggered=self.show_windows_env_variables)
+        if os.name == 'nt':
+            tip = _("Show and edit current user environment variables in "
+                    "Windows registry (i.e. for all sessions)")
         else:
-            self.winenv_action = None
+            tip = _("Show current user environment variables (i.e. for all "
+                    "sessions)")
+        self.user_env_action = self.create_action(
+            ApplicationActions.SpyderUserEnvVariables,
+            _("Current user environment variables..."),
+            icon=self.create_icon('environment'),
+            tip=_(tip),
+            triggered=self.show_user_env_variables)
 
         # Application base actions
         self.restart_action = self.create_action(
@@ -238,9 +235,9 @@ class ApplicationContainer(PluginMainContainer):
         abt.show()
 
     @Slot()
-    def show_windows_env_variables(self):
+    def show_user_env_variables(self):
         """Show Windows current user environment variables."""
-        self.dialog_manager.show(WinUserEnvDialog(self))
+        self.dialog_manager.show(UserEnvDialog(self))
 
     # ---- Updates
     # -------------------------------------------------------------------------
