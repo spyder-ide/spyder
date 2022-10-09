@@ -28,6 +28,12 @@ import time
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 
+# Local imports
+from install_dev_repos import REPOS, install_repo
+from spyder import get_versions
+from spyder.config.base import get_conf_path
+from spyder.utils.programs import find_git, run_program
+
 # ---- Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
@@ -71,12 +77,6 @@ assert args.gui in (None, 'pyqt5', 'pyside2'), \
        "Invalid GUI toolkit option '%s'" % args.gui
 
 # ---- Install sub repos
-
-from install_dev_repos import REPOS, install_repo
-from spyder import get_versions
-from spyder.config.base import get_conf_path
-from spyder.utils.programs import find_git, run_program
-
 installed_dev_repo = False
 if not args.no_install:
     prev_branch = None
