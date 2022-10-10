@@ -316,7 +316,7 @@ if __name__ == "__main__":
 
         pkg = PKGS[k](debug=args.debug)
         pkg.build()
-        specs[k] = pkg.version
+        specs[k] = "=" + pkg.version
 
         yaml.dump(specs, SPECS)
 

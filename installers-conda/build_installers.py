@@ -59,6 +59,16 @@ elif MACOS:
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
 
+scientific_packages = {
+    "cython": "",
+    "matplotlib": "",
+    "numpy": "",
+    "openpyxl": "",
+    "pandas": "",
+    "scipy": "",
+    "sympy": "",
+}
+
 # ---- Parse arguments
 p = ArgumentParser()
 p.add_argument(
@@ -98,6 +108,10 @@ p.add_argument(
     "--cert-id", default=None,
     help="Apple Developer ID Application certificate common name."
 )
+p.add_argument(
+    "--lite", action="store_true",
+    help=f"Do not include packages {scientific_packages.keys()}"
+)
 args = p.parse_args()
 
 yaml = YAML()
@@ -106,13 +120,20 @@ indent4 = partial(indent, prefix="    ")
 
 SPYVER = get_version(SPYREPO).strip().split("+")[0]
 
-specs = {"spyder": "=" + SPYVER}
-try:
+specs = {
+    "spyder": "=" + SPYVER,
+    "paramiko": "",
+    "pyxdg": "",
+}
+if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
     _specs = yaml.load(SPECS.read_text())
-    specs.update({k: "=" + v for k, v in _specs.items()})
-except Exception:
+    specs.update(_specs)
+else:
     logger.info(f"Did not read specs from {SPECS}")
+
+if not args.lite:
+    specs.update(scientific_packages)
 
 for spec in args.extra_specs:
     k, *v = re.split('([<>= ]+)', spec)
