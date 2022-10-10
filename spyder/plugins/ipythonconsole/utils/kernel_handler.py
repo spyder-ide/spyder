@@ -223,20 +223,24 @@ class KernelHandler(QObject):
         cls, connection_file, hostname=None, sshkey=None, password=None
     ):
         """Create kernel for given connection file."""
-        new_kernel = cls(
+        return cls(
             connection_file,
             hostname=hostname,
             sshkey=sshkey,
             password=password,
+            kernel_client=cls.init_kernel_client(
+                connection_file,
+                hostname,
+                sshkey,
+                password
+            )
         )
-        # Get new kernel_client
-        new_kernel.init_kernel_client()
-        return new_kernel
 
-    def init_kernel_client(self):
+    @classmethod
+    def init_kernel_client(cls, connection_file, hostname, sshkey, password):
         """Create kernel client."""
         kernel_client = SpyderKernelClient(
-            connection_file=self.connection_file
+            connection_file=connection_file
         )
 
         # This is needed for issue spyder-ide/spyder#9304.
@@ -252,7 +256,7 @@ class KernelHandler(QObject):
                 + str(e)
             )
 
-        if self.hostname is not None:
+        if hostname is not None:
             try:
                 connection_info = dict(
                     ip=kernel_client.ip,
@@ -269,15 +273,15 @@ class KernelHandler(QObject):
                     kernel_client.stdin_port,
                     kernel_client.hb_port,
                     kernel_client.control_port,
-                ) = self.tunnel_to_kernel(
-                    connection_info, self.hostname, self.sshkey, self.password
+                ) = cls.tunnel_to_kernel(
+                    connection_info, hostname, sshkey, password
                 )
             except Exception as e:
                 raise RuntimeError(
                     _("Could not open ssh tunnel. The error was:\n\n")
                     + str(e)
                 )
-        self.kernel_client = kernel_client
+        return kernel_client
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
@@ -341,17 +345,24 @@ class KernelHandler(QObject):
     def copy(self):
         """Copy kernel."""
         # Copy kernel infos
-        new_kernel = self.__class__(
+
+        # Get new kernel_client
+        kernel_client = self.init_kernel_client(
+            self.connection_file,
+            self.hostname,
+            self.sshkey,
+            self.password,
+        )
+
+        return self.__class__(
             connection_file=self.connection_file,
             kernel_manager=self.kernel_manager,
             known_spyder_kernel=self.known_spyder_kernel,
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,
+            kernel_client=kernel_client,
         )
-        # Get new kernel_client
-        new_kernel.init_kernel_client()
-        return new_kernel
 
     def open_comm(self):
         """Open kernel comm"""
