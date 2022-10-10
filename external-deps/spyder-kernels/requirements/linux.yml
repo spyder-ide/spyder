@@ -1,5 +1,0 @@
-# Linux specific dependencies
-channels:
-  - conda-forge
-dependencies:
-  - pyxdg >=0.26
