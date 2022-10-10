@@ -155,8 +155,28 @@ class WorkerDownloadInstaller(QObject):
     Worker that donwloads standalone installers for Windows
     and MacOS without blocking the Spyder user interface.
     """
+
     sig_ready = Signal(str)
+    """
+    Signal to inform that the worker has finished successfully.
+
+    Parameters
+    ----------
+    installer_path: str
+        Path where the downloaded installer is located.
+    """
+
     sig_download_progress = Signal(int, int)
+    """
+    Signal to get the download progress.
+
+    Parameters
+    ----------
+    current_value: int
+        Size of the data downloaded until now.
+    total: int
+        Total size file expected to be downloaded.
+    """
 
     def __init__(self, parent, latest_release_version):
         QObject.__init__(self)

@@ -117,9 +117,9 @@ class UpdateInstallerDialog(QDialog):
     Parameters
     ----------
     current_value: int
-        Number of bits downloaded until now.
+        Size of the data downloaded until now.
     total: int
-        Total expected number of bits to be downloaded.
+        Total size file expected to be downloaded.
     """
 
     sig_installation_status = Signal(str, str)
