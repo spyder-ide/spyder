@@ -3345,8 +3345,12 @@ def test_runcell_pdb(main_window, qtbot):
             "    foo()\n")
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell.kernel_handler.spyder_kernel_ready,
+        timeout=SHELL_TIMEOUT)
 
     # Main variables
     debug_button = main_window.debug_button
