@@ -7,6 +7,7 @@
 """Kernel handler."""
 
 # Standard library imports
+import ast
 import os
 import os.path as osp
 from subprocess import PIPE
@@ -20,10 +21,14 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.translations import get_translation
+from spyder.plugins.ipythonconsole import (
+    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
+    SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
+from spyder.utils.programs import check_version_range
 
 
 # Localization
@@ -33,6 +38,42 @@ PERMISSION_ERROR_MSG = _(
     "The directory {} is not writable and it is required to create IPython "
     "consoles. Please make it writable."
 )
+
+ERROR_SPYDER_KERNEL_VERSION = _(
+    "The Python environment or installation whose interpreter is located at"
+    "<pre>"
+    "    <tt>{0}</tt>"
+    "</pre>"
+    "doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} "
+    "instead of >= {2} and < {3}). Without this module is not possible for "
+    "Spyder to create a console for you.<br><br>"
+    "You can install it by activating your environment (if necessary) and "
+    "then running in a system terminal:"
+    "<pre>"
+    "    <tt>{4}</tt>"
+    "</pre>"
+    "or"
+    "<pre>"
+    "    <tt>{5}</tt>"
+    "</pre>"
+)
+
+# For Spyder-kernels version < 3.0, where the version and executable cannot be queried
+ERROR_SPYDER_KERNEL_VERSION_OLD = _(
+    "This Python environment doesn't have the right version of "
+    "<tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this "
+    "module is not possible for Spyder to create a console for you.<br><br>"
+    "You can install it by activating your environment (if necessary) and "
+    "then running in a system terminal:"
+    "<pre>"
+    "    <tt>{2}</tt>"
+    "</pre>"
+    "or"
+    "<pre>"
+    "    <tt>{3}</tt>"
+    "</pre>"
+)
+
 
 if os.name == "nt":
     ssh_tunnel = zmqtunnel.paramiko_tunnel
@@ -63,8 +104,21 @@ class KernelHandler(QObject):
     """
 
     sig_stdout = Signal(str)
+    """
+    A stdout message was recieved on the process stdout.
+    """
     sig_stderr = Signal(str)
+    """
+    A stderr message was recieved on the process stderr.
+    """
     sig_fault = Signal(str)
+    """
+    A fault message was recieved.
+    """
+    sig_spyder_kernel_status = Signal(str)
+    """
+    The spyder kernel status has changed.
+    """
 
     def __init__(
         self,
@@ -88,6 +142,8 @@ class KernelHandler(QObject):
 
         # Comm
         self.kernel_comm = KernelComm()
+        self.kernel_comm.sig_comm_ready.connect(
+            self.handle_comm_ready)
 
         # Internal
         self.shutdown_thread = None
@@ -96,7 +152,91 @@ class KernelHandler(QObject):
         self._stderr_thread = None
         self._fault_args = None
 
+        # Start channels
         self.connect_std_pipes()
+        self.kernel_client.start_channels()
+
+        # Check kernel version
+        self.kernel_info_message = None
+        self.spyder_kernel_ready = False
+        self._spyder_kernel_info_uuid = None
+        self.check_kernel_info()
+
+    def check_kernel_info(self):
+        """Send request to check kernel info."""
+        code = "getattr(get_ipython(), '_spyder_kernels_version', False)"
+        self.kernel_client.shell_channel.message_received.connect(
+            self._dispatch_kernel_info)
+        self._spyder_kernel_info_uuid = str(uuid.uuid1())
+        self.kernel_client.execute(
+            '', silent=True, user_expressions={
+                self._spyder_kernel_info_uuid:code })
+
+    def _dispatch_kernel_info(self, msg):
+        """Listen for spyder_kernel_info."""
+        user_exp = msg['content'].get('user_expressions')
+        if not user_exp:
+            return
+        for expression in user_exp:
+            if expression == self._spyder_kernel_info_uuid:
+                self.kernel_client.shell_channel.message_received.disconnect(
+                    self._dispatch_kernel_info)
+                # Process kernel reply
+                data = user_exp[expression].get('data')
+                if data is not None and 'text/plain' in data:
+                    spyder_kernel_info = ast.literal_eval(
+                        data['text/plain'])
+                    self.check_spyder_kernel_info(spyder_kernel_info)
+
+    def check_spyder_kernel_info(self, spyder_kernel_info):
+        """
+        Check if the Spyder-kernels version is the right one after receiving it
+        from the kernel.
+
+        If the kernel is non-locally managed, check if it is a spyder-kernel.
+        """
+
+        if not spyder_kernel_info:
+            if self.known_spyder_kernel:
+                # spyder-kernels version < 3.0
+                self.kernel_info_message = (
+                    ERROR_SPYDER_KERNEL_VERSION_OLD.format(
+                        SPYDER_KERNELS_MIN_VERSION,
+                        SPYDER_KERNELS_MAX_VERSION,
+                        SPYDER_KERNELS_CONDA,
+                        SPYDER_KERNELS_PIP
+                    )
+                )
+                self.sig_spyder_kernel_status.emit(self.kernel_info_message)
+                self.known_spyder_kernel = False
+            return
+
+        version, pyexec = spyder_kernel_info
+        if not check_version_range(version, SPYDER_KERNELS_VERSION):
+            # Development versions are acceptable
+            if "dev0" not in version:
+                self.kernel_info_message = (
+                    ERROR_SPYDER_KERNEL_VERSION.format(
+                        pyexec,
+                        version,
+                        SPYDER_KERNELS_MIN_VERSION,
+                        SPYDER_KERNELS_MAX_VERSION,
+                        SPYDER_KERNELS_CONDA,
+                        SPYDER_KERNELS_PIP
+                    )
+                )
+                self.sig_spyder_kernel_status.emit(self.kernel_info_message)
+                self.known_spyder_kernel = False
+                return
+
+        self.known_spyder_kernel = True
+        # Open comm and wait for comm ready reply
+        self.kernel_comm.open_comm(self.kernel_client)
+
+    def handle_comm_ready(self):
+        """The kernel comm is ready"""
+        self.spyder_kernel_ready = True
+        self.sig_spyder_kernel_status.emit('ready')
 
     def connect_std_pipes(self):
         """Connect to std pipes."""
@@ -363,10 +503,6 @@ class KernelHandler(QObject):
             password=self.password,
             kernel_client=kernel_client,
         )
-
-    def open_comm(self):
-        """Open kernel comm"""
-        self.kernel_comm.open_comm(self.kernel_client)
 
     def faulthandler_setup(self, args):
         """Setup faulthandler"""

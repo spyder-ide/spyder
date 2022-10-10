@@ -623,7 +623,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
                            modifier=Qt.AltModifier | Qt.ShiftModifier)
 
         # Make sure everything is ready
-        assert shell.spyder_kernel_comm.is_open()
+        assert shell.kernel_handler.kernel_comm.is_open()
         assert shell.is_waiting_pdb_input()
 
         with qtbot.waitSignal(shell.executed):
