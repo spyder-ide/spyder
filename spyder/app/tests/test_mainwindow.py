@@ -1052,6 +1052,9 @@ def test_project_path(main_window, tmpdir, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell.kernel_handler.spyder_kernel_ready,
+        timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("import sys; import os; "
@@ -1069,6 +1072,9 @@ def test_project_path(main_window, tmpdir, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell.kernel_handler.spyder_kernel_ready,
+        timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("import sys; import os; "
