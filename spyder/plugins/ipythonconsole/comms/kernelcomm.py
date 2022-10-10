@@ -40,15 +40,13 @@ class KernelComm(CommBase, QObject):
         self.register_call_handler('_comm_ready', self._comm_ready)
 
     def is_open(self, comm_id=None):
-        """Check to see if the comm is open."""
-        valid_comms = [
-            comm for comm in self._comms
-            # Only open if we got a message from the kernel
-            if self._comms[comm]['status'] == 'ready'
-        ]
-        if comm_id is None:
-            return len(valid_comms) > 0
-        return comm_id in valid_comms
+        """
+        Check to see if the comm is open and ready to communicate.
+        """
+        id_list = self.get_comm_id_list(comm_id)
+        if len(id_list) == 0:
+            return False
+        return all([self._comms[cid]['status'] == 'ready' for cid in id_list])
 
     @contextmanager
     def comm_channel_manager(self, comm_id, queue_message=False):
@@ -117,17 +115,6 @@ class KernelComm(CommBase, QObject):
         return super(KernelComm, self).remote_call(
             interrupt=interrupt, blocking=blocking, callback=callback,
             comm_id=comm_id, timeout=timeout, display_error=display_error)
-
-    def is_ready(self, comm_id=None):
-        """
-        Check to see if the other side replied.
-
-        If comm_id is not specified, check all comms.
-        """
-        id_list = self.get_comm_id_list(comm_id)
-        if len(id_list) == 0:
-            return False
-        return all([self._comms[cid]['status'] == 'ready' for cid in id_list])
 
     def on_incoming_call(self, call_dict):
         """A call was received"""

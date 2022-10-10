@@ -290,7 +290,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def is_comm_ready(self):
         """Check if comm is ready"""
-        return self.spyder_kernel_comm.is_ready()
+        return self.spyder_kernel_comm.is_open()
 
     @property
     def is_external_kernel(self):
