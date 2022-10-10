@@ -9,7 +9,6 @@
 # Standard library imports
 import os
 import os.path as osp
-import re
 from subprocess import PIPE
 from threading import Lock
 import uuid
@@ -21,6 +20,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.translations import get_translation
+from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
@@ -87,7 +87,7 @@ class KernelHandler(QObject):
         self.password = password
 
         # Comm
-        self.kernel_comm = None
+        self.kernel_comm = KernelComm()
 
         # Internal
         self.shutdown_thread = None
@@ -281,8 +281,7 @@ class KernelHandler(QObject):
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
-        if self.kernel_comm is not None:
-            self.kernel_comm.close()
+        self.kernel_comm.close()
 
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
@@ -309,8 +308,7 @@ class KernelHandler(QObject):
     def after_shutdown(self):
         """Cleanup after shutdown"""
         self.close_std_threads()
-        if self.kernel_comm is not None:
-            self.kernel_comm.remove(only_closing=True)
+        self.kernel_comm.remove(only_closing=True)
         self.shutdown_thread = None
 
     def _thread_shutdown_kernel(self):
@@ -355,10 +353,9 @@ class KernelHandler(QObject):
         new_kernel.init_kernel_client()
         return new_kernel
 
-    def open_comm(self, kernel_comm):
+    def open_comm(self):
         """Open kernel comm"""
-        kernel_comm.open_comm(self.kernel_client)
-        self.kernel_comm = kernel_comm
+        self.kernel_comm.open_comm(self.kernel_client)
 
     def faulthandler_setup(self, args):
         """Setup faulthandler"""

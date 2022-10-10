@@ -623,7 +623,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 self.infowidget.hide()
 
         # Close comm
-        sw.spyder_kernel_comm.close()
+        sw.kernel_handler.kernel_comm.close()
 
         if self._abort_kernel_restart():
             return
@@ -665,7 +665,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         sw = self.shellwidget
 
         if self._abort_kernel_restart():
-            sw.spyder_kernel_comm.remove()
+            sw.kernel_handler.kernel_comm.remove()
             return
 
         if self.restart_thread and self.restart_thread.error is not None:
@@ -680,10 +680,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw.reset_kernel_state()
 
             # Reopen comm
-            sw.spyder_kernel_comm.remove()
+            sw.kernel_handler.kernel_comm.remove()
             try:
                 sw._comm_configured = False
-                sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+                sw.kernel_handler.kernel_comm.open_comm(sw.kernel_client)
             except AttributeError:
                 # An error occurred while opening our comm channel.
                 # Aborting!

@@ -1562,21 +1562,21 @@ def test_kernel_kill(ipyconsole, qtbot):
     qtbot.wait(3000)
     crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
     # Check only one comm is open
-    old_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    old_open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())
     assert len(old_open_comms) == 1
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
         shell.execute(crash_string)
     assert crash_string in shell._control.toPlainText()
     assert "Restarting kernel..." in shell._control.toPlainText()
     # Check a new comm replaced the old one
-    new_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    new_open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())
     assert len(new_open_comms) == 1
     assert old_open_comms[0] != new_open_comms[0]
     # Wait until the comm replies
     qtbot.waitUntil(
-        lambda: shell.spyder_kernel_comm._comms[new_open_comms[0]][
+        lambda: shell.kernel_handler.kernel_comm._comms[new_open_comms[0]][
             'status'] == 'ready')
-    assert shell.spyder_kernel_comm._comms[new_open_comms[0]][
+    assert shell.kernel_handler.kernel_comm._comms[new_open_comms[0]][
         'status'] == 'ready'
 
 
@@ -1658,9 +1658,9 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
     assert shell.is_defined('a')
 
     # Wait until the comm replies
-    open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())
     qtbot.waitUntil(
-        lambda: shell.spyder_kernel_comm._comms[open_comms[0]][
+        lambda: shell.kernel_handler.kernel_comm._comms[open_comms[0]][
             'status'] == 'ready')
 
 

@@ -36,7 +36,6 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
     SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
-from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
@@ -168,11 +167,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
-        self.spyder_kernel_comm = KernelComm()
-        self.spyder_kernel_comm.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
-        self.spyder_kernel_comm.sig_comm_ready.connect(
-            self.configure_comm)
+
         super(ShellWidget, self).__init__(*args, **kw)
         self.ipyclient = ipyclient
         self.additional_options = additional_options
@@ -199,9 +194,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
         })
-        for request_id in handlers:
-            self.spyder_kernel_comm.register_call_handler(
-                request_id, handlers[request_id])
+        self.kernel_comm_handlers = handlers
 
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
@@ -280,7 +273,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         display_error: bool
             If an error occurs, should it be printed to the console.
         """
-        return self.spyder_kernel_comm.remote_call(
+        return self.kernel_handler.kernel_comm.remote_call(
             interrupt=interrupt,
             blocking=blocking,
             callback=callback,
@@ -290,7 +283,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def is_comm_ready(self):
         """Check if comm is ready"""
-        return self.spyder_kernel_comm.is_open()
+        return self.kernel_handler.kernel_comm.is_open()
 
     @property
     def is_external_kernel(self):
@@ -299,11 +292,20 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def setup_spyder_kernel(self):
         """Setup spyder kernel"""
-        self.kernel_handler.open_comm(self.spyder_kernel_comm)
-
+        # Connect signals
+        self.kernel_handler.kernel_comm.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
+        self.kernel_handler.kernel_comm.sig_comm_ready.connect(
+            self.configure_comm)
         # For completions
         self.kernel_client.control_channel.message_received.connect(
             self._dispatch)
+
+        # Open comm
+        for request_id, handler in self.kernel_comm_handlers.items():
+            self.kernel_handler.kernel_comm.register_call_handler(
+                request_id, handler)
+        self.kernel_handler.open_comm()
 
         # Redefine the complete method to work while debugging.
         self._redefine_complete_for_dbg(self.kernel_client)
