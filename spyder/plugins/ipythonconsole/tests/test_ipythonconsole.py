@@ -2271,16 +2271,13 @@ def test_old_kernel_version(ipyconsole, qtbot):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    kc = w._cached_kernel_properties[-1].kernel_client
-    kc.start_channels()
-    kc.execute("get_ipython()._spyder_kernels_version = ('1.0.0', '')")
-    # Cleanup the kernel_client so it can be used again
-    kc.stop_channels()
-    kc._shell_channel = None
-    kc._iopub_channel = None
-    kc._stdin_channel = None
-    kc._hb_channel = None
-    kc._control_channel = None
+    kernel_handler = w._cached_kernel_properties[-1]
+
+    # Wait until it is launched
+    qtbot.waitUntil(
+        lambda: kernel_handler.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
+    kernel_handler.spyder_kernel_ready = False
+    kernel_handler.check_spyder_kernel_info(('1.0.0', ''))
 
     # Create new client
     w.create_new_client()

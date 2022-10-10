@@ -918,6 +918,9 @@ def test_change_cwd_ipython_console(
     # Wait until the window is fully up
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell.kernel_handler.spyder_kernel_ready,
+        timeout=SHELL_TIMEOUT)
 
     # Create temp dir
     temp_dir = str(tmpdir.mkdir(test_directory))
@@ -3079,6 +3082,9 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell.kernel_handler.spyder_kernel_ready,
+        timeout=SHELL_TIMEOUT)
 
     if debug:
         function = 'debugcell'
