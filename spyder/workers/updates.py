@@ -185,8 +185,7 @@ class WorkerDownloadInstaller(QObject):
             name = 'Spyder_64bit_{}.exe'.format('full' if is_full_installer
                                                 else 'lite')
         else:
-            name = 'Spyder{}.dmg'.format('' if is_full_installer
-                                            else '-Lite')
+            name = 'Spyder{}.dmg'.format('' if is_full_installer else '-Lite')
 
         url = ('https://github.com/spyder-ide/spyder/releases/latest/'
                f'download/{name}')
@@ -202,7 +201,7 @@ class WorkerDownloadInstaller(QObject):
 
         installer_path = osp.join(installer_dir_path, name)
         self.installer_path = installer_path
-        if (not osp.isfile(installer_path)):
+        if not osp.isfile(installer_path):
             logger.debug(
                 f"Downloading installer from {url} to {installer_path}")
             urlretrieve(
@@ -222,10 +221,10 @@ class WorkerDownloadInstaller(QObject):
         except HTTPError:
             error_msg = _('Unable to retrieve installer information.')
         except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>Make '
-                          'sure the connection is working properly.')
+            error_msg = _('Unable to connect to the internet. <br><br>'
+                          'Make sure the connection is working properly.')
         except Exception:
-            error_msg = _('Unable to download installer.')
+            error_msg = _('Unable to download the installer.')
         self.error = error_msg
         try:
             self.sig_ready.emit(self.installer_path)

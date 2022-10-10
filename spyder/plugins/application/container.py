@@ -94,7 +94,8 @@ class ApplicationContainer(PluginMainContainer):
         # Keep track of dpi message
         self.current_dpi = None
         self.dpi_messagebox = None
-        # Keep track of downloaded installer executable for updates
+
+        # Keep track of the downloaded installer executable for updates
         self.installer_path = None
 
     # ---- PluginMainContainer API
@@ -232,6 +233,8 @@ class ApplicationContainer(PluginMainContainer):
         if self.dependencies_thread is not None:
             self.dependencies_thread.quit()
             self.dependencies_thread.wait()
+
+        # Run installer after Spyder is closed
         cmd = ('start' if os.name == 'nt' else 'open')
         if self.installer_path:
             subprocess.Popen(' '.join([cmd, self.installer_path]), shell=True)

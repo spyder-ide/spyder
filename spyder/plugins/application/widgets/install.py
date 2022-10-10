@@ -141,7 +141,7 @@ class UpdateInstallerDialog(QDialog):
     Parameters
     ----------
     installer_path: str
-        Path to installer executable.
+        Path to the installer executable.
     """
 
     def __init__(self, parent):
@@ -150,6 +150,7 @@ class UpdateInstallerDialog(QDialog):
         self.download_thread = None
         self.download_worker = None
         self.installer_path = None
+
         super().__init__(parent)
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
@@ -181,7 +182,7 @@ class UpdateInstallerDialog(QDialog):
         if on_installation_widget:
             self.close_installer()
         else:
-            super(UpdateInstallerDialog, self).reject()
+            super().reject()
 
     def setup(self):
         """Setup visibility of widgets."""
@@ -192,7 +193,7 @@ class UpdateInstallerDialog(QDialog):
         self.latest_release_version = latest_release_version
 
     def start_installation(self, latest_release_version):
-        """Start the update download and set downloading status."""
+        """Start downloading the update and set downloading status."""
         self.latest_release_version = latest_release_version
         self.cancelled = False
         self._change_update_installation_status(
@@ -249,11 +250,12 @@ class UpdateInstallerDialog(QDialog):
             return
         self._change_update_installation_status(status=DOWNLOAD_FINISHED)
         self.installer_path = installer_path
-        msg_box = QMessageBox(icon=QMessageBox.Question,
-                              text=_("Would you like to proceed with the "
-                                     "installation?<br><br>"),
-                              parent=self._parent)
-        msg_box.setWindowTitle("Spyder")
+        msg_box = QMessageBox(
+            icon=QMessageBox.Question,
+            text=_("Would you like to proceed with the installation?<br><br>"),
+            parent=self._parent
+        )
+        msg_box.setWindowTitle(_("Spyder update"))
         msg_box.setAttribute(Qt.WA_ShowWithoutActivating)
         if is_pynsist():
             # Only add yes button for Windows installer
@@ -265,12 +267,15 @@ class UpdateInstallerDialog(QDialog):
             _("After closing"), QMessageBox.YesRole)
         msg_box.addButton(QMessageBox.No)
         msg_box.exec_()
+
         if msg_box.clickedButton() == yes_button:
             self._change_update_installation_status(status=INSTALLING)
             cmd = ('start' if os.name == 'nt' else 'open')
             if self.installer_path:
                 subprocess.Popen(
-                    ' '.join([cmd, self.installer_path]), shell=True)
+                    ' '.join([cmd, self.installer_path]),
+                    shell=True
+                )
             self._change_update_installation_status(status=PENDING)
         elif msg_box.clickedButton() == after_closing_button:
             self.sig_install_on_close_requested.emit(self.installer_path)
@@ -285,8 +290,10 @@ class UpdateInstallerDialog(QDialog):
 
     def close_installer(self):
         """Close the installation dialog."""
-        if (self.status == FINISHED
-                or self.status == CANCELLED):
+        if (
+            self.status == FINISHED
+            or self.status == CANCELLED
+        ):
             self.finish_installation()
         else:
             self.hide()
