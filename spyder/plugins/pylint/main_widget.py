@@ -28,7 +28,6 @@ from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout)
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
@@ -882,10 +881,14 @@ class PylintWidget(PluginMainWidget):
         Check if custom interpreter is active and if so, return path from
         this interpreter
         """
-        custom_interpreter = osp.normpath(CONF.get('main_interpreter',
-                                                   'custom_interpreter'))
-        if CONF.get('main_interpreter', 'default') or \
-                get_python_executable() == custom_interpreter:
+        custom_interpreter = osp.normpath(
+            self.get_conf('executable', section='main_interpreter')
+        )
+
+        if (
+            self.get_conf('default', section='main_interpreter')
+            or get_python_executable() == custom_interpreter
+        ):
             path_of_custom_interpreter = None
         else:
             # Check if custom interpreter is still present
