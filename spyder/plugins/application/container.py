@@ -12,6 +12,7 @@ Holds references for base actions in the Application of Spyder.
 
 # Standard library imports
 import os
+import subprocess
 import sys
 import glob
 
@@ -94,6 +95,9 @@ class ApplicationContainer(PluginMainContainer):
         self.current_dpi = None
         self.dpi_messagebox = None
 
+        # Keep track of the downloaded installer executable for updates
+        self.installer_path = None
+
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
@@ -102,6 +106,8 @@ class ApplicationContainer(PluginMainContainer):
         self.application_update_status.sig_check_for_updates_requested.connect(
             self.check_updates
         )
+        self.application_update_status.sig_install_on_close_requested.connect(
+            self.set_installer_path)
         self.application_update_status.set_no_status()
 
         # Compute dependencies in a thread to not block the interface.
@@ -227,6 +233,11 @@ class ApplicationContainer(PluginMainContainer):
         if self.dependencies_thread is not None:
             self.dependencies_thread.quit()
             self.dependencies_thread.wait()
+
+        # Run installer after Spyder is closed
+        cmd = ('start' if os.name == 'nt' else 'open')
+        if self.installer_path:
+            subprocess.Popen(' '.join([cmd, self.installer_path]), shell=True)
 
     @Slot()
     def show_about(self):
@@ -372,6 +383,11 @@ class ApplicationContainer(PluginMainContainer):
         self.updates_timer.setSingleShot(True)
         self.updates_timer.timeout.connect(self.thread_updates.start)
         self.updates_timer.start()
+
+    @Slot(str)
+    def set_installer_path(self, installer_path):
+        """Set installer executable path to be run when closing."""
+        self.installer_path = installer_path
 
     # ---- Dependencies
     # -------------------------------------------------------------------------
