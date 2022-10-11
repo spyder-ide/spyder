@@ -141,7 +141,7 @@ for spec in args.extra_specs:
     if k == "spyder":
         SPYVER = v[-1]
 
-OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
+OUTPUT_FILE = DIST / f"EXPERIMENTAL-{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP}-{SPYVER}"
 
 
