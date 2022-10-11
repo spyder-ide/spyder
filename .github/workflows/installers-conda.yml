@@ -67,7 +67,7 @@ jobs:
     needs: build-noarch-conda-pkgs
     strategy:
       matrix:
-        target-platform: ["osx-64", "osx-arm64", "linux-64", "win-64"]
+        target-platform: ["osx-64", "osx-arm64", "linux-64"]
         python-version: ["3.9"]
         include:
           - os: macos-11
@@ -76,8 +76,6 @@ jobs:
             target-platform: "osx-arm64"
           - os: ubuntu-latest
             target-platform: "linux-64"
-          - os: windows-latest
-            target-platform: "win-64"
 
     defaults:
       run:
