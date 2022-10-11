@@ -175,7 +175,7 @@ class WorkerDownloadInstaller(QObject):
     current_value: int
         Size of the data downloaded until now.
     total: int
-        Total size file expected to be downloaded.
+        Total size of the file expected to be downloaded.
     """
 
     def __init__(self, parent, latest_release_version):
