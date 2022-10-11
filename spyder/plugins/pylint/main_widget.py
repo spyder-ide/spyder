@@ -878,8 +878,8 @@ class PylintWidget(PluginMainWidget):
 
     def test_for_custom_interpreter(self):
         """
-        Check if custom interpreter is active and if so, return path from
-        this interpreter
+        Check if custom interpreter is active and if so, return path for the
+        environment that contains it.
         """
         custom_interpreter = osp.normpath(
             self.get_conf('executable', section='main_interpreter')
@@ -893,7 +893,16 @@ class PylintWidget(PluginMainWidget):
         else:
             # Check if custom interpreter is still present
             if osp.isfile(custom_interpreter):
-                path_of_custom_interpreter = osp.dirname(custom_interpreter)
+                # Pylint-venv requires the root path to a virtualenv, but what
+                # we save in Preferences is the path to its Python interpreter.
+                # So, we need to make the following adjustments here to get the
+                # right path to pass to it.
+                if os.name == 'nt':
+                    path_of_custom_interpreter = osp.dirname(
+                        custom_interpreter)
+                else:
+                    path_of_custom_interpreter = osp.dirname(osp.dirname(
+                        custom_interpreter))
             else:
                 path_of_custom_interpreter = None
 
