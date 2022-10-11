@@ -17,15 +17,20 @@ from qtpy.QtCore import QPoint, Signal, Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
+from spyder.api.translations import get_translation
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _, is_pynsist, running_in_mac_app
+from spyder.config.base import is_pynsist, running_in_mac_app
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
-    FINISHED, PENDING, CHECKING, CANCELLED)
+    PENDING, CHECKING)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 
+# Setup logger
 logger = logging.getLogger(__name__)
+
+# Localization
+_ = get_translation('spyder')
 
 
 class ApplicationUpdateStatus(StatusBarWidget):
@@ -34,6 +39,19 @@ class ApplicationUpdateStatus(StatusBarWidget):
     ID = 'application_update_status'
 
     sig_check_for_updates_requested = Signal()
+    """
+    Signal to request checking for updates.
+    """
+
+    sig_install_on_close_requested = Signal(str)
+    """
+    Signal to request running the downloaded installer on close.
+
+    Parameters
+    ----------
+    installer_path: str
+        Path to instal
+    """
 
     def __init__(self, parent):
 
@@ -49,6 +67,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
         self.installer.sig_installation_status.connect(
             self.set_value)
+        self.installer.sig_install_on_close_requested.connect(
+            self.sig_install_on_close_requested)
 
     def set_value(self, value):
         """Return update installation state."""
@@ -67,6 +87,9 @@ class ApplicationUpdateStatus(StatusBarWidget):
             self.spinner.stop()
         else:
             self.tooltip = self.BASE_TOOLTIP
+            if self.spinner:
+                self.spinner.hide()
+                self.spinner.stop()
         self.setVisible(True)
         self.update_tooltip()
         value = f"Spyder: {value}"
@@ -81,7 +104,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
         return ima.icon('spyder_about')
 
     def start_installation(self, latest_release):
-        self.installer.start_installation_update(latest_release)
+        self.installer.start_installation(latest_release)
 
     def set_status_pending(self, latest_release):
         self.set_value(PENDING)
@@ -109,7 +132,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
             self.installer.show()
         elif (value == PENDING and
               (is_pynsist() or running_in_mac_app())):
-            self.installer.continue_install()
+            self.installer.continue_installation()
         elif value == NO_STATUS:
             self.menu.clear()
             check_for_updates_action = create_action(
