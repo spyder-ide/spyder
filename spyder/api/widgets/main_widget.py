@@ -885,6 +885,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         if not self.dockwidget:
             return
 
+        # Dock plugin if it's undocked before hiding it.
+        if self.windowwidget is not None:
+            self.close_window(save_undocked=True)
+
         if checked:
             self.dockwidget.show()
             self.dockwidget.raise_()

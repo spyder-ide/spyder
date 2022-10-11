@@ -4349,6 +4349,118 @@ def test_update_outline(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.preload_namespace_project
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
+@pytest.mark.known_leak
+def test_no_update_outline(main_window, qtbot, tmpdir):
+    """
+    Test the Outline is not updated in different scenarios.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    outline_explorer = main_window.outlineexplorer
+    treewidget = outline_explorer.get_widget().treewidget
+    proxy_editors = treewidget.editor_ids.keys()
+    editor_stack = main_window.editor.get_current_editorstack()
+
+    # Hide the outline explorer just in case
+    outline_explorer.toggle_view_action.setChecked(False)
+
+    # Helper functions
+    def trees_update_state():
+        return [pe.is_tree_updated for pe in proxy_editors]
+
+    def write_code(code):
+        for i, pe in enumerate(proxy_editors):
+            code_editor = pe._editor
+            with qtbot.waitSignal(pe.sig_outline_explorer_data_changed,
+                                  timeout=5000):
+                editor_stack.tabs.setCurrentIndex(i)
+                qtbot.mouseClick(editor_stack.tabs.currentWidget(),
+                                 Qt.LeftButton)
+                code_editor.set_text(code.format(i=i))
+                # This is to make changes visible when running the test locally
+                qtbot.wait(300)
+
+    def check_symbols_number(number):
+        assert all(
+            [len(treewidget.editor_tree_cache[pe.get_id()]) == number
+             for pe in proxy_editors]
+        )
+
+    # Wait until symbol services are up
+    qtbot.waitUntil(lambda: not treewidget.starting.get('python', True),
+                    timeout=10000)
+
+    # Trees shouldn't be updated at startup
+    assert not any(trees_update_state())
+
+    # Write some code to the current files
+    write_code("def foo{i}(x):\n    return x")
+
+    # Trees shouldn't be updated after new symbols arrive
+    assert not any(trees_update_state())
+
+    # Make outline visible
+    outline_explorer.toggle_view_action.setChecked(True)
+
+    # Trees should be filled now
+    qtbot.waitUntil(lambda: all(trees_update_state()))
+    check_symbols_number(1)
+
+    # Undock Outline
+    outline_explorer.create_window()
+
+    # Change code in files.
+    # NOTE: By necessity users need to make the main window active to perform
+    # these actions. So we need to emulate that (else the test below throws an
+    # error).
+    main_window.activateWindow()
+    write_code("def bar{i}(y):\n    return y\n\ndef baz{i}(z):\n    return z")
+
+    # Assert trees are updated. This is a regression for issue
+    # spyder-ide/spyder#16634
+    check_symbols_number(2)
+
+    # Minimize undocked window and change code
+    outline_explorer.get_widget().windowwidget.showMinimized()
+    write_code("def func{i}(x):\n    return x")
+
+    # Trees shouldn't be updated in this case
+    assert not any(trees_update_state())
+
+    # Restore undocked window to normal state
+    outline_explorer.get_widget().windowwidget.showNormal()
+
+    # The trees should be updated now with the new code
+    qtbot.waitUntil(lambda: all(trees_update_state()))
+    check_symbols_number(1)
+
+    # Hide outline from view
+    outline_explorer.toggle_view_action.setChecked(False)
+    assert outline_explorer.get_widget().windowwidget is None
+
+    # Change code again and save it to emulate what users need to do to close
+    # the current project during the next step.
+    write_code("def blah{i}(x):\n    return x")
+    editor_stack.save_all()
+    assert not any(trees_update_state())
+
+    # Show Outline and close project immediately. This checks that no errors
+    # are generated after doing that.
+    outline_explorer.toggle_view_action.setChecked(True)
+    main_window.projects.close_project()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_prevent_closing(main_window, qtbot):
     """
     Check we can bypass prevent closing.
