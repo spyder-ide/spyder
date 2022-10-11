@@ -1,4 +1,4 @@
-From 4fc591ffa69a8f3f2b4030e4395818962be71f79 Mon Sep 17 00:00:00 2001
+From 40db10418cf9b46a70b48026d202d4474d62b99a Mon Sep 17 00:00:00 2001
 From: Ryan Clary <9618975+mrclary@users.noreply.github.com>
 Date: Mon, 12 Sep 2022 23:56:56 -0700
 Subject: [PATCH 1/2] Revise usage of running_in_mac_app
@@ -187,7 +187,7 @@ index 91c411bdf..c274f5872 100644
          self.error_output = ''
          self.running = True
 diff --git a/spyder/plugins/pylint/main_widget.py b/spyder/plugins/pylint/main_widget.py
-index aa35d27d2..7fe5793db 100644
+index ffe47d6a8..811ed1458 100644
 --- a/spyder/plugins/pylint/main_widget.py
 +++ b/spyder/plugins/pylint/main_widget.py
 @@ -31,7 +31,7 @@
@@ -199,7 +199,7 @@ index aa35d27d2..7fe5793db 100644
  from spyder.config.utils import is_anaconda
  from spyder.plugins.pylint.utils import get_pylintrc_path
  from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-@@ -377,11 +377,6 @@ def _start(self):
+@@ -378,11 +378,6 @@ def _start(self):
              if not is_pynsist() and not is_anaconda():
                  processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
  
@@ -212,7 +212,7 @@ index aa35d27d2..7fe5793db 100644
          process.start(sys.executable, command_args)
          running = process.waitForStarted()
 diff --git a/spyder/utils/programs.py b/spyder/utils/programs.py
-index ccd22f9e6..56123ca9c 100644
+index 3c6c03e35..b640f4a6f 100644
 --- a/spyder/utils/programs.py
 +++ b/spyder/utils/programs.py
 @@ -30,8 +30,7 @@
@@ -222,10 +222,10 @@ index ccd22f9e6..56123ca9c 100644
 -from spyder.config.base import (running_under_pytest, get_home_dir,
 -                                running_in_mac_app)
 +from spyder.config.base import running_under_pytest, get_home_dir
- from spyder.py3compat import is_text_string, to_text_string
  from spyder.utils import encoding
  from spyder.utils.misc import get_python_executable
-@@ -777,8 +776,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
+ 
+@@ -774,8 +773,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
                                          delete=False)
          if wdir:
              f.write('cd "{}"\n'.format(wdir))
@@ -251,7 +251,7 @@ index 49f894e7c..018e02130 100644
 2.37.3
 
 
-From 2f66ddf6fed81c3da069761eb046c2abd52e694c Mon Sep 17 00:00:00 2001
+From 01bd81747e570df7d9be7a50f0589809e58cf5d4 Mon Sep 17 00:00:00 2001
 From: Ryan Clary <9618975+mrclary@users.noreply.github.com>
 Date: Mon, 12 Sep 2022 23:58:36 -0700
 Subject: [PATCH 2/2] Update standalone conda executable.
