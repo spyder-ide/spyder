@@ -186,6 +186,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         kernel_client = kernel_handler.kernel_client
         kernel_client.stopped_channels.connect(self.notify_deleted)
         self.kernel_client = kernel_client
+        # Reset now and set _starting to false so no messages are dropped
+        self.reset(clear=True)
+        self._starting = False
 
         self.kernel_manager = kernel_handler.kernel_manager
         self.kernel_handler = kernel_handler

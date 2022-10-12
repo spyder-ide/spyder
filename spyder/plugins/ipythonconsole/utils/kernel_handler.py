@@ -79,6 +79,7 @@ class KernelState:
     IpykernelReady = 'ipykernel_ready'
     Connecting = 'connecting'
     Error = 'error'
+    Closed = 'closed'
 
 if os.name == "nt":
     ssh_tunnel = zmqtunnel.paramiko_tunnel
@@ -93,6 +94,7 @@ class StdThread(QThread):
     def __init__(self, parent, std_buffer):
         super().__init__(parent)
         self._std_buffer = std_buffer
+        self._closing = False
 
     def run(self):
         txt = True
@@ -276,10 +278,12 @@ class KernelHandler(QObject):
 
     def disconnect_std_pipes(self):
         """Disconnect old std pipes."""
-        if self._stdout_thread:
+        if self._stdout_thread and not self._stdout_thread._closing:
             self._stdout_thread.sig_out.disconnect(self.sig_stdout)
-        if self._stderr_thread:
+            self._stdout_thread._closing = True
+        if self._stderr_thread and not self._stderr_thread._closing:
             self._stderr_thread.sig_out.disconnect(self.sig_stderr)
+            self._stderr_thread._closing = True
 
     def close_std_threads(self):
         """Close std threads."""
@@ -442,7 +446,7 @@ class KernelHandler(QObject):
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
-        self.kernel_comm.close()
+        self.close_comm()
 
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
@@ -555,3 +559,14 @@ class KernelHandler(QObject):
             stderr=PIPE,
             stdout=PIPE,
         )
+
+    def close_comm(self):
+        """Close comm"""
+        self.kernel_state = KernelState.Closed
+        self.kernel_comm.close()
+
+    def reopen_comm(self):
+        """Reopen comm (following a crash)"""
+        self.kernel_comm.remove()
+        self.kernel_state = KernelState.Connecting
+        self.kernel_comm.open_comm(self.kernel_client)
