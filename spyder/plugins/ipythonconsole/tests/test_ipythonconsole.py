@@ -49,6 +49,7 @@ from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
+from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelState
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.programs import get_temp_dir
@@ -2275,8 +2276,9 @@ def test_old_kernel_version(ipyconsole, qtbot):
 
     # Wait until it is launched
     qtbot.waitUntil(
-        lambda: kernel_handler.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
-    kernel_handler.spyder_kernel_ready = False
+        lambda: kernel_handler.kernel_state == KernelState.SpyderKernelReady,
+        timeout=SHELL_TIMEOUT)
+    # Set wrong version
     kernel_handler.check_spyder_kernel_info(('1.0.0', ''))
 
     # Create new client

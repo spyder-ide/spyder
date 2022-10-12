@@ -31,6 +31,7 @@ from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
+from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelState
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
@@ -185,24 +186,23 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.sig_shellwidget_created.emit(self)
 
         # Connect signals
-        kernel_handler.sig_spyder_kernel_status.connect(
-            self.handle_kernel_status)
+        kernel_handler.sig_kernel_state_changed.connect(
+            self.handle_kernel_state_changed)
 
-        if kernel_handler.spyder_kernel_ready:
-            # Kernel is already ready
-            self.setup_spyder_kernel()
-        elif kernel_handler.kernel_info_message:
-            # A wrong version is connected
-            self.append_html_message(kernel_handler.kernel_info_message)
+        # Call in case the signal was already sent
+        self.handle_kernel_state_changed()
 
-    def handle_kernel_status(self, status):
+    def handle_kernel_state_changed(self):
         """The kernel status changed"""
-        if status == 'ready':
+        if self.kernel_handler.status == KernelState.SpyderKernelReady:
             self.setup_spyder_kernel()
             return
 
-        # The status is an error
-        self.append_html_message(status, before_prompt=True)
+        if self.state == KernelState.Error:
+            # A wrong version is connected
+            self.append_html_message(
+                self.kernel_handler.kernel_error_message, before_prompt=True)
+            return
 
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""

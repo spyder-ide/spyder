@@ -38,6 +38,7 @@ from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import add_actions, DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
+from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelState
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -172,32 +173,28 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.restart_thread.wait()
 
     # ----- Private methods ---------------------------------------------------
-    def _before_prompt_is_ready(self):
+    def _before_kernel_is_ready(self):
         """Configuration before kernel is connected."""
         self._show_loading_page()
-        self.shellwidget.sig_prompt_ready.connect(
-            self._when_prompt_is_ready)
-        # If remote execution, the loading page should be hidden as well
-        self.shellwidget.sig_remote_execute.connect(
-            self._when_prompt_is_ready)
+        self.kernel_handler.sig_kernel_state_changed.connect(
+            self._when_kernel_is_ready)
 
-    def _when_prompt_is_ready(self):
+    def _when_kernel_is_ready(self):
         """Configuration after the prompt is shown."""
-        if self.error_text:
-            # an error occured during startup, but after the prompt was sent
+        if self.kernel_handler.kernel_state not in [
+                KernelState.SpyderKernelReady, KernelState.IpykernelReady]:
+            # The kernel is not ready
             return
         self.start_successful = True
+
+        self.kernel_handler.sig_kernel_state_changed.disconnect(
+            self._when_kernel_is_ready)
 
         # To hide the loading page
         self._hide_loading_page()
 
         # Set the initial current working directory in the kernel
         self._set_initial_cwd_in_kernel()
-
-        self.shellwidget.sig_prompt_ready.disconnect(
-            self._when_prompt_is_ready)
-        self.shellwidget.sig_remote_execute.disconnect(
-            self._when_prompt_is_ready)
 
         # It's necessary to do this at this point to avoid giving
         # focus to _control at startup.
@@ -339,13 +336,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def connect_kernel(self, kernel_handler):
         """Connect kernel to client using our handler."""
-        self._before_prompt_is_ready()
         self.kernel_handler = kernel_handler
 
         # Connect standard streams.
         kernel_handler.sig_stderr.connect(self.print_stderr)
         kernel_handler.sig_stdout.connect(self.print_stdout)
         kernel_handler.sig_fault.connect(self.print_fault)
+        self._before_kernel_is_ready()
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler)

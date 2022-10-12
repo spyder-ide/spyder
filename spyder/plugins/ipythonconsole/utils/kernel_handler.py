@@ -74,6 +74,11 @@ ERROR_SPYDER_KERNEL_VERSION_OLD = _(
     "</pre>"
 )
 
+class KernelState:
+    SpyderKernelReady = 'spyder_kernel_ready'
+    IpykernelReady = 'ipykernel_ready'
+    Connecting = 'connecting'
+    Error = 'error'
 
 if os.name == "nt":
     ssh_tunnel = zmqtunnel.paramiko_tunnel
@@ -115,9 +120,9 @@ class KernelHandler(QObject):
     """
     A fault message was recieved.
     """
-    sig_spyder_kernel_status = Signal(str)
+    sig_kernel_state_changed = Signal()
     """
-    The spyder kernel status has changed.
+    The spyder kernel state has changed.
     """
 
     def __init__(
@@ -157,8 +162,8 @@ class KernelHandler(QObject):
         self.kernel_client.start_channels()
 
         # Check kernel version
-        self.kernel_info_message = None
-        self.spyder_kernel_ready = False
+        self.kernel_error_message = None
+        self.kernel_state = KernelState.Connecting
         self._spyder_kernel_info_uuid = None
         self.check_kernel_info()
 
@@ -199,7 +204,7 @@ class KernelHandler(QObject):
         if not spyder_kernel_info:
             if self.known_spyder_kernel:
                 # spyder-kernels version < 3.0
-                self.kernel_info_message = (
+                self.kernel_error_message = (
                     ERROR_SPYDER_KERNEL_VERSION_OLD.format(
                         SPYDER_KERNELS_MIN_VERSION,
                         SPYDER_KERNELS_MAX_VERSION,
@@ -207,15 +212,20 @@ class KernelHandler(QObject):
                         SPYDER_KERNELS_PIP
                     )
                 )
-                self.sig_spyder_kernel_status.emit(self.kernel_info_message)
+                self.kernel_state = KernelState.Error
                 self.known_spyder_kernel = False
+                self.sig_kernel_state_changed.emit()
+                return
+
+            self.kernel_state = KernelState.IpykernelReady
+            self.sig_kernel_state_changed.emit()
             return
 
         version, pyexec = spyder_kernel_info
         if not check_version_range(version, SPYDER_KERNELS_VERSION):
             # Development versions are acceptable
             if "dev0" not in version:
-                self.kernel_info_message = (
+                self.kernel_error_message = (
                     ERROR_SPYDER_KERNEL_VERSION.format(
                         pyexec,
                         version,
@@ -225,8 +235,9 @@ class KernelHandler(QObject):
                         SPYDER_KERNELS_PIP
                     )
                 )
-                self.sig_spyder_kernel_status.emit(self.kernel_info_message)
                 self.known_spyder_kernel = False
+                self.kernel_state = KernelState.Error
+                self.sig_kernel_state_changed.emit()
                 return
 
         self.known_spyder_kernel = True
@@ -235,8 +246,8 @@ class KernelHandler(QObject):
 
     def handle_comm_ready(self):
         """The kernel comm is ready"""
-        self.spyder_kernel_ready = True
-        self.sig_spyder_kernel_status.emit('ready')
+        self.kernel_state = KernelState.SpyderKernelReady
+        self.sig_kernel_state_changed.emit()
 
     def connect_std_pipes(self):
         """Connect to std pipes."""
