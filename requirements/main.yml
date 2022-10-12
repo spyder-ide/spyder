@@ -11,7 +11,7 @@ dependencies:
   - cookiecutter >=1.6.0
   - diff-match-patch >=20181111
   - intervaltree >=3.0.2
-  - ipython >=7.31.1,<8.0.0
+  - ipython >=7.31.1
   - jedi >=0.17.2,<0.19.0
   - jellyfish >=0.7
   - jsonschema >=3.2.0
@@ -39,7 +39,7 @@ dependencies:
   - rtree >=0.9.7
   - setuptools >=49.6.0
   - sphinx >=0.6.6
-  - spyder-kernels >=2.3.3,<2.4.0
+  - spyder-kernels @ git+https://github.com/eendebakpt/spyder-kernels.git@ipython8_2x#egg=spyder-kernels
   - textdistance >=4.2.0
   - three-merge >=0.1.1
   - watchdog >=0.10.3
