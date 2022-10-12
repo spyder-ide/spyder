@@ -270,10 +270,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             display_error=display_error
         )
 
-    def is_comm_ready(self):
-        """Check if comm is ready"""
-        return self.kernel_handler.kernel_comm.is_open()
-
     @property
     def is_external_kernel(self):
         """Check if this is an external kernel."""
@@ -335,7 +331,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
         self._execute_queue = []
-        if self.is_spyder_kernel and self.is_comm_ready():
+        if self.spyder_kernel_ready:
             self._reading = False
             self.call_kernel(interrupt=True).raise_interrupt_signal()
         else:
@@ -389,7 +385,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
 
-        if self.is_comm_ready():
+        if self.spyder_kernel_ready:
             # Otherwise cwd will be sent later
             self.call_kernel(
                 interrupt=self.is_debugging()
@@ -417,7 +413,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         Update working directory in Spyder after getting its value from the
         kernel.
         """
-        if not self.is_comm_ready():
+        if not self.spyder_kernel_ready:
             # Frontend sends first
             return
         self.call_kernel(callback=self.on_getting_cwd).get_cwd()
@@ -446,7 +442,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._syntax_style_changed()
         if reset:
             self.reset(clear=True)
-        if not self.is_comm_ready():
+        if not self.spyder_kernel_ready:
             # Will be sent later
             return
         if not dark_color:
@@ -700,7 +696,7 @@ the sympy module (e.g. plot)
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
 
-                if self.is_spyder_kernel:
+                if self.spyder_kernel_ready:
                     self.call_kernel().close_all_mpl_figures()
                     self.send_spyder_kernel_configuration()
         except AttributeError:

@@ -281,7 +281,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def on_unconfig_kernel(self):
         """Ask shellwidget to stop sending stack."""
-        if not self.shellwidget.is_comm_ready():
+        if not self.shellwidget.spyder_kernel_ready:
             return
         self.kernel_handler.kernel_comm.register_call_handler(
             "show_traceback", None)
@@ -290,7 +290,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def set_pdb_configuration(self, configuration):
         """Set configuration into a debugging session."""
-        if not self.shellwidget.is_comm_ready():
+        if not self.shellwidget.spyder_kernel_ready:
             # will be sent by on_config_kernel
             return
         self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
