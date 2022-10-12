@@ -313,6 +313,8 @@ def test_save_as_with_outline(completions_editor, mocker, qtbot, tmpdir):
     outline_explorer = OutlineExplorerWidget(None, None, None)
     treewidget = outline_explorer.treewidget
     outline_explorer.show()
+    treewidget.is_visible = True
+
     editorstack.set_outlineexplorer(outline_explorer)
     qtbot.addWidget(editorstack.outlineexplorer)
     editorstack.outlineexplorer.register_editor(proxy)

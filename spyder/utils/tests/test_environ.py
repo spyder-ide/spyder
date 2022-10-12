@@ -8,10 +8,6 @@
 Tests for environ.py
 """
 
-# Standard library imports
-import os
-import subprocess
-
 # Test library imports
 import pytest
 
@@ -19,24 +15,27 @@ import pytest
 from qtpy.QtCore import QTimer
 
 # Local imports
-from spyder.py3compat import PY3
+from spyder.utils.environ import get_user_environment_variables, UserEnvDialog
 from spyder.utils.test import close_message_box
-from spyder.utils.environ import clean_env
 
 
 @pytest.fixture
 def environ_dialog(qtbot):
-    "Setup the Environment variables Dialog taking into account the os."
+    "Setup the Environment variables Dialog."
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
-    if os.name == 'nt':
-        from spyder.utils.environ import WinUserEnvDialog
-        dialog = WinUserEnvDialog()
-    else:
-        from spyder.utils.environ import EnvDialog
-        dialog = EnvDialog()
+    dialog = UserEnvDialog()
     qtbot.addWidget(dialog)
 
     return dialog
+
+
+def test_get_user_environment_variables():
+    """Test get_user_environment_variables function"""
+
+    # All platforms should have a path environment variable, but
+    # Windows may have mixed case.
+    keys = {k.lower() for k in get_user_environment_variables()}
+    assert "path" in keys
 
 
 def test_environ(environ_dialog, qtbot):
@@ -44,20 +43,10 @@ def test_environ(environ_dialog, qtbot):
     environ_dialog.show()
     assert environ_dialog
 
-
-@pytest.mark.skipif(
-    PY3 or os.name == 'nt',
-    reason=("This tests only applies to Python 2."),
-)
-def test_clean_env():
-    env = {
-        'foo': '/foo/bar/測試',
-        'bar': '/spam',
-        'PYTHONPATH': u'\u6e2c\u8a66',
-    }
-    new_env = clean_env(env)
-    assert new_env['foo'] == '/foo/bar/\xe6\xb8\xac\xe8\xa9\xa6'
-    assert new_env['PYTHONPATH'] == '\xe6\xb8\xac\xe8\xa9\xa6'
+    # All platforms should have a path environment variable, but
+    # Windows may have mixed case.
+    keys = {k.lower() for k in environ_dialog.get_value()}
+    assert "path" in keys
 
 
 if __name__ == "__main__":

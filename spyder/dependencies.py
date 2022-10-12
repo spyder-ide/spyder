@@ -52,6 +52,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=2.5.0;<3.0'
+PYLINT_VENV_REQVER = '>=2.1.1'
 PYLSP_REQVER = '>=1.5.0;<1.6.0'
 PYLSP_BLACK_REQVER = '>=1.2.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
@@ -178,6 +179,11 @@ DESCRIPTIONS = [
      'package_name': "pylint",
      'features': _("Static code analysis"),
      'required_version': PYLINT_REQVER},
+    {'modname': "pylint_venv",
+     'package_name': "pylint-venv",
+     'features': _("Use the same Pylint installation with different virtual"
+                   " environments"),
+     'required_version': PYLINT_VENV_REQVER},
     {'modname': 'pylsp',
      'package_name': 'python-lsp-server',
      'features': _("Code completion and linting for the Editor"),

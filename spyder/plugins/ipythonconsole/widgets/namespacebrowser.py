@@ -9,16 +9,18 @@ Widget that handle communications between the IPython Console and
 the Variable Explorer
 """
 
+# Standard library imports
 import logging
-
 from pickle import PicklingError, UnpicklingError
 
+# Third-party imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-
-from spyder.config.base import _
 from spyder_kernels.comms.commbase import CommError
 
+# Local imports
+from spyder.config.base import _
 
+# For logging
 logger = logging.getLogger(__name__)
 
 # Max time before giving up when making a blocking call to the kernel

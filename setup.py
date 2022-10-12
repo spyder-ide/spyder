@@ -224,6 +224,7 @@ install_requires = [
     'psutil>=5.3',
     'pygments>=2.0',
     'pylint>=2.5.0,<3.0',
+    'pylint-venv>=2.1.1',
     'python-lsp-black>=1.2.0',
     'pyls-spyder>=0.4.0',
     'pyqt5<5.16',
