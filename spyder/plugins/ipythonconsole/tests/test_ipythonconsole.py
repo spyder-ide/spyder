@@ -230,7 +230,7 @@ def ipyconsole(qtbot, request, tmpdir):
     qtbot.waitUntil(lambda: console.get_current_shellwidget() is not None)
     shell = console.get_current_shellwidget()
     try:
-        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+        qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                         timeout=SHELL_TIMEOUT)
     except Exception:
         # Print content of shellwidget and close window
@@ -436,7 +436,7 @@ def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
@@ -824,7 +824,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
     ipyconsole.create_new_client()
 
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
@@ -1128,7 +1128,7 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     ipyconsole.create_new_client()
 
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Do an assignment to verify that it's not there after restarting
@@ -1146,7 +1146,7 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     shell._prompt_html = None
     ipyconsole.restart_kernel()
     qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+        lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
 
     assert 'Restarting kernel...' in shell._control.toPlainText()
     assert 'HELLO' not in shell._control.toPlainText()
@@ -1605,7 +1605,7 @@ def test_wrong_std_module(ipyconsole, qtbot, tmpdir, spyder_pythonpath):
 
     # A prompt should be created if the kernel didn't crash.
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Assert the extra path from spyder_pythonpath was added
@@ -1635,13 +1635,13 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
     This is a regresion for spyder-ide/spyder#12972.
     """
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
     ipyconsole.restart_kernel()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Wait for the restarter to start
@@ -1669,7 +1669,7 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
 def test_stderr_poll(ipyconsole, qtbot):
     """Test if the content of stderr is printed to the console."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
         shell.execute(
@@ -1695,7 +1695,7 @@ def test_stderr_poll(ipyconsole, qtbot):
 def test_stdout_poll(ipyconsole, qtbot):
     """Test if the content of stdout is printed to the console."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
         shell.execute('import sys; print("test_test", file=sys.__stdout__)')
@@ -1709,7 +1709,7 @@ def test_stdout_poll(ipyconsole, qtbot):
 def test_startup_code_pdb(ipyconsole, qtbot):
     """Test that startup code for pdb works."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
@@ -1747,7 +1747,7 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
         return
 
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
 
@@ -1767,7 +1767,7 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
 def test_recursive_pdb(ipyconsole, qtbot):
     """Check commands and code are separted."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
 
@@ -1816,7 +1816,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
 def test_stop_pdb(ipyconsole, qtbot):
     """Test if we can stop pdb"""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
     stop_button = ipyconsole.get_widget().stop_button
@@ -1845,7 +1845,7 @@ def test_code_cache(ipyconsole, qtbot):
     and that the cache is emptied on interrupt.
     """
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
@@ -1902,7 +1902,7 @@ def test_code_cache(ipyconsole, qtbot):
 def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
     """Check commands and code are separted."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
 
@@ -1931,7 +1931,7 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
 def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     """Check that the breakpoint builtin is working."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
 
@@ -1958,7 +1958,7 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
 def test_pdb_out(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
@@ -2007,7 +2007,7 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     This is a regression test for issue spyder-ide/spyder#17011
     """
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     qtbot.wait(1000)
 
@@ -2029,7 +2029,7 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     # Wait until new client is created and previous kernel is shutdown
     qtbot.wait(5000)
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
 
     # Detect if previous kernel was killed
@@ -2044,7 +2044,7 @@ def test_shutdown_kernel(ipyconsole, qtbot):
 def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     """Check that the debugger handles the namespace of a comprehension."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     control = ipyconsole.get_widget().get_focus_widget()
 
@@ -2122,7 +2122,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
     def get_cwd_of_new_client():
         ipyconsole.create_new_client()
         shell = ipyconsole.get_current_shellwidget()
-        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+        qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                         timeout=SHELL_TIMEOUT)
 
         with qtbot.waitSignal(shell.executed):
@@ -2215,7 +2215,7 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
 
     # Check that the script was imnported
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready,
                     timeout=SHELL_TIMEOUT)
     assert shell.get_value('pi')
 
@@ -2236,7 +2236,7 @@ def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+        lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("def f():\n    li = [1, 2]\n    return li")
@@ -2270,7 +2270,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+        lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
 
     kernel_handler = w._cached_kernel_properties[-1]
 
@@ -2301,7 +2301,7 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+        lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
 
     # Create two temp files: 'a.py' and 'b.py'
     dir_a = tmp_path / 'a'

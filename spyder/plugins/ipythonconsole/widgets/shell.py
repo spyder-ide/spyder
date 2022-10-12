@@ -172,6 +172,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return False
         return self.kernel_handler.known_spyder_kernel
 
+    @property
+    def spyder_kernel_ready(self):
+        """Check if spyder kernel is ready. Used for tests."""
+        if self.kernel_handler is None:
+            return False
+        return self.kernel_handler.status == KernelState.SpyderKernelReady
+
     def connect_kernel(self, kernel_handler):
         """Connect to the kernel using our handler."""
         # Kernel client
