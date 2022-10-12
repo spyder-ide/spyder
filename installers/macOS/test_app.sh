@@ -1,6 +1,6 @@
 #!/bin/bash
 
-timeout=60
+timeout=90
 interval=1
 delay=10
 
