@@ -167,6 +167,12 @@ class KernelHandler(QObject):
         self._spyder_kernel_info_uuid = None
         self.check_kernel_info()
 
+    def connect(self):
+        """Connect to shellwidget."""
+        if self.kernel_state != KernelState.Connecting:
+            # Emit signal in case the connection is already made
+            self.sig_kernel_state_changed.emit()
+
     def check_kernel_info(self):
         """Send request to check kernel info."""
         code = "getattr(get_ipython(), '_spyder_kernels_version', False)"

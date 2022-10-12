@@ -69,6 +69,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         ruler.setWidth(10000)
         ruler.setBackground(QColor(QStylePalette.COLOR_TEXT_1))
         cursor = self.textCursor()
+        cursor.movePosition(cursor.End)
         cursor.insertFrame(ruler)
 
     # ---- Private methods ---------------------------------------------------

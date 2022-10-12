@@ -196,8 +196,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         kernel_handler.sig_kernel_state_changed.connect(
             self.handle_kernel_state_changed)
 
-        # Call in case the signal was already sent
-        self.handle_kernel_state_changed()
+        kernel_handler.connect()
 
     def handle_kernel_state_changed(self):
         """The kernel status changed"""
