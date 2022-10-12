@@ -201,11 +201,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def handle_kernel_state_changed(self):
         """The kernel status changed"""
-        if self.kernel_handler.status == KernelState.SpyderKernelReady:
+        if self.kernel_handler.kernel_state == KernelState.SpyderKernelReady:
             self.setup_spyder_kernel()
             return
 
-        if self.state == KernelState.Error:
+        if self.kernel_handler.kernel_state == KernelState.Error:
             # A wrong version is connected
             self.append_html_message(
                 self.kernel_handler.kernel_error_message, before_prompt=True)
