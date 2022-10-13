@@ -230,10 +230,19 @@ def ipyconsole(qtbot, request, tmpdir):
     qtbot.waitUntil(lambda: console.get_current_shellwidget() is not None)
     shell = console.get_current_shellwidget()
     try:
-        qtbot.waitUntil(
-            lambda:
-                shell.spyder_kernel_ready and shell._prompt_html is not None,
-            timeout=SHELL_TIMEOUT)
+        if test_environment_interpreter:
+            # conda version is not always up to date, so a version warning
+            # might be displayed, so shell.spyder_kernel_ready will not be True
+            qtbot.waitUntil(
+                lambda: shell._prompt_html is not None,
+                timeout=SHELL_TIMEOUT)
+        else:
+            qtbot.waitUntil(
+                lambda: (
+                    shell.spyder_kernel_ready
+                    and shell._prompt_html is not None
+                ),
+                timeout=SHELL_TIMEOUT)
     except Exception:
         # Print content of shellwidget and close window
         print(console.get_current_shellwidget(
