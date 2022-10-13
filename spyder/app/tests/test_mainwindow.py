@@ -4702,6 +4702,16 @@ def test_pdb_ipykernel(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.stop_debugging()
 
+    # Try quitting the kernel
+    shell.execute('quit()')
+
+    # Make sure everything quit properly
+    qtbot.waitUntil(lambda: not km.is_alive())
+    assert not km.is_alive()
+
+    # Close the channels
+    kc.stop_channels()
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
