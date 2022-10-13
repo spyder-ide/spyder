@@ -313,7 +313,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             If not hidden, wether the line should be added to history
         """
         # Send line to input if no comm
-        if not self.spyder_kernel_ready:
+        if not self.is_spyder_kernel:
             if not hidden:
                 self._append_plain_text(line + '\n')
             self._finalize_input_request()

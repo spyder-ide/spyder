@@ -4681,6 +4681,7 @@ def test_pdb_without_comm(main_window, qtbot):
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("get_ipython().kernel.frontend_comm.close()")
+    shell.kernel_handler.known_spyder_kernel = False
     shell.execute("%debug print()")
     qtbot.waitUntil(
         lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
