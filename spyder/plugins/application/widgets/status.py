@@ -121,8 +121,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def set_download_progress(self, current_value, total):
         percentage_progress = 0
         if total > 0:
-            percentage_progress = int((current_value/total) * 100)
-        self.custom_widget.setText(f"{percentage_progress} %")
+            percentage_progress = round((current_value/total) * 100)
+        self.custom_widget.setText(f"{percentage_progress}%")
 
     def set_status_pending(self, latest_release):
         self.set_value(PENDING)
