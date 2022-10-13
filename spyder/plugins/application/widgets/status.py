@@ -13,7 +13,7 @@ import logging
 import os
 
 # Third party imports
-from qtpy.QtCore import QPoint, Signal, Slot
+from qtpy.QtCore import QPoint, Qt, Signal, Slot
 from qtpy.QtWidgets import QMenu, QLabel
 
 # Local imports
@@ -62,11 +62,19 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
         # Installation dialog
         self.installer = UpdateInstallerDialog(self)
+
         # Check for updates action menu
         self.menu = QMenu(self)
 
+        # Set font size and aligment attributes fro custom widget to
+        # match default label values
+        self.custom_widget.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.custom_widget.setFont(self.text_font)
+
+        # Signals
         self.sig_clicked.connect(self.show_installation_dialog_or_menu)
 
+        # Installer widget signals
         self.installer.sig_download_progress.connect(
             self.set_download_progress)
         self.installer.sig_installation_status.connect(
