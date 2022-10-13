@@ -4670,18 +4670,20 @@ def test_outline_no_init(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Flaky on Linux")
-def test_pdb_without_comm(main_window, qtbot):
-    """Check if pdb works without comm."""
+def test_pdb_ipykernel(main_window, qtbot):
+    """Check if pdb works without spyder kernel."""
+    # Test with a generic kernel
+    km, kc = start_new_kernel()
+
+    main_window.ipyconsole.create_client_for_kernel(kc.connection_file)
     ipyconsole = main_window.ipyconsole
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
-        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        lambda: shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+
     control = ipyconsole.get_widget().get_focus_widget()
 
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("get_ipython().kernel.frontend_comm.close()")
-    shell.kernel_handler.known_spyder_kernel = False
     shell.execute("%debug print()")
     qtbot.waitUntil(
         lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
