@@ -1171,7 +1171,7 @@ def spam():
                     reason="Quite flaky with Linux on CI")
 @pytest.mark.skipif(running_in_ci() and sys.platform == 'darwin',
                     reason="Quite flaky with MacOS on CI")
-@flaky(max_runs=5)
+@flaky(max_runs=20)
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""
     code_editor, completion_plugin = completions_codeeditor
