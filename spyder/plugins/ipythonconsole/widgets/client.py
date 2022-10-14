@@ -588,7 +588,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "No such comm",
             # PYDEVD debug warning message. See spyder-ide/spyder#18908
             "Note: Debugging will proceed. "
-            "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation."
+            "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.",
+            # Argument not expected error. See spyder-ide/spyder#19298
+            "The following argument was not expected"
         ]
 
         return any([err in error for err in benign_errors])
