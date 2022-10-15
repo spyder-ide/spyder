@@ -186,14 +186,20 @@ class CommBase:
         call_name : str
             The name of the called function.
         handler : callback
-            A function to handle the request, or `None` to unregister
-            `call_name`.
+            A function to handle the request.
         """
-        if not handler:
-            self._remote_call_handlers.pop(call_name, None)
-            return
-
         self._remote_call_handlers[call_name] = handler
+
+    def unregister_call_handler(self, call_name):
+        """
+        Unegister a remote call handler.
+
+        Parameters
+        ----------
+        call_name : str
+            The name of the called function.
+        """
+        self._remote_call_handlers.pop(call_name, None)
 
     def remote_call(self, comm_id=None, callback=None, **settings):
         """Get a handler for remote calls."""
