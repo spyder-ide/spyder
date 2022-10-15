@@ -445,6 +445,8 @@ class DebuggerWidget(ShellConnectMainWidget):
         shellwidget.sig_pdb_prompt_ready.connect(self.update_actions)
         shellwidget.executing.connect(self.update_actions)
 
+        shellwidget.kernel_handler.kernel_comm.register_call_handler(
+            "show_traceback", widget.show_exception)
         shellwidget.sig_pdb_stack.connect(widget.set_from_pdb)
         shellwidget.sig_config_spyder_kernel.connect(
             widget.on_config_kernel)
@@ -492,6 +494,8 @@ class DebuggerWidget(ShellConnectMainWidget):
         shellwidget.sig_pdb_prompt_ready.disconnect(self.update_actions)
         shellwidget.executing.disconnect(self.update_actions)
 
+        shellwidget.kernel_handler.kernel_comm.unregister_call_handler(
+            "show_traceback")
         shellwidget.sig_pdb_stack.disconnect(widget.set_from_pdb)
         shellwidget.sig_config_spyder_kernel.disconnect(
             widget.on_config_kernel)
