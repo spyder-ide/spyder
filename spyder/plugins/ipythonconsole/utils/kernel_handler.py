@@ -16,7 +16,7 @@ import uuid
 
 # Third-party imports
 from jupyter_core.paths import jupyter_runtime_dir
-from qtpy.QtCore import QObject, QThread, Signal
+from qtpy.QtCore import QObject, QThread, Signal, Slot
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
@@ -146,6 +146,8 @@ class KernelHandler(QObject):
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
+        self.kernel_error_message = None
+        self.kernel_state = KernelState.Connecting
 
         # Comm
         self.kernel_comm = KernelComm()
@@ -153,20 +155,18 @@ class KernelHandler(QObject):
             self.handle_comm_ready)
 
         # Internal
-        self.shutdown_thread = None
+        self._shutdown_thread = None
         self._shutdown_lock = Lock()
         self._stdout_thread = None
         self._stderr_thread = None
         self._fault_args = None
+        self._init_stderr = ""
+        self._init_stdout = ""
+        self._spyder_kernel_info_uuid = None
 
-        # Start channels
+        # Start kernel
         self.connect_std_pipes()
         self.kernel_client.start_channels()
-
-        # Check kernel version
-        self.kernel_error_message = None
-        self.kernel_state = KernelState.Connecting
-        self._spyder_kernel_info_uuid = None
         self.check_kernel_info()
 
     def connect(self):
@@ -174,6 +174,13 @@ class KernelHandler(QObject):
         if self.kernel_state != KernelState.Connecting:
             # Emit signal in case the connection is already made
             self.sig_kernel_state_changed.emit()
+        # Show initial io
+        if self._init_stderr:
+            self.sig_stderr.emit(self._init_stderr)
+            self._init_stderr = None
+        if self._init_stdout:
+            self.sig_stdout.emit(self._init_stdout)
+            self._init_stdout = None
 
     def check_kernel_info(self):
         """Send request to check kernel info."""
@@ -269,20 +276,20 @@ class KernelHandler(QObject):
 
         if stdout:
             self._stdout_thread = StdThread(self, stdout)
-            self._stdout_thread.sig_out.connect(self.sig_stdout)
+            self._stdout_thread.sig_out.connect(self.handle_stdout)
             self._stdout_thread.start()
         if stderr:
             self._stderr_thread = StdThread(self, stderr)
-            self._stderr_thread.sig_out.connect(self.sig_stderr)
+            self._stderr_thread.sig_out.connect(self.handle_stderr)
             self._stderr_thread.start()
 
     def disconnect_std_pipes(self):
         """Disconnect old std pipes."""
         if self._stdout_thread and not self._stdout_thread._closing:
-            self._stdout_thread.sig_out.disconnect(self.sig_stdout)
+            self._stdout_thread.sig_out.disconnect(self.handle_stdout)
             self._stdout_thread._closing = True
         if self._stderr_thread and not self._stderr_thread._closing:
-            self._stderr_thread.sig_out.disconnect(self.sig_stderr)
+            self._stderr_thread.sig_out.disconnect(self.handle_stderr)
             self._stderr_thread._closing = True
 
     def close_std_threads(self):
@@ -293,6 +300,20 @@ class KernelHandler(QObject):
         if self._stderr_thread is not None:
             self._stderr_thread.wait()
             self._stderr_thread = None
+
+    @Slot(str)
+    def handle_stderr(self, err):
+        """Handle stderr"""
+        self.sig_stderr.emit(err)
+        if self._init_stderr is not None:
+            self._init_stderr += err
+
+    @Slot(str)
+    def handle_stdout(self, out):
+        """Handle stdout"""
+        self.sig_stdout.emit(out)
+        if self._init_stdout is not None:
+            self._init_stdout += out
 
     @staticmethod
     def new_connection_file():
@@ -462,7 +483,7 @@ class KernelHandler(QObject):
                 shutdown_thread.run = self._thread_shutdown_kernel
                 shutdown_thread.start()
                 shutdown_thread.finished.connect(self.after_shutdown)
-                self.shutdown_thread = shutdown_thread
+                self._shutdown_thread = shutdown_thread
 
         if (
             self.kernel_client is not None
@@ -474,7 +495,7 @@ class KernelHandler(QObject):
         """Cleanup after shutdown"""
         self.close_std_threads()
         self.kernel_comm.remove(only_closing=True)
-        self.shutdown_thread = None
+        self._shutdown_thread = None
 
     def _thread_shutdown_kernel(self):
         """Shutdown kernel."""
@@ -492,7 +513,7 @@ class KernelHandler(QObject):
 
     def wait_shutdown_thread(self):
         """Wait shutdown thread."""
-        thread = self.shutdown_thread
+        thread = self._shutdown_thread
         if thread is None:
             return
         if thread.isRunning():
