@@ -13,8 +13,8 @@ import logging
 import os
 
 # Third party imports
-from qtpy.QtCore import QPoint, Signal, Slot
-from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import QPoint, Qt, Signal, Slot
+from qtpy.QtWidgets import QMenu, QLabel
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -53,6 +53,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
         Path to instal
     """
 
+    CUSTOM_WIDGET_CLASS = QLabel
+
     def __init__(self, parent):
 
         self.tooltip = self.BASE_TOOLTIP
@@ -60,11 +62,21 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
         # Installation dialog
         self.installer = UpdateInstallerDialog(self)
+
         # Check for updates action menu
         self.menu = QMenu(self)
 
+        # Set font size and aligment attributes fro custom widget to
+        # match default label values
+        self.custom_widget.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.custom_widget.setFont(self.text_font)
+
+        # Signals
         self.sig_clicked.connect(self.show_installation_dialog_or_menu)
 
+        # Installer widget signals
+        self.installer.sig_download_progress.connect(
+            self.set_download_progress)
         self.installer.sig_installation_status.connect(
             self.set_value)
         self.installer.sig_install_on_close_requested.connect(
@@ -77,16 +89,24 @@ class ApplicationUpdateStatus(StatusBarWidget):
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again.")
-            self.spinner.show()
-            self.spinner.start()
+            if value == DOWNLOADING_INSTALLER:
+                self.spinner.hide()
+                self.spinner.stop()
+                self.custom_widget.show()
+            else:
+                self.custom_widget.hide()
+                self.spinner.show()
+                self.spinner.start()
             self.installer.show()
-
         elif value == PENDING:
             self.tooltip = value
+            self.custom_widget.hide()
             self.spinner.hide()
             self.spinner.stop()
         else:
             self.tooltip = self.BASE_TOOLTIP
+            if self.custom_widget:
+                self.custom_widget.hide()
             if self.spinner:
                 self.spinner.hide()
                 self.spinner.stop()
@@ -106,11 +126,15 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def start_installation(self, latest_release):
         self.installer.start_installation(latest_release)
 
+    def set_download_progress(self, current_value, total):
+        percentage_progress = 0
+        if total > 0:
+            percentage_progress = round((current_value/total) * 100)
+        self.custom_widget.setText(f"{percentage_progress}%")
+
     def set_status_pending(self, latest_release):
         self.set_value(PENDING)
         self.installer.save_latest_release(latest_release)
-        self.spinner.hide()
-        self.spinner.stop()
 
     def set_status_checking(self):
         self.set_value(CHECKING)
