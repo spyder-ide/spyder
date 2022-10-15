@@ -38,12 +38,21 @@ for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
         continue
 
     try:
-        dist = distribution(p.name)._path
+        dist = distribution(p.name)
     except PackageNotFoundError:
         dist = None
         editable = None
     else:
-        editable = (p == dist or p in dist.parents)
+        editable = (p == dist._path or p in dist._path.parents)
+
+        # This fixes detecting that PyLSP was installed in editable mode under
+        # some scenarios.
+        # Fixes spyder-ide/spyder#19712
+        if p.name == 'python-lsp-server':
+            for f in dist.files:
+                if 'editable' in f.name:
+                    editable = True
+                    break
 
     REPOS[p.name] = {'repo': p, 'dist': dist, 'editable': editable}
 
