@@ -20,6 +20,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.translations import get_translation
+from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
@@ -147,11 +148,15 @@ class KernelHandler:
 
         kernel_manager._kernel_spec = kernel_spec
 
-        kernel_manager.start_kernel(
-            stderr=stderr_obj.handle,
-            stdout=stdout_obj.handle,
-            env=kernel_spec.env,
-        )
+        try:
+            kernel_manager.start_kernel(
+                stderr=stderr_obj.handle,
+                stdout=stdout_obj.handle,
+                env=kernel_spec.env,
+            )
+        except SpyderKernelError:
+            # TODO: Show kernel error message here!
+            return
 
         # Kernel client
         kernel_client = kernel_manager.client()
