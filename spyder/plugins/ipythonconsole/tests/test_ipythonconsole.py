@@ -1304,6 +1304,17 @@ def test_kernel_crash(ipyconsole, qtbot):
         qtbot.waitUntil(
             lambda: check_text(webpage, "Bad config encountered"),
             timeout=6000)
+
+        # Wait until the error has been recieved by the cached kernel_handler
+        qtbot.waitUntil(lambda: bool(
+            ipyconsole.get_widget()._cached_kernel_properties[-1]._init_stderr
+        ))
+        # create a new client
+        ipyconsole.create_new_client()
+        # Assert that the console is showing an error
+        # even if the error happened before the connection
+        error_client = ipyconsole.get_clients()[-1]
+        qtbot.waitUntil(lambda: bool(error_client.error_text), timeout=6000)
     finally:
         # Remove bad kernel config file
         os.remove(ipy_kernel_cfg)
