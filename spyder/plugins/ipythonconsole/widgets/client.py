@@ -671,10 +671,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return
 
         if self.restart_thread and self.restart_thread.error is not None:
-            sw._append_plain_text(
-                _('Error restarting kernel: %s\n') % self.restart_thread.error,
-                before_prompt=True
-            )
+            self.show_kernel_error(self.restart_thread.error)
         else:
             self.kernel_handler.connect_std_pipes()
 

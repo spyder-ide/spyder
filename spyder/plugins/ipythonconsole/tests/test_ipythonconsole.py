@@ -2342,7 +2342,6 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
         assert sw.get_value(variable_name) == 1
 
 
-@pytest.mark.xfail
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Only runs on Linux")
