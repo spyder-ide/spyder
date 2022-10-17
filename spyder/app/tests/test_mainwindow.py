@@ -2079,6 +2079,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     fig_height = float(CONF.get('ipython_console', 'pylab/inline/height'))
 
     # Wait until the window is fully up.
+    widget = main_window.ipyconsole.get_widget()
     shell = main_window.ipyconsole.get_current_shellwidget()
     client = main_window.ipyconsole.get_current_client()
     qtbot.waitUntil(
@@ -2132,7 +2133,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     # Restart the kernel and wait until it's up again
     with qtbot.waitSignal(client.sig_execution_state_changed,
                           timeout=SHELL_TIMEOUT):
-        client.restart_kernel()
+        widget.restart_kernel(client, False)
     qtbot.waitUntil(lambda: 'In [1]:' in control.toPlainText(),
                     timeout=SHELL_TIMEOUT * 2)
 
@@ -3714,8 +3715,9 @@ def test_runcell_after_restart(main_window, qtbot):
     code_editor.set_text(code)
 
     # Restart Kernel
+    widget = main_window.ipyconsole.get_widget()
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
-        shell.ipyclient.restart_kernel()
+        widget.restart_kernel(shell.ipyclient, False)
 
     # call runcell
     code_editor.setFocus()
@@ -4063,8 +4065,9 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
                     timeout=3000)
 
     # Restart Kernel
+    widget = main_window.ipyconsole.get_widget()
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
-        shell.ipyclient.restart_kernel()
+        widget.restart_kernel(shell.ipyclient, False)
 
     # Assert the value was removed
     qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
@@ -5365,8 +5368,9 @@ def test_debugger_plugin(main_window, qtbot):
     assert not enter_debug_action.isEnabled()
 
     # Restart Kernel
+    widget = main_window.ipyconsole.get_widget()
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
-        shell.ipyclient.restart_kernel()
+        widget.restart_kernel(shell.ipyclient, False)
 
     assert frames_browser.frames is None
     assert not enter_debug_action.isEnabled()

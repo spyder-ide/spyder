@@ -576,14 +576,11 @@ class KernelHandler(QObject):
             return
         self.sig_fault.emit(fault)
 
-    def restart_kernel(self):
-        """Restart kernel."""
-        if self.kernel_manager is None:
+    def fault_filename(self):
+        """get fault filename"""
+        if not self._fault_args:
             return
-        self.kernel_manager.restart_kernel(
-            stderr=PIPE,
-            stdout=PIPE,
-        )
+        return self._fault_args[0]
 
     def close_comm(self):
         """Close comm"""
