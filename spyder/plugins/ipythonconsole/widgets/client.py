@@ -174,12 +174,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.restart_thread.wait()
 
     # ----- Private methods ---------------------------------------------------
-    def _before_kernel_is_ready(self):
-        """Configuration before kernel is connected."""
-        self._show_loading_page()
-        self.kernel_handler.sig_kernel_connection_state.connect(
-            self._when_kernel_is_ready)
-
     def _when_kernel_is_ready(self):
         """Configuration after the prompt is shown."""
         if self.kernel_handler.connection_state not in [
@@ -345,7 +339,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_stderr.connect(self.print_stderr)
         kernel_handler.sig_stdout.connect(self.print_stdout)
         kernel_handler.sig_fault.connect(self.print_fault)
-        self._before_kernel_is_ready()
+        kernel_handler.sig_kernel_connection_state.connect(
+            self._when_kernel_is_ready)
+        self._show_loading_page()
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler)

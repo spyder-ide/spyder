@@ -163,6 +163,7 @@ class KernelHandler(QObject):
         self._init_stderr = ""
         self._init_stdout = ""
         self._spyder_kernel_info_uuid = None
+        self._shellwidget_connected = False
 
         # Start kernel
         self.connect_std_pipes()
@@ -171,16 +172,17 @@ class KernelHandler(QObject):
 
     def connect(self):
         """Connect to shellwidget."""
+        self._shellwidget_connected = True
         if self.connection_state != KernelConnectionState.Connecting:
             # Emit signal in case the connection is already made
             self.sig_kernel_connection_state.emit()
         # Show initial io
         if self._init_stderr:
             self.sig_stderr.emit(self._init_stderr)
-            self._init_stderr = None
+        self._init_stderr = None
         if self._init_stdout:
             self.sig_stdout.emit(self._init_stdout)
-            self._init_stdout = None
+        self._init_stdout = None
 
     def check_kernel_info(self):
         """Send request to check kernel info."""
@@ -304,15 +306,17 @@ class KernelHandler(QObject):
     @Slot(str)
     def handle_stderr(self, err):
         """Handle stderr"""
-        self.sig_stderr.emit(err)
-        if self._init_stderr is not None:
+        if self._shellwidget_connected:
+            self.sig_stderr.emit(err)
+        else:
             self._init_stderr += err
 
     @Slot(str)
     def handle_stdout(self, out):
         """Handle stdout"""
-        self.sig_stdout.emit(out)
-        if self._init_stdout is not None:
+        if self._shellwidget_connected:
+            self.sig_stdout.emit(out)
+        else:
             self._init_stdout += out
 
     @staticmethod
