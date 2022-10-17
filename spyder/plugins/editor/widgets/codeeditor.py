@@ -284,6 +284,9 @@ class CodeEditor(TextEditBaseWidget):
     # Used to signal font change
     sig_font_changed = Signal()
 
+    # Used to request saving a file
+    sig_save_requested = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -4627,12 +4630,6 @@ class CodeEditor(TextEditBaseWidget):
             # Shift or Alt don't generate any text.
             # Fixes spyder-ide/spyder#11021
             self._start_completion_timer()
-
-        if event.modifiers() and self.is_completion_widget_visible():
-            # Hide completion widget before passing event modifiers
-            # since the keypress could be then a shortcut
-            # See spyder-ide/spyder#14806
-            self.completion_widget.hide()
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
