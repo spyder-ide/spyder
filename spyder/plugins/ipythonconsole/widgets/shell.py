@@ -31,7 +31,8 @@ from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
-from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelState
+from spyder.plugins.ipythonconsole.utils.kernel_handler import (
+    KernelConnectionState)
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
@@ -178,7 +179,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.kernel_handler is None:
             return False
         return (
-            self.kernel_handler.kernel_state == KernelState.SpyderKernelReady)
+            self.kernel_handler.connection_state ==
+            KernelConnectionState.SpyderKernelReady)
 
     def connect_kernel(self, kernel_handler):
         """Connect to the kernel using our handler."""
@@ -194,18 +196,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.sig_shellwidget_created.emit(self)
 
         # Connect signals
-        kernel_handler.sig_kernel_state_changed.connect(
+        kernel_handler.sig_kernel_connection_state.connect(
             self.handle_kernel_state_changed)
 
         kernel_handler.connect()
 
     def handle_kernel_state_changed(self):
         """The kernel status changed"""
-        if self.kernel_handler.kernel_state == KernelState.SpyderKernelReady:
+        if (
+            self.kernel_handler.connection_state ==
+            KernelConnectionState.SpyderKernelReady
+        ):
             self.setup_spyder_kernel()
             return
 
-        if self.kernel_handler.kernel_state == KernelState.Error:
+        if self.kernel_handler.connection_state == KernelConnectionState.Error:
             # A wrong version is connected
             self.append_html_message(
                 self.kernel_handler.kernel_error_message, before_prompt=True)

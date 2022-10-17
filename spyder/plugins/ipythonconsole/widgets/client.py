@@ -38,7 +38,8 @@ from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import add_actions, DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
-from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelState
+from spyder.plugins.ipythonconsole.utils.kernel_handler import (
+    KernelConnectionState)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -176,18 +177,20 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def _before_kernel_is_ready(self):
         """Configuration before kernel is connected."""
         self._show_loading_page()
-        self.kernel_handler.sig_kernel_state_changed.connect(
+        self.kernel_handler.sig_kernel_connection_state.connect(
             self._when_kernel_is_ready)
 
     def _when_kernel_is_ready(self):
         """Configuration after the prompt is shown."""
-        if self.kernel_handler.kernel_state not in [
-                KernelState.SpyderKernelReady, KernelState.IpykernelReady]:
+        if self.kernel_handler.connection_state not in [
+                KernelConnectionState.SpyderKernelReady,
+                KernelConnectionState.IpykernelReady
+                ]:
             # The kernel is not ready
             return
         self.start_successful = True
 
-        self.kernel_handler.sig_kernel_state_changed.disconnect(
+        self.kernel_handler.sig_kernel_connection_state.disconnect(
             self._when_kernel_is_ready)
 
         # To hide the loading page

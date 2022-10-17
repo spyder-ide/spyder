@@ -74,7 +74,7 @@ ERROR_SPYDER_KERNEL_VERSION_OLD = _(
     "</pre>"
 )
 
-class KernelState:
+class KernelConnectionState:
     SpyderKernelReady = 'spyder_kernel_ready'
     IpykernelReady = 'ipykernel_ready'
     Connecting = 'connecting'
@@ -122,7 +122,7 @@ class KernelHandler(QObject):
     """
     A fault message was recieved.
     """
-    sig_kernel_state_changed = Signal()
+    sig_kernel_connection_state = Signal()
     """
     The spyder kernel state has changed.
     """
@@ -147,7 +147,7 @@ class KernelHandler(QObject):
         self.sshkey = sshkey
         self.password = password
         self.kernel_error_message = None
-        self.kernel_state = KernelState.Connecting
+        self.connection_state = KernelConnectionState.Connecting
 
         # Comm
         self.kernel_comm = KernelComm()
@@ -171,9 +171,9 @@ class KernelHandler(QObject):
 
     def connect(self):
         """Connect to shellwidget."""
-        if self.kernel_state != KernelState.Connecting:
+        if self.connection_state != KernelConnectionState.Connecting:
             # Emit signal in case the connection is already made
-            self.sig_kernel_state_changed.emit()
+            self.sig_kernel_connection_state.emit()
         # Show initial io
         if self._init_stderr:
             self.sig_stderr.emit(self._init_stderr)
@@ -227,13 +227,13 @@ class KernelHandler(QObject):
                         SPYDER_KERNELS_PIP
                     )
                 )
-                self.kernel_state = KernelState.Error
+                self.connection_state = KernelConnectionState.Error
                 self.known_spyder_kernel = False
-                self.sig_kernel_state_changed.emit()
+                self.sig_kernel_connection_state.emit()
                 return
 
-            self.kernel_state = KernelState.IpykernelReady
-            self.sig_kernel_state_changed.emit()
+            self.connection_state = KernelConnectionState.IpykernelReady
+            self.sig_kernel_connection_state.emit()
             return
 
         version, pyexec = spyder_kernel_info
@@ -251,8 +251,8 @@ class KernelHandler(QObject):
                     )
                 )
                 self.known_spyder_kernel = False
-                self.kernel_state = KernelState.Error
-                self.sig_kernel_state_changed.emit()
+                self.connection_state = KernelConnectionState.Error
+                self.sig_kernel_connection_state.emit()
                 return
 
         self.known_spyder_kernel = True
@@ -261,8 +261,8 @@ class KernelHandler(QObject):
 
     def handle_comm_ready(self):
         """The kernel comm is ready"""
-        self.kernel_state = KernelState.SpyderKernelReady
-        self.sig_kernel_state_changed.emit()
+        self.connection_state = KernelConnectionState.SpyderKernelReady
+        self.sig_kernel_connection_state.emit()
 
     def connect_std_pipes(self):
         """Connect to std pipes."""
@@ -583,11 +583,11 @@ class KernelHandler(QObject):
 
     def close_comm(self):
         """Close comm"""
-        self.kernel_state = KernelState.Closed
+        self.connection_state = KernelConnectionState.Closed
         self.kernel_comm.close()
 
     def reopen_comm(self):
         """Reopen comm (following a crash)"""
         self.kernel_comm.remove()
-        self.kernel_state = KernelState.Connecting
+        self.connection_state = KernelConnectionState.Connecting
         self.kernel_comm.open_comm(self.kernel_client)
