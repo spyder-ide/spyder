@@ -225,7 +225,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def close_kernel(self, shutdown_kernel=True):
         """Close the kernel"""
-        self.kernel_handler.close(shutdown_kernel)
+        try:
+            self.kernel_handler.close(shutdown_kernel)
+        except AttributeError:
+            pass
 
         # Reset state
         self.reset_kernel_state()

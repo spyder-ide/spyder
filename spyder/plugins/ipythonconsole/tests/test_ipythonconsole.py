@@ -2338,5 +2338,48 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
         assert sw.get_value(variable_name) == 1
 
 
+@pytest.mark.xfail
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Only runs on Linux")
+def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
+    """Test that we show Spyder-kernels error message on restarts."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Point to an interpreter without Spyder-kernels
+    ipyconsole.set_conf('default', False, section='main_interpreter')
+    ipyconsole.set_conf('executable', '/usr/bin/python3',
+                        section='main_interpreter')
+
+    # Restart kernel
+    os.environ['SPY_TEST_SHOW_RESTART_MESSAGE'] = 'true'
+    ipyconsole.restart_kernel()
+
+    # Assert we show a kernel error
+    info_page = ipyconsole.get_current_client().infowidget.page()
+
+    qtbot.waitUntil(
+        lambda: check_text(
+            info_page,
+            "The Python environment or installation"
+        ),
+        timeout=6000
+    )
+
+    # To check kernel error visually
+    qtbot.wait(500)
+
+    # Check kernel related actions are disabled
+    main_widget = ipyconsole.get_widget()
+    assert not main_widget.restart_action.isEnabled()
+    assert not main_widget.reset_action.isEnabled()
+    assert not main_widget.env_action.isEnabled()
+    assert not main_widget.syspath_action.isEnabled()
+    assert not main_widget.show_time_action.isEnabled()
+
+
 if __name__ == "__main__":
     pytest.main()
