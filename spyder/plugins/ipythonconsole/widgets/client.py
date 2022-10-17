@@ -634,7 +634,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.kernel_handler.disconnect_std_pipes()
 
         # Reconfigure client before the new kernel is connected again.
-        self._before_kernel_is_ready()
+        self._show_loading_page()
 
         # Create and run restarting thread
         if (
