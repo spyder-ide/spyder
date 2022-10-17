@@ -102,19 +102,20 @@ class ApplicationContainer(PluginMainContainer):
     # -------------------------------------------------------------------------
     def setup(self):
 
-        self.application_update_status = ApplicationUpdateStatus(parent=self)
-        self.application_update_status.sig_check_for_updates_requested.connect(
-            self.check_updates
-        )
-        self.application_update_status.sig_install_on_close_requested.connect(
-            self.set_installer_path)
-        self.application_update_status.set_no_status()
-
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
 
         # Attributes
         self.dialog_manager = DialogManager()
+        self.application_update_status = None
+        if is_pynsist() or running_in_mac_app():
+            self.application_update_status = ApplicationUpdateStatus(
+                parent=self)
+            (self.application_update_status.sig_check_for_updates_requested
+             .connect(self.check_updates))
+            (self.application_update_status.sig_install_on_close_requested
+                 .connect(self.set_installer_path))
+            self.application_update_status.set_no_status()
         self.give_updates_feedback = False
         self.thread_updates = None
         self.worker_updates = None
