@@ -89,9 +89,10 @@ jobs:
         echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
 
   build-installers:
-    name: Build installer for ${{ matrix.target-platform }}
+    name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     needs: [build-matrix, build-noarch-conda-pkgs]
+    if: always()
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -122,6 +123,7 @@ jobs:
           extra-specs: python=${{ matrix.python-version }}
 
       - name: Download Local Conda Packages
+        if: github.event_name != 'release'
         uses: actions/download-artifact@v3
         with:
           path: ${{ github.workspace }}/installers-conda/artifacts
