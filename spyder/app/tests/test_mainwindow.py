@@ -4697,12 +4697,10 @@ def test_pdb_ipykernel(main_window, qtbot):
     control = ipyconsole.get_widget().get_focus_widget()
 
     shell.execute("%debug print()")
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: "IPdb [1]:" in control.toPlainText())
     qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: "IPdb [2]:" in control.toPlainText())
 
     assert "Two: 2" in control.toPlainText()
 

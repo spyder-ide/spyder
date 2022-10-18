@@ -195,7 +195,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._pdb_input_ready = False  # Can we send a command now
         self._waiting_pdb_input = False  # Are we waiting on the user
         # Other state
-        self._pdb_prompt = (None, None)  # prompt, password
+        self._pdb_prompt = None  # prompt
+        self._pdb_prompt_input = False  # wether pdb waits for input or comm
         self._pdb_last_cmd = ''  # last command sent to pdb
         self._pdb_frame_loc = (None, None)  # fname, lineno
         self._pdb_focus_to_editor = False  # Focus to editor after command
@@ -213,6 +214,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             r'^({})?('.format(re.escape(self.other_output_prefix)) +
             r'[ \t]*\(*IPdb \[\d+\]\)*: |' +
             r'[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )')
+        # Reset debug state when debugging is done
+        self.sig_prompt_ready.connect(self.reset_debug_state)
 
     # --- Public API --------------------------------------------------
 
@@ -220,6 +223,12 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         """
         Close the save thread and database file.
         """
+        try:
+            # Make sure the database will not be called after closing
+            self.sig_prompt_ready.disconnect(self.reset_debug_state)
+        except TypeError:
+            # Already disconnected
+            pass
         if self._pdb_history_file is not None:
             try:
                 self._pdb_history_file.save_thread.stop()
@@ -237,6 +246,9 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def set_debug_state(self, recursion_level):
         """Update the debug state."""
+        if recursion_level == self._pdb_recursion_level:
+            # Nothing to change
+            return
         if recursion_level > self._pdb_recursion_level:
             # Start debugging
             if self._pdb_recursion_level > 0:
@@ -254,9 +266,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
                 self._pdb_history_input_number = (
                     self._saved_pdb_history_input_number.pop(
                         recursion_level, 0))
-        else:
-            # This should not happen unless we missed some messages
-            pass
 
         # If debugging starts or stops, clear the input queue.
         self._pdb_recursion_level = recursion_level
@@ -288,9 +297,17 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             cursor.setPosition(self._prompt_pos, QTextCursor.KeepAnchor)
             text = cursor.selection().toPlainText()
             match = re.search(r"> (.*\.py)\((\d+)\)", text)
+            state = None
             if match:
                 fname, lineno = match.groups()
-                self.sig_pdb_step.emit(fname, int(lineno))
+                state = {'step': {
+                    'fname': fname,
+                    'lineno': int(lineno)
+                    }}
+            prompt = msg['content']['prompt']
+            password = msg['content']['password']
+            self.pdb_input(prompt, password, state, from_input=True)
+            return
         return super(DebuggingWidget, self)._handle_input_request(msg)
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
@@ -312,14 +329,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         add_history: bool
             If not hidden, wether the line should be added to history
         """
-        # Send line to input if no comm
-        if not self.is_spyder_kernel:
-            if not hidden:
-                self._append_plain_text(line + '\n')
-            self._finalize_input_request()
-            self.kernel_client.input(line)
-            return
-
         if not self.is_debugging():
             return
 
@@ -366,11 +375,15 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if self._pdb_input_ready:
             # Print the string to the console
             self._pdb_input_ready = False
-            return self.call_kernel(interrupt=True).pdb_input_reply(
-                line, echo_stack_entry=echo_stack_entry)
+            self.pdb_input_reply(line, echo_stack_entry)
+            return
 
         self._pdb_input_queue.append(
             (line, hidden, echo_stack_entry, add_history))
+
+    def reset_debug_state(self):
+        """Reset debug state if the debugger crashed."""
+        self.set_debug_state(0)
 
     # --- To Sort --------------------------------------------------
     def stop_debugging(self):
@@ -454,11 +467,10 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         super(DebuggingWidget, self).reset(clear)
         # Make sure the prompt is printed
         if clear and self.is_waiting_pdb_input():
-            prompt, password = self._pdb_prompt
+            prompt = self._pdb_prompt
             self.kernel_client.iopub_channel.flush()
             self._reading = False
-            self._readline(prompt=prompt, callback=self._pdb_readline_callback,
-                           password=password)
+            self._readline(prompt=prompt, callback=self.pdb_execute)
 
     # --- Private API --------------------------------------------------
     def _current_prompt(self):
@@ -511,15 +523,13 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
         client.complete = complete
 
-    def _update_pdb_prompt(self, prompt, password=None):
+    def _update_pdb_prompt(self, prompt):
         """Update the prompt that is recognised as a pdb prompt."""
-        if prompt == self._pdb_prompt[0]:
+        if prompt == self._pdb_prompt:
             # Nothing to do
             return
 
-        if password is None:
-            password = self._pdb_prompt[1]
-        self._pdb_prompt = (prompt, password)
+        self._pdb_prompt = prompt
 
         # Update continuation prompt to reflect (possibly) new prompt length.
         self._set_continuation_prompt(
@@ -574,19 +584,18 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         return super(DebuggingWidget, self).execute(
             source, hidden, interactive)
 
-    def _pdb_readline_callback(self, line):
-        """Callback used when the user inputs text in pdb."""
-        self.pdb_execute(line)
-
-    def pdb_input(self, prompt, password=None, state=None):
+    def pdb_input(self, prompt, password=None, state=None, from_input=False):
         """Get input for a command."""
+
+        self.set_debug_state(1 + prompt.count("("))
 
         if state is not None and isinstance(state, dict):
             self.refresh_from_pdb(state)
 
         # Replace with numbered prompt
         prompt = self._current_prompt()
-        self._update_pdb_prompt(prompt, password)
+        self._update_pdb_prompt(prompt)
+        self._pdb_prompt_input = from_input
 
         # The prompt should be printed unless:
         # 1. The prompt is already printed (self._reading is True)
@@ -600,7 +609,8 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # before writing a new prompt.
             self.kernel_client.iopub_channel.flush()
             self._waiting_pdb_input = True
-            self._readline(prompt=prompt, callback=self._pdb_readline_callback,
+            self._readline(prompt=prompt,
+                           callback=self.pdb_execute,
                            password=password)
             self._executing = False
             self._highlighter.highlighting_on = True
@@ -627,13 +637,23 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             self.pdb_execute(*args)
             return
 
+    def pdb_input_reply(self, line, echo_stack_entry):
+        """Send a pdb input to the kernel."""
+        if self._pdb_prompt_input:
+            # Send line to input
+            self.kernel_client.input(line)
+            return
+
+        self.call_kernel(interrupt=True).pdb_input_reply(
+            line, echo_stack_entry=echo_stack_entry)
+
     # --- Private API (overrode by us) ----------------------------------------
     def _show_prompt(self, prompt=None, html=False, newline=True,
                      separator=True):
         """
         Writes a new prompt at the end of the buffer.
         """
-        if prompt == self._pdb_prompt[0]:
+        if prompt == self._pdb_prompt:
             html = True
             prompt = '<span class="in-prompt">%s</span>' % prompt
         super(DebuggingWidget, self)._show_prompt(prompt, html, newline,

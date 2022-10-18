@@ -91,7 +91,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, shellwidget, color_scheme):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme

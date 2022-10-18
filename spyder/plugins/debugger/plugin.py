@@ -59,7 +59,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         return _('Display and explore frames while debugging.')
 
     def get_icon(self):
-        return self.create_icon('dictedit')
+        return self.create_icon('debug')
 
     def on_initialize(self):
         widget = self.get_widget()
