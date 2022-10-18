@@ -15,8 +15,12 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout)
 
 # Local imports
+from spyder.api.translations import get_translation
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
+
+
+# For translations
+_ = get_translation('spyder')
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -68,9 +72,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
+
+        # Note: The maximum here is set to a relatively small value because
+        # larger ones make Spyder sluggish.
+        # Fixes spyder-ide/spyder#19091
         buffer_spin = self.create_spinbox(
                 _("Buffer:  "), _(" lines"),
-                'buffer_size', min_=-1, max_=1000000, step=100,
+                'buffer_size', min_=-1, max_=5000, step=100,
                 tip=_("Set the maximum number of lines of text shown in the\n"
                       "console before truncation. Specifying -1 disables it\n"
                       "(not recommended!)"))
