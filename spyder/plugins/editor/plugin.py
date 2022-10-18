@@ -2926,7 +2926,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # The file is open, get cell count from editor
         return editor.get_cell_count()
 
-    def handle_current_filename(self, filename):
+    def handle_current_filename(self):
         """Get the current filename."""
         return self._get_editorstack().get_current_finfo().filename
 
