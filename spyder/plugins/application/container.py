@@ -380,7 +380,7 @@ class ApplicationContainer(PluginMainContainer):
         # while loading.
         # Fixes spyder-ide/spyder#15839
         self.updates_timer = QTimer(self)
-        self.updates_timer.setInterval(3000)
+        self.updates_timer.setInterval(60000)
         self.updates_timer.setSingleShot(True)
         self.updates_timer.timeout.connect(self.thread_updates.start)
         self.updates_timer.start()
