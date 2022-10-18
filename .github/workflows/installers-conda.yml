@@ -61,21 +61,42 @@ jobs:
           path: ${{ github.workspace }}/installers-conda/${{ env.artifact_name }}.tar.bz2
           name: ${{ env.artifact_name }}
 
+  build-matrix:
+    name: Determine Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      target_platform: ${{ steps.build-matrix.outputs.target_platform }}
+      include: ${{ steps.build-matrix.outputs.include }}
+      python_version: ${{ steps.build-matrix.outputs.python_version }}
+    steps:
+    - id: build-matrix
+      run: |
+        target_platform="'osx-64', 'osx-arm64', 'linux-64'"
+        include="\
+        {'os': 'macos-11', 'target-platform': 'osx-64'},\
+        {'os': 'macos-latest', 'target-platform': 'osx-arm64'},\
+        {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
+        "
+        python_version="'3.9'"
+
+        if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
+            target_platform=$target_platform", 'win-64'"
+            include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        fi
+
+        echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
+        echo "include=[$include]" >> $GITHUB_OUTPUT
+        echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
+
   build-installers:
     name: Build installer for ${{ matrix.target-platform }}
     runs-on: ${{ matrix.os }}
-    needs: build-noarch-conda-pkgs
+    needs: [build-matrix, build-noarch-conda-pkgs]
     strategy:
       matrix:
-        target-platform: ["osx-64", "osx-arm64", "linux-64"]
-        python-version: ["3.9"]
-        include:
-          - os: macos-11
-            target-platform: "osx-64"
-          - os: macos-latest
-            target-platform: "osx-arm64"
-          - os: ubuntu-latest
-            target-platform: "linux-64"
+        target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
+        python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
+        include: ${{fromJson(needs.build-matrix.outputs.include)}}
 
     defaults:
       run:
