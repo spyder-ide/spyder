@@ -1407,6 +1407,18 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
+    
+    # try running cell without file name
+    shell.clear()
+    # Clean namespace
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%reset -f')
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('runcell(0)')
+    # Verify result
+    assert shell.get_value('a') == 10
+    assert 'error' not in shell._control.toPlainText().lower()
 
     # ---- Closing test file ----
     main_window.editor.close_file()
