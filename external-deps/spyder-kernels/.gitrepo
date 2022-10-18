@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = reentrant_lock
-	commit = fd431a43862749b817250118dd5de0b2a9d0acaa
-	parent = 0dcbbcef9606e5101ac8b2147e0e52d26a96d132
+	branch = 2.x
+	commit = 26c5e2303ad527697bb407cd0d54bad4357b3821
+	parent = 6c121ac659d90d73da58f926510074163a1ada88
 	method = merge
 	cmdver = 0.4.3
