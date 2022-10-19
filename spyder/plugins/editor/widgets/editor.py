@@ -2527,6 +2527,7 @@ class EditorStack(QWidget):
         editor.sig_process_code_analysis.connect(
             self.sig_update_code_analysis_actions)
         editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
+        editor.sig_save_requested.connect(self.save)
         language = get_file_language(fname, txt)
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,

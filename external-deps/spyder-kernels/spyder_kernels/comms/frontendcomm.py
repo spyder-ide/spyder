@@ -45,7 +45,7 @@ class FrontendComm(CommBase):
         self.kernel = kernel
         self.kernel.comm_manager.register_target(
             self._comm_name, self._comm_open)
-        self.comm_lock = threading.Lock()
+        self.comm_lock = threading.RLock()
         self._cached_messages = {}
         self._pending_comms = {}
 
@@ -207,19 +207,22 @@ class FrontendComm(CommBase):
 
     def _remote_callback(self, call_name, call_args, call_kwargs):
         """Call the callback function for the remote call."""
-        saved_stdout_write = sys.stdout.write
-        saved_stderr_write = sys.stderr.write
-        thread_id = threading.get_ident()
-        sys.stdout.write = WriteWrapper(
-            saved_stdout_write, call_name, thread_id)
-        sys.stderr.write = WriteWrapper(
-            saved_stderr_write, call_name, thread_id)
-        try:
-            return super(FrontendComm, self)._remote_callback(
-                call_name, call_args, call_kwargs)
-        finally:
-            sys.stdout.write = saved_stdout_write
-            sys.stderr.write = saved_stderr_write
+        with self.comm_lock:
+            current_stdout = sys.stdout
+            current_stderr = sys.stderr
+            saved_stdout_write = current_stdout.write
+            saved_stderr_write = current_stderr.write
+            thread_id = threading.get_ident()
+            current_stdout.write = WriteWrapper(
+                saved_stdout_write, call_name, thread_id)
+            current_stderr.write = WriteWrapper(
+                saved_stderr_write, call_name, thread_id)
+            try:
+                return super(FrontendComm, self)._remote_callback(
+                    call_name, call_args, call_kwargs)
+            finally:
+                current_stdout.write = saved_stdout_write
+                current_stderr.write = saved_stderr_write
 
 
 class WriteWrapper(object):
