@@ -61,7 +61,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
-        shellwidget.spyder_kernel_comm.register_call_handler(
+        shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",
             lambda gui, sid=id(shellwidget):
                 self.update_matplotlib_gui(gui, sid))
@@ -84,7 +84,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def remove_shellwidget(self, shellwidget):
         """Remove shellwidget."""
-        shellwidget.spyder_kernel_comm.register_call_handler(
+        shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui", None)
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
