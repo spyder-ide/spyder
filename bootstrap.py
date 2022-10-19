@@ -28,11 +28,7 @@ import time
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 
-# Local imports
-from install_dev_repos import REPOS, install_repo
-from spyder import get_versions
-from spyder.config.base import get_conf_path
-from spyder.utils.programs import find_git, run_program
+from install_dev_repos import DEVPATH, REPOS, install_repo
 
 # ---- Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
@@ -80,14 +76,14 @@ assert args.gui in (None, 'pyqt5', 'pyside2'), \
 installed_dev_repo = False
 if not args.no_install:
     prev_branch = None
-    boot_branch_file = Path(get_conf_path("boot_branch.txt"))
+    boot_branch_file = DEVPATH / "boot_branch.txt"
     if boot_branch_file.exists():
         prev_branch = boot_branch_file.read_text()
 
-    result, error = run_program(
-        find_git(), ['merge-base', '--fork-point', 'master']
-    ).communicate()
-    branch = "master" if result else "not master"
+    result = subprocess.run(
+        ["git", "merge-base", "--fork-point", "master"]
+    )
+    branch = "master" if result.stdout else "not master"
     boot_branch_file.write_text(branch)
 
     logger.info("Previous root branch: %s; current root branch: %s",
@@ -96,7 +92,7 @@ if not args.no_install:
     if branch != prev_branch:
         logger.info("Detected root branch change to/from master. "
                     "Will reinstall Spyder in editable mode.")
-        REPOS["spyder"]["editable"] = False
+        REPOS[DEVPATH.name]["editable"] = False
 
     for name in REPOS.keys():
         if not REPOS[name]['editable']:
@@ -113,6 +109,10 @@ if installed_dev_repo:
         sys.argv.append('--no-install')
     result = subprocess.run([sys.executable, *sys.argv])
     sys.exit(result.returncode)
+
+# Local imports
+# Must follow install_repo in case Spyder was not originally installed.
+from spyder import get_versions
 
 logger.info("Executing Spyder from source checkout")
 

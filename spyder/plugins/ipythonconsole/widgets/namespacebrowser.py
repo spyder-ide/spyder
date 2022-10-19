@@ -170,10 +170,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return msg
         except tarfile.ReadError:
             # Fixes spyder-ide/spyder#19126
-            msg = _(f"The file could not be opened successfully. Recall that "
-                    f"the Variable Explorer supports the following file "
-                    f"extensions to import data:"
-                    f"<br><br><tt>{', '.join(IMPORT_EXT)}</tt>")
+            msg = _("The file could not be opened successfully. Recall that "
+                    "the Variable Explorer supports the following file "
+                    "extensions to import data:"
+                    "<br><br><tt>{extensions}</tt>").format(
+                        extensions=', '.join(IMPORT_EXT))
             return msg
         except (UnpicklingError, RuntimeError, CommError):
             return None

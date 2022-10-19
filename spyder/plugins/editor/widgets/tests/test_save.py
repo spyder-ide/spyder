@@ -10,13 +10,17 @@ Tests for EditorStack save methods.
 
 # Standard library imports
 import os.path as osp
+import sys
 from textwrap import dedent
 from unittest.mock import Mock
 
 # Third party imports
+from flaky import flaky
 import pytest
+from qtpy.QtCore import Qt
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.panels import DebuggerPanel
 from spyder.plugins.editor.widgets import editor
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
@@ -66,7 +70,7 @@ def editor_bot(base_editor_bot, request):
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
-    es = editor_splitter = editor.EditorSplitter(None, Mock(), [], first=True)
+    es = editor.EditorSplitter(None, Mock(), [], first=True)
     qtbot.addWidget(es)
     es.show()
     yield es
@@ -501,6 +505,46 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     # Test the debugger panel is hidden
     debugger_panel = editor.panels.get(DebuggerPanel)
     assert not debugger_panel.isVisible()
+
+
+@pytest.mark.slow
+@pytest.mark.order(1)
+@flaky(max_runs=5)
+@pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
+                    reason="Stalls test suite with Linux on CI")
+def test_save_when_completions_are_visible(completions_editor, qtbot):
+    """
+    Test that save works when the completion widget is visible and the user
+    press the save shortcut (Ctrl+S).
+
+    Regression test for issue spyder-ide/spyder#14806.
+    """
+    file_path, editorstack, code_editor, __ = completions_editor
+    completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
+
+    code_editor.set_text('some = 0\nsomething = 1\n')
+    editorstack.save(force=True)
+    cursor = code_editor.textCursor()
+    code_editor.moveCursor(cursor.End)
+
+    # Complete some -> [some, something]
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'some')
+    assert "some" in [x['label'] for x in sig.args[0]]
+    assert "something" in [x['label'] for x in sig.args[0]]
+
+    # Press keyboard shortcut corresponding to save
+    qtbot.keyPress(
+        completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300)
+
+    # Assert file was saved
+    with open(file_path, 'r') as f:
+        saved_text = f.read()
+    assert saved_text == 'some = 0\nsomething = 1\nsome'
+
+    code_editor.toggle_code_snippets(True)
 
 
 if __name__ == "__main__":
