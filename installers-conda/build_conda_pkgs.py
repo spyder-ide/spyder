@@ -1,7 +1,13 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 """
 Build conda packages to local channel.
 
-This module builds conda packages for spyder and external-deps for
+This module builds conda packages for Spyder and external-deps for
 inclusion in the conda-based installer. The Following classes are
 provided for each package:
     SpyderCondaPkg
@@ -10,10 +16,10 @@ provided for each package:
     QtconsoleCondaPkg
     SpyderKernelsCondaPkg
 
-spyder will be packaged from this repository (in its checked-out state).
+Spyder will be packaged from this repository (in its checked-out state).
 qdarkstyle, qtconsole, and spyder-kernels will be packaged from the
 external-deps directory of this repository (in its checked-out state).
-python-lsp-server, however, will be packaged from the upstream remote
+Python-lsp-server, however, will be packaged from the upstream remote
 at the same commit as the external-deps state.
 
 Alternatively, any external-deps may be packaged from a local git repository
@@ -24,20 +30,24 @@ from the following:
     QTCONSOLE_SOURCE
     SPYDER_KERNELS_SOURCE
 """
+
+# Standard library imports
 import os
 import re
 from argparse import ArgumentParser
 from configparser import ConfigParser
 from datetime import timedelta
-from git import Repo
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
-from ruamel.yaml import YAML
-from setuptools_scm import get_version
 from shutil import rmtree
 from subprocess import check_call
 from textwrap import dedent
 from time import time
+
+# Third-party imports
+from git import Repo
+from ruamel.yaml import YAML
+from setuptools_scm import get_version
 
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
@@ -69,7 +79,7 @@ def remove_readonly(func, path, exc):
         raise
 
 
-class BuildCondaPkg():
+class BuildCondaPkg:
     name = None
     src_path = None
     feedstock = None
@@ -101,7 +111,7 @@ class BuildCondaPkg():
         self._patched_build = False
 
     def _get_source(self):
-        self._build_cleanup()  # Remove existing if HERE
+        self._build_cleanup()
 
         if not self.src_path.exists():
             cfg = ConfigParser()
@@ -182,7 +192,6 @@ class BuildCondaPkg():
             check_call(
                 ["mamba", "mambabuild", str(self.fdstk_path / "recipe")]
             )
-
         finally:
             self._patched_meta = False
             self._patched_build = False
@@ -281,11 +290,11 @@ if __name__ == "__main__":
     p = ArgumentParser(
         description=dedent(
             """
-            Build conda packages from local spyder and external-deps sources.
+            Build conda packages from local Spyder and external-deps sources.
             Alternative git repo for python-lsp-server may be provided by
             setting the environment variable PYTHON_LSP_SERVER_SOURCE,
             otherwise the upstream remote will be used. All other external-deps
-            use the subrepo source within the spyder repo.
+            use the subrepo source within the Spyder repo.
             """
         ),
         usage="python build_conda_pkgs.py "

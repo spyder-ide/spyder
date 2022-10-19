@@ -8,9 +8,9 @@ This is the base installation of Spyder, the Scientific Python Development Envir
 In most cases, you would run it through the platform-specific shortcut we created for your
 convenience. In other words, _not_ through this directory!
 
-* Linux: check your desktop launcher.
-* MacOS: check `~/Applications` or the Launchpad.
-* Windows: check the Start Menu or the Desktop.
+* Linux: Check your desktop launcher.
+* MacOS: Check `~/Applications` or the Launchpad.
+* Windows: Check the Start Menu or the Desktop.
 
 We generally recommend using the shortcut because it will pre-activate the `conda` environment for
 you! That said, you can also execute the `spyder` executable directly from these locations:
@@ -23,13 +23,13 @@ need to activate the `conda` environment to ensure all dependencies are importab
 
 ## What does `conda` have to do with `spyder`?
 
-The Spyder installer uses `conda` packages to bundle all its dependencies (Python, qt, etc).
+The Spyder installer uses `conda` packages to bundle all its dependencies (Python, Qt, etc).
 This directory is actually a full `conda` installation! If you have used `conda` before, this
 is equivalent to what you usually call the `base` environment.
 
 ## Can I modify the `spyder` installation?
 
-Yes. In practice, you can consider it a `conda` environment. You can even activate it as usual,
+Yes, but it is not recommended (see below). In practice, you can consider it a `conda` environment. You can even activate it as usual,
 provided you specify the full path to the location, instead of the _name_.
 
 ```

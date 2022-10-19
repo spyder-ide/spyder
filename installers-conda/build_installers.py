@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 """
 Create Spyder installers using `constructor`.
 
@@ -16,23 +22,27 @@ CONSTRUCTOR_SIGNING_CERTIFICATE:
     Path to PFX certificate to sign the EXE installer on Windows
 """
 
-import json
-import os
-import platform
-import re
-import sys
-import zipfile
+# Standard library imports
 from argparse import ArgumentParser
 from datetime import timedelta
 from distutils.spawn import find_executable
 from functools import partial
+import json
 from logging import getLogger
+import os
 from pathlib import Path
-from ruamel.yaml import YAML
+import platform
+import re
 from subprocess import check_call
+import sys
 from textwrap import dedent, indent
 from time import time
+import zipfile
 
+# Third-party imports
+from ruamel.yaml import YAML
+
+# Local imports
 from build_conda_pkgs import HERE, DIST, RESOURCES, SPECS, h, get_version
 
 logger = getLogger('BuildInstallers')
@@ -45,11 +55,12 @@ WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
 TARGET_PLATFORM = os.environ.get("CONSTRUCTOR_TARGET_PLATFORM")
+PY_VER = f"{sys.version_info.major}.{sys.version_info.minor}"
+
 if TARGET_PLATFORM == "osx-arm64":
     ARCH = "arm64"
 else:
     ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
-PY_VER = f"{sys.version_info.major}.{sys.version_info.minor}"
 if WINDOWS:
     EXT, OS = "exe", "Windows"
 elif LINUX:
@@ -125,6 +136,7 @@ specs = {
     "paramiko": "",
     "pyxdg": "",
 }
+
 if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
     _specs = yaml.load(SPECS.read_text())
@@ -146,7 +158,7 @@ INSTALLER_DEFAULT_PATH_STEM = f"{APP}-{SPYVER}"
 
 
 def _generate_background_images(installer_type):
-    """Requires pillow"""
+    """This requires Pillow."""
     if installer_type == "sh":
         # shell installers are text-based, no graphics
         return
@@ -183,7 +195,6 @@ def _get_condarc():
     contents = dedent(
         f"""
         channels:  #!final
-          - spyder-ide
           - conda-forge
           {defaults}
         repodata_fns:  #!final
@@ -211,7 +222,6 @@ def _definitions():
         "version": SPYVER,
         "channels": [
             "napari/label/bundle_tools",
-            "spyder-ide",
             "conda-forge",
         ],
         "conda_default_channels": ["conda-forge"],
@@ -237,6 +247,7 @@ def _definitions():
             condarc: ".condarc",
         },
     }
+
     if not args.no_local:
         definitions["channels"].insert(0, "local")
 
@@ -268,6 +279,7 @@ def _definitions():
                 "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
+
         if args.cert_id:
             definitions["signing_identity_name"] = args.cert_id
             definitions["notarization_identity_name"] = args.cert_id
@@ -293,6 +305,7 @@ def _definitions():
                 "installer_type": "exe",
             }
         )
+
         signing_certificate = os.environ.get("CONSTRUCTOR_SIGNING_CERTIFICATE")
         if signing_certificate:
             definitions["signing_certificate"] = signing_certificate
@@ -307,16 +320,6 @@ def _constructor():
     """
     Create a temporary `construct.yaml` input file and
     run `constructor`.
-
-    Parameters
-    ----------
-    version: str
-        Version of `spyder` to be built. Defaults to the
-        one detected by `importlib` from the source code.
-    extra_specs: list of str
-        Additional packages to be included in the installer.
-        A list of conda spec strings (`numpy`, `python=3`, etc)
-        is expected.
     """
     constructor = find_executable("constructor")
     if not constructor:
