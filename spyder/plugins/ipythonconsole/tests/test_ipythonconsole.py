@@ -1365,7 +1365,6 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     ipyconsole.close_client(client=client)
     assert osp.exists(client.stderr_obj.filename)
 
-
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="Fails sometimes on macOS")
@@ -1373,11 +1372,11 @@ def test_kernel_crash(ipyconsole, qtbot):
     """Test that we show an error message when a kernel crash occurs."""
     # Create an IPython kernel config file with a bad config
     ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
-                              'ipython_kernel_config.py')
+                              'ipython_config.py')
     try:
         with open(ipy_kernel_cfg, 'w') as f:
             # This option must be a string, not an int
-            f.write("c.InteractiveShellApp.extra_extension = 1")
+            f.write("c.InteractiveShellApp.extra_extensions = 1")
 
         ipyconsole.get_widget().close_cached_kernel()
         ipyconsole.create_new_client()
