@@ -6,17 +6,10 @@
 
 """Tests some cases were completions need to be hidden."""
 
-# Standard lirary imports
-import sys
-
 # Third party imports
 from flaky import flaky
 import pytest
-
 from qtpy.QtCore import Qt
-
-# Local imports
-from spyder.config.base import running_in_ci
 
 
 @pytest.mark.slow
@@ -123,39 +116,6 @@ def test_automatic_completions_widget_visible(completions_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Backspace, delay=300)
     qtbot.wait(500)
     assert completion.isVisible()
-
-    code_editor.toggle_code_snippets(True)
-
-
-@pytest.mark.slow
-@pytest.mark.order(1)
-@flaky(max_runs=5)
-@pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
-                    reason="Stalls test suite with Linux on CI")
-def test_automatic_completions_hide_on_save(completions_codeeditor, qtbot):
-    """Test on-the-fly completion closing when using save shortcut (Ctrl + S).
-
-    Regression test for issue #14806.
-    """
-    code_editor, _ = completions_codeeditor
-    completion = code_editor.completion_widget
-    code_editor.toggle_code_snippets(False)
-
-    code_editor.set_text('some = 0\nsomething = 1\n')
-    cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
-
-    # Complete some -> [some, something]
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'some')
-    assert "some" in [x['label'] for x in sig.args[0]]
-    assert "something" in [x['label'] for x in sig.args[0]]
-
-    # Hide completion widget when saving
-    qtbot.keyPress(
-        code_editor, Qt.Key_S, modifier=Qt.ControlModifier, delay=300)
-    qtbot.waitUntil(lambda: completion.isHidden())
 
     code_editor.toggle_code_snippets(True)
 

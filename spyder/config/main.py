@@ -400,13 +400,14 @@ DEFAULTS = [
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
-              '_/switch to plots': "Ctrl+Shift+G",
+              '_/switch to plots': "Ctrl+Shift+J" if MAC else "Ctrl+Shift+G",
               '_/switch to pylint': "Ctrl+Shift+C",
               '_/switch to profiler': "Ctrl+Shift+R",
               # -- In widgets/findreplace.py
               'find_replace/find text': "Ctrl+F",
-              'find_replace/find next': "F3",
-              'find_replace/find previous': "Shift+F3",
+              'find_replace/find next': "Ctrl+G" if MAC else "F3",
+              'find_replace/find previous': (
+                  "Ctrl+Shift+G" if MAC else "Shift+F3"),
               'find_replace/replace text': "Ctrl+R",
               'find_replace/hide find and replace': "Escape",
               # ---- Editor ----
@@ -424,7 +425,7 @@ DEFAULTS = [
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to new line': "Ctrl+Shift+Return",
-              'editor/go to definition': "Ctrl+G",
+              'editor/go to definition': "F3" if MAC else "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
               'editor/blockcomment': "Ctrl+4",
               'editor/unblockcomment': "Ctrl+5",
@@ -639,4 +640,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '71.0.0'
+CONF_VERSION = '71.1.0'

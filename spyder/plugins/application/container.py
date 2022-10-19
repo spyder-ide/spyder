@@ -102,19 +102,20 @@ class ApplicationContainer(PluginMainContainer):
     # -------------------------------------------------------------------------
     def setup(self):
 
-        self.application_update_status = ApplicationUpdateStatus(parent=self)
-        self.application_update_status.sig_check_for_updates_requested.connect(
-            self.check_updates
-        )
-        self.application_update_status.sig_install_on_close_requested.connect(
-            self.set_installer_path)
-        self.application_update_status.set_no_status()
-
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
 
         # Attributes
         self.dialog_manager = DialogManager()
+        self.application_update_status = None
+        if is_pynsist() or running_in_mac_app():
+            self.application_update_status = ApplicationUpdateStatus(
+                parent=self)
+            (self.application_update_status.sig_check_for_updates_requested
+             .connect(self.check_updates))
+            (self.application_update_status.sig_install_on_close_requested
+                 .connect(self.set_installer_path))
+            self.application_update_status.set_no_status()
         self.give_updates_feedback = False
         self.thread_updates = None
         self.worker_updates = None
@@ -182,7 +183,7 @@ class ApplicationContainer(PluginMainContainer):
             ApplicationActions.SpyderUserEnvVariables,
             _("Current user environment variables..."),
             icon=self.create_icon('environment'),
-            tip=_(tip),
+            tip=tip,
             triggered=self.show_user_env_variables)
 
         # Application base actions
@@ -379,7 +380,7 @@ class ApplicationContainer(PluginMainContainer):
         # while loading.
         # Fixes spyder-ide/spyder#15839
         self.updates_timer = QTimer(self)
-        self.updates_timer.setInterval(3000)
+        self.updates_timer.setInterval(60000)
         self.updates_timer.setSingleShot(True)
         self.updates_timer.timeout.connect(self.thread_updates.start)
         self.updates_timer.start()

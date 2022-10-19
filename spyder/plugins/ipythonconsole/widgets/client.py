@@ -37,8 +37,12 @@ from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
+from spyder.utils import programs
 from spyder.utils.qthelpers import add_actions, DialogManager
 from spyder.py3compat import to_text_string
+from spyder.plugins.ipythonconsole import (
+    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_MAX_VERSION,
+    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -62,6 +66,9 @@ TEMPLATES_PATH = osp.join(
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
+SPYDER_KERNELS_VERSION_MSG = _(
+    '>= {0} and < {1}').format(
+        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
 
 try:
     time.monotonic  # time.monotonic new in 3.3
@@ -321,11 +328,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         We also ignore errors about comms, which are irrelevant.
         """
+        if not self.has_spyder_kernels():
+            return True
+
         if self.start_successful:
             return False
+
         stderr = self.stderr_obj.get_contents()
         if not stderr:
             return False
+
         # There is an error. If it is benign, ignore.
         for line in stderr.splitlines():
             if line and not self.is_benign_error(line):
@@ -588,7 +600,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "No such comm",
             # PYDEVD debug warning message. See spyder-ide/spyder#18908
             "Note: Debugging will proceed. "
-            "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation."
+            "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.",
+            # Argument not expected error. See spyder-ide/spyder#19298
+            "The following argument was not expected"
         ]
 
         return any([err in error for err in benign_errors])
@@ -806,6 +820,56 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._hide_loading_page()
         self.restart_thread = None
         self.sig_execution_state_changed.emit()
+
+    def has_spyder_kernels(self):
+        """
+        Check if the kernel has the right Spyder-kernels version and show a
+        message in case that's not the true.
+        """
+        if not self.get_conf('default', section='main_interpreter'):
+            pyexec = self.get_conf('executable', section='main_interpreter')
+            has_spyder_kernels = programs.is_module_installed(
+                'spyder_kernels',
+                interpreter=pyexec,
+                version=SPYDER_KERNELS_VERSION)
+
+            if (
+                not has_spyder_kernels
+                # This is necessary to show this message for some tests and not
+                # do it for others.
+                and os.environ.get('SPY_TEST_SHOW_RESTART_MESSAGE')
+            ):
+                self.show_kernel_error(
+                    _("The Python environment or installation whose "
+                      "interpreter is located at"
+                      "<pre>"
+                      "    <tt>{0}</tt>"
+                      "</pre>"
+                      "doesn't have the <tt>spyder-kernels</tt> module or the "
+                      "right version of it installed ({1}). "
+                      "Without this module is not possible for Spyder to "
+                      "create a console for you.<br><br>"
+                      "You can install it by activating your environment (if "
+                      "necessary) and then running in a system terminal:"
+                      "<pre>"
+                      "    <tt>{2}</tt>"
+                      "</pre>"
+                      "or"
+                      "<pre>"
+                      "    <tt>{3}</tt>"
+                      "</pre>").format(
+                          pyexec,
+                          SPYDER_KERNELS_VERSION_MSG,
+                          SPYDER_KERNELS_CONDA,
+                          SPYDER_KERNELS_PIP
+                      )
+                )
+
+                return False
+            else:
+                return True
+        else:
+            return True
 
     def filter_fault(self, fault):
         """Get a fault from a previous session."""
