@@ -1377,7 +1377,7 @@ def test_kernel_crash(ipyconsole, qtbot):
     try:
         with open(ipy_kernel_cfg, 'w') as f:
             # the c object has not been loaded, also the name is invalid. so this should fail
-            f.write("c.invalid_name.extra_extension = 1")
+            f.write("c.invalid_name.extra_extensions = 1")
 
         ipyconsole.get_widget().close_cached_kernel()
         ipyconsole.create_new_client()
