@@ -90,7 +90,7 @@ class SpyderKernel(IPythonKernel):
             'request_pdb_stop': self.shell.request_pdb_stop,
             'raise_interrupt_signal': self.shell.raise_interrupt_signal,
             'get_fault_text': self.get_fault_text,
-            }
+        }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
                 call_id, handlers[call_id])
@@ -159,7 +159,7 @@ class SpyderKernel(IPythonKernel):
             return
         except UnicodeDecodeError as e:
             return (
-                "Can not read fault file!\n" 
+                "Can not read fault file!\n"
                 + "UnicodeDecodeError: " + str(e))
 
         # Remove file
