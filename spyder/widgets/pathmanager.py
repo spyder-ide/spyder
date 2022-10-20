@@ -225,7 +225,7 @@ class PathManager(QDialog):
             env_pypath = env_pypath.split(os.pathsep)
 
             dlg = QDialog(self)
-            dlg.setWindowTitle(_("PYTHONPATH"))
+            dlg.setWindowTitle("PYTHONPATH")
             dlg.setWindowIcon(ima.icon('pythonpath'))
             dlg.setAttribute(Qt.WA_DeleteOnClose)
             dlg.setMinimumWidth(400)
@@ -260,7 +260,7 @@ class PathManager(QDialog):
         else:
             QMessageBox.information(
                 self,
-                _("PYTHONPATH"),
+                "PYTHONPATH",
                 _("Your <tt>PYTHONPATH</tt> environment variable is empty, so "
                   "there is nothing to import."),
                 QMessageBox.Ok
