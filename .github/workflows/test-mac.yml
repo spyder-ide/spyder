@@ -14,7 +14,7 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers/**'
+      - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
   pull_request:
@@ -30,7 +30,7 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers/**'
+      - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
 jobs:
