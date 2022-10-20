@@ -1,0 +1,217 @@
+on:
+  pull_request:
+    paths:
+      - 'installers-conda/**'
+      - '.github/workflows/installers-conda.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!**.md'
+      - '!installers/**'
+      - '!.github/workflows/installer-win.yml'
+      - '!.github/workflows/installer-macos.yml'
+
+  release:
+    types:
+      - created
+
+name: Create conda-based installers for Windows, macOS, and Linux
+
+jobs:
+  build-noarch-conda-pkgs:
+    name: Build ${{ matrix.pkg }}
+    runs-on: ubuntu-latest
+    if: github.event_name != 'release'
+    strategy:
+      matrix:
+        pkg: ["python-lsp-server", "qdarkstyle", "qtconsole"]
+        python-version: ["3.9"]
+    defaults:
+      run:
+        shell: bash -l {0}
+        working-directory: ${{ github.workspace }}/installers-conda
+    env:
+      DISTDIR: ${{ github.workspace }}/installers-conda/dist
+      pkg: ${{ matrix.pkg }}
+      artifact_name: ${{ matrix.pkg }}_${{ matrix.python-version }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Build Environment
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: installers-conda/build-environment.yml
+          extra-specs: python=${{ matrix.python-version }}
+
+      - name: Build Conda Packages
+        run: python build_conda_pkgs.py --build $pkg
+
+      - name: Build Artifact
+        run: tar -a -C $CONDA_PREFIX -cf $PWD/${artifact_name}.tar.bz2 conda-bld
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ github.workspace }}/installers-conda/${{ env.artifact_name }}.tar.bz2
+          name: ${{ env.artifact_name }}
+
+  build-matrix:
+    name: Determine Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      target_platform: ${{ steps.build-matrix.outputs.target_platform }}
+      include: ${{ steps.build-matrix.outputs.include }}
+      python_version: ${{ steps.build-matrix.outputs.python_version }}
+    steps:
+    - id: build-matrix
+      run: |
+        target_platform="'osx-64', 'osx-arm64', 'linux-64'"
+        include="\
+        {'os': 'macos-11', 'target-platform': 'osx-64'},\
+        {'os': 'macos-latest', 'target-platform': 'osx-arm64'},\
+        {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
+        "
+        python_version="'3.9'"
+
+        if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
+            target_platform=$target_platform", 'win-64'"
+            include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        fi
+
+        echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
+        echo "include=[$include]" >> $GITHUB_OUTPUT
+        echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
+
+  build-installers:
+    name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    needs: [build-matrix, build-noarch-conda-pkgs]
+    if: always()
+    strategy:
+      matrix:
+        target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
+        python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
+        include: ${{fromJson(needs.build-matrix.outputs.include)}}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+        working-directory: ${{ github.workspace }}/installers-conda
+    env:
+      DISTDIR: ${{ github.workspace }}/installers-conda/dist
+      MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
+      APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
+      CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Build Environment
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: installers-conda/build-environment.yml
+          extra-specs: python=${{ matrix.python-version }}
+
+      - name: Download Local Conda Packages
+        if: github.event_name != 'release'
+        uses: actions/download-artifact@v3
+        with:
+          path: ${{ github.workspace }}/installers-conda/artifacts
+
+      - name: Create Local Conda Channel
+        run: |
+          CONDA_BLD_PATH=$HOME/conda-bld
+          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
+
+          files=($(find $PWD/artifacts -name *.tar.bz2))
+          echo ${files[@]}
+          cd $(dirname $CONDA_BLD_PATH)
+          for file in ${files[@]}; do
+              tar -xf $file
+          done
+
+          mamba index $CONDA_BLD_PATH
+
+          mamba search -c $CONDA_BLD_PATH --override-channels
+
+      - name: Build ${{ matrix.target-platform }} conda packages
+        run: |
+          pkgs=("spyder")
+          if [[ $GITHUB_EVENT_NAME != "release" ]]; then
+              pkgs+=("spyder-kernels")
+          fi
+          python build_conda_pkgs.py --build ${pkgs[@]}
+
+      - name: Create Keychain
+        if: github.event_name == 'release' && runner.os == 'macOS'
+        run: |
+          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
+          CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
+          echo "CNAME=$CNAME" >> $GITHUB_ENV
+
+          _codesign=$(which codesign)
+          if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
+              # Find correct codesign
+              echo "Moving $_codesign..."
+              mv $_codesign ${_codesign}.bak
+          fi
+
+      - name: Build Package Installer
+        run: |
+          [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
+          python build_installers.py ${args[@]}
+          PKG_FILE=$(python build_installers.py --artifact-name)
+          PKG_NAME=$(basename $PKG_FILE)
+          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+
+      - name: Test Application Bundle
+        if: runner.os == 'macOS'
+        run: |
+          installer -dumplog -pkg $PKG_FILE -target CurrentUserHomeDirectory 2>&1
+          app_path=$HOME/Applications/Spyder.app
+          if [[ -e "$app_path" ]]; then
+              ls -al $app_path/Contents/MacOS
+              cat $app_path/Contents/Info.plist
+              echo ""
+          else
+              echo "$app_path does not exist"
+          fi
+
+      - name: Notarize package installer
+        if: github.event_name == 'release' && runner.os == 'macOS'
+        run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ env.PKG_FILE }}
+          name: ${{ env.PKG_NAME }}
+
+      - name: Get Release
+        if: github.event_name == 'release'
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: bruceadams/get-release@v1.2.0
+
+      - name: Upload Release Asset
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ${{ env.PKG_FILE }}
+          asset_name: ${{ env.PKG_NAME }}
+          asset_content_type: application/octet-stream
