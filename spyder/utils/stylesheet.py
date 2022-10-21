@@ -295,6 +295,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             paddingRight='10px' if is_macos else '4px'
         )
 
+        # Show tabs left-aligned on Mac
+        if MAC:
+            css.QTabBar.setValues(
+                alignment='left'
+            )
+
+            css['QTabWidget::tab-bar'].setValues(
+                alignment='left'
+            )
+
         # Fix minor visual glitch when hovering tabs
         # See spyder-ide/spyder#15398
         css['QTabBar::tab:hover'].setValues(
@@ -358,17 +368,6 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             bottom='-2px',
             right='-1px'
         )
-
-    def to_string(self):
-        css_string = self._stylesheet.toString()
-
-        # TODO: We need to fix this in qstylizer
-        if sys.platform == 'darwin':
-            left_tabs = ("QTabWidget::tab-bar {alignment: left;}\n"
-                         "QTabBar {alignment: left;}")
-            css_string = css_string + left_tabs
-
-        return css_string
 
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
