@@ -16,6 +16,7 @@ import sys
 # Third-party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir
+import qstylizer.style
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -314,13 +315,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
-        self.pager_label.setStyleSheet(
-            f"background-color: {QStylePalette.COLOR_ACCENT_2};"
-            f"color: {QStylePalette.COLOR_TEXT_1};"
-            "margin: 0px 1px 4px 1px;"
-            "padding: 5px;"
-            "qproperty-alignment: AlignCenter;"
-        )
+        pager_label_css = qstylizer.style.StyleSheet()
+        pager_label_css.setValues(**{
+            'background-color': f'{QStylePalette.COLOR_ACCENT_2}',
+            'color': f'{QStylePalette.COLOR_TEXT_1}',
+            'margin': '0px 1px 4px 1px',
+            'padding': '5px',
+            'qproperty-alignment': 'AlignCenter'
+        })
+        self.pager_label.setStyleSheet(pager_label_css.toString())
         self.pager_label.hide()
         layout.addWidget(self.pager_label)
 
