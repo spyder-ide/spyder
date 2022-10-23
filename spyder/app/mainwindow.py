@@ -1681,11 +1681,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if self._path_manager is None:
             from spyder.widgets.pathmanager import PathManager
             projects = self.get_plugin(Plugins.Projects, error=False)
-            read_only_path = ()
+            project_path = ()
             if projects:
-                read_only_path = tuple(projects.get_pythonpath())
+                project_path = tuple(projects.get_pythonpath())
 
-            dialog = PathManager(self, self.path, read_only_path,
+            dialog = PathManager(self, self.path, project_path,
                                  self.not_active_path, sync=True)
             self._path_manager = dialog
             dialog.sig_path_changed.connect(self.update_python_path)

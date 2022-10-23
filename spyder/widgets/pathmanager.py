@@ -34,14 +34,14 @@ class PathManager(QDialog):
     redirect_stdio = Signal(bool)
     sig_path_changed = Signal(object)
 
-    def __init__(self, parent, path=None, read_only_path=None,
+    def __init__(self, parent, path=None, project_path=None,
                  not_active_path=None, sync=True):
         """Path manager dialog."""
         super(PathManager, self).__init__(parent)
         assert isinstance(path, (tuple, type(None)))
 
         self.path = path or ()
-        self.read_only_path = read_only_path or ()
+        self.project_path = project_path or ()
         self.not_active_path = not_active_path or ()
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
@@ -55,6 +55,9 @@ class PathManager(QDialog):
         self.movebottom_button = None
         self.import_button = None
         self.export_button = None
+        self.user_header = None
+        self.project_header = None
+        self.headers = []
         self.selection_widgets = []
         self.top_toolbar_widgets = self._setup_top_toolbar()
         self.bottom_toolbar_widgets = self._setup_bottom_toolbar()
@@ -186,7 +189,7 @@ class PathManager(QDialog):
         item = QListWidgetItem(path)
         item.setIcon(ima.icon('DirClosedIcon'))
 
-        if path in self.read_only_path:
+        if path in self.project_path:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
             item.setCheckState(Qt.Checked)
         elif path in self.not_active_path:
@@ -198,19 +201,59 @@ class PathManager(QDialog):
 
         return item
 
+    def _create_header(self, text):
+        """Create a header for a given path section."""
+        header = QListWidgetItem(text)
+
+        # Header is centered and it can't be selected
+        header.setTextAlignment(Qt.AlignHCenter)
+        header.setFlags(Qt.ItemIsEnabled)
+
+        # Make header appear in bold
+        font = header.font()
+        font.setBold(True)
+        header.setFont(font)
+
+        return header
+
+    def _create_user_header(self):
+        """Create header for user added paths"""
+        self.user_header = self._create_header(_("User paths"))
+        self.headers.append(self.user_header)
+
     @property
     def editable_bottom_row(self):
         """Maximum bottom row count that is editable."""
-        read_only_count = len(self.read_only_path)
-        max_row = self.listwidget.count() - read_only_count - 1
+        if self.project_header:
+            max_row = self.listwidget.count() - len(self.project_path) - 2
+        else:
+            max_row = self.listwidget.count() - 1
+
         return max_row
 
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
-        for path in self.path + self.read_only_path:
-            item = self._create_item(path)
-            self.listwidget.addItem(item)
+
+        # Paths added by the user
+        if self.path:
+            self._create_user_header()
+            self.listwidget.addItem(self.user_header)
+
+            for path in self.path:
+                item = self._create_item(path)
+                self.listwidget.addItem(item)
+
+        # Project path
+        if self.project_path:
+            self.project_header = self._create_header(_("Project path"))
+            self.headers.append(self.project_header)
+            self.listwidget.addItem(self.project_header)
+
+            for path in self.project_path:
+                item = self._create_item(path)
+                self.listwidget.addItem(item)
+
         self.listwidget.setCurrentRow(0)
         self.original_path_dict = self.get_path_dict()
         self.refresh()
@@ -314,40 +357,52 @@ class PathManager(QDialog):
         state as the value.
 
         If `read_only` is True, the read_only entries are also included.
-        `read_only` entry refers to the project path entry.
         """
         odict = OrderedDict()
         for row in range(self.listwidget.count()):
             item = self.listwidget.item(row)
             path = item.text()
-            if path in self.read_only_path and not read_only:
-                continue
-            odict[path] = item.checkState() == Qt.Checked
+            if item not in self.headers:
+                if path in self.project_path and not read_only:
+                    continue
+                odict[path] = item.checkState() == Qt.Checked
         return odict
 
     def refresh(self):
         """Refresh toolbar widgets."""
-        enabled = self.listwidget.currentItem() is not None
+        current_item = self.listwidget.currentItem()
+        enabled = current_item is not None
         for widget in self.selection_widgets:
             widget.setEnabled(enabled)
 
-        # Disable buttons based on row
+        # Main variables
         row = self.listwidget.currentRow()
         disable_widgets = []
 
-        # Move up/top disabled for top item
-        if row == 0:
+        # Move up/top disabled for top item. Row 0 is a header, so we don't
+        # need to take into account.
+        if row == 1:
             disable_widgets.extend([self.movetop_button, self.moveup_button])
 
         # Move down/bottom disabled for bottom item
         if row == self.editable_bottom_row:
             disable_widgets.extend([self.movebottom_button,
                                     self.movedown_button])
+
+        # Disable almost all buttons on headers
+        if current_item in self.headers:
+            disable_widgets.extend(
+                [self.movetop_button, self.moveup_button,
+                 self.movebottom_button, self.movedown_button]
+            )
+
         for widget in disable_widgets:
             widget.setEnabled(False)
 
-        self.remove_button.setEnabled(self.listwidget.count()
-                                      - len(self.read_only_path))
+        self.remove_button.setEnabled(
+            (current_item not in self.headers)
+            and (self.listwidget.count() - len(self.project_path))
+        )
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
         # Ok button only enabled if actual changes occur
@@ -395,13 +450,22 @@ class PathManager(QDialog):
 
             if answer == QMessageBox.Yes:
                 item = self.listwidget.takeItem(self.listwidget.row(item))
-                self.listwidget.insertItem(0, item)
-                self.listwidget.setCurrentRow(0)
+                self.listwidget.insertItem(1, item)
+                self.listwidget.setCurrentRow(1)
         else:
             if self.check_path(directory):
+                # Add header if not available
+                if not self.user_header:
+                    self._create_user_header()
+                    if self.listwidget.count() == 0:
+                        self.listwidget.addItem(self.user_header)
+                    else:
+                        self.listwidget.insertItem(0, self.user_header)
+
+                # Add new path
                 item = self._create_item(directory)
-                self.listwidget.insertItem(0, item)
-                self.listwidget.setCurrentRow(0)
+                self.listwidget.insertItem(1, item)
+                self.listwidget.setCurrentRow(1)
             else:
                 answer = QMessageBox.warning(
                     self,
@@ -431,7 +495,14 @@ class PathManager(QDialog):
                     QMessageBox.Yes | QMessageBox.No)
 
             if force or answer == QMessageBox.Yes:
+                # Remove selected item
                 self.listwidget.takeItem(self.listwidget.currentRow())
+
+                # Remove user header if there are no more editable paths
+                if self.listwidget.count() - len(self.project_path) - 1 <= 1:
+                    self.listwidget.takeItem(0)
+
+                # Refresh widget
                 self.refresh()
 
     def move_to(self, absolute=None, relative=None):
@@ -445,7 +516,7 @@ class PathManager(QDialog):
         else:
             new_index = index + relative
 
-        new_index = max(0, min(self.editable_bottom_row, new_index))
+        new_index = max(1, min(self.editable_bottom_row, new_index))
         item = self.listwidget.takeItem(index)
         self.listwidget.insertItem(new_index, item)
         self.listwidget.setCurrentRow(new_index)
@@ -489,7 +560,7 @@ def test():
     dlg = PathManager(
         None,
         path=tuple(sys.path[4:-2]),
-        read_only_path=tuple(sys.path[-2:]),
+        project_path=tuple(sys.path[-2:]),
     )
 
     def callback(path_dict):
