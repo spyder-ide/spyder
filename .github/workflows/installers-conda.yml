@@ -79,7 +79,7 @@ jobs:
         "
         python_version="'3.9'"
 
-        if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
+        if [[ ${GITHUB_EVENT_NAME} != 'release' ]]; then
             target_platform=$target_platform", 'win-64'"
             include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
         fi
