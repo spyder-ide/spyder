@@ -670,7 +670,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         logger.info("*** Start of MainWindow setup ***")
         logger.info("Updating PYTHONPATH")
         self.load_python_path()
-        self.update_python_path()
+        self.update_python_path(at_startup=True)
 
         logger.info("Applying theme configuration...")
         ui_theme = self.get_conf('ui_theme', section='appearance')
@@ -1579,11 +1579,47 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     # ------------------------------------------------------------------------
     def load_python_path(self):
         """Load path stored in Spyder configuration folder."""
+        from spyder.utils.environ import get_user_env
+
+        # Get current system PYTHONPATH
+        env = get_user_env()
+        system_path = env.get('PYTHONPATH', [])
+        if not isinstance(system_path, list):
+            system_path = [system_path]
+        system_path = reversed(system_path)
+
+        # Get previous system PYTHONPATH
+        previous_system_path = self.get_conf('system_path', default=(),
+                                             section='pythonpath_manager')
+
+        # Load all paths
         if osp.isfile(self.SPYDER_PATH):
             with open(self.SPYDER_PATH, 'r', encoding='utf-8') as f:
-                path = f.read().splitlines()
-            self.path = tuple(name for name in path if osp.isdir(name))
+                previous_paths = f.read().splitlines()
 
+            paths = []
+            for path in previous_paths:
+                # Path was removed since last time or it's not a directory
+                # anymore
+                if not osp.isdir(path):
+                    continue
+
+                # Path was removed from system path
+                if path in previous_system_path and path not in system_path:
+                    continue
+
+                paths.append(path)
+
+            self.path = tuple(paths)
+
+        # Add system path
+        if system_path:
+            self.path = (
+                self.path +
+                tuple(p for p in system_path if osp.isdir(p))
+            )
+
+        # Load not active paths
         if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
             with open(self.SPYDER_NOT_ACTIVE_PATH, 'r',
                       encoding='utf-8') as f:
@@ -1642,12 +1678,19 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         path = [k for k, v in path_dict.items() if v]
         return path
 
-    def update_python_path(self, new_path_dict=None):
+    def update_python_path(self, new_path_dict=None, at_startup=False):
         """
         Update python path on Spyder interpreter and kernels.
 
         The new_path_dict should not include the project path.
         """
+        # Save current path at startup so plugins can use it
+        # TODO: Save system path when Spyder is closed so that is restored
+        # correctly next time.
+        if at_startup:
+            self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
+            return
+
         # Load existing path plus project path
         old_path_dict_p = self.get_spyder_pythonpath_dict()
 
@@ -1674,6 +1717,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     @Slot()
     def show_path_manager(self):
         """Show path manager dialog."""
+
         def _dialog_finished(result_code):
             """Restore path manager dialog instance variable."""
             self._path_manager = None

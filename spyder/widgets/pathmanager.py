@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QVBoxLayout, QLabel)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.icon_manager import ima
@@ -29,8 +30,10 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
 
 
-class PathManager(QDialog):
+class PathManager(QDialog, SpyderConfigurationAccessor):
     """Path manager dialog."""
+    CONF_SECTION = 'pythonpath_manager'
+
     redirect_stdio = Signal(bool)
     sig_path_changed = Signal(object)
 
@@ -46,6 +49,15 @@ class PathManager(QDialog):
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
 
+        # System and user paths
+        self.system_path = self._get_system_path()
+        previous_system_path = self.get_conf('system_path', ())
+
+        self.user_path = [
+            path for path in self.path
+            if path not in (self.system_path + previous_system_path)
+        ]
+
         # Widgets
         self.add_button = None
         self.remove_button = None
@@ -53,10 +65,10 @@ class PathManager(QDialog):
         self.moveup_button = None
         self.movedown_button = None
         self.movebottom_button = None
-        self.import_button = None
         self.export_button = None
         self.user_header = None
         self.project_header = None
+        self.system_header = None
         self.headers = []
         self.selection_widgets = []
         self.top_toolbar_widgets = self._setup_top_toolbar()
@@ -75,16 +87,13 @@ class PathManager(QDialog):
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(ima.icon('pythonpath'))
         self.resize(500, 400)
-        self.import_button.setVisible(sync)
         self.export_button.setVisible(os.name == 'nt' and sync)
 
         # Layouts
         description = QLabel(
             _("The paths listed below will be passed to IPython consoles and "
-              "the language server as additional locations to search for "
-              "Python modules.<br><br>"
-              "Any paths in your system <tt>PYTHONPATH</tt> environment "
-              "variable can be imported here if you'd like to use them.")
+              "the Python language server as additional locations to search "
+              "for Python modules.")
         )
         description.setWordWrap(True)
         top_layout = QHBoxLayout()
@@ -166,13 +175,6 @@ class PathManager(QDialog):
             icon=ima.icon('edit_remove'),
             triggered=lambda x: self.remove_path(),
             text_beside_icon=True)
-        self.import_button = create_toolbutton(
-            self,
-            text=_("Import"),
-            icon=ima.icon('fileimport'),
-            triggered=self.import_pythonpath,
-            tip=_("Import from PYTHONPATH environment variable"),
-            text_beside_icon=True)
         self.export_button = create_toolbutton(
             self,
             text=_("Export"),
@@ -181,8 +183,7 @@ class PathManager(QDialog):
             tip=_("Export to PYTHONPATH environment variable"),
             text_beside_icon=True)
 
-        return [self.add_button, self.remove_button, self.import_button,
-                self.export_button]
+        return [self.add_button, self.remove_button, self.export_button]
 
     def _create_item(self, path):
         """Helper to create a new list item."""
@@ -218,31 +219,37 @@ class PathManager(QDialog):
 
     def _create_user_header(self):
         """Create header for user added paths"""
-        self.user_header = self._create_header(_("User paths"))
-        self.headers.append(self.user_header)
+        if not self.user_header:
+            self.user_header = self._create_header(_("User paths"))
+            self.headers.append(self.user_header)
 
     @property
     def editable_bottom_row(self):
         """Maximum bottom row count that is editable."""
-        if self.project_header:
-            max_row = self.listwidget.count() - len(self.project_path) - 2
-        else:
-            max_row = self.listwidget.count() - 1
+        bottom_row = 0
 
-        return max_row
+        if self.project_header:
+            bottom_row += len(self.project_path) + 1
+        if self.user_header:
+            bottom_row += len(self.user_path)
+
+        return bottom_row
+
+    @property
+    def editable_top_row(self):
+        """Maximum top row count that is editable."""
+        top_row = 0
+
+        if self.project_header:
+            top_row += len(self.project_path) + 1
+        if self.user_header:
+            top_row += 1
+
+        return top_row
 
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
-
-        # Paths added by the user
-        if self.path:
-            self._create_user_header()
-            self.listwidget.addItem(self.user_header)
-
-            for path in self.path:
-                item = self._create_item(path)
-                self.listwidget.addItem(item)
 
         # Project path
         if self.project_path:
@@ -254,60 +261,40 @@ class PathManager(QDialog):
                 item = self._create_item(path)
                 self.listwidget.addItem(item)
 
+        # Paths added by the user
+        if self.user_path:
+            self._create_user_header()
+            self.listwidget.addItem(self.user_header)
+
+            for path in self.user_path:
+                item = self._create_item(path)
+                self.listwidget.addItem(item)
+
+        # System path
+        if self.system_path:
+            self.system_header = self._create_header(_("System PYTHONPATH"))
+            self.headers.append(self.system_header)
+            self.listwidget.addItem(self.system_header)
+
+            for path in self.system_path:
+                if not self.check_path(path):
+                    continue
+                item = self._create_item(path)
+                self.listwidget.addItem(item)
+
         self.listwidget.setCurrentRow(0)
         self.original_path_dict = self.get_path_dict()
         self.refresh()
 
-    @Slot()
-    def import_pythonpath(self):
-        """Import from PYTHONPATH environment variable"""
-        # TODO: Update method for retrieving PYTHONPATH
-        env_pypath = os.environ.get('PYTHONPATH', '')
+    def _get_system_path(self):
+        """Add paths from PYTHONPATH environment variable."""
+        env = get_user_env()
+        env_pypath = env.get('PYTHONPATH', [])
 
-        if env_pypath:
-            env_pypath = env_pypath.split(os.pathsep)
+        if not isinstance(env_pypath, list):
+            env_pypath = [env_pypath]
 
-            dlg = QDialog(self)
-            dlg.setWindowTitle("PYTHONPATH")
-            dlg.setWindowIcon(ima.icon('pythonpath'))
-            dlg.setAttribute(Qt.WA_DeleteOnClose)
-            dlg.setMinimumWidth(400)
-
-            label = QLabel("The following paths from your PYTHONPATH "
-                           "environment variable will be imported.")
-            listw = QListWidget(dlg)
-            listw.addItems(env_pypath)
-
-            bbox = QDialogButtonBox(
-                QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-            bbox.accepted.connect(dlg.accept)
-            bbox.rejected.connect(dlg.reject)
-
-            layout = QVBoxLayout()
-            layout.addWidget(label)
-            layout.addWidget(listw)
-            layout.addWidget(bbox)
-            dlg.setLayout(layout)
-
-            if dlg.exec():
-                spy_pypath = self.get_path_dict()
-                n = len(spy_pypath)
-
-                for path in reversed(env_pypath):
-                    if (path in spy_pypath) or not self.check_path(path):
-                        continue
-                    item = self._create_item(path)
-                    self.listwidget.insertItem(n, item)
-
-                self.refresh()
-        else:
-            QMessageBox.information(
-                self,
-                "PYTHONPATH",
-                _("Your <tt>PYTHONPATH</tt> environment variable is empty, so "
-                  "there is nothing to import."),
-                QMessageBox.Ok
-            )
+        return tuple(reversed(env_pypath))
 
     @Slot()
     def export_pythonpath(self):
@@ -379,9 +366,8 @@ class PathManager(QDialog):
         row = self.listwidget.currentRow()
         disable_widgets = []
 
-        # Move up/top disabled for top item. Row 0 is a header, so we don't
-        # need to take into account.
-        if row == 1:
+        # Move up/top disabled for less than top editable item.
+        if row <= self.editable_top_row:
             disable_widgets.extend([self.movetop_button, self.moveup_button])
 
         # Move down/bottom disabled for bottom item
@@ -389,8 +375,8 @@ class PathManager(QDialog):
             disable_widgets.extend([self.movebottom_button,
                                     self.movedown_button])
 
-        # Disable almost all buttons on headers
-        if current_item in self.headers:
+        # Disable almost all buttons on headers or system PYTHONPATH
+        if current_item in self.headers or row > self.editable_bottom_row:
             disable_widgets.extend(
                 [self.movetop_button, self.moveup_button,
                  self.movebottom_button, self.movedown_button]
@@ -399,10 +385,12 @@ class PathManager(QDialog):
         for widget in disable_widgets:
             widget.setEnabled(False)
 
+        # Enable remove button only for user paths
         self.remove_button.setEnabled(
-            (current_item not in self.headers)
-            and (self.listwidget.count() - len(self.project_path))
+            not current_item in self.headers
+            and (self.editable_top_row <= row <= self.editable_bottom_row)
         )
+
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
         # Ok button only enabled if actual changes occur
@@ -454,18 +442,23 @@ class PathManager(QDialog):
                 self.listwidget.setCurrentRow(1)
         else:
             if self.check_path(directory):
-                # Add header if not available
-                if not self.user_header:
-                    self._create_user_header()
-                    if self.listwidget.count() == 0:
-                        self.listwidget.addItem(self.user_header)
+                self._create_user_header()
+
+                # Add header if not visible
+                if self.listwidget.row(self.user_header) < 0:
+                    if self.editable_top_row > 0:
+                        header_row = self.editable_top_row - 1
                     else:
-                        self.listwidget.insertItem(0, self.user_header)
+                        header_row = 0
+                    self.listwidget.insertItem(header_row,
+                                               self.user_header)
 
                 # Add new path
                 item = self._create_item(directory)
-                self.listwidget.insertItem(1, item)
-                self.listwidget.setCurrentRow(1)
+                self.listwidget.insertItem(self.editable_top_row, item)
+                self.listwidget.setCurrentRow(self.editable_top_row)
+
+                self.user_path.insert(0, directory)
             else:
                 answer = QMessageBox.warning(
                     self,
@@ -495,12 +488,17 @@ class PathManager(QDialog):
                     QMessageBox.Yes | QMessageBox.No)
 
             if force or answer == QMessageBox.Yes:
-                # Remove selected item
+                # Remove current item from user_path
+                item = self.listwidget.currentItem()
+                self.user_path.remove(item.text())
+
+                # Remove selected item from view
                 self.listwidget.takeItem(self.listwidget.currentRow())
 
-                # Remove user header if there are no more editable paths
-                if self.listwidget.count() - len(self.project_path) - 1 <= 1:
-                    self.listwidget.takeItem(0)
+                # Remove user header if there are no more user paths
+                if len(self.user_path) == 0:
+                    self.listwidget.takeItem(
+                        self.listwidget.row(self.user_header))
 
                 # Refresh widget
                 self.refresh()
@@ -510,9 +508,9 @@ class PathManager(QDialog):
         index = self.listwidget.currentRow()
         if absolute is not None:
             if absolute:
-                new_index = self.listwidget.count() - 1
+                new_index = self.editable_bottom_row
             else:
-                new_index = 0
+                new_index = self.editable_top_row
         else:
             new_index = index + relative
 
@@ -544,12 +542,36 @@ class PathManager(QDialog):
         """Return the number of items."""
         return self.listwidget.count()
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def _update_system_path(self):
+        """
+        Request to update path values on main window if current and previous
+        system paths are different.
+
+        Notes
+        -----
+        This is here until we have a proper plugin, which should make things
+        like this easier to handle.
+        """
+        if self.system_path != self.get_conf('system_path'):
+            self.sig_path_changed.emit(self.get_path_dict())
+        self.set_conf('system_path', self.system_path)
+
     def accept(self):
         """Override Qt method."""
         path_dict = self.get_path_dict()
         if self.original_path_dict != path_dict:
             self.sig_path_changed.emit(path_dict)
-        super(PathManager, self).accept()
+        super().accept()
+
+    def reject(self):
+        self._update_system_path()
+        super().reject()
+
+    def closeEvent(self, event):
+        self._update_system_path()
+        super().closeEvent(event)
 
 
 def test():
@@ -559,7 +581,7 @@ def test():
     _ = qapplication()
     dlg = PathManager(
         None,
-        path=tuple(sys.path[4:-2]),
+        path=tuple(sys.path[:1]),
         project_path=tuple(sys.path[-2:]),
     )
 
