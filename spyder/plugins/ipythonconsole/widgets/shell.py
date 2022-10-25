@@ -204,13 +204,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         kernel_handler.connect()
 
-    def disconnect_kernel(self, shutdown_kernel):
+    def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
         """
         Disconnect kernel.
 
-        Note:
-        `sig_shellwidget_deleted` is not emitted as this is used for restart.
-        A call to `connect_kernel(notify_created=False)` should follow
+        Parameters:
+        -----------
+        shutdown_kernel: bool
+            If True, the kernel is shut down
+        will_reconnect: bool
+            If False, emits `sig_shellwidget_deleted` so the plugins can close
+            related widgets
         """
         kernel_handler = self.kernel_handler
         if not kernel_handler:
@@ -219,8 +223,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         kernel_handler.sig_kernel_connection_state.disconnect(
             self.handle_kernel_state_changed)
-        # If sig_shellwidget_deleted should be emitted, this should be placed
-        # after `close`
         kernel_handler.kernel_client.stopped_channels.disconnect(
             self.notify_deleted)
 
@@ -233,6 +235,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 self._dispatch)
 
         kernel_handler.close(shutdown_kernel)
+        if not will_reconnect:
+            self.notify_deleted()
         # Reset state
         self.reset_kernel_state()
 
