@@ -669,7 +669,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
         logger.info("Updating PYTHONPATH")
-        self.load_python_path()
         self.update_python_path(at_startup=True)
 
         logger.info("Applying theme configuration...")
@@ -1547,56 +1546,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     # --- Path Manager
     # ------------------------------------------------------------------------
-    def load_python_path(self):
-        """Load path stored in Spyder configuration folder."""
-        from spyder.utils.environ import get_user_env
-
-        # Get current system PYTHONPATH
-        env = get_user_env()
-        system_path = env.get('PYTHONPATH', [])
-        if not isinstance(system_path, list):
-            system_path = [system_path]
-        system_path = reversed(system_path)
-
-        # Get previous system PYTHONPATH
-        previous_system_path = self.get_conf('system_path', default=(),
-                                             section='pythonpath_manager')
-
-        # Load all paths
-        if osp.isfile(self.SPYDER_PATH):
-            with open(self.SPYDER_PATH, 'r', encoding='utf-8') as f:
-                previous_paths = f.read().splitlines()
-
-            paths = []
-            for path in previous_paths:
-                # Path was removed since last time or it's not a directory
-                # anymore
-                if not osp.isdir(path):
-                    continue
-
-                # Path was removed from system path
-                if path in previous_system_path and path not in system_path:
-                    continue
-
-                paths.append(path)
-
-            self.path = tuple(paths)
-
-        # Add system path
-        if system_path:
-            self.path = (
-                self.path +
-                tuple(p for p in system_path if osp.isdir(p))
-            )
-
-        # Load not active paths
-        if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
-            with open(self.SPYDER_NOT_ACTIVE_PATH, 'r',
-                      encoding='utf-8') as f:
-                not_active_path = f.read().splitlines()
-            self.not_active_path = tuple(name for name in not_active_path
-                                         if osp.isdir(name))
-
     def save_python_path(self, new_path_dict):
         """
         Save Spyder PYTHONPATH to configuration folder and update attributes.
