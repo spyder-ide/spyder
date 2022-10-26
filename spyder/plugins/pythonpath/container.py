@@ -32,6 +32,7 @@ class PythonpathContainer(PluginMainContainer):
         super().__init__(*args, **kwargs)
         self.path = ()
         self.not_active_path = ()
+        self.project_path = ()
 
     # ---- PluginMainContainer API
     def setup(self):
@@ -50,8 +51,19 @@ class PythonpathContainer(PluginMainContainer):
         pass
 
     # ---- Public API
+    def update_active_project_path(self, path):
+        """Update active project path."""
+        if path is None:
+            path = ()
+        else:
+            path = (path,)
+
+        self.project_path = path
+        self.path_manager_dialog.project_path = path
+
     def show_path_manager(self):
         """Show path manager dialog."""
+        self.path_manager_dialog.setup()
         self.path_manager_dialog.show()
         self.path_manager_dialog.activateWindow()
         self.path_manager_dialog.raise_()

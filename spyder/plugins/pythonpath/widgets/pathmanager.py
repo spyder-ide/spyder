@@ -79,11 +79,6 @@ class PathManager(QDialog, SpyderConfigurationAccessor):
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
 
         # Widget setup
-        # Destroying the C++ object right after closing the dialog box,
-        # otherwise it may be garbage-collected in another QThread
-        # (e.g. the editor's analysis thread in Spyder), thus leading to
-        # a segmentation fault on UNIX or an application crash on Windows
-        self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(ima.icon('pythonpath'))
         self.resize(500, 400)
@@ -263,7 +258,8 @@ class PathManager(QDialog, SpyderConfigurationAccessor):
 
         # Paths added by the user
         if self.user_path:
-            self._create_user_header()
+            self.user_header = self._create_header(_("User paths"))
+            self.headers.append(self.user_header)
             self.listwidget.addItem(self.user_header)
 
             for path in self.user_path:

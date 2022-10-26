@@ -167,14 +167,12 @@ class Projects(SpyderDockablePlugin):
 
         if self.main:
             widget.sig_open_file_requested.connect(self.main.open_file)
-            self.main.project_path = self.get_pythonpath(at_start=True)
             self.sig_project_loaded.connect(
                 lambda v: self.main.set_window_title())
             self.sig_project_closed.connect(
                 lambda v: self.main.set_window_title())
             self.main.restore_scrollbar_position.connect(
                 self.restore_scrollbar_position)
-            self.sig_pythonpath_changed.connect(self.main.update_python_path)
 
         self.register_project_type(self, EmptyProject)
         self.setup()
@@ -669,18 +667,6 @@ class Projects(SpyderDockablePlugin):
         if self.current_active_project:
             active_project_path = self.current_active_project.root_path
         return active_project_path
-
-    def get_pythonpath(self, at_start=False):
-        """Get project path as a list to be added to PYTHONPATH"""
-        if at_start:
-            current_path = self.get_conf('current_project_path',
-                                         default=None)
-        else:
-            current_path = self.get_active_project_path()
-        if current_path is None:
-            return []
-        else:
-            return [current_path]
 
     def get_last_working_dir(self):
         """Get the path of the last working directory"""

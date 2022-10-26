@@ -30,6 +30,7 @@ class PythonpathManager(SpyderPluginV2):
 
     NAME = "pythonpath_manager"
     REQUIRES = [Plugins.Toolbar, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Projects]
     CONTAINER_CLASS = PythonpathContainer
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -62,6 +63,12 @@ class PythonpathManager(SpyderPluginV2):
             before_section=ToolsMenuSections.External
         )
 
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(self._on_project_loaded)
+        projects.sig_project_closed.connect(self._on_project_closed)
+
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         container = self.get_container()
@@ -80,6 +87,12 @@ class PythonpathManager(SpyderPluginV2):
             menu_id=ApplicationMenus.Tools,
         )
 
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardown(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self._on_project_loaded)
+        projects.sig_project_closed.disconnect(self._on_project_closed)
+
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
@@ -87,3 +100,10 @@ class PythonpathManager(SpyderPluginV2):
             PythonpathActions.Manager,
             toolbar_id=ApplicationToolbars.Main
         )
+
+    # ---- Private API
+    def _on_project_loaded(self, path):
+        self.get_container().update_active_project_path(path)
+
+    def _on_project_closed(self, path):
+        self.get_container().update_active_project_path(None)
