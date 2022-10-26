@@ -25,10 +25,12 @@ _ = get_translation('spyder')
 logger = logging.getLogger(__name__)
 
 
+# ---- Constants
 class PythonpathActions:
     Manager = "manager_action"
 
 
+# ---- Container
 class PythonpathContainer(PluginMainContainer):
 
     PATH_FILE = get_conf_path('path')
@@ -78,12 +80,25 @@ class PythonpathContainer(PluginMainContainer):
     def update_active_project_path(self, path):
         """Update active project path."""
         if path is None:
+            logger.debug("Update Pythonpath because project was closed")
             path = ()
         else:
+            logger.debug(f"Add to Pythonpath project's path -> {path}")
             path = (path,)
 
+        # Old path
+        old_path_dict_p = self._get_spyder_pythonpath_dict()
+
+        # Change project path
         self.project_path = path
         self.path_manager_dialog.project_path = path
+
+        # New path
+        new_path_dict_p = self._get_spyder_pythonpath_dict()
+
+        # Update path
+        self.set_conf('spyder_pythonpath', self._get_spyder_pythonpath())
+        self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
 
     def show_path_manager(self):
         """Show path manager dialog."""
@@ -210,7 +225,9 @@ class PythonpathContainer(PluginMainContainer):
         # Load new path plus project path
         new_path_dict_p = self._get_spyder_pythonpath_dict()
 
+        # Do not notify observers unless necessary
         if new_path_dict_p != old_path_dict_p:
-            # Do not notify observers unless necessary
-            self.set_conf('spyder_pythonpath', self._get_spyder_pythonpath())
+            pypath = self._get_spyder_pythonpath()
+            logger.debug(f"Update Pythonpath to {pypath}")
+            self.set_conf('spyder_pythonpath', pypath)
             self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)

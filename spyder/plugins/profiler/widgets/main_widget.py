@@ -31,6 +31,7 @@ from qtpy.QtWidgets import (QApplication, QLabel, QMessageBox, QTreeWidget,
                             QTreeWidgetItem, QVBoxLayout)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -163,7 +164,7 @@ class ProfilerWidget(PluginMainWidget):
         # Attributes
         self._last_wdir = None
         self._last_args = None
-        self._last_pythonpath = None
+        self.pythonpath = None
         self.error_output = None
         self.output = None
         self.running = False
@@ -357,11 +358,15 @@ class ProfilerWidget(PluginMainWidget):
         else:
             self.output += text
 
+    @on_conf_change(section='pythonpath_manager', option='spyder_pythonpath')
+    def _update_pythonpath(self, value):
+        self.pythonpath = value
+
     # --- Public API
     # ------------------------------------------------------------------------
     def save_data(self):
         """Save data."""
-        title = _( "Save profiler result")
+        title = _("Save profiler result")
         filename, _selfilter = getsavefilename(
             self,
             title,
@@ -393,7 +398,7 @@ class ProfilerWidget(PluginMainWidget):
         self.show_data()
         self.clear_action.setEnabled(False)
 
-    def analyze(self, filename, wdir=None, args=None, pythonpath=None):
+    def analyze(self, filename, wdir=None, args=None):
         """
         Start the profiling process.
 
@@ -403,8 +408,6 @@ class ProfilerWidget(PluginMainWidget):
             Working directory path string. Default is None.
         args: list
             Arguments to pass to the profiling process. Default is None.
-        pythonpath: str
-            Python path string. Default is None.
         """
         if not is_profiler_installed():
             return
@@ -427,7 +430,7 @@ class ProfilerWidget(PluginMainWidget):
             if wdir is None:
                 wdir = osp.dirname(filename)
 
-            self.start(wdir, args, pythonpath)
+            self.start(wdir, args)
 
     def select_file(self, filename=None):
         """
@@ -479,7 +482,7 @@ class ProfilerWidget(PluginMainWidget):
             output_dialog.resize(700, 500)
             output_dialog.exec_()
 
-    def start(self, wdir=None, args=None, pythonpath=None):
+    def start(self, wdir=None, args=None):
         """
         Start the profiling process.
 
@@ -489,8 +492,6 @@ class ProfilerWidget(PluginMainWidget):
             Working directory path string. Default is None.
         args: list
             Arguments to pass to the profiling process. Default is None.
-        pythonpath: str
-            Python path string. Default is None.
         """
         filename = to_text_string(self.filecombo.currentText())
         if wdir is None:
@@ -503,12 +504,8 @@ class ProfilerWidget(PluginMainWidget):
             if args is None:
                 args = []
 
-        if pythonpath is None:
-            pythonpath = self._last_pythonpath
-
         self._last_wdir = wdir
         self._last_args = args
-        self._last_pythonpath = pythonpath
 
         self.datelabel.setText(_('Profiling, please wait...'))
 
@@ -528,8 +525,9 @@ class ProfilerWidget(PluginMainWidget):
             proc_env.insert(k, v)
         proc_env.insert("PYTHONIOENCODING", "utf8")
         proc_env.remove('PYTHONPATH')
-        if pythonpath is not None:
-            proc_env.insert('PYTHONPATH', os.pathsep.join(pythonpath))
+        if self.pythonpath is not None:
+            logger.debug(f"Pass Pythonpath {self.pythonpath} to process")
+            proc_env.insert('PYTHONPATH', os.pathsep.join(self.pythonpath))
         self.process.setProcessEnvironment(proc_env)
 
         executable = self.get_conf('executable', section='main_interpreter')

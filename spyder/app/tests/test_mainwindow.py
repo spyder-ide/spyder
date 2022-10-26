@@ -1017,11 +1017,13 @@ def test_project_path(main_window, tmpdir, qtbot):
 
     # Create a project path
     path = str(tmpdir.mkdir('project_path'))
-    assert path not in projects.get_conf('spyder_pythonpath', section='main')
+    assert path not in projects.get_conf(
+        'spyder_pythonpath', section='pythonpath_manager')
 
     # Ensure project path is added to spyder_pythonpath
     projects.open_project(path=path)
-    assert path in projects.get_conf('spyder_pythonpath', section='main')
+    assert path in projects.get_conf(
+        'spyder_pythonpath', section='pythonpath_manager')
 
     # Ensure project path is added to IPython console
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1038,7 +1040,8 @@ def test_project_path(main_window, tmpdir, qtbot):
     projects.close_project()
 
     # Ensure that project path is removed from spyder_pythonpath
-    assert path not in projects.get_conf('spyder_pythonpath', section='main')
+    assert path not in projects.get_conf(
+        'spyder_pythonpath', section='pythonpath_manager')
 
     # Ensure that project path is removed from IPython console
     shell = main_window.ipyconsole.get_current_shellwidget()

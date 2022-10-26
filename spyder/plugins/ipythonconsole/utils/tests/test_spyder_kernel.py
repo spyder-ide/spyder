@@ -13,8 +13,7 @@ import pytest
 
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.py3compat import PY2, is_binary_string, to_text_string
-from spyder.utils.encoding import to_fs_from_unicode
+from spyder.py3compat import to_text_string
 
 
 @pytest.mark.parametrize('default_interpreter', [True, False])
@@ -32,7 +31,7 @@ def test_kernel_pypath(tmpdir, default_interpreter):
     # Add a path to PYTHONPATH and spyder_pythonpath config option
     pypath = to_text_string(tmpdir.mkdir('test-pypath'))
     os.environ['PYTHONPATH'] = pypath
-    CONF.set('main', 'spyder_pythonpath', [pypath])
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', [pypath])
 
     kernel_spec = SpyderKernelSpec()
 
@@ -43,7 +42,7 @@ def test_kernel_pypath(tmpdir, default_interpreter):
 
     # Restore default values
     CONF.set('main_interpreter', 'default', True)
-    CONF.set('main', 'spyder_pythonpath', [])
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', [])
 
 
 def test_python_interpreter(tmpdir):
@@ -61,28 +60,6 @@ def test_python_interpreter(tmpdir):
     assert interpreter not in kernel_spec.argv
     assert CONF.get('main_interpreter', 'default')
     assert not CONF.get('main_interpreter', 'custom')
-
-
-@pytest.mark.skipif(os.name != 'nt' or not PY2,
-                    reason="It only makes sense on Windows and Python 2")
-def test_env_vars():
-    """Test that we are correctly encoding env vars in our kernel spec"""
-    # Create a variable with the file system encoding and save it
-    # in our PYTHONPATH
-    env_var = to_fs_from_unicode(u'ñññ')
-    CONF.set('main', 'spyder_pythonpath', [env_var])
-
-    # Create a kernel spec
-    kernel_spec = SpyderKernelSpec()
-
-    # Assert PYTHONPATH is in env vars and it's not empty
-    assert kernel_spec.env['PYTHONPATH'] != ''
-
-    # Assert all env vars are binary strings
-    assert all([is_binary_string(v) for v in kernel_spec.env.values()])
-
-    # Remove our entry from PYTHONPATH
-    CONF.set('main', 'spyder_pythonpath', [])
 
 
 if __name__ == "__main__":

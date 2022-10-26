@@ -102,6 +102,10 @@ DEFAULTS = [
               'clock/enable': False,
               'clock/timeout': 1000,
               }),
+            ('pythonpath_manager',
+             {
+              'spyder_pythonpath': [],
+              }),
             ('quick_layouts',
              {
               'place_holder': '',
@@ -556,7 +560,6 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
-            'spyder_pythonpath',
             'window/position',
             'window/prefs_dialog_size',
             'window/size',
@@ -609,6 +612,7 @@ NAME_MAP = {
             'scrollbar_position',
           ]
          ),
+        ('pythonpath_manager', []),
         ('quick_layouts', []), # Empty list means use all options
         ('run', [
             'breakpoints',
@@ -640,4 +644,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '71.1.0'
+CONF_VERSION = '72.0.0'

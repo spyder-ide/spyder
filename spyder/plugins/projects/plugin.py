@@ -120,11 +120,6 @@ class Projects(SpyderDockablePlugin):
         between projects (signature 2).
     """
 
-    sig_pythonpath_changed = Signal()
-    """
-    This signal is emitted when the Python path has changed.
-    """
-
     def __init__(self, parent=None, configuration=None):
         """Initialization."""
         super().__init__(parent, configuration)
@@ -528,7 +523,6 @@ class Projects(SpyderDockablePlugin):
             self.sig_project_loaded.emit(workdir)
         else:
             self.sig_project_loaded.emit(path)
-        self.sig_pythonpath_changed.emit()
         self.watcher.start(path)
 
         if restart_consoles:
@@ -561,7 +555,6 @@ class Projects(SpyderDockablePlugin):
 
             self.sig_project_closed.emit(path)
             self.sig_project_closed[bool].emit(True)
-            self.sig_pythonpath_changed.emit()
 
             # Hide pane.
             self.set_conf('visible_if_project_open',

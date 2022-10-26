@@ -131,8 +131,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         QMainWindow.AllowTabbedDocks | QMainWindow.AllowNestedDocks |
         QMainWindow.AnimatedDocks
     )
-    SPYDER_PATH = get_conf_path('path')
-    SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     DEFAULT_LAYOUTS = 4
     INITIAL_CWD = getcwd_or_home()
 
@@ -140,8 +138,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     restore_scrollbar_position = Signal()
     sig_setup_finished = Signal()
     all_actions_defined = Signal()
-    # type: (OrderedDict, OrderedDict)
-    sig_pythonpath_changed = Signal(object, object)
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")
     sig_moved = Signal("QMoveEvent")
@@ -1470,7 +1466,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                         'executable',
                         section='main_interpreter'
                     )
-                pypath = self.get_conf('spyder_pythonpath', default=None)
+                pypath = self.get_conf('spyder_pythonpath', default=None,
+                                       section='pythonpath_manager')
                 programs.run_python_script_in_terminal(
                     fname, wdir, args, interact, debug, python_args,
                     executable, pypath

@@ -1718,7 +1718,8 @@ def test_wrong_std_module(ipyconsole, qtbot, tmpdir, spyder_pythonpath):
         wrong_random_mod = tmpdir.join('random.py')
         wrong_random_mod.write('')
         wrong_random_mod = str(wrong_random_mod)
-        ipyconsole.set_conf('spyder_pythonpath', [str(tmpdir)], section='main')
+        ipyconsole.set_conf('spyder_pythonpath', [str(tmpdir)],
+                            section='pythonpath_manager')
     else:
         wrong_random_mod = osp.join(os.getcwd(), 'random.py')
         with open(wrong_random_mod, 'w') as f:
@@ -1746,7 +1747,7 @@ def test_wrong_std_module(ipyconsole, qtbot, tmpdir, spyder_pythonpath):
     os.remove(wrong_random_mod)
 
     # Restore CONF
-    ipyconsole.set_conf('spyder_pythonpath', [], section='main')
+    ipyconsole.set_conf('spyder_pythonpath', [], section='pythonpath_manager')
 
 
 @flaky(max_runs=3)
@@ -2320,7 +2321,7 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     ipyconsole.set_conf(
         'spyder_pythonpath',
         [project_dir],
-        section='main')
+        section='pythonpath_manager')
 
     # Config console with project path
     ipyconsole.set_conf(
@@ -2347,7 +2348,7 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     ipyconsole.set_conf(
         'spyder_pythonpath',
         [],
-        section='main')
+        section='pythonpath_manager')
     ipyconsole.set_conf(
         'startup/run_lines',
         '',
