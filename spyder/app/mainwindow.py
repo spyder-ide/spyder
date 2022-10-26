@@ -913,36 +913,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.run_toolbar = toolbar.get_application_toolbar("run_toolbar")
         self.debug_toolbar = toolbar.get_application_toolbar("debug_toolbar")
 
-        # Tools + External Tools (some of this depends on the Application
-        # plugin)
-        logger.info("Creating Tools menu...")
-
-        spyder_path_action = create_action(
-            self,
-            _("PYTHONPATH manager"),
-            None, icon=ima.icon('pythonpath'),
-            triggered=self.show_path_manager,
-            tip=_("PYTHONPATH manager"),
-            id_='spyder_path_action')
-        from spyder.plugins.application.container import ApplicationActions
-        user_env_action = ApplicationActions.SpyderUserEnvVariables
-        mainmenu.add_item_to_application_menu(
-            spyder_path_action,
-            menu_id=ApplicationMenus.Tools,
-            section=ToolsMenuSections.Tools,
-            before=user_env_action,
-            before_section=ToolsMenuSections.External
-        )
-
-        # Main toolbar
-        from spyder.plugins.toolbar.api import (
-            ApplicationToolbars, MainToolbarSections)
-        self.toolbar.add_item_to_application_toolbar(
-            spyder_path_action,
-            toolbar_id=ApplicationToolbars.Main,
-            section=MainToolbarSections.ApplicationSection
-        )
-
         self.set_splash(_("Setting up main window..."))
 
         # TODO: Migrate to use the MainMenu Plugin instead of list of actions
