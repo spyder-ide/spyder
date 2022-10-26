@@ -237,9 +237,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
 
-        # Change module completions when PYTHONPATH changes
-        self.main.sig_pythonpath_changed.connect(self.set_path)
-
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
@@ -303,7 +300,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             cursor = current_editor.textCursor()
             self.add_cursor_to_history(filename, cursor)
         self.update_cursorpos_actions()
-        self.set_path()
 
     def set_projects(self, projects):
         self.projects = projects
@@ -1781,10 +1777,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack = self.get_current_editorstack(editorwindow)
         return editorstack.set_current_filename(filename, focus)
 
-    def set_path(self):
-        for finfo in self.editorstacks[0].data:
-            finfo.path = self.main.get_spyder_pythonpath()
-
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
         """Enable/disable file dependent actions
@@ -2073,7 +2065,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # See: spyder-ide/spyder#12596
         finfo = self.editorstacks[0].new(fname, enc, text, default_content,
                                          empty=True)
-        finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts(current_editor)
@@ -2265,7 +2256,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 finfo = self.editorstacks[0].load(
                     filename, set_current=False, add_where=add_where,
                     processevents=processevents)
-                finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)

@@ -9,6 +9,8 @@
 Pythonpath manager plugin.
 """
 
+from qtpy.QtCore import Signal
+
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -35,6 +37,8 @@ class PythonpathManager(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
 
+    sig_pythonpath_changed = Signal(object, object)
+
     # ---- SpyderPluginV2 API
     @staticmethod
     def get_name():
@@ -48,7 +52,8 @@ class PythonpathManager(SpyderPluginV2):
         return self.create_icon('python')
 
     def on_initialize(self):
-        pass
+        container = self.get_container()
+        container.sig_pythonpath_changed.connect(self.sig_pythonpath_changed)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):

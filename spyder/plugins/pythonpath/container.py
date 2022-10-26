@@ -7,16 +7,22 @@
 
 """Pythopath container."""
 
+from collections import OrderedDict
+import logging
 import os.path as osp
+
+from qtpy.QtCore import Signal
 
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import get_conf_path
 from spyder.plugins.pythonpath.widgets.pathmanager import PathManager
+from spyder.utils import encoding
 from spyder.utils.environ import get_user_env
 
-# Localization
+# Localization and logging
 _ = get_translation('spyder')
+logger = logging.getLogger(__name__)
 
 
 class PythonpathActions:
@@ -28,6 +34,8 @@ class PythonpathContainer(PluginMainContainer):
     PATH_FILE = get_conf_path('path')
     NOT_ACTIVE_PATH_FILE = get_conf_path('not_active_path')
 
+    sig_pythonpath_changed = Signal(object, object)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.path = ()
@@ -37,9 +45,25 @@ class PythonpathContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     def setup(self):
 
+        # Load Python path
         self._load_pythonpath()
-        self.path_manager_dialog = PathManager(self, self.path)
 
+        # Save current Pythonpath at startup so plugins can use it afterwards
+        self.set_conf('spyder_pythonpath', self._get_spyder_pythonpath())
+
+        # Path manager dialog
+        self.path_manager_dialog = PathManager(
+            parent=self,
+            path=self.path,
+            not_active_path=self.not_active_path,
+            sync=True
+        )
+        self.path_manager_dialog.sig_path_changed.connect(
+            self._update_python_path)
+        self.path_manager_dialog.redirect_stdio.connect(
+            self.sig_redirect_stdio_requested)
+
+        # Path manager action
         self.path_manager_action = self.create_action(
             PythonpathActions.Manager,
             _("PYTHONPATH manager"),
@@ -115,3 +139,78 @@ class PythonpathContainer(PluginMainContainer):
                 not_active_path = f.read().splitlines()
             self.not_active_path = tuple(name for name in not_active_path
                                          if osp.isdir(name))
+
+    def _save_python_path(self, new_path_dict):
+        """
+        Save Spyder PYTHONPATH to configuration folder and update attributes.
+
+        `new_path_dict` is an OrderedDict that has the new paths as keys and
+        the state as values. The state is `True` for active and `False` for
+        inactive.
+        """
+        path = tuple(p for p in new_path_dict)
+        not_active_path = tuple(p for p in new_path_dict
+                                if not new_path_dict[p])
+
+        if path != self.path or not_active_path != self.not_active_path:
+            # Do not write unless necessary
+            try:
+                encoding.writelines(path, self.PATH_FILE)
+                encoding.writelines(not_active_path,
+                                    self.NOT_ACTIVE_PATH_FILE)
+            except EnvironmentError as e:
+                logger.error(str(e))
+
+            self.path = path
+            self.not_active_path = not_active_path
+
+    def _get_spyder_pythonpath_dict(self):
+        """
+        Return Spyder PYTHONPATH plus project path as dictionary of paths.
+
+        The returned ordered dictionary has the paths as keys and the state
+        as values. The state is `True` for active and `False` for inactive.
+
+        Example:
+            OrderedDict([('/some/path, True), ('/some/other/path, False)])
+        """
+        path_dict = OrderedDict()
+        for path in self.path:
+            path_dict[path] = path not in self.not_active_path
+
+        for path in self.project_path:
+            path_dict[path] = True
+
+        return path_dict
+
+    def _get_spyder_pythonpath(self):
+        """
+        Return active Spyder PYTHONPATH plus project path as a list of paths.
+        """
+        path_dict = self._get_spyder_pythonpath_dict()
+        path = [k for k, v in path_dict.items() if v]
+        return path
+
+    def _update_python_path(self, new_path_dict=None):
+        """
+        Update Python path on language server and kernels.
+
+        The new_path_dict should not include the project path.
+        """
+        # TODO: Save system path when Spyder is closed so that is restored
+        # correctly next time.
+
+        # Load existing path plus project path
+        old_path_dict_p = self._get_spyder_pythonpath_dict()
+
+        # Save new path
+        if new_path_dict is not None:
+            self._save_python_path(new_path_dict)
+
+        # Load new path plus project path
+        new_path_dict_p = self._get_spyder_pythonpath_dict()
+
+        if new_path_dict_p != old_path_dict_p:
+            # Do not notify observers unless necessary
+            self.set_conf('spyder_pythonpath', self._get_spyder_pythonpath())
+            self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)

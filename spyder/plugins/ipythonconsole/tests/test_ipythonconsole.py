@@ -114,9 +114,6 @@ def ipyconsole(qtbot, request, tmpdir):
                 self._cli_options.no_web_widgets = True
             super().__init__()
 
-        def get_spyder_pythonpath(self):
-            return configuration.get('main', 'spyder_pythonpath', [])
-
         def __getattr__(self, attr):
             if attr == 'consoles_menu_actions':
                 return []
