@@ -219,12 +219,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         return header
 
-    def _create_user_header(self):
-        """Create header for user added paths"""
-        if not self.user_header:
-            self.user_header = self._create_header(_("User paths"))
-            self.headers.append(self.user_header)
-
     @property
     def editable_bottom_row(self):
         """Maximum bottom row count that is editable."""
@@ -426,7 +420,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 self.listwidget.setCurrentRow(1)
         else:
             if check_path(directory):
-                self._create_user_header()
+                if not self.user_header:
+                    self.user_header = self._create_header(_("User paths"))
+                    self.headers.append(self.user_header)
 
                 # Add header if not visible
                 if self.listwidget.row(self.user_header) < 0:
