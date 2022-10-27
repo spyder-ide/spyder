@@ -311,8 +311,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         env = get_user_env()
 
-        # Includes read only paths
-        active_path = [k for k, v in self.get_path_dict(True).items() if v]
+        # Don't include project path because that's transient
+        active_path = [
+            k for k, v in self.get_path_dict(True).items()
+            if (v and k not in self.project_path)
+        ]
 
         if answer == QMessageBox.Yes:
             ppath = active_path
