@@ -16,9 +16,9 @@ from qtpy.QtCore import Signal
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import get_conf_path
+from spyder.plugins.pythonpath.utils import get_system_pythonpath
 from spyder.plugins.pythonpath.widgets.pathmanager import PathManager
 from spyder.utils import encoding
-from spyder.utils.environ import get_user_env
 
 # Localization and logging
 _ = get_translation('spyder')
@@ -26,11 +26,13 @@ logger = logging.getLogger(__name__)
 
 
 # ---- Constants
+# -----------------------------------------------------------------------------
 class PythonpathActions:
     Manager = "manager_action"
 
 
 # ---- Container
+# -----------------------------------------------------------------------------
 class PythonpathContainer(PluginMainContainer):
 
     PATH_FILE = get_conf_path('path')
@@ -45,6 +47,7 @@ class PythonpathContainer(PluginMainContainer):
         self.project_path = ()
 
     # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
     def setup(self):
 
         # Load Python path
@@ -77,6 +80,7 @@ class PythonpathContainer(PluginMainContainer):
         pass
 
     # ---- Public API
+    # -------------------------------------------------------------------------
     def update_active_project_path(self, path):
         """Update active project path."""
         if path is None:
@@ -109,14 +113,11 @@ class PythonpathContainer(PluginMainContainer):
         self.path_manager_dialog.setFocus()
 
     # ---- Private API
+    # -------------------------------------------------------------------------
     def _load_pythonpath(self):
         """Load Python paths."""
         # Get current system PYTHONPATH
-        env = get_user_env()
-        system_path = env.get('PYTHONPATH', [])
-        if not isinstance(system_path, list):
-            system_path = [system_path]
-        system_path = reversed(system_path)
+        system_path = get_system_pythonpath()
 
         # Get previous system PYTHONPATH
         previous_system_path = self.get_conf('system_path', default=())
@@ -143,10 +144,7 @@ class PythonpathContainer(PluginMainContainer):
 
         # Add system path
         if system_path:
-            self.path = (
-                self.path +
-                tuple(p for p in system_path if osp.isdir(p))
-            )
+            self.path = self.path + system_path
 
         # Load not active paths
         if osp.isfile(self.NOT_ACTIVE_PATH_FILE):

@@ -10,7 +10,6 @@
 from collections import OrderedDict
 import os
 import os.path as osp
-import re
 import sys
 
 # Third party imports
@@ -24,6 +23,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
+from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
@@ -54,7 +54,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.original_path_dict = None
 
         # System and user paths
-        self.system_path = self._get_system_path()
+        self.system_path = get_system_pythonpath()
         previous_system_path = self.get_conf('system_path', ())
 
         self.user_path = [
@@ -277,24 +277,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
             self.listwidget.addItem(self.system_header)
 
             for path in self.system_path:
-                if not self.check_path(path):
-                    continue
                 item = self._create_item(path)
                 self.listwidget.addItem(item)
 
         self.listwidget.setCurrentRow(0)
         self.original_path_dict = self.get_path_dict()
         self.refresh()
-
-    def _get_system_path(self):
-        """Add paths from PYTHONPATH environment variable."""
-        env = get_user_env()
-        env_pypath = env.get('PYTHONPATH', [])
-
-        if not isinstance(env_pypath, list):
-            env_pypath = [env_pypath]
-
-        return tuple(reversed(env_pypath))
 
     @Slot()
     def export_pythonpath(self):
@@ -397,16 +385,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.button_ok.setEnabled(
             self.original_path_dict != self.get_path_dict())
 
-    def check_path(self, path):
-        """Check that the path is not a [site|dist]-packages folder."""
-        if os.name == 'nt':
-            pat = re.compile(r'.*lib/(?:site|dist)-packages.*')
-        else:
-            pat = re.compile(r'.*lib/python.../(?:site|dist)-packages.*')
-
-        path_norm = path.replace('\\', '/')
-        return pat.match(path_norm) is None
-
     @Slot()
     def add_path(self, directory=None):
         """
@@ -441,7 +419,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 self.listwidget.insertItem(1, item)
                 self.listwidget.setCurrentRow(1)
         else:
-            if self.check_path(directory):
+            if check_path(directory):
                 self._create_user_header()
 
                 # Add header if not visible
