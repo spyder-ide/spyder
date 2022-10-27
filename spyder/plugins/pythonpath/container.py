@@ -55,7 +55,7 @@ class PythonpathContainer(PluginMainContainer):
         self._load_pythonpath()
 
         # Save current Pythonpath at startup so plugins can use it afterwards
-        self.set_conf('spyder_pythonpath', self._get_spyder_pythonpath())
+        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
 
         # Path manager dialog
         self.path_manager_dialog = PathManager(
@@ -106,7 +106,7 @@ class PythonpathContainer(PluginMainContainer):
         new_path_dict_p = self._get_spyder_pythonpath_dict()
 
         # Update path
-        self.set_conf('spyder_pythonpath', self._get_spyder_pythonpath())
+        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
         self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
 
     def show_path_manager(self):
@@ -116,6 +116,14 @@ class PythonpathContainer(PluginMainContainer):
         self.path_manager_dialog.activateWindow()
         self.path_manager_dialog.raise_()
         self.path_manager_dialog.setFocus()
+
+    def get_spyder_pythonpath(self):
+        """
+        Return active Spyder PYTHONPATH plus project path as a list of paths.
+        """
+        path_dict = self._get_spyder_pythonpath_dict()
+        path = [k for k, v in path_dict.items() if v]
+        return path
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -204,14 +212,6 @@ class PythonpathContainer(PluginMainContainer):
 
         return path_dict
 
-    def _get_spyder_pythonpath(self):
-        """
-        Return active Spyder PYTHONPATH plus project path as a list of paths.
-        """
-        path_dict = self._get_spyder_pythonpath_dict()
-        path = [k for k, v in path_dict.items() if v]
-        return path
-
     def _update_python_path(self, new_path_dict=None):
         """
         Update Python path on language server and kernels.
@@ -230,7 +230,7 @@ class PythonpathContainer(PluginMainContainer):
 
         # Do not notify observers unless necessary
         if new_path_dict_p != old_path_dict_p:
-            pypath = self._get_spyder_pythonpath()
+            pypath = self.get_spyder_pythonpath()
             logger.debug(f"Update Pythonpath to {pypath}")
             self.set_conf('spyder_pythonpath', pypath)
             self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)

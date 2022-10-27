@@ -3421,8 +3421,9 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    main_window.show_path_manager()
-    dlg = main_window._path_manager
+    python_path_manager = main_window.get_plugin(Plugins.PythonpathManager)
+    python_path_manager.show_path_manager()
+    dlg = python_path_manager.path_manager_dialog
 
     test_folder = 'foo-spam-bar-123'
     folder = str(tmpdir.mkdir(test_folder))

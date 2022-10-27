@@ -38,6 +38,30 @@ class PythonpathManager(SpyderPluginV2):
     CONF_FILE = False
 
     sig_pythonpath_changed = Signal(object, object)
+    """
+    This signal is emitted when there is a change in the Pythonpath handled by
+    Spyder.
+
+    Parameters
+    ----------
+    old_path_dict: OrderedDict
+        Previous Pythonpath ordered dictionary. Its keys correspond to the
+        project, user and system paths declared by users or detected by Spyder,
+        and its values are their state (i.e. True for enabled and False for
+        disabled).
+
+    new_path_dict: OrderedDict
+        New Pythonpath dictionary.
+
+    Notes
+    -----
+    It should be possible to simplify this by sending only the new path dict.
+    However, that requires changes in Spyder-kernels.
+
+    See Also
+    --------
+    :py:meth:`.PythonpathContainer._get_spyder_pythonpath_dict`
+    """
 
     # ---- SpyderPluginV2 API
     @staticmethod
@@ -105,6 +129,19 @@ class PythonpathManager(SpyderPluginV2):
             PythonpathActions.Manager,
             toolbar_id=ApplicationToolbars.Main
         )
+
+    # ---- Public API
+    def get_spyder_pythonpath(self):
+        """Get Pythonpath paths handled by Spyder as a list."""
+        self.get_container().get_spyder_pythonpath()
+
+    def show_path_manager(self):
+        """Show Path manager dialog."""
+        self.get_container().show_path_manager()
+
+    @property
+    def path_manager_dialog(self):
+        return self.get_container().path_manager_dialog
 
     # ---- Private API
     def _on_project_loaded(self, path):
