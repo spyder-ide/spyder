@@ -190,11 +190,14 @@ class PythonpathContainer(PluginMainContainer):
             OrderedDict([('/some/path, True), ('/some/other/path, False)])
         """
         path_dict = OrderedDict()
-        for path in self.path:
-            path_dict[path] = path not in self.not_active_path
 
+        # Make project path to be the first one so that modules developed in a
+        # project are not shadowed by those present in other paths.
         for path in self.project_path:
             path_dict[path] = True
+
+        for path in self.path:
+            path_dict[path] = path not in self.not_active_path
 
         return path_dict
 
