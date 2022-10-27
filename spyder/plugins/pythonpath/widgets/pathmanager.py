@@ -27,7 +27,17 @@ from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+
+
+class PathManagerToolbuttons:
+    MoveTop = 'move_top'
+    MoveUp = 'move_up'
+    MoveDown = 'move_down'
+    MoveToBottom = 'move_to_bottom'
+    AddPath = 'add_path'
+    RemovePath = 'remove_path'
+    ExportPaths = 'export_paths'
 
 
 class PathManager(QDialog, SpyderWidgetMixin):
@@ -78,8 +88,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.system_header = None
         self.headers = []
         self.selection_widgets = []
-        self.top_toolbar_widgets = self._setup_top_toolbar()
-        self.bottom_toolbar_widgets = self._setup_bottom_toolbar()
+        self.right_buttons = self._setup_right_toolbar()
         self.listwidget = QListWidget(self)
         self.bbox = QDialogButtonBox(QDialogButtonBox.Ok
                                      | QDialogButtonBox.Cancel)
@@ -91,26 +100,30 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.resize(500, 400)
         self.export_button.setVisible(os.name == 'nt' and sync)
 
-        # Layouts
+        # Description
         description = QLabel(
             _("The paths listed below will be passed to IPython consoles and "
               "the Python language server as additional locations to search "
               "for Python modules.")
         )
         description.setWordWrap(True)
-        top_layout = QHBoxLayout()
-        self._add_widgets_to_layout(self.top_toolbar_widgets, top_layout)
 
-        bottom_layout = QHBoxLayout()
-        self._add_widgets_to_layout(self.bottom_toolbar_widgets,
-                                    bottom_layout)
-        bottom_layout.addWidget(self.bbox)
+        # Buttons layout
+        buttons_layout = QVBoxLayout()
+        self._add_buttons_to_layout(self.right_buttons, buttons_layout)
+        buttons_layout.addStretch(1)
 
+        # Middle layout
+        middle_layout = QHBoxLayout()
+        middle_layout.addWidget(self.listwidget)
+        middle_layout.addLayout(buttons_layout)
+
+        # Widget layout
         layout = QVBoxLayout()
         layout.addWidget(description)
-        layout.addLayout(top_layout)
-        layout.addWidget(self.listwidget)
-        layout.addLayout(bottom_layout)
+        layout.addSpacing(12)
+        layout.addLayout(middle_layout)
+        layout.addWidget(self.bbox)
         self.setLayout(layout)
 
         # Signals
@@ -119,73 +132,61 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
 
+        # Set buttons style
+        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+
         # Setup
         self.setup()
 
-    def _add_widgets_to_layout(self, widgets, layout):
-        """Helper to add toolbar widgets to top and bottom layout."""
-        layout.setAlignment(Qt.AlignLeft)
+    def _add_buttons_to_layout(self, widgets, layout):
+        """Helper to add buttons to its layout."""
         for widget in widgets:
-            if widget is None:
-                layout.addStretch(1)
-            else:
-                layout.addWidget(widget)
+            layout.addWidget(widget)
 
-    def _setup_top_toolbar(self):
+    def _setup_right_toolbar(self):
         """Create top toolbar and actions."""
-        self.movetop_button = create_toolbutton(
-            self,
-            text=_("Move to top"),
-            icon=ima.icon('2uparrow'),
-            triggered=lambda: self.move_to(absolute=0),
-            text_beside_icon=True)
-        self.moveup_button = create_toolbutton(
-            self,
-            text=_("Move up"),
-            icon=ima.icon('1uparrow'),
-            triggered=lambda: self.move_to(relative=-1),
-            text_beside_icon=True)
-        self.movedown_button = create_toolbutton(
-            self,
-            text=_("Move down"),
-            icon=ima.icon('1downarrow'),
-            triggered=lambda: self.move_to(relative=1),
-            text_beside_icon=True)
-        self.movebottom_button = create_toolbutton(
-            self,
-            text=_("Move to bottom"),
-            icon=ima.icon('2downarrow'),
-            triggered=lambda: self.move_to(absolute=1),
-            text_beside_icon=True)
-
-        toolbar = [self.movetop_button, self.moveup_button,
-                   self.movedown_button, self.movebottom_button]
-        self.selection_widgets.extend(toolbar)
-        return toolbar
-
-    def _setup_bottom_toolbar(self):
-        """Create bottom toolbar and actions."""
-        self.add_button = create_toolbutton(
-            self,
-            text=_('Add path'),
-            icon=ima.icon('edit_add'),
-            triggered=lambda x: self.add_path(),
-            text_beside_icon=True)
-        self.remove_button = create_toolbutton(
-            self,
-            text=_('Remove path'),
-            icon=ima.icon('edit_remove'),
-            triggered=lambda x: self.remove_path(),
-            text_beside_icon=True)
-        self.export_button = create_toolbutton(
-            self,
-            text=_("Export"),
-            icon=ima.icon('fileexport'),
+        self.movetop_button = self.create_toolbutton(
+            PathManagerToolbuttons.MoveTop,
+            text=_("Move path to the top"),
+            icon=self.create_icon('2uparrow'),
+            triggered=lambda: self.move_to(absolute=0))
+        self.moveup_button = self.create_toolbutton(
+            PathManagerToolbuttons.MoveUp,
+            tip=_("Move path up"),
+            icon=self.create_icon('1uparrow'),
+            triggered=lambda: self.move_to(relative=-1))
+        self.movedown_button = self.create_toolbutton(
+            PathManagerToolbuttons.MoveDown,
+            tip=_("Move path down"),
+            icon=self.create_icon('1downarrow'),
+            triggered=lambda: self.move_to(relative=1))
+        self.movebottom_button = self.create_toolbutton(
+            PathManagerToolbuttons.MoveToBottom,
+            text=_("Move path to the bottom"),
+            icon=self.create_icon('2downarrow'),
+            triggered=lambda: self.move_to(absolute=1))
+        self.add_button = self.create_toolbutton(
+            PathManagerToolbuttons.AddPath,
+            tip=_('Add path'),
+            icon=self.create_icon('edit_add'),
+            triggered=lambda x: self.add_path())
+        self.remove_button = self.create_toolbutton(
+            PathManagerToolbuttons.RemovePath,
+            tip=_('Remove path'),
+            icon=self.create_icon('editclear'),
+            triggered=lambda x: self.remove_path())
+        self.export_button = self.create_toolbutton(
+            PathManagerToolbuttons.ExportPaths,
+            icon=self.create_icon('fileexport'),
             triggered=self.export_pythonpath,
-            tip=_("Export to PYTHONPATH environment variable"),
-            text_beside_icon=True)
+            tip=_("Export to PYTHONPATH environment variable"))
 
-        return [self.add_button, self.remove_button, self.export_button]
+        self.selection_widgets = [self.movetop_button, self.moveup_button,
+                                  self.movedown_button, self.movebottom_button]
+        return (
+            self.selection_widgets +
+            [self.add_button, self.remove_button, self.export_button]
+        )
 
     def _create_item(self, path):
         """Helper to create a new list item."""
