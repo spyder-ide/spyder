@@ -20,6 +20,7 @@ from spyder.plugins.pythonpath.utils import get_system_pythonpath
 from spyder.plugins.pythonpath.widgets.pathmanager import PathManager
 from spyder.utils import encoding
 
+
 # Localization and logging
 _ = get_translation('spyder')
 logger = logging.getLogger(__name__)
@@ -78,6 +79,10 @@ class PythonpathContainer(PluginMainContainer):
 
     def update_actions(self):
         pass
+
+    def on_close(self):
+        # Save current system path to detect changes next time Spyder starts
+        self.set_conf('system_path', get_system_pythonpath())
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -213,9 +218,6 @@ class PythonpathContainer(PluginMainContainer):
 
         The new_path_dict should not include the project path.
         """
-        # TODO: Save system path when Spyder is closed so that is restored
-        # correctly next time.
-
         # Load existing path plus project path
         old_path_dict_p = self._get_spyder_pythonpath_dict()
 

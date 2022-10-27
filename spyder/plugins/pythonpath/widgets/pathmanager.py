@@ -526,11 +526,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         """
         Request to update path values on main window if current and previous
         system paths are different.
-
-        Notes
-        -----
-        This is here until we have a proper plugin, which should make things
-        like this easier to handle.
         """
         if self.system_path != self.get_conf('system_path'):
             self.sig_path_changed.emit(self.get_path_dict())
