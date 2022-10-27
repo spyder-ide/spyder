@@ -17,20 +17,21 @@ from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QMessageBox, QPushButton
 
 # Local imports
-from spyder.py3compat import PY3
 from spyder.utils.programs import is_module_installed
-from spyder.widgets import pathmanager as pathmanager_mod
+from spyder.plugins.pythonpath.utils import check_path
+from spyder.plugins.pythonpath.widgets import pathmanager as pathmanager_mod
 
 
 @pytest.fixture
 def pathmanager(qtbot, request):
     """Set up PathManager."""
-    path, read_only_path, not_active_path = request.param
+    path, project_path, not_active_path = request.param
     widget = pathmanager_mod.PathManager(
         None,
         path=tuple(path),
-        read_only_path=tuple(read_only_path),
+        project_path=tuple(project_path),
         not_active_path=tuple(not_active_path))
+    widget.show()
     qtbot.addWidget(widget)
     return widget
 
@@ -53,8 +54,10 @@ def test_check_uncheck_path(pathmanager):
     update the not active path list.
     """
     # Assert that all paths are checked.
-    for row in range(pathmanager.listwidget.count()):
-        assert pathmanager.listwidget.item(row).checkState() == Qt.Checked
+    for row in range(1, pathmanager.listwidget.count()):
+        item = pathmanager.listwidget.item(row)
+        if item not in pathmanager.headers:
+            assert item.checkState() == Qt.Checked
 
 
 @pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
@@ -130,7 +133,7 @@ def test_invalid_directories(qtbot, pathmanager):
         timer.setSingleShot(True)
         timer.timeout.connect(interact_message_box)
         timer.start(300)
-        assert not pathmanager.check_path(path)
+        assert not check_path(path)
         pathmanager.add_path(path)
 
 
@@ -180,6 +183,7 @@ def test_remove_item_and_reply_yes(qtbot, pathmanager):
     timer.setSingleShot(True)
     timer.timeout.connect(interact_message_box)
     timer.start(100)
+    pathmanager.listwidget.setCurrentRow(4)
     qtbot.mouseClick(pathmanager.remove_button, Qt.LeftButton)
 
     # Back to main thread
@@ -202,7 +206,7 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     pathmanager.add_path(dir1)
     pathmanager.add_path(dir2)
     pathmanager.add_path(dir3)
-    pathmanager.set_row_check_state(1, Qt.Unchecked)
+    pathmanager.set_row_check_state(2, Qt.Unchecked)
     assert not all(pathmanager.get_path_dict().values())
 
     def interact_message_box():
@@ -221,34 +225,38 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     print(pathmanager.get_path_dict())
 
     # Back to main thread
-    assert pathmanager.count() == 3
+    assert pathmanager.count() == 4
     assert list(pathmanager.get_path_dict().keys())[0] == dir2
     assert all(pathmanager.get_path_dict().values())
 
 
-@pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
-                    reason=("This feature is not applicable for Unix "
-                            "systems and pywin32 is needed"))
 @pytest.mark.parametrize('pathmanager',
                          [(('/spam', '/bar'), ('/foo', ), ())],
                          indirect=True)
 def test_buttons_state(qtbot, pathmanager, tmpdir):
     """Check buttons are enabled/disabled based on items and position."""
     pathmanager.show()
+
+    # Default row is header so almost all buttons should be disabled
+    assert not pathmanager.button_ok.isEnabled()
+    assert not pathmanager.movetop_button.isEnabled()
+    assert not pathmanager.moveup_button.isEnabled()
+    assert not pathmanager.movebottom_button.isEnabled()
+    assert not pathmanager.movedown_button.isEnabled()
+    assert not pathmanager.remove_button.isEnabled()
+    assert pathmanager.add_button.isEnabled()
+
+    # First editable path
+    pathmanager.set_current_row(3)
     assert not pathmanager.button_ok.isEnabled()
     assert not pathmanager.movetop_button.isEnabled()
     assert not pathmanager.moveup_button.isEnabled()
     assert pathmanager.movebottom_button.isEnabled()
     assert pathmanager.movedown_button.isEnabled()
+    assert pathmanager.remove_button.isEnabled()
+    assert pathmanager.add_button.isEnabled()
 
-    pathmanager.set_current_row(1)
-    assert not pathmanager.button_ok.isEnabled()
-    assert pathmanager.movetop_button.isEnabled()
-    assert pathmanager.moveup_button.isEnabled()
-    assert not pathmanager.movebottom_button.isEnabled()
-    assert not pathmanager.movedown_button.isEnabled()
-
-    # Check adding a path updates the ok button
+    # Check adding a path updates the right buttons
     path = tmpdir.mkdir("bloop")
     pathmanager.add_path(str(path))
     assert pathmanager.button_ok.isEnabled()
@@ -262,7 +270,8 @@ def test_buttons_state(qtbot, pathmanager, tmpdir):
     assert pathmanager.moveup_button.isEnabled()
     assert not pathmanager.movebottom_button.isEnabled()
     assert not pathmanager.movedown_button.isEnabled()
-    assert pathmanager.current_row() == 2
+    assert pathmanager.remove_button.isEnabled()
+    assert pathmanager.current_row() == 5
 
     # Check delete and ok button
     pathmanager.remove_path(True)

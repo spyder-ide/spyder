@@ -36,6 +36,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
     redirect_stdio = Signal(bool)
     sig_path_changed = Signal(object)
 
+    # This is required for our tests
+    CONF_SECTION = 'pythonpath_manager'
+
     def __init__(self, parent, path=None, project_path=None,
                  not_active_path=None, sync=True):
         """Path manager dialog."""
