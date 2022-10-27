@@ -7,7 +7,6 @@
 """Spyder path manager."""
 
 # Standard library imports
-from __future__ import print_function
 from collections import OrderedDict
 import os
 import os.path as osp
@@ -15,6 +14,7 @@ import re
 import sys
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QVBoxLayout, QLabel)
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.icon_manager import ima
@@ -30,9 +30,8 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
 
 
-class PathManager(QDialog, SpyderConfigurationAccessor):
+class PathManager(QDialog, SpyderWidgetMixin):
     """Path manager dialog."""
-    CONF_SECTION = 'pythonpath_manager'
 
     redirect_stdio = Signal(bool)
     sig_path_changed = Signal(object)
@@ -40,7 +39,12 @@ class PathManager(QDialog, SpyderConfigurationAccessor):
     def __init__(self, parent, path=None, project_path=None,
                  not_active_path=None, sync=True):
         """Path manager dialog."""
-        super(PathManager, self).__init__(parent)
+        if PYQT5:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QDialog.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
+
         assert isinstance(path, (tuple, type(None)))
 
         self.path = path or ()
