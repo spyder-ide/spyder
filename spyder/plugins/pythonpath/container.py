@@ -111,7 +111,14 @@ class PythonpathContainer(PluginMainContainer):
 
     def show_path_manager(self):
         """Show path manager dialog."""
+        # Set main attributes saved here
+        self.path_manager_dialog.path = self.path
+        self.path_manager_dialog.not_active_path = self.not_active_path
+
+        # Setup its contents again
         self.path_manager_dialog.setup()
+
+        # Show and give it focus
         self.path_manager_dialog.show()
         self.path_manager_dialog.activateWindow()
         self.path_manager_dialog.raise_()
