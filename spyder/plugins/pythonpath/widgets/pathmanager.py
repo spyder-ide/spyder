@@ -306,11 +306,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         env = get_user_env()
 
-        # Don't include project path because that's transient
-        active_path = [
-            k for k, v in self.get_path_dict(True).items()
-            if (v and k not in self.project_path)
-        ]
+        # This doesn't include the project path because it's a transient
+        # directory, i.e. only used in Spyder and during specific
+        # circumstances.
+        active_path = [k for k, v in self.get_path_dict().items() if v]
 
         if answer == QMessageBox.Yes:
             ppath = active_path
@@ -327,19 +326,19 @@ class PathManager(QDialog, SpyderWidgetMixin):
         env['PYTHONPATH'] = list(ppath)
         set_user_env(env, parent=self)
 
-    def get_path_dict(self, read_only=False):
+    def get_path_dict(self, project_path=False):
         """
         Return an ordered dict with the path entries as keys and the active
         state as the value.
 
-        If `read_only` is True, the read_only entries are also included.
+        If `project_path` is True, its entries are also included.
         """
         odict = OrderedDict()
         for row in range(self.listwidget.count()):
             item = self.listwidget.item(row)
             path = item.text()
             if item not in self.headers:
-                if path in self.project_path and not read_only:
+                if path in self.project_path and not project_path:
                     continue
                 odict[path] = item.checkState() == Qt.Checked
         return odict
