@@ -343,6 +343,17 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 odict[path] = item.checkState() == Qt.Checked
         return odict
 
+    def get_user_path(self):
+        """Get current user path as displayed on listwidget."""
+        user_path = []
+        for row in range(self.listwidget.count()):
+            item = self.listwidget.item(row)
+            path = item.text()
+            if item not in self.headers:
+                if path not in (self.project_path + self.system_path):
+                    user_path.append(path)
+        return user_path
+
     def refresh(self):
         """Refresh toolbar widgets."""
         current_item = self.listwidget.currentItem()
@@ -498,6 +509,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
         item = self.listwidget.takeItem(index)
         self.listwidget.insertItem(new_index, item)
         self.listwidget.setCurrentRow(new_index)
+
+        self.user_path = self.get_user_path()
         self.refresh()
 
     def current_row(self):
