@@ -60,6 +60,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         assert isinstance(path, (tuple, type(None)))
 
+        # Match buttons style with the rest of Spyder
+        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+
         self.path = path or ()
         self.project_path = project_path or ()
         self.not_active_path = not_active_path or ()
@@ -131,9 +134,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.listwidget.itemChanged.connect(lambda x: self.refresh())
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-
-        # Set buttons style
-        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
 
         # Setup
         self.setup()
