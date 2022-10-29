@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: 'true'
+      QTCONSOLE_TESTING: 'true'
       CODECOV_TOKEN: "56731c25-9b1f-4340-8b58-35739bfbc52d"
       OS: 'linux'
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
