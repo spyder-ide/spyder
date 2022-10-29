@@ -40,4 +40,4 @@ def get_system_pythonpath():
         if (osp.isdir(path) and check_path(path))
     ]
 
-    return tuple(reversed(pythonpath))
+    return tuple(pythonpath)

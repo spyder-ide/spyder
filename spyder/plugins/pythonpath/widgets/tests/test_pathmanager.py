@@ -101,7 +101,7 @@ def test_export_to_PYTHONPATH(pathmanager, mocker):
 
     # Uncheck 'path3' and assert that it is kept in PYTHONPATH when it
     # is synchronized with Spyder's path list
-    pathmanager.listwidget.item(7).setCheckState(Qt.Unchecked)
+    pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
     pathmanager.export_pythonpath()
     expected_pathlist = ['p3', 'p1']
     env = get_user_env()

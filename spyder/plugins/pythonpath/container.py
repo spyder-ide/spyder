@@ -58,12 +58,7 @@ class PythonpathContainer(PluginMainContainer):
         self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
 
         # Path manager dialog
-        self.path_manager_dialog = PathManager(
-            parent=self,
-            path=self.path,
-            not_active_path=self.not_active_path,
-            sync=True
-        )
+        self.path_manager_dialog = PathManager(parent=self, sync=True)
         self.path_manager_dialog.sig_path_changed.connect(
             self._update_python_path)
         self.path_manager_dialog.redirect_stdio.connect(
@@ -112,8 +107,9 @@ class PythonpathContainer(PluginMainContainer):
     def show_path_manager(self):
         """Show path manager dialog."""
         # Set main attributes saved here
-        self.path_manager_dialog.path = self.path
-        self.path_manager_dialog.not_active_path = self.not_active_path
+        self.path_manager_dialog.update_paths(
+            self.path, self.not_active_path, get_system_pythonpath()
+        )
 
         # Setup its contents again
         self.path_manager_dialog.setup()

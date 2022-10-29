@@ -68,15 +68,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.not_active_path = not_active_path or ()
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
+        self.system_path = ()
+        self.user_path = []
 
-        # System and user paths
-        self.system_path = get_system_pythonpath()
-        previous_system_path = self.get_conf('system_path', ())
-
-        self.user_path = [
-            path for path in self.path
-            if path not in (self.system_path + previous_system_path)
-        ]
+        # This is necessary to run our tests
+        if self.path:
+            self.update_paths(system_path=get_system_pythonpath())
 
         # Widgets
         self.add_button = None
@@ -323,6 +320,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         os.environ['PYTHONPATH'] = os.pathsep.join(ppath)
 
+        # Update widget so changes are reflected on it immediately
+        self.update_paths(system_path=tuple(ppath))
+        self.set_conf('system_path', tuple(ppath))
+        self.setup()
+
         env['PYTHONPATH'] = list(ppath)
         set_user_env(env, parent=self)
 
@@ -353,6 +355,21 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 if path not in (self.project_path + self.system_path):
                     user_path.append(path)
         return user_path
+
+    def update_paths(self, path=None, not_active_path=None, system_path=None):
+        """Update path attributes."""
+        if path is not None:
+            self.path = path
+        if not_active_path is not None:
+            self.not_active_path = not_active_path
+        if system_path is not None:
+            self.system_path = system_path
+
+        previous_system_path = self.get_conf('system_path', ())
+        self.user_path = [
+            path for path in self.path
+            if path not in (self.system_path + previous_system_path)
+        ]
 
     def refresh(self):
         """Refresh toolbar widgets."""
