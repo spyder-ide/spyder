@@ -158,6 +158,17 @@ class PythonpathContainer(PluginMainContainer):
 
             self.path = tuple(paths)
 
+        # Update path file contents. This avoids loading paths that were
+        # removed in this session in later ones.
+        try:
+            encoding.writelines(self.path, self.PATH_FILE)
+        except OSError as e:
+            logger.error(str(e))
+
+        # Update system path so that path_manager_dialog can work with its
+        # latest contents.
+        self.set_conf('system_path', system_path)
+
         # Add system path
         if system_path:
             self.path = self.path + system_path
@@ -187,7 +198,7 @@ class PythonpathContainer(PluginMainContainer):
                 encoding.writelines(path, self.PATH_FILE)
                 encoding.writelines(not_active_path,
                                     self.NOT_ACTIVE_PATH_FILE)
-            except EnvironmentError as e:
+            except OSError as e:
                 logger.error(str(e))
 
             self.path = path
