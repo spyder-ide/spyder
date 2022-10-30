@@ -181,8 +181,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.selection_widgets = [self.movetop_button, self.moveup_button,
                                   self.movedown_button, self.movebottom_button]
         return (
-            self.selection_widgets +
-            [self.add_button, self.remove_button, self.export_button]
+            [self.add_button, self.remove_button] +
+            self.selection_widgets + [self.export_button]
         )
 
     def _create_item(self, path):
