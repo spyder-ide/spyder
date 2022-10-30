@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/jupyter/qtconsole.git
-	branch = fix-print-input-mac
-	commit = 03af737385baa58bea6c9b17ce3e2df6c56cb16c
-	parent = 6b211843a99a534331d443ffe17cb2a72458da83
+	branch = master
+	commit = cce3b656e22b5b84d907888919ef594018f213cb
+	parent = ae019138bfde5726d96d74b5c0d79c94a492bb5a
 	method = merge
 	cmdver = 0.4.3
