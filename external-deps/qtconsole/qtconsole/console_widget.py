@@ -91,6 +91,16 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                                 `tab` and arrow keys.
                     """
     )
+    gui_completion_height = Integer(0, config=True,
+        help="""
+        Set Height for completion.
+
+        'droplist'
+            Height in pixels.
+        'ncurses'
+            Maximum number of rows.
+        """
+    )
     # NOTE: this value can only be specified during initialization.
     kind = Enum(['plain', 'rich'], default_value='plain', config=True,
         help="""
@@ -265,9 +275,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self._append_before_prompt_cursor = self._control.textCursor()
         self._ansi_processor = QtAnsiCodeProcessor()
         if self.gui_completion == 'ncurses':
-            self._completion_widget = CompletionHtml(self)
+            self._completion_widget = CompletionHtml(self, self.gui_completion_height)
         elif self.gui_completion == 'droplist':
-            self._completion_widget = CompletionWidget(self)
+            self._completion_widget = CompletionWidget(self, self.gui_completion_height)
         elif self.gui_completion == 'plain':
             self._completion_widget = CompletionPlain(self)
 
@@ -2483,7 +2493,13 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         # This is necessary to solve out-of-order insertion of mixed stdin and
         # stdout stream texts.
         # Fixes spyder-ide/spyder#17710
-        if not sys.platform == 'darwin':
+        if sys.platform == 'darwin':
+            # Although this makes our tests hang on Mac, users confirmed that
+            # it's needed on that platform too.
+            # Fixes spyder-ide/spyder#19888
+            if not os.environ.get('QTCONSOLE_TESTING'):
+                QtCore.QCoreApplication.processEvents()
+        else:
             QtCore.QCoreApplication.processEvents()
 
         cursor = self._get_end_cursor()

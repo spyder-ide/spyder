@@ -124,7 +124,7 @@ class CompletionHtml(QtWidgets.QWidget):
     _slice_start = 0
     _slice_len = 4
 
-    def __init__(self, console_widget):
+    def __init__(self, console_widget, rows=10):
         """ Create a completion widget that is attached to the specified Qt
             text edit widget.
         """
@@ -133,6 +133,7 @@ class CompletionHtml(QtWidgets.QWidget):
 
         self._text_edit = console_widget._control
         self._console_widget = console_widget
+        self._rows = rows if rows > 0 else 10
         self._text_edit.installEventFilter(self)
         self._sliding_interval = None
         self._justified_items = None
@@ -312,7 +313,7 @@ class CompletionHtml(QtWidgets.QWidget):
         displaywidth = int(max(10, (width / char_width) - 1))
         items_m, ci = text.compute_item_matrix(items, empty=' ',
                                                displaywidth=displaywidth)
-        self._sliding_interval = SlidingInterval(len(items_m)-1)
+        self._sliding_interval = SlidingInterval(len(items_m)-1, width=self._rows)
 
         self._items = items_m
         self._size = (ci['rows_numbers'], ci['columns_numbers'])
