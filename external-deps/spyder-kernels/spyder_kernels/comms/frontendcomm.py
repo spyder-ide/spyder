@@ -142,7 +142,7 @@ class FrontendComm(CommBase):
         )._comm_ready()
 
     def _comm_ready_callback(self, ret):
-        """A comm has replied"""
+        """A comm has replied, so process all cached messages related to it."""
         comm = self._pending_comms.pop(self.calling_comm_id, None)
         if not comm:
             return
@@ -176,7 +176,7 @@ class FrontendComm(CommBase):
             msg['content']['data']['pickle_highest_protocol'])
 
         # IOPub might not be connected yet, keep sending messages until a
-        # reply is recieved
+        # reply is received.
         self._pending_comms[comm.comm_id] = comm
         self._notify_comm_ready(comm)
         self.kernel.io_loop.call_later(.3, self._check_comm_reply)
