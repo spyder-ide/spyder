@@ -1,6 +1,6 @@
 ![Spyder — The Scientific Python Development Environment](https://raw.githubusercontent.com/spyder-ide/spyder/master/branding/logo/spyder_readme_banner.png)
 
-*Copyright © 2009–2021 [Spyder Project Contributors](
+*Copyright © 2009–2022 [Spyder Project Contributors](
 https://github.com/spyder-ide/spyder/graphs/contributors)*
 
 *Some source files and icons may be under other authorship/licenses; see
@@ -8,7 +8,6 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 
 ## Project status
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/spyder/master?urlpath=%2Fdesktop)
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE.txt)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
@@ -25,6 +24,15 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 [![Crowdin](https://badges.crowdin.net/spyder/localized.svg)](https://crowdin.com/project/spyder)
+
+## Try Spyder online
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/binder-environments/spyder-stable?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fspyder-ide%252FSpyder-Workshop%26urlpath%3Ddesktop%252F%26branch%3Dmaster): By clicking on the link to the left you'll be able to test the latest Spyder version in your browser.
+
+----
+
+## How Spyder looks
+
 
 ![Screenshot of Spyder's main window](https://raw.githubusercontent.com/spyder-ide/spyder/5.x/img_src/screenshot.png)
 
