@@ -202,7 +202,8 @@ To release a new version of Spyder you need to follow these steps:
     https://github.com/spyder-ide/spyder/blob/5.x/setup.py
   - After merging, give a ping to `@anaconda-pkg-build` about the new release.
 
-* Update binder related elements when the new Spyder version is available on Conda-forge:
-  - binder-environment repo ([`spyder-stable` branch](https://github.com/spyder-ide/binder-environments/tree/spyder-stable)): Update the spyder version on the environment file ([`binder/environment.yml`](https://github.com/spyder-ide/binder-environments/blob/spyder-stable/binder/environment.yml))
+* Update Binder related elements when the new Spyder version is available in Conda-forge:
+  - Update the Spyder version on the environment file ([`binder/environment.yml`](https://github.com/spyder-ide/binder-environments/blob/spyder-stable/binder/environment.yml)) of the ([`spyder-stable` branch](https://github.com/spyder-ide/binder-environments/tree/spyder-stable)) in the `binder-environments` repo.
+  - Update `environment.yml` files of the [`master`](https://github.com/spyder-ide/binder-environments/blob/master/binder/environment.yml) and [`5.x`](https://github.com/spyder-ide/binder-environments/blob/5.x/binder/environment.yml) branches of `binder-environments` with the contents of the `binder/environment.yml` file present on this repo.
 
 * Publish release announcement to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been built.
