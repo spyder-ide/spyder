@@ -74,6 +74,7 @@ ERROR_SPYDER_KERNEL_VERSION_OLD = _(
     "</pre>"
 )
 
+
 class KernelConnectionState:
     SpyderKernelReady = 'spyder_kernel_ready'
     IpykernelReady = 'ipykernel_ready'
@@ -112,16 +113,19 @@ class KernelHandler(QObject):
 
     sig_stdout = Signal(str)
     """
-    A stdout message was recieved on the process stdout.
+    A stdout message was received on the process stdout.
     """
+
     sig_stderr = Signal(str)
     """
-    A stderr message was recieved on the process stderr.
+    A stderr message was received on the process stderr.
     """
+
     sig_fault = Signal(str)
     """
-    A fault message was recieved.
+    A fault message was received.
     """
+
     sig_kernel_connection_state = Signal()
     """
     The spyder kernel state has changed.
@@ -176,6 +180,7 @@ class KernelHandler(QObject):
         if self.connection_state != KernelConnectionState.Connecting:
             # Emit signal in case the connection is already made
             self.sig_kernel_connection_state.emit()
+
         # Show initial io
         if self._init_stderr:
             self.sig_stderr.emit(self._init_stderr)
@@ -258,6 +263,7 @@ class KernelHandler(QObject):
                 return
 
         self.known_spyder_kernel = True
+
         # Open comm and wait for comm ready reply
         self.kernel_comm.open_comm(self.kernel_client)
 
@@ -269,6 +275,7 @@ class KernelHandler(QObject):
     def connect_std_pipes(self):
         """Connect to std pipes."""
         self.close_std_threads()
+
         # Connect new threads
         if self.kernel_manager is None:
             return
@@ -476,7 +483,6 @@ class KernelHandler(QObject):
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
             km.stop_restarter()
-
             self.disconnect_std_pipes()
 
             if now:
