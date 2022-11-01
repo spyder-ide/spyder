@@ -119,7 +119,7 @@ class KernelComm(CommBase, QObject):
     def on_incoming_call(self, call_dict):
         """A call was received"""
         super().on_incoming_call(call_dict)
-        # Just in case the call was not recieved
+        # Just in case the call was not received
         self._comm_ready()
 
     # ---- Private -----

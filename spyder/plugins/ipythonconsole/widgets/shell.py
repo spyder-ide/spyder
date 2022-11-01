@@ -117,7 +117,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # To save values and messages returned by the kernel
     _kernel_is_starting = True
 
-    # Request plugins to send additional configuration to the spyder kernel
+    # Request plugins to send additional configuration to the Spyder kernel
     sig_config_spyder_kernel = Signal()
 
     # To notify of kernel connection / disconnection
@@ -175,7 +175,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     @property
     def spyder_kernel_ready(self):
-        """Check if spyder kernel is ready. Used for tests."""
+        """
+        Check if Spyder kernel is ready.
+        
+        Notes
+        -----
+        This is used for our tests.
+        """
         if self.kernel_handler is None:
             return False
         return (
@@ -283,10 +289,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def setup_spyder_kernel(self):
         """Setup spyder kernel"""
         if not self._init_kernel_setup:
-            self._init_kernel_setup = True
             # Only do this setup once
+            self._init_kernel_setup = True
+            
+            # For errors
             self.kernel_handler.kernel_comm.sig_exception_occurred.connect(
                 self.sig_exception_occurred)
+
             # For completions
             self.kernel_client.control_channel.message_received.connect(
                 self._dispatch)

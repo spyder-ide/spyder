@@ -178,8 +178,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Configuration after the prompt is shown."""
         if self.kernel_handler.connection_state not in [
                 KernelConnectionState.SpyderKernelReady,
-                KernelConnectionState.IpykernelReady
-                ]:
+                KernelConnectionState.IpykernelReady]:
             # The kernel is not ready
             return
         self.start_successful = True
@@ -633,7 +632,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Disconnect the std pipes so errors will not mess with the restart
         self.kernel_handler.disconnect_std_pipes()
 
-        # Reconfigure client before the new kernel is connected again.
+        # Show loading page again
         self._show_loading_page()
 
         # Create and run restarting thread
