@@ -31,6 +31,12 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.utils.programs import check_version_range
 
 
+if os.name == "nt":
+    ssh_tunnel = zmqtunnel.paramiko_tunnel
+else:
+    ssh_tunnel = openssh_tunnel
+
+
 # Localization
 _ = get_translation("spyder")
 
@@ -81,11 +87,6 @@ class KernelConnectionState:
     Connecting = 'connecting'
     Error = 'error'
     Closed = 'closed'
-
-if os.name == "nt":
-    ssh_tunnel = zmqtunnel.paramiko_tunnel
-else:
-    ssh_tunnel = openssh_tunnel
 
 
 class StdThread(QThread):
