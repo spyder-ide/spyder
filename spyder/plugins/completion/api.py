@@ -229,13 +229,16 @@ TEXT_EDITOR_CAPABILITES = {
         # Code completion can be turned on/off dynamically.
         "dynamicRegistration": True,
 
-        # Client (Spyder) supports snippets as insert text.
-        # A snippet can define tab stops and placeholders with `$1`, `$2`
-        # and `${3:foo}`. `$0` defines the final tab stop, it defaults to
-        # the end of the snippet. Placeholders with equal identifiers are
-        # linked, that is typing in one will update others too.
         "completionItem": {
-            "snippetSupport": True
+            # Client (Spyder) supports snippets as insert text.
+            # A snippet can define tab stops and placeholders with `$1`, `$2`
+            # and `${3:foo}`. `$0` defines the final tab stop, it defaults to
+            # the end of the snippet. Placeholders with equal identifiers are
+            # linked, that is typing in one will update others too.
+            "snippetSupport": True,
+
+            # Completion item docs can only be handled in plain text
+            "documentationFormat": ['plaintext'],
         }
     },
 
@@ -243,7 +246,10 @@ TEXT_EDITOR_CAPABILITES = {
     # hover information at a given text document position.
     "hover": {
         # Hover introspection can be turned on/off dynamically.
-        "dynamicRegistration": True
+        "dynamicRegistration": True,
+
+        # Hover contents can only be handled in plain text by Spyder
+        "contentFormat": ['plaintext'],
     },
 
     # The signature help request is sent from the client to the server to
@@ -251,7 +257,12 @@ TEXT_EDITOR_CAPABILITES = {
     "signatureHelp": {
         # Function/Class/Method signature hinting can be turned on/off
         # dynamically.
-        "dynamicRegistration": True
+        "dynamicRegistration": True,
+
+        # Signature docs can only be handled in plain text by Spyder
+        "signatureInformation": {
+            "documentationFormat": ['plaintext'],
+        }
     },
 
     # Editor allows to find references.
