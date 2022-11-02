@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/jupyter/qtconsole.git
 	branch = master
-	commit = be40bce4ce01d282a69fe6071e155df66ae4b41b
-	parent = 4ed1cbe3fcbe0fc224b167e17b4201f61cbdba27
+	commit = cce3b656e22b5b84d907888919ef594018f213cb
+	parent = ae019138bfde5726d96d74b5c0d79c94a492bb5a
 	method = merge
 	cmdver = 0.4.3
