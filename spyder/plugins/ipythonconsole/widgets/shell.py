@@ -202,13 +202,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.sig_shellwidget_created.emit(self)
 
         # Connect signals
-        kernel_handler.sig_kernel_connection_state.connect(
+        kernel_handler.sig_kernel_is_ready.connect(
             self.handle_kernel_state_changed)
+        kernel_handler.sig_kernel_connection_error.connect(
+            self.handle_kernel_connection_error)
 
         kernel_handler.connect()
 
-    def handle_kernel_state_changed(self):
-        """The kernel status changed"""
+    def handle_kernel_is_ready(self):
+        """The kernel is ready"""
         if (
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
@@ -216,11 +218,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.setup_spyder_kernel()
             return
 
+    def handle_kernel_connection_error(self):
+        """An error occured."""
         if self.kernel_handler.connection_state == KernelConnectionState.Error:
             # A wrong version is connected
             self.append_html_message(
                 self.kernel_handler.kernel_error_message, before_prompt=True)
-            return
 
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""

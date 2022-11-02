@@ -175,7 +175,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     # ----- Private methods ---------------------------------------------------
     def _when_kernel_is_ready(self):
-        """Configuration after the prompt is shown."""
+        """
+        Configuration after the prompt is shown.
+
+        Note: 
+            This is not called on restart. For kernel setup,
+            use ShellWidget.handle_kernel_is_ready
+        """
         if self.kernel_handler.connection_state not in [
                 KernelConnectionState.SpyderKernelReady,
                 KernelConnectionState.IpykernelReady]:
@@ -183,7 +189,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return
         self.start_successful = True
 
-        self.kernel_handler.sig_kernel_connection_state.disconnect(
+        self.kernel_handler.sig_kernel_is_ready.disconnect(
             self._when_kernel_is_ready)
 
         # To hide the loading page
@@ -338,7 +344,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_stderr.connect(self.print_stderr)
         kernel_handler.sig_stdout.connect(self.print_stdout)
         kernel_handler.sig_fault.connect(self.print_fault)
-        kernel_handler.sig_kernel_connection_state.connect(
+        kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
         self._show_loading_page()
 

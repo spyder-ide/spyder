@@ -127,9 +127,14 @@ class KernelHandler(QObject):
     A fault message was received.
     """
 
-    sig_kernel_connection_state = Signal()
+    sig_kernel_is_ready = Signal()
     """
-    The spyder kernel state has changed.
+    The kernel is ready.
+    """
+
+    sig_kernel_connection_error = Signal()
+    """
+    The kernel raised an error while connecting.
     """
 
     def __init__(
@@ -178,9 +183,13 @@ class KernelHandler(QObject):
     def connect(self):
         """Connect to shellwidget."""
         self._shellwidget_connected = True
-        if self.connection_state != KernelConnectionState.Connecting:
-            # Emit signal in case the connection is already made
-            self.sig_kernel_connection_state.emit()
+        # Emit signal in case the connection is already made
+        if self.connection_state in [
+                KernelConnectionState.IpykernelReady,
+                KernelConnectionState.SpyderKernelReady]:
+            self.sig_kernel_is_ready.emit()
+        elif self.connection_state == KernelConnectionState.Error:
+            self.sig_kernel_connection_error.emit()
 
         # Show initial io
         if self._init_stderr:
@@ -237,11 +246,11 @@ class KernelHandler(QObject):
                 )
                 self.connection_state = KernelConnectionState.Error
                 self.known_spyder_kernel = False
-                self.sig_kernel_connection_state.emit()
+                self.sig_kernel_connection_error.emit()
                 return
 
             self.connection_state = KernelConnectionState.IpykernelReady
-            self.sig_kernel_connection_state.emit()
+            self.sig_kernel_is_ready.emit()
             return
 
         version, pyexec = spyder_kernel_info
@@ -260,7 +269,7 @@ class KernelHandler(QObject):
                 )
                 self.known_spyder_kernel = False
                 self.connection_state = KernelConnectionState.Error
-                self.sig_kernel_connection_state.emit()
+                self.sig_kernel_connection_error.emit()
                 return
 
         self.known_spyder_kernel = True
@@ -271,7 +280,7 @@ class KernelHandler(QObject):
     def handle_comm_ready(self):
         """The kernel comm is ready"""
         self.connection_state = KernelConnectionState.SpyderKernelReady
-        self.sig_kernel_connection_state.emit()
+        self.sig_kernel_is_ready.emit()
 
     def connect_std_pipes(self):
         """Connect to std pipes."""
