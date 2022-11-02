@@ -8,7 +8,9 @@ import os
 import pathlib
 import re
 import threading
+from typing import List, Optional
 
+import docstring_to_markdown
 import jedi
 
 JEDI_VERSION = jedi.__version__
@@ -144,15 +146,82 @@ def merge_dicts(dict_a, dict_b):
     return dict(_merge_dicts_(dict_a, dict_b))
 
 
-def format_docstring(contents):
-    """Python doc strings come in a number of formats, but LSP wants markdown.
-
-    Until we can find a fast enough way of discovering and parsing each format,
-    we can do a little better by at least preserving indentation.
+def escape_plain_text(contents: str) -> str:
+    """
+    Format plain text to display nicely in environments which do not respect whitespaces.
     """
     contents = contents.replace('\t', '\u00A0' * 4)
     contents = contents.replace('  ', '\u00A0' * 2)
     return contents
+
+
+def escape_markdown(contents: str) -> str:
+    """
+    Format plain text to display nicely in Markdown environment.
+    """
+    # escape markdown syntax
+    contents = re.sub(r'([\\*_#[\]])', r'\\\1', contents)
+    # preserve white space characters
+    contents = escape_plain_text(contents)
+    return contents
+
+
+def wrap_signature(signature):
+    return '```python\n' + signature + '\n```\n'
+
+
+SERVER_SUPPORTED_MARKUP_KINDS = {'markdown', 'plaintext'}
+
+
+def choose_markup_kind(client_supported_markup_kinds: List[str]):
+    """Choose a markup kind supported by both client and the server.
+
+    This gives priority to the markup kinds provided earlier on the client preference list.
+    """
+    for kind in client_supported_markup_kinds:
+        if kind in SERVER_SUPPORTED_MARKUP_KINDS:
+            return kind
+    return 'markdown'
+
+
+def format_docstring(contents: str, markup_kind: str, signatures: Optional[List[str]] = None):
+    """Transform the provided docstring into a MarkupContent object.
+
+    If `markup_kind` is 'markdown' the docstring will get converted to
+    markdown representation using `docstring-to-markdown`; if it is
+    `plaintext`, it will be returned as plain text.
+    Call signatures of functions (or equivalent code summaries)
+    provided in optional `signatures` argument will be prepended
+    to the provided contents of the docstring if given.
+    """
+    if not isinstance(contents, str):
+        contents = ''
+
+    if markup_kind == 'markdown':
+        try:
+            value = docstring_to_markdown.convert(contents)
+            return {
+                'kind': 'markdown',
+                'value': value
+            }
+        except docstring_to_markdown.UnknownFormatError:
+            # try to escape the Markdown syntax instead:
+            value = escape_markdown(contents)
+
+        if signatures:
+            value = wrap_signature('\n'.join(signatures)) + '\n\n' + value
+
+        return {
+            'kind': 'markdown',
+            'value': value
+        }
+    value = contents
+    if signatures:
+        value = '\n'.join(signatures) + '\n\n' + value
+    return {
+        'kind': 'plaintext',
+        'value': escape_plain_text(value)
+    }
 
 
 def clip_column(column, lines, line_number):
