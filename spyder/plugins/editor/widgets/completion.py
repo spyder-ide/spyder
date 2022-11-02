@@ -543,6 +543,10 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     def augment_completion_info(self, item):
         if self.current_selected_item_label == item['label']:
             insert_text = self._get_insert_text(item)
+
+            if isinstance(item['documentation'], dict):
+                item['documentation'] = item['documentation']['value']
+
             self.sig_completion_hint.emit(
                 insert_text,
                 item['documentation'],
