@@ -50,11 +50,14 @@ def pylsp_completions(config, document, position):
         return None
 
     completion_capabilities = config.capabilities.get('textDocument', {}).get('completion', {})
-    snippet_support = completion_capabilities.get('completionItem', {}).get('snippetSupport')
+    item_capabilities = completion_capabilities.get('completionItem', {})
+    snippet_support = item_capabilities.get('snippetSupport')
+    supported_markup_kinds = item_capabilities.get('documentationFormat', ['markdown'])
+    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
 
     should_include_params = settings.get('include_params')
-    should_include_class_objects = settings.get('include_class_objects', True)
-    should_include_function_objects = settings.get('include_function_objects', True)
+    should_include_class_objects = settings.get('include_class_objects', False)
+    should_include_function_objects = settings.get('include_function_objects', False)
 
     max_to_resolve = settings.get('resolve_at_most', 25)
     modules_to_cache_for = settings.get('cache_for', None)
@@ -69,7 +72,8 @@ def pylsp_completions(config, document, position):
     ready_completions = [
         _format_completion(
             c,
-            include_params,
+            markup_kind=preferred_markup_kind,
+            include_params=include_params if c.type in ["class", "function"] else False,
             resolve=resolve_eagerly,
             resolve_label_or_snippet=(i < max_to_resolve)
         )
@@ -82,7 +86,8 @@ def pylsp_completions(config, document, position):
             if c.type == 'class':
                 completion_dict = _format_completion(
                     c,
-                    False,
+                    markup_kind=preferred_markup_kind,
+                    include_params=False,
                     resolve=resolve_eagerly,
                     resolve_label_or_snippet=(i < max_to_resolve)
                 )
@@ -119,12 +124,18 @@ def pylsp_completions(config, document, position):
 
 
 @hookimpl
-def pylsp_completion_item_resolve(completion_item, document):
+def pylsp_completion_item_resolve(config, completion_item, document):
     """Resolve formatted completion for given non-resolved completion"""
     shared_data = document.shared_data['LAST_JEDI_COMPLETIONS'].get(completion_item['label'])
+
+    completion_capabilities = config.capabilities.get('textDocument', {}).get('completion', {})
+    item_capabilities = completion_capabilities.get('completionItem', {})
+    supported_markup_kinds = item_capabilities.get('documentationFormat', ['markdown'])
+    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+
     if shared_data:
         completion, data = shared_data
-        return _resolve_completion(completion, data)
+        return _resolve_completion(completion, data, markup_kind=preferred_markup_kind)
     return completion_item
 
 
@@ -178,18 +189,25 @@ def use_snippets(document, position):
             not (expr_type in _ERRORS and 'import' in code))
 
 
-def _resolve_completion(completion, d):
+def _resolve_completion(completion, d, markup_kind: str):
     # pylint: disable=broad-except
     completion['detail'] = _detail(d)
     try:
-        docs = _utils.format_docstring(d.docstring())
+        docs = _utils.format_docstring(
+            d.docstring(raw=True),
+            signatures=[
+                signature.to_string()
+                for signature in d.get_signatures()
+            ],
+            markup_kind=markup_kind
+        )
     except Exception:
         docs = ''
     completion['documentation'] = docs
     return completion
 
 
-def _format_completion(d, include_params=True, resolve=False, resolve_label_or_snippet=False):
+def _format_completion(d, markup_kind: str, include_params=True, resolve=False, resolve_label_or_snippet=False):
     completion = {
         'label': _label(d, resolve_label_or_snippet),
         'kind': _TYPE_MAP.get(d.type),
@@ -198,7 +216,7 @@ def _format_completion(d, include_params=True, resolve=False, resolve_label_or_s
     }
 
     if resolve:
-        completion = _resolve_completion(completion, d)
+        completion = _resolve_completion(completion, d, markup_kind)
 
     if d.type == 'path':
         path = osp.normpath(d.name)

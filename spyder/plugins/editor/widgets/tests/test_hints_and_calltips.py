@@ -10,7 +10,6 @@ import os
 import sys
 
 # Third party imports
-from qtpy import PYQT_VERSION
 from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
 import pytest

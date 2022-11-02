@@ -587,6 +587,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         editor_id = editor.get_id()
         language = editor.get_language()
         current_tree = self.editor_tree_cache[editor_id]
+        root = self.editor_items[editor_id]
         tree_info = []
 
         # Create tree with items that come from the LSP
@@ -613,25 +614,28 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         tree = IntervalTree.from_tuples(tree_info)
 
-        # Compare with current tree to check if it's necessary to update it.
-        changes = tree - current_tree
-        if tree and len(changes) == 0:
-            logger.debug(
-                f"Current and new trees for file {editor.fname} are the same, "
-                f"so no update is necessary"
-            )
-            editor.is_tree_updated = True
-            self.sig_hide_spinner.emit()
-            return False
+        # We must update the tree if the editor's root doesn't have children
+        # yet but we have symbols for it saved in the cache
+        must_update = root.node.childCount() == 0 and len(current_tree) > 0
+
+        if not must_update:
+            # Compare with current tree to check if it's necessary to update
+            # it.
+            changes = tree - current_tree
+            if tree and len(changes) == 0:
+                logger.debug(
+                    f"Current and new trees for file {editor.fname} are the "
+                    f"same, so no update is necessary"
+                )
+                editor.is_tree_updated = True
+                self.sig_hide_spinner.emit()
+                return False
 
         logger.debug(f"Updating tree for file {editor.fname}")
 
         # Create nodes with new tree
         for entry in sorted(tree):
             entry.data.create_node()
-
-        # Get root before deleting items
-        root = self.editor_items[editor_id]
 
         # Remove previous tree to create the new one.
         # NOTE: This is twice as fast as detecting the symbols that changed
