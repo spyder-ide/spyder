@@ -203,7 +203,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Connect signals
         kernel_handler.sig_kernel_is_ready.connect(
-            self.handle_kernel_state_changed)
+            self.handle_kernel_is_ready)
         kernel_handler.sig_kernel_connection_error.connect(
             self.handle_kernel_connection_error)
 
