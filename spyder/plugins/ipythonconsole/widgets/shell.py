@@ -219,7 +219,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
 
     def handle_kernel_connection_error(self):
-        """An error occured."""
+        """An error occurred when connecting to the kernel."""
         if self.kernel_handler.connection_state == KernelConnectionState.Error:
             # A wrong version is connected
             self.append_html_message(
