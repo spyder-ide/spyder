@@ -178,9 +178,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """
         Configuration after the prompt is shown.
 
-        Note: 
-            This is not called on restart. For kernel setup,
-            use ShellWidget.handle_kernel_is_ready
+        Notes
+        -----
+        This is not called on restart. For kernel setup you need to use
+        ShellWidget.handle_kernel_is_ready.
         """
         if self.kernel_handler.connection_state not in [
                 KernelConnectionState.SpyderKernelReady,
