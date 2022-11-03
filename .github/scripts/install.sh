@@ -38,9 +38,6 @@ if [ "$USE_CONDA" = "true" ]; then
     else
         mamba install 'numpy<1.23'
     fi
-
-    # Install docstring-to-markdown until we release PyLSP 1.6.0
-    mamba install docstring-to-markdown
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -65,9 +62,6 @@ else
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
-
-    # Install docstring-to-markdown until we release PyLSP 1.6.0
-    pip install docstring-to-markdown
 fi
 
 # Install subrepos from source
