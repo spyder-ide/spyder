@@ -34,7 +34,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 
@@ -59,16 +59,16 @@ EOL_SYMBOLS = [
 
 class BaseEditMixin(object):
 
-    _PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
+    _PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.COLOR_SUCCESS_2
     _DEFAULT_TITLE_COLOR = QStylePalette.COLOR_ACCENT_4
-    _CHAR_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
+    _CHAR_HIGHLIGHT_COLOR = SpyderPalette.COLOR_SUCCESS_2
     _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
-    _DEFAULT_MAX_WIDTH = 60
-    _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 52
-    _DEFAULT_MAX_HINT_LINES = 20
-    _DEFAULT_MAX_HINT_WIDTH = 85
+    _DEFAULT_MAX_WIDTH = 55
+    _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 50
+    _DEFAULT_MAX_HINT_LINES = 7
+    _DEFAULT_MAX_HINT_WIDTH = 55
 
     # The following signals are used to indicate text changes on the editor.
     sig_will_insert_text = None
@@ -186,13 +186,13 @@ class BaseEditMixin(object):
         | Link or shortcut with `inspect_word` |
         ----------------------------------------
         """
-        BASE_TEMPLATE = u'''
-            <div style=\'font-family: "{font_family}";
+        BASE_TEMPLATE = """
+            <div style='font-family: "{font_family}";
                         font-size: {size}pt;
-                        color: {color}\'>
+                        color: {color};'>
                 {main_text}
             </div>
-        '''
+        """
         # Get current font properties
         font = self.font()
         font_family = font.family()
@@ -274,13 +274,25 @@ class BaseEditMixin(object):
         # Limit max number of text displayed
         if max_lines:
             if len(lines) > max_lines:
-                text = '\n'.join(lines[:max_lines]) + ' ...'
+                text = '\n'.join(lines[:max_lines])
+
+                # Add ellipsis in a new line if necessary
+                if text[-1] == '\n':
+                    text = text + '...'
+                else:
+                    text = text + '\n...'
             else:
                 text = '\n'.join(lines)
 
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
-            text = '<br>' + text
+            # If there's enough content in the docstring or signature, then we
+            # an hr to separate them.
+            if len(lines) > 2 or signature.count('<br>') > 2:
+                separator = '<hr>'
+            else:
+                separator = '<br>'
+            text = separator + text
 
         template += BASE_TEMPLATE.format(
             font_family=font_family,
@@ -321,14 +333,12 @@ class BaseEditMixin(object):
         if help_text and inspect_word:
             if display_link:
                 template += (
-                    '<hr>'
-                    '<div align="left">'
-                    f'<span style="color: {QStylePalette.COLOR_ACCENT_4};'
-                    'text-decoration:none;'
-                    'font-family:"{font_family}";font-size:{size}pt;><i>'
-                    ''.format(font_family=font_family,
-                              size=text_size)
-                    ) + help_text + '</i></span></div>'
+                    f'<hr>'
+                    f'<div align="left">'
+                    f'<span style="color: {SpyderPalette.COLOR_SUCCESS_2};'
+                    f'text-decoration:none;'
+                    f'font-family:"{font_family}";font-size:{text_size}pt;>'
+                ) + help_text + '</span></div>'
             else:
                 template += (
                     '<hr>'
