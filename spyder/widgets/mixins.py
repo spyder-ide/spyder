@@ -446,12 +446,10 @@ class BaseEditMixin(object):
         """
         LSP hints might provide docstrings instead of signatures.
 
-        This method will check for multiple signatures (dict, type etc...) and
-        format the text accordingly.
+        This method will check for signatures (dict, type etc...) and format
+        the text accordingly.
         """
-        open_func_char = ''
         has_signature = False
-        has_multisignature = False
         language = getattr(self, 'language', language).lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
 
@@ -466,41 +464,17 @@ class BaseEditMixin(object):
 
         if language == 'python':
             open_func_char = '('
-            has_multisignature = False
-
             if inspect_word:
-                has_signature = signature_or_text.startswith(inspect_word)
+                has_signature = signature_or_text.startswith(
+                    inspect_word + open_func_char)
             else:
-                idx = signature_or_text.find(open_func_char)
-                inspect_word = signature_or_text[:idx]
-                has_signature = True
+                # Trying to find signature on first line
+                idx = lines[0].find(open_func_char)
+                if idx > 0:
+                    inspect_word = lines[0][:idx]
+                    has_signature = True
 
-            if has_signature:
-                name_plus_char = inspect_word + open_func_char
-
-                all_lines = []
-                for line in lines:
-                    if (line.startswith(name_plus_char)
-                            and line.count(name_plus_char) > 1):
-                        sublines = line.split(name_plus_char)
-                        sublines = [name_plus_char + l for l in sublines]
-                        sublines = [l.strip() for l in sublines]
-                    else:
-                        sublines = [line]
-
-                    all_lines = all_lines + sublines
-
-                lines = all_lines
-                count = 0
-                for line in lines:
-                    if line.startswith(name_plus_char):
-                        count += 1
-
-                # Signature type
-                has_signature = count == 1
-                has_multisignature = count > 1 and len(lines) > 1
-
-        if has_signature and not has_multisignature:
+        if has_signature:
             for i, line in enumerate(lines):
                 if line.strip() == '':
                     break
@@ -520,22 +494,6 @@ class BaseEditMixin(object):
                     parameter=parameter,
                     max_width=max_width
                 )
-        elif has_multisignature:
-            signature = signature_or_text.replace(name_plus_char,
-                                                  '<br>' + name_plus_char)
-            signature = signature[4:]  # Remove the first line break
-            signature = signature.replace('\n', ' ')
-            signature = signature.replace(r'\\*', '*')
-            signature = signature.replace(r'\*', '*')
-            signature = signature.replace('<br>', '\n')
-            signatures = signature.split('\n')
-            signatures = [sig for sig in signatures if sig]  # Remove empty
-            new_signature = self._format_signature(
-                signatures=signatures,
-                parameter=parameter,
-                max_width=max_width
-            )
-            extra_text = None
         else:
             new_signature = None
             extra_text = signature_or_text
