@@ -2142,18 +2142,22 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                         remove = False
                         fill = False
                         if act.area == 'screen':
-                            cursor.select(cursor.Document)
+                            cursor.select(QtGui.QTextCursor.Document)
                             remove = True
                         if act.area == 'line':
                             if act.erase_to == 'all': 
-                                cursor.select(cursor.LineUnderCursor)
+                                cursor.select(QtGui.QTextCursor.LineUnderCursor)
                                 remove = True
                             elif act.erase_to == 'start':
-                                cursor.movePosition(cursor.StartOfLine, cursor.KeepAnchor)
+                                cursor.movePosition(
+                                    QtGui.QTextCursor.StartOfLine,
+                                    QtGui.QTextCursor.KeepAnchor)
                                 remove = True
                                 fill = True
                             elif act.erase_to == 'end':
-                                cursor.movePosition(cursor.EndOfLine, cursor.KeepAnchor)
+                                cursor.movePosition(
+                                    QtGui.QTextCursor.EndOfLine,
+                                    QtGui.QTextCursor.KeepAnchor)
                                 remove = True
                         if remove: 
                             nspace=cursor.selectionEnd()-cursor.selectionStart() if fill else 0
@@ -2169,12 +2173,13 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                         cursor.deletePreviousChar()
 
                         if os.name == 'nt':
-                            cursor.select(cursor.Document)
+                            cursor.select(QtGui.QTextCursor.Document)
                             cursor.removeSelectedText()
 
                     elif act.action == 'carriage-return':
                         cursor.movePosition(
-                            cursor.StartOfLine, cursor.MoveAnchor)
+                            QtGui.QTextCursor.StartOfLine,
+                            QtGui.QTextCursor.MoveAnchor)
 
                     elif act.action == 'beep':
                         QtWidgets.QApplication.instance().beep()
@@ -2182,10 +2187,11 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     elif act.action == 'backspace':
                         if not cursor.atBlockStart():
                             cursor.movePosition(
-                                cursor.PreviousCharacter, cursor.MoveAnchor)
+                                QtGui.QTextCursor.PreviousCharacter,
+                                QtGui.QTextCursor.MoveAnchor)
 
                     elif act.action == 'newline':
-                        cursor.movePosition(cursor.EndOfLine)
+                        cursor.movePosition(QtGui.QTextCursor.EndOfLine)
 
                 # simulate replacement mode
                 if substring is not None:
@@ -2193,11 +2199,11 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     if not (hasattr(cursor,'_insert_mode') and cursor._insert_mode):
                         pos = cursor.position()
                         cursor2 = QtGui.QTextCursor(cursor)  # self._get_line_end_pos() is the previous line, don't use it
-                        cursor2.movePosition(cursor2.EndOfLine)
+                        cursor2.movePosition(QtGui.QTextCursor.EndOfLine)
                         remain = cursor2.position() - pos    # number of characters until end of line
                         n=len(substring)
                         swallow = min(n, remain)             # number of character to swallow
-                        cursor.setPosition(pos+swallow,cursor.KeepAnchor)
+                        cursor.setPosition(pos+swallow,QtGui.QTextCursor.KeepAnchor)
                     cursor.insertText(substring,format)
         else:
             cursor.insertText(text)

@@ -278,7 +278,7 @@ class TestConsoleWidget(unittest.TestCase):
         QtWidgets.QApplication.quit()
 
     def assert_text_equal(self, cursor, text):
-        cursor.select(cursor.Document)
+        cursor.select(QtGui.QTextCursor.Document)
         selection = cursor.selectedText()
         self.assertEqual(selection, text)
 

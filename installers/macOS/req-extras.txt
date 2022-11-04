@@ -1,6 +1,5 @@
 # Spyder extra packages
 autopep8
-docstring-to-markdown
 flake8
 Paramiko
 pycodestyle
