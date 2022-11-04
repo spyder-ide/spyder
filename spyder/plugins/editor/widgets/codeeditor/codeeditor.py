@@ -1983,28 +1983,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
-        # Diagnostic severity
-        icons = {
-            DiagnosticSeverity.ERROR: 'error',
-            DiagnosticSeverity.WARNING: 'warning',
-            DiagnosticSeverity.INFORMATION: 'information',
-            DiagnosticSeverity.HINT: 'hint',
-        }
-
         code_analysis = block_data.code_analysis
-
-        # Size must be adapted from font
-        fm = self.fontMetrics()
-        size = fm.height()
-        template = (
-            '<img src="data:image/png;base64, {}"'
-            ' height="{size}" width="{size}" />&nbsp;'
-            '{} <i>({} {})</i>'
-        )
-
         msglist = []
         max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
+
         for src, code, sev, msg in sorted_code_analysis:
             if src == 'pylint' and '[' in msg and ']' in msg:
                 # Remove extra redundant info from pylint messages
@@ -2051,16 +2034,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             else:
                 msg = '<br>'.join(new_paragraphs)
 
-            base_64 = ima.base64_from_icon(icons[sev], size, size)
             if max_lines_msglist >= 0:
-                msglist.append(template.format(base_64, msg, src,
-                                               code, size=size))
+                msglist.append(f'{msg} <i>({src} {code})</i>')
 
         if msglist:
             self.show_tooltip(
                 title=_("Code analysis"),
                 text='\n'.join(msglist),
-                title_color=QStylePalette.COLOR_ACCENT_4,
+                title_color=SpyderPalette.COLOR_SUCCESS_2,
                 at_line=line_number,
                 with_html_format=True
             )

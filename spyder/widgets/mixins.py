@@ -60,7 +60,7 @@ EOL_SYMBOLS = [
 class BaseEditMixin(object):
 
     _PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.COLOR_SUCCESS_2
-    _DEFAULT_TITLE_COLOR = QStylePalette.COLOR_ACCENT_4
+    _DEFAULT_TITLE_COLOR = SpyderPalette.COLOR_SUCCESS_2
     _CHAR_HIGHLIGHT_COLOR = SpyderPalette.COLOR_SUCCESS_2
     _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
     _DEFAULT_LANGUAGE = 'python'
@@ -196,8 +196,9 @@ class BaseEditMixin(object):
         # Get current font properties
         font = self.font()
         font_family = font.family()
-        title_size = font.pointSize()
-        text_size = title_size - 1 if title_size > 9 else title_size
+        font_size = font.pointSize()
+        title_size = font_size - 1 if font_size > 9 else font_size
+        text_size = title_size
         text_color = self._DEFAULT_TEXT_COLOR
 
         template = ''
