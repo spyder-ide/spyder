@@ -183,7 +183,7 @@ class BaseEditMixin(object):
         | `text` (ellided to `max_lines`)      |
         |                                      |
         ----------------------------------------
-        | Link or shortcut with `inspect_word` |
+        | Help message                         |
         ----------------------------------------
         """
         BASE_TEMPLATE = """
@@ -302,33 +302,13 @@ class BaseEditMixin(object):
         )
 
         help_text = ''
-        if inspect_word:
-            if display_link:
-                help_text = (
-                    '<span style="font-family: \'{font_family}\';'
-                    'font-size:{font_size}pt;">'
-                    'Click anywhere in this tooltip for additional help'
-                    '</span>'.format(
-                        font_size=text_size,
-                        font_family=font_family,
-                    )
-                )
-            else:
-                shortcut = self._get_inspect_shortcut()
-                if shortcut:
-                    base_style = (
-                        f'background-color:{QStylePalette.COLOR_BACKGROUND_4};'
-                        f'color:{QStylePalette.COLOR_TEXT_1};'
-                        'font-size:11px;'
-                    )
-                    help_text = ''
-                    # (
-                    #     'Press '
-                    #     '<kbd style="{1}">[</kbd>'
-                    #     '<kbd style="{1}text-decoration:underline;">'
-                    #     '{0}</kbd><kbd style="{1}">]</kbd> for aditional '
-                    #     'help'.format(shortcut, base_style)
-                    # )
+        if inspect_word and display_link:
+            help_text = (
+                f'<span style="font-family: \'{font_family}\';'
+                f'font-size:{text_size}pt;">'
+                f'Click anywhere in this tooltip for additional help'
+                f'</span>'
+            )
 
         if help_text and inspect_word:
             if display_link:
