@@ -14,6 +14,7 @@ import os
 
 # Test imports
 import pytest
+from tornado import ioloop
 
 
 # Local imports
@@ -30,6 +31,7 @@ def kernel(request):
     """Console kernel fixture"""
     # Get kernel instance
     kernel = get_kernel()
+    kernel.io_loop = ioloop.IOLoop.current()
     kernel.namespace_view_settings = {
         'check_all': False,
         'exclude_private': True,

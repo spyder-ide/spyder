@@ -165,6 +165,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         self.shellwidget.call_kernel(
             interrupt=interrupt,
             callback=self.process_remote_view
@@ -177,6 +179,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def set_namespace_view_settings(self, interrupt=True):
         """Set the namespace view settings"""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         settings = self.get_view_settings()
         self.shellwidget.call_kernel(
             interrupt=interrupt
@@ -275,6 +279,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def load_data(self, filename, ext):
         """Load data from a file."""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         overwrite = False
         if self.editor.var_properties:
             message = _('Do you want to overwrite old '
@@ -322,6 +328,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def save_data(self):
         """Save data"""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         filename = self.filename
         if filename is None:
             filename = getcwd_or_home()

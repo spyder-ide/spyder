@@ -151,8 +151,6 @@ class CommBase:
             'remote_call', self._handle_remote_call)
         self._register_message_handler(
             'remote_call_reply', self._handle_remote_call_reply)
-        self.register_call_handler('_set_pickle_protocol',
-                                   self._set_pickle_protocol)
 
     def get_comm_id_list(self, comm_id=None):
         """Get a list of comms id."""
@@ -179,18 +177,6 @@ class CommBase:
             return len(self._comms) > 0
         return comm_id in self._comms
 
-    def is_ready(self, comm_id=None):
-        """
-        Check to see if the other side replied.
-
-        The check is made with _set_pickle_protocol as this is the first call
-        made. If comm_id is not specified, check all comms.
-        """
-        id_list = self.get_comm_id_list(comm_id)
-        if len(id_list) == 0:
-            return False
-        return all([self._comms[cid]['status'] == 'ready' for cid in id_list])
-
     def register_call_handler(self, call_name, handler):
         """
         Register a remote call handler.
@@ -200,14 +186,20 @@ class CommBase:
         call_name : str
             The name of the called function.
         handler : callback
-            A function to handle the request, or `None` to unregister
-            `call_name`.
+            A function to handle the request.
         """
-        if not handler:
-            self._remote_call_handlers.pop(call_name, None)
-            return
-
         self._remote_call_handlers[call_name] = handler
+
+    def unregister_call_handler(self, call_name):
+        """
+        Unegister a remote call handler.
+
+        Parameters
+        ----------
+        call_name : str
+            The name of the called function.
+        """
+        self._remote_call_handlers.pop(call_name, None)
 
     def remote_call(self, comm_id=None, callback=None, **settings):
         """Get a handler for remote calls."""
@@ -249,7 +241,6 @@ class CommBase:
         """Set the pickle protocol used to send data."""
         protocol = min(protocol, pickle.HIGHEST_PROTOCOL)
         self._comms[self.calling_comm_id]['pickle_protocol'] = protocol
-        self._comms[self.calling_comm_id]['status'] = 'ready'
 
     @property
     def _comm_name(self):
