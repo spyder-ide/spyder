@@ -146,12 +146,6 @@ class SpyderShell(ZMQInteractiveShell):
         # Set config to pdb obj
         self.set_pdb_configuration(self._pdb_conf)
 
-        try:
-            self.kernel.frontend_call(blocking=False).set_debug_state(
-                len(self._pdb_obj_stack))
-        except (CommError, TimeoutError):
-            logger.debug("Could not send debugging state to the frontend.")
-
     def remove_pdb_session(self, pdb_obj):
         """Remove a pdb object from the stack."""
         if self.pdb_session != pdb_obj:
@@ -162,12 +156,6 @@ class SpyderShell(ZMQInteractiveShell):
         if self.pdb_session:
             # Set config to newly active pdb obj
             self.set_pdb_configuration(self._pdb_conf)
-
-        try:
-            self.kernel.frontend_call(blocking=False).set_debug_state(
-                len(self._pdb_obj_stack))
-        except (CommError, TimeoutError):
-            logger.debug("Could not send debugging state to the frontend.")
 
     @property
     def _pdb_frame(self):
