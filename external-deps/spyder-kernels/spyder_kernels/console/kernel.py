@@ -36,6 +36,7 @@ from spyder_kernels.utils.mpl import (
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
 from spyder_kernels.console.shell import SpyderShell
+from spyder_kernels.utils.iofuncs import WriteContext
 
 
 
@@ -71,7 +72,6 @@ class SpyderKernel(IPythonKernel):
             'remove_value': self.remove_value,
             'copy_value': self.copy_value,
             'set_cwd': self.set_cwd,
-            'get_cwd': self.get_cwd,
             'get_syspath': self.get_syspath,
             'get_env': self.get_env,
             'close_all_mpl_figures': self.close_all_mpl_figures,
@@ -99,6 +99,7 @@ class SpyderKernel(IPythonKernel):
         self._mpl_backend_error = None
         self._running_namespace = None
         self.faulthandler_handle = None
+        self._cwd_initialised = False
 
         # Add handlers to control to process messages while debugging
         self.control_handlers['comm_msg'] = self.control_comm_msg
@@ -123,6 +124,26 @@ class SpyderKernel(IPythonKernel):
             comm_id=comm_id,
             callback=callback,
             timeout=timeout)
+
+    def get_state(self):
+        """"get current state to send to the frontend"""
+        state = {}
+        with WriteContext("get_state"):
+            if self._cwd_initialised:
+                state["cwd"] = self.get_cwd()
+            state["namespace_view"] = self.get_namespace_view()
+            state["var_properties"] = self.get_var_properties()
+        return state
+
+    def publish_state(self):
+        """Publish the current kernel state"""
+        if not self.frontend_comm.is_open():
+            # No one to send to
+            return
+        try:
+            self.frontend_call(blocking=False).update_state(self.get_state())
+        except Exception:
+            pass
 
     def enable_faulthandler(self):
         """
@@ -599,7 +620,9 @@ class SpyderKernel(IPythonKernel):
     # --- Additional methods
     def set_cwd(self, dirname):
         """Set current working directory."""
+        self._cwd_initialised = True
         os.chdir(dirname)
+        self.publish_state()
 
     def get_cwd(self):
         """Get current working directory."""
