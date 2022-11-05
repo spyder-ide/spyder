@@ -34,6 +34,7 @@ from the following:
 # Standard library imports
 import os
 import re
+import sys
 from argparse import ArgumentParser
 from configparser import ConfigParser
 from datetime import timedelta
@@ -61,6 +62,11 @@ DIST = HERE / "dist"
 RESOURCES = HERE / "resources"
 EXTDEPS = HERE.parent / "external-deps"
 SPECS = DIST / "specs.yaml"
+REQUIREMENTS = HERE.parent / "requirements"
+REQ_MAIN = REQUIREMENTS / 'main.yml'
+REQ_WINDOWS = REQUIREMENTS / 'windows.yml'
+REQ_MAC = REQUIREMENTS / 'macos.yml'
+REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
 DIST.mkdir(exist_ok=True)
 
@@ -156,7 +162,7 @@ class BuildCondaPkg:
         self.yaml = self._yaml.load(text)
 
         self.yaml['source'] = {'path': str(self.src_path)}
-
+        
         self.yaml.pop('test', None)
         if 'outputs' in self.yaml:
             for out in self.yaml['outputs']:
@@ -165,6 +171,9 @@ class BuildCondaPkg:
         self._patch_meta()
 
         self._yaml.dump_all([self.yaml], file)
+
+        self.logger.info("Patched 'meta.yaml'...")
+        self.logger.info(file.read_text())
 
         self._patched_meta = True
 
@@ -210,10 +219,29 @@ class SpyderCondaPkg(BuildCondaPkg):
     src_path = HERE.parent
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
-
+    _yaml_yml = YAML()
+    
     def _patch_meta(self):
         self.yaml['build'].pop('osx_is_app', None)
         self.yaml.pop('app', None)
+
+        current_requirements = ['python']
+        current_requirements += self._yaml_yml.load(
+            REQ_MAIN.read_text())['dependencies']
+        if os.name == 'nt':
+            win_requirements =  self._yaml_yml.load(
+                REQ_WINDOWS.read_text())['dependencies']
+            current_requirements += win_requirements
+            current_requirements.append('ptyprocess >=0.5')
+        elif sys.platform == 'darwin':
+            mac_requirements =  self._yaml_yml.load(
+                REQ_MAC.read_text())['dependencies']
+            current_requirements += mac_requirements
+        else:
+            linux_requirements = self._yaml_yml.load(
+                REQ_LINUX.read_text())['dependencies']
+            current_requirements += linux_requirements
+        self.yaml['requirements']['run'] = current_requirements
 
         patches = self.yaml['source'].get('patches', [])
         patches.append(str(RESOURCES / "installers-conda.patch"))
