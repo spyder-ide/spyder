@@ -1,26 +1,36 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.3.3 is released!
+**Subject**: [ANN] Spyder 5.4.0 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.3.3** has been released and is available for
+I'm pleased to announce that Spyder **5.4.0** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes six weeks and five days after version 5.3.2 and it contains the
+This release comes nine weeks and four days after version 5.3.3 and it contains the
 following new features and important fixes:
 
-* Printing files now uses a light syntax highlighting theme to prevent printing files with dark backgrounds.
-* MacOS standalone installer now are build using MacOS 11 instead of MacOS 10.15
-* Fix several bugs related with the Layout plugin (save visible plugins to restore their visiility and tabify behavior for external plugins).
-* Fix several bugs related with the focus management between the Editor and other panes.
-* Improve Find and Replace speed on the Editor.
-* Fixes to the MacOS standalone application to support being code signed.
+* New UI/UX elements to update standalone installers with options to download and install a new version if available.
+* New experimental conda-based standalone installers for MacOS and Linux (available on the GitHub release page with the `EXPERIMENTAL-` prefix)
+* Now the Code Analysis/Pylint plugin uses the current custom interpreter/environment if set
+* Option to show user environment variables extended to all operative systems (previously available only for Windows)
+* Improve Outline Explorer plugin performance and fix updating process when it becomes visible
+* Improvements to colors on the dependencies dialog and IPython console
+* Fix IPython console issues on the Matplotlib TkInter backend with debugging and an increase of CPU and memory usage while in an idle state
+* Fix IPython console memory leak when using the Matplotlib Qt ackend
+* Fix IPython console `input()` issue on MacOS
+* Fix IPython console kernel error regarding environment path as unexpected argument
+* Fix Spyder 3 icon theme load on Windows with untrusted fonts security restrictions
+* Fix the `Autoformat files on save` functionality to not hang with non-Python files
+* Some fixes for cell execution on Python 3.11
+* Some fixes to shortcuts (Switch to Editor, Find Next, Find Previous)
+* Some fixes to improve compatibility with PySide2
+* Some fixes to prevent blurry SVG icons
 
-In this release we fixed 33 issues and merged 48 pull requests that amount
-to more than 225 commits. For a full list of fixes, please see our
+In this release we fixed 48 issues and merged 59 pull requests that amount
+to more than 292 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

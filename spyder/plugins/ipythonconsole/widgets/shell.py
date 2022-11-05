@@ -116,7 +116,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # To save values and messages returned by the kernel
     _kernel_is_starting = True
 
-    # Request plugins to send additional configuration to the spyder kernel
+    # Request plugins to send additional configuration to the Spyder kernel
     sig_config_spyder_kernel = Signal()
 
     # To notify of kernel connection / disconnection
@@ -174,7 +174,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     @property
     def spyder_kernel_ready(self):
-        """Check if spyder kernel is ready. Used for tests."""
+        """
+        Check if Spyder kernel is ready.
+        
+        Notes
+        -----
+        This is used for our tests.
+        """
         if self.kernel_handler is None:
             return False
         return (
@@ -199,8 +205,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._starting = False
 
         # Connect signals
-        kernel_handler.sig_kernel_connection_state.connect(
-            self.handle_kernel_state_changed)
+        kernel_handler.sig_kernel_is_ready.connect(
+            self.handle_kernel_is_ready)
+        kernel_handler.sig_kernel_connection_error.connect(
+            self.handle_kernel_connection_error)
 
         kernel_handler.connect()
 
@@ -244,8 +252,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = None
         self.kernel_handler = None
 
-    def handle_kernel_state_changed(self):
-        """The kernel status changed"""
+    def handle_kernel_is_ready(self):
+        """The kernel is ready"""
         if (
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
@@ -253,11 +261,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.setup_spyder_kernel()
             return
 
+    def handle_kernel_connection_error(self):
+        """An error occurred when connecting to the kernel."""
         if self.kernel_handler.connection_state == KernelConnectionState.Error:
             # A wrong version is connected
             self.append_html_message(
                 self.kernel_handler.kernel_error_message, before_prompt=True)
-            return
 
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""
@@ -323,10 +332,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def setup_spyder_kernel(self):
         """Setup spyder kernel"""
         if not self._init_kernel_setup:
-            self._init_kernel_setup = True
             # Only do this setup once
+            self._init_kernel_setup = True
+            
+            # For errors
             self.kernel_handler.kernel_comm.sig_exception_occurred.connect(
                 self.sig_exception_occurred)
+
             # For completions
             self.kernel_client.control_channel.message_received.connect(
                 self._dispatch)

@@ -733,7 +733,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """Clears the current line of output."""
         cursor = self._control.textCursor()
         cursor.beginEditBlock()
-        cursor.movePosition(cursor.StartOfLine, cursor.KeepAnchor)
+        cursor.movePosition(QtGui.QTextCursor.StartOfLine,
+                            QtGui.QTextCursor.KeepAnchor)
         cursor.insertText('')
         cursor.endEditBlock()
 

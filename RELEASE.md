@@ -111,7 +111,7 @@ To release a new version of Spyder you need to follow these steps:
   - `spyder/dependencies.py`
   - `requirements/{main,windows,macos,linux}.yml`
   - `binder/environment.yml`
-  - `spyder/plugins/ipythonconsole/widgets/__init__.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
+  - `spyder/plugins/ipythonconsole/__init__.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
 **Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
 
@@ -201,5 +201,9 @@ To release a new version of Spyder you need to follow these steps:
 
     https://github.com/spyder-ide/spyder/blob/5.x/setup.py
   - After merging, give a ping to `@anaconda-pkg-build` about the new release.
+
+* Update Binder related elements when the new Spyder version is available in Conda-forge:
+  - Update the Spyder version on the environment file ([`binder/environment.yml`](https://github.com/spyder-ide/binder-environments/blob/spyder-stable/binder/environment.yml)) of the ([`spyder-stable` branch](https://github.com/spyder-ide/binder-environments/tree/spyder-stable)) in the `binder-environments` repo.
+  - Update `environment.yml` files of the [`master`](https://github.com/spyder-ide/binder-environments/blob/master/binder/environment.yml) and [`5.x`](https://github.com/spyder-ide/binder-environments/blob/5.x/binder/environment.yml) branches of `binder-environments` with the contents of the `binder/environment.yml` file present on this repo.
 
 * Publish release announcement to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been built.

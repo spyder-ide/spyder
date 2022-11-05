@@ -64,8 +64,11 @@ class UpdateInstallation(QWidget):
         self._progress_bar.setFixedWidth(180)
         self.cancel_button = QPushButton()
         self.cancel_button.setIcon(ima.icon('DialogCloseButton'))
+        self.cancel_button.setFixedHeight(25)
+        self.cancel_button.setFixedWidth(25)
         progress_layout.addWidget(self._progress_bar, alignment=Qt.AlignLeft)
         progress_layout.addWidget(self.cancel_button)
+        progress_layout.setAlignment(Qt.AlignVCenter)
         self._progress_widget.setLayout(progress_layout)
 
         self._progress_label = QLabel(_('Downloading'))

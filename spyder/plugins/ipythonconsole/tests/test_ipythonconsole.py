@@ -1306,12 +1306,13 @@ def test_kernel_crash(ipyconsole, qtbot):
             lambda: check_text(webpage, "Bad config encountered"),
             timeout=6000)
 
-        # Wait until the error has been recieved by the cached kernel_handler
+        # Wait until the error has been received by the cached kernel_handler
         qtbot.waitUntil(lambda: bool(
             ipyconsole.get_widget()._cached_kernel_properties[-1]._init_stderr
         ))
-        # create a new client
+        # Create a new client
         ipyconsole.create_new_client()
+
         # Assert that the console is showing an error
         # even if the error happened before the connection
         error_client = ipyconsole.get_clients()[-1]
@@ -2124,9 +2125,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
         ipyconsole.create_new_client()
         shell = ipyconsole.get_current_shellwidget()
         qtbot.waitUntil(
-            lambda: (
-                shell.spyder_kernel_ready
-                and shell._prompt_html is not None),
+            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
             timeout=SHELL_TIMEOUT)
 
         with qtbot.waitSignal(shell.executed):
@@ -2280,6 +2279,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
             KernelConnectionState.SpyderKernelReady
         ),
         timeout=SHELL_TIMEOUT)
+
     # Set wrong version
     kernel_handler.check_spyder_kernel_info(('1.0.0', ''))
 

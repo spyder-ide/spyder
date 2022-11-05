@@ -375,7 +375,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     # --- To Sort --------------------------------------------------
     def stop_debugging(self):
         """Stop debugging."""
-        if (self.spyder_kernel_ready and not self.is_waiting_pdb_input()):
+        if self.spyder_kernel_ready and not self.is_waiting_pdb_input():
             self.interrupt_kernel()
         self.pdb_execute_command("exit")
 

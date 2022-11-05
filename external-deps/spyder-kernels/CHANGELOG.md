@@ -1,5 +1,29 @@
 # History of changes
 
+## Version 2.4.0 (2022-11-02)
+
+### New features
+
+* Add support for Python 3.11
+* Flush standard streams after execution.
+
+### Pull Requests Merged
+
+* [PR 428](https://github.com/spyder-ide/spyder-kernels/pull/428) - PR: Patch for CVE-2007-4559 Tar directory traversal, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 426](https://github.com/spyder-ide/spyder-kernels/pull/426) - PR: Update ipykernel constraint to >=6.16.1, by [@dalthviz](https://github.com/dalthviz)
+* [PR 423](https://github.com/spyder-ide/spyder-kernels/pull/423) - PR: Fix lineno range, by [@impact27](https://github.com/impact27) ([19862](https://github.com/spyder-ide/spyder/issues/19862))
+* [PR 422](https://github.com/spyder-ide/spyder-kernels/pull/422) - PR: Make comm lock reentrant, by [@impact27](https://github.com/impact27)
+* [PR 420](https://github.com/spyder-ide/spyder-kernels/pull/420) - PR: Only access sys.stdout and sys.stderr once, by [@impact27](https://github.com/impact27)
+* [PR 416](https://github.com/spyder-ide/spyder-kernels/pull/416) - PR: Fix some errors when computing the namespace view, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 415](https://github.com/spyder-ide/spyder-kernels/pull/415) - PR: Fix tk eventloop handling when debugging on Windows, by [@dalthviz](https://github.com/dalthviz)
+* [PR 413](https://github.com/spyder-ide/spyder-kernels/pull/413) - PR: Flush standard streams after execution, by [@impact27](https://github.com/impact27)
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
 ## Version 2.3.3 (2022-08-28)
 
 ### Issues Closed

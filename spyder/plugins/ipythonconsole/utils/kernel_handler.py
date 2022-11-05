@@ -31,6 +31,12 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.utils.programs import check_version_range
 
 
+if os.name == "nt":
+    ssh_tunnel = zmqtunnel.paramiko_tunnel
+else:
+    ssh_tunnel = openssh_tunnel
+
+
 # Localization
 _ = get_translation("spyder")
 
@@ -74,17 +80,13 @@ ERROR_SPYDER_KERNEL_VERSION_OLD = _(
     "</pre>"
 )
 
+
 class KernelConnectionState:
     SpyderKernelReady = 'spyder_kernel_ready'
     IpykernelReady = 'ipykernel_ready'
     Connecting = 'connecting'
     Error = 'error'
     Closed = 'closed'
-
-if os.name == "nt":
-    ssh_tunnel = zmqtunnel.paramiko_tunnel
-else:
-    ssh_tunnel = openssh_tunnel
 
 
 class StdThread(QThread):
@@ -112,19 +114,27 @@ class KernelHandler(QObject):
 
     sig_stdout = Signal(str)
     """
-    A stdout message was recieved on the process stdout.
+    A stdout message was received on the process stdout.
     """
+
     sig_stderr = Signal(str)
     """
-    A stderr message was recieved on the process stderr.
+    A stderr message was received on the process stderr.
     """
+
     sig_fault = Signal(str)
     """
-    A fault message was recieved.
+    A fault message was received.
     """
-    sig_kernel_connection_state = Signal()
+
+    sig_kernel_is_ready = Signal()
     """
-    The spyder kernel state has changed.
+    The kernel is ready.
+    """
+
+    sig_kernel_connection_error = Signal()
+    """
+    The kernel raised an error while connecting.
     """
 
     def __init__(
@@ -173,9 +183,14 @@ class KernelHandler(QObject):
     def connect(self):
         """Connect to shellwidget."""
         self._shellwidget_connected = True
-        if self.connection_state != KernelConnectionState.Connecting:
-            # Emit signal in case the connection is already made
-            self.sig_kernel_connection_state.emit()
+        # Emit signal in case the connection is already made
+        if self.connection_state in [
+                KernelConnectionState.IpykernelReady,
+                KernelConnectionState.SpyderKernelReady]:
+            self.sig_kernel_is_ready.emit()
+        elif self.connection_state == KernelConnectionState.Error:
+            self.sig_kernel_connection_error.emit()
+
         # Show initial io
         if self._init_stderr:
             self.sig_stderr.emit(self._init_stderr)
@@ -231,11 +246,11 @@ class KernelHandler(QObject):
                 )
                 self.connection_state = KernelConnectionState.Error
                 self.known_spyder_kernel = False
-                self.sig_kernel_connection_state.emit()
+                self.sig_kernel_connection_error.emit()
                 return
 
             self.connection_state = KernelConnectionState.IpykernelReady
-            self.sig_kernel_connection_state.emit()
+            self.sig_kernel_is_ready.emit()
             return
 
         version, pyexec = spyder_kernel_info
@@ -254,21 +269,23 @@ class KernelHandler(QObject):
                 )
                 self.known_spyder_kernel = False
                 self.connection_state = KernelConnectionState.Error
-                self.sig_kernel_connection_state.emit()
+                self.sig_kernel_connection_error.emit()
                 return
 
         self.known_spyder_kernel = True
+
         # Open comm and wait for comm ready reply
         self.kernel_comm.open_comm(self.kernel_client)
 
     def handle_comm_ready(self):
         """The kernel comm is ready"""
         self.connection_state = KernelConnectionState.SpyderKernelReady
-        self.sig_kernel_connection_state.emit()
+        self.sig_kernel_is_ready.emit()
 
     def connect_std_pipes(self):
         """Connect to std pipes."""
         self.close_std_threads()
+
         # Connect new threads
         if self.kernel_manager is None:
             return
@@ -476,7 +493,6 @@ class KernelHandler(QObject):
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
             km.stop_restarter()
-
             self.disconnect_std_pipes()
 
             if now:

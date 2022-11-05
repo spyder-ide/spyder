@@ -14,6 +14,7 @@ jobs:
     runs-on: macos-latest
     env:
       CI: True
+      QTCONSOLE_TESTING: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'macos'
     strategy:
