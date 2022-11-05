@@ -421,7 +421,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self._set_actions_and_menus(nsb)
 
         # To update the Variable Explorer after execution
-        shellwidget.executed.connect(nsb.refresh_namespacebrowser)
+        shellwidget.sig_kernel_state.connect(nsb.from_state)
         shellwidget.sig_config_spyder_kernel.connect(nsb.setup_kernel)
         return nsb
 
@@ -431,7 +431,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.sig_free_memory_requested.disconnect(self.free_memory)
         nsb.sig_start_spinner_requested.disconnect(self.start_spinner)
         nsb.sig_stop_spinner_requested.disconnect(self.stop_spinner)
-        nsb.shellwidget.executed.disconnect(nsb.refresh_namespacebrowser)
+        nsb.shellwidget.sig_kernel_state.disconnect(nsb.from_state)
         nsb.shellwidget.sig_config_spyder_kernel.disconnect(
             nsb.setup_kernel)
 

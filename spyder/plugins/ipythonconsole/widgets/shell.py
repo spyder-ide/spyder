@@ -124,6 +124,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
 
+    sig_kernel_state = Signal(dict)
+    """The kernel sent a new state to process"""
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  handlers, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -156,6 +159,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'set_debug_state': self.set_debug_state,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
+            'update_state': self.update_state,
+
         })
         self.kernel_comm_handlers = handlers
 
@@ -425,24 +430,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         return self._cwd
 
-    def update_cwd(self):
+    def update_state(self, state):
         """
-        Update working directory in Spyder after getting its value from the
-        kernel.
+        New state recieved from kernel.
         """
-        if not self.spyder_kernel_ready:
-            # Frontend sends first
-            return
-        self.call_kernel(callback=self.on_getting_cwd).get_cwd()
-
-    def on_getting_cwd(self, cwd):
-        """
-        If necessary, notify that the working directory was changed to other
-        plugins.
-        """
-        if cwd != self._cwd:
+        cwd = state.pop("cwd", None)
+        if cwd and self._cwd and cwd != self._cwd:
+            # Only set it self._cwd is already set
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
+        if state:
+            self.sig_kernel_state.emit(state)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""

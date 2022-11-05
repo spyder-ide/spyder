@@ -427,9 +427,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
 
-        # To sync with working directory toolbar
-        self.shellwidget.executed.connect(self.shellwidget.update_cwd)
-
     def add_to_history(self, command):
         """Add command to history"""
         if self.shellwidget.is_debugging():

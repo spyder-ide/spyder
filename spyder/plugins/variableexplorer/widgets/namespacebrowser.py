@@ -163,6 +163,14 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         except TypeError:
             pass
 
+    @Slot(dict)
+    def from_state(self, state):
+        """Get from state."""
+        if "namespace_view" in state:
+            self.process_remote_view(state.pop("namespace_view"))
+        if "var_properties" in state:
+            self.set_var_properties(state.pop("var_properties"))
+
     def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
         if not self.shellwidget.spyder_kernel_ready:

@@ -1971,12 +1971,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if dirname and osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
 
-    def update_working_directory(self):
-        """Update working directory to console cwd."""
-        shellwidget = self.get_current_shellwidget()
-        if shellwidget is not None:
-            shellwidget.update_cwd()
-
     def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""
         for client in self.clients:
