@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-10-17 13:23-0500\n"
-"PO-Revision-Date: 2022-10-20 20:09\n"
+"PO-Revision-Date: 2022-11-05 18:25\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -4649,7 +4649,7 @@ msgstr "UMR aktivieren"
 
 #: spyder/plugins/maininterpreter/confpage.py:122
 msgid "This option will enable the User Module Reloader (UMR) in Python/IPython consoles. UMR forces Python to reload deeply modules during import when running a Python file using the Spyder's builtin function <b>runfile</b>.<br><br><b>1.</b> UMR may require to restart the console in which it will be called (otherwise only newly imported modules will be reloaded when executing files).<br><br><b>2.</b> If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <b>Qt.WA_DeleteOnClose</b> on your main window, using the <b>setAttribute</b> method)"
-msgstr ""
+msgstr "Mit dieser Option wird der User Module Reloader (UMR) in Python/IPython-Konsolen aktiviert. UMR zwingt Python, während des Imports tiefe Module nachzuladen, wenn eine Python-Datei mit der eingebauten Spyder-Funktion <b>runfile</b> ausgeführt wird.<br><br><b>1.</b> UMR erfordert möglicherweise einen Neustart der Konsole, in der es aufgerufen wird (andernfalls werden beim Ausführen von Dateien nur neu importierte Module neu geladen).<br><br><b>2.</b> Wenn beim erneuten Ausführen eines PyQt-basierten Programms Fehler auftreten, überprüfen Sie bitte, ob die Qt-Objekte ordnungsgemäß zerstört wurden (z. B. müssen Sie möglicherweise das Attribut <b>Qt.WA_DeleteOnClose</b> in Ihrem Hauptfenster verwenden, indem Sie die Methode <b>setAttribute</b> benutzen)"
 
 #: spyder/plugins/maininterpreter/confpage.py:140
 msgid "Show reloaded modules list"
@@ -6955,7 +6955,7 @@ msgstr "Abschnitt ausklappen"
 
 #: spyder/widgets/pathmanager.py:80
 msgid "The paths listed below will be passed to IPython consoles and the language server as additional locations to search for Python modules.<br><br>Any paths in your system <tt>PYTHONPATH</tt> environment variable can be imported here if you'd like to use them."
-msgstr ""
+msgstr "Die unten aufgeführten Pfade werden an die IPython-Konsolen und den Sprachserver als zusätzliche Orte für die Suche nach Python-Modulen übergeben.<br><br>Alle Pfade in der Umgebungsvariablen <tt>PYTHONPATH</tt> Ihres Systems können hier importiert werden, wenn Sie sie verwenden möchten."
 
 #: spyder/widgets/pathmanager.py:124
 msgid "Move to top"
@@ -7007,7 +7007,7 @@ msgstr "Ihre Umgebungsvariable <tt>PYTHONPATH</tt> ist leer, also gibt es nichts
 
 #: spyder/widgets/pathmanager.py:278
 msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to clear the contents of PYTHONPATH before adding Spyder's path list?"
-msgstr ""
+msgstr "Dies exportiert die Pfadliste von Spyder in die Umgebungsvariable <b>PYTHONPATH</b> für den aktuellen Benutzer, sodass Sie Ihre Python-Module außerhalb von Spyder ausführen können, ohne sys.path konfigurieren zu müssen. <br><br>Möchten Sie den Inhalt von PYTHONPATH löschen, bevor Sie die Pfadliste von Spyder hinzufügen?"
 
 #: spyder/widgets/pathmanager.py:391
 msgid "This directory is already included in the list.<br> Do you want to move it to the top of it?"
