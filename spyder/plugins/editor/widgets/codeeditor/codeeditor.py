@@ -1950,7 +1950,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def _set_completions_hint_idle(self):
         self._completions_hint_idle = True
-        self.completion_widget.trigger_completion_hint()
+        self.completion_widget.request_completion_hint()
 
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
@@ -1960,6 +1960,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                               'signature': documentation}
 
             if documentation and len(documentation) > 0:
+                # This means that only the object's signature could be resolved
+                # by the server, which won't update the hint contents.
+                if (
+                    len(documentation.split('\n\n')) == 2
+                    and documentation.startswith(word)
+                ):
+                    self.hide_tooltip()
+                    return
+
                 self.show_hint(
                     documentation,
                     inspect_word=word,
@@ -1968,8 +1977,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     max_lines=self._DEFAULT_MAX_LINES,
                     max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
                 self.tooltip_widget.move(at_point)
-                return
-        self.hide_tooltip()
+            else:
+                self.hide_tooltip()
+        else:
+            self.hide_tooltip()
 
     def update_decorations(self):
         """Update decorations on the visible portion of the screen."""

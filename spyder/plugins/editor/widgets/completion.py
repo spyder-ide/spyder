@@ -508,7 +508,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                 insert_text = insert_text.split(ch)[0]
         return insert_text
 
-    def trigger_completion_hint(self, row=None):
+    def request_completion_hint(self, row=None):
+        """Request LSP for completion hint"""
         self.current_selected_item_label = None
         self.current_selected_item_point = None
 
@@ -526,24 +527,18 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         self.current_selected_item_label = item['label']
         self.current_selected_item_point = item['point']
 
-        insert_text = self._get_insert_text(item)
-
+        # Ask LSP for completion hint
         if hasattr(self.textedit, 'resolve_completion_item'):
             if item.get('resolve', False):
                 to_resolve = item.copy()
                 to_resolve.pop('point')
                 to_resolve.pop('resolve')
                 self.textedit.resolve_completion_item(to_resolve)
-
-        if isinstance(item['documentation'], dict):
-            item['documentation'] = item['documentation']['value']
-
-        self.sig_completion_hint.emit(
-            insert_text,
-            item['documentation'],
-            item['point'])
+            else:
+                self.textedit.hide_tooltip()
 
     def augment_completion_info(self, item):
+        """Augment completion info with hints that come from the server."""
         if self.current_selected_item_label == item['label']:
             insert_text = self._get_insert_text(item)
 
@@ -557,5 +552,5 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
     @Slot(int)
     def row_changed(self, row):
-        """Set completion hint info and show it."""
-        self.trigger_completion_hint(row)
+        """Actions to take when the row has changed."""
+        self.request_completion_hint(row)
