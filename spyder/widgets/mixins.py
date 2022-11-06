@@ -23,13 +23,13 @@ import textwrap
 from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
-from qtpy.QtGui import QDesktopServices, QTextCursor, QTextDocument
+from qtpy.QtGui import (
+    QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
 from qtpy.QtWidgets import QApplication
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
@@ -91,7 +91,6 @@ class BaseEditMixin(object):
 
     def __init__(self):
         self.eol_chars = None
-        self.calltip_size = 600
 
     #------Line number area
     def get_linenumberarea_width(self):
@@ -168,15 +167,34 @@ class BaseEditMixin(object):
             }}'''.format(name, background, border)
         widget.setStyleSheet(css)
 
-    def _get_inspect_shortcut(self):
+    @property
+    def _tip_text_size(self):
+        """Text size for tooltips and calltips."""
+        font = self.font()
+        font_size = font.pointSize()
+        return (font_size - 1) if font_size > 9 else font_size
+
+    def _tip_width_in_pixels(self, max_width):
         """
-        Queries the editor's config to get the current "Inspect" shortcut.
+        Get width for tooltips and calltips in pixels.
+
+        Parameters
+        ----------
+        max_width: int
+            Max width in numbers of characters that the widget can show.
         """
-        value = CONF.get('shortcuts', 'editor/inspect current object')
-        if value:
-            if sys.platform == "darwin":
-                value = value.replace('Ctrl', 'Cmd')
-        return value
+        # Get max width using the current font and text size
+        font = self.font()
+        font.setPointSize(self._tip_text_size)
+        max_width_in_pixels = QFontMetrics(font).size(
+            Qt.TextSingleLine,
+            'M' * max_width
+        )
+
+        # We add a bit more pixels to the previous value to account for cases
+        # in which the textwrap algorithm can't break text exactly at
+        # `max_width`.
+        return max_width_in_pixels.width() + 20
 
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, title_color=None, max_lines=None,
@@ -198,6 +216,7 @@ class BaseEditMixin(object):
         | Help message                         |
         ----------------------------------------
         """
+
         BASE_TEMPLATE = """
             <div style='font-family: "{font_family}";
                         font-size: {size}pt;
@@ -205,19 +224,17 @@ class BaseEditMixin(object):
                 {main_text}
             </div>
         """
+
         # Get current font properties
-        font = self.font()
-        font_family = font.family()
-        font_size = font.pointSize()
-        title_size = font_size - 1 if font_size > 9 else font_size
-        text_size = title_size
+        font_family = self.font().family()
+        text_size = self._tip_text_size
         text_color = self._DEFAULT_TEXT_COLOR
 
         template = ''
         if title:
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
-                size=title_size,
+                size=text_size,
                 color=title_color,
                 main_text=title,
             )
@@ -563,6 +580,12 @@ class BaseEditMixin(object):
 
         self._update_stylesheet(self.calltip_widget)
 
+        # Set a max width so the widget doesn't show up too large due to its
+        # content, which looks bad.
+        self.calltip_widget.setMaximumWidth(
+            self._tip_width_in_pixels(max_width)
+        )
+
         # Show calltip
         self.calltip_widget.show_tip(point, text, [])
         self.calltip_widget.show()
@@ -597,6 +620,12 @@ class BaseEditMixin(object):
         )
 
         self._update_stylesheet(self.tooltip_widget)
+
+        # Set a max width so the widget doesn't show up too large due to its
+        # content, which looks bad.
+        self.tooltip_widget.setMaximumWidth(
+            self._tip_width_in_pixels(max_width)
+        )
 
         # Display tooltip
         self.tooltip_widget.show_tip(point, tiptext, cursor=cursor,
