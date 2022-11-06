@@ -69,6 +69,18 @@ class BaseEditMixin(object):
     _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 50
     _DEFAULT_MAX_HINT_LINES = 7
     _DEFAULT_MAX_HINT_WIDTH = 55
+    _BUILTINS_DOCSTRING_MAP = {
+        int.__doc__: 'integer',
+        list.__doc__: 'list',
+        dict.__doc__: 'dictionary',
+        set.__doc__: 'set',
+        float.__doc__: 'float',
+        tuple.__doc__: 'tuple',
+        str.__doc__: 'string',
+        bool.__doc__: 'bool',
+        bytes.__doc__: 'bytes string',
+        range.__doc__: 'range object'
+    }
 
     # The following signals are used to indicate text changes on the editor.
     sig_will_insert_text = None
@@ -593,8 +605,35 @@ class BaseEditMixin(object):
     def show_hint(self, text, inspect_word, at_point,
                   max_lines=_DEFAULT_MAX_HINT_LINES,
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
-                  text_new_line=True, completion_doc=None):
+                  text_new_line=True,
+                  completion_doc=None):
         """Show code hint and crop text as needed."""
+        # Don't show full docstring for builtin types, just its type
+        display_link = True
+        language = getattr(self, 'language', self._DEFAULT_LANGUAGE).lower()
+        if language == 'python':
+            builtin = ''
+            # Check if `text` matches a builtin docstring
+            if self._BUILTINS_DOCSTRING_MAP.get(text):
+                builtin = self._BUILTINS_DOCSTRING_MAP[text]
+
+            # Another possibility is that the text after the signature matches
+            # a buitin docstring (e.g. that's the case for Numpy objects).
+            text_after_signature = '\n\n'.join(text.split('\n\n')[1:])
+            if self._BUILTINS_DOCSTRING_MAP.get(text_after_signature):
+                builtin = self._BUILTINS_DOCSTRING_MAP[text_after_signature]
+
+            if builtin:
+                text = (
+                    # This makes the text appear centered
+                    "&nbsp;" +
+                    "This is " +
+                    # Use the right article in case we got an integer
+                    ("an " if builtin == 'integer' else "a ") +
+                    builtin
+                )
+                display_link = False
+
         res = self._check_signature_and_format(text, max_width=max_width,
                                                inspect_word=inspect_word)
         html_signature, extra_text, _ = res
@@ -610,7 +649,7 @@ class BaseEditMixin(object):
 
             self.show_tooltip(signature=html_signature, text=extra_text,
                               at_point=point, inspect_word=inspect_word,
-                              display_link=True, max_lines=max_lines,
+                              display_link=display_link, max_lines=max_lines,
                               max_width=max_width, cursor=cursor,
                               text_new_line=text_new_line,
                               completion_doc=completion_doc)
