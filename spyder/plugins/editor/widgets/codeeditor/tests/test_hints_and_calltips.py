@@ -169,10 +169,6 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
         assert expected_output_text in output_text
         code_editor.tooltip_widget.hide()
 
-        # This checks that code_editor.log_lsp_handle_errors was not called
-        captured = capsys.readouterr()
-        assert captured.err == ''
-
 
 @pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
