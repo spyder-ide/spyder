@@ -32,6 +32,12 @@ from spyder_kernels.utils.mpl import automatic_backend
 logger = logging.getLogger(__name__)
 
 
+def comm_handler(fun):
+    """Decorator to mark comm handler methods."""
+    fun._is_comm_handler = True
+    return fun
+
+
 class SpyderShell(ZMQInteractiveShell):
     """Spyder shell."""
 
@@ -93,6 +99,7 @@ class SpyderShell(ZMQInteractiveShell):
         return gui, backend
 
     # --- For Pdb namespace integration
+    @comm_handler
     def set_pdb_configuration(self, pdb_conf):
         """
         Set Pdb configuration.
@@ -222,6 +229,7 @@ class SpyderShell(ZMQInteractiveShell):
         """Register sigint handler."""
         signal.signal(signal.SIGINT, self.spyderkernel_sigint_handler)
 
+    @comm_handler
     def raise_interrupt_signal(self):
         """Raise interrupt signal."""
         if os.name == "nt":
@@ -235,6 +243,7 @@ class SpyderShell(ZMQInteractiveShell):
         else:
             self.kernel._send_interupt_children()
 
+    @comm_handler
     def request_pdb_stop(self):
         """Request pdb to stop at the next possible position."""
         pdb_session = self.pdb_session
@@ -293,6 +302,7 @@ class SpyderShell(ZMQInteractiveShell):
         except KeyboardInterrupt:
             self.showtraceback()
 
+    @comm_handler
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
         debugger = self.pdb_session

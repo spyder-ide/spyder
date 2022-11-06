@@ -35,7 +35,7 @@ from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
-from spyder_kernels.console.shell import SpyderShell
+from spyder_kernels.console.shell import SpyderShell, comm_handler
 
 
 
@@ -59,41 +59,12 @@ class SpyderKernel(IPythonKernel):
         self.frontend_comm = FrontendComm(self)
 
         # All functions that can be called through the comm
-        handlers = {
-            'set_pdb_configuration': self.shell.set_pdb_configuration,
-            'get_value': self.get_value,
-            'load_data': self.load_data,
-            'save_namespace': self.save_namespace,
-            'is_defined': self.is_defined,
-            'get_doc': self.get_doc,
-            'get_source': self.get_source,
-            'set_value': self.set_value,
-            'remove_value': self.remove_value,
-            'copy_value': self.copy_value,
-            'set_cwd': self.set_cwd,
-            'get_cwd': self.get_cwd,
-            'get_syspath': self.get_syspath,
-            'get_env': self.get_env,
-            'close_all_mpl_figures': self.close_all_mpl_figures,
-            'show_mpl_backend_errors': self.show_mpl_backend_errors,
-            'get_namespace_view': self.get_namespace_view,
-            'set_namespace_view_settings': self.set_namespace_view_settings,
-            'get_var_properties': self.get_var_properties,
-            'set_sympy_forecolor': self.set_sympy_forecolor,
-            'update_syspath': self.update_syspath,
-            'is_special_kernel_valid': self.is_special_kernel_valid,
-            'get_matplotlib_backend': self.get_matplotlib_backend,
-            'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
-            'pdb_input_reply': self.shell.pdb_input_reply,
-            'enable_faulthandler': self.enable_faulthandler,
-            'get_current_frames': self.get_current_frames,
-            'request_pdb_stop': self.shell.request_pdb_stop,
-            'raise_interrupt_signal': self.shell.raise_interrupt_signal,
-            'get_fault_text': self.get_fault_text,
-        }
-        for call_id in handlers:
-            self.frontend_comm.register_call_handler(
-                call_id, handlers[call_id])
+        for inst in (self, self.shell):
+            for method_name in inst.__class__.__dict__:
+                method = getattr(inst, method_name)
+                if hasattr(method, '_is_comm_handler'):
+                    self.frontend_comm.register_call_handler(
+                        method_name, method)
 
         self.namespace_view_settings = {}
         self._mpl_backend_error = None
@@ -124,6 +95,7 @@ class SpyderKernel(IPythonKernel):
             callback=callback,
             timeout=timeout)
 
+    @comm_handler
     def enable_faulthandler(self):
         """
         Open a file to save the faulthandling and identifiers for
@@ -149,6 +121,7 @@ class SpyderKernel(IPythonKernel):
         faulthandler.enable(self.faulthandler_handle)
         return self.faulthandler_handle.name, main_id, system_ids
 
+    @comm_handler
     def get_fault_text(self, fault_filename, main_id, ignore_ids):
         """Get fault text from old run."""
         # Read file
@@ -242,6 +215,7 @@ class SpyderKernel(IPythonKernel):
                 stack = []
         return stack
 
+    @comm_handler
     def get_current_frames(self, ignore_internal_threads=True,
                            capture_locals=False):
         """Get the current frames."""
@@ -271,10 +245,12 @@ class SpyderKernel(IPythonKernel):
         return frames
 
     # --- For the Variable Explorer
+    @comm_handler
     def set_namespace_view_settings(self, settings):
         """Set namespace_view_settings."""
         self.namespace_view_settings = settings
 
+    @comm_handler
     def get_namespace_view(self, frame=None):
         """
         Return the namespace view
@@ -310,6 +286,7 @@ class SpyderKernel(IPythonKernel):
         else:
             return None
 
+    @comm_handler
     def get_var_properties(self):
         """
         Get some properties of the variables in the current
@@ -340,27 +317,32 @@ class SpyderKernel(IPythonKernel):
         else:
             return None
 
+    @comm_handler
     def get_value(self, name):
         """Get the value of a variable"""
         ns = self._get_current_namespace()
         return ns[name]
 
+    @comm_handler
     def set_value(self, name, value):
         """Set the value of a variable"""
         ns = self._get_reference_namespace(name)
         ns[name] = value
         self.log.debug(ns)
 
+    @comm_handler
     def remove_value(self, name):
         """Remove a variable"""
         ns = self._get_reference_namespace(name)
         ns.pop(name)
 
+    @comm_handler
     def copy_value(self, orig_name, new_name):
         """Copy a variable"""
         ns = self._get_reference_namespace(orig_name)
         ns[new_name] = ns[orig_name]
 
+    @comm_handler
     def load_data(self, filename, ext, overwrite=False):
         """
         Load data from filename.
@@ -397,6 +379,7 @@ class SpyderKernel(IPythonKernel):
 
         return None
 
+    @comm_handler
     def save_namespace(self, filename):
         """Save namespace into filename"""
         ns = self._get_current_namespace()
@@ -450,6 +433,7 @@ class SpyderKernel(IPythonKernel):
             self.loopback_socket, self.session.msg("interrupt_eventloop"))
 
     # --- For the Help plugin
+    @comm_handler
     def is_defined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
         from spyder_kernels.utils.dochelpers import isdefined
@@ -457,6 +441,7 @@ class SpyderKernel(IPythonKernel):
         ns = self._get_current_namespace(with_magics=True)
         return isdefined(obj, force_import=force_import, namespace=ns)
 
+    @comm_handler
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         try:
@@ -470,6 +455,7 @@ class SpyderKernel(IPythonKernel):
         if valid:
             return getdoc(obj)
 
+    @comm_handler
     def get_source(self, objtxt):
         """Get object source"""
         from spyder_kernels.utils.dochelpers import getsource
@@ -479,6 +465,7 @@ class SpyderKernel(IPythonKernel):
             return getsource(obj)
 
     # -- For Matplolib
+    @comm_handler
     def get_matplotlib_backend(self):
         """Get current matplotlib backend."""
         try:
@@ -487,6 +474,7 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             return None
 
+    @comm_handler
     def get_mpl_interactive_backend(self):
         """
         Get current Matplotlib interactive backend.
@@ -597,10 +585,12 @@ class SpyderKernel(IPythonKernel):
         self._set_config_option('ZMQInteractiveShell.autocall', autocall)
 
     # --- Additional methods
+    @comm_handler
     def set_cwd(self, dirname):
         """Set current working directory."""
         os.chdir(dirname)
 
+    @comm_handler
     def get_cwd(self):
         """Get current working directory."""
         try:
@@ -608,14 +598,17 @@ class SpyderKernel(IPythonKernel):
         except (IOError, OSError):
             pass
 
+    @comm_handler
     def get_syspath(self):
         """Return sys.path contents."""
         return sys.path[:]
 
+    @comm_handler
     def get_env(self):
         """Get environment variables."""
         return os.environ.copy()
 
+    @comm_handler
     def close_all_mpl_figures(self):
         """Close all Matplotlib figures."""
         try:
@@ -624,6 +617,7 @@ class SpyderKernel(IPythonKernel):
         except:
             pass
 
+    @comm_handler
     def is_special_kernel_valid(self):
         """
         Check if optional dependencies are available for special consoles.
@@ -646,6 +640,7 @@ class SpyderKernel(IPythonKernel):
                 return u'cython'
         return None
 
+    @comm_handler
     def update_syspath(self, path_dict, new_path_dict):
         """
         Update the PYTHONPATH of the kernel.
@@ -920,11 +915,13 @@ class SpyderKernel(IPythonKernel):
             # Needed in case matplolib isn't installed
             pass
 
+    @comm_handler
     def show_mpl_backend_errors(self):
         """Show Matplotlib backend errors after the prompt is ready."""
         if self._mpl_backend_error is not None:
             print(self._mpl_backend_error)  # spyder: test-skip
 
+    @comm_handler
     def set_sympy_forecolor(self, background_color='dark'):
         """Set SymPy forecolor depending on console background."""
         if os.environ.get('SPY_SYMPY_O') == 'True':
