@@ -30,13 +30,14 @@ from zmq.utils.garbage import gc
 
 # Local imports
 from spyder_kernels.comms.frontendcomm import FrontendComm
+from spyder_kernels.comms.decorators import (
+    register_comm_handlers, comm_handler)
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
-from spyder_kernels.console.shell import SpyderShell, comm_handler
-
+from spyder_kernels.console.shell import SpyderShell
 
 
 logger = logging.getLogger(__name__)
@@ -59,12 +60,8 @@ class SpyderKernel(IPythonKernel):
         self.frontend_comm = FrontendComm(self)
 
         # All functions that can be called through the comm
-        for inst in (self, self.shell):
-            for method_name in inst.__class__.__dict__:
-                method = getattr(inst, method_name)
-                if hasattr(method, '_is_comm_handler'):
-                    self.frontend_comm.register_call_handler(
-                        method_name, method)
+        register_comm_handlers(self, self.frontend_comm)
+        register_comm_handlers(self.shell, self.frontend_comm)
 
         self.namespace_view_settings = {}
         self._mpl_backend_error = None

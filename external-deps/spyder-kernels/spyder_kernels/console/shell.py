@@ -26,16 +26,11 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 import spyder_kernels
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 
 
 logger = logging.getLogger(__name__)
-
-
-def comm_handler(fun):
-    """Decorator to mark comm handler methods."""
-    fun._is_comm_handler = True
-    return fun
 
 
 class SpyderShell(ZMQInteractiveShell):
