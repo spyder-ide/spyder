@@ -8,13 +8,14 @@
 
 # Standard library imports
 import bisect
+import logging
 import os.path as osp
 import uuid
 
 # Third party imports
 from intervaltree import IntervalTree
 from pkg_resources import parse_version
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE_VERSION
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
 
@@ -26,8 +27,9 @@ from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.onecolumntree import OneColumnTree
 
-if PYSIDE2:
-    from qtpy import PYSIDE_VERSION
+
+# For logging
+logger = logging.getLogger(__name__)
 
 
 # ---- Constants
@@ -165,6 +167,13 @@ class SymbolStatus:
         return '({0}, {1}, {2}, {3})'.format(
             self.position, self.name, self.id, self.status)
 
+    def __eq__(self, other):
+        return (
+            self.name == other.name
+            and self.kind == other.kind
+            and self.position == other.position
+        )
+
 
 # ---- Items
 # -----------------------------------------------------------------------------
@@ -251,11 +260,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.update_timers = {}
+        self.starting = {}
         self.editors_to_update = {}
         self.ordered_editor_ids = []
         self._current_editor = None
         self._languages = []
-        self.is_visible = True
+        self.is_visible = False
 
         self.currentItemChanged.connect(self.selection_switched)
         self.itemExpanded.connect(self.tree_item_expanded)
@@ -418,18 +428,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.scrollToItem(item)
             self.root_item_selected(item)
             self.__hide_or_show_root_items(item)
-        if update:
-            self.save_expanded_state()
-            self.restore_expanded_state()
 
+        logger.debug(f"Set current editor to file {editor.fname}")
         self.current_editor = editor
 
         # Update tree with currently stored info or require symbols if
         # necessary.
-        if (editor.get_language().lower() in self._languages and
-                len(self.editor_tree_cache[editor_id]) == 0):
+        if (
+            editor.get_language().lower() in self._languages
+            and len(self.editor_tree_cache[editor_id]) == 0
+        ):
             if editor.info is not None:
-                self.update_editor(editor.info)
+                if update:
+                    self.update_editor(editor.info)
             elif editor.is_cloned:
                 editor.request_symbols()
 
@@ -502,6 +513,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     pass
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
+        else:
+            if self.starting.get(language):
+                logger.debug("Finish updating files at startup")
+                self.starting[language] = False
 
     def update_all_editors(self, reset_info=False):
         """Update all editors with LSP support."""
@@ -518,17 +533,28 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if items is None:
             return
 
+        if editor is None:
+            editor = self.current_editor
+
         # Only perform an update if the widget is visible.
         if not self.is_visible:
+            logger.debug(
+                f"Don't update tree of file {editor.fname} because plugin is "
+                f"not visible"
+            )
+
+            # This keeps track of files that have been modified while the
+            # Outline is hidden. That way we'll only update those when the user
+            # makes it visible.
+            language = editor.get_language().lower()
+            if not self.starting[language]:
+                if editor.is_tree_updated:
+                    editor.is_tree_updated = False
+
             self.sig_hide_spinner.emit()
             return
 
-        if editor is None:
-            editor = self.current_editor
-        editor_id = editor.get_id()
-        language = editor.get_language()
-
-        update = self.update_tree(items, editor_id, language)
+        update = self.update_tree(items, editor)
 
         if update:
             self.save_expanded_state()
@@ -556,10 +582,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         node.refresh()
         return node
 
-    def update_tree(self, items, editor_id, language):
+    def update_tree(self, items, editor):
         """Update tree with new items that come from the LSP."""
+        editor_id = editor.get_id()
+        language = editor.get_language()
         current_tree = self.editor_tree_cache[editor_id]
+        root = self.editor_items[editor_id]
         tree_info = []
+
+        # Create tree with items that come from the LSP
         for symbol in items:
             symbol_name = symbol['name']
             symbol_kind = symbol['kind']
@@ -572,6 +603,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 if (symbol_kind == SymbolKind.FIELD and
                         not self.display_variables):
                     continue
+
             # NOTE: This could be also a DocumentSymbol
             symbol_range = symbol['location']['range']
             symbol_start = symbol_range['start']['line']
@@ -581,65 +613,45 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_info.append((symbol_start, symbol_end + 1, symbol_repr))
 
         tree = IntervalTree.from_tuples(tree_info)
-        changes = tree - current_tree
-        deleted = current_tree - tree
 
-        if len(changes) == 0 and len(deleted) == 0:
-            self.sig_hide_spinner.emit()
-            return False
+        # We must update the tree if the editor's root doesn't have children
+        # yet but we have symbols for it saved in the cache
+        must_update = root.node.childCount() == 0 and len(current_tree) > 0
 
-        adding_symbols = len(changes) > len(deleted)
-        deleted_iter = iter(sorted(deleted))
-        changes_iter = iter(sorted(changes))
+        if not must_update:
+            # Compare with current tree to check if it's necessary to update
+            # it.
+            changes = tree - current_tree
+            if tree and len(changes) == 0:
+                logger.debug(
+                    f"Current and new trees for file {editor.fname} are the "
+                    f"same, so no update is necessary"
+                )
+                editor.is_tree_updated = True
+                self.sig_hide_spinner.emit()
+                return False
 
-        deleted_entry = next(deleted_iter, None)
-        changed_entry = next(changes_iter, None)
-        non_merged = 0
+        logger.debug(f"Updating tree for file {editor.fname}")
 
-        while deleted_entry is not None and changed_entry is not None:
-            deleted_entry_i = deleted_entry.data
-            changed_entry_i = changed_entry.data
+        # Create nodes with new tree
+        for entry in sorted(tree):
+            entry.data.create_node()
 
-            if deleted_entry_i.name == changed_entry_i.name:
-                # Copy symbol status
-                changed_entry_i.clone_node(deleted_entry_i)
-                deleted_entry = next(deleted_iter, None)
-                changed_entry = next(changes_iter, None)
-            else:
-                if adding_symbols:
-                    # New symbol added
-                    changed_entry_i.create_node()
-                    non_merged += 1
-                    changed_entry = next(changes_iter, None)
-                else:
-                    # Symbol removed
-                    deleted_entry_i.delete()
-                    non_merged += 1
-                    deleted_entry = next(deleted_iter, None)
+        # Remove previous tree to create the new one.
+        # NOTE: This is twice as fast as detecting the symbols that changed
+        # and updating only those in current_tree.
+        self.editor_items[editor_id].delete()
 
-        if deleted_entry is not None:
-            while deleted_entry is not None:
-                # Symbol removed
-                deleted_entry_i = deleted_entry.data
-                deleted_entry_i.delete()
-                non_merged += 1
-                deleted_entry = next(deleted_iter, None)
-
-        root = self.editor_items[editor_id]
-        # tree_merge
-        if changed_entry is not None:
-            while changed_entry is not None:
-                # New symbol added
-                changed_entry_i = changed_entry.data
-                changed_entry_i.create_node()
-                non_merged += 1
-                changed_entry = next(changes_iter, None)
-
+        # Recreate tree structure
         tree_copy = IntervalTree(tree)
         tree_copy.merge_overlaps(
-            data_reducer=self.merge_interval, data_initializer=root)
+            data_reducer=self.merge_interval,
+            data_initializer=root
+        )
 
+        # Save new tree and finish
         self.editor_tree_cache[editor_id] = tree
+        editor.is_tree_updated = True
         self.sig_tree_updated.emit()
         self.sig_hide_spinner.emit()
         return True
@@ -648,9 +660,23 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor in self.editor_ids:
             if self.current_editor is editor:
                 self.current_editor = None
+
+            logger.debug(f"Removing tree of file f{editor.fname}")
+
             editor_id = self.editor_ids.pop(editor)
+            language = editor.get_language().lower()
+
             if editor_id in self.ordered_editor_ids:
                 self.ordered_editor_ids.remove(editor_id)
+
+            # Remove editor from the list that it's waiting to be updated
+            # because it's not necessary anymore.
+            if (
+                language in self._languages
+                and editor in self.editors_to_update[language]
+            ):
+                self.editors_to_update[language].remove(editor)
+
             if editor_id not in list(self.editor_ids.values()):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
@@ -822,6 +848,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def start_symbol_services(self, language):
         """Show symbols for all `language` files."""
+        logger.debug(f"Start symbol services for language {language}")
+
         # Save all languages that can send info to this pane.
         self._languages.append(language)
 
@@ -830,9 +858,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # the interface at startup.
         timer = QTimer(self)
         timer.setSingleShot(True)
-        timer.setInterval(700)
+        timer.setInterval(150)
         timer.timeout.connect(lambda: self.update_editors(language))
         self.update_timers[language] = timer
+        self.starting[language] = True
 
         # Set editors that need to be updated per language
         self.set_editors_to_update(language)
@@ -842,6 +871,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
+        logger.debug(f"Stop symbol services for language {language}")
         try:
             self._languages.remove(language)
         except ValueError:
@@ -850,3 +880,35 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for editor in self.editor_ids.keys():
             if editor.get_language().lower() == language:
                 editor.info = None
+
+    def change_visibility(self, is_visible):
+        """Actions to take when the widget visibility has changed."""
+        self.is_visible = is_visible
+
+        if is_visible:
+            # Udpdate outdated trees for all LSP languages
+            for language in self._languages:
+                # Don't run this while trees are being updated after their LSP
+                # started.
+                if not self.starting[language]:
+                    # Check which editors need to be updated
+                    for editor in self.editor_ids.keys():
+                        if (
+                            editor.get_language().lower() == language
+                            and not editor.is_tree_updated
+                            and editor not in self.editors_to_update[language]
+                        ):
+                            self.editors_to_update[language].append(editor)
+
+                    # Update editors
+                    if self.editors_to_update[language]:
+                        logger.debug(
+                            f"Updating outdated trees for {language} files "
+                            f"because the plugin has become visible"
+                        )
+                        self.update_editors(language)
+
+            # Udpdate current tree if it has info available
+            ce = self.current_editor
+            if ce and ce.info and not ce.is_tree_updated:
+                self.update_editor(ce.info, ce)

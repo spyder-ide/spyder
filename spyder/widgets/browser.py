@@ -385,7 +385,14 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         url is loaded.
         """
         super().load(url)
-        self.focusProxy().installEventFilter(self)
+
+        # This is required to catch an error with some compilations of Qt/PyQt
+        # packages, for which it seems this functionality is not working.
+        # Fixes spyder-ide/spyder#19818
+        try:
+            self.focusProxy().installEventFilter(self)
+        except AttributeError:
+            pass
 
     def eventFilter(self, widget, event):
         """

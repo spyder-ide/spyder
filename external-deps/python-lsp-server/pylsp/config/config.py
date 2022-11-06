@@ -71,7 +71,7 @@ class Config:
             try:
                 entry_point.load()
             except Exception as e:  # pylint: disable=broad-except
-                log.warning("Failed to load %s entry point '%s': %s", PYLSP, entry_point.name, e)
+                log.info("Failed to load %s entry point '%s': %s", PYLSP, entry_point.name, e)
                 self._pm.set_blocked(entry_point.name)
 
         # Load the entry points into pluggy, having blocked any failing ones

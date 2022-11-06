@@ -22,9 +22,9 @@ import time
 
 # Third party imports
 from qtpy.compat import getsavefilename
-from qtpy.QtCore import Property, QCoreApplication, Qt, QTimer, Signal, Slot
+from qtpy.QtCore import Property, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
-from qtpy.QtWidgets import QApplication, QMenu, QToolTip
+from qtpy.QtWidgets import QApplication, QMenu
 
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
@@ -498,10 +498,16 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def load_history(self):
         """Load history from a .py file in user home directory"""
         if osp.isfile(self.history_filename):
-            rawhistory, _ = encoding.readlines(self.history_filename)
-            rawhistory = [line.replace('\n', '') for line in rawhistory]
-            if rawhistory[1] != self.INITHISTORY[1]:
-                rawhistory[1] = self.INITHISTORY[1]
+            # This is necessary to catch any error while reading or processing
+            # history_filename, which causes a crash at startup.
+            # Fixes spyder-ide/spyder#19850
+            try:
+                rawhistory, _ = encoding.readlines(self.history_filename)
+                rawhistory = [line.replace('\n', '') for line in rawhistory]
+                if rawhistory[1] != self.INITHISTORY[1]:
+                    rawhistory[1] = self.INITHISTORY[1]
+            except Exception:
+                rawhistory = self.INITHISTORY
         else:
             rawhistory = self.INITHISTORY
         history = [line for line in rawhistory \

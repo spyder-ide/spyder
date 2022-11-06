@@ -219,7 +219,6 @@ class IPythonConsole(SpyderDockablePlugin):
         self.main.sig_pythonpath_changed.connect(self.update_path)
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
-        self._remove_old_std_files()
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
@@ -376,23 +375,6 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
-
-    def _remove_old_std_files(self):
-        """
-        Remove std files left by previous Spyder instances.
-
-        This is only required on Windows because we can't
-        clean up std files while Spyder is running on that
-        platform.
-        """
-        if os.name == 'nt':
-            tmpdir = get_temp_dir()
-            for fname in os.listdir(tmpdir):
-                if osp.splitext(fname)[1] in ('.stderr', '.stdout', '.fault'):
-                    try:
-                        os.remove(osp.join(tmpdir, fname))
-                    except Exception:
-                        pass
 
     # ---- Public API
     # -------------------------------------------------------------------------

@@ -275,6 +275,9 @@ class CodeEditor(TextEditBaseWidget):
     # Used to signal font change
     sig_font_changed = Signal()
 
+    # Used to request saving a file
+    sig_save_requested = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -558,6 +561,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters = []
         self.completion_args = None
         self.folding_supported = False
+        self._folding_info = None
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
@@ -1974,7 +1978,12 @@ class CodeEditor(TextEditBaseWidget):
     def finish_code_folding(self):
         """Finish processing code folding."""
         folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.update_folding(self._folding_info)
+
+        # Check if we actually have folding info to update before trying to do
+        # it.
+        # Fixes spyder-ide/spyder#19514
+        if self._folding_info is not None:
+            folding_panel.update_folding(self._folding_info)
 
         # Update indent guides, which depend on folding
         if self.indent_guides._enabled and len(self.patch) > 0:
@@ -4570,12 +4579,6 @@ class CodeEditor(TextEditBaseWidget):
             # Shift or Alt don't generate any text.
             # Fixes spyder-ide/spyder#11021
             self._start_completion_timer()
-
-        if event.modifiers() and self.is_completion_widget_visible():
-            # Hide completion widget before passing event modifiers
-            # since the keypress could be then a shortcut
-            # See spyder-ide/spyder#14806
-            self.completion_widget.hide()
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()

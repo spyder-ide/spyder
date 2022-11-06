@@ -102,8 +102,6 @@ files={package_dist_info} > $INSTDIR/pkgs
     __main__.py > $INSTDIR/pkgs/jedi/inference/compiled/subprocess
     __init__.py > $INSTDIR/pkgs/pylint
     lib
-    tcl86t.dll > $INSTDIR/pkgs
-    tk86t.dll > $INSTDIR/pkgs
     micromamba.exe > $INSTDIR/pkgs/spyder/bin
 [Build]
 installer_name={installer_name}
@@ -355,14 +353,11 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
 
             print("Copying required assets for Tkinter to work")
             shutil.copytree(
-                "installers/Windows/assets/tcl/lib",
+                "installers/Windows/assets/tkinter/lib",
                 os.path.join(work_dir, "lib"))
-            shutil.copy(
-                "installers/Windows/assets/tcl/tcl86t.dll",
-                os.path.join(work_dir, "tcl86t.dll"))
-            shutil.copy(
-                "installers/Windows/assets/tcl/tk86t.dll",
-                os.path.join(work_dir, "tk86t.dll"))
+            shutil.copytree(
+                "installers/Windows/assets/tkinter/pynsist_pkgs",
+                os.path.join(work_dir, "pynsist_pkgs"))
 
             print("Copying micromamba assets")
             shutil.copy(

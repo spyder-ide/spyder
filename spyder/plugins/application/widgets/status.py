@@ -13,19 +13,24 @@ import logging
 import os
 
 # Third party imports
-from qtpy.QtCore import QPoint, Signal, Slot
-from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import QPoint, Qt, Signal, Slot
+from qtpy.QtWidgets import QMenu, QLabel
 
 # Local imports
+from spyder.api.translations import get_translation
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _, is_pynsist, running_in_mac_app
+from spyder.config.base import is_pynsist, running_in_mac_app
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
-    FINISHED, PENDING, CHECKING, CANCELLED)
+    PENDING, CHECKING)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 
+# Setup logger
 logger = logging.getLogger(__name__)
+
+# Localization
+_ = get_translation('spyder')
 
 
 class ApplicationUpdateStatus(StatusBarWidget):
@@ -34,6 +39,21 @@ class ApplicationUpdateStatus(StatusBarWidget):
     ID = 'application_update_status'
 
     sig_check_for_updates_requested = Signal()
+    """
+    Signal to request checking for updates.
+    """
+
+    sig_install_on_close_requested = Signal(str)
+    """
+    Signal to request running the downloaded installer on close.
+
+    Parameters
+    ----------
+    installer_path: str
+        Path to instal
+    """
+
+    CUSTOM_WIDGET_CLASS = QLabel
 
     def __init__(self, parent):
 
@@ -42,13 +62,25 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
         # Installation dialog
         self.installer = UpdateInstallerDialog(self)
+
         # Check for updates action menu
         self.menu = QMenu(self)
 
+        # Set font size and aligment attributes fro custom widget to
+        # match default label values
+        self.custom_widget.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.custom_widget.setFont(self.text_font)
+
+        # Signals
         self.sig_clicked.connect(self.show_installation_dialog_or_menu)
 
+        # Installer widget signals
+        self.installer.sig_download_progress.connect(
+            self.set_download_progress)
         self.installer.sig_installation_status.connect(
             self.set_value)
+        self.installer.sig_install_on_close_requested.connect(
+            self.sig_install_on_close_requested)
 
     def set_value(self, value):
         """Return update installation state."""
@@ -57,16 +89,27 @@ class ApplicationUpdateStatus(StatusBarWidget):
                              "background.\n"
                              "Click here to show the installation "
                              "dialog again.")
-            self.spinner.show()
-            self.spinner.start()
+            if value == DOWNLOADING_INSTALLER:
+                self.spinner.hide()
+                self.spinner.stop()
+                self.custom_widget.show()
+            else:
+                self.custom_widget.hide()
+                self.spinner.show()
+                self.spinner.start()
             self.installer.show()
-
         elif value == PENDING:
             self.tooltip = value
+            self.custom_widget.hide()
             self.spinner.hide()
             self.spinner.stop()
         else:
             self.tooltip = self.BASE_TOOLTIP
+            if self.custom_widget:
+                self.custom_widget.hide()
+            if self.spinner:
+                self.spinner.hide()
+                self.spinner.stop()
         self.setVisible(True)
         self.update_tooltip()
         value = f"Spyder: {value}"
@@ -81,13 +124,17 @@ class ApplicationUpdateStatus(StatusBarWidget):
         return ima.icon('spyder_about')
 
     def start_installation(self, latest_release):
-        self.installer.start_installation_update(latest_release)
+        self.installer.start_installation(latest_release)
+
+    def set_download_progress(self, current_value, total):
+        percentage_progress = 0
+        if total > 0:
+            percentage_progress = round((current_value/total) * 100)
+        self.custom_widget.setText(f"{percentage_progress}%")
 
     def set_status_pending(self, latest_release):
         self.set_value(PENDING)
         self.installer.save_latest_release(latest_release)
-        self.spinner.hide()
-        self.spinner.stop()
 
     def set_status_checking(self):
         self.set_value(CHECKING)
@@ -109,7 +156,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
             self.installer.show()
         elif (value == PENDING and
               (is_pynsist() or running_in_mac_app())):
-            self.installer.continue_install()
+            self.installer.continue_installation()
         elif value == NO_STATUS:
             self.menu.clear()
             check_for_updates_action = create_action(

@@ -259,7 +259,7 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
 @pytest.fixture
 def search_codeeditor(completions_codeeditor, qtbot_module, request):
     code_editor, _ = completions_codeeditor
-    find_replace = FindReplace(None, enable_replace=True)
+    find_replace = FindReplace(code_editor, enable_replace=True)
     find_replace.set_editor(code_editor)
     qtbot_module.addWidget(find_replace)
 

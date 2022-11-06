@@ -11,7 +11,9 @@ on:
       - '**.sh'
       - '!**.md'
       - '!installers/macOS/**'
+      - '!installers-conda/**'
       - '!.github/workflows/installer-macos.yml'
+      - '!.github/workflows/installers-conda.yml'
 
   release:
     types:

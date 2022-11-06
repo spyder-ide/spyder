@@ -463,13 +463,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             try:
                 context = '_'
                 name = 'switch to {}'.format(plugin.CONF_SECTION)
-                shortcut = self.get_shortcut(
-                    name,
-                    context,
-                    plugin_name=plugin.CONF_SECTION
-                )
             except (cp.NoSectionError, cp.NoOptionError):
-                shortcut = None
+                pass
 
             sc = QShortcut(QKeySequence(), self,
                            lambda: self.switch_to_plugin(plugin))
@@ -840,28 +835,30 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
-                                    self,
-                                    _('File switcher...'),
-                                    icon=ima.icon('filelist'),
-                                    tip=_('Fast switch between files'),
-                                    triggered=self.open_switcher,
-                                    context=Qt.ApplicationShortcut,
-                                    id_='file_switcher')
+            self,
+            _('File switcher...'),
+            icon=ima.icon('filelist'),
+            tip=_('Fast switch between files'),
+            triggered=self.open_switcher,
+            context=Qt.ApplicationShortcut,
+            id_='file_switcher'
+        )
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher")
         self.symbol_finder_action = create_action(
-                                    self, _('Symbol finder...'),
-                                    icon=ima.icon('symbol_find'),
-                                    tip=_('Fast symbol search in file'),
-                                    triggered=self.open_symbolfinder,
-                                    context=Qt.ApplicationShortcut,
-                                    id_='symbol_finder')
+            self, _('Symbol finder...'),
+            icon=ima.icon('symbol_find'),
+            tip=_('Fast symbol search in file'),
+            triggered=self.open_symbolfinder,
+            context=Qt.ApplicationShortcut,
+            id_='symbol_finder'
+        )
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
-            method_name = textseq[0].lower()+"".join(textseq[1:])
+            method_name = textseq[0].lower() + "".join(textseq[1:])
             action = create_action(self, tr_text,
                                    icon=icon,
                                    triggered=self.global_callback,
@@ -897,10 +894,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         ]
         for switcher_action in switcher_actions:
             mainmenu.add_item_to_application_menu(
-                    switcher_action,
-                    menu_id=ApplicationMenus.File,
-                    section=FileMenuSections.Switcher,
-                    before_section=FileMenuSections.Restart)
+                switcher_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Switcher,
+                before_section=FileMenuSections.Restart
+            )
         self.set_splash("")
 
         # Toolbars
@@ -921,16 +919,13 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             triggered=self.show_path_manager,
             tip=_("PYTHONPATH manager"),
             id_='spyder_path_action')
-        from spyder.plugins.application.container import (
-            ApplicationActions, WinUserEnvDialog)
-        winenv_action = None
-        if WinUserEnvDialog:
-            winenv_action = ApplicationActions.SpyderWindowsEnvVariables
+        from spyder.plugins.application.container import ApplicationActions
+        user_env_action = ApplicationActions.SpyderUserEnvVariables
         mainmenu.add_item_to_application_menu(
             spyder_path_action,
             menu_id=ApplicationMenus.Tools,
             section=ToolsMenuSections.Tools,
-            before=winenv_action,
+            before=user_env_action,
             before_section=ToolsMenuSections.External
         )
 
@@ -1321,7 +1316,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def update_edit_menu(self):
         """Update edit menu"""
         widget, textedit_properties = self.get_focus_widget_properties()
-        if textedit_properties is None: # widget is not an editor/console
+        if textedit_properties is None:  # widget is not an editor/console
             return
         # !!! Below this line, widget is expected to be a QPlainTextEdit
         #     instance
@@ -1340,10 +1335,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.selectall_action.setEnabled(True)
 
         # Undo, redo
-        self.undo_action.setEnabled( readwrite_editor \
-                                     and widget.document().isUndoAvailable() )
-        self.redo_action.setEnabled( readwrite_editor \
-                                     and widget.document().isRedoAvailable() )
+        self.undo_action.setEnabled(readwrite_editor
+                                    and widget.document().isUndoAvailable())
+        self.redo_action.setEnabled(readwrite_editor
+                                    and widget.document().isRedoAvailable())
 
         # Copy, cut, paste, delete
         has_selection = widget.has_selected_text()
@@ -1366,7 +1361,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             child.setEnabled(False)
 
         widget, textedit_properties = self.get_focus_widget_properties()
-        if textedit_properties is None: # widget is not an editor/console
+        if textedit_properties is None:  # widget is not an editor/console
             return
 
         # !!! Below this line, widget is expected to be a QPlainTextEdit
@@ -1510,8 +1505,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                     )
                 pypath = self.get_conf('spyder_pythonpath', default=None)
                 programs.run_python_script_in_terminal(
-                        fname, wdir, args, interact, debug, python_args,
-                        executable, pypath)
+                    fname, wdir, args, interact, debug, python_args,
+                    executable, pypath
+                )
             except NotImplementedError:
                 QMessageBox.critical(self, _("Run"),
                                      _("Running an external system terminal "
@@ -1953,11 +1949,13 @@ def main(options, args):
         else:
             mainwindow = create_window(MainWindow, app, splash, options, args)
     except FontError:
-        QMessageBox.information(None, "Spyder",
-                "Spyder was unable to load the <i>Spyder 3</i> "
-                "icon theme. That's why it's going to fallback to the "
-                "theme used in Spyder 2.<br><br>"
-                "For that, please close this window and start Spyder again.")
+        QMessageBox.information(
+            None, "Spyder",
+            "Spyder was unable to load the <i>Spyder 3</i> "
+            "icon theme. That's why it's going to fallback to the "
+            "theme used in Spyder 2.<br><br>"
+            "For that, please close this window and start Spyder again."
+        )
         CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred

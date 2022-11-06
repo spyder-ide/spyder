@@ -6,6 +6,7 @@
 
     This is necessary to run our tests before the release, so we can be sure
     everything is in order.
+
 ## To release a new version of python-lsp-server:
 
 1. git fetch upstream && git checkout upstream/master

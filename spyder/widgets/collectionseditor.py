@@ -144,7 +144,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.total_rows = None
         self.showndata = None
         self.keys = None
-        self.title = to_text_string(title) # in case title is not a string
+        self.title = to_text_string(title)  # in case title is not a string
         if self.title:
             self.title = self.title + ' - '
         self.sizes = []
@@ -349,13 +349,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def get_value(self, index):
         """Return current value"""
         if index.column() == 0:
-            return self.keys[ index.row() ]
+            return self.keys[index.row()]
         elif index.column() == 1:
-            return self.types[ index.row() ]
+            return self.types[index.row()]
         elif index.column() == 2:
-            return self.sizes[ index.row() ]
+            return self.sizes[index.row()]
         else:
-            return self._data[ self.keys[index.row()] ]
+            return self._data[self.keys[index.row()]]
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
@@ -430,13 +430,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             if index.column() == 3:
                 if len(display.splitlines()) < 3:
-                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
                 else:
-                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignTop))
+                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignTop))
             else:
-                return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
-            return to_qvariant( self.get_bgcolor(index) )
+            return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
@@ -449,7 +449,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if orientation == Qt.Horizontal:
             headers = (self.header0, _("Type"), _("Size"), _("Value"),
                        _("Score"))
-            return to_qvariant( headers[i_column] )
+            return to_qvariant(headers[i_column])
         else:
             return to_qvariant()
 
@@ -472,8 +472,8 @@ class CollectionsModel(ReadOnlyCollectionsModel):
 
     def set_value(self, index, value):
         """Set value"""
-        self._data[ self.keys[index.row()] ] = value
-        self.showndata[ self.keys[index.row()] ] = value
+        self._data[self.keys[index.row()]] = value
+        self.showndata[self.keys[index.row()]] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_human_readable_type(value)
         self.sig_setting_data.emit()
@@ -645,13 +645,17 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.edit_action = create_action(self, _("Edit"),
                                          icon=ima.icon('edit'),
                                          triggered=self.edit_item)
-        self.plot_action = create_action(self, _("Plot"),
-                                    icon=ima.icon('plot'),
-                                    triggered=lambda: self.plot_item('plot'))
+        self.plot_action = create_action(
+            self, _("Plot"),
+            icon=ima.icon('plot'),
+            triggered=lambda: self.plot_item('plot')
+        )
         self.plot_action.setVisible(False)
-        self.hist_action = create_action(self, _("Histogram"),
-                                    icon=ima.icon('hist'),
-                                    triggered=lambda: self.plot_item('hist'))
+        self.hist_action = create_action(
+            self, _("Histogram"),
+            icon=ima.icon('hist'),
+            triggered=lambda: self.plot_item('hist')
+        )
         self.hist_action.setVisible(False)
         self.imshow_action = create_action(self, _("Show image"),
                                            icon=ima.icon('imshow'),
@@ -722,7 +726,6 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         )
 
         return menu
-
 
     # ------ Remote/local API -------------------------------------------------
     def remove_values(self, keys):
@@ -1136,7 +1139,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         except:
             try:
                 if 'matplotlib' not in sys.modules:
-                    import matplotlib
+                    import matplotlib  # noqa
                 return True
             except Exception:
                 QMessageBox.warning(self, _("Import error"),
@@ -1190,11 +1193,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
-                                               _("NumPy arrays")+" (*.npy)")
+                                               _("NumPy arrays") + " (*.npy)")
         self.redirect_stdio.emit(True)
         if filename:
             self.array_filename = filename
-            data = self.delegate.get_value( self.currentIndex() )
+            data = self.delegate.get_value(self.currentIndex())
             try:
                 import numpy as np
                 np.save(self.array_filename, data)
@@ -1281,6 +1284,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
+
     def __init__(self, parent, data, readonly=False, title="",
                  names=False):
         BaseTableView.__init__(self, parent)
@@ -1376,7 +1380,7 @@ class CollectionsEditorTableView(BaseTableView):
         """Edit item"""
         data = self.source_model.get_data()
         from spyder.plugins.variableexplorer.widgets.objecteditor import (
-                oedit)
+            oedit)
         oedit(data[key])
 
     def plot(self, key, funcname):
@@ -1408,10 +1412,12 @@ class CollectionsEditorTableView(BaseTableView):
 
 class CollectionsEditorWidget(QWidget):
     """Dictionary Editor Widget"""
+
     def __init__(self, parent, data, readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
-            self.editor = RemoteCollectionsEditorTableView(self, data, readonly)
+            self.editor = RemoteCollectionsEditorTableView(self, data,
+                                                           readonly)
         else:
             self.editor = CollectionsEditorTableView(self, data, readonly,
                                                      title)
@@ -1441,6 +1447,7 @@ class CollectionsEditorWidget(QWidget):
 
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -1461,11 +1468,9 @@ class CollectionsEditor(BaseDialog):
         if isinstance(data, (dict, set)):
             # dictionary, set
             self.data_copy = data.copy()
-            datalen = len(data)
         elif isinstance(data, (tuple, list)):
             # list, tuple
             self.data_copy = data[:]
-            datalen = len(data)
         else:
             # unknown object
             import copy
@@ -1476,7 +1481,6 @@ class CollectionsEditor(BaseDialog):
             except (TypeError, AttributeError):
                 readonly = True
                 self.data_copy = data
-            datalen = len(get_object_attrs(data))
 
         # If the copy has a different type, then do not allow editing, because
         # this would change the type after saving; cf. spyder-ide/spyder#6936.
@@ -1542,6 +1546,7 @@ class CollectionsEditor(BaseDialog):
 #==============================================================================
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
+
     def __init__(self, parent=None):
         CollectionsDelegate.__init__(self, parent)
 
@@ -1560,6 +1565,7 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
+
     def __init__(self, parent, data, shellwidget=None, remote_editing=False,
                  create_menu=False):
         BaseTableView.__init__(self, parent)
@@ -1855,8 +1861,8 @@ def get_test_data():
             'date': testdate,
             'datetime': datetime.datetime(1945, 5, 8, 23, 1, 0, int(1.5e5)),
             'timedelta': test_timedelta,
-            'complex': 2+1j,
-            'complex64': np.complex64(2+1j),
+            'complex': 2 + 1j,
+            'complex64': np.complex64(2 + 1j),
             'complex128': np.complex128(9j),
             'int8_scalar': np.int8(8),
             'int16_scalar': np.int16(16),
