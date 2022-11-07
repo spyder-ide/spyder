@@ -17,14 +17,13 @@ provided for each package:
     SpyderKernelsCondaPkg
 
 Spyder will be packaged from this repository (in its checked-out state).
-qdarkstyle, qtconsole, and spyder-kernels will be packaged from the
-external-deps directory of this repository (in its checked-out state).
-Python-lsp-server, however, will be packaged from the upstream remote
-at the same commit as the external-deps state.
+qdarkstyle, qtconsole, spyder-kernels, and python-lsp-server will be packaged
+from the remote and commit specified in their respective .gitrepo files in
+external-deps.
 
-Alternatively, any external-deps may be packaged from a local git repository
-(in its checked out state) by setting the appropriate environment variable
-from the following:
+Alternatively, any external-deps may be packaged from an arbitrary git
+repository (in its checked out state) by setting the appropriate environment
+variable from the following:
     SPYDER_SOURCE
     PYTHON_LSP_SERVER_SOURCE
     QDARKSTYLE_SOURCE
@@ -77,6 +76,7 @@ yamlj.indent(mapping=2, sequence=4, offset=2)
 
 
 class BuildCondaPkg:
+    """Base class for building a conda package for conda-based installer"""
     name = None
     source = None
     feedstock = None
@@ -99,12 +99,10 @@ class BuildCondaPkg:
         self.data = {'version': self.version}
         self.data.update(data)
 
-        self.yaml = None
-
-        self._patched_meta = False
-        self._patched_build = False
+        self._recipe_patched = False
 
     def _get_source(self):
+        """Clone source and feedstock to distribution directory for building"""
         self._build_cleanup()
 
         # Determine source and commit
@@ -134,13 +132,18 @@ class BuildCondaPkg:
                 rmtree(src)
 
     def _get_version(self):
+        """Get source version using setuptools_scm"""
         self.version = get_version(self._bld_src).split('+')[0]
 
-    def _patch_meta(self):
+    def _patch_meta(self, meta):
+        return meta
+
+    def _patch_build_script(self):
         pass
 
-    def patch_meta(self):
-        if self._patched_meta:
+    def patch_recipe(self):
+        """Patch conda build recipe"""
+        if self._recipe_patched:
             return
 
         self.logger.info("Patching 'meta.yaml'...")
@@ -150,39 +153,37 @@ class BuildCondaPkg:
         for k, v in self.data.items():
             text = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', text)
 
-        self.yaml = yamlj.load(text)
+        meta = yamlj.load(text)
 
-        self.yaml['source'] = {'path': str(self._bld_src)}
+        meta['source'] = {'path': str(self._bld_src)}
 
-        self.yaml.pop('test', None)
-        if 'outputs' in self.yaml:
-            for out in self.yaml['outputs']:
+        meta.pop('test', None)
+        if 'outputs' in meta:
+            for out in meta['outputs']:
                 out.pop('test', None)
 
-        self._patch_meta()
+        meta = self._patch_meta(meta)
 
-        yamlj.dump_all([self.yaml], file)
+        yamlj.dump_all([meta], file)
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
-        self._patched_meta = True
+        self._patch_build_script()
 
-    def _patch_build(self):
-        pass
-
-    def patch_build(self):
-        if self._patched_build:
-            return
-
-        self.logger.info("Patching build script...")
-        self._patch_build()
-        self._patched_build = True
+        self._recipe_patched = True
 
     def build(self):
+        """
+        Build the conda package.
+
+        1. Patch the recipe
+        2. Patch the build script
+        3. Build the package
+        4. Remove cloned repositories
+        """
         t0 = time()
         try:
-            self.patch_meta()
-            self.patch_build()
+            self.patch_recipe()
 
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
@@ -190,8 +191,7 @@ class BuildCondaPkg:
                 ["mamba", "mambabuild", str(self._fdstk_path / "recipe")]
             )
         finally:
-            self._patched_meta = False
-            self._patched_build = False
+            self._recipe_patched = False
             if self.debug:
                 self.logger.info("Keeping cloned source and feedstock")
             else:
@@ -207,9 +207,9 @@ class SpyderCondaPkg(BuildCondaPkg):
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
 
-    def _patch_meta(self):
-        self.yaml['build'].pop('osx_is_app', None)
-        self.yaml.pop('app', None)
+    def _patch_meta(self, meta):
+        meta['build'].pop('osx_is_app', None)
+        meta.pop('app', None)
 
         current_requirements = ['python']
         current_requirements += yaml.load(
@@ -227,13 +227,17 @@ class SpyderCondaPkg(BuildCondaPkg):
             linux_requirements = yaml.load(
                 REQ_LINUX.read_text())['dependencies']
             current_requirements += linux_requirements
-        self.yaml['requirements']['run'] = current_requirements
+        meta['requirements']['run'] = current_requirements
 
-        patches = self.yaml['source'].get('patches', [])
+        patches = meta['source'].get('patches', [])
         patches.append(str(RESOURCES / "installers-conda.patch"))
-        self.yaml['source']['patches'] = patches
+        meta['source']['patches'] = patches
 
-    def _patch_build(self):
+        return meta
+
+    def _patch_build_script(self):
+        self.logger.info("Patching build script...")
+
         if os.name == 'posix':
             file = self._fdstk_path / "recipe" / "build.sh"
             build_patch = RESOURCES / "build-patch.sh"
