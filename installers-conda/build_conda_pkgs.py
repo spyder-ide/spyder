@@ -164,6 +164,7 @@ class BuildCondaPkg:
 
         meta = self._patch_meta(meta)
 
+        file.rename(file.parent / ("_" + file.name))  # keep copy of original
         yamlj.dump_all([meta], file)
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
@@ -243,7 +244,6 @@ class SpyderCondaPkg(BuildCondaPkg):
             build_patch = RESOURCES / "build-patch.sh"
             text = file.read_text()
             text += build_patch.read_text()
-            file.write_text(text)
         if os.name == 'nt':
             file = self._fdstk_path / "recipe" / "bld.bat"
             text = file.read_text()
@@ -254,7 +254,10 @@ class SpyderCondaPkg(BuildCondaPkg):
                 r""" -replace '__PKG_VERSION__', '%PKG_VERSION%' | """
                 r"""Out-File -encoding ASCII %MENU_DIR%\spyder-menu.json" """
             )
-            file.write_text(text)
+        file.rename(file.parent / ("_" + file.name))  # keep copy of original
+        file.write_text(text)
+
+        self.logger.info(f"Patched build script contents:\n{file.read_text()}")
 
 
 class PylspCondaPkg(BuildCondaPkg):
