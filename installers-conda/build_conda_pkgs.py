@@ -162,7 +162,7 @@ class BuildCondaPkg:
         self.yaml = self._yaml.load(text)
 
         self.yaml['source'] = {'path': str(self.src_path)}
-        
+
         self.yaml.pop('test', None)
         if 'outputs' in self.yaml:
             for out in self.yaml['outputs']:
@@ -172,8 +172,7 @@ class BuildCondaPkg:
 
         self._yaml.dump_all([self.yaml], file)
 
-        self.logger.info("Patched 'meta.yaml'...")
-        self.logger.info(file.read_text())
+        self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
         self._patched_meta = True
 
@@ -191,7 +190,6 @@ class BuildCondaPkg:
     def build(self):
         t0 = time()
         try:
-            # self._git_init_src_path()
             self._clone_feedstock()
             self.patch_meta()
             self.patch_build()
@@ -220,7 +218,7 @@ class SpyderCondaPkg(BuildCondaPkg):
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
     _yaml_yml = YAML()
-    
+
     def _patch_meta(self):
         self.yaml['build'].pop('osx_is_app', None)
         self.yaml.pop('app', None)
@@ -259,12 +257,13 @@ class SpyderCondaPkg(BuildCondaPkg):
             text = file.read_text()
             text = text.replace(
                 r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
-                """powershell -Command"""
+                r"""powershell -Command"""
                 r""" "(gc %SRC_DIR%\installers-conda\resources\spyder-menu.json)"""
                 r""" -replace '__PKG_VERSION__', '%PKG_VERSION%' | """
                 r"""Out-File -encoding ASCII %MENU_DIR%\spyder-menu.json" """
             )
             file.write_text(text)
+
 
 class PylspCondaPkg(BuildCondaPkg):
     name = "python-lsp-server"
