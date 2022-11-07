@@ -70,15 +70,17 @@ REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
 DIST.mkdir(exist_ok=True)
 
+yaml = YAML()
+yaml.indent(mapping=2, sequence=4, offset=2)
+yamlj = YAML(typ='jinja2')
+yamlj.indent(mapping=2, sequence=4, offset=2)
+
 
 class BuildCondaPkg:
     name = None
     source = None
     feedstock = None
     shallow_ver = None
-
-    _yaml = YAML(typ='jinja2')
-    _yaml.indent(mapping=2, sequence=4, offset=2)
 
     def __init__(self, data={}, debug=False):
         # ---- Setup logger
@@ -149,7 +151,7 @@ class BuildCondaPkg:
         for k, v in self.data.items():
             text = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', text)
 
-        self.yaml = self._yaml.load(text)
+        self.yaml = yamlj.load(text)
 
         self.yaml['source'] = {'path': str(self._bld_src)}
 
@@ -160,7 +162,7 @@ class BuildCondaPkg:
 
         self._patch_meta()
 
-        self._yaml.dump_all([self.yaml], file)
+        yamlj.dump_all([self.yaml], file)
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
@@ -205,26 +207,25 @@ class SpyderCondaPkg(BuildCondaPkg):
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
-    _yaml_yml = YAML()
 
     def _patch_meta(self):
         self.yaml['build'].pop('osx_is_app', None)
         self.yaml.pop('app', None)
 
         current_requirements = ['python']
-        current_requirements += self._yaml_yml.load(
+        current_requirements += yaml.load(
             REQ_MAIN.read_text())['dependencies']
         if os.name == 'nt':
-            win_requirements =  self._yaml_yml.load(
+            win_requirements =  yaml.load(
                 REQ_WINDOWS.read_text())['dependencies']
             current_requirements += win_requirements
             current_requirements.append('ptyprocess >=0.5')
         elif sys.platform == 'darwin':
-            mac_requirements =  self._yaml_yml.load(
+            mac_requirements =  yaml.load(
                 REQ_MAC.read_text())['dependencies']
             current_requirements += mac_requirements
         else:
-            linux_requirements = self._yaml_yml.load(
+            linux_requirements = yaml.load(
                 REQ_LINUX.read_text())['dependencies']
             current_requirements += linux_requirements
         self.yaml['requirements']['run'] = current_requirements
@@ -320,9 +321,6 @@ if __name__ == "__main__":
 
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
-
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
 
     for k in args.build:
         if SPECS.exists():
