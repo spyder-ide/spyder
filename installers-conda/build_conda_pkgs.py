@@ -25,6 +25,7 @@ at the same commit as the external-deps state.
 Alternatively, any external-deps may be packaged from a local git repository
 (in its checked out state) by setting the appropriate environment variable
 from the following:
+    SPYDER_SOURCE
     PYTHON_LSP_SERVER_SOURCE
     QDARKSTYLE_SOURCE
     QTCONSOLE_SOURCE
@@ -72,7 +73,7 @@ DIST.mkdir(exist_ok=True)
 
 class BuildCondaPkg:
     name = None
-    src_path = None
+    source = None
     feedstock = None
     shallow_ver = None
 
@@ -88,13 +89,14 @@ class BuildCondaPkg:
 
         self.debug = debug
 
+        self._bld_src = DIST / self.name
+        self._fdstk_path = DIST / self.feedstock.split("/")[-1]
+
         self._get_source()
         self._get_version()
 
         self.data = {'version': self.version}
         self.data.update(data)
-
-        self.fdstk_path = HERE / self.feedstock.split("/")[-1]
 
         self.yaml = None
 
@@ -104,31 +106,34 @@ class BuildCondaPkg:
     def _get_source(self):
         self._build_cleanup()
 
-        if not self.src_path.exists():
+        # Determine source and commit
+        if self.source is not None:
+            remote = self.source
+            commit = 'HEAD'
+        else:
             cfg = ConfigParser()
             cfg.read(EXTDEPS / self.name / '.gitrepo')
-            # Clone from remote
-            repo = Repo.clone_from(
-                cfg['subrepo']['remote'],
-                to_path=self.src_path, shallow_exclude=self.shallow_ver
-            )
-            repo.git.checkout(cfg['subrepo']['commit'])
+            remote = cfg['subrepo']['remote']
+            commit = cfg['subrepo']['commit']
+
+        # Clone from source
+        repo = Repo.clone_from(remote, to_path=self._bld_src,
+                               shallow_exclude=self.shallow_ver)
+        repo.git.checkout(commit)
+
+        # Clone feedstock
+        self.logger.info("Cloning feedstock...")
+        Repo.clone_from(self.feedstock, to_path=self._fdstk_path)
 
     def _build_cleanup(self):
-        if self.src_path.exists() and self.src_path == HERE / self.name:
-            logger.info(f"Removing {self.src_path}...")
-            rmtree(self.src_path)
+        """Remove cloned source and feedstock repositories"""
+        for src in [self._bld_src, self._fdstk_path]:
+            if src.exists():
+                logger.info(f"Removing {src}...")
+                rmtree(src)
 
     def _get_version(self):
-        self.version = get_version(self.src_path).split('+')[0]
-
-    def _clone_feedstock(self):
-        if self.fdstk_path.exists():
-            self.logger.info(f"Removing existing {self.fdstk_path}...")
-            rmtree(self.fdstk_path)
-
-        self.logger.info("Cloning feedstock...")
-        Repo.clone_from(self.feedstock, to_path=self.fdstk_path)
+        self.version = get_version(self._bld_src).split('+')[0]
 
     def _patch_meta(self):
         pass
@@ -139,14 +144,14 @@ class BuildCondaPkg:
 
         self.logger.info("Patching 'meta.yaml'...")
 
-        file = self.fdstk_path / "recipe" / "meta.yaml"
+        file = self._fdstk_path / "recipe" / "meta.yaml"
         text = file.read_text()
         for k, v in self.data.items():
             text = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', text)
 
         self.yaml = self._yaml.load(text)
 
-        self.yaml['source'] = {'path': str(self.src_path)}
+        self.yaml['source'] = {'path': str(self._bld_src)}
 
         self.yaml.pop('test', None)
         if 'outputs' in self.yaml:
@@ -175,23 +180,21 @@ class BuildCondaPkg:
     def build(self):
         t0 = time()
         try:
-            self._clone_feedstock()
             self.patch_meta()
             self.patch_build()
 
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
             check_call(
-                ["mamba", "mambabuild", str(self.fdstk_path / "recipe")]
+                ["mamba", "mambabuild", str(self._fdstk_path / "recipe")]
             )
         finally:
             self._patched_meta = False
             self._patched_build = False
-            if not self.debug:
-                self.logger.info(f"Removing {self.fdstk_path}...")
-                rmtree(self.fdstk_path)
-
-            self._build_cleanup()
+            if self.debug:
+                self.logger.info("Keeping cloned source and feedstock")
+            else:
+                self._build_cleanup()
 
             elapse = timedelta(seconds=int(time() - t0))
             self.logger.info(f"Build time = {elapse}")
@@ -199,7 +202,7 @@ class BuildCondaPkg:
 
 class SpyderCondaPkg(BuildCondaPkg):
     name = "spyder"
-    src_path = HERE.parent
+    source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
     _yaml_yml = YAML()
@@ -232,13 +235,13 @@ class SpyderCondaPkg(BuildCondaPkg):
 
     def _patch_build(self):
         if os.name == 'posix':
-            file = self.fdstk_path / "recipe" / "build.sh"
+            file = self._fdstk_path / "recipe" / "build.sh"
             build_patch = RESOURCES / "build-patch.sh"
             text = file.read_text()
             text += build_patch.read_text()
             file.write_text(text)
         if os.name == 'nt':
-            file = self.fdstk_path / "recipe" / "bld.bat"
+            file = self._fdstk_path / "recipe" / "bld.bat"
             text = file.read_text()
             text = text.replace(
                 r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
@@ -252,27 +255,21 @@ class SpyderCondaPkg(BuildCondaPkg):
 
 class PylspCondaPkg(BuildCondaPkg):
     name = "python-lsp-server"
-    src_path = Path(
-        os.environ.get('PYTHON_LSP_SERVER_SOURCE', HERE / name)
-    )
+    source = os.environ.get('PYTHON_LSP_SERVER_SOURCE')
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
     shallow_ver = "v1.4.1"
 
 
 class QdarkstyleCondaPkg(BuildCondaPkg):
     name = "qdarkstyle"
-    src_path = Path(
-        os.environ.get('QDARKSTYLE_SOURCE', HERE / name)
-    )
+    source = os.environ.get('QDARKSTYLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qdarkstyle-feedstock"
     shallow_ver = "v3.0.2"
 
 
 class QtconsoleCondaPkg(BuildCondaPkg):
     name = "qtconsole"
-    src_path = Path(
-        os.environ.get('QTCONSOLE_SOURCE', HERE / name)
-    )
+    source = os.environ.get('QTCONSOLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
     shallow_ver = "5.3.1"
 
@@ -283,9 +280,7 @@ class QtconsoleCondaPkg(BuildCondaPkg):
 
 class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
-    src_path = Path(
-        os.environ.get('SPYDER_KERNELS_SOURCE', HERE / name)
-    )
+    source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
     shallow_ver = "v2.3.1"
 
@@ -314,7 +309,7 @@ if __name__ == "__main__":
     )
     p.add_argument(
         '--debug', action='store_true', default=False,
-        help="Do not remove cloned feedstocks"
+        help="Do not remove cloned sources and feedstocks"
     )
     p.add_argument(
         '--build', nargs="+", default=PKGS.keys(),
