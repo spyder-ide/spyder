@@ -110,6 +110,8 @@ class FindReplace(QWidget):
             icon=ima.icon('replace'),
             tip=_("Replace text")
         )
+        if not self.enable_replace:
+            self.replace_text_button.hide()
 
         self.previous_button = create_toolbutton(
             self,
@@ -156,12 +158,12 @@ class FindReplace(QWidget):
             self.search_text,
             self.number_matches_text,
             self.messages_label,
-            self.replace_text_button,
             self.previous_button,
             self.next_button,
             self.re_button,
             self.case_button,
-            self.words_button
+            self.words_button,
+            self.replace_text_button
         ]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
@@ -326,9 +328,12 @@ class FindReplace(QWidget):
             if hide_replace:
                 if self.replace_widgets[0].isVisible():
                     self.hide_replace()
-            text = self.editor.get_selected_text()
+            else:
+                self.replace_text_button.setChecked(True)
+
             # When selecting several lines, and replace box is activated the
             # text won't be replaced for the selection
+            text = self.editor.get_selected_text()
             if hide_replace or len(text.splitlines()) <= 1:
                 highlighted = True
                 # If no text is highlighted for search, use whatever word is
