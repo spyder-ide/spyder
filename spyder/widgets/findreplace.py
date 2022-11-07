@@ -93,6 +93,7 @@ class FindReplace(QWidget):
 
         self.search_text.lineEdit().textEdited.connect(
             self.text_has_been_edited)
+        self.search_text.sig_resized.connect(self._resize_replace_text)
 
         self.number_matches_text = QLabel(self)
 
@@ -209,6 +210,7 @@ class FindReplace(QWidget):
         ]
         for widget in widgets:
             self.replace_layout.addWidget(widget)
+        self.replace_layout.addStretch(1)
         glayout.addLayout(self.replace_layout, 1, 1)
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
@@ -319,6 +321,7 @@ class FindReplace(QWidget):
         QWidget.show(self)
         self.visibility_changed.emit(True)
         self.change_number_matches()
+
         if self.editor is not None:
             if hide_replace:
                 if self.replace_widgets[0].isVisible():
@@ -735,3 +738,10 @@ class FindReplace(QWidget):
         self.messages_label.setPixmap(icon)
         self.messages_label.setToolTip(tooltip)
         self.messages_label.show()
+
+    def _resize_replace_text(self, size, old_size):
+        """
+        Resize replace_text combobox to match the width of the search one.
+        """
+        self.replace_text.setMinimumWidth(size.width())
+        self.replace_text.setMaximumWidth(size.width())
