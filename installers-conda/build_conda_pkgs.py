@@ -40,13 +40,12 @@ from configparser import ConfigParser
 from datetime import timedelta
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
-from shutil import rmtree
 from subprocess import check_call
 from textwrap import dedent
 from time import time
 
 # Third-party imports
-from git import Repo
+from git import Repo, rmtree
 from ruamel.yaml import YAML
 from setuptools_scm import get_version
 
@@ -69,20 +68,6 @@ REQ_MAC = REQUIREMENTS / 'macos.yml'
 REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
 DIST.mkdir(exist_ok=True)
-
-
-def remove_readonly(func, path, exc):
-    """
-    Change readonly status of file.
-    Windows file systems may require this if rmdir fails
-    """
-    import errno, stat
-    excvalue = exc[1]
-    if func in (os.rmdir, os.remove, os.unlink) and excvalue.errno == errno.EACCES:
-        os.chmod(path, stat.S_IRWXU| stat.S_IRWXG| stat.S_IRWXO) # 0777
-        func(path)
-    else:
-        raise
 
 
 class BuildCondaPkg:
@@ -132,7 +117,7 @@ class BuildCondaPkg:
     def _build_cleanup(self):
         if self.src_path.exists() and self.src_path == HERE / self.name:
             logger.info(f"Removing {self.src_path}...")
-            rmtree(self.src_path, onerror=remove_readonly)
+            rmtree(self.src_path)
 
     def _get_version(self):
         self.version = get_version(self.src_path).split('+')[0]
@@ -140,10 +125,10 @@ class BuildCondaPkg:
     def _clone_feedstock(self):
         if self.fdstk_path.exists():
             self.logger.info(f"Removing existing {self.fdstk_path}...")
-            rmtree(self.fdstk_path, onerror=remove_readonly)
+            rmtree(self.fdstk_path)
 
-        self.logger.info(f"Cloning feedstock to {self.fdstk_path}...")
-        check_call(["git", "clone", str(self.feedstock), str(self.fdstk_path)])
+        self.logger.info("Cloning feedstock...")
+        Repo.clone_from(self.feedstock, to_path=self.fdstk_path)
 
     def _patch_meta(self):
         pass
@@ -204,7 +189,7 @@ class BuildCondaPkg:
             self._patched_build = False
             if not self.debug:
                 self.logger.info(f"Removing {self.fdstk_path}...")
-                rmtree(self.fdstk_path, onerror=remove_readonly)
+                rmtree(self.fdstk_path)
 
             self._build_cleanup()
 
