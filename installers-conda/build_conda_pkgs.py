@@ -83,7 +83,6 @@ class BuildCondaPkg:
     shallow_ver = None
 
     def __init__(self, data={}, debug=False):
-        # ---- Setup logger
         self.logger = getLogger(self.__class__.__name__)
         if not self.logger.handlers:
             self.logger.addHandler(h)
@@ -273,10 +272,6 @@ class QtconsoleCondaPkg(BuildCondaPkg):
     source = os.environ.get('QTCONSOLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
     shallow_ver = "5.3.1"
-
-    def _patch_meta(self):
-        for out in self.yaml['outputs']:
-            out.pop("test", None)
 
 
 class SpyderKernelsCondaPkg(BuildCondaPkg):
