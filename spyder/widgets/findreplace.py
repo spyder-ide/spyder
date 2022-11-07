@@ -167,46 +167,41 @@ class FindReplace(QWidget):
         glayout.addLayout(hlayout, 0, 1)
 
         # Replace layout
-        replace_with = QLabel(_("Replace with:"))
         self.replace_text = PatternComboBox(
             self,
-            adjust_to_minimum=False,
-            tip=_('Replace string')
+            adjust_to_minimum=False
         )
         self.replace_text.valid.connect(
             lambda _: self.replace_find(focus_replace_text=True))
+        self.replace_text.lineEdit().setPlaceholderText(_("Replace"))
 
         self.replace_button = create_toolbutton(
             self,
-            text=_('Find next'),
-            icon=ima.icon('DialogApplyButton'),
+            tip=_('Replace next occurrence'),
+            icon=ima.icon('replace_next'),
             triggered=self.replace_find,
-            text_beside_icon=True
         )
 
         self.replace_sel_button = create_toolbutton(
             self,
-            text=_('In selection'),
-            icon=ima.icon('DialogApplyButton'),
+            tip=_('Replace occurrences in selection'),
+            icon=ima.icon('replace_selection'),
             triggered=self.replace_find_selection,
-            text_beside_icon=True
         )
         self.replace_sel_button.clicked.connect(self.update_replace_combo)
         self.replace_sel_button.clicked.connect(self.update_search_combo)
 
         self.replace_all_button = create_toolbutton(
             self,
-            text=_('All'),
-            icon=ima.icon('DialogApplyButton'),
+            tip=_('Replace all occurrences'),
+            icon=ima.icon('replace_all'),
             triggered=self.replace_find_all,
-            text_beside_icon=True
         )
         self.replace_all_button.clicked.connect(self.update_replace_combo)
         self.replace_all_button.clicked.connect(self.update_search_combo)
 
         self.replace_layout = QHBoxLayout()
         widgets = [
-            replace_with,
             self.replace_text,
             self.replace_button,
             self.replace_sel_button,
