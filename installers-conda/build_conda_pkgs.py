@@ -157,11 +157,6 @@ class BuildCondaPkg:
 
         meta['source'] = {'path': str(self._bld_src)}
 
-        meta.pop('test', None)
-        if 'outputs' in meta:
-            for out in meta['outputs']:
-                out.pop('test', None)
-
         meta = self._patch_meta(meta)
 
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
@@ -188,9 +183,11 @@ class BuildCondaPkg:
 
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
-            check_call(
-                ["mamba", "mambabuild", str(self._fdstk_path / "recipe")]
-            )
+            check_call([
+                "mamba", "mambabuild",
+                "--no-test", "--skip-existing", "--build-id-pat={n}",
+                str(self._fdstk_path / "recipe")
+            ])
         finally:
             self._recipe_patched = False
             if self.debug:
@@ -324,17 +321,20 @@ if __name__ == "__main__":
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
 
+    if SPECS.exists():
+        specs = yaml.load(SPECS.read_text())
+    else:
+        specs = {k: "" for k in PKGS}
+
     for k in args.build:
-        if SPECS.exists():
-            specs = yaml.load(SPECS.read_text())
-        else:
-            specs = {k: "" for k in PKGS}
-
         pkg = PKGS[k](debug=args.debug)
-        pkg.build()
-        specs[k] = "=" + pkg.version
+        try:
+            pkg.build()
+            specs[k] = "=" + pkg.version
+        except Exception:
+            logger.exception(f"Build failed for {pkg.name}")
 
-        yaml.dump(specs, SPECS)
+    yaml.dump(specs, SPECS)
 
     elapse = timedelta(seconds=int(time() - t0))
     logger.info(f"Total build time = {elapse}")
