@@ -214,15 +214,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
         """
-        Disconnect kernel.
+        Disconnect from current kernel.
 
         Parameters:
         -----------
         shutdown_kernel: bool
-            If True, the kernel is shut down
+            If True, the kernel is shut down.
         will_reconnect: bool
             If False, emits `sig_shellwidget_deleted` so the plugins can close
-            related widgets
+            related widgets.
         """
         kernel_handler = self.kernel_handler
         if not kernel_handler:
@@ -1082,7 +1082,7 @@ the sympy module (e.g. plot)
         if died and self.kernel_manager is None:
             # The kernel might never restart, show position of fault file
             msg += (
-                "\nCrash file located at: "
+                "\n" + _("Its crash file is located at:") + " "
                 + self.kernel_handler.fault_filename()
             )
 
@@ -1090,7 +1090,7 @@ the sympy module (e.g. plot)
 
     def _handle_kernel_restarted(self, *args, **kwargs):
         """The kernel restarted."""
-        super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
+        super()._handle_kernel_restarted(*args, **kwargs)
 
         # Print restart message
         self.print_restart_message()

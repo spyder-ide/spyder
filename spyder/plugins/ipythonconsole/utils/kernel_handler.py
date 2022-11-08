@@ -593,7 +593,7 @@ class KernelHandler(QObject):
         self.sig_fault.emit(fault)
 
     def fault_filename(self):
-        """get fault filename"""
+        """Get fault filename."""
         if not self._fault_args:
             return
         return self._fault_args[0]

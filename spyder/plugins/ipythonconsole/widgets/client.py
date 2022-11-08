@@ -331,7 +331,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.connect_kernel(kernel_handler, first_connect)
 
     def disconnect_kernel(self, shutdown_kernel):
-        """Disconnect kernel."""
+        """Disconnect from current kernel."""
         kernel_handler = self.kernel_handler
         if not kernel_handler:
             return
@@ -590,11 +590,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    def replace_kernel(self, kernel, shutdown_kernel):
-        """Instead of restarting, close kernel and open a new one"""
+    def replace_kernel(self, kernel_handler, shutdown_kernel):
+        """
+        Replace kernel by disconnecting from the current one and connecting to
+        another kernel, which is equivalent to a restart.
+        """
         # Connect kernel to client
         self.disconnect_kernel(shutdown_kernel)
-        self.connect_kernel(kernel, first_connect=False)
+        self.connect_kernel(kernel_handler, first_connect=False)
 
         # Reset shellwidget and print restart message
         self.shellwidget.reset(clear=True)
