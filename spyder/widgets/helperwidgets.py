@@ -12,6 +12,7 @@ Helper widgets.
 import re
 
 # Third party imports
+import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
@@ -228,37 +229,30 @@ class IconLineEdit(QLineEdit):
         self.ellipsis_place = ellipsis_place
         self._status = True
         self._status_set = True
+        self._focus_in = False
         self._valid_icon = ima.icon('todo')
         self._invalid_icon = ima.icon('warning')
         self._set_icon = ima.icon('todo_list')
-        self._application_style = QApplication.style().objectName()
         self._refresh()
         self._paint_count = 0
         self._icon_visible = False
-        self._focus_in = False
 
     def _refresh(self):
-        """After an application style change, the paintEvent updates the
-        custom defined stylesheet.
+        """
+        This makes space for the right validation icons after focus is given to
+        the widget.
         """
         padding = self.height()
-        css_base = """QLineEdit {{
-                                 border: none;
-                                 padding-right: {padding}px;
-                                 }}
-                   """
-        css_oxygen = """QLineEdit {{background: transparent;
-                                   border: none;
-                                   padding-right: {padding}px;
-                                   }}
-                     """
-        if self._application_style == 'oxygen':
-            css_template = css_oxygen
-        else:
-            css_template = css_base
+        if self.elide_text and not self._focus_in:
+            padding = 0
 
-        css = css_template.format(padding=padding)
-        self.setStyleSheet(css)
+        css = qstylizer.style.StyleSheet()
+        css.QLineEdit.setValues(
+            border='none',
+            paddingRight=f"{padding}px"
+        )
+
+        self.setStyleSheet(css.toString())
         self.update()
 
     def hide_status_icon(self):
@@ -281,22 +275,23 @@ class IconLineEdit(QLineEdit):
         self.update()
 
     def paintEvent(self, event):
-        """Qt Override.
-
-        Include a validation icon to the left of the line edit.
+        """
+        Include a validation icon to the left of the line edit and elide text
+        if requested.
         """
         # Elide text if requested.
         # See PR spyder-ide/spyder#20005 for context.
         if self.elide_text and not self._focus_in:
             # This code is taken for the most part from the
-            # AmountEdit.paintEvent method, part of the Electrum project.
+            # AmountEdit.paintEvent method, part of the Electrum project. See
+            # the Electrum entry in our NOTICE.txt file for the details.
             # Licensed under the MIT license.
             painter = QPainter(self)
             option = QStyleOptionFrame()
             self.initStyleOption(option)
             text_rect = self.style().subElementRect(
                 QStyle.SE_LineEditContents, option, self)
-            text_rect.adjust(2, 0, -10, 0)
+            text_rect.adjust(0, 0, -2, 0)
             fm = QFontMetrics(self.font())
             text = fm.elidedText(self.text(), self.ellipsis_place,
                                  text_rect.width())
@@ -320,12 +315,7 @@ class IconLineEdit(QLineEdit):
             else:
                 pixmap = self._invalid_icon.pixmap(h, h)
 
-            painter.drawPixmap(w, space, pixmap)
-
-        application_style = QApplication.style().objectName()
-        if self._application_style != application_style:
-            self._application_style = application_style
-            self._refresh()
+            painter.drawPixmap(w, 2, pixmap)
 
         # Small hack to guarantee correct padding on Spyder start
         if self._paint_count < 5:
@@ -335,11 +325,13 @@ class IconLineEdit(QLineEdit):
     def focusInEvent(self, event):
         """Reimplemented to know when this widget has received focus."""
         self._focus_in = True
+        self._refresh()
         super().focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Reimplemented to know when this widget has lost focus."""
         self._focus_in = False
+        self._refresh()
         super().focusOutEvent(event)
 
 
