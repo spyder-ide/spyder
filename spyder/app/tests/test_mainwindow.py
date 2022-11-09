@@ -733,8 +733,10 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # --- Set run options for this file ---
     rc = RunConfiguration().get()
+    
     # A dedicated console is used when these three options are False
     rc['default'] = rc['current'] = rc['systerm'] = False
+    rc['clear_namespace'] = False
     config_entry = (test_file, rc)
     CONF.set('run', 'configurations', [config_entry])
 
@@ -759,13 +761,26 @@ def test_dedicated_consoles(main_window, qtbot):
     text = control.toPlainText()
     assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
-    # --- Clean namespace after re-execution ---
+    # --- Clean retained after re-execution ---
     with qtbot.waitSignal(shell.executed):
         shell.execute('zz = -1')
 
     qtbot.keyClick(code_editor, Qt.Key_F5)
-    qtbot.waitUntil(lambda: not shell.is_defined('zz'))
+    qtbot.waitUntil(lambda: shell.is_defined('zz'))
     assert shell.is_defined('zz')
+
+    # --- Assert runfile text is present after reruns ---
+    assert 'runfile' in control.toPlainText()
+
+    # --- Clean namespace after re-execution with clear_namespace ---
+    rc['clear_namespace'] = True
+    config_entry = (test_file, rc)
+    CONF.set('run', 'configurations', [config_entry])
+
+    qtbot.wait(500)
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.waitUntil(lambda: not shell.is_defined('zz'))
+    assert not shell.is_defined('zz')
 
     # --- Assert runfile text is present after reruns ---
     assert 'runfile' in control.toPlainText()
