@@ -14,17 +14,18 @@ import re
 # Third party imports
 from qtpy import PYQT5
 from qtpy.QtCore import QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt
-from qtpy.QtGui import (QAbstractTextDocumentLayout, QPainter,
-                        QRegExpValidator, QTextDocument)
+from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
+                        QPainter, QRegExpValidator, QTextDocument, )
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
-                            QStyleOptionViewItem, QToolButton, QToolTip,
-                            QVBoxLayout)
+                            QStyleOptionFrame, QStyleOptionViewItem,
+                            QToolButton, QToolTip, QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
+from spyder.utils.palette import QStylePalette
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
@@ -215,11 +216,16 @@ class ItemDelegate(QStyledItemDelegate):
 
 
 class IconLineEdit(QLineEdit):
-    """Custom QLineEdit that includes an icon representing the validation."""
+    """
+    Custom QLineEdit that includes an icon representing a validation for its
+    text and can also elide it.
+    """
 
-    def __init__(self, *args, **kwargs):
-        super(IconLineEdit, self).__init__(*args, **kwargs)
+    def __init__(self, parent, elide_text, ellipsis_place):
+        super().__init__(parent)
 
+        self.elide_text = elide_text
+        self.ellipsis_place = ellipsis_place
         self._status = True
         self._status_set = True
         self._valid_icon = ima.icon('todo')
@@ -229,6 +235,7 @@ class IconLineEdit(QLineEdit):
         self._refresh()
         self._paint_count = 0
         self._icon_visible = False
+        self._focus_in = False
 
     def _refresh(self):
         """After an application style change, the paintEvent updates the
@@ -278,9 +285,28 @@ class IconLineEdit(QLineEdit):
 
         Include a validation icon to the left of the line edit.
         """
-        super(IconLineEdit, self).paintEvent(event)
-        painter = QPainter(self)
+        # Elide text if requested.
+        # See PR spyder-ide/spyder#20005 for context.
+        if self.elide_text and not self._focus_in:
+            # This code is taken for the most part from the
+            # AmountEdit.paintEvent method, part of the Electrum project.
+            # Licensed under the MIT license.
+            painter = QPainter(self)
+            option = QStyleOptionFrame()
+            self.initStyleOption(option)
+            text_rect = self.style().subElementRect(
+                QStyle.SE_LineEditContents, option, self)
+            text_rect.adjust(2, 0, -10, 0)
+            fm = QFontMetrics(self.font())
+            text = fm.elidedText(self.text(), self.ellipsis_place,
+                                 text_rect.width())
+            painter.setPen(QColor(QStylePalette.COLOR_TEXT_1))
+            painter.drawText(text_rect, int(Qt.AlignLeft | Qt.AlignVCenter),
+                             text)
+            return
 
+        super().paintEvent(event)
+        painter = QPainter(self)
         rect = self.geometry()
         space = int((rect.height())/6)
         h = rect.height() - space
@@ -305,6 +331,16 @@ class IconLineEdit(QLineEdit):
         if self._paint_count < 5:
             self._paint_count += 1
             self._refresh()
+
+    def focusInEvent(self, event):
+        """Reimplemented to know when this widget has received focus."""
+        self._focus_in = True
+        super().focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        """Reimplemented to know when this widget has lost focus."""
+        self._focus_in = False
+        super().focusOutEvent(event)
 
 
 class FinderLineEdit(QLineEdit):

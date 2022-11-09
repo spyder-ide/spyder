@@ -59,8 +59,13 @@ class WorkingDirectoryToolbar(ApplicationToolbar):
 
 class WorkingDirectoryComboBox(PathComboBox):
 
-    def __init__(self, parent, adjust_to_contents=False, id_=None):
-        super().__init__(parent, adjust_to_contents, id_=id_)
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            adjust_to_contents=False,
+            id_=WorkingDirectoryToolbarItems.PathComboBox,
+            elide_text=True
+        )
 
         # Set min width
         self.setMinimumWidth(140)
@@ -113,11 +118,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Widgets
         title = _('Current working directory')
         self.toolbar = WorkingDirectoryToolbar(self, title)
-        self.pathedit = WorkingDirectoryComboBox(
-            self,
-            adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
-            id_=WorkingDirectoryToolbarItems.PathComboBox
-        )
+        self.pathedit = WorkingDirectoryComboBox(self)
         spacer = WorkingDirectorySpacer(self)
 
         # Widget Setup
