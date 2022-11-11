@@ -17,8 +17,8 @@ import re
 # Third party imports
 from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
-                            QSizePolicy, QWidget)
+from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
+                            QLineEdit, QSizePolicy, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -97,11 +97,12 @@ class FindReplace(QWidget):
 
         self.number_matches_text = QLabel(self)
 
-        self.messages_label = QLabel(self)
-        self.messages_label.setText('')
-        icon_size = self.close_button.iconSize()
-        self.warning_icon = ima.icon('warning').pixmap(icon_size)
-        self.error_icon = ima.icon('error').pixmap(icon_size)
+        self.warning_icon = ima.icon('warning')
+        self.error_icon = ima.icon('error')
+        self.messages_action = QAction(self)
+        self.messages_action.setVisible(False)
+        self.search_text.lineEdit().addAction(
+            self.messages_action, QLineEdit.TrailingPosition)
 
         self.replace_on = False
         self.replace_text_button = create_toolbutton(
@@ -157,7 +158,6 @@ class FindReplace(QWidget):
             self.close_button,
             self.search_text,
             self.number_matches_text,
-            self.messages_label,
             self.previous_button,
             self.next_button,
             self.re_button,
@@ -482,6 +482,7 @@ class FindReplace(QWidget):
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
             self.change_number_matches()
+            self.messages_action.setVisible(False)
             self.clear_matches()
             return None
         else:
@@ -697,18 +698,19 @@ class FindReplace(QWidget):
         """Change number of match and total matches."""
         if current_match and total_matches:
             self.number_matches_text.show()
-            self.messages_label.hide()
+            self.messages_action.setVisible(False)
             matches_string = u"{} {} {}".format(current_match, _(u"of"),
                                                 total_matches)
             self.number_matches_text.setText(matches_string)
         elif total_matches:
             self.number_matches_text.show()
-            self.messages_label.hide()
+            self.messages_action.setVisible(False)
             matches_string = u"{} {}".format(total_matches, _(u"matches"))
             self.number_matches_text.setText(matches_string)
         else:
             self.number_matches_text.hide()
-            self.show_warning()
+            if self.search_text.currentText():
+                self.show_warning()
 
     def show_warning(self):
         """Show a warning message with an icon when no matches can be found."""
@@ -740,9 +742,9 @@ class FindReplace(QWidget):
         if extra_info:
             tooltip = tooltip + ': ' + extra_info
 
-        self.messages_label.setPixmap(icon)
-        self.messages_label.setToolTip(tooltip)
-        self.messages_label.show()
+        self.messages_action.setIcon(icon)
+        self.messages_action.setToolTip(tooltip)
+        self.messages_action.setVisible(True)
 
     def _resize_replace_text(self, size, old_size):
         """

@@ -12,6 +12,7 @@ import os
 
 # Test library imports
 import pytest
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QVBoxLayout, QWidget
 
@@ -99,23 +100,31 @@ def test_replace_selection(findreplace_editor, qtbot):
     assert len(editor.get_selected_text()) == len(expected)
 
 
-def test_messages_label(findreplace_editor, qtbot):
+def test_messages_action(findreplace_editor, qtbot):
     """
-    Test that we set the right icons and tooltips on messages_label.
+    Test that we set the right icons and tooltips on messages_action.
     """
     editor = findreplace_editor.editor
     findreplace = findreplace_editor.findreplace
     editor.set_text('Spyder as great!')
+
+    # Assert messages_action is not visible by default
+    assert not findreplace.messages_action.isVisible()
 
     # Search for missing text
     edit = findreplace.search_text.lineEdit()
     edit.clear()
     qtbot.keyClicks(edit, 'foo')
     assert not findreplace.number_matches_text.isVisible()
-    assert findreplace.messages_label.pixmap().toImage() == \
-           findreplace.warning_icon.toImage()
-    assert findreplace.messages_label.toolTip() == \
+    assert findreplace.messages_action.icon().cacheKey() == \
+           findreplace.warning_icon.cacheKey()
+    assert findreplace.messages_action.toolTip() == \
            findreplace.TOOLTIP['no_matches']
+
+    # Assert messages_action is not visible when there's no text
+    edit.selectAll()
+    qtbot.keyClick(edit, Qt.Key_Delete)
+    assert not findreplace.messages_action.isVisible()
 
     # Search with wrong regexp
     msg = ': nothing to repeat at position 0'
@@ -123,16 +132,16 @@ def test_messages_label(findreplace_editor, qtbot):
     findreplace.re_button.setChecked(True)
     qtbot.keyClicks(edit, '?')
     assert not findreplace.number_matches_text.isVisible()
-    assert findreplace.messages_label.pixmap().toImage() == \
-           findreplace.error_icon.toImage()
-    assert findreplace.messages_label.toolTip() == \
+    assert findreplace.messages_action.icon().cacheKey() == \
+           findreplace.error_icon.cacheKey()
+    assert findreplace.messages_action.toolTip() == \
            findreplace.TOOLTIP['regexp_error'] + msg
 
     # Search for available text
     edit.clear()
     qtbot.keyClicks(edit, 'great')
     qtbot.wait(500)
-    assert not findreplace.messages_label.isVisible()
+    assert not findreplace.messages_action.isVisible()
     assert findreplace.number_matches_text.isVisible()
     assert findreplace.number_matches_text.text() == '1 of 1'
 
