@@ -162,6 +162,40 @@ Files covered:
 Source Code
 ===========
 
+Electrum
+--------
+
+
+Copyright (C) 2018 The Electrum Developers
+
+
+Author: Thomas Voegtlin and others | electrumdev@gmail.com
+https://github.com/spesmilo/electrum/graphs/contributors
+Site: https://electrum.org/
+Source: https://github.com/spesmilo/electrum
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to add ellipsis to displayed text in a QLineEdit.
+
+
+See below for the full text of the MIT License.
+
+The current Electrum license can be viewed at:
+https://github.com/spesmilo/electrum/blob/master/LICENCE
+
+The current versions of the original files can be viewed at:
+https://github.com/spesmilo/electrum/blob/master/electrum/gui/qt/amountedit.py
+
+
+Files covered:
+
+spyder/widgets/helperwidgets.py
+
+
+-------------------------------------------------------------------------------
+
+
+
 QDarkStyleSheet
 ---------------
 
