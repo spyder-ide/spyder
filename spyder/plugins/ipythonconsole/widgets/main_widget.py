@@ -89,10 +89,6 @@ class IPythonConsoleWidgetActions:
     QuickReference = 'quick reference'
 
 
-class IPythonConsoleWidgetConsolesMenuSections:
-    Main = 'main_section'
-
-
 class IPythonConsoleWidgetOptionsMenus:
     SpecialConsoles = 'special_consoles_submenu'
     Documentation = 'documentation_submenu'
@@ -550,8 +546,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 create_cython_action]:
             self.add_item_to_menu(
                 item,
-                menu=self.special_console_menu,
-                section=IPythonConsoleWidgetConsolesMenuSections.Main,
+                menu=self.special_console_menu
             )
 
         # --- Widgets for the tab corner
