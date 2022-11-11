@@ -62,7 +62,7 @@ class FindReplace(QWidget):
         self.is_code_editor = None
 
         glayout = QGridLayout()
-        glayout.setContentsMargins(0, 0, 0, 0)
+        glayout.setContentsMargins(6, 3, 6, 3)
         self.setLayout(glayout)
 
         self.close_button = create_toolbutton(
