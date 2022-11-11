@@ -44,9 +44,6 @@ def is_position_inf(pos1, pos2):
 class FindReplace(QWidget):
     """Find widget"""
     TOOLTIP = {
-        False: _("No matches"),
-        True: _("Search string"),
-        None: _("Search string"),
         'regexp_error': _("Regular expression error"),
         'no_matches': _("No matches")
     }
@@ -73,11 +70,7 @@ class FindReplace(QWidget):
         glayout.addWidget(self.close_button, 0, 0)
 
         # Find layout
-        self.search_text = PatternComboBox(
-            self,
-            tip=_("Search string"),
-            adjust_to_minimum=False
-        )
+        self.search_text = PatternComboBox(self, adjust_to_minimum=False)
 
         self.return_shift_pressed.connect(
             lambda:
@@ -132,7 +125,7 @@ class FindReplace(QWidget):
 
         self.re_button = create_toolbutton(
             self, icon=ima.icon('regex'),
-            tip=_("Regular expression")
+            tip=_("Use regular expressions")
         )
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
@@ -140,7 +133,7 @@ class FindReplace(QWidget):
         self.case_button = create_toolbutton(
             self,
             icon=ima.icon("format_letter_case"),
-            tip=_("Case Sensitive")
+            tip=_("Enable case sensitive searches")
         )
         self.case_button.setCheckable(True)
         self.case_button.toggled.connect(lambda state: self.find())
@@ -148,7 +141,7 @@ class FindReplace(QWidget):
         self.words_button = create_toolbutton(
             self,
             icon=ima.icon("format_letter_matches"),
-            tip=_("Whole words")
+            tip=_("Only search for whole words")
         )
         self.words_button.setCheckable(True)
         self.words_button.toggled.connect(lambda state: self.find())
@@ -493,13 +486,10 @@ class FindReplace(QWidget):
                                           word=word, regexp=regexp)
 
             error_msg = False
-            tooltip = self.TOOLTIP[found]
             if not found and regexp:
                 error_msg = regexp_error_msg(text)
                 if error_msg:
-                    tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
                     self.show_error(error_msg)
-            self.search_text.setToolTip(tooltip)
 
             # No need to continue after this point if we detected an error in
             # the passed regexp.
