@@ -12,6 +12,7 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.flake8.filename` | `string` | Only check for filenames matching the patterns in this list. | `null` |
 | `pylsp.plugins.flake8.hangClosing` | `boolean` | Hang closing bracket instead of matching indentation of opening bracket's line. | `null` |
 | `pylsp.plugins.flake8.ignore` | `array` of `string` items | List of errors and warnings to ignore (or skip). | `[]` |
+| `pylsp.plugins.flake8.maxComplexity` | `integer` | Maximum allowed complexity threshold. | `null` |
 | `pylsp.plugins.flake8.maxLineLength` | `integer` | Maximum allowed line length for the entirety of this run. | `null` |
 | `pylsp.plugins.flake8.indentSize` | `integer` | Set indentation spaces. | `null` |
 | `pylsp.plugins.flake8.perFileIgnores` | `array` of `string` items | A pairing of filenames and violation codes that defines which violations to ignore in a particular file, for example: `["file_path.py:W305,W304"]`). | `[]` |

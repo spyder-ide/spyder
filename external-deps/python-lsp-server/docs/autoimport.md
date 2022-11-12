@@ -19,7 +19,7 @@ Since autoimport inserts everything towards the end of the import group, its rec
 
 ## Credits
 
-- Most of the code was written by me, @bageljrkhanofemus
+- Most of the code was written by me, @bagel897
 - [lyz-code](https://github.com/lyz-code/autoimport) for inspiration and some ideas
 - [rope](https://github.com/python-rope/rope), especially @lieryan
 - [pyright](https://github.com/Microsoft/pyright) for details on language server implementation

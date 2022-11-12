@@ -25,7 +25,7 @@ MAX_RESULTS = 1000
 @hookimpl
 def pylsp_settings() -> Dict[str, Dict[str, Dict[str, Any]]]:
     # Default rope_completion to disabled
-    return {"plugins": {"rope_autoimport": {"enabled": True, "memory": False}}}
+    return {"plugins": {"rope_autoimport": {"enabled": False, "memory": False}}}
 
 
 def _should_insert(expr: tree.BaseNode, word_node: tree.Leaf) -> bool:
