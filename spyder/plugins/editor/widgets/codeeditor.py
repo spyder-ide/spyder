@@ -114,6 +114,8 @@ def schedule_request(req=None, method=None, requires_response=True):
         if params is not None and self.completions_available:
             self._pending_server_requests.append(
                 (method, params, requires_response))
+            self._server_requests_timer.setInterval(
+                self.LSP_REQUESTS_SHORT_DELAY)
             self._server_requests_timer.start()
     return wrapper
 
@@ -162,7 +164,8 @@ class CodeEditor(TextEditBaseWidget):
     }
 
     # Timeout (in milliseconds) to send pending requests to LSP server
-    LSP_REQUESTS_TIMEOUT = 150
+    LSP_REQUESTS_SHORT_DELAY = 50
+    LSP_REQUESTS_LONG_DELAY = 300
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -319,14 +322,9 @@ class CodeEditor(TextEditBaseWidget):
         self._timer_mouse_moving.setSingleShot(True)
         self._timer_mouse_moving.timeout.connect(self._handle_hover)
 
-        # Typing keys / handling on the fly completions
-        # See: keyPressEvent
+        # Typing keys / handling for on the fly completions
         self._last_key_pressed_text = ''
         self._last_pressed_key = None
-        self._timer_autocomplete = QTimer(self)
-        self._timer_autocomplete.setSingleShot(True)
-        self._timer_autocomplete.timeout.connect(
-            self._handle_automatic_completions)
 
         # Handle completions hints
         self._completions_hint_idle = False
@@ -483,7 +481,7 @@ class CodeEditor(TextEditBaseWidget):
         self._pending_server_requests = []
         self._server_requests_timer = QTimer(self)
         self._server_requests_timer.setSingleShot(True)
-        self._server_requests_timer.setInterval(self.LSP_REQUESTS_TIMEOUT)
+        self._server_requests_timer.setInterval(self.LSP_REQUESTS_SHORT_DELAY)
         self._server_requests_timer.timeout.connect(
             self._process_server_requests)
 
@@ -621,28 +619,15 @@ class CodeEditor(TextEditBaseWidget):
     # ------------------------------------------------------------------------
     def _process_server_requests(self):
         """Process server requests."""
-        # Check if the document needs to be updated:
+        # Check if the document needs to be updated
         if self._document_server_needs_update:
             self.document_did_change()
+            self.do_automatic_completions()
             self._document_server_needs_update = False
 
-        # Completion types
-        doc_completion = CompletionRequestTypes.DOCUMENT_COMPLETION
-        completion_resolve = CompletionRequestTypes.COMPLETION_RESOLVE
-
-        # Send completion requests first to the server to get faster
-        # completions
-        completion_requests = [
-            req for req in self._pending_server_requests
-            if (req[0] == doc_completion or req[0] == completion_resolve)
-        ]
-        for method, params, requires_response in completion_requests:
-            self.emit_request(method, params, requires_response)
-
-        # Send the other requests
+        # Send pending requests
         for method, params, requires_response in self._pending_server_requests:
-            if method != doc_completion and method != completion_resolve:
-                self.emit_request(method, params, requires_response)
+            self.emit_request(method, params, requires_response)
 
         # Clear pending requests
         self._pending_server_requests = []
@@ -1233,21 +1218,7 @@ class CodeEditor(TextEditBaseWidget):
     def _schedule_document_did_change(self):
         """Schedule a document update."""
         self._document_server_needs_update = True
-
-        # If auto-completions are on, start the timer to request completions
-        # here. That way we can ensure an almost instant response when the user
-        # stops typing.
-        # Note: We only ask for auto-completions if there was some text
-        # generated as part of the keyPressEvent.
-        # Fixes spyder-ide/spyder#11021
-        if (
-            self.automatic_completions
-            and not self._server_requests_timer.isActive()
-            and self._last_key_pressed_text
-        ):
-            self._timer_autocomplete.start(
-                self.automatic_completions_after_ms)
-
+        self._server_requests_timer.setInterval(self.LSP_REQUESTS_LONG_DELAY)
         self._server_requests_timer.start()
 
     @request(
@@ -4827,8 +4798,8 @@ class CodeEditor(TextEditBaseWidget):
             # could be shortcuts
             event.accept()
 
-    def _handle_automatic_completions(self):
-        """Handle on the fly completions after delay."""
+    def do_automatic_completions(self):
+        """Perform on the fly completions."""
         if not self.automatic_completions:
             return
 
@@ -4882,7 +4853,6 @@ class CodeEditor(TextEditBaseWidget):
                 if (text.isalpha() or text.isalnum() or '_' in text
                         or '.' in text):
                     self.do_completion(automatic=True)
-                    self._process_server_requests()
                     self._last_key_pressed_text = ''
                     self._last_pressed_key = None
 
