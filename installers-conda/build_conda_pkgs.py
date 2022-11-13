@@ -4,38 +4,11 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""
-Build conda packages to local channel.
-
-This module builds conda packages for Spyder and external-deps for
-inclusion in the conda-based installer. The Following classes are
-provided for each package:
-    SpyderCondaPkg
-    PylspCondaPkg
-    QdarkstyleCondaPkg
-    QtconsoleCondaPkg
-    SpyderKernelsCondaPkg
-
-Spyder will be packaged from this repository (in its checked-out state).
-qdarkstyle, qtconsole, spyder-kernels, and python-lsp-server will be packaged
-from the remote and commit specified in their respective .gitrepo files in
-external-deps.
-
-Alternatively, any external-deps may be packaged from an arbitrary git
-repository (in its checked out state) by setting the appropriate environment
-variable from the following:
-    SPYDER_SOURCE
-    PYTHON_LSP_SERVER_SOURCE
-    QDARKSTYLE_SOURCE
-    QTCONSOLE_SOURCE
-    SPYDER_KERNELS_SOURCE
-"""
-
 # Standard library imports
 import os
 import re
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 from configparser import ConfigParser
 from datetime import timedelta
 from logging import Formatter, StreamHandler, getLogger
@@ -82,7 +55,7 @@ class BuildCondaPkg:
     feedstock = None
     shallow_ver = None
 
-    def __init__(self, data={}, debug=False):
+    def __init__(self, data={}, debug=False, shallow=False):
         self.logger = getLogger(self.__class__.__name__)
         if not self.logger.handlers:
             self.logger.addHandler(h)
@@ -93,7 +66,7 @@ class BuildCondaPkg:
         self._bld_src = DIST / self.name
         self._fdstk_path = DIST / self.feedstock.split("/")[-1]
 
-        self._get_source()
+        self._get_source(shallow=shallow)
         self._get_version()
 
         self.data = {'version': self.version}
@@ -101,7 +74,7 @@ class BuildCondaPkg:
 
         self._recipe_patched = False
 
-    def _get_source(self):
+    def _get_source(self, shallow=False):
         """Clone source and feedstock to distribution directory for building"""
         self._build_cleanup()
 
@@ -116,8 +89,14 @@ class BuildCondaPkg:
             commit = cfg['subrepo']['commit']
 
         # Clone from source
-        repo = Repo.clone_from(remote, to_path=self._bld_src,
-                               shallow_exclude=self.shallow_ver)
+        kwargs = dict(to_path=self._bld_src)
+        if shallow:
+            kwargs.update(shallow_exclude=self.shallow_ver)
+            self.logger.info(
+                f"Cloning source shallow from tag {self.shallow_ver}...")
+        else:
+            self.logger.info("Cloning source...")
+        repo = Repo.clone_from(remote, **kwargs)
         repo.git.checkout(commit)
 
         # Clone feedstock
@@ -297,15 +276,35 @@ if __name__ == "__main__":
     p = ArgumentParser(
         description=dedent(
             """
-            Build conda packages from local Spyder and external-deps sources.
-            Alternative git repo for python-lsp-server may be provided by
-            setting the environment variable PYTHON_LSP_SERVER_SOURCE,
-            otherwise the upstream remote will be used. All other external-deps
-            use the subrepo source within the Spyder repo.
+            Build conda packages to local channel.
+
+            This module builds conda packages for Spyder and external-deps for
+            inclusion in the conda-based installer. The Following classes are
+            provided for each package:
+                SpyderCondaPkg
+                PylspCondaPkg
+                QdarkstyleCondaPkg
+                QtconsoleCondaPkg
+                SpyderKernelsCondaPkg
+
+            Spyder will be packaged from this repository (in its checked-out
+            state). qdarkstyle, qtconsole, spyder-kernels, and
+            python-lsp-server will be packaged from the remote and commit
+            specified in their respective .gitrepo files in external-deps.
+
+            Alternatively, any external-deps may be packaged from an arbitrary
+            git repository (in its checked out state) by setting the
+            appropriate environment variable from the following:
+                SPYDER_SOURCE
+                PYTHON_LSP_SERVER_SOURCE
+                QDARKSTYLE_SOURCE
+                QTCONSOLE_SOURCE
+                SPYDER_KERNELS_SOURCE
             """
         ),
         usage="python build_conda_pkgs.py "
-              "[--build BUILD [BUILD] ...] [--debug]",
+              "[--build BUILD [BUILD] ...] [--debug] [--shallow]",
+        formatter_class=RawTextHelpFormatter
     )
     p.add_argument(
         '--debug', action='store_true', default=False,
@@ -316,6 +315,9 @@ if __name__ == "__main__":
         help=("Space-separated list of packages to build. "
               f"Default is {list(PKGS.keys())}")
     )
+    p.add_argument(
+        '--shallow', action='store_true', default=False,
+        help="Perform shallow clone for build")
     args = p.parse_args()
 
     logger.info(f"Building local conda packages {list(args.build)}...")
@@ -327,7 +329,7 @@ if __name__ == "__main__":
         specs = {k: "" for k in PKGS}
 
     for k in args.build:
-        pkg = PKGS[k](debug=args.debug)
+        pkg = PKGS[k](debug=args.debug, shallow=args.shallow)
         try:
             pkg.build()
             specs[k] = "=" + pkg.version
