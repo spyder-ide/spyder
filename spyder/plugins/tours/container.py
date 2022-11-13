@@ -45,8 +45,10 @@ class ToursContainer(PluginMainContainer):
         self._tours = OrderedDict()
         self._tour_titles = OrderedDict()
         self._tour_widget = AnimatedTour(self._main)
+
         self._tour_dialog = OpenTourDialog(
             self, lambda: self.show_tour(DEFAULT_TOUR))
+
         self.tour_action = self.create_action(
             TourActions.ShowTour,
             text=_("Show tour"),
@@ -101,6 +103,7 @@ class ToursContainer(PluginMainContainer):
         tour_id: str
             Unique tour string identifier.
         """
+        self.sig_unmaximize_plugin_requested.emit()
         tour_data = self._tours[tour_id]
         dic = {'last': 0, 'tour': tour_data}
         self._tour_widget.set_tour(tour_id, dic, self._main)

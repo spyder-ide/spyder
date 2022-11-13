@@ -23,7 +23,6 @@ import tarfile
 import tempfile
 import shutil
 import types
-import warnings
 import json
 import inspect
 import dis
@@ -370,6 +369,27 @@ def save_dictionary(data, filename):
     return error_message
 
 
+def is_within_directory(directory, target):
+    """Check if a file is within a directory."""
+    abs_directory = os.path.abspath(directory)
+    abs_target = os.path.abspath(target)
+    prefix = os.path.commonprefix([abs_directory, abs_target])
+    return prefix == abs_directory
+
+
+def safe_extract(tar, path=".", members=None, numeric_owner=False):
+    """Safely extract a tar file."""
+    for member in tar.getmembers():
+        member_path = os.path.join(path, member.name)
+        if not is_within_directory(path, member_path):
+            raise Exception(
+                "Attempted path traversal in tar file {}".format(
+                    repr(tar.name)
+                )
+            )
+    tar.extractall(path, members, numeric_owner=numeric_owner)
+
+
 def load_dictionary(filename):
     """Load dictionary from .spydata file"""
     filename = osp.abspath(filename)
@@ -380,7 +400,11 @@ def load_dictionary(filename):
     error_message = None
     try:
         with tarfile.open(filename, "r") as tar:
-            tar.extractall()
+            if PY2:
+                tar.extractall()
+            else:
+                safe_extract(tar)
+
         pickle_filename = glob.glob('*.pickle')[0]
         # 'New' format (Spyder >=2.2 for Python 2 and Python 3)
         with open(pickle_filename, 'rb') as fdesc:

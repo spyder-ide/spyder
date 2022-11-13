@@ -23,8 +23,7 @@ import time
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtGui import QTextCursor
-from qtpy.QtPrintSupport import (QAbstractPrintDialog, QPrintDialog, QPrinter,
-                                 QPrintPreviewDialog)
+from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
                             QToolBar, QVBoxLayout, QWidget)
@@ -47,11 +46,12 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
-from spyder.plugins.editor.widgets.codeeditor_widgets import Printer
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
                                                   EditorStack,)
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.printer import (
+    SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    save_bookmarks)
 from spyder.plugins.editor.utils.debugger import (clear_all_breakpoints,
@@ -86,8 +86,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
 
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str,
-                                      bool, bool, bool, bool, bool)
+    run_in_current_ipyclient = Signal(
+        str, str, str, bool, bool, bool, bool, bool, bool)
     run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
     exec_in_extconsole = Signal(str, bool)
@@ -477,7 +477,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if self.projects is not None:
             active_project_path = self.projects.get_active_project_path()
         if not active_project_path:
-            self.set_open_filenames()
+            filenames = self.get_open_filenames()
+            self.set_option('filenames', filenames)
         else:
             self.projects.set_project_filenames(
                 [finfo.filename for finfo in editorstack.data])
@@ -1298,8 +1299,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.switcher_manager = EditorSwitcherManager(
             self,
             self.main.switcher,
-            lambda: self.get_current_editor(),
-            lambda: self.get_current_editorstack(),
+            self.get_current_editor,
+            self.get_current_editorstack,
             section=self.get_plugin_title())
 
     def update_source_menu(self, options, **kwargs):
@@ -1573,8 +1574,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.run_cell_in_ipyclient.connect(self.run_cell_in_ipyclient)
         editorstack.debug_cell_in_ipyclient.connect(
             self.debug_cell_in_ipyclient)
-        editorstack.update_plugin_title.connect(
-                                   lambda: self.sig_update_plugin_title.emit())
+        editorstack.update_plugin_title.connect(self.sig_update_plugin_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
@@ -1599,9 +1599,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_perform_completion_request.connect(
             self.send_completion_request)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
-        editorstack.update_code_analysis_actions.connect(
+        editorstack.sig_update_code_analysis_actions.connect(
             self.update_code_analysis_actions)
-        editorstack.update_code_analysis_actions.connect(
+        editorstack.sig_update_code_analysis_actions.connect(
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)
@@ -2320,8 +2320,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._print_editor.set_font(self.get_font())
 
         # Create printer
-        printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_font())
+        printer = SpyderPrinter(mode=QPrinter.HighResolution,
+                                header_font=self.get_font())
         print_dialog = QPrintDialog(printer, self._print_editor)
 
         # Adjust print options when user has selected text
@@ -2362,11 +2362,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._print_editor.set_font(self.get_font())
 
         # Create printer
-        printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=self.get_font())
+        printer = SpyderPrinter(mode=QPrinter.HighResolution,
+                                header_font=self.get_font())
 
         # Create preview
-        preview = QPrintPreviewDialog(printer, self)
+        preview = SpyderPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
         preview.paintRequested.connect(
             lambda printer: self._print_editor.print_(printer)
@@ -2866,11 +2866,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def debug_command(self, command):
         """Debug actions"""
-        self.switch_to_plugin()
         ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
         if ipyconsole:
-            ipyconsole.pdb_execute_command(command)
-            ipyconsole.switch_to_plugin()
+            ipyconsole.pdb_execute_command(
+                command, focus_to_editor=self.get_option('focus_to_editor'))
 
     # ----- Handlers for the IPython Console kernels
     def _get_editorstack(self):
@@ -2927,7 +2926,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # The file is open, get cell count from editor
         return editor.get_cell_count()
 
-    def handle_current_filename(self, filename):
+    def handle_current_filename(self):
         """Get the current filename."""
         return self._get_editorstack().get_current_finfo().filename
 
@@ -2968,9 +2967,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot()
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
-        editorstack = self.get_current_editorstack()
-
-        editor = self.get_current_editor()
         fname = osp.abspath(self.get_current_filename())
 
         # Get fname's dirname before we escape the single and double
@@ -3033,12 +3029,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                post_mortem, clear_namespace,
                                console_namespace)
         self.re_run_file(save_new_files=False)
-        if not interact and not debug:
-            # If external console dockwidget is hidden, it will be
-            # raised in top-level and so focus will be given to the
-            # current external shell automatically
-            # (see SpyderPluginWidget.visibility_changed method)
-            editor.setFocus()
 
     def set_dialog_size(self, size):
         self.dialog_size = size
@@ -3046,7 +3036,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot()
     def debug_file(self):
         """Debug current script"""
-        self.switch_to_plugin()
         current_editor = self.get_current_editor()
         if current_editor is not None:
             current_editor.sig_debug_start.emit()
@@ -3061,19 +3050,23 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 return
         if self.__last_ec_exec is None:
             return
+
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm,
          post_mortem, clear_namespace,
          console_namespace) = self.__last_ec_exec
+        focus_to_editor = self.get_option('focus_to_editor')
+
         if not systerm:
-            self.run_in_current_ipyclient.emit(fname, wdir, args,
-                                               debug, post_mortem,
-                                               current, clear_namespace,
-                                               console_namespace)
+            self.run_in_current_ipyclient.emit(
+                fname, wdir, args, debug, post_mortem, current,
+                clear_namespace, console_namespace, focus_to_editor
+            )
         else:
-            self.main.open_external_console(fname, wdir, args, interact,
-                                            debug, python, python_args,
-                                            systerm, post_mortem)
+            self.main.open_external_console(
+                fname, wdir, args, interact, debug, python, python_args,
+                systerm, post_mortem
+            )
 
     @Slot()
     def run_selection(self):
@@ -3423,8 +3416,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             for editorstack in self.editorstacks:
                 editorstack.set_underline_errors_enabled(value)
 
-    @on_conf_change(option='selected', section='appearance')
-    def set_color_scheme(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def set_color_scheme(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         if self.editorstacks is not None:
             logger.debug(f"Set color scheme to {value}")
             for editorstack in self.editorstacks:
@@ -3437,18 +3433,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         filenames = []
         filenames += [finfo.filename for finfo in editorstack.data]
         return filenames
-
-    def set_open_filenames(self):
-        """
-        Set the recent opened files on editor based on active project.
-
-        If no project is active, then editor filenames are saved, otherwise
-        the opened filenames are stored in the project config info.
-        """
-        if self.projects is not None:
-            if not self.projects.get_active_project():
-                filenames = self.get_open_filenames()
-                self.set_option('filenames', filenames)
 
     def setup_open_files(self, close_previous_files=True):
         """

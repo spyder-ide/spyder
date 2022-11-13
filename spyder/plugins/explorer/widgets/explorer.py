@@ -322,28 +322,28 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.NewFile,
             text=_("File..."),
             icon=self.create_icon('TextFileIcon'),
-            triggered=lambda: self.new_file(),
+            triggered=self.new_file,
         )
 
         new_module_action = self.create_action(
             DirViewActions.NewModule,
             text=_("Python file..."),
             icon=self.create_icon('python'),
-            triggered=lambda: self.new_module(),
+            triggered=self.new_module,
         )
 
         new_folder_action = self.create_action(
             DirViewActions.NewFolder,
             text=_("Folder..."),
             icon=self.create_icon('folder_new'),
-            triggered=lambda: self.new_folder(),
+            triggered=self.new_folder,
         )
 
         new_package_action = self.create_action(
             DirViewActions.NewPackage,
             text=_("Python Package..."),
             icon=self.create_icon('package_new'),
-            triggered=lambda: self.new_package(),
+            triggered=self.new_package,
         )
 
         # Open actions
@@ -351,19 +351,19 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.OpenWithSpyder,
             text=_("Open in Spyder"),
             icon=self.create_icon('edit'),
-            triggered=lambda: self.open(),
+            triggered=self.open,
         )
 
         self.open_external_action = self.create_action(
             DirViewActions.OpenWithSystem,
             text=_("Open externally"),
-            triggered=lambda: self.open_external(),
+            triggered=self.open_external,
         )
 
         self.open_external_action_2 = self.create_action(
             DirViewActions.OpenWithSystem2,
             text=_("Default external application"),
-            triggered=lambda: self.open_external(),
+            triggered=self.open_external,
             register_shortcut=False,
         )
 
@@ -372,21 +372,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.Delete,
             text=_("Delete..."),
             icon=self.create_icon('editdelete'),
-            triggered=lambda: self.delete(),
+            triggered=self.delete,
         )
 
         rename_action = self.create_action(
             DirViewActions.Rename,
             text=_("Rename..."),
             icon=self.create_icon('rename'),
-            triggered=lambda: self.rename(),
+            triggered=self.rename,
         )
 
         self.move_action = self.create_action(
             DirViewActions.Move,
             text=_("Move..."),
             icon=self.create_icon('move'),
-            triggered=lambda: self.move(),
+            triggered=self.move,
         )
 
         # Copy/Paste actions
@@ -394,26 +394,26 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.Copy,
             text=_("Copy"),
             icon=self.create_icon('editcopy'),
-            triggered=lambda: self.copy_file_clipboard(),
+            triggered=self.copy_file_clipboard,
         )
 
         self.paste_action = self.create_action(
             DirViewActions.Paste,
             text=_("Paste"),
             icon=self.create_icon('editpaste'),
-            triggered=lambda: self.save_file_clipboard(),
+            triggered=self.save_file_clipboard,
         )
 
         copy_absolute_path_action = self.create_action(
             DirViewActions.CopyAbsolutePath,
             text=_("Copy Absolute Path"),
-            triggered=lambda: self.copy_absolute_path(),
+            triggered=self.copy_absolute_path,
         )
 
         copy_relative_path_action = self.create_action(
             DirViewActions.CopyRelativePath,
             text=_("Copy Relative Path"),
-            triggered=lambda: self.copy_relative_path(),
+            triggered=self.copy_relative_path,
         )
 
         # Show actions
@@ -425,7 +425,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         show_in_system_explorer_action = self.create_action(
             DirViewActions.ShowInSystemExplorer,
             text=show_in_finder_text,
-            triggered=lambda: self.show_in_external_file_explorer(),
+            triggered=self.show_in_external_file_explorer,
         )
 
         # Version control actions
@@ -455,7 +455,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.EditNameFilters,
             text=_("Edit filter settings..."),
             icon=self.create_icon('filter'),
-            triggered=lambda: self.edit_filter(),
+            triggered=self.edit_filter,
         )
 
         self.create_action(
@@ -471,7 +471,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self.open_interpreter_action = self.create_action(
             DirViewActions.OpenInterpreter,
             text=_("Open IPython console here"),
-            triggered=lambda: self.open_interpreter(),
+            icon=self.create_icon('ipython_console'),
+            triggered=self.open_interpreter,
         )
 
         # TODO: Move this option to the ipython console setup
@@ -479,7 +480,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.Run,
             text=_("Run"),
             icon=self.create_icon('run'),
-            triggered=lambda: self.run(),
+            triggered=self.run,
         )
 
         # Notebook Actions
@@ -487,7 +488,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             DirViewActions.ConvertNotebook,
             _("Convert to Python file"),
             icon=ima.icon('python'),
-            triggered=lambda: self.convert_notebooks()
+            triggered=self.convert_notebooks
         )
 
         # Header Actions
@@ -1246,6 +1247,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             selected_path = osp.dirname(selected_path)
         return fixpath(selected_path)
 
+    @Slot()
     def new_folder(self, basedir=None):
         """New folder."""
 
@@ -1277,6 +1279,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                       "</b><br><br>Error message:<br>%s"
                       ) % (fname, str(error)))
 
+    @Slot()
     def new_file(self, basedir=None):
         """New file"""
 
@@ -1456,6 +1459,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             else:
                 pass
 
+    @Slot()
     def open_interpreter(self, fnames=None):
         """Open interpreter"""
         if fnames is None:
@@ -1682,6 +1686,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             return
         self.sig_file_created.emit(script)
 
+    @Slot()
     def convert_notebooks(self):
         """Convert IPython notebooks to Python scripts in editor"""
         fnames = self.get_selected_filenames()
@@ -1690,6 +1695,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         for fname in fnames:
             self.convert_notebook(fname)
 
+    @Slot()
     def new_package(self, basedir=None):
         """New package"""
 
@@ -1700,6 +1706,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         subtitle = _('Package name:')
         self.create_new_folder(basedir, title, subtitle, is_package=True)
 
+    @Slot()
     def new_module(self, basedir=None):
         """New module"""
 

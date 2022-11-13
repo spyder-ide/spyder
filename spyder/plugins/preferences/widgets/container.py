@@ -4,9 +4,6 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-# Standard library imports
-import sys
-
 # Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QAction
@@ -49,8 +46,6 @@ class PreferencesContainer(PluginMainContainer):
         if self.dialog is None:
             # TODO: Remove all references to main window
             dlg = ConfigDialog(main_window)
-            dlg.setStyleSheet("QTabWidget::tab-bar {"
-                                "alignment: left;}")
             self.dialog = dlg
 
             if prefs_dialog_size is not None:

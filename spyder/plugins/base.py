@@ -295,13 +295,7 @@ class BasePluginWidgetMixin(object):
 
     def _switch_to_plugin(self):
         """Switch to plugin."""
-        if (self.main.last_plugin is not None and
-                self.main.last_plugin._ismaximized and
-                self.main.last_plugin is not self):
-            self.main.maximize_dockwidget()
-        if not self._toggle_view_action.isChecked():
-            self._toggle_view_action.setChecked(True)
-        self._visibility_changed(True)
+        self.main.switch_to_plugin(self)
 
     @Slot()
     def _plugin_closed(self):
@@ -480,7 +474,7 @@ class BasePluginWidgetMixin(object):
 
     def _tabify(self, core_plugin):
         """Tabify plugin next to a core plugin."""
-        self.main.tabify_plugins(core_plugin, self)
+        self.main.layouts.tabify_plugins(core_plugin, self)
 
     def _lock_unlock_position(self):
         """Show/hide title bar to move/lock position."""

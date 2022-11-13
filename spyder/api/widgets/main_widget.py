@@ -83,8 +83,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     stacked vertically and cannot be placed horizontally next to each other.
     """
 
-    # --- Attributes
-    # ------------------------------------------------------------------------
+    # ---- Attributes
+    # -------------------------------------------------------------------------
     ENABLE_SPINNER = False
     """
     This attribute enables/disables showing a spinner on the top right to the
@@ -114,8 +114,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     the plugin, then this attribute should have a `None` value.
     """
 
-    # --- Signals
-    # ------------------------------------------------------------------------
+    # ---- Signals
+    # -------------------------------------------------------------------------
     sig_free_memory_requested = Signal()
     """
     This signal can be emitted to request the main application to garbage
@@ -174,7 +174,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     sig_toggle_view_changed = Signal(bool)
     """
-    This action is emitted to inform the visibility of a dockable plugin
+    This signal is emitted to inform the visibility of a dockable plugin
     has changed.
 
     This is triggered by checking/unchecking the entry for a pane in the
@@ -192,6 +192,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     needs its ancestor to be updated.
     """
 
+    sig_unmaximize_plugin_requested = Signal((), (object,))
+    """
+    This signal is emitted to inform the main window that it needs to
+    unmaximize the currently maximized plugin, if any.
+
+    Parameters
+    ----------
+    plugin_instance: SpyderDockablePlugin
+        Unmaximize plugin only if it is not `plugin_instance`.
+    """
+
     def __init__(self, name, plugin, parent=None):
         if PYQT5:
             super().__init__(parent=parent, class_parent=plugin)
@@ -206,12 +217,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._plugin = plugin
         self._parent = parent
         self._default_margins = None
-        self.is_maximized = None
         self.is_visible = None
         self.dock_action = None
         self.undock_action = None
         self.close_action = None
         self._toolbars_already_rendered = False
+        self._is_maximized = False
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
@@ -291,8 +302,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._toolbars_layout.addLayout(self._main_toolbar_layout)
         self._main_layout.addLayout(self._toolbars_layout, stretch=1)
 
-    # --- Private Methods
-    # ------------------------------------------------------------------------
+    # ---- Private Methods
+    # -------------------------------------------------------------------------
     def _setup(self):
         """
         Setup default actions, create options menu, and connect signals.
@@ -452,8 +463,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 method = getattr(self.lock_unlock_action, method_name)
                 method(_("Unlock to move pane to another position"))
 
-    # --- Public Qt overriden methods
-    # ------------------------------------------------------------------------
+    # ---- Public Qt overriden methods
+    # -------------------------------------------------------------------------
     def setLayout(self, layout):
         """
         Set layout of the main widget of this plugin.
@@ -467,8 +478,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.on_close()
         super().closeEvent(event)
 
-    # --- Public methods to use
-    # ------------------------------------------------------------------------
+    # ---- Public methods to use
+    # -------------------------------------------------------------------------
     def get_plugin(self):
         """
         Return the parent plugin.
@@ -735,8 +746,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
             # self._toolbars_already_rendered = True
 
-    # --- SpyderDockwidget handling ------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- SpyderDockwidget handling ------------------------------------------
+    # -------------------------------------------------------------------------
     @Slot()
     def create_window(self):
         """
@@ -814,6 +825,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
             if self.dockwidget is not None:
                 self.sig_update_ancestor_requested.emit()
+                self.get_plugin().switch_to_plugin()
                 self.dockwidget.setWidget(self)
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
@@ -873,6 +885,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         if not self.dockwidget:
             return
 
+        # Dock plugin if it's undocked before hiding it.
+        if self.windowwidget is not None:
+            self.close_window(save_undocked=True)
+
         if checked:
             self.dockwidget.show()
             self.dockwidget.raise_()
@@ -924,6 +940,24 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         else:
             self.dockwidget.set_title_bar()
 
+    def get_maximized_state(self):
+        """Get dockwidget's maximized state."""
+        return self._is_maximized
+
+    def set_maximized_state(self, state):
+        """
+        Set internal attribute that holds dockwidget's maximized state.
+
+        Parameters
+        ----------
+        state: bool
+            True if the plugin is maximized, False otherwise.
+        """
+        self._is_maximized = state
+
+        # This is necessary for old API plugins interacting with new ones.
+        self._plugin._ismaximized = state
+
     # --- API: methods to define or override
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -962,6 +996,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         This method **must** only operate on local attributes.
         """
         pass
+
 
 def run_test():
     # Third party imports

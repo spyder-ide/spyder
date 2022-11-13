@@ -16,7 +16,7 @@ from textwrap import dedent
 from threading import Lock
 
 # Third party imports
-from qtpy.QtCore import Signal, QThread
+from qtpy.QtCore import Signal, QThread, Slot
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
@@ -66,7 +66,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For ShellWidget
     sig_focus_changed = Signal()
-    new_client = Signal()
+    sig_new_client = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted_message = Signal(str)
     sig_kernel_restarted = Signal()
@@ -296,8 +296,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             self.silent_exec_method(code)
 
-    def set_cwd(self, dirname):
-        """Set shell current working directory."""
+    def set_cwd(self, dirname, emit_cwd_change=False):
+        """
+        Set shell current working directory.
+
+        Parameters
+        ----------
+        dirname: str
+            Path to the new current working directory.
+        emit_cwd_change: bool
+            Whether to emit a Qt signal that informs other panes in Spyder that
+            the current working directory has changed.
+        """
         if os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
@@ -306,15 +316,36 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
             self._cwd = dirname
+            if emit_cwd_change:
+                self.sig_working_directory_changed.emit(self._cwd)
+
+    def get_cwd(self):
+        """
+        Get current working directory.
+
+        Notes
+        -----
+        * This doesn't ask the kernel for its working directory. Instead, it
+          returns the last value of it saved here.
+        * We do it for performance reasons because we call this method when
+          switching consoles to update the Working Directory toolbar.
+        """
+        return self._cwd
 
     def update_cwd(self):
-        """Update current working directory in the kernel."""
+        """
+        Update working directory in Spyder after getting its value from the
+        kernel.
+        """
         if self.kernel_client is None:
             return
-        self.call_kernel(callback=self.remote_set_cwd).get_cwd()
+        self.call_kernel(callback=self.on_getting_cwd).get_cwd()
 
-    def remote_set_cwd(self, cwd):
-        """Get current working directory from kernel."""
+    def on_getting_cwd(self, cwd):
+        """
+        If necessary, notify that the working directory was changed to other
+        plugins.
+        """
         if cwd != self._cwd:
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
@@ -488,6 +519,7 @@ the sympy module (e.g. plot)
         # Stop reading as any input has been removed.
         self._reading = False
 
+    @Slot()
     def _reset_namespace(self):
         warning = self.get_conf('show_reset_namespace_warning')
         self.reset_namespace(warning=warning)
@@ -626,13 +658,13 @@ the sympy module (e.g. plot)
             parent=self)
 
         new_tab = self.config_shortcut(
-            lambda: self.new_client.emit(),
+            self.sig_new_client,
             context='ipython_console',
             name='new tab',
             parent=self)
 
         reset_namespace = self.config_shortcut(
-            lambda: self._reset_namespace(),
+            self._reset_namespace,
             context='ipython_console',
             name='reset namespace',
             parent=self)

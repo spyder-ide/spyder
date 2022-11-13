@@ -2,7 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 [build-system]
-requires = ["setuptools>=61.2.0", "wheel", "setuptools_scm[toml]>=3.4.3"]
+requires = ["setuptools>=61.2.0", "setuptools_scm[toml]>=3.4.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -16,6 +16,7 @@ dependencies = [
     "jedi>=0.17.2,<0.19.0",
     "python-lsp-jsonrpc>=1.0.0",
     "pluggy>=1.0.0",
+    "docstring-to-markdown",
     "ujson>=3.0.0",
     "setuptools>=39.0.0",
 ]
@@ -27,22 +28,22 @@ Homepage = "https://github.com/python-lsp/python-lsp-server"
 [project.optional-dependencies]
 all = [
     "autopep8>=1.6.0,<1.7.0",
-    "flake8>=4.0.0,<4.1.0",
-    "mccabe>=0.6.0,<0.7.0",
-    "pycodestyle>=2.8.0,<2.9.0",
+    "flake8>=5.0.0,<5.1.0",
+    "mccabe>=0.7.0,<0.8.0",
+    "pycodestyle>=2.9.0,<2.10.0",
     "pydocstyle>=2.0.0",
-    "pyflakes>=2.4.0,<2.5.0",
+    "pyflakes>=2.5.0,<2.6.0",
     "pylint>=2.5.0",
     "rope>=0.10.5",
     "yapf",
     "whatthepatch"
 ]
 autopep8 = ["autopep8>=1.6.0,<1.7.0"]
-flake8 = ["flake8>=4.0.0,<4.1.0"]
-mccabe = ["mccabe>=0.6.0,<0.7.0"]
-pycodestyle = ["pycodestyle>=2.8.0,<2.9.0"]
+flake8 = ["flake8>=5.0.0,<5.1.0"]
+mccabe = ["mccabe>=0.7.0,<0.8.0"]
+pycodestyle = ["pycodestyle>=2.9.0,<2.10.0"]
 pydocstyle = ["pydocstyle>=2.0.0"]
-pyflakes = ["pyflakes>=2.4.0,<2.5.0"]
+pyflakes = ["pyflakes>=2.5.0,<2.6.0"]
 pylint = ["pylint>=2.5.0"]
 rope = ["rope>0.10.5"]
 yapf = ["yapf", "whatthepatch>=1.0.2,<2.0.0"]
@@ -52,7 +53,7 @@ test = [
     "pytest",
     "pytest-cov",
     "coverage",
-    "numpy<1.23",
+    "numpy",
     "pandas",
     "matplotlib",
     "pyqt5",

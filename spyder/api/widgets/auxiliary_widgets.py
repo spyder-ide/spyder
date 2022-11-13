@@ -9,7 +9,7 @@ Spyder API auxiliary widgets.
 """
 
 # Third party imports
-from qtpy.QtCore import Signal, QSize
+from qtpy.QtCore import QEvent, Qt, QSize, Signal
 from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
 
 # Local imports
@@ -18,12 +18,23 @@ from spyder.utils.stylesheet import APP_STYLESHEET
 
 
 class SpyderWindowWidget(QMainWindow):
-    """MainWindow subclass that contains a Spyder Plugin."""
+    """MainWindow subclass that contains a SpyderDockablePlugin."""
 
     # ---- Signals
     # ------------------------------------------------------------------------
     sig_closed = Signal()
     """This signal is emitted when the close event is fired."""
+
+    sig_window_state_changed = Signal(Qt.WindowStates)
+    """
+    This signal is emitted when the window state has changed (for instance,
+    between maximized and minimized states).
+
+    Parameters
+    ----------
+    window_state: Qt.WindowStates
+        The window state.
+    """
 
     def __init__(self, widget):
         super().__init__()
@@ -36,6 +47,15 @@ class SpyderWindowWidget(QMainWindow):
         """Override Qt method to emit a custom `sig_close` signal."""
         super().closeEvent(event)
         self.sig_closed.emit()
+
+    def changeEvent(self, event):
+        """
+        Override Qt method to emit a custom `sig_windowstate_changed` signal
+        when there's a change in the window state.
+        """
+        if event.type() == QEvent.WindowStateChange:
+            self.sig_window_state_changed.emit(self.windowState())
+        super().changeEvent(event)
 
 
 class MainCornerWidget(QToolBar):

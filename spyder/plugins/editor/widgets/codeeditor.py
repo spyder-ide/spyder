@@ -73,7 +73,7 @@ from spyder.plugins.editor.panels.utils import (
     merge_folding, collect_folding_regions)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
-from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
+from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
@@ -179,7 +179,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_filename_changed = Signal(str)
     sig_bookmarks_changed = Signal()
     go_to_definition = Signal(str, int, int)
-    sig_show_object_info = Signal(int)
+    sig_show_object_info = Signal(bool)
     sig_run_selection = Signal()
     sig_run_to_line = Signal()
     sig_run_from_line = Signal()
@@ -286,6 +286,9 @@ class CodeEditor(TextEditBaseWidget):
 
     # Used to signal font change
     sig_font_changed = Signal()
+
+    # Used to request saving a file
+    sig_save_requested = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -462,7 +465,7 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer = QTimer(self)
         self.occurrence_timer.setSingleShot(True)
         self.occurrence_timer.setInterval(1500)
-        self.occurrence_timer.timeout.connect(self.__mark_occurrences)
+        self.occurrence_timer.timeout.connect(self.mark_occurrences)
         self.occurrences = []
 
         # Update decorations
@@ -577,6 +580,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters = []
         self.completion_args = None
         self.folding_supported = False
+        self._folding_info = None
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
@@ -2034,7 +2038,12 @@ class CodeEditor(TextEditBaseWidget):
     def finish_code_folding(self):
         """Finish processing code folding."""
         folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.update_folding(self._folding_info)
+
+        # Check if we actually have folding info to update before trying to do
+        # it.
+        # Fixes spyder-ide/spyder#19514
+        if self._folding_info is not None:
+            folding_panel.update_folding(self._folding_info)
 
         # Update indent guides, which depend on folding
         if self.indent_guides._enabled and len(self.patch) > 0:
@@ -2193,7 +2202,7 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable occurrence highlighting"""
         self.occurrence_highlighting = enable
         if not enable:
-            self.__clear_occurrences()
+            self.clear_occurrences()
 
     def set_occurrence_timeout(self, timeout):
         """Set occurrence highlighting timeout (ms)"""
@@ -2361,8 +2370,7 @@ class CodeEditor(TextEditBaseWidget):
         elif self.in_comment_or_string():
             self.unindent()
         elif leading_text[-1] in '(,' or leading_text.endswith(', '):
-            position = self.get_position('cursor')
-            self.show_object_info(position)
+            self.show_object_info()
         else:
             # if the line ends with any other character but comma
             self.unindent()
@@ -2535,7 +2543,7 @@ class CodeEditor(TextEditBaseWidget):
         # Strip if needed
         self.strip_trailing_spaces()
 
-    def __clear_occurrences(self):
+    def clear_occurrences(self):
         """Clear occurrence markers"""
         self.occurrences = []
         self.clear_extra_selections('occurrences')
@@ -2577,9 +2585,9 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
 
-    def __mark_occurrences(self):
+    def mark_occurrences(self):
         """Marking occurrences of the currently selected word"""
-        self.__clear_occurrences()
+        self.clear_occurrences()
 
         if not self.supported_language:
             return
@@ -2798,9 +2806,10 @@ class CodeEditor(TextEditBaseWidget):
         force = True
         self.sig_show_completion_object_info.emit(name, signature, force)
 
-    def show_object_info(self, position):
+    @Slot()
+    def show_object_info(self):
         """Trigger a calltip"""
-        self.sig_show_object_info.emit(position)
+        self.sig_show_object_info.emit(True)
 
     # -----blank spaces
     def set_blanks_enabled(self, state):
@@ -4460,7 +4469,7 @@ class CodeEditor(TextEditBaseWidget):
             self, _("Inspect current object"),
             icon=ima.icon('MessageBoxInformation'),
             shortcut=CONF.get_shortcut('editor', 'inspect current object'),
-            triggered=self.sig_show_object_info.emit)
+            triggered=self.sig_show_object_info)
 
         # Run actions
         self.run_cell_action = create_action(
@@ -4639,13 +4648,8 @@ class CodeEditor(TextEditBaseWidget):
         shift = event.modifiers() & Qt.ShiftModifier
 
         if text:
-            self.__clear_occurrences()
+            self.clear_occurrences()
 
-        if event.modifiers() and self.is_completion_widget_visible():
-            # Hide completion widget before passing event modifiers
-            # since the keypress could be then a shortcut
-            # See spyder-ide/spyder#14806
-            self.completion_widget.hide()
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()

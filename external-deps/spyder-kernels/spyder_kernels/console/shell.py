@@ -26,6 +26,9 @@ class SpyderShell(ZMQInteractiveShell):
         self._pdb_obj = None
         super(SpyderShell, self).__init__(*args, **kwargs)
 
+        # register post_execute
+        self.events.register('post_execute', self.do_post_execute)
+
     # ---- Methods overriden by us.
     def ask_exit(self):
         """Engage the exit actions."""
@@ -104,3 +107,9 @@ class SpyderShell(ZMQInteractiveShell):
     def user_ns(self, namespace):
         """Set user_ns."""
         self.__user_ns = namespace
+
+    def do_post_execute(self):
+        """Flush __std*__ after execution."""
+        # Flush C standard streams.
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()

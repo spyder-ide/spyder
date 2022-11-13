@@ -3,10 +3,53 @@
 Changes in Jupyter Qt console
 =============================
 
+.. _5.4:
+
+5.4
+~~~
+
+5.4.0
+-----
+
+`5.4.0 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.0>`__
+
+Additions
++++++++++
+
+* Add ConsoleWidget.gui_completion_height option to configure the maximum
+  number of rows or height in pixels of completions when the
+  ConsoleWidget.gui_completion option has values 'ncurses' or 'droplist',
+  respectively.
+
+Changes
++++++++
+
+* Fix some errors with PySide6 6.4.0.
+* Fix mixed input and print statements on macOS.
+* Drop usage of disutils.
+
 .. _5.3:
 
 5.3
 ~~~
+
+5.3.2
+-----
+
+`5.3.2 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.3.2>`__
+
+* Fix syntax highlighting with multiline inputs.
+* Don't call processEvents when showing input prompts on Mac because it's not
+  necessary.
+
+5.3.1
+-----
+
+`5.3.1 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.3.1>`__
+
+* Fix segfault when performing code completion on Qt6.
+* Fix mixed input and print statements.
+* Fix switching syntax highlighting styles on PySide2 and PySide6.
 
 5.3.0
 -----

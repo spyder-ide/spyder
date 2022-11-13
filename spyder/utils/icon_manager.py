@@ -12,7 +12,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QBuffer, QByteArray
-from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
+from qtpy.QtGui import QColor, QIcon, QImage, QPainter
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -343,6 +343,18 @@ class IconManager():
             'statusbar':               [('mdi.dock-bottom',), {'color': self.MAIN_FG_COLOR}],
             # --- Plugin registry ---------------------------------------------------
             'plugins':                 [('mdi.puzzle',), {'color': self.MAIN_FG_COLOR}],
+            # --- Print preview dialog ----------------------------------------------
+            'print.fit_width':         [('mdi.arrow-expand-horizontal',), {'color': self.MAIN_FG_COLOR}],
+            'print.fit_page':          [('mdi.stretch-to-page-outline',), {'color': self.MAIN_FG_COLOR}],
+            'portrait':                [('mdi.crop-portrait',), {'color': self.MAIN_FG_COLOR}],
+            'landscape':               [('mdi.crop-landscape',), {'color': self.MAIN_FG_COLOR}],
+            'previous_page':           [('mdi.chevron-left',), {'color': self.MAIN_FG_COLOR}],
+            'next_page':               [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],
+            'first_page':              [('mdi.page-first',), {'color': self.MAIN_FG_COLOR}],
+            'last_page':               [('mdi.page-last',), {'color': self.MAIN_FG_COLOR}],
+            'print.single_page':       [('mdi.file-document-outline',), {'color': self.MAIN_FG_COLOR}],
+            'print.all_pages':         [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
+            'print.page_setup':        [('mdi.ruler-square',), {'color': self.MAIN_FG_COLOR}],
         }
 
     def get_std_icon(self, name, size=None):
@@ -368,19 +380,27 @@ class IconManager():
             QMainWindow icons created from SVG images on non-Windows
             platforms due to a Qt bug. See spyder-ide/spyder#1314.
         """
+        # Icon image path
         icon_path = get_image_path(name)
+
+        # This is used to wrap the image into a QIcon container so we can get
+        # pixmaps for it.
+        wrapping_icon = QIcon(icon_path)
+
+        # This is the icon object that will be returned by this method.
+        icon = QIcon()
+
         if resample:
             # This only applies to the Spyder 2 icons
-            icon = QIcon(icon_path)
-            icon0 = QIcon()
             for size in (16, 24, 32, 48, 96, 128, 256, 512):
-                icon0.addPixmap(icon.pixmap(size, size))
-            return icon0
+                icon.addPixmap(wrapping_icon.pixmap(size, size))
+            return icon
         else:
-            icon = QIcon()
-
             # Normal state
-            normal_state = QPixmap(icon_path)
+            # NOTE: We take pixmaps as large as the ones below to not have
+            # pixelated icons on high dpi screens.
+            # Fixes spyder-ide/spyder#19520
+            normal_state = wrapping_icon.pixmap(512, 512)
             icon.addPixmap(normal_state, QIcon.Normal)
 
             # This is the color GammaRay reports for icons in disabled
@@ -389,7 +409,7 @@ class IconManager():
 
             # Paint icon with the previous color to get the disabled state.
             # Taken from https://stackoverflow.com/a/65618075/438386
-            disabled_state = QPixmap(icon_path)
+            disabled_state = wrapping_icon.pixmap(512, 512)
             qp = QPainter(disabled_state)
             qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
             qp.fillRect(disabled_state.rect(), disabled_color)

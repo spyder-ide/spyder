@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _
+from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
@@ -217,6 +218,7 @@ class PathManager(QDialog):
     @Slot()
     def import_pythonpath(self):
         """Import from PYTHONPATH environment variable"""
+        # TODO: Update method for retrieving PYTHONPATH
         env_pypath = os.environ.get('PYTHONPATH', '')
 
         if env_pypath:
@@ -285,31 +287,26 @@ class PathManager(QDialog):
 
         if answer == QMessageBox.Cancel:
             return
-        elif answer == QMessageBox.Yes:
-            remove = True
-        else:
-            remove = False
 
-        from spyder.utils.environ import (get_user_env, listdict2envdict,
-                                          set_user_env)
         env = get_user_env()
 
         # Includes read only paths
-        active_path = tuple(k for k, v in self.get_path_dict(True).items()
-                            if v)
+        active_path = [k for k, v in self.get_path_dict(True).items() if v]
 
-        if remove:
+        if answer == QMessageBox.Yes:
             ppath = active_path
         else:
             ppath = env.get('PYTHONPATH', [])
             if not isinstance(ppath, list):
                 ppath = [ppath]
 
-            ppath = tuple(p for p in ppath if p not in active_path)
+            ppath = [p for p in ppath if p not in active_path]
             ppath = ppath + active_path
 
+        os.environ['PYTHONPATH'] = os.pathsep.join(ppath)
+
         env['PYTHONPATH'] = list(ppath)
-        set_user_env(listdict2envdict(env), parent=self)
+        set_user_env(env, parent=self)
 
     def get_path_dict(self, read_only=False):
         """

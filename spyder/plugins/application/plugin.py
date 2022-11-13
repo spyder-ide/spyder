@@ -28,8 +28,7 @@ from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, ApplicationPluginMenus,
-    WinUserEnvDialog)
+    ApplicationActions, ApplicationContainer, ApplicationPluginMenus)
 from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
@@ -43,7 +42,7 @@ class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.Editor]
+                Plugins.Editor, Plugins.StatusBar]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
@@ -64,8 +63,6 @@ class Application(SpyderPluginV2):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
         container.set_window(self._window)
-
-        self.sig_restart_requested.connect(self.restart)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
     @on_plugin_available(plugin=Plugins.Shortcuts)
@@ -103,7 +100,22 @@ class Application(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         self.get_container().sig_load_log_file.connect(editor.load)
 
+    @on_plugin_available(plugin=Plugins.StatusBar)
+    def on_statusbar_available(self):
+        # Add status widget if created
+        if self.application_update_status:
+            statusbar = self.get_plugin(Plugins.StatusBar)
+            statusbar.add_status_widget(self.application_update_status)
+
     # -------------------------- PLUGIN TEARDOWN ------------------------------
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        # Remove status widget if created
+        if self.application_update_status:
+            statusbar = self.get_plugin(Plugins.StatusBar)
+            statusbar.remove_status_widget(self.application_update_status.ID)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -170,11 +182,10 @@ class Application(SpyderPluginV2):
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        if WinUserEnvDialog is not None:
-            mainmenu.add_item_to_application_menu(
-                self.winenv_action,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Tools)
+        mainmenu.add_item_to_application_menu(
+            self.user_env_action,
+            menu_id=ApplicationMenus.Tools,
+            section=ToolsMenuSections.Tools)
 
         if get_debug_level() >= 2:
             mainmenu.add_item_to_application_menu(
@@ -275,10 +286,9 @@ class Application(SpyderPluginV2):
     def _depopulate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        if WinUserEnvDialog is not None:
-            mainmenu.remove_item_from_application_menu(
-                ApplicationActions.SpyderWindowsEnvVariables,
-                menu_id=ApplicationMenus.Tools)
+        mainmenu.remove_item_from_application_menu(
+            ApplicationActions.SpyderUserEnvVariables,
+            menu_id=ApplicationMenus.Tools)
 
         if get_debug_level() >= 2:
             mainmenu.remove_item_from_application_menu(
@@ -422,9 +432,9 @@ class Application(SpyderPluginV2):
         return self.get_container().about_action
 
     @property
-    def winenv_action(self):
+    def user_env_action(self):
         """Show Spyder's Windows user env variables dialog box."""
-        return self.get_container().winenv_action
+        return self.get_container().user_env_action
 
     @property
     def restart_action(self):
@@ -445,3 +455,7 @@ class Application(SpyderPluginV2):
     def debug_logs_menu(self):
         return self.get_container().get_menu(
             ApplicationPluginMenus.DebugLogsMenu)
+
+    @property
+    def application_update_status(self):
+        return self.get_container().application_update_status

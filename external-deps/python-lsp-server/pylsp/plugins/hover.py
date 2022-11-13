@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 @hookimpl
-def pylsp_hover(document, position):
+def pylsp_hover(config, document, position):
     code_position = _utils.position_to_jedi_linecolumn(document, position)
     definitions = document.jedi_script(use_document_path=True).infer(**code_position)
     word = document.word_at_position(position)
@@ -26,24 +26,19 @@ def pylsp_hover(document, position):
     if not definition:
         return {'contents': ''}
 
-    # raw docstring returns only doc, without signature
-    doc = _utils.format_docstring(definition.docstring(raw=True))
+    hover_capabilities = config.capabilities.get('textDocument', {}).get('hover', {})
+    supported_markup_kinds = hover_capabilities.get('contentFormat', ['markdown'])
+    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
 
     # Find first exact matching signature
     signature = next((x.to_string() for x in definition.get_signatures()
                       if x.name == word), '')
 
-    contents = []
-    if signature:
-        contents.append({
-            'language': 'python',
-            'value': signature,
-        })
-
-    if doc:
-        contents.append(doc)
-
-    if not contents:
-        return {'contents': ''}
-
-    return {'contents': contents}
+    return {
+        'contents': _utils.format_docstring(
+            # raw docstring returns only doc, without signature
+            definition.docstring(raw=True),
+            preferred_markup_kind,
+            signatures=[signature] if signature else None
+        )
+    }

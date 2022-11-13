@@ -36,16 +36,27 @@ def get_numeric_numpy_types():
 
 
 def get_numpy_dtype(obj):
-    """Return NumPy data type associated to obj
-    Return None if NumPy is not available
-    or if obj is not a NumPy array or scalar"""
+    """
+    Return Numpy data type associated to `obj`.
+
+    Return None if Numpy is not available, if we get errors or if `obj` is not
+    a Numpy array or scalar.
+    """
+    # Check if NumPy is available
     if np.ndarray is not FakeObject:
-        # NumPy is available
-        if isinstance(obj, np.generic) or isinstance(obj, np.ndarray):
-        # Numpy scalars all inherit from np.generic.
-        # Numpy arrays all inherit from np.ndarray.
-        # If we check that we are certain we have one of these
-        # types then we are less likely to generate an exception below.
+        # All Numpy scalars inherit from np.generic and all Numpy arrays
+        # inherit from np.ndarray. If we check that we are certain we have one
+        # of these types then we are less likely to generate an exception
+        # below.
+        # Note: The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            scalar_or_array = (
+                isinstance(obj, np.generic) or isinstance(obj, np.ndarray)
+            )
+        except Exception:
+            return
+
+        if scalar_or_array:
             try:
                 return obj.dtype.type
             except (AttributeError, RuntimeError):
@@ -499,21 +510,25 @@ def display_to_value(value, default_value, ignore_errors=True):
 # =============================================================================
 def get_type_string(item):
     """Return type string of an object."""
-    # Numpy objects (don't change the order!)
-    if isinstance(item, np.ma.MaskedArray):
-        return "MaskedArray"
-    if isinstance(item, np.matrix):
-        return "Matrix"
-    if isinstance(item, np.ndarray):
-        return "NDArray"
+    # The try/except is necessary to fix spyder-ide/spyder#19516.
+    try:
+        # Numpy objects (don't change the order!)
+        if isinstance(item, np.ma.MaskedArray):
+            return "MaskedArray"
+        if isinstance(item, np.matrix):
+            return "Matrix"
+        if isinstance(item, np.ndarray):
+            return "NDArray"
 
-    # Pandas objects
-    if isinstance(item, pd.DataFrame):
-        return "DataFrame"
-    if isinstance(item, pd.Index):
-        return type(item).__name__
-    if isinstance(item, pd.Series):
-        return "Series"
+        # Pandas objects
+        if isinstance(item, pd.DataFrame):
+            return "DataFrame"
+        if isinstance(item, pd.Index):
+            return type(item).__name__
+        if isinstance(item, pd.Series):
+            return "Series"
+    except Exception:
+        pass
 
     found = re.findall(r"<(?:type|class) '(\S*)'>",
                        to_text_string(type(item)))
@@ -534,13 +549,17 @@ def is_known_type(item):
 
 def get_human_readable_type(item):
     """Return human-readable type string of an item"""
-    if isinstance(item, (np.ndarray, np.ma.MaskedArray)):
-        return u'Array of ' + item.dtype.name
-    elif isinstance(item, PIL.Image.Image):
-        return "Image"
-    else:
-        text = get_type_string(item)
-        return text[text.find('.')+1:]
+    # The try/except is necessary to fix spyder-ide/spyder#19516.
+    try:
+        if isinstance(item, (np.ndarray, np.ma.MaskedArray)):
+            return u'Array of ' + item.dtype.name
+        elif isinstance(item, PIL.Image.Image):
+            return "Image"
+        else:
+            text = get_type_string(item)
+            return text[text.find('.')+1:]
+    except Exception:
+        return 'Unknown'
 
 
 #==============================================================================
@@ -593,11 +612,13 @@ def globalsfilter(input_dict, check_all=False, filters=None,
                   excluded_names=None, exclude_callables_and_modules=None):
     """Keep objects in namespace view according to different criteria."""
     output_dict = {}
+    _is_string = is_type_text_string
+
     for key, value in list(input_dict.items()):
         excluded = (
-            (exclude_private and key.startswith('_')) or
-            (exclude_capitalized and key[0].isupper()) or
-            (exclude_uppercase and key.isupper() and
+            (exclude_private and _is_string(key) and key.startswith('_')) or
+            (exclude_capitalized and _is_string(key) and key[0].isupper()) or
+            (exclude_uppercase and _is_string(key) and key.isupper() and
              len(key) > 1 and not key[1:].isdigit()) or
             (key in excluded_names) or
             (exclude_callables_and_modules and is_callable_or_module(value)) or

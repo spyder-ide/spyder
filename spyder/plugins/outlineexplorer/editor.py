@@ -6,9 +6,6 @@
 
 """Outline explorer editor server"""
 
-# Third-party imports
-from intervaltree import IntervalTree
-
 # Local imports
 from spyder.plugins.outlineexplorer.api import OutlineExplorerProxy
 
@@ -23,6 +20,10 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
 
         # This saves the symbols info that comes from the server.
         self.info = None
+
+        # This is used to tell if the associated tree is updated with the
+        # latest info available here
+        self.is_tree_updated = False
 
     def update_outline_info(self, info):
         self.sig_outline_explorer_data_changed.emit(info)

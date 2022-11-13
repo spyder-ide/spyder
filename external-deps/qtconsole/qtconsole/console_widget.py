@@ -91,6 +91,16 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                                 `tab` and arrow keys.
                     """
     )
+    gui_completion_height = Integer(0, config=True,
+        help="""
+        Set Height for completion.
+
+        'droplist'
+            Height in pixels.
+        'ncurses'
+            Maximum number of rows.
+        """
+    )
     # NOTE: this value can only be specified during initialization.
     kind = Enum(['plain', 'rich'], default_value='plain', config=True,
         help="""
@@ -265,9 +275,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self._append_before_prompt_cursor = self._control.textCursor()
         self._ansi_processor = QtAnsiCodeProcessor()
         if self.gui_completion == 'ncurses':
-            self._completion_widget = CompletionHtml(self)
+            self._completion_widget = CompletionHtml(self, self.gui_completion_height)
         elif self.gui_completion == 'droplist':
-            self._completion_widget = CompletionWidget(self)
+            self._completion_widget = CompletionWidget(self, self.gui_completion_height)
         elif self.gui_completion == 'plain':
             self._completion_widget = CompletionPlain(self)
 
@@ -1692,15 +1702,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
 
         return columnize(items, separator, displaywidth)
 
-    def _get_block_plain_text(self, block):
-        """ Given a QTextBlock, return its unformatted text.
-        """
-        cursor = QtGui.QTextCursor(block)
-        cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
-        cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
-                            QtGui.QTextCursor.KeepAnchor)
-        return cursor.selection().toPlainText()
-
     def _get_cursor(self):
         """ Get a cursor at the current insert position.
         """
@@ -1768,7 +1769,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             return None
         else:
             cursor = self._control.textCursor()
-            text = self._get_block_plain_text(cursor.block())
+            text = cursor.block().text()
             return text[len(prompt):]
 
     def _get_input_buffer_cursor_pos(self):
@@ -2141,18 +2142,22 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                         remove = False
                         fill = False
                         if act.area == 'screen':
-                            cursor.select(cursor.Document)
+                            cursor.select(QtGui.QTextCursor.Document)
                             remove = True
                         if act.area == 'line':
                             if act.erase_to == 'all': 
-                                cursor.select(cursor.LineUnderCursor)
+                                cursor.select(QtGui.QTextCursor.LineUnderCursor)
                                 remove = True
                             elif act.erase_to == 'start':
-                                cursor.movePosition(cursor.StartOfLine, cursor.KeepAnchor)
+                                cursor.movePosition(
+                                    QtGui.QTextCursor.StartOfLine,
+                                    QtGui.QTextCursor.KeepAnchor)
                                 remove = True
                                 fill = True
                             elif act.erase_to == 'end':
-                                cursor.movePosition(cursor.EndOfLine, cursor.KeepAnchor)
+                                cursor.movePosition(
+                                    QtGui.QTextCursor.EndOfLine,
+                                    QtGui.QTextCursor.KeepAnchor)
                                 remove = True
                         if remove: 
                             nspace=cursor.selectionEnd()-cursor.selectionStart() if fill else 0
@@ -2168,12 +2173,13 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                         cursor.deletePreviousChar()
 
                         if os.name == 'nt':
-                            cursor.select(cursor.Document)
+                            cursor.select(QtGui.QTextCursor.Document)
                             cursor.removeSelectedText()
 
                     elif act.action == 'carriage-return':
                         cursor.movePosition(
-                            cursor.StartOfLine, cursor.MoveAnchor)
+                            QtGui.QTextCursor.StartOfLine,
+                            QtGui.QTextCursor.MoveAnchor)
 
                     elif act.action == 'beep':
                         QtWidgets.QApplication.instance().beep()
@@ -2181,10 +2187,11 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     elif act.action == 'backspace':
                         if not cursor.atBlockStart():
                             cursor.movePosition(
-                                cursor.PreviousCharacter, cursor.MoveAnchor)
+                                QtGui.QTextCursor.PreviousCharacter,
+                                QtGui.QTextCursor.MoveAnchor)
 
                     elif act.action == 'newline':
-                        cursor.movePosition(cursor.EndOfLine)
+                        cursor.movePosition(QtGui.QTextCursor.EndOfLine)
 
                 # simulate replacement mode
                 if substring is not None:
@@ -2192,11 +2199,11 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     if not (hasattr(cursor,'_insert_mode') and cursor._insert_mode):
                         pos = cursor.position()
                         cursor2 = QtGui.QTextCursor(cursor)  # self._get_line_end_pos() is the previous line, don't use it
-                        cursor2.movePosition(cursor2.EndOfLine)
+                        cursor2.movePosition(QtGui.QTextCursor.EndOfLine)
                         remain = cursor2.position() - pos    # number of characters until end of line
                         n=len(substring)
                         swallow = min(n, remain)             # number of character to swallow
-                        cursor.setPosition(pos+swallow,cursor.KeepAnchor)
+                        cursor.setPosition(pos+swallow,QtGui.QTextCursor.KeepAnchor)
                     cursor.insertText(substring,format)
         else:
             cursor.insertText(text)
@@ -2428,7 +2435,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             while self._reading:
                 QtCore.QCoreApplication.processEvents()
             return self._get_input_buffer(force=True).rstrip('\n')
-
         else:
             self._reading_callback = lambda: \
                 callback(self._get_input_buffer(force=True).rstrip('\n'))
@@ -2489,6 +2495,19 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             If set, a separator will be written before the prompt.
         """
         self._flush_pending_stream()
+
+        # This is necessary to solve out-of-order insertion of mixed stdin and
+        # stdout stream texts.
+        # Fixes spyder-ide/spyder#17710
+        if sys.platform == 'darwin':
+            # Although this makes our tests hang on Mac, users confirmed that
+            # it's needed on that platform too.
+            # Fixes spyder-ide/spyder#19888
+            if not os.environ.get('QTCONSOLE_TESTING'):
+                QtCore.QCoreApplication.processEvents()
+        else:
+            QtCore.QCoreApplication.processEvents()
+
         cursor = self._get_end_cursor()
 
         # Save the current position to support _append*(before_prompt=True).
@@ -2513,6 +2532,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         # Write the prompt.
         if separator:
             self._append_plain_text(self._prompt_sep)
+
         if prompt is None:
             if self._prompt_html is None:
                 self._append_plain_text(self._prompt)

@@ -71,7 +71,7 @@ class CompletionPlugin(SpyderPluginV2):
     NAME = 'completions'
     CONF_SECTION = 'completions'
     REQUIRES = [Plugins.Preferences, Plugins.MainInterpreter]
-    OPTIONAL = [Plugins.Application, Plugins.StatusBar, Plugins.MainMenu]
+    OPTIONAL = [Plugins.StatusBar, Plugins.MainMenu]
 
     CONF_FILE = False
 
@@ -314,12 +314,6 @@ class CompletionPlugin(SpyderPluginV2):
             self.statusbar.add_status_widget(sb)
         self.statusbar.add_status_widget(self.completion_status)
 
-    @on_plugin_available(plugin=Plugins.Application)
-    def on_application_available(self):
-        application = self.get_plugin(Plugins.Application)
-        self.sig_restart_requested.connect(
-            application.sig_restart_requested)
-
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
@@ -521,7 +515,7 @@ class CompletionPlugin(SpyderPluginV2):
         tool_tip = mi_status._interpreter
 
         if '(' in value:
-            value, _ = value.split('(')
+            value = value.split('(')[0]
 
         if ':' in value:
             kind, name = value.split(':')

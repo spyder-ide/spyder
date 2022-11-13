@@ -59,14 +59,11 @@ class MainWindowMock(QMainWindow):
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
         plugin._register()
 
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         if plugin_name in PLUGIN_REGISTRY:
             return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
     def set_prefs_size(self, size):
-        pass
-
-    def reset_spyder(self):
         pass
 
 

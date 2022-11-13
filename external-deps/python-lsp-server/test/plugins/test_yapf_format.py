@@ -29,7 +29,7 @@ FOUR_SPACE_DOC = """def hello():
 
 def test_format(workspace):
     doc = Document(DOC_URI, workspace, DOC)
-    res = pylsp_format_document(doc)
+    res = pylsp_format_document(doc, None)
 
     assert apply_text_edits(doc, res) == "A = ['h', 'w', 'a']\n\nB = ['h', 'w']\n"
 
@@ -41,7 +41,7 @@ def test_range_format(workspace):
         'start': {'line': 0, 'character': 0},
         'end': {'line': 4, 'character': 10}
     }
-    res = pylsp_format_range(doc, def_range)
+    res = pylsp_format_range(doc, def_range, None)
 
     # Make sure B is still badly formatted
     assert apply_text_edits(doc, res) == "A = ['h', 'w', 'a']\n\nB = ['h',\n\n\n'w']\n"
@@ -49,7 +49,7 @@ def test_range_format(workspace):
 
 def test_no_change(workspace):
     doc = Document(DOC_URI, workspace, GOOD_DOC)
-    assert not pylsp_format_document(doc)
+    assert not pylsp_format_document(doc, options=None)
 
 
 def test_config_file(tmpdir, workspace):
@@ -59,7 +59,7 @@ def test_config_file(tmpdir, workspace):
     src = tmpdir.join('test.py')
     doc = Document(uris.from_fs_path(src.strpath), workspace, DOC)
 
-    res = pylsp_format_document(doc)
+    res = pylsp_format_document(doc, options=None)
 
     # A was split on multiple lines because of column_limit from config file
     assert apply_text_edits(doc, res) == "A = [\n    'h', 'w',\n    'a'\n]\n\nB = ['h', 'w']\n"
@@ -68,7 +68,7 @@ def test_config_file(tmpdir, workspace):
 @pytest.mark.parametrize('newline', ['\r\n'])
 def test_line_endings(workspace, newline):
     doc = Document(DOC_URI, workspace, f'import os;import sys{2 * newline}dict(a=1)')
-    res = pylsp_format_document(doc)
+    res = pylsp_format_document(doc, options=None)
 
     assert apply_text_edits(doc, res) == f'import os{newline}import sys{2 * newline}dict(a=1){newline}'
 
@@ -99,7 +99,7 @@ def test_format_returns_text_edit_per_line(workspace):
  log("x")
  log("hi")"""
     doc = Document(DOC_URI, workspace, single_space_indent)
-    res = pylsp_format_document(doc)
+    res = pylsp_format_document(doc, options=None)
 
     # two removes and two adds
     assert len(res) == 4

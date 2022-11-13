@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Python Language Server Configuration",
-  "description": "This server can be configured using `workspace/didChangeConfiguration` method. Each configuration option is described below:",
+  "description": "This server can be configured using the `workspace/didChangeConfiguration` method. Each configuration option is described below. Note, a value of `null` means that we do not set a value and thus use the plugin's default value.",
   "type": "object",
   "properties": {
     "pylsp.configurationSources": {
@@ -10,7 +10,7 @@
       "description": "List of configuration sources to use.",
       "items": {
         "type": "string",
-        "enum": ["pycodestyle", "pyflakes"]
+        "enum": ["pycodestyle", "flake8"]
       },
       "uniqueItems": true
     },
@@ -87,6 +87,14 @@
       "uniqueItems": true,
       "description": "List of errors and warnings to enable."
     },
+    "pylsp.plugins.jedi.auto_import_modules": {
+      "type": "array",
+      "default": ["numpy"],
+      "items": {
+        "type": "string"
+      },
+      "description": "List of module names for jedi.settings.auto_import_modules."
+    },
     "pylsp.plugins.jedi.extra_paths": {
       "type": "array",
       "default": [],
@@ -117,8 +125,13 @@
     },
     "pylsp.plugins.jedi_completion.include_class_objects": {
       "type": "boolean",
-      "default": true,
+      "default": false,
       "description": "Adds class objects as a separate completion item."
+    },
+    "pylsp.plugins.jedi_completion.include_function_objects": {
+      "type": "boolean",
+      "default": false,
+      "description": "Adds function objects as a separate completion item."
     },
     "pylsp.plugins.jedi_completion.fuzzy": {
       "type": "boolean",
@@ -131,7 +144,7 @@
       "description": "Resolve documentation and detail eagerly."
     },
     "pylsp.plugins.jedi_completion.resolve_at_most": {
-      "type": "number",
+      "type": "integer",
       "default": 25,
       "description": "How many labels and snippets (at most) should be resolved?"
     },
@@ -194,7 +207,7 @@
       "description": "Enable or disable the plugin."
     },
     "pylsp.plugins.mccabe.threshold": {
-      "type": "number",
+      "type": "integer",
       "default": 15,
       "description": "The minimum threshold that triggers warnings about cyclomatic complexity."
     },
@@ -236,8 +249,8 @@
       "description": "When parsing directories, only check filenames matching these patterns."
     },
     "pylsp.plugins.pycodestyle.select": {
-      "type": "array",
-      "default": [],
+      "type": ["array", "null"],
+      "default": null,
       "items": {
         "type": "string"
       },
@@ -259,7 +272,7 @@
       "description": "Hang closing bracket instead of matching indentation of opening bracket's line."
     },
     "pylsp.plugins.pycodestyle.maxLineLength": {
-      "type": ["number", "null"],
+      "type": ["integer", "null"],
       "default": null,
       "description": "Set maximum allowed line length."
     },
@@ -307,8 +320,8 @@
       "description": "Ignore errors and warnings"
     },
     "pylsp.plugins.pydocstyle.select": {
-      "type": "array",
-      "default": [],
+      "type": ["array", "null"],
+      "default": null,
       "items": {
         "type": "string"
       },
@@ -365,12 +378,12 @@
       "description": "Enable or disable the plugin."
     },
     "pylsp.rope.extensionModules": {
-      "type": ["null", "string"],
+      "type": ["string", "null"],
       "default": null,
       "description": "Builtin and c-extension modules that are allowed to be imported and inspected by rope."
     },
     "pylsp.rope.ropeFolder": {
-      "type": ["null", "array"],
+      "type": ["array", "null"],
       "default": null,
       "items": {
         "type": "string"

@@ -164,7 +164,7 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
     ```
     $ cd ~/spyder
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/spyder-kernels.git external-deps/spyder-kernels -b fix_in_kernel -f
+    $ git subrepo pull external-deps/spyder-kernels -r https://github.com/myuser/spyder-kernels.git -b fix_in_kernel -u -f
     ```
 
 * You can now open a PR on `https://github.com/spyder-ide/spyder` and on `https://github.com/spyder-ide/spyder-kernels` for each of your branches.
@@ -181,14 +181,14 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
 
     $ cd ~/spyder
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/spyder-kernels.git external-deps/spyder-kernels -b fix_in_kernel -f
+    $ git subrepo pull external-deps/spyder-kernels -r https://github.com/myuser/spyder-kernels.git -b fix_in_kernel -u -f
     $ git push origin fix_in_spyder
     ```
 
 * When your `fix_in_kernel` PR is merged, you need to update Spyder's `fix_in_spyder` branch because the clone in Spyder's repo must point out again to the spyder-kernel's repo and not to your own clone. For that, please run:
 
     ```
-    $ git subrepo clone https://github.com/spyder-ide/spyder-kernels.git external-deps/spyder-kernels -b <branch> -f
+    $ git subrepo pull external-deps/spyder-kernels -r https://github.com/spyder-ide/spyder-kernels.git -b <branch> -u -f
     ```
 
 where `<branch>` needs to be `2.x` if your `fix_in_spyder` branch was done against Spyder's `5.x` branch; and `master`, if you did it against our `master` branch here.
@@ -206,14 +206,14 @@ Due to that, a clone of those projects is placed in the `external-deps` director
 
     ```
     $ git checkout -b fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_external_dep -f
+    $ git subrepo pull external-deps/python-lsp-server -r https://github.com/myuser/python-lsp-server.git -b fix_in_external_dep -u -f
     ```
 
     in case the fix is in python-lsp-server, or
 
     ```
     $ git checkout -b fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/qtconsole.git external-deps/qtconsole -b fix_in_external_dep -f
+    $ git subrepo pull external-deps/qtconsole -r https://github.com/myuser/qtconsole.git -b fix_in_external_dep -u -f
     ```
 
     if the fix is in qtconsole. And then commit the changes you need to make in Spyder.
@@ -222,7 +222,7 @@ Due to that, a clone of those projects is placed in the `external-deps` director
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/python-lsp-server.git external-deps/python-lsp-server -b fix_in_external_dep -f
+    $ git subrepo pull external-deps/python-lsp-server -r https://github.com/myuser/python-lsp-server.git -b fix_in_external_dep -u -f
     $ git push origin fix_in_spyder
     ```
 
@@ -230,7 +230,7 @@ Due to that, a clone of those projects is placed in the `external-deps` director
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/myuser/qtconsole.git external-deps/qtconsole -b fix_in_external_dep -f
+    $ git subrepo pull external-deps/qtconsole -r https://github.com/myuser/qtconsole.git -b fix_in_external_dep -u -f
     $ git push origin fix_in_spyder
     ```
 
@@ -238,14 +238,14 @@ Due to that, a clone of those projects is placed in the `external-deps` director
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/python-lsp/python-lsp-server.git external-deps/python-lsp-server -b develop -f
+    $ git subrepo pull external-deps/python-lsp-server -r https://github.com/python-lsp/python-lsp-server.git -b develop -u -f
     ```
 
     or
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo clone https://github.com/jupyter/qtconsole.git external-deps/qtconsole -b master -f
+    $ git subrepo pull external-deps/qtconsole -r https://github.com/jupyter/qtconsole.git -b master -u -f
     ```
 
 

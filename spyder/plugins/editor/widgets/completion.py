@@ -12,10 +12,11 @@ import sys
 
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetrics, QFocusEvent
+from qtpy.QtGui import QFontMetrics, QFocusEvent, QKeySequence
 from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
@@ -26,7 +27,7 @@ DEFAULT_COMPLETION_ITEM_HEIGHT = 15
 DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 
-class CompletionWidget(QListWidget):
+class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     """Completion list widget."""
     ITEM_TYPE_MAP = {
         CompletionItemKind.TEXT: 'text',
@@ -238,6 +239,7 @@ class CompletionWidget(QListWidget):
 
         item_widget.setText(item_text)
         item_widget.setIcon(self._get_cached_icon(item_type))
+
         # Set data for accessible readers using item label and type
         # See spyder-ide/spyder#17047 and
         # https://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
@@ -350,7 +352,35 @@ class CompletionWidget(QListWidget):
                 self.setCurrentRow(0)
             else:
                 QListWidget.keyPressEvent(self, event)
-        elif len(text) or key == Qt.Key_Backspace:
+        elif key == Qt.Key_Backspace:
+            self.textedit.keyPressEvent(event)
+            self.update_current(new=False)
+        elif len(text):
+            # Determine the key sequence introduced by the user to check if
+            # we need to call the action associated to it in textedit. This
+            # way is not necessary to hide this widget for the sequence to
+            # take effect in textedit.
+            # Fixes spyder-ide/spyder#19372
+            if modifier:
+                # Build the sequence as an int.
+                # See https://stackoverflow.com/a/23919177/438386 for context.
+                # Note: We only accept Ctrl, Shift and Alt as modifiers for
+                # keyboard shortcuts in Preferences.
+                key_sequence = key
+                if ctrl:
+                    key_sequence += Qt.CTRL
+                if shift:
+                    key_sequence += Qt.SHIFT
+                if alt:
+                    key_sequence += Qt.ALT
+
+                # Ask to save file if the user pressed the sequence for that.
+                # Fixes spyder-ide/spyder#14806
+                save_shortcut = self.get_conf(
+                    'editor/save file', section='shortcuts')
+                if QKeySequence(key_sequence) == QKeySequence(save_shortcut):
+                    self.textedit.sig_save_requested.emit()
+
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)
         elif modifier:
@@ -517,6 +547,10 @@ class CompletionWidget(QListWidget):
     def augment_completion_info(self, item):
         if self.current_selected_item_label == item['label']:
             insert_text = self._get_insert_text(item)
+
+            if isinstance(item['documentation'], dict):
+                item['documentation'] = item['documentation']['value']
+
             self.sig_completion_hint.emit(
                 insert_text,
                 item['documentation'],

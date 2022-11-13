@@ -219,7 +219,7 @@ def test_get_var_properties(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -269,7 +269,7 @@ def test_remove_value(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -294,7 +294,7 @@ def test_copy_value(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -307,7 +307,7 @@ def test_copy_value(kernel):
     assert "'b'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -344,7 +344,7 @@ def test_load_data(kernel):
     assert "'a'" in var_properties
     assert "'is_list': False" in var_properties
     assert "'is_dict': False" in var_properties
-    assert "'len': None" in var_properties
+    assert "'len': 1" in var_properties
     assert "'is_array': False" in var_properties
     assert "'is_image': False" in var_properties
     assert "'is_data_frame': False" in var_properties
@@ -831,7 +831,6 @@ def test_do_complete(kernel):
     # test pdb
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.completenames = lambda *ignore: ['baba']
     kernel.shell.pdb_session = pdb_obj
     match = kernel.do_complete('ba', 2)
@@ -890,7 +889,6 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -917,7 +915,6 @@ def test_comprehensions_with_locals_in_pdb_2(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -944,7 +941,6 @@ def test_namespaces_in_pdb(kernel):
     kernel.shell.user_ns["test"] = 0
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1026,7 +1022,6 @@ def test_functions_with_locals_in_pdb_2(kernel):
     baba = 1
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1064,7 +1059,6 @@ def test_locals_globals_in_pdb(kernel):
     a = 1
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.prompt_waiting = True
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell.pdb_session = pdb_obj
 
@@ -1141,6 +1135,82 @@ def test_get_interactive_backend(backend):
             assert MPL_BACKENDS_FROM_SPYDER[value] == backend
         else:
             assert value == '0'
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.version_info[0] < 3,
+    reason="Fails with python 2")
+def test_debug_namespace(tmpdir):
+    """
+    Test that the kernel uses the proper namespace while debugging.
+    """
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Write code to a file
+        d = tmpdir.join("pdb-ns-test.py")
+        d.write('def func():\n    bb = "hello"\n    breakpoint()\nfunc()')
+
+        # Run code file `d`
+        msg_id = client.execute("runfile(r'{}')".format(to_text_string(d)))
+
+        # make sure that 'bb' returns 'hello'
+        client.get_stdin_msg(timeout=TIMEOUT)
+        client.input('bb')
+
+        t0 = time.time()
+        while True:
+            assert time.time() - t0 < 5
+            msg = client.get_iopub_msg(timeout=TIMEOUT)
+            if msg.get('msg_type') == 'stream':
+                if 'hello' in msg["content"].get("text"):
+                    break
+
+         # make sure that get_value('bb') returns 'hello'
+        client.get_stdin_msg(timeout=TIMEOUT)
+        client.input("get_ipython().kernel.get_value('bb')")
+
+        t0 = time.time()
+        while True:
+            assert time.time() - t0 < 5
+            msg = client.get_iopub_msg(timeout=TIMEOUT)
+            if msg.get('msg_type') == 'stream':
+                if 'hello' in msg["content"].get("text"):
+                    break
+
+
+def test_non_strings_in_locals(kernel):
+    """
+    Test that we can hande non-string entries in `locals` when bulding the
+    namespace view.
+
+    This is a regression test for issue spyder-ide/spyder#19145
+    """
+    if IPYKERNEL_6:
+        execute = asyncio.run(kernel.do_execute(
+            'locals().update({1:2})', True))
+    else:
+        execute = kernel.do_execute('locals().update({1:2})', True)
+
+    nsview = repr(kernel.get_namespace_view())
+    assert "1:" in nsview
+
+
+@pytest.mark.skipif(
+    sys.version_info[0] < 3, reason="Doesn't work with Python 2")
+def test_django_settings(kernel):
+    """
+    Test that we don't generate errors when importing `django.conf.settings`.
+
+    This is a regression test for issue spyder-ide/spyder#19516
+    """
+    execute = asyncio.run(kernel.do_execute(
+        'from django.conf import settings', True))
+
+    nsview = repr(kernel.get_namespace_view())
+    assert "'settings':" in nsview
 
 
 if __name__ == "__main__":

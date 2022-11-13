@@ -10,6 +10,7 @@
 import ast
 import bdb
 import logging
+import os
 import sys
 import traceback
 import threading
@@ -104,9 +105,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         # Keep track of remote filename
         self.remote_filename = None
-
-        # State of the prompt
-        self.prompt_waiting = False
 
         # Line received from the frontend
         self._cmd_input_line = None
@@ -263,8 +261,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     if out is not None:
                         sys.stdout.flush()
                         sys.stderr.flush()
-                        frontend_request(blocking=False).show_pdb_output(
-                            repr(out))
+                        try:
+                            frontend_request(blocking=False).show_pdb_output(
+                                repr(out))
+                        except (CommError, TimeoutError):
+                            # Fallback
+                            print("pdb out> ", repr(out))
 
             finally:
                 if execute_events:
@@ -360,7 +362,10 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         Take a number as argument as an (optional) number of context line to
         print"""
         super(SpyderPdb, self).do_where(arg)
-        frontend_request(blocking=False).do_where()
+        try:
+            frontend_request(blocking=False).do_where()
+        except (CommError, TimeoutError):
+            logger.debug("Could not send where request to the frontend.")
 
     do_w = do_where
 
@@ -660,11 +665,9 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 line = self.cmdqueue.pop(0)
             else:
                 try:
-                    self.prompt_waiting = True
                     line = self.cmd_input(self.prompt)
                 except EOFError:
                     line = 'EOF'
-            self.prompt_waiting = False
             line = self.precmd(line)
             stop = self.onecmd(line)
             stop = self.postcmd(stop, line)
@@ -682,6 +685,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
 
         # Send the input request.
         self._cmd_input_line = None
@@ -699,7 +704,13 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         if is_main_thread and kernel.eventloop:
             while self._cmd_input_line is None:
                 eventloop = kernel.eventloop
-                if eventloop:
+                # Check if the current backend is Tk on Windows
+                # to let GUI update.
+                # See spyder-ide/spyder#17523
+                if (eventloop and hasattr(kernel, "app_wrapper") and
+                        os.name == "nt"):
+                    kernel.app_wrapper.app.update()
+                elif eventloop:
                     eventloop(kernel)
                 else:
                     break
@@ -729,11 +740,10 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         return line
 
     def postcmd(self, stop, line):
-        """
-        Notify spyder about (possibly) changed frame
-
-        Note: The PDB commands “up”, “down” and “jump” change the current frame.
-        """
+        """Hook method executed just after a command dispatch is finished."""
+        # Flush in case the command produced output on underlying outputs
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
         self.publish_pdb_state()
         return super(SpyderPdb, self).postcmd(stop, line)
 

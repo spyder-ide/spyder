@@ -13,7 +13,6 @@ from spyder.utils.qthelpers import SpyderAction
 from typing import Union, Optional
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)

@@ -65,14 +65,11 @@ class MainWindowMock(QMainWindow):
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
         plugin._register(omit_conf=True)
 
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         if plugin_name in PLUGIN_REGISTRY:
             return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
     def set_prefs_size(self, size):
-        pass
-
-    def reset_spyder(self):
         pass
 
 
@@ -87,14 +84,11 @@ class ConfigDialogTester(QWidget):
         def set_prefs_size(self, size):
             pass
 
-        def reset_spyder(self):
-            pass
-
         def register_plugin(self, plugin_name, external=False):
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             plugin._register()
 
-        def get_plugin(self, plugin_name, error=False):
+        def get_plugin(self, plugin_name, error=True):
             if plugin_name in PLUGIN_REGISTRY:
                 return PLUGIN_REGISTRY.get_plugin(plugin_name)
             return None
@@ -103,8 +97,6 @@ class ConfigDialogTester(QWidget):
                 types.MethodType(register_plugin, self._main))
         setattr(self._main, 'get_plugin',
                 types.MethodType(get_plugin, self._main))
-        setattr(self._main, 'reset_spyder',
-                types.MethodType(reset_spyder, self._main))
         setattr(self._main, 'set_prefs_size',
                 types.MethodType(set_prefs_size, self._main))
 

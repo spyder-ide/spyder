@@ -277,6 +277,12 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         css = self.get_stylesheet()
         is_macos = sys.platform == 'darwin'
 
+        # This removes a white dot that appears to the left of right corner
+        # widgets
+        css.QToolBar.setValues(
+            marginLeft='-1px',
+        )
+
         # QTabBar forces the corner widgets to be smaller than they should.
         # be. The added top margin allows the toolbuttons to expand to their
         # normal size.
@@ -288,6 +294,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             paddingLeft='4px' if is_macos else '10px',
             paddingRight='10px' if is_macos else '4px'
         )
+
+        # Show tabs left-aligned on Mac
+        if MAC:
+            css.QTabBar.setValues(
+                alignment='left'
+            )
+
+            css['QTabWidget::tab-bar'].setValues(
+                alignment='left'
+            )
 
         # Fix minor visual glitch when hovering tabs
         # See spyder-ide/spyder#15398
@@ -350,19 +366,8 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
             bottom='-2px',
-            right='1px'
+            right='-1px'
         )
-
-    def to_string(self):
-        css_string = self._stylesheet.toString()
-
-        # TODO: We need to fix this in qstylizer
-        if sys.platform == 'darwin':
-            left_tabs = ("QTabWidget::tab-bar {alignment: left;}\n"
-                         "QTabBar {alignment: left;}")
-            css_string = css_string + left_tabs
-
-        return css_string
 
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()

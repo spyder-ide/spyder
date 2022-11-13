@@ -8,9 +8,6 @@
 Pylint Code Analysis Plugin.
 """
 
-# Standard library imports
-import os.path as osp
-
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
 
@@ -23,8 +20,7 @@ from spyder.api.translations import get_translation
 from spyder.utils.programs import is_module_installed
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
-from spyder.plugins.pylint.main_widget import (PylintWidget,
-                                               PylintWidgetActions)
+from spyder.plugins.pylint.main_widget import PylintWidget
 
 
 # Localization
@@ -43,6 +39,7 @@ class Pylint(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = PylintConfigPage
     REQUIRES = [Plugins.Preferences, Plugins.Editor]
     OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
+    TABIFY = [Plugins.Help]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
@@ -77,10 +74,7 @@ class Pylint(SpyderDockablePlugin):
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
-        widget.sig_start_analysis_requested.connect(
-            lambda: self.start_code_analysis())
+        widget.sig_start_analysis_requested.connect(self.start_code_analysis)
 
         # Add action to application menus
         pylint_act = self.create_action(
@@ -88,7 +82,7 @@ class Pylint(SpyderDockablePlugin):
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("pylint"),
-            triggered=lambda: self.start_code_analysis(),
+            triggered=self.start_code_analysis,
             context=Qt.ApplicationShortcut,
             register_shortcut=True
         )
@@ -115,8 +109,6 @@ class Pylint(SpyderDockablePlugin):
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
-        widget = self.get_widget()
-
         # Connect to projects
         projects = self.get_plugin(Plugins.Projects)
 
@@ -209,6 +201,7 @@ class Pylint(SpyderDockablePlugin):
         """
         return self.get_widget().get_filename()
 
+    @Slot()
     def start_code_analysis(self, filename=None):
         """
         Perform code analysis for given `filename`.

@@ -20,6 +20,7 @@ import threading
 # Third-party imports
 import ipykernel
 from ipykernel.ipkernel import IPythonKernel
+from ipykernel import eventloops
 from traitlets.config.loader import LazyConfigValue
 
 # Local imports
@@ -29,7 +30,8 @@ from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import (
     MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
-from spyder_kernels.utils.nsview import get_remote_data, make_remote_view
+from spyder_kernels.utils.nsview import (
+    get_remote_data, make_remote_view, get_size)
 from spyder_kernels.console.shell import SpyderShell
 
 if PY3:
@@ -87,7 +89,6 @@ class SpyderKernel(IPythonKernel):
             'pdb_input_reply': self.pdb_input_reply,
             '_interrupt_eventloop': self._interrupt_eventloop,
             'enable_faulthandler': self.enable_faulthandler,
-            "flush_std": self.flush_std,
             }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -118,11 +119,6 @@ class SpyderKernel(IPythonKernel):
             comm_id=comm_id,
             callback=callback,
             timeout=timeout)
-
-    def flush_std(self):
-        """Flush C standard streams."""
-        sys.__stderr__.flush()
-        sys.__stdout__.flush()
 
     def enable_faulthandler(self, fn):
         """
@@ -209,9 +205,9 @@ class SpyderKernel(IPythonKernel):
             properties = {}
             for name, value in list(data.items()):
                 properties[name] = {
-                    'is_list':  isinstance(value, (tuple, list)),
-                    'is_dict':  isinstance(value, dict),
-                    'is_set': isinstance(value, set),
+                    'is_list':  self._is_list(value),
+                    'is_dict':  self._is_dict(value),
+                    'is_set': self._is_set(value),
                     'len': self._get_len(value),
                     'is_array': self._is_array(value),
                     'is_image': self._is_image(value),
@@ -344,7 +340,7 @@ class SpyderKernel(IPythonKernel):
             # Interrupting the eventloop is only implemented when a message is
             # received on the shell channel, but this message is queued and
             # won't be processed because an `execute` message is being
-            # processed. Therefore we process the message here (comm channel)
+            # processed. Therefore we process the message here (control chan.)
             # and request a dummy message to be sent on the shell channel to
             # stop the eventloop. This will call back `_interrupt_eventloop`.
             self.frontend_call().request_interrupt_eventloop()
@@ -403,48 +399,43 @@ class SpyderKernel(IPythonKernel):
         """
         # Mapping from frameworks to backend names.
         mapping = {
-            'qt': 'QtAgg',  # For Matplotlib 3.5+
-            'qt5': 'Qt5Agg',
+            'qt': 'QtAgg',
             'tk': 'TkAgg',
             'macosx': 'MacOSX'
         }
 
-        try:
-            # --- Get interactive framework
-            framework = None
+        # --- Get interactive framework
+        framework = None
 
-            # This is necessary because _get_running_interactive_framework
-            # can't detect Tk in a Jupyter kernel.
-            if hasattr(self, 'app_wrapper'):
-                if hasattr(self.app_wrapper, 'app'):
-                    import tkinter
-                    if isinstance(self.app_wrapper.app, tkinter.Tk):
-                        framework = 'tk'
+        # Detect if there is a graphical framework running by checking the
+        # eventloop function attached to the kernel.eventloop attribute (see
+        # `ipykernel.eventloops.enable_gui` for context).
+        from IPython.core.getipython import get_ipython
+        loop_func = get_ipython().kernel.eventloop
 
-            if framework is None:
-                try:
-                    # This is necessary for Matplotlib 3.3.0+
-                    from matplotlib import cbook
-                    framework = cbook._get_running_interactive_framework()
-                except AttributeError:
-                    # For older versions
-                    from matplotlib import backends
-                    framework = backends._get_running_interactive_framework()
-
-            # --- Return backend according to framework
-            if framework is None:
-                # Since no interactive backend has been set yet, this is
-                # equivalent to having the inline one.
-                return 0
-            elif framework in mapping:
-                return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+        if loop_func is not None:
+            if loop_func == eventloops.loop_tk:
+                framework = 'tk'
+            elif loop_func == eventloops.loop_qt5:
+                framework = 'qt'
+            elif loop_func == eventloops.loop_cocoa:
+                framework = 'macosx'
             else:
-                # This covers the case of other backends (e.g. Wx or Gtk)
-                # which users can set interactively with the %matplotlib
-                # magic but not through our Preferences.
-                return -1
-        except Exception:
-            return None
+                # Spyder doesn't handle other backends
+                framework = 'other'
+
+        # --- Return backend according to framework
+        if framework is None:
+            # Since no interactive backend has been set yet, this is
+            # equivalent to having the inline one.
+            return 0
+        elif framework in mapping:
+            return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+        else:
+            # This covers the case of other backends (e.g. Wx or Gtk)
+            # which users can set interactively with the %matplotlib
+            # magic but not through our Preferences.
+            return -1
 
     def set_matplotlib_backend(self, backend, pylab=False):
         """Set matplotlib backend given a Spyder backend option."""
@@ -535,7 +526,6 @@ class SpyderKernel(IPythonKernel):
         try:
             import matplotlib.pyplot as plt
             plt.close('all')
-            del plt
         except:
             pass
 
@@ -594,7 +584,7 @@ class SpyderKernel(IPythonKernel):
         both locals() and globals() for current frame when debugging
         """
         ns = {}
-        if self.shell.is_debugging() and self.shell.pdb_session.prompt_waiting:
+        if self.shell.is_debugging() and self.shell.pdb_session.curframe:
             # Stopped at a pdb prompt
             ns.update(self.shell.user_ns)
             ns.update(self.shell._pdb_locals)
@@ -632,7 +622,7 @@ class SpyderKernel(IPythonKernel):
     def _get_len(self, var):
         """Return sequence length"""
         try:
-            return len(var)
+            return get_size(var)
         except:
             return None
 
@@ -666,6 +656,30 @@ class SpyderKernel(IPythonKernel):
             from pandas import Series
             return isinstance(var, Series)
         except:
+            return False
+
+    def _is_list(self, var):
+        """Return True if variable is a list or tuple."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, (tuple, list))
+        except Exception:
+            return False
+
+    def _is_dict(self, var):
+        """Return True if variable is a dictionary."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, dict)
+        except Exception:
+            return False
+
+    def _is_set(self, var):
+        """Return True if variable is a set."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, set)
+        except Exception:
             return False
 
     def _get_array_shape(self, var):

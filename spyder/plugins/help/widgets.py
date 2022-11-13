@@ -548,8 +548,11 @@ class HelpWidget(PluginMainWidget):
         else:
             self.force_refresh()
 
-    @on_conf_change(section='appearance', option='selected')
-    def change_color_scheme(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def change_color_scheme(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         self.set_plain_text_color_scheme(value)
 
     def update_actions(self):

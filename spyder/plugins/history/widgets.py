@@ -152,8 +152,11 @@ class HistoryWidget(PluginMainWidget):
         for editor in self.editors:
             editor.toggle_line_numbers(value)
 
-    @on_conf_change(option='selected', section='appearance')
-    def on_color_scheme_change(self, value):
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def on_color_scheme_change(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
         for editor in self.editors:
             editor.set_color_scheme(value)
 
@@ -270,7 +273,7 @@ class HistoryWidget(PluginMainWidget):
         self.tabwidget.setTabToolTip(index, filename)
 
         # Signals
-        editor.sig_focus_changed.connect(lambda: self.sig_focus_changed.emit())
+        editor.sig_focus_changed.connect(self.sig_focus_changed)
 
     @Slot(str, str)
     def append_to_history(self, filename, command):

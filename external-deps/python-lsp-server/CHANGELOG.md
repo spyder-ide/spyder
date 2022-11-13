@@ -1,5 +1,100 @@
 # History of changes
 
+## Version 1.6.0 (2022/11/02)
+
+### New features
+
+* Migrate to MarkupContent and convert docstrings to Markdown by default.
+* Add support for flake8 version 5.
+* Add function objects to Jedi completions.
+* Don't include class and functions objects by default in Jedi completions.
+
+### Issues Closed
+
+* [Issue 273](https://github.com/python-lsp/python-lsp-server/issues/273) - Completion result have "typeParameter" duplicates   ([PR 274](https://github.com/python-lsp/python-lsp-server/pull/274) by [@airportyh](https://github.com/airportyh))
+* [Issue 265](https://github.com/python-lsp/python-lsp-server/issues/265) - Server warns when optional modules do not exist ([PR 266](https://github.com/python-lsp/python-lsp-server/pull/266) by [@doolio](https://github.com/doolio))
+* [Issue 264](https://github.com/python-lsp/python-lsp-server/issues/264) - Errors in CONFIGURATION.md? ([PR 267](https://github.com/python-lsp/python-lsp-server/pull/267) by [@doolio](https://github.com/doolio))
+* [Issue 263](https://github.com/python-lsp/python-lsp-server/issues/263) - Conflict between README and CONFIGURATION ([PR 267](https://github.com/python-lsp/python-lsp-server/pull/267) by [@doolio](https://github.com/doolio))
+* [Issue 245](https://github.com/python-lsp/python-lsp-server/issues/245) - Add alternative ways to install python-lsp-server ([PR 248](https://github.com/python-lsp/python-lsp-server/pull/248) by [@nougcat](https://github.com/nougcat))
+* [Issue 244](https://github.com/python-lsp/python-lsp-server/issues/244) - Add function objects to completions ([PR 246](https://github.com/python-lsp/python-lsp-server/pull/246) by [@llan-ml](https://github.com/llan-ml))
+* [Issue 243](https://github.com/python-lsp/python-lsp-server/issues/243) - `Failed to load hook pylsp_completions: 'NoneType' object has no attribute 'type'` when working with Numpy 1.23 ([PR 281](https://github.com/python-lsp/python-lsp-server/pull/281) by [@gav451](https://github.com/gav451))
+* [Issue 22](https://github.com/python-lsp/python-lsp-server/issues/22) - Consider using docstring_to_markdown for markdown hover and documentation ([PR 80](https://github.com/python-lsp/python-lsp-server/pull/80) by [@krassowski](https://github.com/krassowski))
+* [Issue 21](https://github.com/python-lsp/python-lsp-server/issues/21) - Migrate from deprecated MarkedString to MarkupContent ([PR 80](https://github.com/python-lsp/python-lsp-server/pull/80) by [@krassowski](https://github.com/krassowski))
+
+In this release 9 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 285](https://github.com/python-lsp/python-lsp-server/pull/285) - Don't include class objects by default in completions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 281](https://github.com/python-lsp/python-lsp-server/pull/281) - Improve how Jedi handles Numpy, by [@gav451](https://github.com/gav451) ([243](https://github.com/python-lsp/python-lsp-server/issues/243))
+* [PR 274](https://github.com/python-lsp/python-lsp-server/pull/274) - Make default for `include_function_objects` false, by [@airportyh](https://github.com/airportyh) ([273](https://github.com/python-lsp/python-lsp-server/issues/273))
+* [PR 272](https://github.com/python-lsp/python-lsp-server/pull/272) - Include params only for classes and functions, by [@llan-ml](https://github.com/llan-ml)
+* [PR 267](https://github.com/python-lsp/python-lsp-server/pull/267) - Update the configuration schema for consistency, by [@doolio](https://github.com/doolio) ([264](https://github.com/python-lsp/python-lsp-server/issues/264), [263](https://github.com/python-lsp/python-lsp-server/issues/263))
+* [PR 266](https://github.com/python-lsp/python-lsp-server/pull/266) - Prefer info log message for missing optional modules, by [@doolio](https://github.com/doolio) ([265](https://github.com/python-lsp/python-lsp-server/issues/265))
+* [PR 262](https://github.com/python-lsp/python-lsp-server/pull/262) - Fix options not being passed to yapf format, by [@masad-frost](https://github.com/masad-frost)
+* [PR 261](https://github.com/python-lsp/python-lsp-server/pull/261) - PR: Include all symbols that Jedi reports as declared in a file when `add_import_symbols` is `False`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 258](https://github.com/python-lsp/python-lsp-server/pull/258) - Fix pylint message in tests, by [@bnavigator](https://github.com/bnavigator)
+* [PR 257](https://github.com/python-lsp/python-lsp-server/pull/257) - Add support for flake8 version 5, by [@bnavigator](https://github.com/bnavigator)
+* [PR 250](https://github.com/python-lsp/python-lsp-server/pull/250) - Include traceback when plugin fails to load, by [@j2kun](https://github.com/j2kun)
+* [PR 248](https://github.com/python-lsp/python-lsp-server/pull/248) - Add more installation instructions to Readme, by [@nougcat](https://github.com/nougcat) ([245](https://github.com/python-lsp/python-lsp-server/issues/245))
+* [PR 246](https://github.com/python-lsp/python-lsp-server/pull/246) - Add support for including function objects, by [@llan-ml](https://github.com/llan-ml) ([244](https://github.com/python-lsp/python-lsp-server/issues/244))
+* [PR 242](https://github.com/python-lsp/python-lsp-server/pull/242) - Remove redundant wheel dep from pyproject.toml, by [@mgorny](https://github.com/mgorny)
+* [PR 241](https://github.com/python-lsp/python-lsp-server/pull/241) - Update release instructions to use new build mechanism, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 80](https://github.com/python-lsp/python-lsp-server/pull/80) - Migrate to MarkupContent and convert docstrings to Markdown, by [@krassowski](https://github.com/krassowski) ([22](https://github.com/python-lsp/python-lsp-server/issues/22), [21](https://github.com/python-lsp/python-lsp-server/issues/21))
+
+In this release 16 pull requests were closed.
+
+----
+
+## Version 1.5.0 (2022/07/10)
+
+### New features
+
+* Add `DiagnosticTag` tags for Pylint, Pycodestyle, and Flake8 plugins.
+* Add support to connect to the server through websockets.
+* Allow multiple per-file-ignores for the same pattern in Flake8 plugin.
+* Parse YAPF diffs into TextEdits.
+* Add support for LSP formatting `options` parameter.
+
+### Issues Closed
+
+* [Issue 230](https://github.com/python-lsp/python-lsp-server/issues/230) - Flake8 reports wrong severity level for code Fxxx ([PR 234](https://github.com/python-lsp/python-lsp-server/pull/234) by [@lcheylus](https://github.com/lcheylus))
+* [Issue 220](https://github.com/python-lsp/python-lsp-server/issues/220) - Flake8 reports wrong severity level for E999 ([PR 223](https://github.com/python-lsp/python-lsp-server/pull/223) by [@jhossbach](https://github.com/jhossbach))
+* [Issue 219](https://github.com/python-lsp/python-lsp-server/issues/219) - Add .flake8 to the discovery paths ([PR 233](https://github.com/python-lsp/python-lsp-server/pull/233) by [@lcheylus](https://github.com/lcheylus))
+* [Issue 209](https://github.com/python-lsp/python-lsp-server/issues/209) - Rope completions enabled or disabled by default? ([PR 210](https://github.com/python-lsp/python-lsp-server/pull/210) by [@rchl](https://github.com/rchl))
+* [Issue 157](https://github.com/python-lsp/python-lsp-server/issues/157) - Please add basic usage documentation ([PR 185](https://github.com/python-lsp/python-lsp-server/pull/185) by [@jgollenz](https://github.com/jgollenz))
+* [Issue 144](https://github.com/python-lsp/python-lsp-server/issues/144) - Add `DiagnosticTag` tags for pylint, pycodestyle, and flake8 ([PR 229](https://github.com/python-lsp/python-lsp-server/pull/229) by [@krassowski](https://github.com/krassowski))
+* [Issue 140](https://github.com/python-lsp/python-lsp-server/issues/140) - Flake8 plugins issues ([PR 215](https://github.com/python-lsp/python-lsp-server/pull/215) by [@yeraydiazdiaz](https://github.com/yeraydiazdiaz))
+* [Issue 117](https://github.com/python-lsp/python-lsp-server/issues/117) - Websockets built-in support ([PR 128](https://github.com/python-lsp/python-lsp-server/pull/128) by [@npradeep357](https://github.com/npradeep357))
+
+In this release 8 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 234](https://github.com/python-lsp/python-lsp-server/pull/234) - Report Flake8 errors with Error severity level, by [@lcheylus](https://github.com/lcheylus) ([230](https://github.com/python-lsp/python-lsp-server/issues/230))
+* [PR 233](https://github.com/python-lsp/python-lsp-server/pull/233) - Fix documentation for location of Flake8 configuration files, by [@lcheylus](https://github.com/lcheylus) ([219](https://github.com/python-lsp/python-lsp-server/issues/219))
+* [PR 231](https://github.com/python-lsp/python-lsp-server/pull/231) - Use Numpy less than 1.23 in our tests, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 229](https://github.com/python-lsp/python-lsp-server/pull/229) - Add `DiagnosticTag` support, by [@krassowski](https://github.com/krassowski) ([144](https://github.com/python-lsp/python-lsp-server/issues/144))
+* [PR 228](https://github.com/python-lsp/python-lsp-server/pull/228) - Improve schema type compliance, improve CONFIGURATION.md, by [@krassowski](https://github.com/krassowski)
+* [PR 225](https://github.com/python-lsp/python-lsp-server/pull/225) - Add autopep8.enabled to the configuration schema, by [@j2kun](https://github.com/j2kun)
+* [PR 223](https://github.com/python-lsp/python-lsp-server/pull/223) - Change severity level for flake8 errors, by [@jhossbach](https://github.com/jhossbach) ([220](https://github.com/python-lsp/python-lsp-server/issues/220))
+* [PR 221](https://github.com/python-lsp/python-lsp-server/pull/221) - Remove preload module from Readme, by [@bageljrkhanofemus](https://github.com/bageljrkhanofemus)
+* [PR 217](https://github.com/python-lsp/python-lsp-server/pull/217) - Allow multiple per-file-ignores for the same pattern in flake8 plugin, by [@dedi](https://github.com/dedi)
+* [PR 215](https://github.com/python-lsp/python-lsp-server/pull/215) - Remove reference to pyls-flake8 in Readme, by [@yeraydiazdiaz](https://github.com/yeraydiazdiaz) ([140](https://github.com/python-lsp/python-lsp-server/issues/140))
+* [PR 211](https://github.com/python-lsp/python-lsp-server/pull/211) - Restore the copyright headers in `setup.cfg` and `pyproject.toml`, by [@KOLANICH](https://github.com/KOLANICH)
+* [PR 210](https://github.com/python-lsp/python-lsp-server/pull/210) - Match rope_completions setting documentation with reality, by [@rchl](https://github.com/rchl) ([209](https://github.com/python-lsp/python-lsp-server/issues/209))
+* [PR 207](https://github.com/python-lsp/python-lsp-server/pull/207) - Move the project metadata into `PEP 621`-compliant `pyproject.toml`, by [@KOLANICH](https://github.com/KOLANICH)
+* [PR 187](https://github.com/python-lsp/python-lsp-server/pull/187) - Add plugins for pylint and flake8 to readme, by [@bageljrkhanofemus](https://github.com/bageljrkhanofemus)
+* [PR 185](https://github.com/python-lsp/python-lsp-server/pull/185) - Mention `pylsp` command in README, by [@jgollenz](https://github.com/jgollenz) ([157](https://github.com/python-lsp/python-lsp-server/issues/157))
+* [PR 181](https://github.com/python-lsp/python-lsp-server/pull/181) - Fix section that was misplaced in changelog, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 136](https://github.com/python-lsp/python-lsp-server/pull/136) - Parse YAPF diffs into TextEdits (instead of sending the full doc), by [@masad-frost](https://github.com/masad-frost)
+* [PR 134](https://github.com/python-lsp/python-lsp-server/pull/134) - Add support for LSP formatting `options` parameter, by [@masad-frost](https://github.com/masad-frost)
+* [PR 128](https://github.com/python-lsp/python-lsp-server/pull/128) - Add web sockets support, by [@npradeep357](https://github.com/npradeep357) ([117](https://github.com/python-lsp/python-lsp-server/issues/117))
+
+In this release 19 pull requests were closed.
+
+----
+
 ## Version 1.4.1 (2022/03/27)
 
 ### Pull Requests Merged

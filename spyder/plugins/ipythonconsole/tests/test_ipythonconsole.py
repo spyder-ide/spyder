@@ -1799,19 +1799,19 @@ def test_stderr_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText())
     assert "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText()
     # Write a second time, makes sure it is not duplicated
-    client.stderr_obj.handle.flush()
-    with open(client.stderr_obj.filename, 'a') as f:
-        f.write("\ntest_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import sys; print("test_" + "test", file=sys.__stderr__)')
     # Wait for the poll
     qtbot.waitUntil(lambda: ipyconsole.get_widget().get_focus_widget(
         ).toPlainText().count("test_test") == 2)
@@ -1825,15 +1825,12 @@ def test_stdout_poll(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    client = ipyconsole.get_current_client()
-    client.stdout_obj.handle.flush()
-    with open(client.stdout_obj.filename, 'a') as f:
-        f.write("test_test")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import sys; print("test_test", file=sys.__stdout__)')
+
     # Wait for the poll
     qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
         ).get_focus_widget().toPlainText(), timeout=5000)
-    assert "test_test" in ipyconsole.get_widget().get_focus_widget(
-        ).toPlainText()
 
 
 @flaky(max_runs=10)
@@ -1872,8 +1869,6 @@ def test_startup_code_pdb(ipyconsole, qtbot):
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
     """Check if setting an event loop while debugging works."""
     # Skip failing tests
-    if backend == 'tk' and os.name == 'nt':
-        return
     if backend == 'osx' and sys.platform != "darwin":
         return
     if backend == 'qt5' and not os.name == "nt" and running_in_ci():
@@ -1886,6 +1881,8 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("%matplotlib " + backend)
+    qtbot.wait(1000)
+
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug print()")
     with qtbot.waitSignal(shell.executed):
@@ -2139,14 +2136,18 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
+    qtbot.wait(1000)
 
     # Create a Matplotlib plot
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt; plt.plot(range(10))")
+    qtbot.wait(1000)
 
     # Get kernel pid
     with qtbot.waitSignal(shell.executed):
         shell.execute("import os; pid = os.getpid()")
+    qtbot.wait(1000)
+
     kernel_pid = shell.get_value('pid')
 
     # Close current tab
@@ -2282,7 +2283,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
 
     # Simulate a specific directory
     cwd_dir = str(tmpdir.mkdir('ipyconsole_cwd_test'))
-    ipyconsole.get_widget().set_working_directory(cwd_dir)
+    ipyconsole.get_widget().save_working_directory(cwd_dir)
 
     # Get cwd of new client and assert is the expected one
     assert get_cwd_of_new_client() == cwd_dir
@@ -2354,6 +2355,131 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
         'startup/run_lines',
         '',
         section='ipython_console')
+
+
+def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
+    """Test that %varexp is working while debugging locals."""
+
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("def f():\n    li = [1, 2]\n    return li")
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug f()")
+
+
+    # Get to an object that can be plotted
+    for _ in range(4):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("!s")
+
+    # Generate the plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%varexp --plot li")
+
+    qtbot.wait(1000)
+
+    # Assert that there's a plot in the console
+    assert shell._control.toHtml().count('img src') == 1
+
+
+def test_run_script(ipyconsole, qtbot, tmp_path):
+    """
+    Test running multiple scripts at the same time.
+
+    This is a regression test for issue spyder-ide/spyder#15405
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Create two temp files: 'a.py' and 'b.py'
+    dir_a = tmp_path / 'a'
+    dir_a.mkdir()
+    filename_a = dir_a / 'a.py'
+    filename_a.write_text('a = 1')
+
+    dir_b = tmp_path / 'b'
+    dir_b.mkdir()
+    filename_b = dir_a / 'b.py'
+    filename_b.write_text('b = 1')
+
+    filenames = [str(filename_a), str(filename_b)]
+
+    # Run scripts
+    for filename in filenames:
+        ipyconsole.run_script(
+            filename=filename,
+            wdir=osp.dirname(filename),
+            current_client=False,
+            clear_variables=True
+        )
+
+    # Validate created consoles names and code executed
+    for filename in filenames:
+        basename = osp.basename(filename)
+        client_name = f'{basename}/A'
+        variable_name = basename.split('.')[0]
+
+        client = ipyconsole.get_client_for_file(filename)
+        assert client.get_name() == client_name
+
+        sw = client.shellwidget
+        qtbot.waitUntil(
+            lambda: sw._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+        # Wait for the respective script to be run
+        control = client.get_control()
+        qtbot.waitUntil(
+            lambda: "In [2]:" in control.toPlainText(), timeout=SHELL_TIMEOUT)
+        assert sw.get_value(variable_name) == 1
+
+
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Only runs on Linux")
+def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
+    """Test that we show Spyder-kernels error message on restarts."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Point to an interpreter without Spyder-kernels
+    ipyconsole.set_conf('default', False, section='main_interpreter')
+    ipyconsole.set_conf('executable', '/usr/bin/python3',
+                        section='main_interpreter')
+
+    # Restart kernel
+    os.environ['SPY_TEST_SHOW_RESTART_MESSAGE'] = 'true'
+    ipyconsole.restart_kernel()
+
+    # Assert we show a kernel error
+    info_page = ipyconsole.get_current_client().infowidget.page()
+
+    qtbot.waitUntil(
+        lambda: check_text(
+            info_page,
+            "The Python environment or installation"
+        ),
+        timeout=6000
+    )
+
+    # To check kernel error visually
+    qtbot.wait(500)
+
+    # Check kernel related actions are disabled
+    main_widget = ipyconsole.get_widget()
+    assert not main_widget.restart_action.isEnabled()
+    assert not main_widget.reset_action.isEnabled()
+    assert not main_widget.env_action.isEnabled()
+    assert not main_widget.syspath_action.isEnabled()
+    assert not main_widget.show_time_action.isEnabled()
 
 
 if __name__ == "__main__":

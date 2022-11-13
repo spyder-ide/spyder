@@ -20,6 +20,10 @@ pkg_resources:
     ImportError: The 'more_itertools' package is required; normally this is
     bundled with this package so if you get this warning, consult the
     packager of your distribution.
+pygments:
+    ModuleNotFoundError: No module named 'pygments.formatters.latex'
+pylint_venv:
+    Mandatory: pylint_venv >=2.1.1 : None (NOK)
 pyls_spyder :
     Mandatory: pyls_spyder >=0.1.1 : None (NOK)
 pylsp_black :
@@ -39,6 +43,8 @@ spyder_terminal :
 PACKAGES = [
     'humanfriendly',
     'pkg_resources',
+    'pygments',
+    'pylint_venv',
     'pyls_spyder',
     'pylsp_black',
     'setuptools',

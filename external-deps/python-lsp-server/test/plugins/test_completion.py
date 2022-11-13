@@ -160,10 +160,15 @@ def test_jedi_completion_item_resolve(config, workspace):
     assert 'detail' not in documented_hello_item
 
     resolved_documented_hello = pylsp_jedi_completion_item_resolve(
+        doc._config,
         completion_item=documented_hello_item,
         document=doc
     )
-    assert 'Sends a polite greeting' in resolved_documented_hello['documentation']
+    expected_doc = {
+        'kind': 'markdown',
+        'value': '```python\ndocumented_hello()\n```\n\n\nSends a polite greeting'
+    }
+    assert resolved_documented_hello['documentation'] == expected_doc
 
 
 def test_jedi_completion_with_fuzzy_enabled(config, workspace):
@@ -356,6 +361,26 @@ def test_completion_with_class_objects(config, workspace):
     assert completions[1]['kind'] == lsp.CompletionItemKind.TypeParameter
 
 
+def test_completion_with_function_objects(config, workspace):
+    doc_text = 'def foobar(): pass\nfoob'
+    com_position = {'line': 1, 'character': 4}
+    doc = Document(DOC_URI, workspace, doc_text)
+    config.capabilities['textDocument'] = {
+        'completion': {'completionItem': {'snippetSupport': True}}}
+    config.update({'plugins': {'jedi_completion': {
+        'include_params': True,
+        'include_function_objects': True,
+    }}})
+    completions = pylsp_jedi_completions(config, doc, com_position)
+    assert len(completions) == 2
+
+    assert completions[0]['label'] == 'foobar()'
+    assert completions[0]['kind'] == lsp.CompletionItemKind.Function
+
+    assert completions[1]['label'] == 'foobar() object'
+    assert completions[1]['kind'] == lsp.CompletionItemKind.TypeParameter
+
+
 def test_snippet_parsing(config, workspace):
     doc = 'divmod'
     completion_position = {'line': 0, 'character': 6}
@@ -478,8 +503,8 @@ def test_jedi_completion_environment(workspace):
     completions = pylsp_jedi_completions(doc._config, doc, com_position)
     assert completions[0]['label'] == 'loghub'
 
-    resolved = pylsp_jedi_completion_item_resolve(completions[0], doc)
-    assert 'changelog generator' in resolved['documentation'].lower()
+    resolved = pylsp_jedi_completion_item_resolve(doc._config, completions[0], doc)
+    assert 'changelog generator' in resolved['documentation']['value'].lower()
 
 
 def test_document_path_completions(tmpdir, workspace_other_root_path):

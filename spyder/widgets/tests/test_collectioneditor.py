@@ -60,7 +60,7 @@ def data_table(cm, n_rows, n_cols):
 class MockParent(QWidget):
 
     def __init__(self):
-        super(QWidget, self).__init__(None)
+        QWidget.__init__(self)
         self.proxy_model = None
 
 

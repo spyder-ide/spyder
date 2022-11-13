@@ -37,8 +37,12 @@ from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
+from spyder.utils import programs
 from spyder.utils.qthelpers import add_actions, DialogManager
 from spyder.py3compat import to_text_string
+from spyder.plugins.ipythonconsole import (
+    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_MAX_VERSION,
+    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -62,6 +66,9 @@ TEMPLATES_PATH = osp.join(
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
+SPYDER_KERNELS_VERSION_MSG = _(
+    '>= {0} and < {1}').format(
+        SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION)
 
 try:
     time.monotonic  # time.monotonic new in 3.3
@@ -107,7 +114,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  handlers={},
                  stderr_obj=None,
                  stdout_obj=None,
-                 fault_obj=None):
+                 fault_obj=None,
+                 initial_cwd=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -123,6 +131,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.reset_warning = reset_warning
         self.ask_before_restart = ask_before_restart
         self.ask_before_closing = ask_before_closing
+        self.initial_cwd = initial_cwd
 
         # --- Other attrs
         self.context_menu_actions = context_menu_actions
@@ -180,12 +189,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.stderr_obj = stderr_obj
         self.stdout_obj = stdout_obj
         self.fault_obj = fault_obj
-        self.std_poll_timer = None
         if self.stderr_obj is not None or self.stdout_obj is not None:
-            self.std_poll_timer = QTimer(self)
-            self.std_poll_timer.timeout.connect(self.poll_std_file_change)
-            self.std_poll_timer.setInterval(1000)
-            self.std_poll_timer.start()
             self.shellwidget.executed.connect(self.poll_std_file_change)
 
         self.start_successful = False
@@ -220,8 +224,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show if special console is valid
         self._check_special_console_error()
 
-        # Set the initial current working directory
-        self._set_initial_cwd()
+        # Set the initial current working directory in the kernel
+        self._set_initial_cwd_in_kernel()
 
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
@@ -324,11 +328,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         We also ignore errors about comms, which are irrelevant.
         """
+        if not self.has_spyder_kernels():
+            return True
+
         if self.start_successful:
             return False
+
         stderr = self.stderr_obj.get_contents()
         if not stderr:
             return False
+
         # There is an error. If it is benign, ignore.
         for line in stderr.splitlines():
             if line and not self.is_benign_error(line):
@@ -351,11 +360,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         page_control.sig_show_find_widget_requested.connect(
             self.container.find_widget.show)
 
-    def _set_initial_cwd(self):
-        """Set initial cwd according to preferences."""
-        logger.debug("Setting initial working directory")
+    def _set_initial_cwd_in_kernel(self):
+        """Set the initial cwd in the kernel."""
+        logger.debug("Setting initial working directory in the kernel")
         cwd_path = get_home_dir()
         project_path = self.container.get_active_project_path()
+        emit_cwd_change = True
 
         # This is for the first client
         if self.id_['int_id'] == '1':
@@ -377,7 +387,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 )
         else:
             # For new clients
-            if self.get_conf(
+            if self.initial_cwd is not None:
+                cwd_path = self.initial_cwd
+            elif self.get_conf(
                 'console/use_project_or_home_directory',
                 section='workingdir'
             ):
@@ -386,6 +398,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     cwd_path = project_path
             elif self.get_conf('console/use_cwd', section='workingdir'):
                 cwd_path = self.container.get_working_directory()
+                emit_cwd_change = False
             elif self.get_conf(
                 'console/use_fixed_directory',
                 section='workingdir'
@@ -397,7 +410,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 )
 
         if osp.isdir(cwd_path):
-            self.shellwidget.set_cwd(cwd_path)
+            self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 
     # ----- Public API --------------------------------------------------------
     @property
@@ -411,10 +424,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Remove stderr_file associated with the client."""
         try:
             self.shellwidget.executed.disconnect(self.poll_std_file_change)
-        except (TypeError, ValueError):
+        except (TypeError, RuntimeError):
             pass
-        if self.std_poll_timer is not None:
-            self.std_poll_timer.stop()
         if is_last_client:
             if self.stderr_obj is not None:
                 self.stderr_obj.remove()
@@ -426,7 +437,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     @Slot()
     def poll_std_file_change(self):
         """Check if the stderr or stdout file just changed."""
-        self.shellwidget.call_kernel().flush_std()
         starting = self.shellwidget._starting
         if self.stderr_obj is not None:
             stderr = self.stderr_obj.poll_file_change()
@@ -587,7 +597,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # disable secure writes.
             "WARNING: Insecure writes have been enabled via environment",
             # Old error
-            "No such comm"
+            "No such comm",
+            # PYDEVD debug warning message. See spyder-ide/spyder#18908
+            "Note: Debugging will proceed. "
+            "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.",
+            # Argument not expected error. See spyder-ide/spyder#19298
+            "The following argument was not expected"
         ]
 
         return any([err in error for err in benign_errors])
@@ -805,6 +820,56 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._hide_loading_page()
         self.restart_thread = None
         self.sig_execution_state_changed.emit()
+
+    def has_spyder_kernels(self):
+        """
+        Check if the kernel has the right Spyder-kernels version and show a
+        message in case that's not the true.
+        """
+        if not self.get_conf('default', section='main_interpreter'):
+            pyexec = self.get_conf('executable', section='main_interpreter')
+            has_spyder_kernels = programs.is_module_installed(
+                'spyder_kernels',
+                interpreter=pyexec,
+                version=SPYDER_KERNELS_VERSION)
+
+            if (
+                not has_spyder_kernels
+                # This is necessary to show this message for some tests and not
+                # do it for others.
+                and os.environ.get('SPY_TEST_SHOW_RESTART_MESSAGE')
+            ):
+                self.show_kernel_error(
+                    _("The Python environment or installation whose "
+                      "interpreter is located at"
+                      "<pre>"
+                      "    <tt>{0}</tt>"
+                      "</pre>"
+                      "doesn't have the <tt>spyder-kernels</tt> module or the "
+                      "right version of it installed ({1}). "
+                      "Without this module is not possible for Spyder to "
+                      "create a console for you.<br><br>"
+                      "You can install it by activating your environment (if "
+                      "necessary) and then running in a system terminal:"
+                      "<pre>"
+                      "    <tt>{2}</tt>"
+                      "</pre>"
+                      "or"
+                      "<pre>"
+                      "    <tt>{3}</tt>"
+                      "</pre>").format(
+                          pyexec,
+                          SPYDER_KERNELS_VERSION_MSG,
+                          SPYDER_KERNELS_CONDA,
+                          SPYDER_KERNELS_PIP
+                      )
+                )
+
+                return False
+            else:
+                return True
+        else:
+            return True
 
     def filter_fault(self, fault):
         """Get a fault from a previous session."""

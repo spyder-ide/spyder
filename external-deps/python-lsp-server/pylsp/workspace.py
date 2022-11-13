@@ -14,6 +14,8 @@ from . import lsp, uris, _utils
 
 log = logging.getLogger(__name__)
 
+DEFAULT_AUTO_IMPORT_MODULES = ["numpy"]
+
 # TODO: this is not the best e.g. we capture numbers
 RE_START_WORD = re.compile('[A-Za-z_0-9]*$')
 RE_END_WORD = re.compile('^[A-Za-z_0-9]*')
@@ -252,6 +254,8 @@ class Document:
 
         if self._config:
             jedi_settings = self._config.plugin_settings('jedi', document_path=self.path)
+            jedi.settings.auto_import_modules = jedi_settings.get('auto_import_modules',
+                                                                  DEFAULT_AUTO_IMPORT_MODULES)
             environment_path = jedi_settings.get('environment')
             extra_paths = jedi_settings.get('extra_paths') or []
             env_vars = jedi_settings.get('env_vars')
