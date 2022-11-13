@@ -36,6 +36,7 @@ class PythonpathManager(SpyderPluginV2):
     CONTAINER_CLASS = PythonpathContainer
     CONF_SECTION = NAME
     CONF_FILE = False
+    CAN_BE_DISABLED = False
 
     sig_pythonpath_changed = Signal(object, object)
     """

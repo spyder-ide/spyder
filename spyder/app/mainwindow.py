@@ -143,6 +143,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     sig_moved = Signal("QMoveEvent")
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
+    # To be removed in Spyder 6
+    sig_pythonpath_changed = Signal(object, object)
+
     def __init__(self, splash=None, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
@@ -758,6 +761,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                     PLUGIN_REGISTRY.register_plugin(self, PluginClass,
                                                     external=False)
 
+        # To be removed in Spyder 6
+        ppm = self.get_plugin(Plugins.PythonpathManager)
+        ppm.sig_pythonpath_changed.connect(self.sig_pythonpath_changed)
+
         # Instantiate internal Spyder 4 plugins
         for plugin_name in internal_plugins:
             if plugin_name in enabled_plugins:
@@ -815,7 +822,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # TODO: Remove when all menus are migrated to use the Main Menu Plugin
         logger.info("Creating Menus...")
         from spyder.plugins.mainmenu.api import (
-            ApplicationMenus, ToolsMenuSections, FileMenuSections)
+            ApplicationMenus, FileMenuSections)
         mainmenu = self.mainmenu
         self.edit_menu = mainmenu.get_application_menu("edit_menu")
         self.search_menu = mainmenu.get_application_menu("search_menu")
@@ -1532,6 +1539,18 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                   'please use <code>spyder -p "{fname}"</code>.')
                 .format(fpath=osp.normpath(fpath), fname=fname)
             )
+
+    def get_spyder_pythonpath(self):
+        """
+        This is here to provide compatibility for plugins that make use of the
+        Pythonpath managed by Spyder.
+
+        Notes
+        -----
+        This  method is going to be removed in Spyder 6.
+        """
+        ppm = self.get_plugin(Plugins.PythonpathManager)
+        return ppm.get_spyder_pythonpath()
 
     # ---- Preferences
     # -------------------------------------------------------------------------
