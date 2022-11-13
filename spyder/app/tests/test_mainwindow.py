@@ -5352,5 +5352,47 @@ def test_switch_to_plugin(main_window, qtbot):
     assert QApplication.focusWidget() is code_editor
 
 
+@pytest.mark.slow
+def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
+    """
+    Test that PYTHONPATH is passed to IPython consoles under different
+    scenarios.
+    """
+    # Wait until the window is fully up
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Add a new directory to PYTHONPATH
+    new_dir = tmp_path / 'new_dir'
+    new_dir.mkdir()
+    os.environ['PYTHONPATH'] = str(new_dir)
+
+    # Open Pythonpath dialog to detect new_dir
+    ppm = main_window.get_plugin(Plugins.PythonpathManager)
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    # Check new_dir was added to sys.path after closing the dialog
+    ppm.path_manager_dialog.close()
+    with qtbot.waitSignal(shell.executed, timeout=2000):
+        shell.execute("import sys; sys_path = sys.path")
+
+    assert str(new_dir) in shell.get_value("sys_path")
+
+    # Create new console
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Check new_dir is part of the new console's sys.path
+    with qtbot.waitSignal(shell.executed, timeout=2000):
+        shell.execute("import sys; sys_path = sys.path")
+
+    assert str(new_dir) in shell.get_value("sys_path")
+
+
 if __name__ == "__main__":
     pytest.main()
