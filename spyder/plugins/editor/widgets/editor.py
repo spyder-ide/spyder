@@ -1136,12 +1136,6 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_chars(chars)
 
-    def set_automatic_completions_after_ms(self, ms):
-        self.automatic_completion_ms = ms
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_automatic_completions_after_ms(ms)
-
     def set_completions_hint_enabled(self, state):
         self.completions_hint_enabled = state
         if self.data:
@@ -2550,7 +2544,6 @@ class EditorStack(QWidget):
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
             automatic_completions_after_chars=self.automatic_completion_chars,
-            automatic_completions_after_ms=self.automatic_completion_ms,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
             completions_hint_after_ms=self.completions_hint_after_ms,

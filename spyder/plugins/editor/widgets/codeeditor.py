@@ -506,7 +506,6 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic (on the fly) completions
         self.automatic_completions = True
         self.automatic_completions_after_chars = 3
-        self.automatic_completions_after_ms = 300
 
         # Code Folding
         self.code_folding = True
@@ -828,7 +827,6 @@ class CodeEditor(TextEditBaseWidget):
                      intelligent_backspace=True,
                      automatic_completions=True,
                      automatic_completions_after_chars=3,
-                     automatic_completions_after_ms=300,
                      completions_hint=True,
                      completions_hint_after_ms=500,
                      hover_hints=True,
@@ -885,8 +883,6 @@ class CodeEditor(TextEditBaseWidget):
             established with the two following kwargs. Default True.
         automatic_completions_after_chars: Number of charts to type to trigger
             an automatic completion. Default 3.
-        automatic_completions_after_ms: Number of milliseconds to pass before
-            an autocompletion is triggered. Default 300.
         completions_hint: Enable/Disable documentation hints for completions.
             Default True.
         completions_hint_after_ms: Number of milliseconds over a completion
@@ -1024,7 +1020,6 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_automatic_completions(automatic_completions)
         self.set_automatic_completions_after_chars(
             automatic_completions_after_chars)
-        self.set_automatic_completions_after_ms(automatic_completions_after_ms)
 
         # Completions hint
         self.toggle_completions_hint(completions_hint)
@@ -2134,12 +2129,6 @@ class CodeEditor(TextEditBaseWidget):
         Set the number of characters after which auto completion is fired.
         """
         self.automatic_completions_after_chars = number
-
-    def set_automatic_completions_after_ms(self, ms):
-        """
-        Set the amount of time in ms after which auto completion is fired.
-        """
-        self.automatic_completions_after_ms = ms
 
     def set_completions_hint_after_ms(self, ms):
         """
