@@ -62,7 +62,6 @@ else
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
-
 fi
 
 # Install subrepos from source

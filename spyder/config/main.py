@@ -353,7 +353,6 @@ DEFAULTS = [
               }),
             ('workingdir',
              {
-              'working_dir_adjusttocontents': False,
               'working_dir_history': 20,
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
