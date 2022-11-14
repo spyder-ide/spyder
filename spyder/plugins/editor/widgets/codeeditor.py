@@ -1159,8 +1159,8 @@ class CodeEditor(TextEditBaseWidget):
         logger.debug('Stopping completion services for %s' % self.filename)
         self.completions_available = False
 
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN,
-                      requires_response=False)
+    @request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN,
+             requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
         cursor = self.textCursor()
