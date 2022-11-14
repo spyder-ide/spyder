@@ -335,10 +335,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Request symbols and folding after a timeout.
         # See: process_diagnostics
+        # Connecting the timeout signal is performed in document_did_open()
         self._timer_sync_symbols_and_folding = QTimer(self)
         self._timer_sync_symbols_and_folding.setSingleShot(True)
-        self._timer_sync_symbols_and_folding.timeout.connect(
-            self.sync_symbols_and_folding)
         self.blockCountChanged.connect(
             self.set_sync_symbols_and_folding_timeout)
 
@@ -1163,6 +1162,14 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
+
+        # The connect is performed here instead of in __init__() because
+        # notify_close() may have been called (which disconnects the signal).
+        # Qt.UniqueConnection is used to avoid duplicate signal-slot connections
+        # (just in case).
+        self._timer_sync_symbols_and_folding.timeout.connect(
+            self.sync_symbols_and_folding, Qt.UniqueConnection)
+
         cursor = self.textCursor()
         text = self.get_text_with_eol()
         if self.is_ipython():
@@ -2044,8 +2051,7 @@ class CodeEditor(TextEditBaseWidget):
                 # we also ask for symbols and folding when processing
                 # diagnostics, we need to prevent it from happening
                 # before sending that request here.
-                self._timer_sync_symbols_and_folding.timeout.disconnect(
-                    self.sync_symbols_and_folding)
+                self._timer_sync_symbols_and_folding.timeout.disconnect()
             except (TypeError, RuntimeError):
                 pass
 
