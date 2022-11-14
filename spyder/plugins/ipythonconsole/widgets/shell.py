@@ -909,6 +909,15 @@ the sympy module (e.g. plot)
         self._control.insert_horizontal_ruler()
 
     # ---- Public methods (overrode by us) ------------------------------------
+    def _event_filter_console_keypress(self, event):
+        """Handle Key_Up/Key_Down while debugging."""
+        key = event.key()
+        if self._control_key_down(event.modifiers(), include_command=False):
+            if key == QtCore.Qt.Key_Period:
+                # Do not use ctrl + . to restart kernel, let MainWidget handle
+                return False
+        return super()._event_filter_console_keypress(event)
+
     def adjust_indentation(self, line, indent_adjustment):
         """Adjust indentation."""
         if indent_adjustment == 0 or line == "":
