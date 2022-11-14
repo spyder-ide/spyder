@@ -224,7 +224,7 @@ def test_automatic_completions(completions_codeeditor, qtbot):
     """Test on-the-fly completions."""
     code_editor, _ = completions_codeeditor
     completion = code_editor.completion_widget
-    delay = code_editor.LSP_REQUESTS_TIMEOUT
+    delay = 50
     code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
@@ -379,7 +379,7 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
     code_editor, _ = completions_codeeditor
     completion = code_editor.completion_widget
-    delay = 200
+    delay = 50
     code_editor.toggle_code_snippets(False)
 
     # Parens:

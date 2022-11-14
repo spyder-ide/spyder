@@ -331,10 +331,6 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
             if self.is_up_to_date(item=item):
                 self.item_selected(item=item)
-
-                # This is necessary so that completions are not triggered twice
-                # after introducing one of them, when auto-completions are on
-                self.textedit._last_key_pressed_text = ''
             else:
                 self.hide()
                 self.textedit.keyPressEvent(event)
