@@ -297,10 +297,10 @@ class ApplicationContainer(PluginMainContainer):
             box.exec_()
             check_updates = box.is_checked()
         else:
-
             if update_available:
-                self.application_update_status.set_status_pending(
-                    latest_release=latest_release)
+                if self.application_update_status:
+                    self.application_update_status.set_status_pending(
+                        latest_release=latest_release)
 
                 header = _("<b>Spyder {} is available!</b> "
                            "<i>(you have {})</i><br><br>").format(
@@ -332,13 +332,13 @@ class ApplicationContainer(PluginMainContainer):
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
-
-                if box.result() == QMessageBox.Yes:
-                    self.application_update_status.start_installation(
-                        latest_release=latest_release)
-                elif(box.result() == QMessageBox.No):
-                    self.application_update_status.set_status_pending(
-                        latest_release=latest_release)
+                if self.application_update_status:
+                    if box.result() == QMessageBox.Yes:
+                        self.application_update_status.start_installation(
+                            latest_release=latest_release)
+                    elif box.result() == QMessageBox.No:
+                        self.application_update_status.set_status_pending(
+                            latest_release=latest_release)
                 check_updates = box.is_checked()
             elif feedback:
                 msg = _("Spyder is up to date.")
@@ -346,9 +346,11 @@ class ApplicationContainer(PluginMainContainer):
                 box.set_check_visible(False)
                 box.exec_()
                 check_updates = box.is_checked()
-                self.application_update_status.set_no_status()
+                if self.application_update_status:
+                    self.application_update_status.set_no_status()
             else:
-                self.application_update_status.set_no_status()
+                if self.application_update_status:
+                    self.application_update_status.set_no_status()
         # Update checkbox based on user interaction
         self.set_conf(option, check_updates)
 
@@ -363,7 +365,8 @@ class ApplicationContainer(PluginMainContainer):
         """Check for spyder updates on github releases using a QThread."""
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
-        self.application_update_status.set_status_checking()
+        if self.application_update_status:
+            self.application_update_status.set_status_checking()
 
         if self.thread_updates is not None:
             self.thread_updates.quit()

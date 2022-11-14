@@ -94,14 +94,19 @@ class IPythonConsoleWidgetOptionsMenus:
     Documentation = 'documentation_submenu'
 
 
-class IPythonConsoleWidgetConsolesMenusSection:
-    Main = 'main_section'
-
-
 class IPythonConsoleWidgetOptionsMenuSections:
     Consoles = 'consoles_section'
     Edit = 'edit_section'
     View = 'view_section'
+
+
+class IPythonConsoleWidgetMenus:
+    TabsContextMenu = 'tabs_context_menu'
+
+
+class IPythonConsoleWidgetTabsContextMenuSections:
+    Consoles = 'tabs_consoles_section'
+    Edit = 'tabs_edit_section'
 
 
 # --- Widgets
@@ -359,7 +364,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return client.get_control()
 
     def setup(self):
-        # Options menu actions
+        # --- Options menu actions
         self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
             text=_("New console (default settings)"),
@@ -401,7 +406,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=self.tab_name_editor,
         )
 
-        # For the client
+        # --- For the client
         self.env_action = self.create_action(
             IPythonConsoleWidgetActions.ShowEnvironmentVariables,
             text=_("Show environment variables"),
@@ -427,7 +432,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             initial=self.get_conf('show_elapsed_time')
         )
 
-        # Context menu actions
+        # --- Context menu actions
         # TODO: Shortcut registration not working
         self.inspect_action = self.create_action(
             IPythonConsoleWidgetActions.InspectObject,
@@ -454,7 +459,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             icon=self.create_icon('exit'),
             triggered=self.current_client_quit)
 
-        # Other actions with shortcuts
+        # --- Other actions with shortcuts
         self.array_table_action = self.create_action(
             IPythonConsoleWidgetActions.ArrayTable,
             text=_("Enter array table"),
@@ -479,6 +484,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.quit_action
         )
 
+        # --- Setting options menu
         options_menu = self.get_options_menu()
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
@@ -540,11 +546,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 create_cython_action]:
             self.add_item_to_menu(
                 item,
-                menu=self.special_console_menu,
-                section=IPythonConsoleWidgetConsolesMenusSection.Main,
+                menu=self.special_console_menu
             )
 
-        # Widgets for the tab corner
+        # --- Widgets for the tab corner
         self.reset_button = self.create_toolbutton(
             'reset',
             text=_("Remove all variables"),
@@ -561,12 +566,39 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         )
         self.time_label = QLabel("")
 
-        # Add tab corner widgets.
+        # --- Add tab corner widgets.
         self.add_corner_widget('timer', self.time_label)
         self.add_corner_widget('reset', self.reset_button)
         self.add_corner_widget('start_interrupt', self.stop_button)
 
-        # Create IPython documentation menu
+        # --- Tabs context menu
+        tabs_context_menu = self.create_menu(
+            IPythonConsoleWidgetMenus.TabsContextMenu)
+
+        for item in [
+                self.create_client_action,
+                self.special_console_menu,
+                self.connect_to_kernel_action]:
+            self.add_item_to_menu(
+                item,
+                menu=tabs_context_menu,
+                section=IPythonConsoleWidgetTabsContextMenuSections.Consoles,
+            )
+
+        for item in [
+                self.interrupt_action,
+                self.restart_action,
+                self.reset_action,
+                self.rename_tab_action]:
+            self.add_item_to_menu(
+                item,
+                menu=tabs_context_menu,
+                section=IPythonConsoleWidgetTabsContextMenuSections.Edit,
+            )
+
+        self.tabwidget.menu = tabs_context_menu
+
+        # --- Create IPython documentation menu
         self.ipython_menu = self.create_menu(
             menu_id=IPythonConsoleWidgetOptionsMenus.Documentation,
             title=_("IPython documentation"))
