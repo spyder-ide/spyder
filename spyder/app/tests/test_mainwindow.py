@@ -761,7 +761,7 @@ def test_dedicated_consoles(main_window, qtbot):
     text = control.toPlainText()
     assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
-    # --- Clean retained after re-execution ---
+    # --- Check namespace retention after re-execution ---
     with qtbot.waitSignal(shell.executed):
         shell.execute('zz = -1')
 
