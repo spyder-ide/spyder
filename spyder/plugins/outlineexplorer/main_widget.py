@@ -218,7 +218,7 @@ class OutlineExplorerWidget(PluginMainWidget):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    @Slot(Qt.WindowStates)
+    @Slot(object)
     def _handle_undocked_window_state(self, window_state):
         """
         Change treewidget visibility when the plugin is undocked and its
