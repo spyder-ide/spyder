@@ -516,9 +516,7 @@ def test_get_help_editor(main_window, qtbot, object_info):
     main_window.editor.new(fname="test.py", text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
-    with qtbot.waitSignal(code_editor.completions_response_signal,
-                          timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     # Write some object in the editor
     object_name, expected_text = object_info
@@ -2196,10 +2194,7 @@ def example_def_2():
     main_window.editor.set_current_filename(str(file_a))
 
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal,
@@ -2274,10 +2269,7 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     main_window.editor.load(str(file))
 
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal,
@@ -3002,10 +2994,7 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_no_def)
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     # Move cursor to the left one character to be next to
     # FramelessWindowHint
@@ -3025,10 +3014,7 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_def)
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     # Move cursor to the left one character to be next to QtCore
     code_editor.move_cursor(-1)

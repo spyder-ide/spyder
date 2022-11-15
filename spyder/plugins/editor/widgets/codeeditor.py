@@ -1167,6 +1167,11 @@ class CodeEditor(TextEditBaseWidget):
         # notify_close() may have been called (which disconnects the signal).
         # Qt.UniqueConnection is used to avoid duplicate signal-slot connections
         # (just in case).
+        #
+        # Note: PyQt5 throws if the signal is not unique (= already connected).
+        # It is an error if this happens because as per LSP specification
+        # `didOpen` “must not be sent more than once without a corresponding
+        # close notification send before”.
         self._timer_sync_symbols_and_folding.timeout.connect(
             self.sync_symbols_and_folding, Qt.UniqueConnection)
 
