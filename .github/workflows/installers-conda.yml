@@ -71,10 +71,9 @@ jobs:
     steps:
     - id: build-matrix
       run: |
-        target_platform="'osx-64', 'osx-arm64', 'linux-64'"
+        target_platform="'osx-64', 'linux-64'"
         include="\
         {'os': 'macos-11', 'target-platform': 'osx-64'},\
-        {'os': 'macos-latest', 'target-platform': 'osx-arm64'},\
         {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
         "
         python_version="'3.9'"
