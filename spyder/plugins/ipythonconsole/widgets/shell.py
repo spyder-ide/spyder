@@ -910,11 +910,12 @@ the sympy module (e.g. plot)
 
     # ---- Public methods (overrode by us) ------------------------------------
     def _event_filter_console_keypress(self, event):
-        """Handle Key_Up/Key_Down while debugging."""
+        """Filter events to send to qtconsole code."""
         key = event.key()
         if self._control_key_down(event.modifiers(), include_command=False):
             if key == QtCore.Qt.Key_Period:
-                # Do not use ctrl + . to restart kernel, let MainWidget handle
+                # Do not use ctrl + . to restart kernel
+                # Handled by IPythonConsoleWidget
                 return False
         return super()._event_filter_console_keypress(event)
 
