@@ -2053,7 +2053,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     sw.sig_prompt_ready.disconnect()
                 except TypeError:
                     pass
-                sw.reset_namespace(warning=False)
+                if clear_variables:
+                    sw.reset_namespace(warning=False)
             elif current_client and clear_variables:
                 sw.reset_namespace(warning=False)
 
