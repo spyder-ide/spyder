@@ -43,11 +43,6 @@ REQ_LINUX = REQUIREMENTS / 'linux.yml'
 DIST.mkdir(exist_ok=True)
 SPYPATCHFILE = DIST / "installers-conda.patch"
 
-yaml = YAML()
-yaml.indent(mapping=2, sequence=4, offset=2)
-yamlj = YAML(typ='jinja2')
-yamlj.indent(mapping=2, sequence=4, offset=2)
-
 
 class BuildCondaPkg:
     """Base class for building a conda package for conda-based installer"""
@@ -205,6 +200,7 @@ class SpyderCondaPkg(BuildCondaPkg):
         meta['build'].pop('osx_is_app', None)
         meta.pop('app', None)
 
+        yaml = YAML()
         current_requirements = ['python']
         current_requirements += yaml.load(
             REQ_MAIN.read_text())['dependencies']
@@ -339,6 +335,9 @@ if __name__ == "__main__":
 
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
+
+    yaml = YAML()
+    yaml.indent(mapping=2, sequence=4, offset=2)
 
     if SPECS.exists():
         specs = yaml.load(SPECS.read_text())
