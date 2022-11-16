@@ -176,6 +176,8 @@ class ContentsWidget(QWidget):
         intvalid = QIntValidator(0, len(to_text_string(text).splitlines()),
                                  self.skiprows_edt)
         self.skiprows_edt.setValidator(intvalid)
+        self.skiprows_edt.textChanged.connect(
+                     lambda text: self.get_skiprows())
         other_layout.addWidget(self.skiprows_edt, 0, 1)
 
         other_layout.setColumnMinimumWidth(2, 5)
@@ -236,7 +238,14 @@ class ContentsWidget(QWidget):
 
     def get_skiprows(self):
         """Return number of lines to be skipped"""
-        return int(to_text_string(self.skiprows_edt.text()))
+        skip_rows = to_text_string(self.skiprows_edt.text())
+        # QIntValidator does not handle '+' sign
+        # See Spyder PR #20070
+        if skip_rows and skip_rows != '+':
+            return int(skip_rows)
+        else:
+            self.skiprows_edt.clear()
+            return 0
 
     def get_comments(self):
         """Return comment string"""
