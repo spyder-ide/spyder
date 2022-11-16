@@ -23,6 +23,7 @@ jobs:
   build-noarch-conda-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
+    continue-on-error: true
     if: github.event_name != 'release'
     strategy:
       matrix:
@@ -64,6 +65,7 @@ jobs:
   build-matrix:
     name: Determine Build Matrix
     runs-on: ubuntu-latest
+    continue-on-error: true
     outputs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
       include: ${{ steps.build-matrix.outputs.include }}
