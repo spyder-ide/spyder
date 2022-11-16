@@ -581,6 +581,8 @@ class CodeEditor(TextEditBaseWidget):
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
+        self.symbols_in_sync = False
+        self.folding_in_sync = False
 
         # Diagnostics
         self.update_diagnostics_thread = QThread(None)
@@ -1223,6 +1225,8 @@ class CodeEditor(TextEditBaseWidget):
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing symbols")
+        finally:
+            self.symbols_in_sync = True
 
     # ---- LSP: Linting and didChange
     # -------------------------------------------------------------------------
@@ -1239,6 +1243,9 @@ class CodeEditor(TextEditBaseWidget):
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
         self.formatting_in_progress = False
+        self.symbols_in_sync = False
+        self.folding_in_sync = False
+
         text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP
@@ -1298,8 +1305,10 @@ class CodeEditor(TextEditBaseWidget):
         """
         Synchronize symbols and folding after linting results arrive.
         """
-        self.request_folding()
-        self.request_symbols()
+        if not self.folding_in_sync:
+            self.request_folding()
+        if not self.symbols_in_sync:
+            self.request_symbols()
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
@@ -2024,6 +2033,8 @@ class CodeEditor(TextEditBaseWidget):
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing folding")
+        finally:
+            self.folding_in_sync = True
 
         # Update folding in a thread
         self.update_folding_thread.run = functools.partial(
@@ -2066,7 +2077,7 @@ class CodeEditor(TextEditBaseWidget):
     # ---- LSP: Save/close file
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
-             requires_response=False)
+                      requires_response=False)
     def notify_save(self):
         """Send save request."""
         params = {'file': self.filename}
