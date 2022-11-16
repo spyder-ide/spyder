@@ -1560,6 +1560,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.sig_shellwidget_deleted)
         shellwidget.sig_shellwidget_created.connect(
             self.sig_shellwidget_created)
+        shellwidget.sig_restart_kernel.connect(self.restart_kernel)
 
     def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or widget (or close current tab)"""

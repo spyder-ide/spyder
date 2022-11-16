@@ -123,6 +123,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
 
+    # To request restart
+    sig_restart_kernel = Signal()
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  handlers, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -786,6 +789,12 @@ the sympy module (e.g. plot)
             name='Clear shell',
             parent=self)
 
+        restart_kernel = self.config_shortcut(
+            self.sig_restart_kernel,
+            context='ipython_console',
+            name='Restart kernel',
+            parent=self)
+
         new_tab = self.config_shortcut(
             self.sig_new_client,
             context='ipython_console',
@@ -816,7 +825,7 @@ the sympy module (e.g. plot)
             name='clear line',
             parent=self)
 
-        return [inspect, clear_console, new_tab,
+        return [inspect, clear_console, restart_kernel, new_tab,
                 reset_namespace, array_inline, array_table, clear_line]
 
     # --- To communicate with the kernel
