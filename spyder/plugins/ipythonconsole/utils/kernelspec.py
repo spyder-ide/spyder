@@ -208,6 +208,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'SPY_GREEDY_O': self.get_conf('greedy_completer'),
             'SPY_JEDI_O': self.get_conf('jedi_completer'),
             'SPY_SYMPY_O': self.get_conf('symbolic_math'),
+            'SPY_VAREXP_PLOTLIB': self.get_conf('plotlib', section='variable_explorer'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
             'SPY_PYTHONPATH': pypath

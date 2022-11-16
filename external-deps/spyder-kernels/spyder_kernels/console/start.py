@@ -254,11 +254,9 @@ def varexp(line):
     """
     ip = get_ipython()       #analysis:ignore
     funcname, name = line.split()
-    try:
-        import guiqwt.pyplot as pyplot
-    except:
-        import matplotlib.pyplot as pyplot
-    pyplot.figure();
+    plotlib = os.environ.get('SPY_VAREXP_PLOTLIB')
+    pyplot = __import__(plotlib + '.pyplot', globals(), locals(), [], 0).pyplot
+    pyplot.figure()
     getattr(pyplot, funcname[2:])(ip.kernel._get_current_namespace()[name])
     pyplot.show()
 

@@ -176,7 +176,8 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
-              'show_special_attributes': False
+              'show_special_attributes': False,
+              'plotlib': 'matplotlib',
              }),
             ('debugger',
              {

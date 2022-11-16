@@ -8,6 +8,7 @@
 
 # Third party imports
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout
+from spyder_kernels.utils.misc import is_module_installed
 
 # Local imports
 from spyder.config.base import _
@@ -16,6 +17,7 @@ from spyder.api.preferences import PluginConfigPage
 class VariableExplorerConfigPage(PluginConfigPage):
 
     def setup_page(self):
+        # Filter Group
         filter_group = QGroupBox(_("Filter"))
         filter_data = [
             ('exclude_private', _("Exclude private references")),
@@ -27,20 +29,37 @@ class VariableExplorerConfigPage(PluginConfigPage):
         ]
         filter_boxes = [self.create_checkbox(text, option)
                         for option, text in filter_data]
-
-        display_group = QGroupBox(_("Display"))
-        display_data = [('minmax', _("Show arrays min/max"), '')]
-        display_boxes = [self.create_checkbox(text, option, tip=tip)
-                         for option, text, tip in display_data]
-
         filter_layout = QVBoxLayout()
         for box in filter_boxes:
             filter_layout.addWidget(box)
         filter_group.setLayout(filter_layout)
 
+        # Display Group
+        display_group = QGroupBox(_("Display"))
+        display_data = [("minmax", _("Show arrays min/max"), "")]
+        display_boxes = [
+            self.create_checkbox(text, option, tip=tip)
+            for option, text, tip in display_data
+        ]
         display_layout = QVBoxLayout()
         for box in display_boxes:
             display_layout.addWidget(box)
+        plotlibs = [
+            (libname, libname)
+            for libname in ("matplotlib", "guiqwt")
+            if is_module_installed(libname)
+        ]
+        if plotlibs:
+            plotlib_box = self.create_combobox(
+                _("Plotting library:") + "   ",
+                plotlibs,
+                "plotlib",
+                default="matplotlib",
+                tip=_(
+                    "Default library used to plot data from NumPy arrays (curve, histogram, image)"
+                ),
+            )
+            display_layout.addWidget(plotlib_box)
         display_group.setLayout(display_layout)
 
         vlayout = QVBoxLayout()
