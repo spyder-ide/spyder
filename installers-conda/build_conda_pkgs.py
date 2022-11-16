@@ -133,18 +133,21 @@ class BuildCondaPkg:
         self.logger.info("Patching 'meta.yaml'...")
 
         file = self._fdstk_path / "recipe" / "meta.yaml"
-        text = file.read_text()
+        meta = file.read_text()
+
+        # Replace jinja variable values
         for k, v in self.data.items():
-            text = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', text)
+            meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
 
-        meta = yamlj.load(text)
-
-        meta['source'] = {'path': str(self._bld_src)}
+        # Replace source, but keep patches
+        meta = re.sub('^(source:\n)(  (url|sha256):.*\n)*',
+                      rf'\g<1>  path: {self._bld_src}\n',
+                      meta, flags=re.MULTILINE)
 
         meta = self._patch_meta(meta)
 
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
-        yamlj.dump_all([meta], file)
+        file.write_text(meta)
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
@@ -197,9 +200,28 @@ class SpyderCondaPkg(BuildCondaPkg):
         SPYPATCHFILE.write_text(patch)
 
     def _patch_meta(self, meta):
-        meta['build'].pop('osx_is_app', None)
-        meta.pop('app', None)
+        # Add source code patch
+        search_patches = re.compile(
+            '^source:\n([ ]{2,}.*\n)*  patches:\n(    .*\n)+',
+            flags=re.MULTILINE
+        )
+        if search_patches.search(meta):
+            # Append patch to existing patches
+            meta = search_patches.sub(rf'\g<0>    - {SPYPATCHFILE}\n', meta)
+        else:
+            # Add patch node
+            meta = re.sub('^source:\n([ ]{2,}.*\n)*',
+                          rf'\g<0>  patches:\n    - {SPYPATCHFILE}\n',
+                          meta, flags=re.MULTILINE)
 
+        # Remove osx_is_app
+        meta = re.sub('^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
+                      r'\g<1>', meta, flags=re.MULTILINE)
+
+        # Remove app node
+        meta = re.sub('^app:\n(  .*\n)+', '', meta, flags=re.MULTILINE)
+
+        # Get current Spyder requirements
         yaml = YAML()
         current_requirements = ['python']
         current_requirements += yaml.load(
@@ -217,11 +239,11 @@ class SpyderCondaPkg(BuildCondaPkg):
             linux_requirements = yaml.load(
                 REQ_LINUX.read_text())['dependencies']
             current_requirements += linux_requirements
-        meta['requirements']['run'] = current_requirements
 
-        patches = meta['source'].get('patches', [])
-        patches.append(str(DIST / "installers-conda.patch"))
-        meta['source']['patches'] = patches
+        # Replace run requirements
+        cr_string = '\n    - '.join(current_requirements)
+        meta = re.sub('^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
+                      rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
 
         return meta
 
