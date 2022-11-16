@@ -234,6 +234,8 @@ class SpyderCondaPkg(BuildCondaPkg):
         elif sys.platform == 'darwin':
             mac_requirements =  yaml.load(
                 REQ_MAC.read_text())['dependencies']
+            if 'python.app' in mac_requirements:
+                mac_requirements.remove('python.app')
             current_requirements += mac_requirements
         else:
             linux_requirements = yaml.load(
