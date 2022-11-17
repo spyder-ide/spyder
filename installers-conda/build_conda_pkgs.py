@@ -41,6 +41,7 @@ REQ_MAC = REQUIREMENTS / 'macos.yml'
 REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
 DIST.mkdir(exist_ok=True)
+SPYPATCHFILE = DIST / "installers-conda.patch"
 
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -78,26 +79,32 @@ class BuildCondaPkg:
         """Clone source and feedstock to distribution directory for building"""
         self._build_cleanup()
 
-        # Determine source and commit
-        if self.source is not None:
-            remote = self.source
-            commit = 'HEAD'
+        if self.source == HERE.parent:
+            self._bld_src = self.source
+            repo = Repo(self.source)
         else:
-            cfg = ConfigParser()
-            cfg.read(EXTDEPS / self.name / '.gitrepo')
-            remote = cfg['subrepo']['remote']
-            commit = cfg['subrepo']['commit']
+            # Determine source and commit
+            if self.source is not None:
+                remote = self.source
+                commit = 'HEAD'
+            else:
+                cfg = ConfigParser()
+                cfg.read(EXTDEPS / self.name / '.gitrepo')
+                remote = cfg['subrepo']['remote']
+                commit = cfg['subrepo']['commit']
 
-        # Clone from source
-        kwargs = dict(to_path=self._bld_src)
-        if shallow:
-            kwargs.update(shallow_exclude=self.shallow_ver)
-            self.logger.info(
-                f"Cloning source shallow from tag {self.shallow_ver}...")
-        else:
-            self.logger.info("Cloning source...")
-        repo = Repo.clone_from(remote, **kwargs)
-        repo.git.checkout(commit)
+            # Clone from source
+            kwargs = dict(to_path=self._bld_src)
+            if shallow:
+                kwargs.update(shallow_exclude=self.shallow_ver)
+                self.logger.info(
+                    f"Cloning source shallow from tag {self.shallow_ver}...")
+            else:
+                self.logger.info("Cloning source...")
+            repo = Repo.clone_from(remote, **kwargs)
+            repo.git.checkout(commit)
+
+        self._patch_source(repo)
 
         # Clone feedstock
         self.logger.info("Cloning feedstock...")
@@ -106,13 +113,16 @@ class BuildCondaPkg:
     def _build_cleanup(self):
         """Remove cloned source and feedstock repositories"""
         for src in [self._bld_src, self._fdstk_path]:
-            if src.exists():
+            if src.exists() and src != HERE.parent:
                 logger.info(f"Removing {src}...")
                 rmtree(src)
 
     def _get_version(self):
         """Get source version using setuptools_scm"""
         self.version = get_version(self._bld_src).split('+')[0]
+
+    def _patch_source(self, repo):
+        pass
 
     def _patch_meta(self, meta):
         return meta
@@ -184,6 +194,13 @@ class SpyderCondaPkg(BuildCondaPkg):
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
 
+    def _patch_source(self, repo):
+        self.logger.info("Creating Spyder source patch...")
+
+        patch = repo.git.format_patch("..origin/installers-conda-patch",
+                                      "--stdout")
+        SPYPATCHFILE.write_text(patch)
+
     def _patch_meta(self, meta):
         meta['build'].pop('osx_is_app', None)
         meta.pop('app', None)
@@ -207,7 +224,7 @@ class SpyderCondaPkg(BuildCondaPkg):
         meta['requirements']['run'] = current_requirements
 
         patches = meta['source'].get('patches', [])
-        patches.append(str(RESOURCES / "installers-conda.patch"))
+        patches.append(str(DIST / "installers-conda.patch"))
         meta['source']['patches'] = patches
 
         return meta
