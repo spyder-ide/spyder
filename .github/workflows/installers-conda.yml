@@ -93,7 +93,7 @@ jobs:
     needs:
       - build-matrix
       - build-noarch-conda-pkgs
-    if: needs.build-noarch-conda-pkgs.result == 'success' || needs.build-noarch-conda-pkgs.result == 'skipped'
+    if: ${{ ! failure() }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -110,6 +110,7 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
+      STATUS: ${{ needs.build-noarch-conda-pkgs.result }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
