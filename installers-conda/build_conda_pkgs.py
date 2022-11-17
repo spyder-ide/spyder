@@ -140,8 +140,8 @@ class BuildCondaPkg:
             meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
 
         # Replace source, but keep patches
-        meta = re.sub('^(source:\n)(  (url|sha256):.*\n)*',
-                      rf'\g<1>  path: {self._bld_src}\n',
+        meta = re.sub(r'^(source:\n)(  (url|sha256):.*\n)*',
+                      rf'\g<1>  path: {self._bld_src.as_posix()}\n',
                       meta, flags=re.MULTILINE)
 
         meta = self._patch_meta(meta)
@@ -202,24 +202,27 @@ class SpyderCondaPkg(BuildCondaPkg):
     def _patch_meta(self, meta):
         # Add source code patch
         search_patches = re.compile(
-            '^source:\n([ ]{2,}.*\n)*  patches:\n(    .*\n)+',
+            r'^source:\n([ ]{2,}.*\n)*  patches:\n(    .*\n)+',
             flags=re.MULTILINE
         )
         if search_patches.search(meta):
             # Append patch to existing patches
-            meta = search_patches.sub(rf'\g<0>    - {SPYPATCHFILE}\n', meta)
+            meta = search_patches.sub(
+                rf'\g<0>    - {SPYPATCHFILE.as_posix()}\n', meta)
         else:
             # Add patch node
-            meta = re.sub('^source:\n([ ]{2,}.*\n)*',
-                          rf'\g<0>  patches:\n    - {SPYPATCHFILE}\n',
-                          meta, flags=re.MULTILINE)
+            meta = re.sub(
+                r'^source:\n([ ]{2,}.*\n)*',
+                rf'\g<0>  patches:\n    - {SPYPATCHFILE.as_posix()}\n',
+                meta, flags=re.MULTILINE
+            )
 
         # Remove osx_is_app
-        meta = re.sub('^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
+        meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
                       r'\g<1>', meta, flags=re.MULTILINE)
 
         # Remove app node
-        meta = re.sub('^app:\n(  .*\n)+', '', meta, flags=re.MULTILINE)
+        meta = re.sub(r'^app:\n(  .*\n)+', '', meta, flags=re.MULTILINE)
 
         # Get current Spyder requirements
         yaml = YAML()
@@ -244,7 +247,7 @@ class SpyderCondaPkg(BuildCondaPkg):
 
         # Replace run requirements
         cr_string = '\n    - '.join(current_requirements)
-        meta = re.sub('^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
+        meta = re.sub(r'^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
                       rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
 
         return meta
