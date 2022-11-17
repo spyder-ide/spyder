@@ -37,11 +37,15 @@ def get_pylintrc_path(search_paths=None, home_path=None):
     # Iterate through the search paths until a unique pylintrc file is found
     try:
         pylintrc_paths = [
-            _find_pylintrc_path(path) for path in search_paths if path]
+            _find_pylintrc_path(path) for path in search_paths if path
+        ]
         pylintrc_path_home = _find_pylintrc_path(home_path)
+
         for pylintrc_path in pylintrc_paths:
-            if (pylintrc_path is not None
-                    and pylintrc_path != pylintrc_path_home):
+            if (
+                pylintrc_path is not None
+                and pylintrc_path != pylintrc_path_home
+            ):
                 break
     finally:  # Ensure working directory is restored if any an error occurs
         os.chdir(current_cwd)
