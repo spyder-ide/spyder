@@ -1216,7 +1216,12 @@ class CodeEditor(TextEditBaseWidget):
         try:
             symbols = params['params']
             symbols = [] if symbols is None else symbols
-            self.classfuncdropdown.update_data(symbols)
+
+            if self.classfuncdropdown.isVisible():
+                self.classfuncdropdown.update_data(symbols)
+            else:
+                self.classfuncdropdown.set_data(symbols)
+
             if self.oe_proxy is not None:
                 self.oe_proxy.update_outline_info(symbols)
         except RuntimeError:
