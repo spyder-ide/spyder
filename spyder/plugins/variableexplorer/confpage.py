@@ -8,11 +8,11 @@
 
 # Third party imports
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout
-from spyder_kernels.utils.misc import is_module_installed
 
 # Local imports
 from spyder.config.base import _
 from spyder.api.preferences import PluginConfigPage
+from spyder.plugins.variableexplorer import plotlib
 
 class VariableExplorerConfigPage(PluginConfigPage):
 
@@ -44,19 +44,17 @@ class VariableExplorerConfigPage(PluginConfigPage):
         display_layout = QVBoxLayout()
         for box in display_boxes:
             display_layout.addWidget(box)
-        plotlibs = [
-            (libname, libname)
-            for libname in ("matplotlib", "guiqwt")
-            if is_module_installed(libname)
-        ]
-        if plotlibs:
+        if plotlib.AVAILABLE_PLOTLIBS:
             plotlib_box = self.create_combobox(
                 _("Plotting library:") + "   ",
-                plotlibs,
+                zip(plotlib.AVAILABLE_PLOTLIBS, plotlib.AVAILABLE_PLOTLIBS),
                 "plotlib",
-                default="matplotlib",
+                default=plotlib.DEFAULT_PLOTLIB,
                 tip=_(
-                    "Default library used to plot data from NumPy arrays (curve, histogram, image)"
+                    "Default library used for data plotting of NumPy arrays "
+                    "(curve, histogram, image).<br><br>Regarding the "
+                    "<i>%varexp</i> magic command, this option will be "
+                    "applied the next time a console is opened."
                 ),
             )
             display_layout.addWidget(plotlib_box)

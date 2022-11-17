@@ -60,6 +60,7 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.plugins.variableexplorer.plotlib import REQ_ERROR_MSG
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
@@ -1132,57 +1133,41 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         index = index.child(index.row(), 3)
         self.delegate.createEditor(self, None, index, object_explorer=True)
 
-    def __prepare_plot(self):
-        try:
-            import guiqwt.pyplot   #analysis:ignore
-            return True
-        except:
-            try:
-                if 'matplotlib' not in sys.modules:
-                    import matplotlib  # noqa
-                return True
-            except Exception:
-                QMessageBox.warning(self, _("Import error"),
-                                    _("Please install <b>matplotlib</b>"
-                                      " or <b>guiqwt</b>."))
-
     def plot_item(self, funcname):
         """Plot item"""
         index = self.currentIndex()
-        if self.__prepare_plot():
-            if self.proxy_model:
-                key = self.source_model.get_key(
-                    self.proxy_model.mapToSource(index))
-            else:
-                key = self.source_model.get_key(index)
-            try:
-                self.plot(key, funcname)
-            except (ValueError, TypeError) as error:
-                QMessageBox.critical(self, _( "Plot"),
-                                     _("<b>Unable to plot data.</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % str(error))
+        if self.proxy_model:
+            key = self.source_model.get_key(
+                self.proxy_model.mapToSource(index))
+        else:
+            key = self.source_model.get_key(index)
+        try:
+            self.plot(key, funcname)
+        except (ValueError, TypeError) as error:
+            QMessageBox.critical(self, _( "Plot"),
+                                    _("<b>Unable to plot data.</b>"
+                                    "<br><br>Error message:<br>%s"
+                                    ) % str(error))
 
     @Slot()
     def imshow_item(self):
         """Imshow item"""
         index = self.currentIndex()
-        if self.__prepare_plot():
-            if self.proxy_model:
-                key = self.source_model.get_key(
-                    self.proxy_model.mapToSource(index))
+        if self.proxy_model:
+            key = self.source_model.get_key(
+                self.proxy_model.mapToSource(index))
+        else:
+            key = self.source_model.get_key(index)
+        try:
+            if self.is_image(key):
+                self.show_image(key)
             else:
-                key = self.source_model.get_key(index)
-            try:
-                if self.is_image(key):
-                    self.show_image(key)
-                else:
-                    self.imshow(key)
-            except (ValueError, TypeError) as error:
-                QMessageBox.critical(self, _( "Plot"),
-                                     _("<b>Unable to show image.</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % str(error))
+                self.imshow(key)
+        except (ValueError, TypeError) as error:
+            QMessageBox.critical(self, _( "Plot"),
+                                    _("<b>Unable to show image.</b>"
+                                    "<br><br>Error message:<br>%s"
+                                    ) % str(error))
 
     @Slot()
     def save_array(self):
@@ -1383,21 +1368,36 @@ class CollectionsEditorTableView(BaseTableView):
             oedit)
         oedit(data[key])
 
+    def __get_pyplot(self):
+        """Return default plotting library `pyplot` package if available.
+        (default plotting library is an option defined in Variable Explorer 
+        plugin scope, e.g. "maplotlib" or "guiqwt")"""
+        libname = self.get_conf('plotlib', section='variable_explorer')
+        try:
+            return __import__(libname + '.pyplot',
+                              globals(), locals(), [], 0).pyplot
+        except ImportError:
+            #  This should not happen, unless plotting library has been 
+            #  uninstalled after option has been set in Variable Explorer
+            QMessageBox.critical(self, _("Import error"), REQ_ERROR_MSG)
+
     def plot(self, key, funcname):
         """Plot item"""
         data = self.source_model.get_data()
-        import spyder.pyplot as plt
-        plt.figure()
-        getattr(plt, funcname)(data[key])
-        plt.show()
+        plt = self.__get_pyplot()
+        if plt is not None:
+            plt.figure()
+            getattr(plt, funcname)(data[key])
+            plt.show()
 
     def imshow(self, key):
         """Show item's image"""
         data = self.source_model.get_data()
-        import spyder.pyplot as plt
-        plt.figure()
-        plt.imshow(data[key])
-        plt.show()
+        plt = self.__get_pyplot()
+        if plt is not None:
+            plt.figure()
+            plt.imshow(data[key])
+            plt.show()
 
     def show_image(self, key):
         """Show image (item is a PIL image)"""

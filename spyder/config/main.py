@@ -21,6 +21,7 @@ from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
+from spyder.plugins.variableexplorer.plotlib import DEFAULT_PLOTLIB
 
 
 # =============================================================================
@@ -177,7 +178,7 @@ DEFAULTS = [
               'minmax': False,
               'show_callable_attributes': True,
               'show_special_attributes': False,
-              'plotlib': 'matplotlib',
+              'plotlib': DEFAULT_PLOTLIB,
              }),
             ('debugger',
              {
