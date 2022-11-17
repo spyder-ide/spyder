@@ -99,7 +99,6 @@ jobs:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
         python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
         include: ${{fromJson(needs.build-matrix.outputs.include)}}
-
     defaults:
       run:
         shell: bash -l {0}
@@ -123,23 +122,28 @@ jobs:
           environment-file: installers-conda/build-environment.yml
           extra-specs: python=${{ matrix.python-version }}
 
+      - name: Env Variables
+        run: |
+          ARTIFACTS_PATH=$RUNNER_TEMP/artifacts
+          CONDA_BLD_PATH=$RUNNER_TEMP/conda-bld
+
+          echo "ARTIFACTS_PATH=$ARTIFACTS_PATH" >> $GITHUB_ENV
+          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
+
+          [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
+          [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
+
+          env
+
       - name: Download Local Conda Packages
         if: github.event_name != 'release'
         uses: actions/download-artifact@v3
         with:
-          path: ${{ github.workspace }}/installers-conda/artifacts
+          path: ${{ env.ARTIFACTS_PATH }}
 
       - name: Create Local Conda Channel
         run: |
-          ARTIFACT_PATH=$HOME/artifacts
-          CONDA_BLD_PATH=$HOME/conda-bld
-
-          [[ -d $ARTIFACT_PATH ]] || mkdir $ARTIFACT_PATH
-          [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
-
-          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
-
-          files=($(find $ARTIFACT_PATH -name *.tar.bz2))
+          files=($(find $ARTIFACTS_PATH -name *.tar.bz2))
           echo ${files[@]}
           cd $(dirname $CONDA_BLD_PATH)
           for file in ${files[@]}; do
