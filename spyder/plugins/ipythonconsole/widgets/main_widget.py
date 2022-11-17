@@ -1560,6 +1560,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.sig_shellwidget_deleted)
         shellwidget.sig_shellwidget_created.connect(
             self.sig_shellwidget_created)
+        shellwidget.sig_restart_kernel.connect(self.restart_kernel)
 
     def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or widget (or close current tab)"""
@@ -1768,6 +1769,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client is None:
             return
 
+        km = client.kernel_handler.kernel_manager
+        if km is None:
+            client.shellwidget._append_plain_text(
+                _('Cannot restart a kernel not started by Spyder\n'),
+                before_prompt=True
+            )
+            return
+
         self.sig_switch_to_plugin_requested.emit()
 
         ask_before_restart = (
@@ -1784,7 +1793,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if not do_restart:
             return
 
-        client.restart_kernel()
+        # Get new kernel
+        try:
+            kernel_handler = self.get_cached_kernel(km._kernel_spec)
+        except Exception as e:
+            client.show_kernel_error(e)
+            return
+
+        # Replace in all related clients
+        for cl in self.get_related_clients(client):
+            cl.replace_kernel(kernel_handler.copy(), shutdown_kernel=False)
+
+        client.replace_kernel(kernel_handler, shutdown_kernel=True)
 
     def reset_namespace(self):
         """Reset namespace of current client."""
