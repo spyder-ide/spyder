@@ -22,6 +22,7 @@ import logging
 import functools
 import os
 import os.path as osp
+import random
 import re
 import sre_constants
 import sys
@@ -157,10 +158,10 @@ class CodeEditor(TextEditBaseWidget):
     # linting results arrive, according to the number of lines in the file.
     SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS = {
         # Lines: Timeout
-        500: 350,
+        500: 600,
         1500: 800,
-        2500: 1200,
-        6500: 1800
+        2500: 1000,
+        6500: 1500
     }
 
     # Timeout (in milliseconds) to send pending requests to LSP server
@@ -616,8 +617,8 @@ class CodeEditor(TextEditBaseWidget):
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
 
-    # --- Helper private methods
-    # ------------------------------------------------------------------------
+    # ---- Helper private methods
+    # -------------------------------------------------------------------------
     def _process_server_requests(self):
         """Process server requests."""
         # Check if the document needs to be updated
@@ -633,7 +634,8 @@ class CodeEditor(TextEditBaseWidget):
         # Clear pending requests
         self._pending_server_requests = []
 
-    # --- Hover/Hints
+    # ---- Hover/Hints
+    # -------------------------------------------------------------------------
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
         if not self._mouse_left_button_pressed:
@@ -697,7 +699,7 @@ class CodeEditor(TextEditBaseWidget):
                 yield data.oedata
 
     # ---- Keyboard Shortcuts
-
+    # -------------------------------------------------------------------------
     def create_cursor_callback(self, attr):
         """Make a callback for cursor move event type, (e.g. "Start")"""
         def cursor_move_event():
@@ -800,6 +802,7 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter.sig_font_changed.connect(self.sync_font)
 
     # ---- Widget setup and options
+    # -------------------------------------------------------------------------
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""
         self.set_wrap_mode('word' if enable else None)
@@ -1304,7 +1307,10 @@ class CodeEditor(TextEditBaseWidget):
             timeouts = self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS.values()
             timeout = list(timeouts)[-1]
 
-        self._timer_sync_symbols_and_folding.setInterval(timeout)
+        # Add a random number so that several files are not synced at the same
+        # time.
+        self._timer_sync_symbols_and_folding.setInterval(
+            timeout + random.randint(-100, 100))
 
     def sync_symbols_and_folding(self):
         """
