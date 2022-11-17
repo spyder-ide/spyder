@@ -13,12 +13,18 @@ import os
 import os.path as osp
 
 # Third party imports
-import pylint.config
+# This is necessary to avoid a crash at startup
+# Fixes spyder-ide/spyder#20079
+try:
+    from pylint import config as pylint_config
+except Exception:
+    pylint_config = None
 
 
 def _find_pylintrc_path(path):
-    os.chdir(path)
-    return pylint.config.find_pylintrc()
+    if pylint_config is not None:
+        os.chdir(path)
+        return pylint_config.find_pylintrc()
 
 
 def get_pylintrc_path(search_paths=None, home_path=None):
