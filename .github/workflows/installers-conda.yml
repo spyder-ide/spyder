@@ -147,8 +147,10 @@ jobs:
           files=($(find $ARTIFACTS_PATH -name *.tar.bz2))
           echo ${files[@]}
           cd $(dirname $CONDA_BLD_PATH)
+
+          [[ $RUNNER_OS == "Windows" ]] && opts=("--force-local") || opts=()
           for file in ${files[@]}; do
-              tar -xf $file
+              tar -xf $file ${opts[@]}
           done
 
           mamba index $CONDA_BLD_PATH
