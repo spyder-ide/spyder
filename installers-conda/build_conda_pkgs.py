@@ -373,11 +373,8 @@ if __name__ == "__main__":
 
     for k in args.build:
         pkg = PKGS[k](debug=args.debug, shallow=args.shallow)
-        try:
-            pkg.build()
-            specs[k] = "=" + pkg.version
-        except Exception:
-            logger.exception(f"Build failed for {pkg.name}")
+        pkg.build()
+        specs[k] = "=" + pkg.version
 
     yaml.dump(specs, SPECS)
 
