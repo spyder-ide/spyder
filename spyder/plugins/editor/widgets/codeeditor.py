@@ -2028,7 +2028,14 @@ class CodeEditor(TextEditBaseWidget):
     def notify_close(self):
         """Send close request."""
         self._pending_server_requests = []
-        self._server_requests_timer.stop()
+
+        # This is necessary to prevent an error when closing the file.
+        # Fixes spyder-ide/spyder#20071
+        try:
+            self._server_requests_timer.stop()
+        except RuntimeError:
+            pass
+
         if self.completions_available:
             # This is necessary to prevent an error in our tests.
             try:
