@@ -373,12 +373,15 @@ class PreviewTable(QTableView):
     def _shape_text(self, text, colsep=u"\t", rowsep=u"\n",
                     transpose=False, skiprows=0, comments='#'):
         """Decode the shape of the given text"""
-        assert colsep != rowsep
+        assert colsep != rowsep, 'Column sep should not equal Row sep'
         out = []
-        text_rows = text.split(rowsep)[skiprows:]
+        text_rows = text.split(rowsep)
+        assert skiprows < len(text_rows), 'Skip Rows > Line Count'
+        text_rows = text_rows[skiprows:]
         for row in text_rows:
             stripped = to_text_string(row).strip()
-            if len(stripped) == 0 or stripped.startswith(comments):
+            if len(stripped) == 0 or (comments and
+                                      stripped.startswith(comments)):
                 continue
             line = to_text_string(row).split(colsep)
             line = [try_to_parse(to_text_string(x)) for x in line]
