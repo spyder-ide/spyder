@@ -140,8 +140,7 @@ def test_find_number_matches(setup_editor):
     editor_stack.find_widget.find(changed=False, forward=True,
                                   rehighlight=False,
                                   multiline_replace_check=False)
-    editor_text = editor_stack.find_widget.number_matches_text.text()
-    assert editor_text == 'no matches'
+    assert not editor_stack.find_widget.number_matches_text.isVisible()
 
 
 def test_move_current_line_up(editor_bot):
