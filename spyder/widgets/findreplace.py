@@ -18,7 +18,7 @@ import re
 from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
-                            QLineEdit, QSizePolicy, QWidget)
+                            QLineEdit, QSizePolicy, QSpacerItem, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -71,6 +71,7 @@ class FindReplace(QWidget):
 
         # Find layout
         self.search_text = PatternComboBox(self, adjust_to_minimum=False)
+        self.search_text.setMaximumWidth(300)
 
         self.return_shift_pressed.connect(
             lambda:
@@ -146,21 +147,30 @@ class FindReplace(QWidget):
         self.words_button.setCheckable(True)
         self.words_button.toggled.connect(lambda state: self.find())
 
-        hlayout = QHBoxLayout()
         self.widgets = [
             self.close_button,
             self.search_text,
-            self.number_matches_text,
             self.previous_button,
             self.next_button,
             self.re_button,
             self.case_button,
             self.words_button,
-            self.replace_text_button
+            self.replace_text_button,
+            self.number_matches_text,
         ]
-        for widget in self.widgets[1:]:
-            hlayout.addWidget(widget)
-        glayout.addLayout(hlayout, 0, 1)
+
+        # Search layout
+        search_layout = QHBoxLayout()
+        for widget in self.widgets[1:-1]:
+            search_layout.addWidget(widget)
+
+        search_layout.addSpacerItem(QSpacerItem(10, 0))
+        search_layout.addWidget(self.number_matches_text)
+        search_layout.addSpacerItem(
+            QSpacerItem(6, 0, hPolicy=QSizePolicy.Expanding)
+        )
+
+        glayout.addLayout(search_layout, 0, 1)
 
         # Replace layout
         self.replace_text = PatternComboBox(
@@ -196,7 +206,7 @@ class FindReplace(QWidget):
         self.replace_all_button.clicked.connect(self.update_replace_combo)
         self.replace_all_button.clicked.connect(self.update_search_combo)
 
-        self.replace_layout = QHBoxLayout()
+        replace_layout = QHBoxLayout()
         widgets = [
             self.replace_text,
             self.replace_button,
@@ -204,13 +214,14 @@ class FindReplace(QWidget):
             self.replace_all_button
         ]
         for widget in widgets:
-            self.replace_layout.addWidget(widget)
-        self.replace_layout.addStretch(1)
-        glayout.addLayout(self.replace_layout, 1, 1)
+            replace_layout.addWidget(widget)
+        replace_layout.addStretch(1)
+        glayout.addLayout(replace_layout, 1, 1)
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
         self.hide_replace()
 
+        # Additional adjustments
         self.search_text.setTabOrder(self.search_text, self.replace_text)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.shortcuts = self.create_shortcuts(parent)
