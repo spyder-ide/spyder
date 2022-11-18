@@ -197,7 +197,10 @@ class SpyderCondaPkg(BuildCondaPkg):
 
         patch = repo.git.format_patch("..origin/installers-conda-patch",
                                       "--stdout")
-        SPYPATCHFILE.write_text(patch)
+        # newline keyword is not added to pathlib until Python>=3.10,
+        # so we must use open to ensure LF on Windows
+        with open(SPYPATCHFILE, 'w', newline='\n') as f:
+            f.write(patch)
 
     def _patch_meta(self, meta):
         # Add source code patch
