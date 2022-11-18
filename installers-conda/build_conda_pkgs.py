@@ -322,7 +322,7 @@ if __name__ == "__main__":
             Build conda packages to local channel.
 
             This module builds conda packages for Spyder and external-deps for
-            inclusion in the conda-based installer. The Following classes are
+            inclusion in the conda-based installer. The following classes are
             provided for each package:
                 SpyderCondaPkg
                 PylspCondaPkg
