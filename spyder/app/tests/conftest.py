@@ -17,6 +17,7 @@ from jupyter_client.manager import KernelManager
 from qtpy.QtCore import Qt
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+from qtpy import QtWebEngineWidgets
 import psutil
 import pytest
 
