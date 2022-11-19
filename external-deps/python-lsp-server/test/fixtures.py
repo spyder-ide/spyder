@@ -67,7 +67,8 @@ def workspace(tmpdir):
     """Return a workspace."""
     ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
     ws._config = Config(ws.root_uri, {}, 0, {})
-    return ws
+    yield ws
+    ws.close()
 
 
 @pytest.fixture

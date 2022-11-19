@@ -60,6 +60,11 @@
       },
       "description": "List of errors and warnings to ignore (or skip)."
     },
+    "pylsp.plugins.flake8.maxComplexity": {
+      "type": "integer",
+      "default": null,
+      "description": "Maximum allowed complexity threshold."
+    },
     "pylsp.plugins.flake8.maxLineLength": {
       "type": ["integer", "null"],
       "default": null,
@@ -289,7 +294,7 @@
     "pylsp.plugins.pydocstyle.convention": {
       "type": ["string", "null"],
       "default": null,
-      "enum": ["pep257", "numpy", null],
+      "enum": ["pep257", "numpy", "google", null],
       "description": "Choose the basic list of checked errors by specifying an existing convention."
     },
     "pylsp.plugins.pydocstyle.addIgnore": {
@@ -361,6 +366,16 @@
       "type": ["string", "null"],
       "default": null,
       "description": "Executable to run pylint with. Enabling this will run pylint on unsaved files via stdin. Can slow down workflow. Only works with python3."
+    },
+    "pylsp.plugins.rope_autoimport.enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable or disable autoimport."
+    },
+    "pylsp.plugins.rope_autoimport.memory": {
+      "type": "boolean",
+      "default": false,
+      "description": "Make the autoimport database memory only. Drastically increases startup time."
     },
     "pylsp.plugins.rope_completion.enabled": {
       "type": "boolean",

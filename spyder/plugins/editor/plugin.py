@@ -1976,7 +1976,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         fname=<basestring> --> create file
         """
         # If no text is provided, create default content
-        empty = False
         try:
             if text is None:
                 default_content = True
@@ -2131,10 +2130,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         cursor_history_state = self.__ignore_cursor_history
         self.__ignore_cursor_history = True
-        # Switch to editor before trying to load a file
+
+        # Switch to editor before trying to load a file.
+        # Here we catch RuntimeError to avoid an issue when loading files.
+        # Fixes spyder-ide/spyder#20055
         try:
             self.switch_to_plugin()
-        except AttributeError:
+        except (AttributeError, RuntimeError):
             pass
 
         editor0 = self.get_current_editor()

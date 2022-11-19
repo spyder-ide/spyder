@@ -71,10 +71,9 @@ jobs:
     steps:
     - id: build-matrix
       run: |
-        target_platform="'osx-64', 'osx-arm64', 'linux-64'"
+        target_platform="'osx-64', 'linux-64'"
         include="\
         {'os': 'macos-11', 'target-platform': 'osx-64'},\
-        {'os': 'macos-latest', 'target-platform': 'osx-arm64'},\
         {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
         "
         python_version="'3.9'"
@@ -91,14 +90,15 @@ jobs:
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
-    needs: [build-matrix, build-noarch-conda-pkgs]
-    if: always()
+    needs:
+      - build-matrix
+      - build-noarch-conda-pkgs
+    if: ${{ ! failure() }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
         python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
         include: ${{fromJson(needs.build-matrix.outputs.include)}}
-
     defaults:
       run:
         shell: bash -l {0}
@@ -110,6 +110,7 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
+      STATUS: ${{ needs.build-noarch-conda-pkgs.result }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -122,27 +123,39 @@ jobs:
           environment-file: installers-conda/build-environment.yml
           extra-specs: python=${{ matrix.python-version }}
 
+      - name: Env Variables
+        run: |
+          ARTIFACTS_PATH=$RUNNER_TEMP/artifacts
+          CONDA_BLD_PATH=$RUNNER_TEMP/conda-bld
+
+          echo "ARTIFACTS_PATH=$ARTIFACTS_PATH" >> $GITHUB_ENV
+          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
+
+          [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
+          [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
+
+          env
+
       - name: Download Local Conda Packages
         if: github.event_name != 'release'
         uses: actions/download-artifact@v3
         with:
-          path: ${{ github.workspace }}/installers-conda/artifacts
+          path: ${{ env.ARTIFACTS_PATH }}
 
       - name: Create Local Conda Channel
         run: |
-          CONDA_BLD_PATH=$HOME/conda-bld
-          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
-
-          files=($(find $PWD/artifacts -name *.tar.bz2))
+          files=($(find $ARTIFACTS_PATH -name *.tar.bz2))
           echo ${files[@]}
           cd $(dirname $CONDA_BLD_PATH)
+
+          [[ $RUNNER_OS == "Windows" ]] && opts=("--force-local") || opts=()
           for file in ${files[@]}; do
-              tar -xf $file
+              tar -xf $file ${opts[@]}
           done
 
           mamba index $CONDA_BLD_PATH
 
-          mamba search -c $CONDA_BLD_PATH --override-channels
+          mamba search -c $CONDA_BLD_PATH --override-channels || true
 
       - name: Build ${{ matrix.target-platform }} conda packages
         run: |

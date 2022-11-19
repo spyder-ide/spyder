@@ -253,6 +253,7 @@ class ProfilerWidget(PluginMainWidget):
             triggered=self.clear,
         )
         self.clear_action.setEnabled(False)
+        self.save_action.setEnabled(False)
 
         # Main Toolbar
         toolbar = self.get_main_toolbar()
@@ -300,6 +301,8 @@ class ProfilerWidget(PluginMainWidget):
             icon = self.create_icon('run')
         self.start_action.setIcon(icon)
 
+        self.load_action.setEnabled(not self.running)
+        self.clear_action.setEnabled(not self.running)
         self.start_action.setEnabled(bool(self.filecombo.currentText()))
 
     # --- Private API
@@ -329,6 +332,7 @@ class ProfilerWidget(PluginMainWidget):
         self.output = self.error_output + self.output
         self.datelabel.setText('')
         self.show_data(justanalyzed=True)
+        self.save_action.setEnabled(True)
         self.update_actions()
 
     def _read_output(self, error=False):
@@ -373,6 +377,11 @@ class ProfilerWidget(PluginMainWidget):
             getcwd_or_home(),
             _("Profiler result") + " (*.Result)",
         )
+        extension = osp.splitext(filename)[1].lower()
+        if not extension:
+            # Needed to prevent trying to save a data file without extension
+            # See spyder-ide/spyder#19633
+            filename = filename + '.Result'
 
         if filename:
             self.datatree.save_data(filename)
@@ -389,6 +398,7 @@ class ProfilerWidget(PluginMainWidget):
         if filename:
             self.datatree.compare(filename)
             self.show_data()
+            self.save_action.setEnabled(True)
             self.clear_action.setEnabled(True)
 
     def clear(self):
@@ -671,6 +681,7 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
         }
         self.profdata = None   # To be filled by self.load_data()
         self.stats = None      # To be filled by self.load_data()
+        self.stats1 = []       # To be filled by self.load_data()
         self.item_depth = None
         self.item_list = None
         self.items_to_be_shown = None
@@ -736,7 +747,8 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
 
     def save_data(self, filename):
         """Save profiler data."""
-        self.stats1[0].dump_stats(filename)
+        if len(self.stats1) > 0:
+            self.stats1[0].dump_stats(filename)
 
     def find_root(self):
         """Find a function without a caller"""
