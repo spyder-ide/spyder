@@ -951,7 +951,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             'underline_errors', 'set_underline_errors_enabled')
 
         wrap_lines_action = self._create_checkable_action(
-            _("Wrap lines"), 'wrap', 'set_wrap_enabled')
+            _("Wrap lines"), 'wrap', 'set_wrap_enabled',
+            shortcut=CONF.get_shortcut('editor', 'wrap lines'))
 
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
@@ -1359,7 +1360,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 except RuntimeError:
                     pass
 
-    def _create_checkable_action(self, text, conf_name, method=''):
+    def _create_checkable_action(
+            self,
+            text,
+            conf_name,
+            method='',
+            shortcut=None):
         """Helper function to create a checkable action.
 
         Args:
@@ -1373,7 +1379,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
 
-        action = create_action(self, text, toggled=toogle)
+        action = create_action(self, text, toggled=toogle, shortcut=shortcut)
         action.blockSignals(True)
 
         if conf_name not in ['pycodestyle', 'pydocstyle']:
