@@ -950,6 +950,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             _("Underline errors and warnings"),
             'underline_errors', 'set_underline_errors_enabled')
 
+        wrap_lines_action = self._create_checkable_action(
+            _("Wrap lines"), 'wrap', 'set_wrap_enabled')
+
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
@@ -958,7 +961,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
                 'pycodestyle': show_codestyle_warnings_action,
                 'pydocstyle': show_docstring_warnings_action,
-                'underline_errors': underline_errors}
+                'underline_errors': underline_errors,
+                'wrap': wrap_lines_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -1172,6 +1176,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             show_codestyle_warnings_action,
             show_docstring_warnings_action,
             underline_errors,
+            wrap_lines_action,
             MENU_SEPARATOR,
             self.todo_list_action,
             self.warning_list_action,
