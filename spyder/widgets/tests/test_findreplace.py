@@ -146,16 +146,30 @@ def test_messages_action(findreplace_editor, qtbot):
     assert findreplace.number_matches_text.text() == '1 of 1'
 
 
-def test_replace_button(findreplace_editor, qtbot):
+def test_replace_text_button(findreplace_editor, qtbot):
     """
-    Test that the replace button is checked when showing the replace row
-    directly.
+    Test that replace_text_button is checked/unchecked under different
+    scenarios.
     """
     findreplace = findreplace_editor.findreplace
     findreplace.hide()
+
+    # Show replace row directly
     findreplace.show(hide_replace=False)
     qtbot.wait(500)
     assert findreplace.replace_text_button.isChecked()
+
+    # Hide with the close button and show find row only
+    qtbot.mouseClick(findreplace.close_button, Qt.LeftButton)
+    findreplace.show(hide_replace=True)
+    qtbot.wait(500)
+    assert not findreplace.replace_text_button.isChecked()
+
+    # Show both find and replace rows and then only the find one
+    findreplace.show(hide_replace=False)
+    qtbot.wait(500)
+    findreplace.show(hide_replace=True)
+    assert not findreplace.replace_text_button.isChecked()
 
 
 if __name__ == "__main__":

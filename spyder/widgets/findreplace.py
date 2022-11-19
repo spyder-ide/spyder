@@ -380,6 +380,7 @@ class FindReplace(QWidget):
         for widget in self.replace_widgets:
             widget.hide()
         QWidget.hide(self)
+        self.replace_text_button.setChecked(False)
         self.visibility_changed.emit(False)
         if self.editor is not None:
             self.editor.setFocus()
@@ -396,6 +397,7 @@ class FindReplace(QWidget):
         """Hide replace widgets"""
         for widget in self.replace_widgets:
             widget.hide()
+            self.replace_text_button.setChecked(False)
 
     def refresh(self):
         """Refresh widget"""
