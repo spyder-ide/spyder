@@ -17,6 +17,8 @@ from jupyter_client.manager import KernelManager
 from qtpy.QtCore import Qt
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+# This is required to run our tests in VSCode or Spyder-unittest
+from qtpy import QtWebEngineWidgets  # noqa
 import psutil
 import pytest
 
