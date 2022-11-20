@@ -116,25 +116,25 @@ def editor_cells_bot(base_editor_bot, qtbot):
 # =============================================================================
 # ---- Tests
 # =============================================================================
-def test_find_number_matches(setup_editor):
+def test_find_number_matches(editor_find_replace_bot):
     """Test for number matches in find/replace."""
-    editor_stack, editor = setup_editor
-    editor_stack.find_widget.case_button.setChecked(True)
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
+    finder.case_button.setChecked(True)
     text = ' test \nTEST \nTest \ntesT '
     editor.set_text(text)
 
-    editor_stack.find_widget.search_text.add_text('test')
-    editor_stack.find_widget.find(changed=False, forward=True,
-                                  rehighlight=False,
-                                  multiline_replace_check=False)
-    editor_text = editor_stack.find_widget.number_matches_text.text()
+    finder.search_text.add_text('test')
+    finder.find(changed=False, forward=True, rehighlight=False,
+                multiline_replace_check=False)
+    editor_text = finder.number_matches_text.text()
     assert editor_text == '1 of 1'
 
-    editor_stack.find_widget.search_text.add_text('fail')
-    editor_stack.find_widget.find(changed=False, forward=True,
-                                  rehighlight=False,
-                                  multiline_replace_check=False)
-    assert not editor_stack.find_widget.number_matches_text.isVisible()
+    finder.search_text.add_text('fail')
+    finder.find(changed=False, forward=True, rehighlight=False,
+                multiline_replace_check=False)
+    assert not finder.number_matches_text.isVisible()
 
 
 def test_move_current_line_up(editor_bot):
@@ -338,17 +338,20 @@ def test_run_last_line_when_nonempty(editor_bot, qtbot):
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
 
-def test_find_replace_case_sensitive(setup_editor):
-    editor_stack, editor = setup_editor
-    editor_stack.find_widget.case_button.setChecked(True)
+def test_find_replace_case_sensitive(editor_find_replace_bot):
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
+    finder.show(hide_replace=False)
+    finder.case_button.setChecked(True)
     text = ' test \nTEST \nTest \ntesT '
     editor.set_text(text)
-    editor_stack.find_widget.search_text.add_text('test')
-    editor_stack.find_widget.replace_text.add_text('pass')
-    editor_stack.find_widget.replace_find()
-    editor_stack.find_widget.replace_find()
-    editor_stack.find_widget.replace_find()
-    editor_stack.find_widget.replace_find()
+    finder.search_text.add_text('test')
+    finder.replace_text.add_text('pass')
+    finder.replace_find()
+    finder.replace_find()
+    finder.replace_find()
+    finder.replace_find()
     editor_text = editor.toPlainText()
     assert editor_text == ' pass \nTEST \nTest \ntesT '
 
