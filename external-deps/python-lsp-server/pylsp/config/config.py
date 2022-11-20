@@ -81,7 +81,6 @@ class Config:
             if plugin is not None:
                 log.info("Loaded pylsp plugin %s from %s", name, plugin)
 
-        # pylint: disable=no-member
         for plugin_conf in self._pm.hook.pylsp_settings(config=self):
             self._plugin_settings = _utils.merge_dicts(self._plugin_settings, plugin_conf)
 
