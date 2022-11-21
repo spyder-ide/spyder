@@ -526,17 +526,28 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     """
     file_path, editorstack, code_editor, completion_plugin = completions_editor
 
-    mocker.patch.object(code_editor, 'emit_request', wraps=code_editor.emit_request)
-    mocker.patch.object(code_editor, 'request_folding', wraps=code_editor.request_folding)
-    mocker.patch.object(code_editor, 'request_symbols', wraps=code_editor.request_symbols)
-    mocker.patch.object(code_editor, 'handle_folding_range', wraps=code_editor.handle_folding_range)
-    mocker.patch.object(code_editor, 'process_symbols', wraps=code_editor.process_symbols)
+    mocker.patch.object(code_editor, 'emit_request',
+                        wraps=code_editor.emit_request)
+    mocker.patch.object(code_editor, 'request_folding',
+                        wraps=code_editor.request_folding)
+    mocker.patch.object(code_editor, 'request_symbols',
+                        wraps=code_editor.request_symbols)
+    mocker.patch.object(code_editor, 'handle_folding_range',
+                        wraps=code_editor.handle_folding_range)
+    mocker.patch.object(code_editor, 'process_symbols',
+                        wraps=code_editor.process_symbols)
 
     def symbols_and_folding_requested():
-        return code_editor.request_symbols.call_count == 1 and code_editor.request_folding.call_count == 1
+        return (
+            code_editor.request_symbols.call_count == 1
+            and code_editor.request_folding.call_count == 1
+        )
 
     def symbols_and_folding_processed():
-        return code_editor.process_symbols.call_count == 1 and code_editor.handle_folding_range.call_count == 1
+        return (
+            code_editor.process_symbols.call_count == 1
+            and code_editor.handle_folding_range.call_count == 1
+        )
 
     # === Set and assert initial state
     assert editorstack.get_current_filename().endswith('test.py')
@@ -547,12 +558,15 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
             a = 0
             b = 1
     """))
+
     # Folding and symbols are requested some time after text is changed (see
     # usage of textChanged signal and _timer_sync_symbols_and_folding in CodeEditor).
     qtbot.waitUntil(symbols_and_folding_requested, timeout=5000)
     qtbot.waitUntil(symbols_and_folding_processed, timeout=5000)
+
     # Check response by LSP
     assert code_editor.handle_folding_range.call_args == mocker.call({'params': [(1, 3)]})
+
     # BUG The empty response is actually an error: Symbols are not returned for new,
     # yet unsaved files (interestingly, folding information is returned).
     assert code_editor.process_symbols.call_args == mocker.call({'params': []})
@@ -574,10 +588,12 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
 
     # === Check that expected LSP calls have been made
     assert code_editor.emit_request.call_count == 2
+
     # First call: notify_close() must have been called
     call = code_editor.emit_request.call_args_list[0]
     assert call.args[0] == 'textDocument/didClose'
     assert call.args[1]['file'].endswith('test.py')
+
     # Second call: document_did_open() must have been called
     call = code_editor.emit_request.call_args_list[1]
     assert call.args[0] == 'textDocument/didOpen'
@@ -602,6 +618,7 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
 
     # Check that LSP responded with updated folding and symbols information
     assert code_editor.handle_folding_range.call_args == mocker.call({'params': [(1, 5), (7, 9)]})
+
     # There must be 7 symbols (2 functions and 5 variables)
     assert len(code_editor.process_symbols.call_args.args[0]['params']) == 7
 
