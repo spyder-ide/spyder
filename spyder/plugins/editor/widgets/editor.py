@@ -936,11 +936,6 @@ class EditorStack(QWidget):
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
 
-    def add_outlineexplorer_button(self, editor_plugin):
-        oe_btn = create_toolbutton(editor_plugin)
-        oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
-        self.add_corner_widgets_to_tabbar([5, oe_btn])
-
     def set_tempfile_path(self, path):
         self.tempfile_path = path
 
@@ -3305,10 +3300,23 @@ class EditorWidget(QSplitter):
             self,
             context=f'editor_window_{str(id(self))}'
         )
+
+        # Show widget's toolbar
+        self.outlineexplorer.setup()
+        self.outlineexplorer.update_actions()
+        self.outlineexplorer._setup()
+        self.outlineexplorer.render_toolbars()
+
+        # Remove actions related to plugin functionality from Options menu
+        options_menu = self.outlineexplorer.get_options_menu()
+        for action in ['undock_pane', 'close_pane', 'lock_unlock_position']:
+            options_menu.remove_action(action)
+
         self.outlineexplorer.edit_goto.connect(
-                     lambda filenames, goto, word:
-                     plugin.load(filenames=filenames, goto=goto, word=word,
-                                 editorwindow=self.parent()))
+            lambda filenames, goto, word:
+            plugin.load(filenames=filenames, goto=goto, word=word,
+                        editorwindow=self.parent())
+        )
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
