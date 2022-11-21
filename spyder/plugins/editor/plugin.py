@@ -1726,7 +1726,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def unregister_editorwindow(self, window):
         logger.debug("Unregistering window")
-        self.editorwindows.pop(self.editorwindows.index(window))
+        idx = self.editorwindows.index(window)
+        self.editorwindows[idx] = None
+        self.editorwindows.pop(idx)
 
 
     #------ Accessors

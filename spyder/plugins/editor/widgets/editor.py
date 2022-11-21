@@ -3117,6 +3117,7 @@ class EditorSplitter(QSplitter):
             # editorsplitter has been destroyed (happens when closing a
             # EditorMainWindow instance)
             return
+
         if close_splitter:
             # editorsplitter just closed was the last widget in this QSplitter
             self.close()
@@ -3125,6 +3126,7 @@ class EditorSplitter(QSplitter):
             # back to the initial state: a single editorstack instance,
             # as a single widget in this QSplitter: orientation may be changed
             self.editorstack.reset_orientation()
+
         self.__give_focus_to_remaining_editor()
 
     def split(self, orientation=Qt.Vertical):
@@ -3138,6 +3140,7 @@ class EditorSplitter(QSplitter):
         the child splits is split, then that split can have a different
         orientation.
         """
+        logger.debug("Create a new EditorSplitter")
         self.setOrientation(orientation)
         self.editorstack.set_orientation(orientation)
         editorsplitter = EditorSplitter(
@@ -3354,14 +3357,19 @@ class EditorWidget(QSplitter):
         logger.debug(
             f"{len(self.editorstacks)} editorstack(s) in EditorWidget:"
         )
-        for edst in self.editorstacks:
-            logger.debug(f"    {edst}")
+        for es in self.editorstacks:
+            logger.debug(f"    {es}")
 
     def unregister_editorstack(self, editorstack):
         logger.debug("Unregistering editorstack")
         self.plugin.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
         self.__print_editorstacks()
+
+    def unregister_all_editorstacks(self):
+        logger.debug("Unregistering all editorstacks")
+        for es in self.editorstacks:
+            es.close()
 
 
 class EditorMainWindow(QMainWindow):
@@ -3390,8 +3398,8 @@ class EditorMainWindow(QMainWindow):
         self.setWindowTitle("Spyder - %s" % plugin.windowTitle())
         self.setWindowIcon(plugin.windowIcon())
 
+        self.toolbars = []
         if toolbar_list:
-            self.toolbars = []
             for title, object_name, actions in toolbar_list:
                 toolbar = self.addToolBar(title)
                 toolbar.setObjectName(object_name)
@@ -3399,12 +3407,13 @@ class EditorMainWindow(QMainWindow):
                 toolbar.setMovable(False)
                 add_actions(toolbar, actions)
                 self.toolbars.append(toolbar)
+
+        self.menus = []
         if menu_list:
             quit_action = create_action(self, _("Close window"),
                                         icon=ima.icon("close_pane"),
                                         tip=_("Close this window"),
                                         triggered=self.close)
-            self.menus = []
             for index, (title, actions) in enumerate(menu_list):
                 menu = self.menuBar().addMenu(title)
                 if index == 0:
@@ -3422,14 +3431,15 @@ class EditorMainWindow(QMainWindow):
         """Add toolbars to a menu."""
         # Six is the position of the view menu in menus list
         # that you can find in plugins/editor.py setup_other_windows.
-        view_menu = self.menus[6]
-        view_menu.setObjectName('checkbox-padding')
-        if actions == self.toolbars and view_menu:
-            toolbars = []
-            for toolbar in self.toolbars:
-                action = toolbar.toggleViewAction()
-                toolbars.append(action)
-            add_actions(view_menu, toolbars)
+        if self.menus:
+            view_menu = self.menus[6]
+            view_menu.setObjectName('checkbox-padding')
+            if actions == self.toolbars and view_menu:
+                toolbars = []
+                for toolbar in self.toolbars:
+                    action = toolbar.toggleViewAction()
+                    toolbars.append(action)
+                add_actions(view_menu, toolbars)
 
     def load_toolbars(self):
         """Loads the last visible toolbars from the .ini file."""
@@ -3453,6 +3463,7 @@ class EditorMainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method"""
+        self.editorwidget.unregister_all_editorstacks()
         if self.plugin._undocked_window is not None:
             self.plugin.dockwidget.setWidget(self.plugin)
             self.plugin.dockwidget.setVisible(True)
