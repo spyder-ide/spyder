@@ -100,12 +100,11 @@ def completions_editor(
         completion_plugin.send_request)
 
     completion_plugin.register_file('python', str(file_path), editor)
-    editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
     with qtbot_module.waitSignal(
             editor.completions_response_signal, timeout=30000):
-        editor.document_did_open()
+        editor.start_completion_services()
 
     def teardown():
         editor.completion_widget.hide()
@@ -229,12 +228,11 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
     editor.language = 'Python'
 
     completion_plugin.register_file('python', str(file_path), editor)
-    editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
     with qtbot_module.waitSignal(
             editor.completions_response_signal, timeout=30000):
-        editor.document_did_open()
+        editor.start_completion_services()
 
     def teardown():
         editor.completion_widget.hide()
