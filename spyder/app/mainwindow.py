@@ -37,7 +37,6 @@ import traceback
 # Check requirements before proceeding
 #==============================================================================
 from spyder import requirements
-requirements.check_path()
 requirements.check_qt()
 
 #==============================================================================
