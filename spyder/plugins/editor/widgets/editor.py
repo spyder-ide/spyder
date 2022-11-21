@@ -3068,9 +3068,9 @@ class EditorSplitter(QSplitter):
             self.plugin.clone_editorstack(editorstack=self.editorstack)
         self.editorstack.destroyed.connect(self.editorstack_closed)
         self.editorstack.sig_split_vertically.connect(
-                     lambda: self.split(orientation=Qt.Vertical))
+            lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(
-                     lambda: self.split(orientation=Qt.Horizontal))
+            lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
@@ -3093,9 +3093,9 @@ class EditorSplitter(QSplitter):
 
     @Slot()
     def editorstack_closed(self):
+        logger.debug("Closing EditorStack")
+
         try:
-            logger.debug("method 'editorstack_closed':")
-            logger.debug("    self  : %r" % self)
             self.unregister_editorstack_cb(self.editorstack)
             self.editorstack = None
             close_splitter = self.count() == 1
@@ -3110,8 +3110,7 @@ class EditorSplitter(QSplitter):
             return
 
     def editorsplitter_closed(self):
-        logger.debug("method 'editorsplitter_closed':")
-        logger.debug("    self  : %r" % self)
+        logger.debug("Closing EditorSplitter")
         try:
             close_splitter = self.count() == 1 and self.editorstack is None
         except RuntimeError:
@@ -3141,10 +3140,13 @@ class EditorSplitter(QSplitter):
         """
         self.setOrientation(orientation)
         self.editorstack.set_orientation(orientation)
-        editorsplitter = EditorSplitter(self.parent(), self.plugin,
-                    self.menu_actions,
-                    register_editorstack_cb=self.register_editorstack_cb,
-                    unregister_editorstack_cb=self.unregister_editorstack_cb)
+        editorsplitter = EditorSplitter(
+            self.parent(),
+            self.plugin,
+            self.menu_actions,
+            register_editorstack_cb=self.register_editorstack_cb,
+            unregister_editorstack_cb=self.unregister_editorstack_cb
+        )
         self.addWidget(editorsplitter)
         editorsplitter.destroyed.connect(self.editorsplitter_closed)
         current_editor = editorsplitter.editorstack.get_current_editor()
@@ -3310,11 +3312,14 @@ class EditorWidget(QSplitter):
         editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-        editorsplitter = EditorSplitter(self, plugin, menu_actions,
-                        register_editorstack_cb=self.register_editorstack,
-                        unregister_editorstack_cb=self.unregister_editorstack)
-        self.editorsplitter = editorsplitter
-        editor_layout.addWidget(editorsplitter)
+        self.editorsplitter = EditorSplitter(
+            self,
+            plugin,
+            menu_actions,
+            register_editorstack_cb=self.register_editorstack,
+            unregister_editorstack_cb=self.unregister_editorstack
+        )
+        editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
         splitter = QSplitter(self)
@@ -3325,9 +3330,10 @@ class EditorWidget(QSplitter):
         splitter.setStretchFactor(1, 1)
 
     def register_editorstack(self, editorstack):
-        self.editorstacks.append(editorstack)
-        logger.debug("EditorWidget.register_editorstack: %r" % editorstack)
+        logger.debug("Registering editorstack")
         self.__print_editorstacks()
+
+        self.editorstacks.append(editorstack)
         self.plugin.last_focused_editorstack[self.parent()] = editorstack
         editorstack.set_closable(len(self.editorstacks) > 1)
         editorstack.set_outlineexplorer(self.outlineexplorer)
@@ -3336,22 +3342,23 @@ class EditorWidget(QSplitter):
         editorstack.reset_statusbar.connect(self.encoding_status.hide)
         editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
         editorstack.readonly_changed.connect(
-                                        self.readwrite_status.update_readonly)
+            self.readwrite_status.update_readonly)
         editorstack.encoding_changed.connect(
-                                         self.encoding_status.update_encoding)
+            self.encoding_status.update_encoding)
         editorstack.sig_editor_cursor_position_changed.connect(
-                     self.cursorpos_status.update_cursor_position)
+            self.cursorpos_status.update_cursor_position)
         editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
         self.plugin.register_editorstack(editorstack)
 
     def __print_editorstacks(self):
-        logger.debug("%d editorstack(s) in editorwidget:" %
-                     len(self.editorstacks))
+        logger.debug(
+            f"{len(self.editorstacks)} editorstack(s) in EditorWidget:"
+        )
         for edst in self.editorstacks:
-            logger.debug("    %r" % edst)
+            logger.debug(f"    {edst}")
 
     def unregister_editorstack(self, editorstack):
-        logger.debug("EditorWidget.unregister_editorstack: %r" % editorstack)
+        logger.debug("Unregistering editorstack")
         self.plugin.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
         self.__print_editorstacks()

@@ -49,7 +49,7 @@ from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
-                                                  EditorStack,)
+                                                  EditorStack)
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
@@ -1451,6 +1451,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
+        logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
 
@@ -1626,6 +1627,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
+        logger.debug("Unregistering EditorStack")
         self.remove_last_focused_editorstack(editorstack)
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
@@ -1719,9 +1721,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return window
 
     def register_editorwindow(self, window):
+        logger.debug("Registering new window")
         self.editorwindows.append(window)
 
     def unregister_editorwindow(self, window):
+        logger.debug("Unregistering window")
         self.editorwindows.pop(self.editorwindows.index(window))
 
 
