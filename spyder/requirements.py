@@ -32,16 +32,6 @@ def show_warning(message):
     raise RuntimeError(message)
 
 
-def check_path():
-    """Check sys.path: is Spyder properly installed?"""
-    dirname = osp.abspath(osp.join(osp.dirname(__file__), osp.pardir))
-    if dirname not in sys.path:
-        show_warning("Spyder must be installed properly "
-                     "(e.g. from source: 'python setup.py install'),\n"
-                     "or directory '%s' must be in PYTHONPATH "
-                     "environment variable." % dirname)
-
-
 def check_qt():
     """Check Qt binding requirements"""
     qt_infos = dict(pyqt5=("PyQt5", "5.9"), pyside2=("PySide2", "5.12"))
