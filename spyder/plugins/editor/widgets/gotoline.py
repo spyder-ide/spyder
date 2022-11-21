@@ -63,7 +63,7 @@ class GoToLineDialog(QDialog):
         ok_button = bbox.button(QDialogButtonBox.Ok)
         ok_button.setEnabled(False)
         # QIntValidator does not handle '+' sign
-        # See Spyder PR #20070
+        # See spyder-ide/spyder#20070
         self.lineedit.textChanged.connect(
                      lambda text: ok_button.setEnabled(len(text) > 0 and text != '+'))
 
@@ -79,7 +79,7 @@ class GoToLineDialog(QDialog):
         text = str(text)
 
         # QIntValidator does not handle '+' sign
-        # See Spyder PR #20070
+        # See spyder-ide/spyder#12693
         if text and text != '+':
             self.lineno = int(text)
         else:

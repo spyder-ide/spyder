@@ -7,10 +7,11 @@
 """Tests for gotoline.py"""
 
 # Third party imports
-from qtpy.QtWidgets import QDialogButtonBox, QPushButton, QTableWidget, QLineEdit
+from qtpy.QtWidgets import QDialogButtonBox, QLineEdit
 
 # Local imports
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
+
 
 def test_gotolinedialog_has_cancel_button(codeeditor, qtbot, tmpdir):
     """

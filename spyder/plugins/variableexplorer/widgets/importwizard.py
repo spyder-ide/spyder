@@ -240,7 +240,7 @@ class ContentsWidget(QWidget):
         """Return number of lines to be skipped"""
         skip_rows = to_text_string(self.skiprows_edt.text())
         # QIntValidator does not handle '+' sign
-        # See Spyder PR #20070
+        # See spyder-ide/spyder#20070
         if skip_rows and skip_rows != '+':
             return int(skip_rows)
         else:
