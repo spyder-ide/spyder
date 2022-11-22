@@ -2629,13 +2629,17 @@ class EditorStack(QWidget):
         if self.outlineexplorer is not None:
             self.outlineexplorer.register_editor(editor.oe_proxy)
 
-        # Connect necessary signals from the cloned editor so that symbols for
-        # are updated as expected.
         if cloned_from is not None:
+            # Connect necessary signals from the original editor so that
+            # symbols for the clon are updated as expected.
             cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
                 editor.oe_proxy.update_outline_info)
             cloned_from.oe_proxy.sig_start_outline_spinner.connect(
                 editor.oe_proxy.emit_request_in_progress)
+
+            # This ensures that symbols will be requested and its infor saved
+            # for the clon.
+            cloned_from.document_did_change()
 
         # Needs to reset the highlighting on startup in case the PygmentsSH
         # is in use

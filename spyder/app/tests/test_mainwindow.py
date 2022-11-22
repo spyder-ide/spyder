@@ -4265,42 +4265,52 @@ def test_update_outline(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
+    # Helper functions
+    def editors_filled(treewidget):
+        editors_py = [
+            editor for editor in treewidget.editor_ids.keys()
+            if editor.get_language() == 'Python'
+        ]
+
+        return all(
+            [
+                treewidget.editor_items[editor.get_id()].node.childCount() == 2
+                for editor in editors_py
+            ]
+        )
+
+    def editors_with_info(treewidget):
+        editors_py = [
+            editor for editor in treewidget.editor_ids.keys()
+            if editor.get_language() == 'Python'
+        ]
+
+        return all([editor.info is not None for editor in editors_py])
+
     # Show outline explorer
     outline_explorer = main_window.outlineexplorer
     outline_explorer.toggle_view_action.setChecked(True)
 
     # Get Python editor trees
     treewidget = outline_explorer.get_widget().treewidget
-    editors_py = [
-        editor for editor in treewidget.editor_ids.keys()
-        if editor.get_language() == 'Python'
-    ]
 
-    def editor_filled():
-        return all(
-            [
-                len(treewidget.editor_tree_cache[editor.get_id()]) == 4
-                for editor in editors_py
-            ]
-        )
-
-    # Wait a bit for trees to be filled
-    qtbot.waitUntil(editor_filled, timeout=25000)
-
-    # Assert all Python editors are filled
-    assert editor_filled()
+    # Wait for trees to be filled
+    qtbot.waitUntil(lambda: editors_filled(treewidget), timeout=25000)
 
     # Split editor
-    editorstack = main_window.editor.get_current_editorstack()
-    editorstack.sig_split_vertically.emit()
+    editorstack_1 = main_window.editor.get_current_editorstack()
+    editorstack_1.sig_split_vertically.emit()
     qtbot.wait(1000)
 
+    # Check all editors have symbols info after the split
+    qtbot.waitUntil(lambda: editors_with_info(treewidget), timeout=25000)
+
     # Select file with no outline in split editorstack
-    editorstack = main_window.editor.get_current_editorstack()
-    editorstack.set_stack_index(2)
-    editor = editorstack.get_current_editor()
-    assert osp.splitext(editor.filename)[1] == '.txt'
-    assert editor.is_cloned
+    editorstack_2 = main_window.editor.get_current_editorstack()
+    editorstack_2.set_stack_index(2)
+    editor_1 = editorstack_2.get_current_editor()
+    assert osp.splitext(editor_1.filename)[1] == '.txt'
+    assert editor_1.is_cloned
 
     # Assert tree is empty
     editor_tree = treewidget.current_editor
@@ -4310,18 +4320,25 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # Assert spinner is not shown
     assert not outline_explorer.get_widget()._spinner.isSpinning()
 
+    # Select a random cloned Python file and check that symbols for it are
+    # displayed in the Outline
+    idx = random.choice(range(3, editorstack_2.tabs.count()))
+    editorstack_2.set_stack_index(idx)
+    qtbot.wait(500)
+    root_1 = treewidget.editor_items[treewidget.current_editor.get_id()]
+    assert root_1.node.childCount() == 2
+
     # Hide outline from view
     outline_explorer.toggle_view_action.setChecked(False)
 
-    # Remove content from first file
-    editorstack.set_stack_index(0)
-    editor = editorstack.get_current_editor()
-    editor.selectAll()
-    editor.cut()
-    editorstack.save(index=0)
-
-    # Assert outline was not updated
-    qtbot.wait(1000)
+    # Remove content from first file and assert outline was not updated
+    editorstack_2.set_stack_index(0)
+    editor_2 = editorstack_2.get_current_editor()
+    with qtbot.waitSignal(editor_2.oe_proxy.sig_outline_explorer_data_changed,
+                          timeout=5000):
+        editor_2.selectAll()
+        editor_2.cut()
+        editorstack_2.save()
     len(treewidget.editor_tree_cache[treewidget.current_editor.get_id()]) == 4
 
     # Set some files as session without projects
@@ -4340,21 +4357,36 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # Show outline again
     outline_explorer.toggle_view_action.setChecked(True)
 
-    def editor_filled():
-        return all(
-            [
-                len(treewidget.editor_tree_cache[editor.get_id()]) == 4
-                for editor in treewidget.editor_ids.keys()
-            ]
-        )
-
     # Wait a bit for trees to be filled
-    qtbot.waitUntil(editor_filled, timeout=25000)
+    qtbot.waitUntil(lambda: editors_filled(treewidget), timeout=25000)
 
-    # Assert all Python editors are filled
-    assert editor_filled()
+    # Create editor window and check Outline editors there have symbols info
+    editorwindow = main_window.editor.create_new_window()
+    treewidget_on_window = editorwindow.editorwidget.outlineexplorer.treewidget
+    qtbot.waitUntil(lambda: editors_with_info(treewidget_on_window),
+                    timeout=25000)
 
-    # Remove test file from session
+    # Go to main window, modify content in file which is hidden on the editor
+    # one, move to that window and check its outline is updated after giving
+    # focus to it
+    main_window.activateWindow()
+    editorstack_2.set_stack_index(1)
+    editor_3 = editorstack_2.get_current_editor()
+    with qtbot.waitSignal(editor_3.oe_proxy.sig_outline_explorer_data_changed,
+                          timeout=5000):
+        editor_3.set_text('def baz(x):\n    return x')
+
+    editorwindow.activateWindow()
+    editorstack_on_window = editorwindow.editorwidget.editorstacks[0]
+    editorstack_on_window.set_stack_index(1)
+    qtbot.wait(500)
+    root_2 = treewidget_on_window.editor_items[
+        treewidget_on_window.current_editor.get_id()
+    ]
+    qtbot.wait(500)
+    assert root_2.node.childCount() == 1
+
+    # Remove test files from session
     CONF.set('editor', 'filenames', [])
 
 
