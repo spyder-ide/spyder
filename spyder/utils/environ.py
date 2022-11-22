@@ -51,15 +51,15 @@ def get_user_environment_variables():
     env_var : dict
         Key-value pairs of environment variables.
     """
-    if os.name == 'nt':
-        cmd = "set"
-    else:
-        cmd = "printenv"
-    proc = run_shell_command(cmd)
-    stdout, stderr = proc.communicate()
-
     try:
-        res = stdout.decode().strip().split(os.linesep)
+        if os.name == 'nt':
+            proc = run_shell_command("set")
+            stdout, stderr = proc.communicate()
+            res = stdout.decode().strip().split(os.linesep)
+        else:
+            proc = run_shell_command("declare -x")
+            stdout, stderr = proc.communicate()
+            res = stdout.decode().split("declare -x ")[1:]
     except Exception:
         return {}
 
