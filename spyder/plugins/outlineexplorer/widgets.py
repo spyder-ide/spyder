@@ -661,7 +661,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if self.current_editor is editor:
                 self.current_editor = None
 
-            logger.debug(f"Removing tree of file f{editor.fname}")
+            logger.debug(f"Removing tree of file {editor.fname}")
 
             editor_id = self.editor_ids.pop(editor)
             language = editor.get_language().lower()

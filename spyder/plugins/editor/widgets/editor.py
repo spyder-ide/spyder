@@ -786,9 +786,16 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
+                # Delete reference to oe_proxy for cloned editors to prevent it
+                # from receiving the signal to be updated.
+                if finfo.editor.is_cloned:
+                    finfo.editor.oe_proxy.deleteLater()
+
+        # Notify the LSP that the file was closed, if necessary.
         for finfo in self.data:
             if not finfo.editor.is_cloned:
                 finfo.editor.notify_close()
+
         QWidget.closeEvent(self, event)
 
     def clone_editor_from(self, other_finfo, set_current):
@@ -2577,6 +2584,7 @@ class EditorStack(QWidget):
             add_newline=self.add_newline,
             format_on_save=self.format_on_save
         )
+
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
@@ -2584,7 +2592,7 @@ class EditorStack(QWidget):
             lambda fname, position:
             self.text_changed_at.emit(fname, position))
         editor.sig_cursor_position_changed.connect(
-                                           self.editor_cursor_position_changed)
+            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
         # Register external panels
@@ -2620,6 +2628,14 @@ class EditorStack(QWidget):
         editor.oe_proxy = OutlineExplorerProxyEditor(editor, editor.filename)
         if self.outlineexplorer is not None:
             self.outlineexplorer.register_editor(editor.oe_proxy)
+
+        # Connect necessary signals from the cloned editor so that symbols for
+        # are updated as expected.
+        if cloned_from is not None:
+            cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
+                editor.oe_proxy.update_outline_info)
+            cloned_from.oe_proxy.sig_start_outline_spinner.connect(
+                editor.oe_proxy.emit_request_in_progress)
 
         # Needs to reset the highlighting on startup in case the PygmentsSH
         # is in use
