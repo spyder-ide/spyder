@@ -3267,7 +3267,7 @@ class EditorSplitter(QSplitter):
 class EditorWidget(QSplitter):
     CONF_SECTION = 'editor'
 
-    def __init__(self, parent, plugin, menu_actions):
+    def __init__(self, parent, plugin, menu_actions, outline_plugin):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -3292,31 +3292,41 @@ class EditorWidget(QSplitter):
         self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
 
-        # TODO: Check this initialization once the editor is migrated to the
-        # new API
-        self.outlineexplorer = OutlineExplorerWidget(
-            'outline_explorer',
-            plugin,
-            self,
-            context=f'editor_window_{str(id(self))}'
-        )
+        # Set up an outline but only if its corresponding plugin is available.
+        self.outlineexplorer = None
+        if outline_plugin is not None:
+            self.outlineexplorer = OutlineExplorerWidget(
+                'outline_explorer',
+                outline_plugin,
+                self,
+                context=f'editor_window_{str(id(self))}'
+            )
 
-        # Show widget's toolbar
-        self.outlineexplorer.setup()
-        self.outlineexplorer.update_actions()
-        self.outlineexplorer._setup()
-        self.outlineexplorer.render_toolbars()
+            # Show widget's toolbar
+            self.outlineexplorer.setup()
+            self.outlineexplorer.update_actions()
+            self.outlineexplorer._setup()
+            self.outlineexplorer.render_toolbars()
 
-        # Remove actions related to plugin functionality from Options menu
-        options_menu = self.outlineexplorer.get_options_menu()
-        for action in ['undock_pane', 'close_pane', 'lock_unlock_position']:
-            options_menu.remove_action(action)
+            # Remove bottom section actions from Options menu because they
+            # don't apply here.
+            options_menu = self.outlineexplorer.get_options_menu()
+            for action in ['undock_pane', 'close_pane',
+                           'lock_unlock_position']:
+                options_menu.remove_action(action)
 
-        self.outlineexplorer.edit_goto.connect(
-            lambda filenames, goto, word:
-            plugin.load(filenames=filenames, goto=goto, word=word,
-                        editorwindow=self.parent())
-        )
+            self.outlineexplorer.edit_goto.connect(
+                lambda filenames, goto, word:
+                plugin.load(filenames=filenames, goto=goto, word=word,
+                            editorwindow=self.parent())
+            )
+
+            # Start symbol services for all supported languages
+            for language in outline_plugin.get_supported_languages():
+                self.outlineexplorer.start_symbol_services(language)
+
+            # Tell Outline's treewidget that is visible
+            self.outlineexplorer.treewidget.change_visibility(True)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -3336,7 +3346,8 @@ class EditorWidget(QSplitter):
         splitter = QSplitter(self)
         splitter.setContentsMargins(0, 0, 0, 0)
         splitter.addWidget(editor_widgets)
-        splitter.addWidget(self.outlineexplorer)
+        if outline_plugin is not None:
+            splitter.addWidget(self.outlineexplorer)
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 1)
 
@@ -3381,8 +3392,8 @@ class EditorWidget(QSplitter):
 
 
 class EditorMainWindow(QMainWindow):
-    def __init__(
-            self, plugin, menu_actions, toolbar_list, menu_list, parent=None):
+    def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
+                 outline_plugin, parent=None):
         # Parent needs to be `None` if the the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
         QMainWindow.__init__(self, parent)
@@ -3391,7 +3402,8 @@ class EditorMainWindow(QMainWindow):
         self.plugin = plugin
         self.window_size = None
 
-        self.editorwidget = EditorWidget(self, plugin, menu_actions)
+        self.editorwidget = EditorWidget(self, plugin, menu_actions,
+                                         outline_plugin)
         self.setCentralWidget(self.editorwidget)
 
         # Setting interface theme

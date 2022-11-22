@@ -106,3 +106,7 @@ class OutlineExplorer(SpyderDockablePlugin):
         """Update all editors with an associated LSP server."""
         explorer = self.get_widget()
         explorer.update_all_editors()
+
+    def get_supported_languages(self):
+        """List of languages with symbols support."""
+        return self.get_widget().get_supported_languages()

@@ -216,6 +216,10 @@ class OutlineExplorerWidget(PluginMainWidget):
         """Update all editors with an associated LSP server."""
         self.treewidget.update_all_editors()
 
+    def get_supported_languages(self):
+        """List of languages with symbols support."""
+        return self.treewidget._languages
+
     # ---- Private API
     # -------------------------------------------------------------------------
     @Slot(object)

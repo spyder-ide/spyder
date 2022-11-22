@@ -1709,8 +1709,15 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             super(Editor, self).switch_to_plugin()
 
     def create_new_window(self):
+        """Create a new editor window."""
         window = EditorMainWindow(
-            self, self.stack_menu_actions, self.toolbar_list, self.menu_list)
+            self,
+            self.stack_menu_actions,
+            self.toolbar_list,
+            self.menu_list,
+            outline_plugin=self.outlineexplorer
+        )
+
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -1721,10 +1728,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return window
 
     def register_editorwindow(self, window):
+        """Register a new editor window."""
         logger.debug("Registering new window")
         self.editorwindows.append(window)
 
     def unregister_editorwindow(self, window):
+        """Unregister editor window."""
         logger.debug("Unregistering window")
         idx = self.editorwindows.index(window)
         self.editorwindows[idx] = None
