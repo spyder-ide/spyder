@@ -772,8 +772,6 @@ class ThumbnailScrollBar(QFrame):
             parent=self, background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
-        thumbnail.sig_remove_figure_requested.connect(self.remove_thumbnail)
-        thumbnail.sig_save_figure_requested.connect(self.save_figure_as)
         thumbnail.sig_context_menu_requested.connect(
             lambda point: self.show_context_menu(point, thumbnail))
         self._thumbnails.append(thumbnail)
@@ -796,8 +794,6 @@ class ThumbnailScrollBar(QFrame):
         """Remove all thumbnails."""
         for thumbnail in self._thumbnails:
             thumbnail.sig_canvas_clicked.disconnect()
-            thumbnail.sig_remove_figure_requested.disconnect()
-            thumbnail.sig_save_figure_requested.disconnect()
             self.layout().removeWidget(thumbnail)
             thumbnail.setParent(None)
             thumbnail.hide()
@@ -815,8 +811,6 @@ class ThumbnailScrollBar(QFrame):
         # Disconnect signals
         try:
             thumbnail.sig_canvas_clicked.disconnect()
-            thumbnail.sig_remove_figure_requested.disconnect()
-            thumbnail.sig_save_figure_requested.disconnect()
         except TypeError:
             pass
 
@@ -943,29 +937,6 @@ class FigureThumbnail(QWidget):
     ----------
     figure_thumbnail: spyder.plugins.plots.widget.figurebrowser.FigureThumbnail
         The clicked figure thumbnail.
-    """
-
-    sig_remove_figure_requested = Signal(object)
-    """
-    This signal is emitted to request the removal of a figure thumbnail.
-
-    Parameters
-    ----------
-    figure_thumbnail: spyder.plugins.plots.widget.figurebrowser.FigureThumbnail
-        The figure thumbnail to remove.
-    """
-
-    sig_save_figure_requested = Signal(object, str)
-    """
-    This signal is emitted to request the saving of a figure thumbnail.
-
-    Parameters
-    ----------
-    figure_thumbnail: spyder.plugins.plots.widget.figurebrowser.FigureThumbnail
-        The figure thumbnail to save.
-    format: str
-        The image format to use when saving the image. One of "image/png",
-        "image/jpeg" and "image/svg+xml".
     """
 
     sig_context_menu_requested = Signal(QPoint)
