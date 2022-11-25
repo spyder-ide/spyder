@@ -1383,7 +1383,7 @@ class CollectionsEditorTableView(BaseTableView):
         try:
             return __import__(libname + '.pyplot',
                               globals(), locals(), [], 0).pyplot
-        except ImportError:
+        except Exception:
             #  This should not happen, unless plotting library has been 
             #  uninstalled after option has been set in Variable Explorer
             QMessageBox.critical(self, _("Import error"), REQ_ERROR_MSG)
