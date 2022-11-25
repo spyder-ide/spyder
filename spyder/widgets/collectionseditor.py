@@ -1166,10 +1166,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             else:
                 self.imshow(key)
         except (ValueError, TypeError) as error:
-            QMessageBox.critical(self, _( "Plot"),
-                                    _("<b>Unable to show image.</b>"
-                                    "<br><br>Error message:<br>%s"
-                                    ) % str(error))
+            QMessageBox.critical(
+                self,
+                _( "Plot"),
+                _("<b>Unable to show image.</b><br><br>"
+                  "The error message was:<br>%s") % str(error)
+            )
 
     @Slot()
     def save_array(self):
