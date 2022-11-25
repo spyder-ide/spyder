@@ -1144,10 +1144,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         try:
             self.plot(key, funcname)
         except (ValueError, TypeError) as error:
-            QMessageBox.critical(self, _( "Plot"),
-                                    _("<b>Unable to plot data.</b>"
-                                    "<br><br>Error message:<br>%s"
-                                    ) % str(error))
+            QMessageBox.critical(
+                self,
+                _( "Plot"),
+                _("<b>Unable to plot data.</b><br><br>"
+                  "The error message was:<br>%s") % str(error)
+             )
 
     @Slot()
     def imshow_item(self):
