@@ -1373,9 +1373,12 @@ class CollectionsEditorTableView(BaseTableView):
         oedit(data[key])
 
     def __get_pyplot(self):
-        """Return default plotting library `pyplot` package if available.
-        (default plotting library is an option defined in Variable Explorer 
-        plugin scope, e.g. "maplotlib" or "guiqwt")"""
+        """
+        Return default plotting library `pyplot` package if available.
+
+        The default plotting library is an option defined in the Variable
+        Explorer plugin scope, e.g. "maplotlib" or "guiqwt".
+        """
         libname = self.get_conf('plotlib', section='variable_explorer')
         try:
             return __import__(libname + '.pyplot',
