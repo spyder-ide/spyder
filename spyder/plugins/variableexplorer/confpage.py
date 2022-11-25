@@ -7,7 +7,7 @@
 """Variable Explorer Plugin Configuration Page."""
 
 # Third party imports
-from qtpy.QtWidgets import QGroupBox, QVBoxLayout
+from qtpy.QtWidgets import QGroupBox, QVBoxLayout, QLabel
 
 # Local imports
 from spyder.config.base import _
@@ -45,9 +45,9 @@ class VariableExplorerConfigPage(PluginConfigPage):
         for box in display_boxes:
             display_layout.addWidget(box)
         if plotlib.AVAILABLE_PLOTLIBS:
-            plotlib_box = self.create_combobox(
+            plotlib_opt = self.create_combobox(
                 _("Plotting library:") + "   ",
-                zip(plotlib.AVAILABLE_PLOTLIBS, plotlib.AVAILABLE_PLOTLIBS),
+                zip(plotlib.SUPPORTED_PLOTLIBS, plotlib.SUPPORTED_PLOTLIBS),
                 "plotlib",
                 default=plotlib.DEFAULT_PLOTLIB,
                 tip=_(
@@ -57,7 +57,10 @@ class VariableExplorerConfigPage(PluginConfigPage):
                     "applied the next time a console is opened."
                 ),
             )
-            display_layout.addWidget(plotlib_box)
+        else:
+            plotlib_opt = QLabel("<font color=orange>%s</font>" % plotlib.REQ_ERROR_MSG)
+            plotlib_opt.setWordWrap(True)
+        display_layout.addWidget(plotlib_opt)
         display_group.setLayout(display_layout)
 
         vlayout = QVBoxLayout()

@@ -1384,9 +1384,8 @@ class CollectionsEditorTableView(BaseTableView):
             return __import__(libname + '.pyplot',
                               globals(), locals(), [], 0).pyplot
         except Exception:
-            #  This should not happen, unless plotting library has been 
-            #  uninstalled after option has been set in Variable Explorer
-            QMessageBox.critical(self, _("Import error"), REQ_ERROR_MSG)
+            msg = _("Unable to plot data using <b>%s</b> library.") % libname
+            QMessageBox.critical(self, _("Error"), msg + "<br><br>" + REQ_ERROR_MSG)
 
     def plot(self, key, funcname):
         """Plot item"""
