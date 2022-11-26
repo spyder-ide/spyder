@@ -90,6 +90,9 @@ class FindReplace(QWidget):
         self.search_text.sig_resized.connect(self._resize_replace_text)
 
         self.number_matches_text = QLabel(self)
+        self.search_text.clear_action.triggered.connect(
+            self.number_matches_text.hide
+        )
 
         self.warning_icon = ima.icon('warning')
         self.error_icon = ima.icon('error')
