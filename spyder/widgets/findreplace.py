@@ -431,22 +431,30 @@ class FindReplace(QWidget):
             self.find()
 
     def set_editor(self, editor, refresh=True):
-        """
-        Set associated editor/web page:
-            codeeditor.base.TextEditBaseWidget
-            browser.WebView
-        """
-        self.editor = editor
-        # Note: This is necessary to test widgets/editor.py
-        # in Qt builds that don't have web widgets
+        """Set associated editor."""
+        # Note: This is necessary to test widgets/editor.py in Qt builds that
+        # don't have web widgets
         try:
             from qtpy.QtWebEngineWidgets import QWebEngineView
         except ImportError:
             QWebEngineView = type(None)
+        from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+
         self.words_button.setVisible(not isinstance(editor, QWebEngineView))
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
-        from spyder.plugins.editor.widgets.codeeditor import CodeEditor
         self.is_code_editor = isinstance(editor, CodeEditor)
+
+        # Disconnect previous connection to highlight matches
+        if self.editor is not None and self.is_code_editor:
+            self.editor.textChanged.disconnect(self.update_matches)
+
+        # Set current editor
+        self.editor = editor
+
+        # Keep number of matches updated if editor text has changed
+        if self.is_code_editor:
+            self.editor.textChanged.connect(self.update_matches)
+
         if refresh:
             self.refresh()
         if self.isHidden() and editor is not None:
@@ -733,6 +741,17 @@ class FindReplace(QWidget):
             self.number_matches_text.hide()
             if self.search_text.currentText():
                 self.show_warning()
+
+    def update_matches(self):
+        """Update total number of matches if text has changed in the editor."""
+        if self.isVisible():
+            number_matches = self.editor.get_number_matches(
+                self.search_text.lineEdit().text(),
+                case=self.case_button.isChecked(),
+                regexp=self.re_button.isChecked(),
+                word=self.words_button.isChecked()
+            )
+            self.change_number_matches(total_matches=number_matches)
 
     def show_warning(self):
         """Show a warning message with an icon when no matches can be found."""

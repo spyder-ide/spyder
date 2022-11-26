@@ -13,7 +13,7 @@ import os
 # Test library imports
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
@@ -170,6 +170,43 @@ def test_replace_text_button(findreplace_editor, qtbot):
     qtbot.wait(500)
     findreplace.show(hide_replace=True)
     assert not findreplace.replace_text_button.isChecked()
+
+
+def test_update_matches(findreplace_editor, qtbot):
+    """
+    Test that we update the total number of matches when the editor text has
+    changed.
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+    editor.set_text('foo\nfoo\n')
+
+    # Search for present text
+    edit = findreplace.search_text.lineEdit()
+    edit.clear()
+    edit.setFocus()
+    qtbot.keyClicks(edit, 'foo')
+    assert findreplace.number_matches_text.text() == '1 of 2'
+
+    # Add the same text and check matches were updated
+    editor.setFocus()
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    editor.setTextCursor(cursor)
+    qtbot.keyClicks(editor, 'foo')
+    qtbot.wait(500)
+    assert findreplace.number_matches_text.text() == '3 matches'
+
+    # Assert found results are highlighted in the editor
+    assert len(editor.found_results) == 3
+
+    # Check we don't update matches when the widget is hidden
+    findreplace.hide()
+    qtbot.wait(500)
+    qtbot.keyClick(editor, Qt.Key_Return)
+    qtbot.keyClicks(editor, 'foo')
+    qtbot.wait(500)
+    assert findreplace.number_matches_text.text() == '3 matches'
 
 
 if __name__ == "__main__":
