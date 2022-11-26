@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = master
-	commit = 34a6d634383f27c61cd92172be94c1b344bc5cf1
-	parent = f80c897ac6aafb65c421da50a63e2092f32ff7e2
+	remote = https://github.com/PierreRaybaut/spyder-kernels.git
+	branch = improving_guiqwt_integration_kernel
+	commit = 6c5418b2866bcd558bd9c4227ff7584b601bed28
+	parent = 2b75726b538443ca0140cfa6ed02ab75c5bb8318
 	method = merge
 	cmdver = 0.4.5
