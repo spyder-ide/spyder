@@ -16,8 +16,10 @@ from spyder.config.base import _
 
 
 # Defining compatible plotting libraries
-# (default library is the first available, see `get_default_plotlib`)
 SUPPORTED_PLOTLIBS = ("matplotlib", "guiqwt")
+
+# Default library is the first one of the list
+DEFAULT_PLOTLIB = SUPPORTED_PLOTLIBS[0]
 
 
 def is_package_installed(modname):
@@ -35,13 +37,6 @@ def get_available_plotlibs():
     return [name for name in SUPPORTED_PLOTLIBS if is_package_installed(name)]
 
 
-def get_default_plotlib():
-    """Return default plotting library"""
-    names = get_available_plotlibs()
-    if names is not None:
-        return names[0]
-
-
 def get_requirement_error_message():
     """Return html error message when no library is available"""
     txt = ", ".join(["<b>%s</b>" % name for name in SUPPORTED_PLOTLIBS])
@@ -49,5 +44,4 @@ def get_requirement_error_message():
 
 
 AVAILABLE_PLOTLIBS = get_available_plotlibs()
-DEFAULT_PLOTLIB = get_default_plotlib()
 REQ_ERROR_MSG = get_requirement_error_message()

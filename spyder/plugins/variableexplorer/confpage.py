@@ -44,23 +44,25 @@ class VariableExplorerConfigPage(PluginConfigPage):
         display_layout = QVBoxLayout()
         for box in display_boxes:
             display_layout.addWidget(box)
-        if plotlib.AVAILABLE_PLOTLIBS:
-            plotlib_opt = self.create_combobox(
-                _("Plotting library:") + "   ",
-                zip(plotlib.SUPPORTED_PLOTLIBS, plotlib.SUPPORTED_PLOTLIBS),
-                "plotlib",
-                default=plotlib.DEFAULT_PLOTLIB,
-                tip=_(
-                    "Default library used for data plotting of NumPy arrays "
-                    "(curve, histogram, image).<br><br>Regarding the "
-                    "<i>%varexp</i> magic command, this option will be "
-                    "applied the next time a console is opened."
-                ),
-            )
-        else:
-            plotlib_opt = QLabel("<font color=orange>%s</font>" % plotlib.REQ_ERROR_MSG)
-            plotlib_opt.setWordWrap(True)
+        plotlib_opt = self.create_combobox(
+            _("Plotting library:") + "   ",
+            zip(plotlib.SUPPORTED_PLOTLIBS, plotlib.SUPPORTED_PLOTLIBS),
+            "plotlib",
+            default=plotlib.DEFAULT_PLOTLIB,
+            tip=_(
+                "Default library used for data plotting of NumPy arrays "
+                "(curve, histogram, image).<br><br>Regarding the "
+                "<i>%varexp</i> magic command, this option will be "
+                "applied the next time a console is opened."
+            ),
+        )
         display_layout.addWidget(plotlib_opt)
+        if not plotlib.AVAILABLE_PLOTLIBS:
+            msg = "<font color=orange>%s</font>" % plotlib.REQ_ERROR_MSG[:-1]
+            msg += " " + _("for enabling data plotting from Spyder IDE process.")
+            plotlib_msg = QLabel(msg)
+            plotlib_msg.setWordWrap(True)
+            display_layout.addWidget(plotlib_msg)
         display_group.setLayout(display_layout)
 
         vlayout = QVBoxLayout()
