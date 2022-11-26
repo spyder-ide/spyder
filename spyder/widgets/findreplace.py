@@ -15,7 +15,7 @@
 import re
 
 # Third party imports
-from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
+from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QSizePolicy, QSpacerItem, QWidget)
@@ -39,6 +39,17 @@ def is_position_sup(pos1, pos2):
 def is_position_inf(pos1, pos2):
     """Return True is pos1 < pos2"""
     return pos1 < pos2
+
+
+class SearchText(PatternComboBox):
+
+    def __init__(self, parent):
+        self.recommended_width = 400
+        super().__init__(parent, adjust_to_minimum=False)
+
+    def sizeHint(self):
+        """Recommended size."""
+        return QSize(self.recommended_width, 10)
 
 
 class FindReplace(QWidget):
@@ -70,8 +81,7 @@ class FindReplace(QWidget):
         glayout.addWidget(self.close_button, 0, 0)
 
         # Find layout
-        self.search_text = PatternComboBox(self, adjust_to_minimum=False)
-        self.search_text.setMaximumWidth(300)
+        self.search_text = SearchText(self)
 
         self.return_shift_pressed.connect(
             lambda:
@@ -328,6 +338,8 @@ class FindReplace(QWidget):
     def show(self, hide_replace=True):
         """Overrides Qt Method"""
         QWidget.show(self)
+
+        self._resize_search_text()
         self.visibility_changed.emit(True)
         self.change_number_matches()
 
@@ -363,6 +375,10 @@ class FindReplace(QWidget):
                 else:
                     self.search_text.lineEdit().selectAll()
             self.search_text.setFocus()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._resize_search_text()
 
     @Slot()
     def replace_widget(self, replace_on):
@@ -751,6 +767,14 @@ class FindReplace(QWidget):
         self.messages_action.setIcon(icon)
         self.messages_action.setToolTip(tooltip)
         self.messages_action.setVisible(True)
+
+    def _resize_search_text(self):
+        """Adjust search_text combobox min width according to total one."""
+        total_width = self.size().width()
+        if total_width < (self.search_text.recommended_width + 200):
+            self.search_text.setMinimumWidth(30)
+        else:
+            self.search_text.setMinimumWidth(int(total_width / 2))
 
     def _resize_replace_text(self, size, old_size):
         """
