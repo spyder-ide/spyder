@@ -8,6 +8,7 @@
 
 # Standard library imports
 import copy
+import os
 import sys
 
 # Third-party imports
@@ -21,6 +22,8 @@ from spyder.utils.palette import QStylePalette
 
 
 MAC = sys.platform == 'darwin'
+WIN = os.name == 'nt'
+
 
 # =============================================================================
 # ---- Base stylesheet class
@@ -280,7 +283,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # This removes a white dot that appears to the left of right corner
         # widgets
         css.QToolBar.setValues(
-            marginLeft='-1px',
+            marginLeft='-3px' if WIN else '-1px',
         )
 
         # QTabBar forces the corner widgets to be smaller than they should.
@@ -366,7 +369,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
             bottom='-2px',
-            right='-1px'
+            right='-3px' if WIN else '-1px'
         )
 
 
