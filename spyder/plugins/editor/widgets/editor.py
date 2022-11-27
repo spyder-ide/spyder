@@ -21,8 +21,8 @@ import unicodedata
 # Third party imports
 import qstylizer.style
 from qtpy.compat import getsavefilename
-from qtpy.QtCore import (QByteArray, QFileInfo, QPoint, QSize, Qt, QTimer,
-                         Signal, Slot)
+from qtpy.QtCore import (QByteArray, QEvent, QFileInfo, QPoint, QSize, Qt,
+                         QTimer, Signal, Slot)
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
@@ -3346,7 +3346,7 @@ class EditorWidget(QSplitter):
                 self.outlineexplorer.start_symbol_services(language)
 
             # Tell Outline's treewidget that is visible
-            self.outlineexplorer.treewidget.change_visibility(True)
+            self.outlineexplorer.change_tree_visibility(True)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -3363,13 +3363,14 @@ class EditorWidget(QSplitter):
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
-        splitter = QSplitter(self)
-        splitter.setContentsMargins(0, 0, 0, 0)
-        splitter.addWidget(editor_widgets)
+        self.splitter = QSplitter(self)
+        self.splitter.setContentsMargins(0, 0, 0, 0)
+        self.splitter.addWidget(editor_widgets)
         if outline_plugin is not None:
-            splitter.addWidget(self.outlineexplorer)
-        splitter.setStretchFactor(0, 5)
-        splitter.setStretchFactor(1, 1)
+            self.splitter.addWidget(self.outlineexplorer)
+        self.splitter.setStretchFactor(0, 5)
+        self.splitter.setStretchFactor(1, 1)
+        self.splitter.splitterMoved.connect(self.on_splitter_moved)
 
     def register_editorstack(self, editorstack):
         logger.debug("Registering editorstack")
@@ -3410,8 +3411,30 @@ class EditorWidget(QSplitter):
         for es in self.editorstacks:
             es.close()
 
+    @Slot(object)
+    def on_window_state_changed(self, window_state):
+        """
+        Actions to take when the parent window state has changed.
+        """
+        # There's no need to update the Outline when the window is minimized
+        if window_state == Qt.WindowMinimized:
+            self.outlineexplorer.change_tree_visibility(False)
+        else:
+            self.outlineexplorer.change_tree_visibility(True)
+
+    def on_splitter_moved(self, position, index):
+        """Actions to take when the splitter is moved."""
+        # There's no need to update the Outline when the user moves the
+        # splitter to hide it.
+        if (position + 20) > self.size().width():
+            self.outlineexplorer.change_tree_visibility(False)
+        else:
+            self.outlineexplorer.change_tree_visibility(True)
+
 
 class EditorMainWindow(QMainWindow):
+    sig_window_state_changed = Signal(object)
+
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
                  outline_plugin, parent=None):
         # Parent needs to be `None` if the the created widget is meant to be
@@ -3424,6 +3447,8 @@ class EditorMainWindow(QMainWindow):
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          outline_plugin)
+        self.sig_window_state_changed.connect(
+            self.editorwidget.on_window_state_changed)
         self.setCentralWidget(self.editorwidget)
 
         # Setting interface theme
@@ -3511,6 +3536,15 @@ class EditorMainWindow(QMainWindow):
         QMainWindow.closeEvent(self, event)
         if self.plugin._undocked_window is not None:
             self.plugin._undocked_window = None
+
+    def changeEvent(self, event):
+        """
+        Override Qt method to emit a custom `sig_windowstate_changed` signal
+        when there's a change in the window state.
+        """
+        if event.type() == QEvent.WindowStateChange:
+            self.sig_window_state_changed.emit(self.windowState())
+        super().changeEvent(event)
 
     def get_layout_settings(self):
         """Return layout state"""

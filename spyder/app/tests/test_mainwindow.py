@@ -4410,17 +4410,18 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     # Main variables
     outline_explorer = main_window.outlineexplorer
     treewidget = outline_explorer.get_widget().treewidget
-    proxy_editors = treewidget.editor_ids.keys()
     editor_stack = main_window.editor.get_current_editorstack()
 
     # Hide the outline explorer just in case
     outline_explorer.toggle_view_action.setChecked(False)
 
     # Helper functions
-    def trees_update_state():
+    def trees_update_state(treewidget):
+        proxy_editors = treewidget.editor_ids.keys()
         return [pe.is_tree_updated for pe in proxy_editors]
 
-    def write_code(code):
+    def write_code(code, treewidget):
+        proxy_editors = treewidget.editor_ids.keys()
         for i, pe in enumerate(proxy_editors):
             code_editor = pe._editor
             with qtbot.waitSignal(pe.sig_outline_explorer_data_changed,
@@ -4429,34 +4430,44 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
                 qtbot.mouseClick(editor_stack.tabs.currentWidget(),
                                  Qt.LeftButton)
                 code_editor.set_text(code.format(i=i))
-                # This is to make changes visible when running the test locally
-                qtbot.wait(300)
+                qtbot.wait(300)  # Make changes visible
 
-    def check_symbols_number(number):
+    def check_symbols_number(number, treewidget):
+        proxy_editors = treewidget.editor_ids.keys()
         assert all(
             [len(treewidget.editor_tree_cache[pe.get_id()]) == number
              for pe in proxy_editors]
         )
+
+    def editors_with_info(treewidget):
+        editors = treewidget.editor_ids.keys()
+        return all([editor.info is not None for editor in editors])
+
+    def move_across_tabs(editorstack):
+        for i in range(editorstack.tabs.count()):
+            editorstack.tabs.setCurrentIndex(i)
+            qtbot.mouseClick(editorstack.tabs.currentWidget(), Qt.LeftButton)
+            qtbot.wait(300)  # Make changes visible
 
     # Wait until symbol services are up
     qtbot.waitUntil(lambda: not treewidget.starting.get('python', True),
                     timeout=10000)
 
     # Trees shouldn't be updated at startup
-    assert not any(trees_update_state())
+    assert not any(trees_update_state(treewidget))
 
     # Write some code to the current files
-    write_code("def foo{i}(x):\n    return x")
+    write_code("def foo{i}(x):\n    return x", treewidget)
 
     # Trees shouldn't be updated after new symbols arrive
-    assert not any(trees_update_state())
+    assert not any(trees_update_state(treewidget))
 
     # Make outline visible
     outline_explorer.toggle_view_action.setChecked(True)
 
     # Trees should be filled now
-    qtbot.waitUntil(lambda: all(trees_update_state()))
-    check_symbols_number(1)
+    qtbot.waitUntil(lambda: all(trees_update_state(treewidget)))
+    check_symbols_number(1, treewidget)
 
     # Undock Outline
     outline_explorer.create_window()
@@ -4466,25 +4477,26 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     # these actions. So we need to emulate that (else the test below throws an
     # error).
     main_window.activateWindow()
-    write_code("def bar{i}(y):\n    return y\n\ndef baz{i}(z):\n    return z")
+    write_code("def bar{i}(y):\n    return y\n\ndef baz{i}(z):\n    return z",
+               treewidget)
 
     # Assert trees are updated. This is a regression for issue
     # spyder-ide/spyder#16634
-    check_symbols_number(2)
+    check_symbols_number(2, treewidget)
 
     # Minimize undocked window and change code
     outline_explorer.get_widget().windowwidget.showMinimized()
-    write_code("def func{i}(x):\n    return x")
+    write_code("def func{i}(x):\n    return x", treewidget)
 
     # Trees shouldn't be updated in this case
-    assert not any(trees_update_state())
+    assert not any(trees_update_state(treewidget))
 
     # Restore undocked window to normal state
     outline_explorer.get_widget().windowwidget.showNormal()
 
     # The trees should be updated now with the new code
-    qtbot.waitUntil(lambda: all(trees_update_state()))
-    check_symbols_number(1)
+    qtbot.waitUntil(lambda: all(trees_update_state(treewidget)))
+    check_symbols_number(1, treewidget)
 
     # Hide outline from view
     outline_explorer.toggle_view_action.setChecked(False)
@@ -4492,9 +4504,55 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
 
     # Change code again and save it to emulate what users need to do to close
     # the current project during the next step.
-    write_code("def blah{i}(x):\n    return x")
+    write_code("def blah{i}(x):\n    return x", treewidget)
     editor_stack.save_all()
-    assert not any(trees_update_state())
+    assert not any(trees_update_state(treewidget))
+
+    # Create editor window and wait until its trees are updated
+    editorwindow = main_window.editor.create_new_window()
+    editorwidget = editorwindow.editorwidget
+    treewidget_on_window = editorwidget.outlineexplorer.treewidget
+    qtbot.waitUntil(lambda: editors_with_info(treewidget_on_window),
+                    timeout=5000)
+
+    # Minimize editor window and change code in main window
+    editorwindow.showMinimized()
+    main_window.activateWindow()
+    write_code("def bar{i}(y):\n    return y\n\ndef baz{i}(z):\n    return z",
+               treewidget)
+
+    # Assert trees are not updated on editor window.
+    assert not any(trees_update_state(treewidget_on_window))
+
+    # Restore editor window, move across its tabs and check symbols are updated
+    editorwindow.showNormal()
+    editorwindow.activateWindow()
+    editorstack_on_window = editorwidget.editorstacks[0]
+    move_across_tabs(editorstack_on_window)
+
+    qtbot.waitUntil(lambda: all(trees_update_state(treewidget_on_window)))
+    check_symbols_number(2, treewidget_on_window)
+
+    # Hide Outline on editor window, update code for files on it and check
+    # trees are not updated
+    splitter_on_window = editorwidget.splitter
+    split_sizes = splitter_on_window.sizes()
+    splitter_on_window.moveSplitter(editorwidget.size().width(), 0)
+    write_code("def blah{i}(x):\n    return x", treewidget_on_window)
+
+    assert not any(trees_update_state(treewidget_on_window))
+
+    # Show Outline on editor window, move across its tabs and check symbols
+    # are updated
+    splitter_on_window.moveSplitter(split_sizes[0], 1)
+    move_across_tabs(editorstack_on_window)
+
+    qtbot.waitUntil(lambda: all(trees_update_state(treewidget_on_window)))
+    check_symbols_number(1, treewidget_on_window)
+
+    # Close editor window
+    editorwindow.close()
+    qtbot.wait(1000)
 
     # Show Outline and close project immediately. This checks that no errors
     # are generated after doing that.
