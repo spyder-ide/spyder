@@ -8,6 +8,7 @@
 
 # Standard library imports
 import copy
+import os
 import sys
 
 # Third-party imports
@@ -21,6 +22,8 @@ from spyder.utils.palette import QStylePalette
 
 
 MAC = sys.platform == 'darwin'
+WIN = os.name == 'nt'
+
 
 # =============================================================================
 # ---- Base stylesheet class
@@ -275,12 +278,11 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     def set_stylesheet(self):
         super().set_stylesheet()
         css = self.get_stylesheet()
-        is_macos = sys.platform == 'darwin'
 
         # This removes a white dot that appears to the left of right corner
         # widgets
         css.QToolBar.setValues(
-            marginLeft='-1px',
+            marginLeft='-3px' if WIN else '-1px',
         )
 
         # QTabBar forces the corner widgets to be smaller than they should.
@@ -291,18 +293,25 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             marginTop=self.TOP_MARGIN,
             paddingTop='4px',
             paddingBottom='4px',
-            paddingLeft='4px' if is_macos else '10px',
-            paddingRight='10px' if is_macos else '4px'
+            paddingLeft='4px' if MAC else '10px',
+            paddingRight='10px' if MAC else '4px'
         )
 
-        # Show tabs left-aligned on Mac
         if MAC:
+            # Show tabs left-aligned on Mac and remove spurious
+            # pixel to the left.
             css.QTabBar.setValues(
-                alignment='left'
+                alignment='left',
+                marginLeft='-1px'
             )
 
             css['QTabWidget::tab-bar'].setValues(
-                alignment='left'
+                alignment='center',
+            )
+        else:
+            # Remove spurious pixel to the left
+            css.QTabBar.setValues(
+                marginLeft='-3px' if WIN else '-1px'
             )
 
         # Fix minor visual glitch when hovering tabs
@@ -310,23 +319,23 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         css['QTabBar::tab:hover'].setValues(
             paddingTop='3px',
             paddingBottom='3px',
-            paddingLeft='3px' if is_macos else '9px',
-            paddingRight='9px' if is_macos else '3px'
+            paddingLeft='3px' if MAC else '9px',
+            paddingRight='9px' if MAC else '3px'
         )
 
         for state in ['selected', 'selected:hover']:
             css[f'QTabBar::tab:{state}'].setValues(
                 paddingTop='4px',
                 paddingBottom='3px',
-                paddingLeft='4px' if is_macos else '10px',
-                paddingRight='10px' if is_macos else '4px'
+                paddingLeft='4px' if MAC else '10px',
+                paddingRight='10px' if MAC else '4px'
             )
 
         # This crops the close button a bit at the bottom in order to
         # center it. But a bigger negative padding-bottom crops it even
         # more.
         css['QTabBar::close-button'].setValues(
-            paddingBottom='-5px' if is_macos else '-6px',
+            paddingBottom='-5px' if MAC else '-6px',
         )
 
         # Set style for scroller buttons
@@ -359,14 +368,13 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # Adjust margins of corner widgets
         css['QTabWidget::left-corner'].setValues(
             top='-1px',
-            bottom='-2px',
-            left='1px',
+            bottom='-2px'
         )
 
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
             bottom='-2px',
-            right='-1px'
+            right='-3px' if WIN else '-1px'
         )
 
 
