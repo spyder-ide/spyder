@@ -178,7 +178,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # List of paths declared by the user, plus project's path, to
         # add to PYTHONPATH
         pathlist = self.get_conf(
-            'spyder_pythonpath', default=[], section='main')
+            'spyder_pythonpath', default=[], section='pythonpath_manager')
         pypath = os.pathsep.join(pathlist)
 
         # List of modules to exclude from our UMR

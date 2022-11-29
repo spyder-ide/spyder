@@ -1125,7 +1125,7 @@ def test_completions_extra_paths(completions_codeeditor, qtbot, tmpdir):
 def spam():
     pass
 '''
-    CONF.set('main', 'spyder_pythonpath', [])
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', [])
     completion_plugin.after_configuration_update([])
     qtbot.wait(500)
     qtbot.keyClicks(code_editor, 'import foo')
@@ -1143,7 +1143,7 @@ def spam():
 
     # Set extra paths
     print(extra_paths)
-    CONF.set('main', 'spyder_pythonpath', extra_paths)
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', extra_paths)
     completion_plugin.after_configuration_update([])
     code_editor.document_did_change()
     qtbot.wait(500)
@@ -1158,7 +1158,7 @@ def spam():
     assert code_editor.toPlainText() == 'import foo\nfoo.spam'
 
     # Reset extra paths
-    CONF.set('main', 'spyder_pythonpath', [])
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', [])
     completion_plugin.after_configuration_update([])
     qtbot.wait(500)
 

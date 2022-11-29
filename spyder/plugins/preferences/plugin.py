@@ -33,6 +33,7 @@ from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
 from spyder.plugins.preferences.widgets.container import (
     PreferencesActions, PreferencesContainer)
+from spyder.plugins.pythonpath.api import PythonpathActions
 from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 
 logger = logging.getLogger(__name__)
@@ -299,7 +300,8 @@ class Preferences(SpyderPluginV2):
         toolbar.add_item_to_application_toolbar(
             container.show_action,
             toolbar_id=ApplicationToolbars.Main,
-            section=MainToolbarSections.ApplicationSection
+            section=MainToolbarSections.ApplicationSection,
+            before=PythonpathActions.Manager
         )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
