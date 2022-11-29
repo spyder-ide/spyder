@@ -297,14 +297,21 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             paddingRight='10px' if MAC else '4px'
         )
 
-        # Show tabs left-aligned on Mac
         if MAC:
+            # Show tabs left-aligned on Mac and remove spurious
+            # pixel to the left.
             css.QTabBar.setValues(
-                alignment='left'
+                alignment='left',
+                marginLeft='-1px'
             )
 
             css['QTabWidget::tab-bar'].setValues(
-                alignment='left'
+                alignment='center',
+            )
+        else:
+            # Remove spurious pixel to the left
+            css.QTabBar.setValues(
+                marginLeft='-3px' if WIN else '-1px'
             )
 
         # Fix minor visual glitch when hovering tabs
@@ -361,8 +368,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # Adjust margins of corner widgets
         css['QTabWidget::left-corner'].setValues(
             top='-1px',
-            bottom='-2px',
-            left='1px',
+            bottom='-2px'
         )
 
         css['QTabWidget::right-corner'].setValues(
