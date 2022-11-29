@@ -9,6 +9,7 @@ IPython Console main widget based on QtConsole.
 """
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 import sys
@@ -52,8 +53,10 @@ from spyder.widgets.tabs import Tabs
 from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
 
 
-# Localization
+# Localization and logging
 _ = get_translation('spyder')
+logger = logging.getLogger(__name__)
+
 
 # =============================================================================
 # ---- Constants
@@ -2441,6 +2444,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
     def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""
+        logger.debug("Update sys.path in all console clients")
         for client in self.clients:
             shell = client.shellwidget
             if shell is not None:

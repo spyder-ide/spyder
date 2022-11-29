@@ -46,9 +46,6 @@ def editor_plugin(qtbot, monkeypatch):
             else:
                 return Mock()
 
-        def get_spyder_pythonpath(*args):
-            return []
-
         def get_plugin(self, plugin_name, error=True):
             if plugin_name in [Plugins.IPythonConsole, Plugins.Projects]:
                 return None

@@ -102,6 +102,10 @@ DEFAULTS = [
               'clock/enable': False,
               'clock/timeout': 1000,
               }),
+            ('pythonpath_manager',
+             {
+              'spyder_pythonpath': [],
+              }),
             ('quick_layouts',
              {
               'place_holder': '',
@@ -555,7 +559,6 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
-            'spyder_pythonpath',
             'window/position',
             'window/prefs_dialog_size',
             'window/size',
@@ -608,6 +611,7 @@ NAME_MAP = {
             'scrollbar_position',
           ]
          ),
+        ('pythonpath_manager', []),
         ('quick_layouts', []), # Empty list means use all options
         ('run', [
             'breakpoints',
