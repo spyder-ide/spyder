@@ -114,6 +114,8 @@ def schedule_request(req=None, method=None, requires_response=True):
         if params is not None and self.completions_available:
             self._pending_server_requests.append(
                 (method, params, requires_response))
+            self._server_requests_timer.setInterval(
+                self.LSP_REQUESTS_SHORT_DELAY)
             self._server_requests_timer.start()
     return wrapper
 
@@ -160,6 +162,10 @@ class CodeEditor(TextEditBaseWidget):
         2500: 1200,
         6500: 1800
     }
+
+    # Timeout (in milliseconds) to send pending requests to LSP server
+    LSP_REQUESTS_SHORT_DELAY = 50
+    LSP_REQUESTS_LONG_DELAY = 300
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -316,13 +322,9 @@ class CodeEditor(TextEditBaseWidget):
         self._timer_mouse_moving.setSingleShot(True)
         self._timer_mouse_moving.timeout.connect(self._handle_hover)
 
-        # Typing keys / handling on the fly completions
-        # See: keyPressEvent
+        # Typing keys / handling for on the fly completions
         self._last_key_pressed_text = ''
         self._last_pressed_key = None
-        self._timer_autocomplete = QTimer(self)
-        self._timer_autocomplete.setSingleShot(True)
-        self._timer_autocomplete.timeout.connect(self._handle_completions)
 
         # Handle completions hints
         self._completions_hint_idle = False
@@ -474,13 +476,13 @@ class CodeEditor(TextEditBaseWidget):
             lambda value: self.update_decorations_timer.start())
 
         # LSP
-        self.textChanged.connect(self.schedule_document_did_change)
+        self.textChanged.connect(self._schedule_document_did_change)
         self._pending_server_requests = []
         self._server_requests_timer = QTimer(self)
         self._server_requests_timer.setSingleShot(True)
-        self._server_requests_timer.setInterval(100)
+        self._server_requests_timer.setInterval(self.LSP_REQUESTS_SHORT_DELAY)
         self._server_requests_timer.timeout.connect(
-            self.process_server_requests)
+            self._process_server_requests)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -503,7 +505,6 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic (on the fly) completions
         self.automatic_completions = True
         self.automatic_completions_after_chars = 3
-        self.automatic_completions_after_ms = 300
 
         # Code Folding
         self.code_folding = True
@@ -614,14 +615,19 @@ class CodeEditor(TextEditBaseWidget):
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
-    def process_server_requests(self):
+    def _process_server_requests(self):
         """Process server requests."""
-        # Check if document needs to be updated:
+        # Check if the document needs to be updated
         if self._document_server_needs_update:
             self.document_did_change()
+            self.do_automatic_completions()
             self._document_server_needs_update = False
+
+        # Send pending requests
         for method, params, requires_response in self._pending_server_requests:
             self.emit_request(method, params, requires_response)
+
+        # Clear pending requests
         self._pending_server_requests = []
 
     # --- Hover/Hints
@@ -820,7 +826,6 @@ class CodeEditor(TextEditBaseWidget):
                      intelligent_backspace=True,
                      automatic_completions=True,
                      automatic_completions_after_chars=3,
-                     automatic_completions_after_ms=300,
                      completions_hint=True,
                      completions_hint_after_ms=500,
                      hover_hints=True,
@@ -877,8 +882,6 @@ class CodeEditor(TextEditBaseWidget):
             established with the two following kwargs. Default True.
         automatic_completions_after_chars: Number of charts to type to trigger
             an automatic completion. Default 3.
-        automatic_completions_after_ms: Number of milliseconds to pass before
-            an autocompletion is triggered. Default 300.
         completions_hint: Enable/Disable documentation hints for completions.
             Default True.
         completions_hint_after_ms: Number of milliseconds over a completion
@@ -1016,7 +1019,6 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_automatic_completions(automatic_completions)
         self.set_automatic_completions_after_chars(
             automatic_completions_after_chars)
-        self.set_automatic_completions_after_ms(automatic_completions_after_ms)
 
         # Completions hint
         self.toggle_completions_hint(completions_hint)
@@ -1220,9 +1222,10 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing symbols")
 
     # ------------- LSP: Linting ---------------------------------------
-    def schedule_document_did_change(self):
+    def _schedule_document_did_change(self):
         """Schedule a document update."""
         self._document_server_needs_update = True
+        self._server_requests_timer.setInterval(self.LSP_REQUESTS_LONG_DELAY)
         self._server_requests_timer.start()
 
     @request(
@@ -2144,12 +2147,6 @@ class CodeEditor(TextEditBaseWidget):
         Set the number of characters after which auto completion is fired.
         """
         self.automatic_completions_after_chars = number
-
-    def set_automatic_completions_after_ms(self, ms):
-        """
-        Set the amount of time in ms after which auto completion is fired.
-        """
-        self.automatic_completions_after_ms = ms
 
     def set_completions_hint_after_ms(self, ms):
         """
@@ -4591,17 +4588,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return super(CodeEditor, self).event(event)
 
-    def _start_completion_timer(self):
-        """Helper to start timer for automatic completions or handle them."""
-        if not self.automatic_completions:
-            return
-
-        if self.automatic_completions_after_ms > 0:
-            self._timer_autocomplete.start(
-                self.automatic_completions_after_ms)
-        else:
-            self._handle_completions()
-
     def _handle_keypress_event(self, event):
         """Handle keypress events."""
         TextEditBaseWidget.keyPressEvent(self, event)
@@ -4623,7 +4609,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
-        tab_pressed = False
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
             self._timer_completions_hint.start(self.completions_hint_after_ms)
@@ -4634,8 +4619,8 @@ class CodeEditor(TextEditBaseWidget):
         event.ignore()
         self.sig_key_pressed.emit(event)
 
-        key = event.key()
-        text = to_text_string(event.text())
+        self._last_pressed_key = key = event.key()
+        self._last_key_pressed_text = text = to_text_string(event.text())
         has_selection = self.has_selected_text()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
@@ -4643,11 +4628,6 @@ class CodeEditor(TextEditBaseWidget):
         if text:
             self.clear_occurrences()
 
-            # Only ask for completions if there's some text generated
-            # as part of the event. Events such as pressing Crtl,
-            # Shift or Alt don't generate any text.
-            # Fixes spyder-ide/spyder#11021
-            self._start_completion_timer()
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
@@ -4802,7 +4782,6 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
-            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_tab()
             else:
@@ -4811,7 +4790,6 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab and not ctrl:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
-            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_backtab()
             else:
@@ -4821,19 +4799,14 @@ class CodeEditor(TextEditBaseWidget):
         elif not event.isAccepted():
             self._handle_keypress_event(event)
 
-        self._last_key_pressed_text = text
-        self._last_pressed_key = key
-        if self.automatic_completions_after_ms == 0 and not tab_pressed:
-            self._handle_completions()
-
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent.
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
 
-    def _handle_completions(self):
-        """Handle on the fly completions after delay."""
+    def do_automatic_completions(self):
+        """Perform on the fly completions."""
         if not self.automatic_completions:
             return
 

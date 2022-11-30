@@ -43,7 +43,6 @@ def codeeditor_factory():
                         font=QFont("Monospace", 10),
                         automatic_completions=True,
                         automatic_completions_after_chars=1,
-                        automatic_completions_after_ms=200,
                         folding=False)
     editor.eol_chars = '\n'
     editor.resize(640, 480)
