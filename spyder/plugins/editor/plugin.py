@@ -1399,8 +1399,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             ('set_automatic_completions_enabled',   'automatic_completions'),
             ('set_automatic_completions_after_chars',
              'automatic_completions_after_chars'),
-            ('set_automatic_completions_after_ms',
-             'automatic_completions_after_ms'),
             ('set_completions_hint_enabled',        'completions_hint'),
             ('set_completions_hint_after_ms',
              'completions_hint_after_ms'),
@@ -3166,13 +3164,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             logger.debug(f"Set chars for automatic completions to {value}")
             for editorstack in self.editorstacks:
                 editorstack.set_automatic_completions_after_chars(value)
-
-    @on_conf_change(option='automatic_completions_after_ms')
-    def set_automatic_completions_after_ms(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set automatic completions after {value} ms")
-            for editorstack in self.editorstacks:
-                editorstack.set_automatic_completions_after_ms(value)
 
     @on_conf_change(option='completions_hint')
     def set_completions_hint_enabled(self, value):
