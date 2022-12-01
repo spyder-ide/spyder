@@ -506,8 +506,8 @@ class BaseGridLayoutType:
             if plugin:
                 # Show plugin
                 plugin.blockSignals(True)
-                plugin.dockwidget.show()
-                plugin.toggle_view_action.setChecked(True)
+                #plugin.dockwidget.show()
+                #plugin.toggle_view_action.setChecked(True)
                 plugin.blockSignals(False)
 
                 # Make visible the first plugin in the dockwidget's tab bar
