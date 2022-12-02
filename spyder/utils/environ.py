@@ -53,14 +53,19 @@ def get_user_environment_variables():
     """
     try:
         if os.name == 'nt':
-            proc = run_shell_command("set")
+            proc = run_shell_command("set", env={}, text=True)
             stdout, stderr = proc.communicate()
-            res = stdout.decode().strip().split(os.linesep)
+            res = stdout.strip().split(os.linesep)
         else:
             # Use custom delimiter in case values have newlines: spyder-ide#20097
-            proc = run_shell_command('for k in $(env); do echo "####$k"; done')
+            # Use login shell with clean environment
+            cmd = (
+                f"{os.environ['SHELL']} -l -c "
+                """'for k in $(env); do echo "####$k"; done'"""
+            )
+            proc = run_shell_command(cmd, env={}, text=True)
             stdout, stderr = proc.communicate()
-            res = stdout.decode().split("####")[1:]
+            res = stdout.split("####")[1:]
     except Exception:
         return {}
 
