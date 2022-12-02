@@ -57,9 +57,10 @@ def get_user_environment_variables():
             stdout, stderr = proc.communicate()
             res = stdout.decode().strip().split(os.linesep)
         else:
-            proc = run_shell_command("declare -x")
+            # Use custom delimiter in case values have newlines: spyder-ide#20097
+            proc = run_shell_command('for k in $(env); do echo "####$k"; done')
             stdout, stderr = proc.communicate()
-            res = stdout.decode().split("declare -x ")[1:]
+            res = stdout.decode().split("####")[1:]
     except Exception:
         return {}
 

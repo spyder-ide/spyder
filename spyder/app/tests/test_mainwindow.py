@@ -731,7 +731,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # --- Set run options for this file ---
     rc = RunConfiguration().get()
-    
+
     # A dedicated console is used when these three options are False
     rc['default'] = rc['current'] = rc['systerm'] = False
     rc['clear_namespace'] = False
@@ -1423,7 +1423,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
-    
+
     # try running cell without file name
     shell.clear()
     # Clean namespace
