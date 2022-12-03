@@ -224,7 +224,7 @@ class IconLineEdit(QLineEdit):
     text and can also elide it.
     """
 
-    def __init__(self, parent, elide_text, ellipsis_place):
+    def __init__(self, parent, elide_text=False, ellipsis_place=Qt.ElideLeft):
         super().__init__(parent)
 
         self.elide_text = elide_text
