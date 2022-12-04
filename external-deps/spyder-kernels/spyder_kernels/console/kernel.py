@@ -90,6 +90,7 @@ class SpyderKernel(IPythonKernel):
             'request_pdb_stop': self.shell.request_pdb_stop,
             'raise_interrupt_signal': self.shell.raise_interrupt_signal,
             'get_fault_text': self.get_fault_text,
+            'print_remote': self.print_remote,
         }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -1002,3 +1003,14 @@ class SpyderKernel(IPythonKernel):
         self.shell.register_debugger_sigint()
         # Reset tracing function so that pdb.set_trace works
         sys.settrace(None)
+
+    def print_remote(self, text, file_name=None):
+        """Remote print"""
+        file = None
+        if file_name == "stdout":
+            file = sys.stdout
+        elif file_name == "stderr":
+            file = sys.stderr
+        print(text, file=file)
+        if file:
+            file.flush()
