@@ -9,11 +9,14 @@ import sys
 import zmq
 import json
 from spyder_kernels_server.kernel_server import KernelServer
+from zmq.ssh import tunnel as zmqtunnel
 
 
-def main(port):
+def main():
     if len(sys.argv) > 1:
         port = sys.argv[1]
+    else:
+        port = str(zmqtunnel.select_random_ports(1)[0])
 
     context = zmq.Context()
     socket = context.socket(zmq.REP)
@@ -48,9 +51,9 @@ def main(port):
             try:
                 kernel_server.close_kernel(message[1])
             except Exception:
+                print("Nope")
                 pass
 
 
 if __name__ == "__main__":
-    port = "5556"
-    main(port)
+    main()
