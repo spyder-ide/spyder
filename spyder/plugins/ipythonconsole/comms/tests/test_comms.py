@@ -20,7 +20,7 @@ from tornado import ioloop
 # Local imports
 from spyder_kernels.utils.test_utils import get_kernel
 from spyder_kernels.comms.frontendcomm import FrontendComm
-from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
+from spyder_kernels_server.kernel_comm import KernelComm
 
 
 # =============================================================================
