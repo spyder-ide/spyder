@@ -123,6 +123,7 @@ To release a new version of Spyder you need to follow these steps:
 * Update our subrepos with the following commands, but only if new versions are available!
 
       git subrepo pull external-deps/spyder-kernels
+      git subrepo pull external-deps/spyder-kernels-server
       git subrepo pull external-deps/python-lsp-server
       git subrepo pull external-deps/qtconsole
 

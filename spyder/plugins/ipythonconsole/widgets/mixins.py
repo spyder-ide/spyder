@@ -8,6 +8,9 @@
 IPython Console mixins.
 """
 import zmq
+import sys
+
+from qtpy.QtCore import QProcess
 
 # Local imports
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
@@ -17,10 +20,18 @@ class KernelConnectorMixin:
     """Needs https://github.com/jupyter/jupyter_client/pull/835"""
     def __init__(self):
         super().__init__()
+        self.hostname = None
+        self.sshkey = None
+        self.password = None
+        self.start_local_server()
         self.port = "5556"
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect("tcp://localhost:%s" % self.port)
+
+    def start_local_server(self):
+        self.server = QProcess(self)
+        self.server.start(sys.executable, ["-m", "spyder_kernels_server"])
 
     def new_kernel(self, kernel_spec):
         """Get a new kernel"""
@@ -29,11 +40,9 @@ class KernelConnectorMixin:
         if connection_file == "error":
             raise connection_info
 
-        hostname, sshkey, password = None, None, None
-
         kernel_handler = KernelHandler.new_from_spec(
             kernel_spec, connection_file, connection_info,
-            hostname, sshkey, password
+            self.hostname, self.sshkey, self.password
         )
 
         kernel_handler.sig_request_close.connect(self.close_kernel)
@@ -43,7 +52,6 @@ class KernelConnectorMixin:
         self.socket.send_pyobj(["close_kernel", connection_file])
         # Wait for confirmation
         self.socket.recv_pyobj()
-
 
 
 class CachedKernelMixin:
