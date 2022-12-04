@@ -105,11 +105,6 @@ class KernelHandler(QObject):
     The kernel raised an error while connecting.
     """
 
-    sig_request_close = Signal(str)
-    """
-    This kernel would like to be closed
-    """
-
     def __init__(
         self,
         connection_file,
@@ -119,6 +114,7 @@ class KernelHandler(QObject):
         hostname=None,
         sshkey=None,
         password=None,
+        socket=None,
     ):
         super().__init__()
         # Connection Informations
@@ -131,6 +127,7 @@ class KernelHandler(QObject):
         self.password = password
         self.kernel_error_message = None
         self.connection_state = KernelConnectionState.Connecting
+        self.socket = socket  # For closing
 
         # Comm
         self.kernel_comm = KernelComm()
@@ -274,7 +271,8 @@ class KernelHandler(QObject):
     @classmethod
     def new_from_spec(
             cls, kernel_spec, connection_file, connection_info,
-            hostname=None, sshkey=None, password=None
+            hostname=None, sshkey=None, password=None,
+            socket=None
     ):
         """
         Create a new kernel.
@@ -300,6 +298,7 @@ class KernelHandler(QObject):
             hostname=hostname,
             sshkey=sshkey,
             password=password,
+            socket=socket,
         )
 
     @classmethod
@@ -374,7 +373,9 @@ class KernelHandler(QObject):
         self.close_comm()
 
         if shutdown_kernel and self.kernel_spec is not None:
-            self.sig_request_close.emit(self.connection_file)
+            self.socket.send_pyobj(["close_kernel", self.connection_file])
+            # Wait for confirmation
+            self.socket.recv_pyobj()
 
         if (
             self.kernel_client is not None

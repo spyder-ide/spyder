@@ -9,29 +9,127 @@ IPython Console mixins.
 """
 import zmq
 import sys
+import os
 
 from qtpy.QtCore import QProcess
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
+from spyder.api.config.decorators import on_conf_change
+from zmq.ssh import tunnel as zmqtunnel
+from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
+if os.name == "nt":
+    ssh_tunnel = zmqtunnel.paramiko_tunnel
+else:
+    ssh_tunnel = openssh_tunnel
 
 
-class KernelConnectorMixin:
+class KernelConnectorMixin(SpyderConfigurationObserver):
     """Needs https://github.com/jupyter/jupyter_client/pull/835"""
     def __init__(self):
         super().__init__()
+        self.context = zmq.Context()
+        self.on_kernel_server_conf_changed()
+
+    @on_conf_change(
+        option=[
+            'kernel_server/external_server',
+            'kernel_server/use_ssh',
+            'kernel_server/host',
+            'kernel_server/port',
+            'kernel_server/username',
+            'kernel_server/password_auth',
+            'kernel_server/keyfile_auth',
+            'kernel_server/password',
+            'kernel_server/keyfile',
+            'kernel_server/passphrase',
+        ],
+        section='main_interpreter'
+    )
+    def on_kernel_server_conf_changed(self, option=None, value=None):
+        """Start server"""
         self.hostname = None
         self.sshkey = None
         self.password = None
-        self.start_local_server()
-        self.port = "5556"
-        self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.REQ)
-        self.socket.connect("tcp://localhost:%s" % self.port)
+
+        is_remote = self.get_conf(
+            option='kernel_server/external_server',
+            section='main_interpreter')
+
+        if not is_remote:
+            self.start_local_server()
+            return
+        # Remote server
+
+        remote_port = int(self.get_conf(
+            option='kernel_server/port',
+            section='main_interpreter'))
+        if not remote_port:
+            remote_port = 22
+        remote_ip = self.get_conf(
+            option='kernel_server/host',
+            section='main_interpreter')
+
+
+        is_ssh = self.get_conf(
+            option='kernel_server/use_ssh',
+            section='main_interpreter')
+
+        if not is_ssh:
+            self.connect_socket(f"{remote_ip}:{remote_port}")
+            return
+
+        username = self.get_conf(
+            option='kernel_server/username',
+            section='main_interpreter')
+
+        self.hostname = f"{username}@{remote_ip}:{remote_port}"
+
+        # Now we deal with ssh
+        uses_password = self.get_conf(
+            option='kernel_server/password_auth',
+            section='main_interpreter')
+        uses_keyfile = self.get_conf(
+            option='kernel_server/keyfile_auth',
+            section='main_interpreter')
+
+        if uses_password:
+            self.password = self.get_conf(
+                option='kernel_server/password',
+                section='main_interpreter')
+            self.sshkey = None
+        elif uses_keyfile:
+            self.password = self.get_conf(
+                option='kernel_server/passphrase',
+                section='main_interpreter')
+            self.sshkey = self.get_conf(
+                option='kernel_server/keyfile',
+                section='main_interpreter')
+        else:
+            raise NotImplementedError("This should not be possible.")
+
+        local_port = zmqtunnel.select_random_ports(1)
+        local_ip = "localhost"
+        timeout = 10
+        ssh_tunnel(
+            local_port, remote_port,
+            local_ip, remote_ip,
+            self.sshkey, self.password, timeout)
+        self.connect_socket(f"{local_ip}:{local_port}")
 
     def start_local_server(self):
+        """Start a server with the current interpreter."""
+        port = str(zmqtunnel.select_random_ports(1)[0])
         self.server = QProcess(self)
-        self.server.start(sys.executable, ["-m", "spyder_kernels_server"])
+        self.server.start(
+            sys.executable, ["-m", "spyder_kernels_server", port]
+            )
+        self.connect_socket(f"localhost:{port}")
+
+    def connect_socket(self, hostname):
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.connect(f"tcp://{hostname}")
 
     def new_kernel(self, kernel_spec):
         """Get a new kernel"""
@@ -41,17 +139,16 @@ class KernelConnectorMixin:
             raise connection_info
 
         kernel_handler = KernelHandler.new_from_spec(
-            kernel_spec, connection_file, connection_info,
-            self.hostname, self.sshkey, self.password
+            kernel_spec=kernel_spec,
+            connection_file=connection_file,
+            connection_info=connection_info,
+            hostname=self.hostname,
+            sshkey=self.sshkey,
+            password=self.password,
+            socket=self.socket,
         )
 
-        kernel_handler.sig_request_close.connect(self.close_kernel)
         return kernel_handler
-
-    def close_kernel(self, connection_file):
-        self.socket.send_pyobj(["close_kernel", connection_file])
-        # Wait for confirmation
-        self.socket.recv_pyobj()
 
 
 class CachedKernelMixin:
