@@ -4,49 +4,21 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""
-Build conda packages to local channel.
-
-This module builds conda packages for Spyder and external-deps for
-inclusion in the conda-based installer. The Following classes are
-provided for each package:
-    SpyderCondaPkg
-    PylspCondaPkg
-    QdarkstyleCondaPkg
-    QtconsoleCondaPkg
-    SpyderKernelsCondaPkg
-
-Spyder will be packaged from this repository (in its checked-out state).
-qdarkstyle, qtconsole, and spyder-kernels will be packaged from the
-external-deps directory of this repository (in its checked-out state).
-Python-lsp-server, however, will be packaged from the upstream remote
-at the same commit as the external-deps state.
-
-Alternatively, any external-deps may be packaged from a local git repository
-(in its checked out state) by setting the appropriate environment variable
-from the following:
-    PYTHON_LSP_SERVER_SOURCE
-    QDARKSTYLE_SOURCE
-    QTCONSOLE_SOURCE
-    SPYDER_KERNELS_SOURCE
-"""
-
 # Standard library imports
 import os
 import re
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 from configparser import ConfigParser
 from datetime import timedelta
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
-from shutil import rmtree
 from subprocess import check_call
 from textwrap import dedent
 from time import time
 
 # Third-party imports
-from git import Repo
+from git import Repo, rmtree
 from ruamel.yaml import YAML
 from setuptools_scm import get_version
 
@@ -69,33 +41,17 @@ REQ_MAC = REQUIREMENTS / 'macos.yml'
 REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
 DIST.mkdir(exist_ok=True)
-
-
-def remove_readonly(func, path, exc):
-    """
-    Change readonly status of file.
-    Windows file systems may require this if rmdir fails
-    """
-    import errno, stat
-    excvalue = exc[1]
-    if func in (os.rmdir, os.remove, os.unlink) and excvalue.errno == errno.EACCES:
-        os.chmod(path, stat.S_IRWXU| stat.S_IRWXG| stat.S_IRWXO) # 0777
-        func(path)
-    else:
-        raise
+SPYPATCHFILE = DIST / "installers-conda.patch"
 
 
 class BuildCondaPkg:
+    """Base class for building a conda package for conda-based installer"""
     name = None
-    src_path = None
+    source = None
     feedstock = None
     shallow_ver = None
 
-    _yaml = YAML(typ='jinja2')
-    _yaml.indent(mapping=2, sequence=4, offset=2)
-
-    def __init__(self, data={}, debug=False):
-        # ---- Setup logger
+    def __init__(self, data={}, debug=False, shallow=False):
         self.logger = getLogger(self.__class__.__name__)
         if not self.logger.handlers:
             self.logger.addHandler(h)
@@ -103,112 +59,128 @@ class BuildCondaPkg:
 
         self.debug = debug
 
-        self._get_source()
+        self._bld_src = DIST / self.name
+        self._fdstk_path = DIST / self.feedstock.split("/")[-1]
+
+        self._get_source(shallow=shallow)
         self._get_version()
 
         self.data = {'version': self.version}
         self.data.update(data)
 
-        self.fdstk_path = HERE / self.feedstock.split("/")[-1]
+        self._recipe_patched = False
 
-        self.yaml = None
-
-        self._patched_meta = False
-        self._patched_build = False
-
-    def _get_source(self):
+    def _get_source(self, shallow=False):
+        """Clone source and feedstock to distribution directory for building"""
         self._build_cleanup()
 
-        if not self.src_path.exists():
-            cfg = ConfigParser()
-            cfg.read(EXTDEPS / self.name / '.gitrepo')
-            # Clone from remote
-            repo = Repo.clone_from(
-                cfg['subrepo']['remote'],
-                to_path=self.src_path, shallow_exclude=self.shallow_ver
-            )
-            repo.git.checkout(cfg['subrepo']['commit'])
+        if self.source == HERE.parent:
+            self._bld_src = self.source
+            repo = Repo(self.source)
+        else:
+            # Determine source and commit
+            if self.source is not None:
+                remote = self.source
+                commit = 'HEAD'
+            else:
+                cfg = ConfigParser()
+                cfg.read(EXTDEPS / self.name / '.gitrepo')
+                remote = cfg['subrepo']['remote']
+                commit = cfg['subrepo']['commit']
+
+            # Clone from source
+            kwargs = dict(to_path=self._bld_src)
+            if shallow:
+                kwargs.update(shallow_exclude=self.shallow_ver)
+                self.logger.info(
+                    f"Cloning source shallow from tag {self.shallow_ver}...")
+            else:
+                self.logger.info("Cloning source...")
+            repo = Repo.clone_from(remote, **kwargs)
+            repo.git.checkout(commit)
+
+        self._patch_source(repo)
+
+        # Clone feedstock
+        self.logger.info("Cloning feedstock...")
+        Repo.clone_from(self.feedstock, to_path=self._fdstk_path)
 
     def _build_cleanup(self):
-        if self.src_path.exists() and self.src_path == HERE / self.name:
-            logger.info(f"Removing {self.src_path}...")
-            rmtree(self.src_path, onerror=remove_readonly)
+        """Remove cloned source and feedstock repositories"""
+        for src in [self._bld_src, self._fdstk_path]:
+            if src.exists() and src != HERE.parent:
+                logger.info(f"Removing {src}...")
+                rmtree(src)
 
     def _get_version(self):
-        self.version = get_version(self.src_path).split('+')[0]
+        """Get source version using setuptools_scm"""
+        self.version = get_version(self._bld_src).split('+')[0]
 
-    def _clone_feedstock(self):
-        if self.fdstk_path.exists():
-            self.logger.info(f"Removing existing {self.fdstk_path}...")
-            rmtree(self.fdstk_path, onerror=remove_readonly)
-
-        self.logger.info(f"Cloning feedstock to {self.fdstk_path}...")
-        check_call(["git", "clone", str(self.feedstock), str(self.fdstk_path)])
-
-    def _patch_meta(self):
+    def _patch_source(self, repo):
         pass
 
-    def patch_meta(self):
-        if self._patched_meta:
+    def _patch_meta(self, meta):
+        return meta
+
+    def _patch_build_script(self):
+        pass
+
+    def patch_recipe(self):
+        """Patch conda build recipe"""
+        if self._recipe_patched:
             return
 
         self.logger.info("Patching 'meta.yaml'...")
 
-        file = self.fdstk_path / "recipe" / "meta.yaml"
-        text = file.read_text()
+        file = self._fdstk_path / "recipe" / "meta.yaml"
+        meta = file.read_text()
+
+        # Replace jinja variable values
         for k, v in self.data.items():
-            text = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', text)
+            meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
 
-        self.yaml = self._yaml.load(text)
+        # Replace source, but keep patches
+        meta = re.sub(r'^(source:\n)(  (url|sha256):.*\n)*',
+                      rf'\g<1>  path: {self._bld_src.as_posix()}\n',
+                      meta, flags=re.MULTILINE)
 
-        self.yaml['source'] = {'path': str(self.src_path)}
-        
-        self.yaml.pop('test', None)
-        if 'outputs' in self.yaml:
-            for out in self.yaml['outputs']:
-                out.pop('test', None)
+        meta = self._patch_meta(meta)
 
-        self._patch_meta()
+        file.rename(file.parent / ("_" + file.name))  # keep copy of original
+        file.write_text(meta)
 
-        self._yaml.dump_all([self.yaml], file)
+        self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
-        self.logger.info("Patched 'meta.yaml'...")
-        self.logger.info(file.read_text())
+        self._patch_build_script()
 
-        self._patched_meta = True
-
-    def _patch_build(self):
-        pass
-
-    def patch_build(self):
-        if self._patched_build:
-            return
-
-        self.logger.info("Patching build script...")
-        self._patch_build()
-        self._patched_build = True
+        self._recipe_patched = True
 
     def build(self):
+        """
+        Build the conda package.
+
+        1. Patch the recipe
+        2. Patch the build script
+        3. Build the package
+        4. Remove cloned repositories
+        """
         t0 = time()
         try:
-            # self._git_init_src_path()
-            self._clone_feedstock()
-            self.patch_meta()
-            self.patch_build()
+            self.patch_recipe()
 
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
-            check_call(
-                ["mamba", "mambabuild", str(self.fdstk_path / "recipe")]
-            )
+            check_call([
+                "mamba", "mambabuild",
+                "--no-test", "--skip-existing", "--build-id-pat={n}",
+                str(self._fdstk_path / "recipe")
+            ])
         finally:
-            self._patched_meta = False
-            self._patched_build = False
-            if not self.debug:
-                self.logger.info(f"Removing {self.fdstk_path}...")
-                rmtree(self.fdstk_path, onerror=remove_readonly)
-
-            self._build_cleanup()
+            self._recipe_patched = False
+            if self.debug:
+                self.logger.info("Keeping cloned source and feedstock")
+            else:
+                self._build_cleanup()
 
             elapse = timedelta(seconds=int(time() - t0))
             self.logger.info(f"Build time = {elapse}")
@@ -216,92 +188,121 @@ class BuildCondaPkg:
 
 class SpyderCondaPkg(BuildCondaPkg):
     name = "spyder"
-    src_path = HERE.parent
+    source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
-    _yaml_yml = YAML()
-    
-    def _patch_meta(self):
-        self.yaml['build'].pop('osx_is_app', None)
-        self.yaml.pop('app', None)
 
+    def _patch_source(self, repo):
+        self.logger.info("Creating Spyder source patch...")
+
+        patch = repo.git.format_patch("..origin/installers-conda-patch",
+                                      "--stdout")
+        # newline keyword is not added to pathlib until Python>=3.10,
+        # so we must use open to ensure LF on Windows
+        with open(SPYPATCHFILE, 'w', newline='\n') as f:
+            f.write(patch)
+
+    def _patch_meta(self, meta):
+        # Add source code patch
+        search_patches = re.compile(
+            r'^source:\n([ ]{2,}.*\n)*  patches:\n(    .*\n)+',
+            flags=re.MULTILINE
+        )
+        if search_patches.search(meta):
+            # Append patch to existing patches
+            meta = search_patches.sub(
+                rf'\g<0>    - {SPYPATCHFILE.as_posix()}\n', meta)
+        else:
+            # Add patch node
+            meta = re.sub(
+                r'^source:\n([ ]{2,}.*\n)*',
+                rf'\g<0>  patches:\n    - {SPYPATCHFILE.as_posix()}\n',
+                meta, flags=re.MULTILINE
+            )
+
+        # Remove osx_is_app
+        meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
+                      r'\g<1>', meta, flags=re.MULTILINE)
+
+        # Remove app node
+        meta = re.sub(r'^app:\n(  .*\n)+', '', meta, flags=re.MULTILINE)
+
+        # Get current Spyder requirements
+        yaml = YAML()
         current_requirements = ['python']
-        current_requirements += self._yaml_yml.load(
+        current_requirements += yaml.load(
             REQ_MAIN.read_text())['dependencies']
         if os.name == 'nt':
-            win_requirements =  self._yaml_yml.load(
+            win_requirements =  yaml.load(
                 REQ_WINDOWS.read_text())['dependencies']
             current_requirements += win_requirements
             current_requirements.append('ptyprocess >=0.5')
         elif sys.platform == 'darwin':
-            mac_requirements =  self._yaml_yml.load(
+            mac_requirements =  yaml.load(
                 REQ_MAC.read_text())['dependencies']
+            if 'python.app' in mac_requirements:
+                mac_requirements.remove('python.app')
             current_requirements += mac_requirements
         else:
-            linux_requirements = self._yaml_yml.load(
+            linux_requirements = yaml.load(
                 REQ_LINUX.read_text())['dependencies']
             current_requirements += linux_requirements
-        self.yaml['requirements']['run'] = current_requirements
 
-        patches = self.yaml['source'].get('patches', [])
-        patches.append(str(RESOURCES / "installers-conda.patch"))
-        self.yaml['source']['patches'] = patches
+        # Replace run requirements
+        cr_string = '\n    - '.join(current_requirements)
+        meta = re.sub(r'^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
+                      rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
 
-    def _patch_build(self):
+        return meta
+
+    def _patch_build_script(self):
+        self.logger.info("Patching build script...")
+
         if os.name == 'posix':
-            file = self.fdstk_path / "recipe" / "build.sh"
+            file = self._fdstk_path / "recipe" / "build.sh"
             build_patch = RESOURCES / "build-patch.sh"
             text = file.read_text()
             text += build_patch.read_text()
-            file.write_text(text)
         if os.name == 'nt':
-            file = self.fdstk_path / "recipe" / "bld.bat"
+            file = self._fdstk_path / "recipe" / "bld.bat"
             text = file.read_text()
             text = text.replace(
                 r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
-                """powershell -Command"""
+                r"""powershell -Command"""
                 r""" "(gc %SRC_DIR%\installers-conda\resources\spyder-menu.json)"""
                 r""" -replace '__PKG_VERSION__', '%PKG_VERSION%' | """
                 r"""Out-File -encoding ASCII %MENU_DIR%\spyder-menu.json" """
             )
-            file.write_text(text)
+        file.rename(file.parent / ("_" + file.name))  # keep copy of original
+        file.write_text(text)
+
+        self.logger.info(f"Patched build script contents:\n{file.read_text()}")
+
 
 class PylspCondaPkg(BuildCondaPkg):
     name = "python-lsp-server"
-    src_path = Path(
-        os.environ.get('PYTHON_LSP_SERVER_SOURCE', HERE / name)
-    )
+    source = os.environ.get('PYTHON_LSP_SERVER_SOURCE')
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
     shallow_ver = "v1.4.1"
 
 
 class QdarkstyleCondaPkg(BuildCondaPkg):
     name = "qdarkstyle"
-    src_path = Path(
-        os.environ.get('QDARKSTYLE_SOURCE', HERE / name)
-    )
+    source = os.environ.get('QDARKSTYLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qdarkstyle-feedstock"
     shallow_ver = "v3.0.2"
 
 
 class QtconsoleCondaPkg(BuildCondaPkg):
     name = "qtconsole"
-    src_path = Path(
-        os.environ.get('QTCONSOLE_SOURCE', HERE / name)
-    )
+    source = os.environ.get('QTCONSOLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
     shallow_ver = "5.3.1"
-
-    def _patch_meta(self):
-        for out in self.yaml['outputs']:
-            out.pop("test", None)
 
 
 class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
-    src_path = Path(
-        os.environ.get('SPYDER_KERNELS_SOURCE', HERE / name)
-    )
+    source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
     shallow_ver = "v2.3.1"
 
@@ -318,25 +319,48 @@ if __name__ == "__main__":
     p = ArgumentParser(
         description=dedent(
             """
-            Build conda packages from local Spyder and external-deps sources.
-            Alternative git repo for python-lsp-server may be provided by
-            setting the environment variable PYTHON_LSP_SERVER_SOURCE,
-            otherwise the upstream remote will be used. All other external-deps
-            use the subrepo source within the Spyder repo.
+            Build conda packages to local channel.
+
+            This module builds conda packages for Spyder and external-deps for
+            inclusion in the conda-based installer. The following classes are
+            provided for each package:
+                SpyderCondaPkg
+                PylspCondaPkg
+                QdarkstyleCondaPkg
+                QtconsoleCondaPkg
+                SpyderKernelsCondaPkg
+
+            Spyder will be packaged from this repository (in its checked-out
+            state). qdarkstyle, qtconsole, spyder-kernels, and
+            python-lsp-server will be packaged from the remote and commit
+            specified in their respective .gitrepo files in external-deps.
+
+            Alternatively, any external-deps may be packaged from an arbitrary
+            git repository (in its checked out state) by setting the
+            appropriate environment variable from the following:
+                SPYDER_SOURCE
+                PYTHON_LSP_SERVER_SOURCE
+                QDARKSTYLE_SOURCE
+                QTCONSOLE_SOURCE
+                SPYDER_KERNELS_SOURCE
             """
         ),
         usage="python build_conda_pkgs.py "
-              "[--build BUILD [BUILD] ...] [--debug]",
+              "[--build BUILD [BUILD] ...] [--debug] [--shallow]",
+        formatter_class=RawTextHelpFormatter
     )
     p.add_argument(
         '--debug', action='store_true', default=False,
-        help="Do not remove cloned feedstocks"
+        help="Do not remove cloned sources and feedstocks"
     )
     p.add_argument(
         '--build', nargs="+", default=PKGS.keys(),
         help=("Space-separated list of packages to build. "
               f"Default is {list(PKGS.keys())}")
     )
+    p.add_argument(
+        '--shallow', action='store_true', default=False,
+        help="Perform shallow clone for build")
     args = p.parse_args()
 
     logger.info(f"Building local conda packages {list(args.build)}...")
@@ -345,17 +369,17 @@ if __name__ == "__main__":
     yaml = YAML()
     yaml.indent(mapping=2, sequence=4, offset=2)
 
-    for k in args.build:
-        if SPECS.exists():
-            specs = yaml.load(SPECS.read_text())
-        else:
-            specs = {k: "" for k in PKGS}
+    if SPECS.exists():
+        specs = yaml.load(SPECS.read_text())
+    else:
+        specs = {k: "" for k in PKGS}
 
-        pkg = PKGS[k](debug=args.debug)
+    for k in args.build:
+        pkg = PKGS[k](debug=args.debug, shallow=args.shallow)
         pkg.build()
         specs[k] = "=" + pkg.version
 
-        yaml.dump(specs, SPECS)
+    yaml.dump(specs, SPECS)
 
     elapse = timedelta(seconds=int(time() - t0))
     logger.info(f"Total build time = {elapse}")

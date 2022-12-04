@@ -546,9 +546,7 @@ def test_get_help_editor(main_window, qtbot, object_info):
     main_window.editor.new(fname="test.py", text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
-    with qtbot.waitSignal(code_editor.completions_response_signal,
-                          timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     # Write some object in the editor
     object_name, expected_text = object_info
@@ -766,8 +764,10 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # --- Set run options for this file ---
     rc = RunConfiguration().get()
+    
     # A dedicated console is used when these three options are False
     rc['default'] = rc['current'] = rc['systerm'] = False
+    rc['clear_namespace'] = False
     config_entry = (test_file, rc)
     CONF.set('run', 'configurations', [config_entry])
 
@@ -793,10 +793,23 @@ def test_dedicated_consoles(main_window, qtbot):
     text = control.toPlainText()
     assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
-    # --- Clean namespace after re-execution ---
+    # --- Check namespace retention after re-execution ---
     with qtbot.waitSignal(shell.executed):
         shell.execute('zz = -1')
 
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.waitUntil(lambda: shell.is_defined('zz'))
+    assert shell.is_defined('zz')
+
+    # --- Assert runfile text is present after reruns ---
+    assert 'runfile' in control.toPlainText()
+
+    # --- Clean namespace after re-execution with clear_namespace ---
+    rc['clear_namespace'] = True
+    config_entry = (test_file, rc)
+    CONF.set('run', 'configurations', [config_entry])
+
+    qtbot.wait(500)
     qtbot.keyClick(code_editor, Qt.Key_F5)
     qtbot.waitUntil(lambda: not shell.is_defined('zz'))
     assert not shell.is_defined('zz')
@@ -1068,11 +1081,13 @@ def test_project_path(main_window, tmpdir, qtbot):
 
     # Create a project path
     path = str(tmpdir.mkdir('project_path'))
-    assert path not in projects.get_conf('spyder_pythonpath', section='main')
+    assert path not in projects.get_conf(
+        'spyder_pythonpath', section='pythonpath_manager')
 
     # Ensure project path is added to spyder_pythonpath
     projects.open_project(path=path)
-    assert path in projects.get_conf('spyder_pythonpath', section='main')
+    assert path in projects.get_conf(
+        'spyder_pythonpath', section='pythonpath_manager')
 
     # Ensure project path is added to IPython console
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1090,7 +1105,8 @@ def test_project_path(main_window, tmpdir, qtbot):
     projects.close_project()
 
     # Ensure that project path is removed from spyder_pythonpath
-    assert path not in projects.get_conf('spyder_pythonpath', section='main')
+    assert path not in projects.get_conf(
+        'spyder_pythonpath', section='pythonpath_manager')
 
     # Ensure that project path is removed from IPython console
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -2091,6 +2107,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     fig_height = float(CONF.get('ipython_console', 'pylab/inline/height'))
 
     # Wait until the window is fully up.
+    widget = main_window.ipyconsole.get_widget()
     shell = main_window.ipyconsole.get_current_shellwidget()
     client = main_window.ipyconsole.get_current_client()
     qtbot.waitUntil(
@@ -2144,7 +2161,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     # Restart the kernel and wait until it's up again
     with qtbot.waitSignal(client.sig_execution_state_changed,
                           timeout=SHELL_TIMEOUT):
-        client.restart_kernel()
+        widget.restart_kernel(client, False)
     qtbot.waitUntil(lambda: 'In [1]:' in control.toPlainText(),
                     timeout=SHELL_TIMEOUT * 2)
 
@@ -2240,10 +2257,7 @@ def example_def_2():
     main_window.editor.set_current_filename(str(file_a))
 
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal,
@@ -2320,10 +2334,7 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     main_window.editor.load(str(file))
 
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal,
@@ -3066,10 +3077,7 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_no_def)
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     # Move cursor to the left one character to be next to
     # FramelessWindowHint
@@ -3089,10 +3097,7 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_def)
     code_editor = main_window.editor.get_focus_widget()
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_open()
+    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
 
     # Move cursor to the left one character to be next to QtCore
     code_editor.move_cursor(-1)
@@ -3505,8 +3510,9 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
-    main_window.show_path_manager()
-    dlg = main_window._path_manager
+    python_path_manager = main_window.get_plugin(Plugins.PythonpathManager)
+    python_path_manager.show_path_manager()
+    dlg = python_path_manager.path_manager_dialog
 
     test_folder = 'foo-spam-bar-123'
     folder = str(tmpdir.mkdir(test_folder))
@@ -3726,8 +3732,9 @@ def test_runcell_after_restart(main_window, qtbot):
     code_editor.set_text(code)
 
     # Restart Kernel
+    widget = main_window.ipyconsole.get_widget()
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
-        shell.ipyclient.restart_kernel()
+        widget.restart_kernel(shell.ipyclient, False)
 
     # call runcell
     code_editor.setFocus()
@@ -4075,8 +4082,9 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
                     timeout=3000)
 
     # Restart Kernel
+    widget = main_window.ipyconsole.get_widget()
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
-        shell.ipyclient.restart_kernel()
+        widget.restart_kernel(shell.ipyclient, False)
 
     # Assert the value was removed
     qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
@@ -5377,8 +5385,9 @@ def test_debugger_plugin(main_window, qtbot):
     assert not enter_debug_action.isEnabled()
 
     # Restart Kernel
+    widget = main_window.ipyconsole.get_widget()
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
-        shell.ipyclient.restart_kernel()
+        widget.restart_kernel(shell.ipyclient, False)
 
     assert frames_browser.frames is None
     assert not enter_debug_action.isEnabled()
@@ -5900,6 +5909,48 @@ def test_switch_to_plugin(main_window, qtbot):
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
     code_editor = main_window.editor.get_current_editor()
     assert QApplication.focusWidget() is code_editor
+
+
+@pytest.mark.slow
+def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
+    """
+    Test that PYTHONPATH is passed to IPython consoles under different
+    scenarios.
+    """
+    # Wait until the window is fully up
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Add a new directory to PYTHONPATH
+    new_dir = tmp_path / 'new_dir'
+    new_dir.mkdir()
+    os.environ['PYTHONPATH'] = str(new_dir)
+
+    # Open Pythonpath dialog to detect new_dir
+    ppm = main_window.get_plugin(Plugins.PythonpathManager)
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    # Check new_dir was added to sys.path after closing the dialog
+    ppm.path_manager_dialog.close()
+    with qtbot.waitSignal(shell.executed, timeout=2000):
+        shell.execute("import sys; sys_path = sys.path")
+
+    assert str(new_dir) in shell.get_value("sys_path")
+
+    # Create new console
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Check new_dir is part of the new console's sys.path
+    with qtbot.waitSignal(shell.executed, timeout=2000):
+        shell.execute("import sys; sys_path = sys.path")
+
+    assert str(new_dir) in shell.get_value("sys_path")
 
 
 if __name__ == "__main__":

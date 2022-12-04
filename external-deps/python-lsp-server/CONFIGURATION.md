@@ -12,6 +12,7 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.flake8.filename` | `string` | Only check for filenames matching the patterns in this list. | `null` |
 | `pylsp.plugins.flake8.hangClosing` | `boolean` | Hang closing bracket instead of matching indentation of opening bracket's line. | `null` |
 | `pylsp.plugins.flake8.ignore` | `array` of `string` items | List of errors and warnings to ignore (or skip). | `[]` |
+| `pylsp.plugins.flake8.maxComplexity` | `integer` | Maximum allowed complexity threshold. | `null` |
 | `pylsp.plugins.flake8.maxLineLength` | `integer` | Maximum allowed line length for the entirety of this run. | `null` |
 | `pylsp.plugins.flake8.indentSize` | `integer` | Set indentation spaces. | `null` |
 | `pylsp.plugins.flake8.perFileIgnores` | `array` of `string` items | A pairing of filenames and violation codes that defines which violations to ignore in a particular file, for example: `["file_path.py:W305,W304"]`). | `[]` |
@@ -50,7 +51,7 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.pycodestyle.maxLineLength` | `integer` | Set maximum allowed line length. | `null` |
 | `pylsp.plugins.pycodestyle.indentSize` | `integer` | Set indentation spaces. | `null` |
 | `pylsp.plugins.pydocstyle.enabled` | `boolean` | Enable or disable the plugin. | `false` |
-| `pylsp.plugins.pydocstyle.convention` | `string` (one of: `'pep257'`, `'numpy'`, `None`) | Choose the basic list of checked errors by specifying an existing convention. | `null` |
+| `pylsp.plugins.pydocstyle.convention` | `string` (one of: `'pep257'`, `'numpy'`, `'google'`, `None`) | Choose the basic list of checked errors by specifying an existing convention. | `null` |
 | `pylsp.plugins.pydocstyle.addIgnore` | `array` of unique `string` items | Ignore errors and warnings in addition to the specified convention. | `[]` |
 | `pylsp.plugins.pydocstyle.addSelect` | `array` of unique `string` items | Select errors and warnings in addition to the specified convention. | `[]` |
 | `pylsp.plugins.pydocstyle.ignore` | `array` of unique `string` items | Ignore errors and warnings | `[]` |
@@ -61,6 +62,8 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.pylint.enabled` | `boolean` | Enable or disable the plugin. | `false` |
 | `pylsp.plugins.pylint.args` | `array` of non-unique `string` items | Arguments to pass to pylint. | `[]` |
 | `pylsp.plugins.pylint.executable` | `string` | Executable to run pylint with. Enabling this will run pylint on unsaved files via stdin. Can slow down workflow. Only works with python3. | `null` |
+| `pylsp.plugins.rope_autoimport.enabled` | `boolean` | Enable or disable autoimport. | `false` |
+| `pylsp.plugins.rope_autoimport.memory` | `boolean` | Make the autoimport database memory only. Drastically increases startup time. | `false` |
 | `pylsp.plugins.rope_completion.enabled` | `boolean` | Enable or disable the plugin. | `false` |
 | `pylsp.plugins.rope_completion.eager` | `boolean` | Resolve documentation and detail eagerly. | `false` |
 | `pylsp.plugins.yapf.enabled` | `boolean` | Enable or disable the plugin. | `true` |

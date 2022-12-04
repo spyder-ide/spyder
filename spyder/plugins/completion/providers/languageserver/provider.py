@@ -584,12 +584,14 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 return
         self.update_lsp_configuration()
 
-    @on_conf_change(section='main', option='spyder_pythonpath')
+    @on_conf_change(section='pythonpath_manager', option='spyder_pythonpath')
     def on_pythonpath_option_update(self, value):
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                return
-        self.update_lsp_configuration(python_only=True)
+        # This is only useful to run some self-contained tests
+        if (
+            running_under_pytest()
+            and os.environ.get('SPY_TEST_USE_INTROSPECTION')
+        ):
+            self.update_lsp_configuration(python_only=True)
 
     @on_conf_change(section='main_interpreter',
                     option=['default', 'custom_interpreter'])
@@ -826,7 +828,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         jedi = {
             'environment': environment,
             'extra_paths': self.get_conf('spyder_pythonpath',
-                                         section='main', default=[]),
+                                         section='pythonpath_manager',
+                                         default=[]),
             'env_vars': env_vars,
         }
         jedi_completion = {

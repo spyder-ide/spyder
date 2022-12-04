@@ -104,7 +104,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_kernel_restarted_message = Signal(str)
 
     # Kernel died and restarted (not user requested)
-    sig_kernel_died_restarted = Signal()
     sig_prompt_ready = Signal()
     sig_remote_execute = Signal()
 
@@ -123,6 +122,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # To notify of kernel connection / disconnection
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
+
+    # To request restart
+    sig_restart_kernel = Signal()
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  handlers, *args, **kw):
@@ -188,7 +190,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady)
 
-    def connect_kernel(self, kernel_handler):
+    def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect to the kernel using our handler."""
         # Kernel client
         kernel_client = kernel_handler.kernel_client
@@ -197,9 +199,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self.kernel_manager = kernel_handler.kernel_manager
         self.kernel_handler = kernel_handler
-        
-        # Send message to kernel to check status
-        self.sig_shellwidget_created.emit(self)
+
+        if first_connect:
+            # Let plugins know that a new kernel is connected
+            self.sig_shellwidget_created.emit(self)
+        else:
+            # Set _starting to False to avoid reset at first prompt
+            self._starting = False
 
         # Connect signals
         kernel_handler.sig_kernel_is_ready.connect(
@@ -208,6 +214,48 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.handle_kernel_connection_error)
 
         kernel_handler.connect()
+
+    def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
+        """
+        Disconnect from current kernel.
+
+        Parameters:
+        -----------
+        shutdown_kernel: bool
+            If True, the kernel is shut down.
+        will_reconnect: bool
+            If False, emits `sig_shellwidget_deleted` so the plugins can close
+            related widgets.
+        """
+        kernel_handler = self.kernel_handler
+        if not kernel_handler:
+            return
+        kernel_client = kernel_handler.kernel_client
+
+        kernel_handler.sig_kernel_is_ready.disconnect(
+            self.handle_kernel_is_ready)
+        kernel_handler.sig_kernel_connection_error.disconnect(
+            self.handle_kernel_connection_error)
+        kernel_handler.kernel_client.stopped_channels.disconnect(
+            self.notify_deleted)
+
+        if self._init_kernel_setup:
+            self._init_kernel_setup = False
+
+            kernel_handler.kernel_comm.sig_exception_occurred.disconnect(
+                self.sig_exception_occurred)
+            kernel_client.control_channel.message_received.disconnect(
+                self._dispatch)
+
+        kernel_handler.close(shutdown_kernel)
+        if not will_reconnect:
+            self.notify_deleted()
+        # Reset state
+        self.reset_kernel_state()
+
+        self.kernel_client = None
+        self.kernel_manager = None
+        self.kernel_handler = None
 
     def handle_kernel_is_ready(self):
         """The kernel is ready"""
@@ -234,23 +282,20 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.shutting_down:
             return
         self.shutting_down = True
-        self.close_kernel(shutdown_kernel)
+        self.kernel_handler.close(shutdown_kernel)
         super().shutdown()
-
-    def close_kernel(self, shutdown_kernel=True):
-        """Close the kernel"""
-        try:
-            self.kernel_handler.close(shutdown_kernel)
-        except AttributeError:
-            pass
-
-        # Reset state
-        self.reset_kernel_state()
 
     def reset_kernel_state(self):
         """Reset the kernel state."""
         self._prompt_requested = False
         self._pdb_recursion_level = 0
+        self._reading = False
+
+    def print_restart_message(self):
+        """Print restart message."""
+        self._append_html(
+            _("<br>Restarting kernel...<br>"), before_prompt=True)
+        self.insert_horizontal_ruler()
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None, display_error=False):
@@ -316,7 +361,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Show possible errors when setting Matplotlib backend
         self.call_kernel().show_mpl_backend_errors()
-    
+
         # Check if the dependecies for special consoles are available.
         self.call_kernel(
             callback=self.ipyclient._show_special_console_error
@@ -371,11 +416,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         super(ShellWidget, self).execute(source, hidden, interactive)
 
     def is_running(self):
-        if self.kernel_client is not None and \
-          self.kernel_client.channels_running:
-            return True
-        else:
-            return False
+        """Check if shell is running."""
+        return (
+            self.kernel_client is not None and
+            self.kernel_client.channels_running
+        )
 
     def set_cwd(self, dirname=None, emit_cwd_change=False):
         """
@@ -745,7 +790,7 @@ the sympy module (e.g. plot)
             parent=self)
 
         restart_kernel = self.config_shortcut(
-            self.ipyclient.restart_kernel,
+            self.sig_restart_kernel,
             context='ipython_console',
             name='Restart kernel',
             parent=self)
@@ -873,9 +918,15 @@ the sympy module (e.g. plot)
         self._control.insert_horizontal_ruler()
 
     # ---- Public methods (overrode by us) ------------------------------------
-    def request_restart_kernel(self):
-        """Reimplemented to call our own restart mechanism."""
-        self.ipyclient.restart_kernel()
+    def _event_filter_console_keypress(self, event):
+        """Filter events to send to qtconsole code."""
+        key = event.key()
+        if self._control_key_down(event.modifiers(), include_command=False):
+            if key == QtCore.Qt.Key_Period:
+                # Do not use ctrl + . to restart kernel
+                # Handled by IPythonConsoleWidget
+                return False
+        return super()._event_filter_console_keypress(event)
 
     def adjust_indentation(self, line, indent_adjustment):
         """Adjust indentation."""
@@ -1046,11 +1097,31 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+
+        if died and self.kernel_manager is None:
+            # The kernel might never restart, show position of fault file
+            msg += (
+                "\n" + _("Its crash file is located at:") + " "
+                + self.kernel_handler.fault_filename()
+            )
+
         self.sig_kernel_restarted_message.emit(msg)
 
     def _handle_kernel_restarted(self, *args, **kwargs):
-        super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
-        self.sig_kernel_died_restarted.emit()
+        """The kernel restarted."""
+        super()._handle_kernel_restarted(*args, **kwargs)
+
+        # Print restart message
+        self.print_restart_message()
+
+        # Reset Pdb state
+        self.reset_kernel_state()
+
+        # reset comm
+        self.kernel_handler.reopen_comm()
+
+        # In case anyone waits on end of execution
+        self.executed.emit({})
 
     @observe('syntax_style')
     def _syntax_style_changed(self, changed=None):

@@ -17,6 +17,8 @@ from jupyter_client.manager import KernelManager
 from qtpy.QtCore import Qt
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+# This is required to run our tests in VSCode or Spyder-unittest
+from qtpy import QtWebEngineWidgets  # noqa
 import psutil
 import pytest
 
@@ -427,8 +429,10 @@ def main_window(request, tmpdir, qtbot):
 
                     # Restore default Spyder Python Path
                     CONF.set(
-                        'main', 'spyder_pythonpath',
-                        CONF.get_default('main', 'spyder_pythonpath'))
+                        'pythonpath_manager', 'spyder_pythonpath',
+                        CONF.get_default('pythonpath_manager',
+                                         'spyder_pythonpath')
+                    )
 
                     # Restore run configurations
                     CONF.set('run', 'configurations', [])
