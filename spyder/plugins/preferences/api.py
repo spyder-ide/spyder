@@ -448,6 +448,31 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         checkbox.restart_required = restart
         return checkbox
 
+    def create_checkable_groupbox(
+        self, text, option, default=NoDefault,
+        tip=None, msg_warning=None, msg_info=None,
+        msg_if_enabled=False, section=None, restart=False
+    ):
+        checkbox = QGroupBox(text)
+        checkbox.setCheckable(True)
+        self.checkboxes[checkbox] = (section, option, default)
+        if section is not None and section != self.CONF_SECTION:
+            self.cross_section_options[option] = section
+        if tip is not None:
+            checkbox.setToolTip(tip)
+        if msg_warning is not None or msg_info is not None:
+            def show_message(is_checked=False):
+                if is_checked or not msg_if_enabled:
+                    if msg_warning is not None:
+                        QMessageBox.warning(self, self.get_name(),
+                                            msg_warning, QMessageBox.Ok)
+                    if msg_info is not None:
+                        QMessageBox.information(self, self.get_name(),
+                                                msg_info, QMessageBox.Ok)
+            checkbox.clicked.connect(show_message)
+        checkbox.restart_required = restart
+        return checkbox
+
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
                            msg_if_enabled=False, button_group=None,

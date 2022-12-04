@@ -44,6 +44,7 @@ class StdThread(Thread):
         while txt:
             txt = self._std_buffer.read1()
             if txt:
+                print(txt)
                 # Needs to be on control so the message is sent to currently
                 # executing shell
                 self.kernel_comm.remote_call(
@@ -140,7 +141,6 @@ class KernelServer:
         kernel_comm = KernelComm()
         kernel_comm.open_comm(kernel_client)
         self.connect_std_pipes(kernel_key, kernel_comm)
-
 
         return connection_file
 

@@ -12,6 +12,7 @@ import os.path as osp
 import sys
 
 # Third party imports
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
     QButtonGroup, QGroupBox, QInputDialog, QLabel,
     QLineEdit, QMessageBox, QPushButton, QVBoxLayout, QRadioButton,
@@ -70,83 +71,105 @@ class MainInterpreterConfigPage(PluginConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-
         # Remote kernel groupbox
-        self.rm_group = QGroupBox(_("Use a remote kernel server (via SSH)"))
+        rm_group = self.create_checkable_groupbox(
+            _("Use an external kernel server"),
+            'kernel_server/external_server',
+        )
 
-        # SSH connection
-        hn_label = QLabel(_('Hostname:'))
-        self.hn = QLineEdit()
-        pn_label = QLabel(_('Port:'))
-        self.pn = QLineEdit()
-        self.pn.setMaximumWidth(75)
+        # Hostname Layout
+        hostname = self.create_lineedit(
+            _("Hostnane:"),
+            'kernel_server/host',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
+        port = self.create_spinbox(
+            ":", "", 'kernel_server/port', min_=1, max_=65535, step=1
+        )
 
-        un_label = QLabel(_('Username:'))
-        self.un = QLineEdit()
+        hostname_layout = QHBoxLayout()
+        hostname_layout.addWidget(hostname)
+        hostname_layout.addWidget(port)
 
         # SSH authentication
-        auth_group = QGroupBox(_("Authentication method:"))
-        self.pw_radio = QRadioButton()
-        pw_label = QLabel(_('Password:'))
-        self.kf_radio = QRadioButton()
-        kf_label = QLabel(_('SSH keyfile:'))
+        auth_group = self.create_checkable_groupbox(
+            _("Authentication method (via SSH):"),
+            'kernel_server/use_ssh',
+        )
 
-        self.pw = QLineEdit()
-        self.pw.setEchoMode(QLineEdit.Password)
-        self.pw_radio.toggled.connect(self.pw.setEnabled)
-        self.kf_radio.toggled.connect(self.pw.setDisabled)
+        username = self.create_lineedit(
+            _("Username:"),
+            'kernel_server/username',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
 
-        self.kf = QLineEdit()
-        kf_open_btn = QPushButton(_('Browse'))
-        kf_open_btn.clicked.connect(self.select_ssh_key)
-        kf_layout = QHBoxLayout()
-        kf_layout.addWidget(self.kf)
-        kf_layout.addWidget(kf_open_btn)
+        auth_bg = QButtonGroup(auth_group)
+        password_radio = self.create_radiobutton(
+            _("Password:"),
+            'kernel_server/password_auth',
+            button_group=auth_bg,
+        )
+        keyfile_radio = self.create_radiobutton(
+            _('SSH keyfile:'),
+            'kernel_server/keyfile_auth',
+            button_group=auth_bg,
+        )
 
-        kfp_label = QLabel(_('Passphase:'))
-        self.kfp = QLineEdit()
-        self.kfp.setPlaceholderText(_('Optional'))
-        self.kfp.setEchoMode(QLineEdit.Password)
+        password = self.create_lineedit(
+            "",
+            'kernel_server/password',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
+        password.textbox.setEchoMode(QLineEdit.Password)
+        password_radio.toggled.connect(password.setEnabled)
+        keyfile_radio.toggled.connect(password.setDisabled)
 
-        self.kf_radio.toggled.connect(self.kf.setEnabled)
-        self.kf_radio.toggled.connect(self.kfp.setEnabled)
-        self.kf_radio.toggled.connect(kf_open_btn.setEnabled)
-        self.kf_radio.toggled.connect(kfp_label.setEnabled)
-        self.pw_radio.toggled.connect(self.kf.setDisabled)
-        self.pw_radio.toggled.connect(self.kfp.setDisabled)
-        self.pw_radio.toggled.connect(kf_open_btn.setDisabled)
-        self.pw_radio.toggled.connect(kfp_label.setDisabled)
+        keyfile = self.create_file_combobox(
+            _('SSH Keyfile'),
+            self.get_option('custom_interpreters_list'),
+            'kernel_server/keyfile',
+            default_line_edit=True,
+            adjust_to_contents=True,
+        )
+        passphrase = self.create_lineedit(
+            _('Passphase:'),
+            'kernel_server/passphrase',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
 
-        # SSH layout
-        ssh_layout = QGridLayout()
-        ssh_layout.addWidget(hn_label, 0, 0, 1, 2)
-        ssh_layout.addWidget(self.hn, 0, 2)
-        ssh_layout.addWidget(pn_label, 0, 3)
-        ssh_layout.addWidget(self.pn, 0, 4)
-        ssh_layout.addWidget(un_label, 1, 0, 1, 2)
-        ssh_layout.addWidget(self.un, 1, 2, 1, 3)
+        passphrase.textbox.setPlaceholderText(_('Optional'))
+        passphrase.textbox.setEchoMode(QLineEdit.Password)
+
+        keyfile_radio.toggled.connect(keyfile.setEnabled)
+        keyfile_radio.toggled.connect(passphrase.setEnabled)
+        password_radio.toggled.connect(keyfile.setDisabled)
+        password_radio.toggled.connect(passphrase.setDisabled)
+
+
 
         # SSH authentication layout
         auth_layout = QGridLayout()
-        auth_layout.addWidget(self.pw_radio, 1, 0)
-        auth_layout.addWidget(pw_label, 1, 1)
-        auth_layout.addWidget(self.pw, 1, 2)
-        auth_layout.addWidget(self.kf_radio, 2, 0)
-        auth_layout.addWidget(kf_label, 2, 1)
-        auth_layout.addLayout(kf_layout, 2, 2)
-        auth_layout.addWidget(kfp_label, 3, 1)
-        auth_layout.addWidget(self.kfp, 3, 2)
+        auth_layout.addWidget(username, 0, 0, 1, 2)
+        auth_layout.addWidget(password_radio, 1, 0)
+        auth_layout.addWidget(password, 1, 1)
+        auth_layout.addWidget(keyfile_radio, 2, 0)
+        auth_layout.addWidget(keyfile, 2, 1)
+        auth_layout.addWidget(passphrase, 3, 0, 1, 2)
         auth_group.setLayout(auth_layout)
 
         # Remote kernel layout
         rm_layout = QVBoxLayout()
-        rm_layout.addLayout(ssh_layout)
+        rm_layout.addLayout(hostname_layout)
         rm_layout.addSpacerItem(QSpacerItem(0, 8))
         rm_layout.addWidget(auth_group)
-        self.rm_group.setLayout(rm_layout)
-        self.rm_group.setCheckable(True)
-        self.rm_group.toggled.connect(self.pw_radio.setChecked)
-
+        rm_group.setLayout(rm_layout)
+        auth_group.setCheckable(True)
+        auth_group.toggled.connect(password_radio.setChecked)
+        rm_group.setCheckable(True)
 
         # Python executable Group
         pyexec_group = QGroupBox(_("Python interpreter"))
@@ -186,7 +209,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
-        pyexec_layout.addWidget(self.rm_group)
+        pyexec_layout.addWidget(rm_group)
         pyexec_group.setLayout(pyexec_layout)
 
         self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()
@@ -241,11 +264,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
         vlayout.addWidget(umr_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-
-    def select_ssh_key(self):
-        kf = getopenfilename(self, _('Select SSH keyfile'),
-                             get_home_dir(), '*.pem;;*')[0]
-        self.kf.setText(kf)
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
