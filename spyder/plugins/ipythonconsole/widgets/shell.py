@@ -150,7 +150,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
         self.shutting_down = False
-        self.kernel_manager = None
         self.kernel_client = None
         self._init_kernel_setup = False
         handlers.update({
@@ -197,7 +196,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         kernel_client.stopped_channels.connect(self.notify_deleted)
         self.kernel_client = kernel_client
 
-        self.kernel_manager = kernel_handler.kernel_manager
         self.kernel_handler = kernel_handler
 
         if first_connect:
@@ -254,7 +252,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.reset_kernel_state()
 
         self.kernel_client = None
-        self.kernel_manager = None
         self.kernel_handler = None
 
     def handle_kernel_is_ready(self):
@@ -332,7 +329,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     @property
     def is_external_kernel(self):
         """Check if this is an external kernel."""
-        return self.kernel_manager is None
+        return self.kernel_handler.kernel_spec is None
 
     def setup_spyder_kernel(self):
         """Setup spyder kernel"""
@@ -728,7 +725,7 @@ the sympy module (e.g. plot)
         # kernels.
         # See spyder-ide/spyder#9505.
         try:
-            kernel_env = self.kernel_manager._kernel_spec.env
+            kernel_env = self.kernel_handler.kernel_spec.env
         except AttributeError:
             kernel_env = {}
 
@@ -1098,7 +1095,7 @@ the sympy module (e.g. plot)
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
 
-        if died and self.kernel_manager is None:
+        if died and self.is_external_kernel:
             # The kernel might never restart, show position of fault file
             msg += (
                 "\n" + _("Its crash file is located at:") + " "

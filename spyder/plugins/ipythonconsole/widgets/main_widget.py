@@ -38,7 +38,8 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
     KernelConnectionDialog, PageControlWidget)
-from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
+from spyder.plugins.ipythonconsole.widgets.mixins import (
+    CachedKernelMixin, KernelConnectorMixin)
 from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -114,7 +115,9 @@ class IPythonConsoleWidgetTabsContextMenuSections:
 
 # --- Widgets
 # ----------------------------------------------------------------------------
-class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
+class IPythonConsoleWidget(
+    PluginMainWidget, CachedKernelMixin, KernelConnectorMixin
+):
     """
     IPython Console plugin
 
@@ -1402,7 +1405,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         related_clients = []
         for cl in self.clients:
-            if connection_file in cl.connection_file:
+            if cl.connection_file and connection_file in cl.connection_file:
                 if (
                     cl.kernel_handler is not None and
                     hostname == cl.kernel_handler.hostname and
@@ -1772,8 +1775,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client is None:
             return
 
-        km = client.kernel_handler.kernel_manager
-        if km is None:
+        ks = client.kernel_handler.kernel_spec
+        if ks is None:
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -1798,7 +1801,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Get new kernel
         try:
-            kernel_handler = self.get_cached_kernel(km._kernel_spec)
+            kernel_handler = self.get_cached_kernel(ks)
         except Exception as e:
             client.show_kernel_error(e)
             return

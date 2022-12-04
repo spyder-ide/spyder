@@ -30,7 +30,7 @@ class SpyderKernelManager(QtKernelManager):
     """
 
     client_class = DottedObjectName(
-        'spyder.plugins.ipythonconsole.utils.client.SpyderKernelClient')
+        'spyder_kernels_server.kernel_client.SpyderKernelClient')
 
     def __init__(self, *args, **kwargs):
         self.shutting_down = False

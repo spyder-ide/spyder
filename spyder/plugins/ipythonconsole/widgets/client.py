@@ -320,8 +320,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.kernel_handler = kernel_handler
 
         # Connect standard streams.
-        kernel_handler.sig_stderr.connect(self.print_stderr)
-        kernel_handler.sig_stdout.connect(self.print_stdout)
         kernel_handler.sig_fault.connect(self.print_fault)
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
@@ -336,50 +334,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if not kernel_handler:
             return
 
-        kernel_handler.sig_stderr.disconnect(self.print_stderr)
-        kernel_handler.sig_stdout.disconnect(self.print_stdout)
         kernel_handler.sig_fault.disconnect(self.print_fault)
 
         self.shellwidget.disconnect_kernel(shutdown_kernel)
         self.kernel_handler = None
-
-    @Slot(str)
-    def print_stderr(self, stderr):
-        """Print stderr written in PIPE."""
-        if not stderr:
-            return
-
-        if self.is_benign_error(stderr):
-            return
-
-        if self.shellwidget.isHidden():
-            error_text = '<tt>%s</tt>' % stderr
-            # Avoid printing the same thing again
-            if self.error_text != error_text:
-                if self.error_text:
-                    # Append to error text
-                    error_text = self.error_text + error_text
-                self.show_kernel_error(error_text)
-
-        if self.shellwidget._starting:
-            self.shellwidget.banner = (
-                stderr + '\n' + self.shellwidget.banner)
-        else:
-            self.shellwidget._append_plain_text(
-                stderr, before_prompt=True)
-
-    @Slot(str)
-    def print_stdout(self, stdout):
-        """Print stdout written in PIPE."""
-        if not stdout:
-            return
-
-        if self.shellwidget._starting:
-            self.shellwidget.banner = (
-                stdout + '\n' + self.shellwidget.banner)
-        else:
-            self.shellwidget._append_plain_text(
-                stdout, before_prompt=True)
 
     def connect_shellwidget_signals(self):
         """Configure shellwidget after kernel is connected."""

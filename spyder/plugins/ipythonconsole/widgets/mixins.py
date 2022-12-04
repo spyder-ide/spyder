@@ -7,14 +7,47 @@
 """
 IPython Console mixins.
 """
+import zmq
 
 # Local imports
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 
 
+class KernelConnectorMixin:
+    """Needs https://github.com/jupyter/jupyter_client/pull/835"""
+    def __init__(self):
+        super().__init__()
+        self.port = "5556"
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.connect("tcp://localhost:%s" % self.port)
+
+    def new_kernel(self, kernel_spec):
+        """Get a new kernel"""
+        self.socket.send_pyobj(["open_kernel", kernel_spec])
+        cmd, connection_file, connection_info = self.socket.recv_pyobj()
+        if connection_file == "error":
+            raise connection_info
+
+        hostname, sshkey, password = None, None, None
+
+        kernel_handler = KernelHandler.new_from_spec(
+            kernel_spec, connection_file, connection_info,
+            hostname, sshkey, password
+        )
+
+        kernel_handler.sig_request_close.connect(self.close_kernel)
+        return kernel_handler
+
+    def close_kernel(self, connection_file):
+        self.socket.send_pyobj(["close_kernel", connection_file])
+        # Wait for confirmation
+        self.socket.recv_pyobj()
+
+
+
 class CachedKernelMixin:
     """Cached kernel mixin."""
-
     def __init__(self):
         super().__init__()
         self._cached_kernel_properties = None
@@ -56,7 +89,7 @@ class CachedKernelMixin:
     def get_cached_kernel(self, kernel_spec, cache=True):
         """Get a new kernel, and cache one for next time."""
         # Cache another kernel for next time.
-        new_kernel_handler = KernelHandler.new_from_spec(kernel_spec)
+        new_kernel_handler = self.new_kernel(kernel_spec)
 
         if not cache:
             # remove/don't use cache if requested
@@ -81,6 +114,6 @@ class CachedKernelMixin:
         )
 
         if cached_kernel_handler is None:
-            return KernelHandler.new_from_spec(kernel_spec)
+            return self.new_kernel(kernel_spec)
 
         return cached_kernel_handler
