@@ -301,6 +301,7 @@ spyder_plugins_entry_points = [
     'profiler = spyder.plugins.profiler.plugin:Profiler',
     'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
+    'pythonpath_manager = spyder.plugins.pythonpath.plugin:PythonpathManager',
     'run = spyder.plugins.run.plugin:Run',
     'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
     'statusbar = spyder.plugins.statusbar.plugin:StatusBar',

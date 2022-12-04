@@ -120,7 +120,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.history = []
         self.allow_rename = True
         self.error_text = None
-        self.restart_thread = None
         self.give_focus = give_focus
 
         css_path = self.get_conf('css_path', section='appearance')
@@ -163,16 +162,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-        # --- Standard files handling
-        self.start_successful = False
-
-    def __del__(self):
-        """Close threads to avoid segfault."""
-        if (self.restart_thread is not None
-                and self.restart_thread.isRunning()):
-            self.restart_thread.quit()
-            self.restart_thread.wait()
-
     # ----- Private methods ---------------------------------------------------
     def _when_kernel_is_ready(self):
         """
@@ -188,7 +177,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 KernelConnectionState.IpykernelReady]:
             # The kernel is not ready
             return
-        self.start_successful = True
 
         self.kernel_handler.sig_kernel_is_ready.disconnect(
             self._when_kernel_is_ready)
@@ -251,16 +239,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             ).format(missing_dependency=missing_dependency)
 
             self.show_kernel_error(error_message)
-
-    def _abort_kernel_restart(self):
-        """
-        Abort kernel restart if there are errors while starting it.
-
-        We also ignore errors about comms, which are irrelevant.
-        """
-        if self.start_successful:
-            return False
-        return bool(self.error_text)
 
     def _connect_control_signals(self):
         """Connect signals of control widgets."""
@@ -337,7 +315,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return None
         return self.kernel_handler.connection_file
 
-    def connect_kernel(self, kernel_handler):
+    def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect kernel to client using our handler."""
         self.kernel_handler = kernel_handler
 
@@ -350,7 +328,20 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._show_loading_page()
 
         # Actually do the connection
-        self.shellwidget.connect_kernel(kernel_handler)
+        self.shellwidget.connect_kernel(kernel_handler, first_connect)
+
+    def disconnect_kernel(self, shutdown_kernel):
+        """Disconnect from current kernel."""
+        kernel_handler = self.kernel_handler
+        if not kernel_handler:
+            return
+
+        kernel_handler.sig_stderr.disconnect(self.print_stderr)
+        kernel_handler.sig_stdout.disconnect(self.print_stdout)
+        kernel_handler.sig_fault.disconnect(self.print_fault)
+
+        self.shellwidget.disconnect_kernel(shutdown_kernel)
+        self.kernel_handler = None
 
     @Slot(str)
     def print_stderr(self, stderr):
@@ -416,8 +407,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted_message.connect(
             self.kernel_restarted_message)
-        self.shellwidget.sig_kernel_died_restarted.connect(
-            self._finalise_restart)
 
         # To correctly change Matplotlib backend interactively
         self.shellwidget.executing.connect(
@@ -583,11 +572,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
-        if (self.restart_thread is not None
-                and self.restart_thread.isRunning()):
-            self.restart_thread.finished.disconnect()
-            self.restart_thread.quit()
-            self.restart_thread.wait()
         shutdown_kernel = (
             is_last_client and not self.shellwidget.is_external_kernel
             and not self.error_text
@@ -603,102 +587,19 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    @Slot()
-    def restart_kernel(self):
+    def replace_kernel(self, kernel_handler, shutdown_kernel):
         """
-        Restart the associated kernel.
-
-        Took this code from the qtconsole project
-        Licensed under the BSD license
+        Replace kernel by disconnecting from the current one and connecting to
+        another kernel, which is equivalent to a restart.
         """
-        sw = self.shellwidget
-        if sw.is_external_kernel:
-            sw._append_plain_text(
-                _('Cannot restart a kernel not started by Spyder\n'),
-                before_prompt=True
-            )
-            return
+        # Connect kernel to client
+        self.disconnect_kernel(shutdown_kernel)
+        self.connect_kernel(kernel_handler, first_connect=False)
 
-        if self.infowidget is not None:
-            if self.infowidget.isVisible():
-                self.infowidget.hide()
+        # Reset shellwidget and print restart message
+        self.shellwidget.reset(clear=True)
+        self.shellwidget.print_restart_message()
 
-        # Close comm
-        self.kernel_handler.close_comm()
-
-        if self._abort_kernel_restart():
-            return
-
-        # Stop autorestart mechanism
-        sw.kernel_manager.stop_restarter()
-        sw.kernel_manager.autorestart = False
-
-        # Disconnect the std pipes so errors will not mess with the restart
-        self.kernel_handler.disconnect_std_pipes()
-
-        # Show loading page again
-        self._show_loading_page()
-
-        # Create and run restarting thread
-        if (
-            self.restart_thread is not None
-            and self.restart_thread.isRunning()
-        ):
-            self.restart_thread.finished.disconnect()
-            self.restart_thread.quit()
-            self.restart_thread.wait()
-        self.restart_thread = QThread(None)
-        self.restart_thread.run = self._restart_thread_main
-        self.restart_thread.error = None
-        self.restart_thread.finished.connect(
-            lambda: self._finalise_restart(True))
-        self.restart_thread.start()
-
-    def _restart_thread_main(self):
-        """Restart the kernel in a thread."""
-        try:
-            self.kernel_handler.restart_kernel()
-        except RuntimeError as e:
-            self.restart_thread.error = e
-
-    def _finalise_restart(self, reset=False):
-        """Finishes the restarting of the kernel."""
-        sw = self.shellwidget
-
-        if self._abort_kernel_restart():
-            self.kernel_handler.kernel_comm.remove()
-            return
-
-        if self.restart_thread and self.restart_thread.error is not None:
-            self.show_kernel_error(self.restart_thread.error)
-        else:
-            self.kernel_handler.connect_std_pipes()
-
-            # Reset Pdb state and reopen comm
-            sw.reset_kernel_state()
-
-            # Reopen comm
-            try:
-               self.kernel_handler.reopen_comm()
-            except AttributeError:
-                # An error occurred while opening our comm channel.
-                # Aborting!
-                return
-
-            # Start autorestart mechanism
-            sw.kernel_manager.autorestart = True
-            sw.kernel_manager.start_restarter()
-
-            if reset:
-                sw.reset(clear=True)
-
-            sw._append_html(_("<br>Restarting kernel...<br>"),
-                            before_prompt=True)
-            sw.insert_horizontal_ruler()
-
-        self.restart_thread = None
-        self.sig_execution_state_changed.emit()
-    
     def print_fault(self, fault):
         """Print fault text."""
         self.shellwidget._append_plain_text(
@@ -796,3 +697,4 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 self.info_page,
                 QUrl.fromLocalFile(self.css_path)
             )
+            self.sig_execution_state_changed.emit()
