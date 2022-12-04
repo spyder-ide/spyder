@@ -7,12 +7,15 @@ import os
 import re
 import functools
 from threading import RLock
+from typing import Optional
 
 import jedi
 
 from . import lsp, uris, _utils
 
 log = logging.getLogger(__name__)
+
+DEFAULT_AUTO_IMPORT_MODULES = ["numpy"]
 
 # TODO: this is not the best e.g. we capture numbers
 RE_START_WORD = re.compile('[A-Za-z_0-9]*$')
@@ -48,6 +51,15 @@ class Workspace:
         # Whilst incubating, keep rope private
         self.__rope = None
         self.__rope_config = None
+        self.__rope_autoimport = None
+
+    def _rope_autoimport(self, rope_config: Optional, memory: bool = False):
+        # pylint: disable=import-outside-toplevel
+        from rope.contrib.autoimport.sqlite import AutoImport
+        if self.__rope_autoimport is None:
+            project = self._rope_project_builder(rope_config)
+            self.__rope_autoimport = AutoImport(project, memory=memory)
+        return self.__rope_autoimport
 
     def _rope_project_builder(self, rope_config):
         # pylint: disable=import-outside-toplevel
@@ -56,8 +68,12 @@ class Workspace:
         # TODO: we could keep track of dirty files and validate only those
         if self.__rope is None or self.__rope_config != rope_config:
             rope_folder = rope_config.get('ropeFolder')
-            self.__rope = Project(self._root_path, ropefolder=rope_folder)
-            self.__rope.prefs.set('extension_modules', rope_config.get('extensionModules', []))
+            if rope_folder:
+                self.__rope = Project(self._root_path, ropefolder=rope_folder)
+            else:
+                self.__rope = Project(self._root_path)
+            self.__rope.prefs.set('extension_modules',
+                                  rope_config.get('extensionModules', []))
             self.__rope.prefs.set('ignore_syntax_errors', True)
             self.__rope.prefs.set('ignore_bad_imports', True)
         self.__rope.validate()
@@ -127,6 +143,10 @@ class Workspace:
             extra_sys_path=self.source_roots(path),
             rope_project_builder=self._rope_project_builder,
         )
+
+    def close(self):
+        if self.__rope_autoimport is not None:
+            self.__rope_autoimport.close()
 
 
 class Document:
@@ -252,6 +272,8 @@ class Document:
 
         if self._config:
             jedi_settings = self._config.plugin_settings('jedi', document_path=self.path)
+            jedi.settings.auto_import_modules = jedi_settings.get('auto_import_modules',
+                                                                  DEFAULT_AUTO_IMPORT_MODULES)
             environment_path = jedi_settings.get('environment')
             extra_paths = jedi_settings.get('extra_paths') or []
             env_vars = jedi_settings.get('env_vars')

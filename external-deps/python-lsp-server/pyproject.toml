@@ -16,6 +16,7 @@ dependencies = [
     "jedi>=0.17.2,<0.19.0",
     "python-lsp-jsonrpc>=1.0.0",
     "pluggy>=1.0.0",
+    "docstring-to-markdown",
     "ujson>=3.0.0",
     "setuptools>=39.0.0",
 ]
@@ -33,7 +34,7 @@ all = [
     "pydocstyle>=2.0.0",
     "pyflakes>=2.5.0,<2.6.0",
     "pylint>=2.5.0",
-    "rope>=0.10.5",
+    "rope>1.2.0",
     "yapf",
     "whatthepatch"
 ]
@@ -44,7 +45,7 @@ pycodestyle = ["pycodestyle>=2.9.0,<2.10.0"]
 pydocstyle = ["pydocstyle>=2.0.0"]
 pyflakes = ["pyflakes>=2.5.0,<2.6.0"]
 pylint = ["pylint>=2.5.0"]
-rope = ["rope>0.10.5"]
+rope = ["rope>1.2.0"]
 yapf = ["yapf", "whatthepatch>=1.0.2,<2.0.0"]
 websockets = ["websockets>=10.3"]
 test = [
@@ -52,7 +53,7 @@ test = [
     "pytest",
     "pytest-cov",
     "coverage",
-    "numpy<1.23",
+    "numpy",
     "pandas",
     "matplotlib",
     "pyqt5",
@@ -79,6 +80,7 @@ pyflakes = "pylsp.plugins.pyflakes_lint"
 pylint = "pylsp.plugins.pylint_lint"
 rope_completion = "pylsp.plugins.rope_completion"
 rope_rename = "pylsp.plugins.rope_rename"
+rope_autoimport = "pylsp.plugins.rope_autoimport"
 yapf = "pylsp.plugins.yapf_format"
 
 [project.scripts]
@@ -99,3 +101,7 @@ write_to_template = "__version__ = \"{version}\"\n"  # VERSION_INFO is populated
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = "--cov-report html --cov-report term --junitxml=pytest.xml --cov pylsp --cov test"
+
+[tool.coverage.run]
+concurrency = ["multiprocessing", "thread"]
+

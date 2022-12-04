@@ -87,4 +87,9 @@ class TCPLanguageServerClient(LanguageServerClient):
 
             if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
                 break
+
+        if self.socket.getsockname() == self.socket.getpeername():
+            connection_error = Exception("Failed to connect to server: Self-connected socket")
+            connected = False
+
         return connected, connection_error, None

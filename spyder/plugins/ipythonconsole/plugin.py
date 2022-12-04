@@ -42,7 +42,8 @@ class IPythonConsole(SpyderDockablePlugin):
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
-                Plugins.Projects, Plugins.WorkingDirectory]
+                Plugins.Projects, Plugins.PythonpathManager,
+                Plugins.WorkingDirectory]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -214,11 +215,7 @@ class IPythonConsole(SpyderDockablePlugin):
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
 
-        # Update kernels if python path is changed
-        self.main.sig_pythonpath_changed.connect(self.update_path)
-
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
-        self._remove_old_std_files()
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -296,6 +293,11 @@ class IPythonConsole(SpyderDockablePlugin):
         working_directory.sig_current_directory_changed.connect(
             self.save_working_directory)
 
+    @on_plugin_available(plugin=Plugins.PythonpathManager)
+    def on_pythonpath_manager_available(self):
+        pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
+        pythonpath_manager.sig_pythonpath_changed.connect(self.update_path)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Register conf page
@@ -336,6 +338,11 @@ class IPythonConsole(SpyderDockablePlugin):
         working_directory.sig_current_directory_changed.disconnect(
             self.save_working_directory)
 
+    @on_plugin_teardown(plugin=Plugins.PythonpathManager)
+    def on_pythonpath_manager_teardown(self):
+        pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
+        pythonpath_manager.sig_pythonpath_changed.disconnect(self.update_path)
+
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font()
@@ -359,23 +366,6 @@ class IPythonConsole(SpyderDockablePlugin):
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
-
-    def _remove_old_std_files(self):
-        """
-        Remove std files left by previous Spyder instances.
-
-        This is only required on Windows because we can't
-        clean up std files while Spyder is running on that
-        platform.
-        """
-        if os.name == 'nt':
-            tmpdir = get_temp_dir()
-            for fname in os.listdir(tmpdir):
-                if osp.splitext(fname)[1] in ('.stderr', '.stdout', '.fault'):
-                    try:
-                        os.remove(osp.join(tmpdir, fname))
-                    except Exception:
-                        pass
 
     # ---- Public API
     # -------------------------------------------------------------------------

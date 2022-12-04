@@ -29,14 +29,11 @@ from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.programs import check_version_range
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
+from spyder.plugins.ipythonconsole.utils.kernel_handler import (
+    KernelConnectionState)
 from spyder.widgets.helperwidgets import MessageCheckBox
-from spyder.plugins.ipythonconsole import (
-    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
-    SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
-from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
@@ -44,41 +41,6 @@ from spyder.plugins.ipythonconsole.widgets import (
 
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
-
-ERROR_SPYDER_KERNEL_VERSION = _(
-    "The Python environment or installation whose interpreter is located at"
-    "<pre>"
-    "    <tt>{0}</tt>"
-    "</pre>"
-    "doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} "
-    "instead of >= {2} and < {3}). Without this module is not possible for "
-    "Spyder to create a console for you.<br><br>"
-    "You can install it by activating your environment (if necessary) and "
-    "then running in a system terminal:"
-    "<pre>"
-    "    <tt>{4}</tt>"
-    "</pre>"
-    "or"
-    "<pre>"
-    "    <tt>{5}</tt>"
-    "</pre>"
-)
-
-# For Spyder-kernels version < 3.0, where the version and executable cannot be queried
-ERROR_SPYDER_KERNEL_VERSION_OLD = _(
-    "This Python environment doesn't have the right version of "
-    "<tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this "
-    "module is not possible for Spyder to create a console for you.<br><br>"
-    "You can install it by activating your environment (if necessary) and "
-    "then running in a system terminal:"
-    "<pre>"
-    "    <tt>{2}</tt>"
-    "</pre>"
-    "or"
-    "<pre>"
-    "    <tt>{3}</tt>"
-    "</pre>"
-)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -142,7 +104,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_kernel_restarted_message = Signal(str)
 
     # Kernel died and restarted (not user requested)
-    sig_kernel_died_restarted = Signal()
     sig_prompt_ready = Signal()
     sig_remote_execute = Signal()
 
@@ -155,12 +116,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # To save values and messages returned by the kernel
     _kernel_is_starting = True
 
-    # Request plugins to send additional configuration to the kernel
-    sig_config_kernel_requested = Signal()
+    # Request plugins to send additional configuration to the Spyder kernel
+    sig_config_spyder_kernel = Signal()
 
     # To notify of kernel connection / disconnection
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
+
+    # To request restart
+    sig_restart_kernel = Signal()
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  handlers, *args, **kw):
@@ -168,9 +132,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
-        self.spyder_kernel_comm = KernelComm()
-        self.spyder_kernel_comm.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
+
         super(ShellWidget, self).__init__(*args, **kw)
         self.ipyclient = ipyclient
         self.additional_options = additional_options
@@ -190,15 +152,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_manager = None
         self.kernel_client = None
+        self._init_kernel_setup = False
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
             'set_debug_state': self.set_debug_state,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
         })
-        for request_id in handlers:
-            self.spyder_kernel_comm.register_call_handler(
-                request_id, handlers[request_id])
+        self.kernel_comm_handlers = handlers
 
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
@@ -214,20 +175,103 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return False
         return self.kernel_handler.known_spyder_kernel
 
-    def connect_kernel(self, kernel_handler):
+    @property
+    def spyder_kernel_ready(self):
+        """
+        Check if Spyder kernel is ready.
+        
+        Notes
+        -----
+        This is used for our tests.
+        """
+        if self.kernel_handler is None:
+            return False
+        return (
+            self.kernel_handler.connection_state ==
+            KernelConnectionState.SpyderKernelReady)
+
+    def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect to the kernel using our handler."""
         # Kernel client
         kernel_client = kernel_handler.kernel_client
         kernel_client.stopped_channels.connect(self.notify_deleted)
-        kernel_client.start_channels()
         self.kernel_client = kernel_client
 
         self.kernel_manager = kernel_handler.kernel_manager
         self.kernel_handler = kernel_handler
-        
-        # Send message to kernel to check status
-        self.check_spyder_kernel()
-        self.sig_shellwidget_created.emit(self)
+
+        if first_connect:
+            # Let plugins know that a new kernel is connected
+            self.sig_shellwidget_created.emit(self)
+        else:
+            # Set _starting to False to avoid reset at first prompt
+            self._starting = False
+
+        # Connect signals
+        kernel_handler.sig_kernel_is_ready.connect(
+            self.handle_kernel_is_ready)
+        kernel_handler.sig_kernel_connection_error.connect(
+            self.handle_kernel_connection_error)
+
+        kernel_handler.connect()
+
+    def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
+        """
+        Disconnect from current kernel.
+
+        Parameters:
+        -----------
+        shutdown_kernel: bool
+            If True, the kernel is shut down.
+        will_reconnect: bool
+            If False, emits `sig_shellwidget_deleted` so the plugins can close
+            related widgets.
+        """
+        kernel_handler = self.kernel_handler
+        if not kernel_handler:
+            return
+        kernel_client = kernel_handler.kernel_client
+
+        kernel_handler.sig_kernel_is_ready.disconnect(
+            self.handle_kernel_is_ready)
+        kernel_handler.sig_kernel_connection_error.disconnect(
+            self.handle_kernel_connection_error)
+        kernel_handler.kernel_client.stopped_channels.disconnect(
+            self.notify_deleted)
+
+        if self._init_kernel_setup:
+            self._init_kernel_setup = False
+
+            kernel_handler.kernel_comm.sig_exception_occurred.disconnect(
+                self.sig_exception_occurred)
+            kernel_client.control_channel.message_received.disconnect(
+                self._dispatch)
+
+        kernel_handler.close(shutdown_kernel)
+        if not will_reconnect:
+            self.notify_deleted()
+        # Reset state
+        self.reset_kernel_state()
+
+        self.kernel_client = None
+        self.kernel_manager = None
+        self.kernel_handler = None
+
+    def handle_kernel_is_ready(self):
+        """The kernel is ready"""
+        if (
+            self.kernel_handler.connection_state ==
+            KernelConnectionState.SpyderKernelReady
+        ):
+            self.setup_spyder_kernel()
+            return
+
+    def handle_kernel_connection_error(self):
+        """An error occurred when connecting to the kernel."""
+        if self.kernel_handler.connection_state == KernelConnectionState.Error:
+            # A wrong version is connected
+            self.append_html_message(
+                self.kernel_handler.kernel_error_message, before_prompt=True)
 
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""
@@ -238,23 +282,20 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.shutting_down:
             return
         self.shutting_down = True
-        self.close_kernel(shutdown_kernel)
+        self.kernel_handler.close(shutdown_kernel)
         super().shutdown()
-
-    def close_kernel(self, shutdown_kernel=True):
-        """Close the kernel"""
-        try:
-            self.kernel_handler.close(shutdown_kernel)
-        except AttributeError:
-            pass
-
-        # Reset state
-        self.reset_kernel_state()
 
     def reset_kernel_state(self):
         """Reset the kernel state."""
         self._prompt_requested = False
         self._pdb_recursion_level = 0
+        self._reading = False
+
+    def print_restart_message(self):
+        """Print restart message."""
+        self._append_html(
+            _("<br>Restarting kernel...<br>"), before_prompt=True)
+        self.insert_horizontal_ruler()
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None, display_error=False):
@@ -280,7 +321,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         display_error: bool
             If an error occurs, should it be printed to the console.
         """
-        return self.spyder_kernel_comm.remote_call(
+        return self.kernel_handler.kernel_comm.remote_call(
             interrupt=interrupt,
             blocking=blocking,
             callback=callback,
@@ -295,44 +336,64 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def setup_spyder_kernel(self):
         """Setup spyder kernel"""
-        self.kernel_handler.open_comm(self.spyder_kernel_comm)
+        if not self._init_kernel_setup:
+            # Only do this setup once
+            self._init_kernel_setup = True
+            
+            # For errors
+            self.kernel_handler.kernel_comm.sig_exception_occurred.connect(
+                self.sig_exception_occurred)
 
-        # For completions
-        self.kernel_client.control_channel.message_received.connect(
-            self._dispatch)
+            # For completions
+            self.kernel_client.control_channel.message_received.connect(
+                self._dispatch)
 
-        # Redefine the complete method to work while debugging.
-        self._redefine_complete_for_dbg(self.kernel_client)
+            # Redefine the complete method to work while debugging.
+            self._redefine_complete_for_dbg(self.kernel_client)
 
-        # Send configuration
+            for request_id, handler in self.kernel_comm_handlers.items():
+                self.kernel_handler.kernel_comm.register_call_handler(
+                    request_id, handler)
+
+        # Setup to do after restart
+        # Check for fault and send config
+        self.kernel_handler.poll_fault_text()
+
+        # Show possible errors when setting Matplotlib backend
+        self.call_kernel().show_mpl_backend_errors()
+
+        # Check if the dependecies for special consoles are available.
+        self.call_kernel(
+            callback=self.ipyclient._show_special_console_error
+            ).is_special_kernel_valid()
+
         self.send_spyder_kernel_configuration()
+
+    def send_spyder_kernel_configuration(self):
+        """Send kernel configuration to spyder kernel."""
+        # Set current cwd
+        self.set_cwd()
+
+        # To apply style
+        self.set_color_scheme(self.syntax_style, reset=False)
+
+        # Enable faulthandler
+        self.kernel_handler.enable_faulthandler()
+
+        # Give a chance to plugins to configure the kernel
+        self.sig_config_spyder_kernel.emit()
 
     def pop_execute_queue(self):
         """Pop one waiting instruction."""
         if self._execute_queue:
             self.execute(*self._execute_queue.pop(0))
 
-    def send_spyder_kernel_configuration(self):
-        """Send kernel configuration to spyder kernel."""
-        # To apply style
-        self.set_color_scheme(self.syntax_style, reset=False)
-
-        ffn = self.kernel_handler.get_fault_filename()
-
-        # Enable faulthandler
-        if ffn:
-            # To display faulthandler
-            self.call_kernel().enable_faulthandler(ffn)
-
-        # Give a chance to plugins to configure the kernel
-        self.sig_config_kernel_requested.emit()
-
     def interrupt_kernel(self):
         """Attempts to interrupt the running kernel."""
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
         self._execute_queue = []
-        if self.is_spyder_kernel:
+        if self.spyder_kernel_ready:
             self._reading = False
             self.call_kernel(interrupt=True).raise_interrupt_signal()
         else:
@@ -355,68 +416,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         super(ShellWidget, self).execute(source, hidden, interactive)
 
     def is_running(self):
-        if self.kernel_client is not None and \
-          self.kernel_client.channels_running:
-            return True
-        else:
-            return False
+        """Check if shell is running."""
+        return (
+            self.kernel_client is not None and
+            self.kernel_client.channels_running
+        )
 
-    def check_spyder_kernel(self):
-        """Determine if the kernel is from Spyder."""
-        code = "getattr(get_ipython(), '_spyder_kernels_version', False)"
-        if self._reading:
-            return
-        else:
-            self._silent_exec_callback(code, self.check_spyder_kernel_callback)
-
-    def check_spyder_kernel_callback(self, reply):
-        """
-        Check if the Spyder-kernels version is the right one after receiving it
-        from the kernel.
-
-        If the kernel is non-locally managed, check if it is a spyder-kernel.
-        """
-        # Process kernel reply
-        data = reply.get('data')
-        if data is not None and 'text/plain' in data:
-            spyder_kernel_info = ast.literal_eval(data['text/plain'])
-            if not spyder_kernel_info:
-                if self.is_spyder_kernel:
-                    # spyder-kernels version < 3.0
-                    self.append_html_message(
-                        ERROR_SPYDER_KERNEL_VERSION_OLD.format(
-                            SPYDER_KERNELS_MIN_VERSION,
-                            SPYDER_KERNELS_MAX_VERSION,
-                            SPYDER_KERNELS_CONDA,
-                            SPYDER_KERNELS_PIP
-                        ),
-                        before_prompt=True
-                    )
-                    self.kernel_handler.known_spyder_kernel = False
-                return
-
-            version, pyexec = spyder_kernel_info
-            if not check_version_range(version, SPYDER_KERNELS_VERSION):
-                # Development versions are acceptable
-                if "dev0" not in version:
-                    self.append_html_message(
-                        ERROR_SPYDER_KERNEL_VERSION.format(
-                            pyexec,
-                            version,
-                            SPYDER_KERNELS_MIN_VERSION,
-                            SPYDER_KERNELS_MAX_VERSION,
-                            SPYDER_KERNELS_CONDA,
-                            SPYDER_KERNELS_PIP
-                        ),
-                        before_prompt=True
-                    )
-                    self.kernel_handler.known_spyder_kernel = False
-                    return
-
-            self.kernel_handler.known_spyder_kernel = True
-            self.setup_spyder_kernel()
-
-    def set_cwd(self, dirname, emit_cwd_change=False):
+    def set_cwd(self, dirname=None, emit_cwd_change=False):
         """
         Set shell current working directory.
 
@@ -428,16 +434,28 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             Whether to emit a Qt signal that informs other panes in Spyder that
             the current working directory has changed.
         """
-        if os.name == 'nt':
+        if self.ipyclient.hostname is not None:
+            # Only sync for local kernels
+            return
+
+        if dirname is None:
+            if not self._cwd:
+                return
+            dirname = self._cwd
+        elif os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
 
-        if self.ipyclient.hostname is None:
-            self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
-            self._cwd = dirname
-            if emit_cwd_change:
-                self.sig_working_directory_changed.emit(self._cwd)
+        if self.spyder_kernel_ready:
+            # Otherwise cwd will be sent later
+            self.call_kernel(
+                interrupt=self.is_debugging()
+            ).set_cwd(dirname)
+
+        self._cwd = dirname
+        if emit_cwd_change:
+            self.sig_working_directory_changed.emit(self._cwd)
 
     def get_cwd(self):
         """
@@ -457,7 +475,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         Update working directory in Spyder after getting its value from the
         kernel.
         """
-        if self.kernel_client is None:
+        if not self.spyder_kernel_ready:
+            # Frontend sends first
             return
         self.call_kernel(callback=self.on_getting_cwd).get_cwd()
 
@@ -485,6 +504,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._syntax_style_changed()
         if reset:
             self.reset(clear=True)
+        if not self.spyder_kernel_ready:
+            # Will be sent later
+            return
         if not dark_color:
             # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
@@ -736,7 +758,7 @@ the sympy module (e.g. plot)
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
 
-                if self.is_spyder_kernel:
+                if self.spyder_kernel_ready:
                     self.call_kernel().close_all_mpl_figures()
                     self.send_spyder_kernel_configuration()
         except AttributeError:
@@ -768,7 +790,7 @@ the sympy module (e.g. plot)
             parent=self)
 
         restart_kernel = self.config_shortcut(
-            self.ipyclient.restart_kernel,
+            self.sig_restart_kernel,
             context='ipython_console',
             name='Restart kernel',
             parent=self)
@@ -896,9 +918,15 @@ the sympy module (e.g. plot)
         self._control.insert_horizontal_ruler()
 
     # ---- Public methods (overrode by us) ------------------------------------
-    def request_restart_kernel(self):
-        """Reimplemented to call our own restart mechanism."""
-        self.ipyclient.restart_kernel()
+    def _event_filter_console_keypress(self, event):
+        """Filter events to send to qtconsole code."""
+        key = event.key()
+        if self._control_key_down(event.modifiers(), include_command=False):
+            if key == QtCore.Qt.Key_Period:
+                # Do not use ctrl + . to restart kernel
+                # Handled by IPythonConsoleWidget
+                return False
+        return super()._event_filter_console_keypress(event)
 
     def adjust_indentation(self, line, indent_adjustment):
         """Adjust indentation."""
@@ -1069,11 +1097,31 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+
+        if died and self.kernel_manager is None:
+            # The kernel might never restart, show position of fault file
+            msg += (
+                "\n" + _("Its crash file is located at:") + " "
+                + self.kernel_handler.fault_filename()
+            )
+
         self.sig_kernel_restarted_message.emit(msg)
 
     def _handle_kernel_restarted(self, *args, **kwargs):
-        super(ShellWidget, self)._handle_kernel_restarted(*args, **kwargs)
-        self.sig_kernel_died_restarted.emit()
+        """The kernel restarted."""
+        super()._handle_kernel_restarted(*args, **kwargs)
+
+        # Print restart message
+        self.print_restart_message()
+
+        # Reset Pdb state
+        self.reset_kernel_state()
+
+        # reset comm
+        self.kernel_handler.reopen_comm()
+
+        # In case anyone waits on end of execution
+        self.executed.emit({})
 
     @observe('syntax_style')
     def _syntax_style_changed(self, changed=None):

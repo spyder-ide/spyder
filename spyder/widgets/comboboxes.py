@@ -212,11 +212,14 @@ class PathComboBox(EditableComboBox):
     """
     open_dir = Signal(str)
 
-    def __init__(self, parent, adjust_to_contents=False, id_=None):
+    def __init__(self, parent, adjust_to_contents=False, id_=None,
+                 elide_text=False, ellipsis_place=Qt.ElideLeft):
         EditableComboBox.__init__(self, parent)
 
-        # Replace the default lineedit by a custom one with icon display
-        lineedit = IconLineEdit(self)
+        # Replace the default lineedit with a custom one with icon display
+        # and elided text
+        lineedit = IconLineEdit(self, elide_text=elide_text,
+                                ellipsis_place=ellipsis_place)
 
         # Widget setup
         if adjust_to_contents:
