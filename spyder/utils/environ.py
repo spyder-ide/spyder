@@ -19,7 +19,7 @@ except Exception:
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
@@ -51,19 +51,22 @@ def get_user_environment_variables():
     env_var : dict
         Key-value pairs of environment variables.
     """
+    # Do not use clean environment when running tests in order to simulate
+    # injecting external environment variables.
+    env = None if running_under_pytest() else {}
+
     try:
         if os.name == 'nt':
-            proc = run_shell_command("set", env={}, text=True)
+            proc = run_shell_command("set", env=env, text=True)
             stdout, stderr = proc.communicate()
             res = stdout.strip().split(os.linesep)
         else:
             # Use custom delimiter in case values have newlines: spyder-ide#20097
-            # Use login shell with clean environment
             cmd = (
                 f"{os.environ['SHELL']} -l -c "
                 """'for k in $(env); do echo "####$k"; done'"""
             )
-            proc = run_shell_command(cmd, env={}, text=True)
+            proc = run_shell_command(cmd, env=env, text=True)
             stdout, stderr = proc.communicate()
             res = stdout.split("####")[1:]
     except Exception:
