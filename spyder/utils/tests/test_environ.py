@@ -7,6 +7,8 @@
 """
 Tests for environ.py
 """
+# Standard library imports
+import os
 
 # Test library imports
 import pytest
@@ -36,6 +38,13 @@ def test_get_user_environment_variables():
     # Windows may have mixed case.
     keys = {k.lower() for k in get_user_environment_variables()}
     assert "path" in keys
+
+    # Test variable value with newline characters.
+    # Regression test for spyder-ide#20097
+    user_var = f"This is a variable with {os.linesep} characters"
+    os.environ['USER_VAR'] = user_var
+    user_env = get_user_environment_variables()
+    assert user_env['USER_VAR'] == user_var
 
 
 def test_environ(environ_dialog, qtbot):
