@@ -374,7 +374,7 @@ def test_banners(ipyconsole, qtbot):
     [("arange",
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "<br>Python built-in `range` function, but returns an ndarray ..."]),
+       "open interval ..."]),
      ("vectorize",
       ["pyfunc", "otype", "signature"],
       ["Generalized function class.<br>",

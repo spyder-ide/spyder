@@ -31,13 +31,6 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y
-
-    # Numpy 1.23 is not giving completions on the editor and the console
-    if [ "$OS" = "win" ]; then
-        mamba install numpy=1.22
-    else
-        mamba install 'numpy<1.23'
-    fi
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -53,9 +46,6 @@ else
 
     # To check our manifest and coverage
     pip install -q check-manifest codecov
-
-    # Numpy 1.23 is not giving completions on the editor and the console
-    pip install 'numpy<1.23'
 
     # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
