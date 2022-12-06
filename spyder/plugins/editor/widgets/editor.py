@@ -2729,6 +2729,13 @@ class EditorStack(QWidget):
         # Set timeout to sync symbols and folding
         finfo.editor.set_sync_symbols_and_folding_timeout()
 
+        # Unhighlight and rehighlight current line to prevent a visual glitch
+        # when opening files.
+        # Fixes spyder-ide/spyder#20033
+        finfo.editor.unhighlight_current_line()
+        if self.highlight_current_line_enabled:
+            finfo.editor.highlight_current_line()
+
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
