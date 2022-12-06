@@ -339,8 +339,10 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
-        elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End) and not modifier:
+        elif (
+            key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown)
+            and not modifier
+        ):
             self.textedit._completions_hint_idle = True
             if key == Qt.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
@@ -348,6 +350,12 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                 self.setCurrentRow(0)
             else:
                 QListWidget.keyPressEvent(self, event)
+        elif key in (Qt.Key_Home, Qt.Key_End):
+            # This allows users to easily move to the beginning/end of the
+            # current line when this widget is visible.
+            # Fixes spyder-ide/spyder#19989
+            self.hide()
+            self.textedit.keyPressEvent(event)
         elif key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)
