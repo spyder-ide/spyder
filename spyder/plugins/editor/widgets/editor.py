@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
+from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -366,11 +367,13 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
-        ccs = 'spyder/dark'
-        if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
-            ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
-        self.color_scheme = ccs
         self.__file_status_flag = False
+
+        # Set default color scheme
+        color_scheme = 'spyder/dark' if is_dark_interface() else 'spyder'
+        if color_scheme not in syntaxhighlighters.COLOR_SCHEME_NAMES:
+            color_scheme = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
+        self.color_scheme = color_scheme
 
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
@@ -2679,40 +2682,60 @@ class EditorStack(QWidget):
     def load(self, filename, set_current=True, add_where='end',
              processevents=True):
         """
-        Load filename, create an editor instance and return it
+        Load filename, create an editor instance and return it.
 
         This also sets the hash of the loaded file in the autosave component.
-
-        *Warning* This is loading file, creating editor but not executing
-        the source code analysis -- the analysis must be done by the editor
-        plugin (in case multiple editorstack instances are handled)
         """
         filename = osp.abspath(to_text_string(filename))
+
         if processevents:
             self.starting_long_process.emit(_("Loading %s...") % filename)
+
+        # Read file contents
         text, enc = encoding.read(filename)
+
+        # Associate hash of file's text with its name for autosave
         self.autosave.file_hashes[filename] = hash(text)
+
+        # Create editor
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
+
         if processevents:
             self.ending_long_process.emit("")
-        if self.isVisible() and self.checkeolchars_enabled \
-           and sourcecode.has_mixed_eol_chars(text):
+
+        # Fix mixed EOLs
+        if (
+            self.isVisible() and self.checkeolchars_enabled
+            and sourcecode.has_mixed_eol_chars(text)
+        ):
             name = osp.basename(filename)
             self.msgbox = QMessageBox(
-                    QMessageBox.Warning,
-                    self.title,
-                    _("<b>%s</b> contains mixed end-of-line "
-                      "characters.<br>Spyder will fix this "
-                      "automatically.") % name,
-                    QMessageBox.Ok,
-                    self)
+                QMessageBox.Warning,
+                self.title,
+                _("<b>%s</b> contains mixed end-of-line characters.<br>"
+                  "Spyder will fix this automatically.") % name,
+                QMessageBox.Ok,
+                self
+            )
             self.msgbox.exec_()
             self.set_os_eol_chars(index)
+
+        # Analyze file for TODOs, FIXMEs, etc
         self.is_analysis_done = False
         self.analyze_script(index)
+
+        # Set timeout to sync symbols and folding
         finfo.editor.set_sync_symbols_and_folding_timeout()
+
+        # Unhighlight and rehighlight current line to prevent a visual glitch
+        # when opening files.
+        # Fixes spyder-ide/spyder#20033
+        finfo.editor.unhighlight_current_line()
+        if self.highlight_current_line_enabled:
+            finfo.editor.highlight_current_line()
+
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
