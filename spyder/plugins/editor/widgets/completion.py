@@ -385,6 +385,10 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                 if QKeySequence(key_sequence) == QKeySequence(save_shortcut):
                     self.textedit.sig_save_requested.emit()
 
+                    # Hiding the widget reassures users that the save operation
+                    # took place.
+                    self.hide()
+
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)
         elif modifier:
