@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
+from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -366,11 +367,13 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
-        ccs = 'spyder/dark'
-        if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
-            ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
-        self.color_scheme = ccs
         self.__file_status_flag = False
+
+        # Set default color scheme
+        color_scheme = 'spyder/dark' if is_dark_interface() else 'spyder'
+        if color_scheme not in syntaxhighlighters.COLOR_SCHEME_NAMES:
+            color_scheme = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
+        self.color_scheme = color_scheme
 
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
