@@ -2682,40 +2682,53 @@ class EditorStack(QWidget):
     def load(self, filename, set_current=True, add_where='end',
              processevents=True):
         """
-        Load filename, create an editor instance and return it
+        Load filename, create an editor instance and return it.
 
         This also sets the hash of the loaded file in the autosave component.
-
-        *Warning* This is loading file, creating editor but not executing
-        the source code analysis -- the analysis must be done by the editor
-        plugin (in case multiple editorstack instances are handled)
         """
         filename = osp.abspath(to_text_string(filename))
+
         if processevents:
             self.starting_long_process.emit(_("Loading %s...") % filename)
+
+        # Read file contents
         text, enc = encoding.read(filename)
+
+        # Associate hash of file's text with its name for autosave
         self.autosave.file_hashes[filename] = hash(text)
+
+        # Create editor
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
+
         if processevents:
             self.ending_long_process.emit("")
-        if self.isVisible() and self.checkeolchars_enabled \
-           and sourcecode.has_mixed_eol_chars(text):
+
+        # Fix mixed EOLs
+        if (
+            self.isVisible() and self.checkeolchars_enabled
+            and sourcecode.has_mixed_eol_chars(text)
+        ):
             name = osp.basename(filename)
             self.msgbox = QMessageBox(
-                    QMessageBox.Warning,
-                    self.title,
-                    _("<b>%s</b> contains mixed end-of-line "
-                      "characters.<br>Spyder will fix this "
-                      "automatically.") % name,
-                    QMessageBox.Ok,
-                    self)
+                QMessageBox.Warning,
+                self.title,
+                _("<b>%s</b> contains mixed end-of-line characters.<br>"
+                  "Spyder will fix this automatically.") % name,
+                QMessageBox.Ok,
+                self
+            )
             self.msgbox.exec_()
             self.set_os_eol_chars(index)
+
+        # Analyze file for TODOs, FIXMEs, etc
         self.is_analysis_done = False
         self.analyze_script(index)
+
+        # Set timeout to sync symbols and folding
         finfo.editor.set_sync_symbols_and_folding_timeout()
+
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
