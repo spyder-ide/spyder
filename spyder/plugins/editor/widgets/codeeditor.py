@@ -524,6 +524,7 @@ class CodeEditor(TextEditBaseWidget):
         self.format_on_save = False
         self.format_eventloop = QEventLoop(None)
         self.format_timer = QTimer(self)
+        self.__cursor_position_before_format = 0
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -1744,6 +1745,10 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Document/Selection formatting --------------------
     def format_document_or_range(self):
+        # Save current cursor position to restore it after the current text has
+        # been replaced by the auto-formatted one.
+        self.__cursor_position_before_format = self.textCursor().position()
+
         if self.has_selected_text() and self.range_formatting_enabled:
             self.format_document_range()
         else:
@@ -1926,13 +1931,29 @@ class CodeEditor(TextEditBaseWidget):
         if merged_text is not None:
             # Restore eol chars after applying edits.
             merged_text = merged_text.replace('\n', self.get_line_separator())
-
             cursor = self.textCursor()
+
+            # Begin text insertion
             cursor.beginEditBlock()
+
+            # Select current text
             cursor.movePosition(QTextCursor.Start)
             cursor.movePosition(QTextCursor.End,
                                 QTextCursor.KeepAnchor)
+
+            # Insert formatted text in place of the previous one
             cursor.insertText(merged_text)
+
+            # Don't run the lines below when testing because they give
+            # segfaults.
+            if not running_under_pytest():
+                # Restore previous cursor position and center it.
+                # Fixes spyder-ide/spyder#19958
+                cursor.setPosition(self.__cursor_position_before_format)
+                self.setTextCursor(cursor)
+                self.centerCursor()
+
+            # End text insertion
             cursor.endEditBlock()
 
     # ------------- LSP: Code folding ranges -------------------------------
