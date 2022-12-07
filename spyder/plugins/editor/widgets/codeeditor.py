@@ -1745,6 +1745,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Document/Selection formatting --------------------
     def format_document_or_range(self):
+        """Format current document or selected text."""
         # Save current cursor position to restore it after the current text has
         # been replaced by the auto-formatted one.
         self.__cursor_position_before_format = self.textCursor().position()
@@ -1756,6 +1757,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):
+        """Format current document."""
         if not self.formatting_enabled:
             return
         if self.formatting_in_progress:
@@ -1788,6 +1790,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def format_document_range(self):
+        """Format selected text."""
         if not self.range_formatting_enabled or not self.has_selected_text():
             return
         if self.formatting_in_progress:
@@ -1835,6 +1838,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
     def handle_document_formatting(self, edits):
+        """Handle document formatting response."""
         try:
             if self.formatting_in_progress:
                 self._apply_document_edits(edits)
@@ -1856,6 +1860,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def handle_document_range_formatting(self, edits):
+        """Handle document range formatting response."""
         try:
             if self.formatting_in_progress:
                 self._apply_document_edits(edits)
