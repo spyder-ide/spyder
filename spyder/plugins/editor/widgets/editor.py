@@ -2397,8 +2397,11 @@ class EditorStack(QWidget):
 
     def refresh(self, index=None):
         """Refresh tabwidget"""
+        logger.debug("Refresh EditorStack")
+
         if index is None:
             index = self.get_stack_index()
+
         # Set current editor
         if self.get_stack_count():
             index = self.get_stack_index()
@@ -2414,8 +2417,10 @@ class EditorStack(QWidget):
             self.update_plugin_title.emit()
         else:
             editor = None
+
         # Update the modification-state-dependent parameters
         self.modification_changed()
+
         # Update FindReplace binding
         self.find_widget.set_editor(editor, refresh=False)
 
@@ -2429,21 +2434,27 @@ class EditorStack(QWidget):
             for index, _finfo in enumerate(self.data):
                 if id(_finfo.editor) == editor_id:
                     break
+
         # This must be done before refreshing save/save all actions:
         # (otherwise Save/Save all actions will always be enabled)
         self.opened_files_list_changed.emit()
-        # --
+
+        # Get index
         if index is None:
             index = self.get_stack_index()
+
         if index == -1:
             return
+
         finfo = self.data[index]
         if state is None:
             state = finfo.editor.document().isModified() or finfo.newly_created
         self.set_stack_title(index, state)
+
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
         self.refresh_save_all_action.emit()
+
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
         self.refresh_eol_chars(eol_chars)
