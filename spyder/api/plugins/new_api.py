@@ -279,6 +279,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         Unmaximize plugin only if it is not `plugin_instance`.
     """
 
+    sig_mainwindow_state_changed = Signal(object)
+    """
+    This signal is emitted when the main window state has changed (for
+    instance, between maximized and minimized states).
+
+    Parameters
+    ----------
+    window_state: Qt.WindowStates
+        The window state.
+    """
+
     # --- Private attributes -------------------------------------------------
     # ------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration

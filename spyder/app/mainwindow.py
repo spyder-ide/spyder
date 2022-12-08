@@ -145,6 +145,17 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     # To be removed in Spyder 6
     sig_pythonpath_changed = Signal(object, object)
 
+    sig_window_state_changed = Signal(object)
+    """
+    This signal is emitted when the window state has changed (for instance,
+    between maximized and minimized states).
+
+    Parameters
+    ----------
+    window_state: Qt.WindowStates
+        The window state.
+    """
+
     def __init__(self, splash=None, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
@@ -422,6 +433,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Connect Main window Signals to plugin signals
         self.sig_moved.connect(plugin.sig_mainwindow_moved)
         self.sig_resized.connect(plugin.sig_mainwindow_resized)
+        self.sig_window_state_changed.connect(
+            plugin.sig_mainwindow_state_changed)
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
