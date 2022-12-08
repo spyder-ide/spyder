@@ -4393,11 +4393,10 @@ def test_update_outline(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
-@pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.order(3)
 @pytest.mark.preload_namespace_project
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
 @pytest.mark.known_leak
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Doesn't work on Mac")
 def test_no_update_outline(main_window, qtbot, tmpdir):
     """
     Test the Outline is not updated in different scenarios.
@@ -4550,7 +4549,27 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: all(trees_update_state(treewidget_on_window)))
     check_symbols_number(1, treewidget_on_window)
 
-    # Close editor window
+    # Show Outline, minimize main window and change code in editor window
+    outline_explorer.toggle_view_action.setChecked(True)
+    main_window.showMinimized()
+    editorwindow.activateWindow()
+    write_code("def bar{i}(y):\n    return y\n\ndef baz{i}(z):\n    return z",
+               treewidget_on_window)
+
+    qtbot.waitUntil(lambda: editors_with_info(treewidget_on_window),
+                    timeout=5000)
+
+    # Check Outline on main window was not updated
+    assert not any(trees_update_state(treewidget))
+
+    # Restore main window and check Outline is updated
+    main_window.showNormal()
+    main_window.showMaximized()
+    qtbot.waitUntil(lambda: all(trees_update_state(treewidget)))
+    check_symbols_number(2, treewidget)
+
+    # Hide Outline and close editor window
+    outline_explorer.toggle_view_action.setChecked(False)
     editorwindow.close()
     qtbot.wait(1000)
 
