@@ -2717,16 +2717,23 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot()
     def go_to_last_edit_location(self):
-        if self.last_edit_cursor_pos is not None:
-            filename, position = self.last_edit_cursor_pos
-            if not osp.isfile(filename):
-                self.last_edit_cursor_pos = None
-                return
-            else:
-                self.load(filename)
-                editor = self.get_current_editor()
-                if position < editor.document().characterCount():
-                    editor.set_cursor_position(position)
+        if self.last_edit_cursor_pos is None:
+            return
+
+        filename, position = self.last_edit_cursor_pos
+        editor = None
+        if osp.isfile(filename):
+            self.load(filename)
+            editor = self.get_current_editor()
+        else:
+            editor = self.set_current_filename(filename)
+
+        if editor is None:
+            self.last_edit_cursor_pos = None
+            return
+
+        if position < editor.document().characterCount():
+            editor.set_cursor_position(position)
 
     def _pop_next_cursor_diff(self, history, current_filename, current_cursor):
         """Get the next cursor from history that is different from current."""
