@@ -69,7 +69,8 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.Source, _("Sour&ce"), dynamic=False)
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
         create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
-        create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
+        if self.is_plugin_enabled(Plugins.IPythonConsole):
+            create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
         if self.is_plugin_enabled(Plugins.Projects):
             create_app_menu(ApplicationMenus.Projects, _("&Projects"))
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
