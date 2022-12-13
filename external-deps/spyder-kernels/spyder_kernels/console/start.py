@@ -255,12 +255,20 @@ def varexp(line):
     ip = get_ipython()       #analysis:ignore
     funcname, name = line.split()
     try:
-        import guiqwt.pyplot as pyplot
-    except:
-        import matplotlib.pyplot as pyplot
-    pyplot.figure();
-    getattr(pyplot, funcname[2:])(ip.kernel._get_current_namespace()[name])
-    pyplot.show()
+        data = ip.kernel._get_current_namespace()[name]
+    except KeyError:
+        print("\033[41mVariable %s does not exist in current namespace.\033[0m" % name)
+    plotlib = os.environ.get('SPY_VAREXP_PLOTLIB')
+    try:
+        pyplot = __import__(plotlib + '.pyplot', globals(), locals(), [], 0).pyplot
+        pyplot.figure()
+        getattr(pyplot, funcname[2:])(data)
+        pyplot.show()
+    except (ImportError, ModuleNotFoundError):
+        print("\033[41mPlease install %s or select an available plotting library "
+              "in Variable Explorer preferences.\033[0m" % plotlib)
+    except Exception:
+        ip.showtraceback(sys.exc_info())
 
 
 def main():
