@@ -201,18 +201,19 @@ def pylsp_settings():
 
 
 @hookimpl
-def pylsp_lint(config, document, is_saved):
+def pylsp_lint(config, workspace, document, is_saved):
     """Run pylint linter."""
-    settings = config.plugin_settings('pylint')
-    log.debug("Got pylint settings: %s", settings)
-    # pylint >= 2.5.0 is required for working through stdin and only
-    # available with python3
-    if settings.get('executable') and sys.version_info[0] >= 3:
-        flags = build_args_stdio(settings)
-        pylint_executable = settings.get('executable', 'pylint')
-        return pylint_lint_stdin(pylint_executable, document, flags)
-    flags = _build_pylint_flags(settings)
-    return PylintLinter.lint(document, is_saved, flags=flags)
+    with workspace.report_progress("lint: pylint"):
+        settings = config.plugin_settings('pylint')
+        log.debug("Got pylint settings: %s", settings)
+        # pylint >= 2.5.0 is required for working through stdin and only
+        # available with python3
+        if settings.get('executable') and sys.version_info[0] >= 3:
+            flags = build_args_stdio(settings)
+            pylint_executable = settings.get('executable', 'pylint')
+            return pylint_lint_stdin(pylint_executable, document, flags)
+        flags = _build_pylint_flags(settings)
+        return PylintLinter.lint(document, is_saved, flags=flags)
 
 
 def build_args_stdio(settings):

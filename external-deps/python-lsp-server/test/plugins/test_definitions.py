@@ -35,7 +35,7 @@ def test_definitions(config, workspace):
     }
 
     doc = Document(DOC_URI, workspace, DOC)
-    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, doc, cursor_pos)
+    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, workspace, doc, cursor_pos)
 
 
 def test_builtin_definition(config, workspace):
@@ -44,7 +44,7 @@ def test_builtin_definition(config, workspace):
 
     # No go-to def for builtins
     doc = Document(DOC_URI, workspace, DOC)
-    assert not pylsp_definitions(config, doc, cursor_pos)
+    assert not pylsp_definitions(config, workspace, doc, cursor_pos)
 
 
 def test_assignment(config, workspace):
@@ -58,7 +58,7 @@ def test_assignment(config, workspace):
     }
 
     doc = Document(DOC_URI, workspace, DOC)
-    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, doc, cursor_pos)
+    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, workspace, doc, cursor_pos)
 
 
 def test_document_path_definitions(config, workspace_other_root_path, tmpdir):
@@ -91,4 +91,6 @@ def foo():
     module_path = str(p)
     module_uri = uris.from_fs_path(module_path)
 
-    assert [{'uri': module_uri, 'range': def_range}] == pylsp_definitions(config, doc, cursor_pos)
+    assert [{"uri": module_uri, "range": def_range}] == pylsp_definitions(
+        config, workspace_other_root_path, doc, cursor_pos
+    )
