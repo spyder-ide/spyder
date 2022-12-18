@@ -22,30 +22,31 @@ log = logging.getLogger(__name__)
 
 @hookimpl
 def pylsp_lint(workspace, document):
-    config = workspace._config
-    settings = config.plugin_settings('pycodestyle', document_path=document.path)
-    log.debug("Got pycodestyle settings: %s", settings)
+    with workspace.report_progress("lint: pycodestyle"):
+        config = workspace._config
+        settings = config.plugin_settings('pycodestyle', document_path=document.path)
+        log.debug("Got pycodestyle settings: %s", settings)
 
-    opts = {
-        'exclude': settings.get('exclude'),
-        'filename': settings.get('filename'),
-        'hang_closing': settings.get('hangClosing'),
-        'ignore': settings.get('ignore'),
-        'max_line_length': settings.get('maxLineLength'),
-        'indent_size': settings.get('indentSize'),
-        'select': settings.get('select'),
-    }
-    kwargs = {k: v for k, v in opts.items() if v}
-    styleguide = pycodestyle.StyleGuide(kwargs)
+        opts = {
+            'exclude': settings.get('exclude'),
+            'filename': settings.get('filename'),
+            'hang_closing': settings.get('hangClosing'),
+            'ignore': settings.get('ignore'),
+            'max_line_length': settings.get('maxLineLength'),
+            'indent_size': settings.get('indentSize'),
+            'select': settings.get('select'),
+        }
+        kwargs = {k: v for k, v in opts.items() if v}
+        styleguide = pycodestyle.StyleGuide(kwargs)
 
-    c = pycodestyle.Checker(
-        filename=document.uri, lines=document.lines, options=styleguide.options,
-        report=PyCodeStyleDiagnosticReport(styleguide.options)
-    )
-    c.check_all()
-    diagnostics = c.report.diagnostics
+        c = pycodestyle.Checker(
+            filename=document.uri, lines=document.lines, options=styleguide.options,
+            report=PyCodeStyleDiagnosticReport(styleguide.options)
+        )
+        c.check_all()
+        diagnostics = c.report.diagnostics
 
-    return diagnostics
+        return diagnostics
 
 
 class PyCodeStyleDiagnosticReport(pycodestyle.BaseReport):
