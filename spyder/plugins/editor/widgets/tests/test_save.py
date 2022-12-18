@@ -23,6 +23,8 @@ from qtpy.QtCore import Qt
 from spyder.config.base import running_in_ci
 from spyder.plugins.editor.panels import DebuggerPanel
 from spyder.plugins.editor.widgets import editor
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
+    path_as_uri)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 
 
@@ -560,16 +562,56 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     """))
 
     # Folding and symbols are requested some time after text is changed (see
-    # usage of textChanged signal and _timer_sync_symbols_and_folding in CodeEditor).
+    # usage of textChanged signal and _timer_sync_symbols_and_folding in
+    # CodeEditor).
     qtbot.waitUntil(symbols_and_folding_requested, timeout=5000)
     qtbot.waitUntil(symbols_and_folding_processed, timeout=5000)
 
     # Check response by LSP
-    assert code_editor.handle_folding_range.call_args == mocker.call({'params': [(1, 3)]})
+    assert code_editor.handle_folding_range.call_args == \
+           mocker.call({'params': [(1, 3)]})
 
-    # BUG The empty response is actually an error: Symbols are not returned for new,
-    # yet unsaved files (interestingly, folding information is returned).
-    assert code_editor.process_symbols.call_args == mocker.call({'params': []})
+    symbols = [
+        {
+            'name': 'foo',
+            'containerName': None,
+            'location': {
+                'uri': path_as_uri(str(file_path)),
+                'range': {
+                    'start': {'line': 1, 'character': 0},
+                    'end': {'line': 4, 'character': 0}
+                }
+            },
+            'kind': 12
+        },
+        {
+            'name': 'a',
+            'containerName': 'foo',
+            'location': {
+                'uri': path_as_uri(str(file_path)),
+                'range': {
+                    'start': {'line': 2, 'character': 4},
+                    'end': {'line': 2, 'character': 9}
+                }
+            },
+            'kind': 13
+        },
+        {
+            'name': 'b',
+            'containerName': 'foo',
+            'location': {
+                'uri': path_as_uri(str(file_path)),
+                'range': {
+                    'start': {'line': 3, 'character': 4},
+                    'end': {'line': 3, 'character': 9}
+                }
+            },
+            'kind': 13
+        }
+    ]
+
+    assert code_editor.process_symbols.call_args == \
+           mocker.call({'params': symbols})
 
     # === Reset mocks
     code_editor.emit_request.reset_mock()
@@ -580,7 +622,8 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
 
     # === Use Save as
     new_filename = osp.join(tmpdir.strpath, 'new_filename.py')
-    mocker.patch.object(editorstack, 'select_savename', return_value=new_filename)
+    mocker.patch.object(editorstack, 'select_savename',
+                        return_value=new_filename)
     assert not osp.exists(new_filename)
     assert editorstack.save_as() is True
     assert editorstack.get_filenames() == [new_filename]
@@ -617,10 +660,12 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     # responded to the requests).
 
     # Check that LSP responded with updated folding and symbols information
-    assert code_editor.handle_folding_range.call_args == mocker.call({'params': [(1, 5), (7, 9)]})
+    assert code_editor.handle_folding_range.call_args == \
+           mocker.call({'params': [(1, 5), (7, 9)]})
 
     # There must be 7 symbols (2 functions and 5 variables)
     assert len(code_editor.process_symbols.call_args.args[0]['params']) == 7
+
 
 if __name__ == "__main__":
     pytest.main()
