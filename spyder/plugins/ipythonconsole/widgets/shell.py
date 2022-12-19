@@ -256,7 +256,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
         self._execute_queue = []
-        super(ShellWidget, self).interrupt_kernel()
+
+        # Check if there is a kernel that can be interrupted before trying to
+        # do it.
+        # Fixes spyder-ide/spyder#20212
+        if self.kernel_manager.has_kernel:
+            super(ShellWidget, self).interrupt_kernel()
+        else:
+            self._append_html(
+                _("The kernel appears to be dead, so it can't be interrupted. "
+                  "Please open a new console to keep working.")
+            )
 
     def execute(self, source=None, hidden=False, interactive=False):
         """

@@ -1870,7 +1870,6 @@ def get_test_data():
             'float16_scalar': np.float16(16),
             'float32_scalar': np.float32(32),
             'float64_scalar': np.float64(64),
-            'bool_scalar': np.bool(8),
             'bool__scalar': np.bool_(8),
             'timestamp': test_timestamp,
             'timedelta_pd': test_pd_td,
