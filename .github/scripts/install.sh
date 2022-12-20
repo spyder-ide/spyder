@@ -67,11 +67,11 @@ python -bb -X dev -W error -m build
 python -bb -X dev -W error -m pip install --no-deps dist/spyder*.whl
 
 # Create environment for Jedi environments tests
-mamba create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
+mamba create -n jedi-test-env -q -y python=3.9 flask spyder-kernels
 mamba list -n jedi-test-env
 
 # Create environment to test conda activation before launching a spyder kernel
-mamba create -n spytest-ž -q -y python=3.6 spyder-kernels
+mamba create -n spytest-ž -q -y python=3.9 spyder-kernels
 mamba list -n spytest-ž
 
 # Install pyenv in Posix systems

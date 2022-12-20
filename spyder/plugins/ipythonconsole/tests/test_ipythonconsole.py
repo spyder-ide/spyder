@@ -44,6 +44,7 @@ from spyder.config.base import (
     running_in_ci, running_in_ci_with_conda)
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
+from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
@@ -51,7 +52,7 @@ from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.utils.programs import get_temp_dir
-from spyder.utils.conda import is_conda_env
+from spyder.utils.conda import get_conda_root_prefix
 
 
 # =============================================================================
@@ -78,8 +79,11 @@ def get_console_background_color(style_sheet):
     return background_color
 
 
-def get_conda_test_env(test_env_name=u'spytest-ž'):
-    """Return the full prefix path of the given `test_env_name`."""
+def get_conda_test_env(test_env_name='spytest-ž'):
+    """
+    Return the full prefix path of the given `test_env_name` and its
+    executable.
+    """
     if 'envs' in sys.prefix:
         root_prefix = os.path.dirname(os.path.dirname(sys.prefix))
     else:
@@ -92,7 +96,7 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
     else:
         test_env_executable = os.path.join(test_env_prefix, 'bin', 'python')
 
-    return test_env_executable
+    return (test_env_prefix, test_env_executable)
 
 
 # =============================================================================
@@ -196,7 +200,7 @@ def ipyconsole(qtbot, request, tmpdir):
     if test_environment_interpreter:
         configuration.set('main_interpreter', 'default', False)
         configuration.set(
-            'main_interpreter', 'executable', get_conda_test_env())
+            'main_interpreter', 'executable', get_conda_test_env()[1])
     else:
         configuration.set('main_interpreter', 'default', True)
         configuration.set('main_interpreter', 'executable', '')
@@ -1657,6 +1661,8 @@ def test_calltip(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.test_environment_interpreter
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 def test_conda_env_activation(ipyconsole, qtbot):
     """
     Test that the conda environment associated with an external interpreter
@@ -1668,12 +1674,12 @@ def test_conda_env_activation(ipyconsole, qtbot):
     # Get conda activation environment variable
     with qtbot.waitSignal(shell.executed):
         shell.execute(
-            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')"
+        )
 
-    expected_output = get_conda_test_env().replace('\\', '/')
-    if is_conda_env(expected_output):
-        output = shell.get_value('conda_prefix').replace('\\', '/')
-        assert expected_output == output
+    expected_output = get_conda_test_env()[0].replace('\\', '/')
+    output = shell.get_value('conda_prefix').replace('\\', '/')
+    assert expected_output == output
 
 
 @flaky(max_runs=3)
@@ -2438,8 +2444,7 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
-    reason="Only runs on Linux")
+    not is_anaconda(), reason="Only works with Anaconda")
 def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     """Test that we show Spyder-kernels error message on restarts."""
     # Wait until the window is fully up
@@ -2449,11 +2454,13 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
 
     # Point to an interpreter without Spyder-kernels
     ipyconsole.set_conf('default', False, section='main_interpreter')
-    ipyconsole.set_conf('executable', '/usr/bin/python3',
-                        section='main_interpreter')
+    if os.name == 'nt':
+        pyexec = osp.join(get_conda_root_prefix(), 'python.exe')
+    else:
+        pyexec = osp.join(get_conda_root_prefix(), 'bin', 'python')
+    ipyconsole.set_conf('executable', pyexec, section='main_interpreter')
 
     # Restart kernel
-    os.environ['SPY_TEST_SHOW_RESTART_MESSAGE'] = 'true'
     ipyconsole.restart_kernel()
 
     # Assert we show a kernel error
@@ -2467,7 +2474,7 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
         timeout=6000
     )
 
-    # To check kernel error visually
+    # To check the kernel error visually
     qtbot.wait(500)
 
     # Check kernel related actions are disabled
