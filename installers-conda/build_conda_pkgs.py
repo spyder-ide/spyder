@@ -211,14 +211,18 @@ class SpyderCondaPkg(BuildCondaPkg):
         if search_patches.search(meta):
             # Append patch to existing patches
             meta = search_patches.sub(
-                rf'\g<0>    - {SPYPATCHFILE.as_posix()}\n', meta)
+                rf'\g<0>    - {SPYPATCHFILE.name}\n', meta
+            )
         else:
             # Add patch node
             meta = re.sub(
                 r'^source:\n([ ]{2,}.*\n)*',
-                rf'\g<0>  patches:\n    - {SPYPATCHFILE.as_posix()}\n',
+                rf'\g<0>  patches:\n    - {SPYPATCHFILE.name}\n',
                 meta, flags=re.MULTILINE
             )
+        # Copy source code patch to feedstock
+        src_patch = self._fdstk_path / "recipe" / SPYPATCHFILE.name
+        src_patch.write_text(SPYPATCHFILE.read_text())
 
         # Remove osx_is_app
         meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
