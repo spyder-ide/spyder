@@ -264,8 +264,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             super(ShellWidget, self).interrupt_kernel()
         else:
             self._append_html(
-                _("The kernel appears to be dead, so it can't be interrupted. "
-                  "Please open a new console to keep working.")
+                _("<br><br>The kernel appears to be dead, so it can't be "
+                  "interrupted. Please open a new console to keep "
+                  "working.<br>")
             )
 
     def execute(self, source=None, hidden=False, interactive=False):

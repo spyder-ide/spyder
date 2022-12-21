@@ -833,38 +833,32 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 interpreter=pyexec,
                 version=SPYDER_KERNELS_VERSION)
 
-            if (
-                not has_spyder_kernels
-                # This is necessary to show this message for some tests and not
-                # do it for others.
-                and os.environ.get('SPY_TEST_SHOW_RESTART_MESSAGE')
-            ):
-                self.show_kernel_error(
-                    _("The Python environment or installation whose "
-                      "interpreter is located at"
-                      "<pre>"
-                      "    <tt>{0}</tt>"
-                      "</pre>"
-                      "doesn't have the <tt>spyder-kernels</tt> module or the "
-                      "right version of it installed ({1}). "
-                      "Without this module is not possible for Spyder to "
-                      "create a console for you.<br><br>"
-                      "You can install it by activating your environment (if "
-                      "necessary) and then running in a system terminal:"
-                      "<pre>"
-                      "    <tt>{2}</tt>"
-                      "</pre>"
-                      "or"
-                      "<pre>"
-                      "    <tt>{3}</tt>"
-                      "</pre>").format(
-                          pyexec,
-                          SPYDER_KERNELS_VERSION_MSG,
-                          SPYDER_KERNELS_CONDA,
-                          SPYDER_KERNELS_PIP
-                      )
+            msg = _(
+                "The Python environment or installation whose interpreter is "
+                "located at"
+                "<pre>"
+                "    <tt>{0}</tt>"
+                "</pre>"
+                "doesn't have the <tt>spyder-kernels</tt> module or the right "
+                "version of it installed ({1}). Without this module is not "
+                "possible for Spyder to create a console for you.<br><br>"
+                "You can install it by activating your environment first (if "
+                "necessary) and then running in a system terminal:"
+                "<pre>"
+                "    <tt>{2}</tt>"
+                "</pre>"
+                "or"
+                "<pre>"
+                "    <tt>{3}</tt>"
+                "</pre>").format(
+                    pyexec,
+                    SPYDER_KERNELS_VERSION_MSG,
+                    SPYDER_KERNELS_CONDA,
+                    SPYDER_KERNELS_PIP
                 )
 
+            if not has_spyder_kernels:
+                self.show_kernel_error(msg)
                 return False
             else:
                 return True
