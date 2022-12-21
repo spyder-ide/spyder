@@ -221,7 +221,7 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": SPYVER,
         "channels": [
-            "napari/label/bundle_tools",
+            "napari/label/bundle_tools_2",
             "conda-forge",
         ],
         "conda_default_channels": ["conda-forge"],
