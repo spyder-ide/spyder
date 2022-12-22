@@ -242,10 +242,10 @@ def _definitions():
         "menu_packages": [
             "spyder",
         ],
-        "extra_files": {
-            str(RESOURCES / "bundle_readme.md"): "README.txt",
-            condarc: ".condarc",
-        },
+        "extra_files": [
+            {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+            {condarc: ".condarc"},
+        ],
     }
 
     if not args.no_local:
