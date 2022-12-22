@@ -43,9 +43,6 @@ if [[ -e "$app_path" ]]; then
     echo "Creating python symbolic link..."
     ln -sf "$PREFIX/bin/python" "$app_path/Contents/MacOS/python"
 
-    echo "Modifying application executable..."
-    cp -fp "$PREFIX/Menu/__NAME__" "$app_path/Contents/MacOS/__NAME__"
-
     echo "Patching Info.plist..."
     plist=$app_path/Contents/Info.plist
     /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" $plist || true
