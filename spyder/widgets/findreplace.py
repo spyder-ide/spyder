@@ -110,6 +110,9 @@ class FindReplace(QWidget):
         self.messages_action.setVisible(False)
         self.search_text.lineEdit().addAction(
             self.messages_action, QLineEdit.TrailingPosition)
+        self.search_text.clear_action.triggered.connect(
+            lambda: self.messages_action.setVisible(False)
+        )
 
         self.replace_on = False
         self.replace_text_button = create_toolbutton(
@@ -480,8 +483,10 @@ class FindReplace(QWidget):
         return state
 
     def text_has_been_edited(self, text):
-        """Find text has been edited (this slot won't be triggered when
-        setting the search pattern combo box text programmatically)"""
+        """
+        Find text has been edited (this slot won't be triggered when setting
+        the search pattern combo box text programmatically).
+        """
         self.find(changed=True, forward=True, start_highlight_timer=True)
 
     def highlight_matches(self):

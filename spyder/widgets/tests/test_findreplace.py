@@ -209,5 +209,43 @@ def test_update_matches(findreplace_editor, qtbot):
     assert findreplace.number_matches_text.text() == '3 matches'
 
 
+def test_clear_action(findreplace_editor, qtbot):
+    """
+    Test that clear_action in the search_text line edit is working as expected.
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+    clear_action = findreplace.search_text.clear_action
+    editor.set_text('foo\nfoo\n')
+
+    # clear_action should not be visible when the widget is shown
+    assert not clear_action.isVisible()
+
+    # Search for some existing text and check clear_action is visible
+    edit = findreplace.search_text.lineEdit()
+    edit.setFocus()
+    qtbot.keyClicks(edit, 'foo')
+    assert clear_action.isVisible()
+    qtbot.wait(500)
+
+    # Trigger clear_action and assert it's hidden, along with
+    # number_matches_text
+    clear_action.triggered.emit()
+    assert not clear_action.isVisible()
+    assert not findreplace.number_matches_text.isVisible()
+
+    # Search for unexisting text
+    edit.clear()
+    edit.setFocus()
+    qtbot.keyClicks(edit, 'bar')
+    qtbot.wait(500)
+    assert findreplace.messages_action.isVisible()
+
+    # Trigger clear_action and assert messages_action is hidden
+    clear_action.triggered.emit()
+    qtbot.wait(500)
+    assert not findreplace.messages_action.isVisible()
+
+
 if __name__ == "__main__":
     pytest.main([os.path.basename(__file__)])
