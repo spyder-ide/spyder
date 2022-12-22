@@ -20,8 +20,8 @@ __PLAT__
 __NAME_LOWER__
 EOF
 
-ROOT_PREFIX=$(cd "$2/Library/__PKG_NAME_LOWER__"; pwd)
-PREFIX=$(cd "$ROOT_PREFIX/envs/__PKG_NAME_LOWER__"; pwd)
+ROOT_PREFIX=$(cd "$2/Library/__NAME_LOWER__"; pwd)
+PREFIX=$(cd "$ROOT_PREFIX/envs/__NAME_LOWER__"; pwd)
 
 # Installed for all users
 app_path="/Applications/__NAME__.app"
