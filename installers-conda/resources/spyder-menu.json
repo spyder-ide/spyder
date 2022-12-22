@@ -25,7 +25,10 @@
                     "CFBundleName": "Spyder",
                     "CFBundleDisplayName": "Spyder",
                     "CFBundleIdentifier": "org.spyder-ide.Spyder",
-                    "CFBundleVersion": "__PKG_VERSION__"
+                    "CFBundleVersion": "__PKG_VERSION__",
+                    "LSEnvironment": {
+                        "SPYDER_APP": "True"
+                    }
                 }
             }
         }

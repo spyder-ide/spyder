@@ -29,17 +29,6 @@ app_path="$(dirname ${DSTROOT})/Applications/__NAME__.app"
 if [[ -e "$app_path" ]]; then
     echo "Creating python symbolic link..."
     ln -sf "${ENV_PREFIX}/bin/python" "$app_path/Contents/MacOS/python"
-
-    # Remove this block when LSEnvironment is fixed in menuinst
-    if [[ -e "/usr/libexec/PlistBuddy" ]]; then
-        echo "Patching Info.plist..."
-        plist=$app_path/Contents/Info.plist
-        /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" $plist || true
-        /usr/libexec/PlistBuddy -c "Add :LSEnvironment:SPYDER_APP string" $plist || true
-        /usr/libexec/PlistBuddy -c "Set :LSEnvironment:SPYDER_APP True" $plist
-    else
-        echo "/usr/libexec/PlistBuddy not installed; cannot modify info.plist"
-    fi
 else
     echo "ERROR: $app_path does not exist"
     exit 1
