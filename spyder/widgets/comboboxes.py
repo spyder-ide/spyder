@@ -171,10 +171,24 @@ class PatternComboBox(BaseComboBox):
         # button whose icon can't be easily stylized.
         self.clear_action = QAction(self)
         self.clear_action.setIcon(ima.icon('clear_text'))
+        self.clear_action.setToolTip(_('Clear text'))
         self.clear_action.triggered.connect(self.lineEdit().clear)
         self.lineEdit().addAction(
             self.clear_action, QLineEdit.TrailingPosition
         )
+
+        # Hide clear_action by default because lineEdit is empty when the
+        # combobox is created, so it doesn't make sense to show it.
+        self.clear_action.setVisible(False)
+
+        self.lineEdit().textChanged.connect(self._on_text_changed)
+
+    def _on_text_changed(self, text):
+        """Actions to take when text has changed on the line edit widget."""
+        if text:
+            self.clear_action.setVisible(True)
+        else:
+            self.clear_action.setVisible(False)
 
 
 class EditableComboBox(BaseComboBox):
