@@ -201,6 +201,8 @@ jobs:
               ls -al $app_path/Contents/MacOS
               cat $app_path/Contents/Info.plist
               echo ""
+              cat $app_path/Contents/MacOS/spyder-script
+              echo ""
           else
               echo "$app_path does not exist"
           fi
