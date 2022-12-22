@@ -282,7 +282,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.shutting_down:
             return
         self.shutting_down = True
-        self.kernel_handler.close(shutdown_kernel)
+        if self.kernel_handler is not None:
+            self.kernel_handler.close(shutdown_kernel)
         super().shutdown()
 
     def reset_kernel_state(self):
