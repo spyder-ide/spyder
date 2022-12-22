@@ -7,7 +7,8 @@
             "name": "Spyder",
             "description": "Spyder description",
             "icon": "{{ MENU_DIR }}/spyder.{{ ICON_EXT }}",
-            "command": ["spyder", "$@"],
+            "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"\nhere=$(dirname \"$0\")",
+            "command": ["${here}/python", "${CONDA_PREFIX}/bin/spyder", "$@"],
             "activate": true,
             "terminal": false,
             "platforms": {

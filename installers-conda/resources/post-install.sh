@@ -35,25 +35,22 @@ echo "Args = $@"
 echo "$(declare -p)"
 
 if [[ -e "$app_path" ]]; then
-    if [[ ! -e "/usr/libexec/PlistBuddy" ]]; then
-        echo "/usr/libexec/PlistBuddy not installed"
-        exit 1
-    fi
-
     echo "Creating python symbolic link..."
     ln -sf "$PREFIX/bin/python" "$app_path/Contents/MacOS/python"
 
-    echo "Patching Info.plist..."
-    plist=$app_path/Contents/Info.plist
-    /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" $plist || true
-    /usr/libexec/PlistBuddy -c "Add :LSEnvironment:ROOT_PREFIX string" $plist || true
-    /usr/libexec/PlistBuddy -c "Set :LSEnvironment:ROOT_PREFIX $ROOT_PREFIX" $plist
-    /usr/libexec/PlistBuddy -c "Add :LSEnvironment:PREFIX string" $plist || true
-    /usr/libexec/PlistBuddy -c "Set :LSEnvironment:PREFIX $PREFIX" $plist
-    /usr/libexec/PlistBuddy -c "Add :LSEnvironment:SPYDER_APP string" $plist || true
-    /usr/libexec/PlistBuddy -c "Set :LSEnvironment:SPYDER_APP $app_path" $plist
+    # Remove this block when LSEnvironment is fixed in menuinst
+    if [[ -e "/usr/libexec/PlistBuddy" ]]; then
+        echo "Patching Info.plist..."
+        plist=$app_path/Contents/Info.plist
+        /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" $plist || true
+        /usr/libexec/PlistBuddy -c "Add :LSEnvironment:SPYDER_APP string" $plist || true
+        /usr/libexec/PlistBuddy -c "Set :LSEnvironment:SPYDER_APP True" $plist
+    else
+        echo "/usr/libexec/PlistBuddy not installed; cannot modify info.plist"
+    fi
 else
-    echo "$app_path does not exist"
+    echo "ERROR: $app_path does not exist"
+    exit 1
 fi
 
 echo "*** Post install script for __NAME__.app complete"
