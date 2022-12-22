@@ -7,8 +7,7 @@
             "name": "Spyder",
             "description": "Spyder description",
             "icon": "{{ MENU_DIR }}/spyder.{{ ICON_EXT }}",
-            "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"\nhere=$(dirname \"$0\")",
-            "command": ["${here}/python", "${CONDA_PREFIX}/bin/spyder", "$@"],
+            "command": ["spyder", "$@"],
             "activate": true,
             "terminal": false,
             "platforms": {
@@ -22,6 +21,8 @@
                     ]
                 },
                 "osx": {
+                    "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"\nhere=$(dirname \"$0\")",
+                    "command": ["${here}/python", "${CONDA_PREFIX}/bin/spyder", "$@"],
                     "CFBundleName": "Spyder",
                     "CFBundleDisplayName": "Spyder",
                     "CFBundleIdentifier": "org.spyder-ide.Spyder",
