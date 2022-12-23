@@ -1,21 +1,22 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2022-10-17 13:23-0500\n"
+"POT-Creation-Date: 2022-12-23 09:53-0500\n"
 "PO-Revision-Date: 2022-10-18 18:25\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Crowdin-Project: spyder\n"
-"X-Crowdin-Project-ID: 381272\n"
-"X-Crowdin-Language: pt-BR\n"
+"Generated-By: pygettext.py 1.5\n"
 "X-Crowdin-File: /5.x/spyder/locale/spyder.pot\n"
 "X-Crowdin-File-ID: 80\n"
-"Language: pt_BR\n"
+"X-Crowdin-Language: pt-BR\n"
+"X-Crowdin-Project: spyder\n"
+"X-Crowdin-Project-ID: 381272\n"
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
@@ -45,7 +46,7 @@ msgstr "Barra de ferramentas do canto principal"
 msgid "Options menu"
 msgstr "Menu de opções"
 
-#: spyder/api/widgets/main_widget.py:324 spyder/plugins/base.py:182 spyder/plugins/editor/widgets/editor.py:689 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:204
+#: spyder/api/widgets/main_widget.py:324 spyder/plugins/base.py:182 spyder/plugins/editor/widgets/editor.py:692 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:204
 msgid "Options"
 msgstr "Opções"
 
@@ -73,7 +74,7 @@ msgstr "Desencaixar"
 msgid "Undock the pane"
 msgstr "Desencaixar o painel"
 
-#: spyder/api/widgets/main_widget.py:369 spyder/plugins/base.py:219 spyder/plugins/variableexplorer/widgets/arrayeditor.py:827 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1010 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:303 spyder/plugins/variableexplorer/widgets/texteditor.py:73 spyder/widgets/collectionseditor.py:1507 spyder/widgets/reporterror.py:228
+#: spyder/api/widgets/main_widget.py:369 spyder/plugins/base.py:219 spyder/plugins/variableexplorer/widgets/arrayeditor.py:827 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1010 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:303 spyder/plugins/variableexplorer/widgets/texteditor.py:73 spyder/widgets/collectionseditor.py:1510 spyder/widgets/reporterror.py:228
 msgid "Close"
 msgstr "Fechar"
 
@@ -93,110 +94,112 @@ msgstr ""
 msgid "More"
 msgstr "Mais"
 
-#: spyder/app/mainwindow.py:320
+#: spyder/app/mainwindow.py:312
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
 msgstr "Um erro aconteceu enquanto era criado um socket requerido pelo Spyder. Por favor, tente executar o seguinte comando como Administrador no cmd.exe e então reiniciar seu computador: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
 
-#: spyder/app/mainwindow.py:388
+#: spyder/app/mainwindow.py:380
 msgid "Compatibility Check"
 msgstr "Verificação de compatibilidade"
 
-#: spyder/app/mainwindow.py:399
+#: spyder/app/mainwindow.py:391
 msgid "Loading {}..."
 msgstr "Carregando {}..."
 
-#: spyder/app/mainwindow.py:721 spyder/plugins/tours/widgets.py:1087
+#: spyder/app/mainwindow.py:710 spyder/plugins/tours/widgets.py:1087
 msgid "Welcome to Spyder!"
 msgstr "Bem-vindo ao Spyder!"
 
-#: spyder/app/mainwindow.py:795
+#: spyder/app/mainwindow.py:788
 msgid "Loading old third-party plugins..."
 msgstr "Carregando plugins antigos de terceiros..."
 
-#: spyder/app/mainwindow.py:843 spyder/plugins/editor/widgets/editor.py:281
+#: spyder/app/mainwindow.py:836 spyder/plugins/editor/widgets/editor.py:282
 msgid "File switcher..."
 msgstr "Seletor de arquivo..."
 
-#: spyder/app/mainwindow.py:845
+#: spyder/app/mainwindow.py:838
 msgid "Fast switch between files"
 msgstr "Troca rápida entre arquivos"
 
-#: spyder/app/mainwindow.py:853
+#: spyder/app/mainwindow.py:846
 msgid "Symbol finder..."
 msgstr "Pesquisador de símbolos...."
 
-#: spyder/app/mainwindow.py:855
+#: spyder/app/mainwindow.py:848
 msgid "Fast symbol search in file"
 msgstr "Busca de símbolo rápida no arquivo"
 
-#: spyder/app/mainwindow.py:874 spyder/plugins/editor/widgets/codeeditor.py:4397
+#: spyder/app/mainwindow.py:867 spyder/plugins/editor/widgets/codeeditor.py:4494
 msgid "Undo"
 msgstr "Desfazer"
 
-#: spyder/app/mainwindow.py:876 spyder/plugins/editor/widgets/codeeditor.py:4400
+#: spyder/app/mainwindow.py:869 spyder/plugins/editor/widgets/codeeditor.py:4497
 msgid "Redo"
 msgstr "Refazer"
 
-#: spyder/app/mainwindow.py:878 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:4406 spyder/plugins/explorer/widgets/explorer.py:395 spyder/plugins/help/widgets.py:377 spyder/plugins/variableexplorer/widgets/arrayeditor.py:526 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:616 spyder/plugins/variableexplorer/widgets/main_widget.py:237 spyder/widgets/browser.py:155 spyder/widgets/collectionseditor.py:639
+#: spyder/app/mainwindow.py:871 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:4503 spyder/plugins/explorer/widgets/explorer.py:395 spyder/plugins/help/widgets.py:378 spyder/plugins/variableexplorer/widgets/arrayeditor.py:526 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:616 spyder/plugins/variableexplorer/widgets/main_widget.py:237 spyder/widgets/browser.py:155 spyder/widgets/collectionseditor.py:639
 msgid "Copy"
 msgstr "Copiar"
 
-#: spyder/app/mainwindow.py:880 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:4403
+#: spyder/app/mainwindow.py:873 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:4500
 msgid "Cut"
 msgstr "Recortar"
 
-#: spyder/app/mainwindow.py:882 spyder/plugins/console/widgets/shell.py:135 spyder/plugins/editor/widgets/codeeditor.py:4409 spyder/plugins/explorer/widgets/explorer.py:402 spyder/plugins/variableexplorer/widgets/main_widget.py:230 spyder/widgets/collectionseditor.py:636
+#: spyder/app/mainwindow.py:875 spyder/plugins/console/widgets/shell.py:135 spyder/plugins/editor/widgets/codeeditor.py:4506 spyder/plugins/explorer/widgets/explorer.py:402 spyder/plugins/variableexplorer/widgets/main_widget.py:230 spyder/widgets/collectionseditor.py:636
 msgid "Paste"
 msgstr "Colar"
 
-#: spyder/app/mainwindow.py:885 spyder/plugins/console/widgets/shell.py:148 spyder/plugins/editor/widgets/codeeditor.py:4413 spyder/plugins/help/widgets.py:383
+#: spyder/app/mainwindow.py:878 spyder/plugins/console/widgets/shell.py:148 spyder/plugins/editor/widgets/codeeditor.py:4510 spyder/plugins/help/widgets.py:384
 msgid "Select All"
 msgstr "Selecionar tudo"
 
-#: spyder/app/mainwindow.py:922 spyder/app/mainwindow.py:925 spyder/widgets/pathmanager.py:72
-msgid "PYTHONPATH manager"
-msgstr "Gerenciar PYTHONPATH"
-
-#: spyder/app/mainwindow.py:946
+#: spyder/app/mainwindow.py:909
 msgid "Setting up main window..."
 msgstr "Configurando tela principal..."
 
-#: spyder/app/mainwindow.py:1518 spyder/plugins/explorer/widgets/explorer.py:481 spyder/plugins/run/plugin.py:43 spyder/plugins/run/widgets.py:394 spyder/utils/programs.py:756
+#: spyder/app/mainwindow.py:1482 spyder/plugins/explorer/widgets/explorer.py:481 spyder/plugins/run/plugin.py:43 spyder/plugins/run/widgets.py:394 spyder/utils/programs.py:751 spyder/utils/programs.py:765
 msgid "Run"
 msgstr "Executar"
 
-#: spyder/app/mainwindow.py:1519
+#: spyder/app/mainwindow.py:1483
 msgid "Running an external system terminal is not supported on platform %s."
 msgstr "Executar um terminal externo não é suportado na plataforma %s."
 
-#: spyder/app/mainwindow.py:1572 spyder/plugins/application/confpage.py:256 spyder/plugins/application/confpage.py:281 spyder/plugins/application/container.py:465 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:205 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:223 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:168 spyder/plugins/explorer/widgets/explorer.py:1203 spyder/plugins/explorer/widgets/explorer.py:1556 spyder/plugins/ipythonconsole/widgets/shell.py:822 spyder/plugins/layout/container.py:301 spyder/plugins/profiler/widgets/main_widget.py:564 spyder/plugins/profiler/widgets/main_widget.py:721 spyder/plugins/projects/plugin.py:465 spyder/plugins/projects/plugin.py:484 spyder/plugins/projects/plugin.py:756 spyder/plugins/pylint/main_widget.py:116 spyder/plugins/pylint/main_widget.py:393 spyder/plugins/pylint/main_widget.py:425 spyder/plugins/variableexplorer/widgets/arrayeditor.py:631 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:129 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:150 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:455 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:662 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1315 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1319 spyder/widgets/collectionseditor.py:1621 spyder/widgets/reporterror.py:412
+#: spyder/app/mainwindow.py:1536 spyder/plugins/application/confpage.py:256 spyder/plugins/application/confpage.py:281 spyder/plugins/application/container.py:469 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:205 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:223 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:168 spyder/plugins/explorer/widgets/explorer.py:1203 spyder/plugins/explorer/widgets/explorer.py:1556 spyder/plugins/ipythonconsole/widgets/shell.py:833 spyder/plugins/layout/container.py:301 spyder/plugins/profiler/widgets/main_widget.py:572 spyder/plugins/profiler/widgets/main_widget.py:730 spyder/plugins/projects/plugin.py:458 spyder/plugins/projects/plugin.py:477 spyder/plugins/projects/plugin.py:735 spyder/plugins/pylint/main_widget.py:116 spyder/plugins/pylint/main_widget.py:393 spyder/plugins/pylint/main_widget.py:425 spyder/plugins/variableexplorer/widgets/arrayeditor.py:631 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:129 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:150 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:455 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:662 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1315 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1319 spyder/widgets/collectionseditor.py:1624 spyder/widgets/reporterror.py:412
 msgid "Error"
 msgstr "Erro"
 
-#: spyder/app/mainwindow.py:1573
+#: spyder/app/mainwindow.py:1537
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
 msgstr "Para abrir <code>{fpath}</code> como um projeto com o Spyder, por favor use <code>spyder -p \"{fname}\"</code>."
 
-#: spyder/app/mainwindow.py:1910
+#: spyder/app/mainwindow.py:1763
 msgid "Initializing..."
 msgstr "Iniciando..."
 
 #: spyder/app/restart.py:139
-msgid "It was not possible to close the previous Spyder instance.\n"
+msgid ""
+"It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr "Não foi possível fechar a última instância do Spyder.\n"
+msgstr ""
+"Não foi possível fechar a última instância do Spyder.\n"
 "Reinicialização abortada."
 
 #: spyder/app/restart.py:141
-msgid "Spyder could not reset to factory defaults.\n"
+msgid ""
+"Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr "Não foi possível retornar às definições padrão do Spyder.\n"
+msgstr ""
+"Não foi possível retornar às definições padrão do Spyder.\n"
 "Reinicialização abortada."
 
 #: spyder/app/restart.py:143
-msgid "It was not possible to restart Spyder.\n"
+msgid ""
+"It was not possible to restart Spyder.\n"
 "Operation aborted."
-msgstr "Não foi possível reiniciar o Spyder.\n"
+msgstr ""
+"Não foi possível reiniciar o Spyder.\n"
 "Operação abortada."
 
 #: spyder/app/restart.py:145
@@ -228,16 +231,20 @@ msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr "O contexto do atalho deve coincidir com '_' ou o `CONF_SECTION` do plugin!"
 
 #: spyder/config/manager.py:697
-msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
+msgid ""
+"There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n"
+"\n"
 "Do you want to proceed?"
-msgstr "Ocorreu um erro ao carregar as opções de configuração do Spyder. Você precisa redefini-las para o Spyder para poder iniciar.\n\n"
+msgstr ""
+"Ocorreu um erro ao carregar as opções de configuração do Spyder. Você precisa redefini-las para o Spyder para poder iniciar.\n"
+"\n"
 "Deseja continuar?"
 
 #: spyder/config/manager.py:705
 msgid "Spyder configuration files resetted!"
 msgstr "Arquivos de configuração do Spyder redefinidos!"
 
-#: spyder/config/utils.py:25 spyder/plugins/console/widgets/main_widget.py:509 spyder/plugins/explorer/widgets/explorer.py:1717 spyder/plugins/profiler/widgets/main_widget.py:451 spyder/plugins/pylint/main_widget.py:871
+#: spyder/config/utils.py:25 spyder/plugins/console/widgets/main_widget.py:510 spyder/plugins/explorer/widgets/explorer.py:1717 spyder/plugins/profiler/widgets/main_widget.py:464 spyder/plugins/pylint/main_widget.py:871
 msgid "Python files"
 msgstr "Arquivos Python"
 
@@ -525,7 +532,7 @@ msgstr "Matemática simbólica no console IPython"
 msgid "Main interface"
 msgstr "Interface principal"
 
-#: spyder/plugins/appearance/confpage.py:50 spyder/plugins/ipythonconsole/confpage.py:103
+#: spyder/plugins/appearance/confpage.py:50 spyder/plugins/ipythonconsole/confpage.py:110
 msgid "Automatic"
 msgstr "Automático"
 
@@ -561,7 +568,7 @@ msgstr "Criar novo esquema"
 msgid "Delete scheme"
 msgstr "Excluir esquema"
 
-#: spyder/plugins/appearance/confpage.py:84 spyder/plugins/preferences/widgets/configdialog.py:35
+#: spyder/plugins/appearance/confpage.py:84 spyder/plugins/preferences/widgets/configdialog.py:38
 msgid "Reset to defaults"
 msgstr "Redefinir Preferências"
 
@@ -577,11 +584,11 @@ msgstr "Texto simples"
 msgid "Rich text"
 msgstr "Rich Text"
 
-#: spyder/plugins/appearance/confpage.py:141 spyder/plugins/variableexplorer/widgets/importwizard.py:507
+#: spyder/plugins/appearance/confpage.py:141 spyder/plugins/variableexplorer/widgets/importwizard.py:519
 msgid "Preview"
 msgstr "Pré-Visualização"
 
-#: spyder/plugins/appearance/confpage.py:384 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:153 spyder/plugins/completion/providers/languageserver/provider.py:416 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editor.py:418 spyder/plugins/ipythonconsole/utils/ssh.py:71 spyder/plugins/ipythonconsole/widgets/main_widget.py:2267 spyder/plugins/ipythonconsole/widgets/main_widget.py:2360 spyder/plugins/ipythonconsole/widgets/shell.py:825 spyder/plugins/layout/container.py:310 spyder/plugins/layout/container.py:369 spyder/plugins/layout/plugin.py:432 spyder/plugins/layout/plugin.py:449 spyder/plugins/maininterpreter/confpage.py:179 spyder/plugins/maininterpreter/confpage.py:216 spyder/plugins/preferences/plugin.py:329 spyder/plugins/pylint/main_widget.py:112 spyder/plugins/variableexplorer/widgets/arrayeditor.py:569 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:100 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:439 spyder/utils/environ.py:100 spyder/utils/environ.py:137 spyder/utils/environ.py:168 spyder/widgets/collectionseditor.py:1044 spyder/widgets/collectionseditor.py:1227 spyder/widgets/collectionseditor.py:1239
+#: spyder/plugins/appearance/confpage.py:384 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:153 spyder/plugins/completion/providers/languageserver/provider.py:416 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editor.py:421 spyder/plugins/ipythonconsole/utils/ssh.py:71 spyder/plugins/ipythonconsole/widgets/main_widget.py:2305 spyder/plugins/ipythonconsole/widgets/main_widget.py:2398 spyder/plugins/ipythonconsole/widgets/shell.py:836 spyder/plugins/layout/container.py:310 spyder/plugins/layout/container.py:369 spyder/plugins/layout/plugin.py:432 spyder/plugins/layout/plugin.py:449 spyder/plugins/maininterpreter/confpage.py:179 spyder/plugins/maininterpreter/confpage.py:216 spyder/plugins/preferences/plugin.py:331 spyder/plugins/pylint/main_widget.py:112 spyder/plugins/variableexplorer/widgets/arrayeditor.py:569 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:100 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:439 spyder/utils/environ.py:100 spyder/utils/environ.py:137 spyder/utils/environ.py:168 spyder/widgets/collectionseditor.py:1044 spyder/widgets/collectionseditor.py:1227 spyder/widgets/collectionseditor.py:1239
 msgid "Warning"
 msgstr "Aviso"
 
@@ -714,16 +721,18 @@ msgid "Set this for high DPI displays when auto scaling does not work"
 msgstr "Definir isso para telas de alto DPI quando a escala automática não funcionar"
 
 #: spyder/plugins/application/confpage.py:202
-msgid "Enter values for different screens separated by semicolons ';'.\n"
+msgid ""
+"Enter values for different screens separated by semicolons ';'.\n"
 "Float values are supported"
-msgstr "Insira valores para diferentes telas separados por ponto e vírgula ';'.\n"
+msgstr ""
+"Insira valores para diferentes telas separados por ponto e vírgula ';'.\n"
 "Valores decimais são suportados"
 
-#: spyder/plugins/application/confpage.py:235 spyder/plugins/ipythonconsole/confpage.py:29 spyder/plugins/outlineexplorer/widgets.py:48
+#: spyder/plugins/application/confpage.py:235 spyder/plugins/ipythonconsole/confpage.py:32 spyder/plugins/outlineexplorer/widgets.py:48
 msgid "Interface"
 msgstr "Interface"
 
-#: spyder/plugins/application/confpage.py:237 spyder/plugins/editor/confpage.py:338 spyder/plugins/ipythonconsole/confpage.py:426
+#: spyder/plugins/application/confpage.py:237 spyder/plugins/editor/confpage.py:338 spyder/plugins/ipythonconsole/confpage.py:433
 msgid "Advanced settings"
 msgstr "Configurações avançadas"
 
@@ -735,127 +744,127 @@ msgstr "Não é possível definir um fator de escala abaixo de 1.0. Qualquer fat
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
 msgstr "Lamentamos, mas ocorreu o seguinte erro ao tentar definir o idioma selecionado: <br><br><tt>{}</tt>"
 
-#: spyder/plugins/application/container.py:127
+#: spyder/plugins/application/container.py:128
 msgid "Spyder documentation"
 msgstr "Documentação do Spyder"
 
-#: spyder/plugins/application/container.py:138
+#: spyder/plugins/application/container.py:139
 msgid "Tutorial videos"
 msgstr "Vídeos de tutorial"
 
-#: spyder/plugins/application/container.py:145
+#: spyder/plugins/application/container.py:146
 msgid "Troubleshooting..."
 msgstr "Solução de problemas..."
 
-#: spyder/plugins/application/container.py:149
+#: spyder/plugins/application/container.py:150
 msgid "Report issue..."
 msgstr "Reportar problema..."
 
-#: spyder/plugins/application/container.py:154
+#: spyder/plugins/application/container.py:155
 msgid "Dependencies..."
 msgstr "Dependências..."
 
-#: spyder/plugins/application/container.py:159 spyder/plugins/application/widgets/status.py:164
+#: spyder/plugins/application/container.py:160 spyder/plugins/application/widgets/status.py:164
 msgid "Check for updates..."
 msgstr "Verificar por atualizações..."
 
-#: spyder/plugins/application/container.py:163
+#: spyder/plugins/application/container.py:164
 msgid "Spyder support..."
 msgstr "Suporte do Spyder..."
 
-#: spyder/plugins/application/container.py:169
+#: spyder/plugins/application/container.py:170
 msgid "About %s..."
 msgstr "Sobre o %s..."
 
-#: spyder/plugins/application/container.py:176
+#: spyder/plugins/application/container.py:177
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
 msgstr "Mostrar e editar as variáveis de ambiente do usuário atual no registro do Windows (ou seja, para todas as sessões)"
 
-#: spyder/plugins/application/container.py:179
+#: spyder/plugins/application/container.py:180
 msgid "Show current user environment variables (i.e. for all sessions)"
 msgstr ""
 
-#: spyder/plugins/application/container.py:183
+#: spyder/plugins/application/container.py:184
 msgid "Current user environment variables..."
 msgstr "Variáveis de ambiente do usuário atual..."
 
-#: spyder/plugins/application/container.py:191
+#: spyder/plugins/application/container.py:192
 msgid "&Restart"
 msgstr "&Reiniciar"
 
-#: spyder/plugins/application/container.py:193
+#: spyder/plugins/application/container.py:194
 msgid "Restart"
 msgstr "Reiniciar"
 
-#: spyder/plugins/application/container.py:201
+#: spyder/plugins/application/container.py:202
 msgid "&Restart in debug mode"
 msgstr "&Reiniciar no modo de depuração"
 
-#: spyder/plugins/application/container.py:202
+#: spyder/plugins/application/container.py:203
 msgid "Restart in debug mode"
 msgstr "Reiniciar no modo de depuração"
 
-#: spyder/plugins/application/container.py:212
+#: spyder/plugins/application/container.py:213
 msgid "Debug logs"
 msgstr "Registros de depuração"
 
-#: spyder/plugins/application/container.py:281
+#: spyder/plugins/application/container.py:282
 msgid "New Spyder version"
 msgstr "Nova versão do Spyder"
 
-#: spyder/plugins/application/container.py:283
+#: spyder/plugins/application/container.py:284
 msgid "Check for updates at startup"
 msgstr "Verificar se há atualizações na inicialização"
 
-#: spyder/plugins/application/container.py:304
+#: spyder/plugins/application/container.py:305
 msgid "<b>Spyder {} is available!</b> <i>(you have {})</i><br><br>"
 msgstr ""
 
-#: spyder/plugins/application/container.py:307
+#: spyder/plugins/application/container.py:308
 msgid "For more information, visit our <a href=\"{}\">installation guide</a>."
 msgstr ""
 
-#: spyder/plugins/application/container.py:312
+#: spyder/plugins/application/container.py:313
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
 msgstr "<b>Nota importante:</b> Já que você instalou o Spyder com o Anaconda, por favor <b>não</b> use <code>pip</code> para atualizar ele, isso quebrará sua instalação.<br><br>Ao invés disso, execute os seguintes comandos no terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
 
-#: spyder/plugins/application/container.py:325
+#: spyder/plugins/application/container.py:326
 msgid "Would you like to automatically download and install it?<br><br>"
 msgstr ""
 
-#: spyder/plugins/application/container.py:343
+#: spyder/plugins/application/container.py:344
 msgid "Spyder is up to date."
 msgstr "O Spyder está atualizado."
 
-#: spyder/plugins/application/container.py:444
+#: spyder/plugins/application/container.py:448
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
 msgstr "<b>Você tem dependências faltando!</b><br><br><tt>%s</tt><br><br><b>Por favor instale elas para evitar esta mensagem.</b><br><br><i>Nota</i>: O Spyder pode funcionar sem algumas dependências, porém para ter uma experiência melhor ao utilizar o software recomendamos <i>fortemente</i> a instalação das dependências faltantes listadas.<br><br>A não instalação destas dependências pode gerar bugs. Antes de relatar um novo problema certifique-se de que quaisquer bugs encontrados não são o resultado das dependências que estão faltando."
 
-#: spyder/plugins/application/container.py:481
+#: spyder/plugins/application/container.py:485
 msgid "Question"
 msgstr "Pergunta"
 
-#: spyder/plugins/application/container.py:484
+#: spyder/plugins/application/container.py:488
 msgid "Which debug mode do you want Spyder to restart in?"
 msgstr "Em qual modo de depuração você quer que o Spyder seja reiniciado?"
 
-#: spyder/plugins/application/container.py:487
+#: spyder/plugins/application/container.py:491
 msgid "Verbose"
 msgstr "Detalhado"
 
-#: spyder/plugins/application/container.py:488
+#: spyder/plugins/application/container.py:492
 msgid "Minimal"
 msgstr "Minimalista"
 
-#: spyder/plugins/application/container.py:604 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:542
+#: spyder/plugins/application/container.py:608 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:553
 msgid "Don't show again."
 msgstr "Não mostrar novamente."
 
-#: spyder/plugins/application/container.py:619
+#: spyder/plugins/application/container.py:623
 msgid "Restart now"
 msgstr "Reiniciar agora"
 
-#: spyder/plugins/application/container.py:621 spyder/plugins/completion/providers/kite/widgets/install.py:114 spyder/plugins/tours/widgets.py:1127
+#: spyder/plugins/application/container.py:625 spyder/plugins/completion/providers/kite/widgets/install.py:114 spyder/plugins/tours/widgets.py:1127
 msgid "Dismiss"
 msgstr "Dispensar"
 
@@ -923,35 +932,35 @@ msgstr ""
 msgid "Spyder update cancelled"
 msgstr ""
 
-#: spyder/plugins/application/widgets/install.py:71 spyder/plugins/completion/providers/kite/widgets/install.py:211
+#: spyder/plugins/application/widgets/install.py:74 spyder/plugins/completion/providers/kite/widgets/install.py:211
 msgid "Downloading"
 msgstr "Baixando"
 
-#: spyder/plugins/application/widgets/install.py:74
+#: spyder/plugins/application/widgets/install.py:77
 msgid "Downloading Spyder update <br>"
 msgstr ""
 
-#: spyder/plugins/application/widgets/install.py:77 spyder/plugins/completion/providers/kite/widgets/install.py:221
+#: spyder/plugins/application/widgets/install.py:80 spyder/plugins/completion/providers/kite/widgets/install.py:221
 msgid "OK"
 msgstr "OK"
 
-#: spyder/plugins/application/widgets/install.py:216
+#: spyder/plugins/application/widgets/install.py:219
 msgid "Do you really want to cancel the Spyder update installation?"
 msgstr ""
 
-#: spyder/plugins/application/widgets/install.py:232
+#: spyder/plugins/application/widgets/install.py:235
 msgid "Would you like to update Spyder to the latest version?<br><br>"
 msgstr ""
 
-#: spyder/plugins/application/widgets/install.py:255
+#: spyder/plugins/application/widgets/install.py:258
 msgid "Would you like to proceed with the installation?<br><br>"
 msgstr ""
 
-#: spyder/plugins/application/widgets/install.py:258
+#: spyder/plugins/application/widgets/install.py:261
 msgid "Spyder update"
 msgstr ""
 
-#: spyder/plugins/application/widgets/install.py:267
+#: spyder/plugins/application/widgets/install.py:270
 msgid "After closing"
 msgstr ""
 
@@ -960,11 +969,12 @@ msgid "Application update status"
 msgstr ""
 
 #: spyder/plugins/application/widgets/status.py:88
-msgid "Update installation will continue in the background.\n"
+msgid ""
+"Update installation will continue in the background.\n"
 "Click here to show the installation dialog again."
 msgstr ""
 
-#: spyder/plugins/base.py:332 spyder/plugins/editor/confpage.py:34 spyder/plugins/editor/plugin.py:436 spyder/plugins/editor/plugin.py:2116 spyder/plugins/editor/utils/switcher.py:36 spyder/plugins/editor/widgets/codeeditor.py:5569 spyder/plugins/editor/widgets/editor.py:324 spyder/plugins/editor/widgets/gotoline.py:33 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:338 spyder/plugins/tours/tours.py:83
+#: spyder/plugins/base.py:332 spyder/plugins/editor/confpage.py:34 spyder/plugins/editor/plugin.py:433 spyder/plugins/editor/plugin.py:2105 spyder/plugins/editor/utils/switcher.py:36 spyder/plugins/editor/widgets/codeeditor.py:5644 spyder/plugins/editor/widgets/editor.py:325 spyder/plugins/editor/widgets/gotoline.py:33 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:339 spyder/plugins/tours/tours.py:83
 msgid "Editor"
 msgstr "Editor"
 
@@ -992,7 +1002,7 @@ msgstr "Arquivo"
 msgid "Line"
 msgstr "Linha"
 
-#: spyder/plugins/breakpoints/widgets/main_widget.py:213 spyder/plugins/editor/plugin.py:624
+#: spyder/plugins/breakpoints/widgets/main_widget.py:213 spyder/plugins/editor/plugin.py:621
 msgid "Clear breakpoints in all files"
 msgstr "Limpar pontos de interrupção em todos os arquivos"
 
@@ -1033,7 +1043,8 @@ msgid "Show automatic completions after characters entered:"
 msgstr "Mostrar preenchimento automático de código após caracteres digitados:"
 
 #: spyder/plugins/completion/confpage.py:53
-msgid "Default is 3"
+#, fuzzy
+msgid "Default is 1"
 msgstr "O padrão é 3"
 
 #: spyder/plugins/completion/confpage.py:55
@@ -1041,22 +1052,14 @@ msgid "Enable code snippets"
 msgstr "Ativar sugestões de código"
 
 #: spyder/plugins/completion/confpage.py:57
-msgid "Show automatic completions after keyboard idle (ms):"
-msgstr "Mostrar preenchimento automático de código após o teclado inativo (ms):"
-
-#: spyder/plugins/completion/confpage.py:59
-msgid "Default is 300 milliseconds"
-msgstr "O padrão é 300 milissegundos"
-
-#: spyder/plugins/completion/confpage.py:61
 msgid "Show completion details after keyboard idle (ms):"
 msgstr "Mostrar detalhes de preenchimento de código após o teclado ocioso (ms):"
 
-#: spyder/plugins/completion/confpage.py:63
+#: spyder/plugins/completion/confpage.py:59
 msgid "Default is 500 milliseconds"
 msgstr "O padrão é 500 milissegundos"
 
-#: spyder/plugins/completion/confpage.py:66
+#: spyder/plugins/completion/confpage.py:62
 msgid "Completions"
 msgstr "Preenchimento de código"
 
@@ -1149,15 +1152,19 @@ msgid "not reachable"
 msgstr "inalcançavel"
 
 #: spyder/plugins/completion/providers/kite/widgets/status.py:70
-msgid "Kite installation will continue in the background.\n"
+msgid ""
+"Kite installation will continue in the background.\n"
 "Click here to show the installation dialog again"
-msgstr "A instalação do Kite continuará em segundo plano.\n"
+msgstr ""
+"A instalação do Kite continuará em segundo plano.\n"
 "Clique aqui para exibir a caixa de diálogo de instalação novamente"
 
 #: spyder/plugins/completion/providers/kite/widgets/status.py:75
-msgid "Click here to show the\n"
+msgid ""
+"Click here to show the\n"
 "installation dialog again"
-msgstr "Clique aqui para mostrar o\n"
+msgstr ""
+"Clique aqui para mostrar o\n"
 "diálogo de instalação novamente"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:28 spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:60 spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:268
@@ -1377,10 +1384,12 @@ msgid "Enable Go to definition"
 msgstr "Ativar Ir para a definição"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
-msgid "If enabled, left-clicking on an object name while \n"
+msgid ""
+"If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
-msgstr "Se ativado, clicar com o botão esquerdo no nome de um objeto \n"
+msgstr ""
+"Se ativado, clicar com o botão esquerdo no nome de um objeto \n"
 "enquanto pressiona a tecla {} irá para a definição desse objeto\n"
 "(se resolvida)."
 
@@ -1388,7 +1397,7 @@ msgstr "Se ativado, clicar com o botão esquerdo no nome de um objeto \n"
 msgid "Follow imports when going to a definition"
 msgstr "Siga as importações ao ir para uma definição"
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:43 spyder/plugins/ipythonconsole/confpage.py:34
+#: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:43 spyder/plugins/ipythonconsole/confpage.py:37
 msgid "Show calltips"
 msgstr "Mostrar dicas de código"
 
@@ -1397,10 +1406,12 @@ msgid "Enable hover hints"
 msgstr "Ativar dicas ao passar o ponteiro"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
-msgid "If enabled, hovering the mouse pointer over an object\n"
+msgid ""
+"If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
-msgstr "Se ativado, passar o ponteiro do mouse sobre o nome do \n"
+msgstr ""
+"Se ativado, passar o ponteiro do mouse sobre o nome do \n"
 "objeto exibirá a assinatura e/ou docstring desse objeto\n"
 "(se existir)."
 
@@ -1420,7 +1431,7 @@ msgstr "O Spyder pode opcionalmente destacar erros de sintaxe e possíveis probl
 msgid "Enable basic linting"
 msgstr "Ativar análise de código básica"
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:37 spyder/plugins/editor/plugin.py:953
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:37 spyder/plugins/editor/plugin.py:950
 msgid "Underline errors and warnings"
 msgstr "Sublinhar erros e avisos"
 
@@ -1605,9 +1616,11 @@ msgid "down"
 msgstr "abaixo"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:46
-msgid "Completions, linting, code\n"
+msgid ""
+"Completions, linting, code\n"
 "folding and symbols status."
-msgstr "Auto preenchimento, recolhimento de código,\n"
+msgstr ""
+"Auto preenchimento, recolhimento de código,\n"
 "revisão e símbolos de status."
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:74
@@ -1754,7 +1767,7 @@ msgstr "Descrição"
 msgid "Change default environment in Preferences..."
 msgstr "Alterar ambiente padrão em Preferências..."
 
-#: spyder/plugins/console/plugin.py:84 spyder/plugins/console/widgets/main_widget.py:170
+#: spyder/plugins/console/plugin.py:84 spyder/plugins/console/widgets/main_widget.py:171
 msgid "Internal console"
 msgstr "Console interno"
 
@@ -1774,7 +1787,7 @@ msgstr "Por favor, forneça qualquer informação adicional sobre o problema que
 msgid "Help..."
 msgstr "Ajuda..."
 
-#: spyder/plugins/console/widgets/internalshell.py:278 spyder/plugins/help/plugin.py:66 spyder/plugins/help/widgets.py:365 spyder/plugins/help/widgets.py:614 spyder/plugins/tours/tours.py:136 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
+#: spyder/plugins/console/widgets/internalshell.py:278 spyder/plugins/help/plugin.py:66 spyder/plugins/help/widgets.py:366 spyder/plugins/help/widgets.py:615 spyder/plugins/tours/tours.py:136 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
 msgstr "Ajuda"
 
@@ -1815,91 +1828,95 @@ msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with 
 msgstr "Para usar comandos como \"raw_input\" ou \"input\", execute o Spyder com a opção multithread (--multithread) em um terminal do sistema"
 
 #: spyder/plugins/console/widgets/main_widget.py:118
-msgid "Spyder Internal Console\n\n"
+msgid ""
+"Spyder Internal Console\n"
+"\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n\n"
-"Please do not use it to run your code\n\n"
+"  spy.app, spy.window, dir(spy)\n"
+"\n"
+"Please do not use it to run your code\n"
+"\n"
 msgstr ""
 
-#: spyder/plugins/console/widgets/main_widget.py:176 spyder/plugins/ipythonconsole/widgets/main_widget.py:496
+#: spyder/plugins/console/widgets/main_widget.py:177 spyder/plugins/ipythonconsole/widgets/main_widget.py:507
 msgid "&Quit"
 msgstr "&Sair"
 
-#: spyder/plugins/console/widgets/main_widget.py:177
+#: spyder/plugins/console/widgets/main_widget.py:178
 msgid "Quit"
 msgstr "Sair"
 
-#: spyder/plugins/console/widgets/main_widget.py:187
+#: spyder/plugins/console/widgets/main_widget.py:188
 msgid "&Run..."
 msgstr "&Executar..."
 
-#: spyder/plugins/console/widgets/main_widget.py:188
+#: spyder/plugins/console/widgets/main_widget.py:189
 msgid "Run a Python file"
 msgstr ""
 
-#: spyder/plugins/console/widgets/main_widget.py:194
+#: spyder/plugins/console/widgets/main_widget.py:195
 msgid "Environment variables..."
 msgstr "Variáveis de ambiente..."
 
-#: spyder/plugins/console/widgets/main_widget.py:195
+#: spyder/plugins/console/widgets/main_widget.py:196
 msgid "Show and edit environment variables (for current session)"
 msgstr "Mostrar e editar as variáveis de ambiente (para a sessão atual)"
 
-#: spyder/plugins/console/widgets/main_widget.py:202
+#: spyder/plugins/console/widgets/main_widget.py:203
 msgid "Show sys.path contents..."
 msgstr "Mostrar conteúdo da sys.path..."
 
-#: spyder/plugins/console/widgets/main_widget.py:203
+#: spyder/plugins/console/widgets/main_widget.py:204
 msgid "Show (read-only) sys.path"
 msgstr "Mostrar conteúdo da sys.path em modo de leitura"
 
-#: spyder/plugins/console/widgets/main_widget.py:209
+#: spyder/plugins/console/widgets/main_widget.py:210
 msgid "Buffer..."
 msgstr "Buffer..."
 
-#: spyder/plugins/console/widgets/main_widget.py:210
+#: spyder/plugins/console/widgets/main_widget.py:211
 msgid "Set maximum line count"
 msgstr "Definir número máximo de linhas"
 
-#: spyder/plugins/console/widgets/main_widget.py:215
+#: spyder/plugins/console/widgets/main_widget.py:216
 msgid "External editor path..."
 msgstr "Caminho de editor externo..."
 
-#: spyder/plugins/console/widgets/main_widget.py:216
+#: spyder/plugins/console/widgets/main_widget.py:217
 msgid "Set external editor executable path"
 msgstr "Definir caminho de editor externo"
 
-#: spyder/plugins/console/widgets/main_widget.py:221 spyder/plugins/editor/confpage.py:56 spyder/plugins/help/confpage.py:60 spyder/plugins/help/widgets.py:370 spyder/plugins/history/confpage.py:28 spyder/plugins/history/widgets.py:120
+#: spyder/plugins/console/widgets/main_widget.py:222 spyder/plugins/editor/confpage.py:56 spyder/plugins/help/confpage.py:60 spyder/plugins/help/widgets.py:371 spyder/plugins/history/confpage.py:28 spyder/plugins/history/widgets.py:121
 msgid "Wrap lines"
 msgstr "Ajuste de linha automático"
 
-#: spyder/plugins/console/widgets/main_widget.py:227
+#: spyder/plugins/console/widgets/main_widget.py:228
 msgid "Automatic code completion"
 msgstr "Completar código automáticamente"
 
-#: spyder/plugins/console/widgets/main_widget.py:235
+#: spyder/plugins/console/widgets/main_widget.py:236
 msgid "Internal console settings"
 msgstr "Configurações do console interno"
 
-#: spyder/plugins/console/widgets/main_widget.py:507
+#: spyder/plugins/console/widgets/main_widget.py:508
 msgid "Run Python file"
 msgstr ""
 
-#: spyder/plugins/console/widgets/main_widget.py:566
+#: spyder/plugins/console/widgets/main_widget.py:567
 msgid "Buffer"
 msgstr "Buffer"
 
-#: spyder/plugins/console/widgets/main_widget.py:567
+#: spyder/plugins/console/widgets/main_widget.py:568
 msgid "Maximum line count"
 msgstr "Número máximo de linhas"
 
-#: spyder/plugins/console/widgets/main_widget.py:585
+#: spyder/plugins/console/widgets/main_widget.py:586
 msgid "External editor"
 msgstr "Editor externo"
 
-#: spyder/plugins/console/widgets/main_widget.py:586
+#: spyder/plugins/console/widgets/main_widget.py:587
 msgid "External editor executable path:"
 msgstr "Caminho do executável do editor externo:"
 
@@ -1911,7 +1928,7 @@ msgstr "Salvar histórico..."
 msgid "Save current history log (i.e. all inputs and outputs) in a text file"
 msgstr "Salvar o histórico atual (todas entradas e saídas) em um arquivo de texto"
 
-#: spyder/plugins/console/widgets/shell.py:144 spyder/plugins/explorer/widgets/explorer.py:1081 spyder/plugins/projects/plugin.py:587
+#: spyder/plugins/console/widgets/shell.py:144 spyder/plugins/explorer/widgets/explorer.py:1081 spyder/plugins/projects/plugin.py:578
 msgid "Delete"
 msgstr "Deletar"
 
@@ -1943,23 +1960,23 @@ msgstr "Limpar conteúdo do shell (comando 'cls')"
 msgid "Show tab bar"
 msgstr "Mostrar barra de abas"
 
-#: spyder/plugins/editor/confpage.py:45 spyder/plugins/editor/plugin.py:943
+#: spyder/plugins/editor/confpage.py:45 spyder/plugins/editor/plugin.py:940
 msgid "Show selector for classes and functions"
 msgstr "Mostrar seletor para classes e funções"
 
-#: spyder/plugins/editor/confpage.py:47 spyder/plugins/editor/plugin.py:937
+#: spyder/plugins/editor/confpage.py:47 spyder/plugins/editor/plugin.py:934
 msgid "Show indent guides"
 msgstr "Mostrar guias de indentação"
 
-#: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:940
+#: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:937
 msgid "Show code folding"
 msgstr "Exibir recolhimento de código"
 
-#: spyder/plugins/editor/confpage.py:50 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:127
+#: spyder/plugins/editor/confpage.py:50 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:128
 msgid "Show line numbers"
 msgstr "Mostrar número de linhas"
 
-#: spyder/plugins/editor/confpage.py:51 spyder/plugins/editor/plugin.py:930
+#: spyder/plugins/editor/confpage.py:51 spyder/plugins/editor/plugin.py:927
 msgid "Show blank spaces"
 msgstr "Mostrar espaços em branco"
 
@@ -1971,7 +1988,7 @@ msgstr "Realçar linha atual"
 msgid "Highlight current cell"
 msgstr "Realçar célula atual"
 
-#: spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:933
+#: spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:930
 msgid "Scroll past the end"
 msgstr "Role até o final"
 
@@ -2004,12 +2021,14 @@ msgid "Tab always indent"
 msgstr "Sempre indentar com a tecla Tab"
 
 #: spyder/plugins/editor/confpage.py:114
-msgid "If enabled, pressing Tab will always indent,\n"
+msgid ""
+"If enabled, pressing Tab will always indent,\n"
 "even when the cursor is not at the beginning\n"
 "of a line (when this option is enabled, code\n"
 "completion may be triggered using the alternate\n"
 "shortcut: Ctrl+Space)"
-msgstr "Se ativada, pressionando Tab o código\n"
+msgstr ""
+"Se ativada, pressionando Tab o código\n"
 "será indentado, mesmo se o cursor não estiver\n"
 "no inicio da linha (se essa opção for ativada a\n"
 "completação de código poderá ser usada\n"
@@ -2020,10 +2039,12 @@ msgid "Automatically strip trailing spaces on changed lines"
 msgstr "Remove automaticamente os espaços finais das linhas"
 
 #: spyder/plugins/editor/confpage.py:122
-msgid "If enabled, modified lines of code (excluding strings)\n"
+msgid ""
+"If enabled, modified lines of code (excluding strings)\n"
 "will have their trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
-msgstr "Se ativado, as linhas de código modificadas (excluindo as strings)\n"
+msgstr ""
+"Se ativado, as linhas de código modificadas (excluindo as strings)\n"
 "terão seus espaços em branco à direita removidos se existirem.\n"
 "Se desativado, apenas os espaços em branco adicionados pelo Spyder serão removidos."
 
@@ -2171,27 +2192,27 @@ msgstr "Corrigir automaticamente e exibir uma mensagem de aviso"
 msgid "Convert end-of-line characters to the following on save:"
 msgstr "Converter caracteres de fim de linha para os seguintes caracteres ao salvar:"
 
-#: spyder/plugins/editor/confpage.py:306 spyder/plugins/editor/plugin.py:894
+#: spyder/plugins/editor/confpage.py:306 spyder/plugins/editor/plugin.py:891
 msgid "LF (Unix)"
 msgstr "LF (Unix)"
 
-#: spyder/plugins/editor/confpage.py:307 spyder/plugins/editor/plugin.py:889
+#: spyder/plugins/editor/confpage.py:307 spyder/plugins/editor/plugin.py:886
 msgid "CRLF (Windows)"
 msgstr "CRLF (Windows)"
 
-#: spyder/plugins/editor/confpage.py:308 spyder/plugins/editor/plugin.py:899
+#: spyder/plugins/editor/confpage.py:308 spyder/plugins/editor/plugin.py:896
 msgid "CR (macOS)"
 msgstr "CR (MacOS)"
 
-#: spyder/plugins/editor/confpage.py:332 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:416 spyder/plugins/statusbar/confpage.py:26 spyder/plugins/variableexplorer/confpage.py:31
+#: spyder/plugins/editor/confpage.py:332 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:423 spyder/plugins/statusbar/confpage.py:26 spyder/plugins/variableexplorer/confpage.py:31
 msgid "Display"
 msgstr "Visualização"
 
-#: spyder/plugins/editor/confpage.py:333 spyder/plugins/help/confpage.py:59 spyder/plugins/ipythonconsole/confpage.py:71
+#: spyder/plugins/editor/confpage.py:333 spyder/plugins/help/confpage.py:59 spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Source code"
 msgstr "Código fonte"
 
-#: spyder/plugins/editor/confpage.py:334 spyder/plugins/ipythonconsole/confpage.py:190 spyder/plugins/tours/widgets.py:334
+#: spyder/plugins/editor/confpage.py:334 spyder/plugins/ipythonconsole/confpage.py:197 spyder/plugins/tours/widgets.py:334
 msgid "Run code"
 msgstr "Executar código"
 
@@ -2199,493 +2220,495 @@ msgstr "Executar código"
 msgid "This option is disabled since the <i>Autoformat files on save</i> option is active."
 msgstr ""
 
-#: spyder/plugins/editor/panels/classfunctiondropdown.py:46 spyder/plugins/editor/panels/classfunctiondropdown.py:47 spyder/plugins/editor/panels/classfunctiondropdown.py:145 spyder/plugins/shortcuts/widgets/table.py:144
+#: spyder/plugins/editor/panels/classfunctiondropdown.py:46 spyder/plugins/editor/panels/classfunctiondropdown.py:47 spyder/plugins/editor/panels/classfunctiondropdown.py:154 spyder/plugins/shortcuts/widgets/table.py:144
 msgid "<None>"
 msgstr "<None>"
 
-#: spyder/plugins/editor/plugin.py:511
+#: spyder/plugins/editor/plugin.py:508
 msgid "&New file..."
 msgstr "&Novo arquivo..."
 
-#: spyder/plugins/editor/plugin.py:512 spyder/plugins/explorer/widgets/explorer.py:1277 spyder/plugins/explorer/widgets/explorer.py:1289
+#: spyder/plugins/editor/plugin.py:509 spyder/plugins/explorer/widgets/explorer.py:1277 spyder/plugins/explorer/widgets/explorer.py:1289
 msgid "New file"
 msgstr "Novo arquivo"
 
-#: spyder/plugins/editor/plugin.py:521
+#: spyder/plugins/editor/plugin.py:518
 msgid "O&pen last closed"
 msgstr "Ab&rir último arquivo fechado"
 
-#: spyder/plugins/editor/plugin.py:522
+#: spyder/plugins/editor/plugin.py:519
 msgid "Open last closed"
 msgstr "Abrir último arquivo fechado"
 
-#: spyder/plugins/editor/plugin.py:528
+#: spyder/plugins/editor/plugin.py:525
 msgid "&Open..."
 msgstr "&Abrir..."
 
-#: spyder/plugins/editor/plugin.py:529 spyder/plugins/editor/plugin.py:2183 spyder/plugins/editor/plugin.py:2197 spyder/plugins/editor/plugin.py:2205
+#: spyder/plugins/editor/plugin.py:526 spyder/plugins/editor/plugin.py:2175 spyder/plugins/editor/plugin.py:2189 spyder/plugins/editor/plugin.py:2197
 msgid "Open file"
 msgstr "Abrir arquivo"
 
-#: spyder/plugins/editor/plugin.py:535
+#: spyder/plugins/editor/plugin.py:532
 msgid "&Revert"
 msgstr "Resta&urar"
 
-#: spyder/plugins/editor/plugin.py:536
+#: spyder/plugins/editor/plugin.py:533
 msgid "Revert file from disk"
 msgstr "Reverter arquivo do disco"
 
-#: spyder/plugins/editor/plugin.py:539
+#: spyder/plugins/editor/plugin.py:536
 msgid "&Save"
 msgstr "&Salvar"
 
-#: spyder/plugins/editor/plugin.py:540 spyder/plugins/editor/widgets/editor.py:2038
+#: spyder/plugins/editor/plugin.py:537 spyder/plugins/editor/widgets/editor.py:2035
 msgid "Save file"
 msgstr "Salvar arquivo"
 
-#: spyder/plugins/editor/plugin.py:546
+#: spyder/plugins/editor/plugin.py:543
 msgid "Sav&e all"
 msgstr "Sal&var tudo"
 
-#: spyder/plugins/editor/plugin.py:547
+#: spyder/plugins/editor/plugin.py:544
 msgid "Save all files"
 msgstr "Salvar todos os arquivos"
 
-#: spyder/plugins/editor/plugin.py:553
+#: spyder/plugins/editor/plugin.py:550
 msgid "Save &as..."
 msgstr "Salvar c&omo..."
 
-#: spyder/plugins/editor/plugin.py:554
+#: spyder/plugins/editor/plugin.py:551
 msgid "Save current file as..."
 msgstr "Salvar arquivo atual como..."
 
-#: spyder/plugins/editor/plugin.py:559
+#: spyder/plugins/editor/plugin.py:556
 msgid "Save copy as..."
 msgstr "Salvar cópia como..."
 
-#: spyder/plugins/editor/plugin.py:560
+#: spyder/plugins/editor/plugin.py:557
 msgid "Save copy of current file as..."
 msgstr "Salvar cópia do arquivo atual como..."
 
-#: spyder/plugins/editor/plugin.py:563 spyder/plugins/editor/plugin.py:564
+#: spyder/plugins/editor/plugin.py:560 spyder/plugins/editor/plugin.py:561
 msgid "Print preview..."
 msgstr "Pré-visualizar impressão..."
 
-#: spyder/plugins/editor/plugin.py:565
+#: spyder/plugins/editor/plugin.py:562
 msgid "&Print..."
 msgstr "&Imprimir..."
 
-#: spyder/plugins/editor/plugin.py:566
+#: spyder/plugins/editor/plugin.py:563
 msgid "Print current file..."
 msgstr "Imprimir o arquivo atual..."
 
-#: spyder/plugins/editor/plugin.py:569
+#: spyder/plugins/editor/plugin.py:566
 msgid "&Close"
 msgstr "&Fechar"
 
-#: spyder/plugins/editor/plugin.py:570
+#: spyder/plugins/editor/plugin.py:567
 msgid "Close current file"
 msgstr "Fechar arquivo atual"
 
-#: spyder/plugins/editor/plugin.py:573
+#: spyder/plugins/editor/plugin.py:570
 msgid "C&lose all"
 msgstr "Fechar &tudo"
 
-#: spyder/plugins/editor/plugin.py:574
+#: spyder/plugins/editor/plugin.py:571
 msgid "Close all opened files"
 msgstr "Fechar todos os arquivos abertos"
 
-#: spyder/plugins/editor/plugin.py:581
+#: spyder/plugins/editor/plugin.py:578
 msgid "&Find text"
 msgstr "&Procurar"
 
-#: spyder/plugins/editor/plugin.py:587
+#: spyder/plugins/editor/plugin.py:584
 msgid "Find &next"
 msgstr "P&rocurar próximo"
 
-#: spyder/plugins/editor/plugin.py:593
+#: spyder/plugins/editor/plugin.py:590
 msgid "Find &previous"
 msgstr "Procurar &anterior"
 
-#: spyder/plugins/editor/plugin.py:599
+#: spyder/plugins/editor/plugin.py:596
 msgid "&Replace text"
 msgstr "&Substituir"
 
-#: spyder/plugins/editor/plugin.py:608
+#: spyder/plugins/editor/plugin.py:605
 msgid "Set/Clear breakpoint"
 msgstr "Adicionar ou limpar um ponto de interrupção"
 
-#: spyder/plugins/editor/plugin.py:616
+#: spyder/plugins/editor/plugin.py:613
 msgid "Set/Edit conditional breakpoint"
 msgstr "Adicionar ou editar um ponto de interrupção condicional"
 
-#: spyder/plugins/editor/plugin.py:629 spyder/plugins/mainmenu/plugin.py:71
+#: spyder/plugins/editor/plugin.py:626 spyder/plugins/mainmenu/plugin.py:71
 msgid "&Debug"
 msgstr "&Depurar"
 
-#: spyder/plugins/editor/plugin.py:631
+#: spyder/plugins/editor/plugin.py:628
 msgid "Debug file"
 msgstr "Depurar arquivo"
 
-#: spyder/plugins/editor/plugin.py:637
+#: spyder/plugins/editor/plugin.py:634
 msgid "Step"
 msgstr "Executar linha"
 
-#: spyder/plugins/editor/plugin.py:638
+#: spyder/plugins/editor/plugin.py:635
 msgid "Run current line"
 msgstr "Executar linha selecionada"
 
-#: spyder/plugins/editor/plugin.py:644
+#: spyder/plugins/editor/plugin.py:641
 msgid "Continue"
 msgstr "Continuar"
 
-#: spyder/plugins/editor/plugin.py:646
+#: spyder/plugins/editor/plugin.py:643
 msgid "Continue execution until next breakpoint"
 msgstr "Continuar a execução até o próximo ponto de interrupção"
 
-#: spyder/plugins/editor/plugin.py:653
+#: spyder/plugins/editor/plugin.py:650
 msgid "Step Into"
 msgstr "Ingressar na função/método"
 
-#: spyder/plugins/editor/plugin.py:655
+#: spyder/plugins/editor/plugin.py:652
 msgid "Step into function or method of current line"
 msgstr "Ingressar na função ou método da linha atual"
 
-#: spyder/plugins/editor/plugin.py:661
+#: spyder/plugins/editor/plugin.py:658
 msgid "Step Return"
 msgstr "Sair da função/método"
 
-#: spyder/plugins/editor/plugin.py:663
+#: spyder/plugins/editor/plugin.py:660
 msgid "Run until current function or method returns"
 msgstr "Executar até que a função ou método atual terminem"
 
-#: spyder/plugins/editor/plugin.py:670 spyder/widgets/browser.py:197
+#: spyder/plugins/editor/plugin.py:667 spyder/widgets/browser.py:197
 msgid "Stop"
 msgstr "Parar"
 
-#: spyder/plugins/editor/plugin.py:671
+#: spyder/plugins/editor/plugin.py:668
 msgid "Stop debugging"
 msgstr "Parar depuração"
 
-#: spyder/plugins/editor/plugin.py:677 spyder/plugins/editor/plugin.py:1697 spyder/plugins/mainmenu/plugin.py:70
+#: spyder/plugins/editor/plugin.py:674 spyder/plugins/editor/plugin.py:1692 spyder/plugins/mainmenu/plugin.py:70
 msgid "&Run"
 msgstr "&Executar"
 
-#: spyder/plugins/editor/plugin.py:678
+#: spyder/plugins/editor/plugin.py:675
 msgid "Run file"
 msgstr "Executar arquivo"
 
-#: spyder/plugins/editor/plugin.py:685
+#: spyder/plugins/editor/plugin.py:682
 msgid "&Configuration per file..."
 msgstr "&Configuração por arquivo..."
 
-#: spyder/plugins/editor/plugin.py:687
+#: spyder/plugins/editor/plugin.py:684
 msgid "Run settings"
 msgstr "Executar configurações"
 
-#: spyder/plugins/editor/plugin.py:694
+#: spyder/plugins/editor/plugin.py:691
 msgid "Re-run &last script"
 msgstr "Executar &novamente o último script"
 
-#: spyder/plugins/editor/plugin.py:696
+#: spyder/plugins/editor/plugin.py:693
 msgid "Run again last file"
 msgstr "Executar novamente o último arquivo"
 
-#: spyder/plugins/editor/plugin.py:702 spyder/plugins/editor/widgets/codeeditor.py:4451
+#: spyder/plugins/editor/plugin.py:699 spyder/plugins/editor/widgets/codeeditor.py:4548
 msgid "Run &selection or current line"
 msgstr "Executar &seleção ou linha atual"
 
-#: spyder/plugins/editor/plugin.py:705
+#: spyder/plugins/editor/plugin.py:702
 msgid "Run selection or current line"
 msgstr "Executar seleção ou linha atual"
 
-#: spyder/plugins/editor/plugin.py:712
+#: spyder/plugins/editor/plugin.py:709
 msgid "Run &to current line"
 msgstr "Executar até a linha atual"
 
-#: spyder/plugins/editor/plugin.py:713 spyder/plugins/editor/widgets/codeeditor.py:4456
+#: spyder/plugins/editor/plugin.py:710 spyder/plugins/editor/widgets/codeeditor.py:4553
 msgid "Run to current line"
 msgstr "Executar até a linha atual"
 
-#: spyder/plugins/editor/plugin.py:719
+#: spyder/plugins/editor/plugin.py:716
 msgid "Run &from current line"
 msgstr "Executar a partir da linha atual"
 
-#: spyder/plugins/editor/plugin.py:720 spyder/plugins/editor/widgets/codeeditor.py:4460
+#: spyder/plugins/editor/plugin.py:717 spyder/plugins/editor/widgets/codeeditor.py:4557
 msgid "Run from current line"
 msgstr "Executar a partir da linha atual"
 
-#: spyder/plugins/editor/plugin.py:727 spyder/plugins/editor/widgets/codeeditor.py:4439
+#: spyder/plugins/editor/plugin.py:724 spyder/plugins/editor/widgets/codeeditor.py:4536
 msgid "Run cell"
 msgstr "Executar célula"
 
-#: spyder/plugins/editor/plugin.py:729
-msgid "Run current cell \n"
+#: spyder/plugins/editor/plugin.py:726
+msgid ""
+"Run current cell \n"
 "[Use #%% to create cells]"
-msgstr "Executar célula atual \n"
+msgstr ""
+"Executar célula atual \n"
 "[Use #%% para criar células]"
 
-#: spyder/plugins/editor/plugin.py:739 spyder/plugins/editor/widgets/codeeditor.py:4443
+#: spyder/plugins/editor/plugin.py:736 spyder/plugins/editor/widgets/codeeditor.py:4540
 msgid "Run cell and advance"
 msgstr "Executar célula e avançar"
 
-#: spyder/plugins/editor/plugin.py:741
+#: spyder/plugins/editor/plugin.py:738
 msgid "Run current cell and go to the next one "
 msgstr "Executar a célula atual e ir para a próxima "
 
-#: spyder/plugins/editor/plugin.py:751 spyder/plugins/editor/widgets/codeeditor.py:4464
+#: spyder/plugins/editor/plugin.py:748 spyder/plugins/editor/widgets/codeeditor.py:4561
 msgid "Debug cell"
 msgstr "Depurar célula"
 
-#: spyder/plugins/editor/plugin.py:753
+#: spyder/plugins/editor/plugin.py:750
 msgid "Debug current cell (Alt+Shift+Enter)"
 msgstr "Depurar célula atual (Alt+Shift+Enter)"
 
-#: spyder/plugins/editor/plugin.py:763 spyder/plugins/editor/widgets/codeeditor.py:4447
+#: spyder/plugins/editor/plugin.py:760 spyder/plugins/editor/widgets/codeeditor.py:4544
 msgid "Re-run last cell"
 msgstr "Executar novamente a última célula"
 
-#: spyder/plugins/editor/plugin.py:764
+#: spyder/plugins/editor/plugin.py:761
 msgid "Re run last cell "
 msgstr "Executar novamente a última célula "
 
-#: spyder/plugins/editor/plugin.py:774
+#: spyder/plugins/editor/plugin.py:771
 msgid "Show todo list"
 msgstr "Mostrar lista de tarefas"
 
-#: spyder/plugins/editor/plugin.py:775
+#: spyder/plugins/editor/plugin.py:772
 msgid "Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/OPTIMIZE/!!!/???)"
 msgstr "Mostrar lista de comentários (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/OPTIMIZE/!!!/???)"
 
-#: spyder/plugins/editor/plugin.py:784
+#: spyder/plugins/editor/plugin.py:781
 msgid "Show warning/error list"
 msgstr "Mostrar lista de erros e avisos"
 
-#: spyder/plugins/editor/plugin.py:785
+#: spyder/plugins/editor/plugin.py:782
 msgid "Show code analysis warnings/errors"
 msgstr "Mostrar erros e avisos da análise de código"
 
-#: spyder/plugins/editor/plugin.py:792
+#: spyder/plugins/editor/plugin.py:789
 msgid "Previous warning/error"
 msgstr "Aviso ou erro anterior"
 
-#: spyder/plugins/editor/plugin.py:793
+#: spyder/plugins/editor/plugin.py:790
 msgid "Go to previous code analysis warning/error"
 msgstr "Ir para linha anterior de aviso ou erro da análise de código"
 
-#: spyder/plugins/editor/plugin.py:801
+#: spyder/plugins/editor/plugin.py:798
 msgid "Next warning/error"
 msgstr "Próximo aviso ou erro"
 
-#: spyder/plugins/editor/plugin.py:802
+#: spyder/plugins/editor/plugin.py:799
 msgid "Go to next code analysis warning/error"
 msgstr "Ir para próxima linha de aviso ou erro da análise de código"
 
-#: spyder/plugins/editor/plugin.py:811
+#: spyder/plugins/editor/plugin.py:808
 msgid "Last edit location"
 msgstr "Última posição da edição"
 
-#: spyder/plugins/editor/plugin.py:812
+#: spyder/plugins/editor/plugin.py:809
 msgid "Go to last edit location"
 msgstr "Ir para posição anterior da edição"
 
-#: spyder/plugins/editor/plugin.py:820
+#: spyder/plugins/editor/plugin.py:817
 msgid "Previous cursor position"
 msgstr "Posição anterior do cursor"
 
-#: spyder/plugins/editor/plugin.py:821
+#: spyder/plugins/editor/plugin.py:818
 msgid "Go to previous cursor position"
 msgstr "Ir a posição anterior do cursor"
 
-#: spyder/plugins/editor/plugin.py:829
+#: spyder/plugins/editor/plugin.py:826
 msgid "Next cursor position"
 msgstr "Próxima posição do cursor"
 
-#: spyder/plugins/editor/plugin.py:830
+#: spyder/plugins/editor/plugin.py:827
 msgid "Go to next cursor position"
 msgstr "Ir para a próxima posição do cursor"
 
-#: spyder/plugins/editor/plugin.py:840 spyder/plugins/editor/widgets/codeeditor.py:4417
+#: spyder/plugins/editor/plugin.py:837 spyder/plugins/editor/widgets/codeeditor.py:4514
 msgid "Comment"
 msgstr "Comentar"
 
-#: spyder/plugins/editor/plugin.py:840 spyder/plugins/editor/widgets/codeeditor.py:4417
+#: spyder/plugins/editor/plugin.py:837 spyder/plugins/editor/widgets/codeeditor.py:4514
 msgid "Uncomment"
 msgstr "Descomentar"
 
-#: spyder/plugins/editor/plugin.py:841
+#: spyder/plugins/editor/plugin.py:838
 msgid "Comment current line or selection"
 msgstr "Comentar linha ou seleção atual"
 
-#: spyder/plugins/editor/plugin.py:845
+#: spyder/plugins/editor/plugin.py:842
 msgid "Add &block comment"
 msgstr "Adicionar &bloco de comentário"
 
-#: spyder/plugins/editor/plugin.py:846
+#: spyder/plugins/editor/plugin.py:843
 msgid "Add block comment around current line or selection"
 msgstr "Adicionar bloco de comentário ao redor da linha ou seleção atual"
 
-#: spyder/plugins/editor/plugin.py:852
+#: spyder/plugins/editor/plugin.py:849
 msgid "R&emove block comment"
 msgstr "R&emover bloco de comentário"
 
-#: spyder/plugins/editor/plugin.py:853
+#: spyder/plugins/editor/plugin.py:850
 msgid "Remove comment block around current line or selection"
 msgstr "Remover bloco de comentário ao redor da linha ou seleção atual"
 
-#: spyder/plugins/editor/plugin.py:864
+#: spyder/plugins/editor/plugin.py:861
 msgid "Indent"
 msgstr "Indentar"
 
-#: spyder/plugins/editor/plugin.py:865
+#: spyder/plugins/editor/plugin.py:862
 msgid "Indent current line or selection"
 msgstr "Indentar a linha ou seleção atual"
 
-#: spyder/plugins/editor/plugin.py:868
+#: spyder/plugins/editor/plugin.py:865
 msgid "Unindent"
 msgstr "Desfazer indentação"
 
-#: spyder/plugins/editor/plugin.py:869
+#: spyder/plugins/editor/plugin.py:866
 msgid "Unindent current line or selection"
 msgstr "Desfazer indentação da linha ou seleção atual"
 
-#: spyder/plugins/editor/plugin.py:873
+#: spyder/plugins/editor/plugin.py:870
 msgid "Toggle Uppercase"
 msgstr "Alternar Maiúsculas"
 
-#: spyder/plugins/editor/plugin.py:874
+#: spyder/plugins/editor/plugin.py:871
 msgid "Change to uppercase current line or selection"
 msgstr "Mudar linha ou seleção atual para maiúsculo"
 
-#: spyder/plugins/editor/plugin.py:880
+#: spyder/plugins/editor/plugin.py:877
 msgid "Toggle Lowercase"
 msgstr "Alternar Minúsculas"
 
-#: spyder/plugins/editor/plugin.py:881
+#: spyder/plugins/editor/plugin.py:878
 msgid "Change to lowercase current line or selection"
 msgstr "Mudar linha ou seleção atual para minúsculo"
 
-#: spyder/plugins/editor/plugin.py:906
+#: spyder/plugins/editor/plugin.py:903
 msgid "Convert end-of-line characters"
 msgstr "Converter caracteres de fim de linha"
 
-#: spyder/plugins/editor/plugin.py:912
+#: spyder/plugins/editor/plugin.py:909
 msgid "Remove trailing spaces"
 msgstr "Remover espaços em branco ao fim das linhas"
 
-#: spyder/plugins/editor/plugin.py:921 spyder/plugins/editor/plugin.py:1869 spyder/plugins/editor/widgets/codeeditor.py:4496 spyder/plugins/editor/widgets/codeeditor.py:5352
+#: spyder/plugins/editor/plugin.py:918 spyder/plugins/editor/plugin.py:1860 spyder/plugins/editor/widgets/codeeditor.py:4593 spyder/plugins/editor/widgets/codeeditor.py:5425
 msgid "Format file or selection with {0}"
 msgstr "Formatar arquivo ou seleção com {0}"
 
-#: spyder/plugins/editor/plugin.py:947
+#: spyder/plugins/editor/plugin.py:944
 msgid "Show code style warnings"
 msgstr "Mostrar avisos de estilo de código"
 
-#: spyder/plugins/editor/plugin.py:950
+#: spyder/plugins/editor/plugin.py:947
 msgid "Show docstring style warnings"
 msgstr "Mostrar avisos de estilo de docstring"
 
-#: spyder/plugins/editor/plugin.py:966
+#: spyder/plugins/editor/plugin.py:963
 msgid "Fix indentation"
 msgstr "Consertar indentação"
 
-#: spyder/plugins/editor/plugin.py:967
+#: spyder/plugins/editor/plugin.py:964
 msgid "Replace tab characters by space characters"
 msgstr "Substituir caracteres de tabulação por espaços"
 
-#: spyder/plugins/editor/plugin.py:970
+#: spyder/plugins/editor/plugin.py:967
 msgid "Go to line..."
 msgstr "Ir para linha..."
 
-#: spyder/plugins/editor/plugin.py:978
+#: spyder/plugins/editor/plugin.py:975
 msgid "Set console working directory"
 msgstr "Definir diretório de trabalho"
 
-#: spyder/plugins/editor/plugin.py:980
+#: spyder/plugins/editor/plugin.py:977
 msgid "Set current console (and file explorer) working directory to current script directory"
 msgstr "Definir o diretório de trabalho do console (e do explorador de arquivos) para o diretório do script atual"
 
-#: spyder/plugins/editor/plugin.py:985
+#: spyder/plugins/editor/plugin.py:982
 msgid "Maximum number of recent files..."
 msgstr "Número máximo de arquivos recentes..."
 
-#: spyder/plugins/editor/plugin.py:988
+#: spyder/plugins/editor/plugin.py:985
 msgid "Clear recent files list"
 msgstr "Limpar lista de arquivos recentes"
 
-#: spyder/plugins/editor/plugin.py:988 spyder/plugins/findinfiles/widgets/combobox.py:81 spyder/plugins/projects/plugin.py:329
+#: spyder/plugins/editor/plugin.py:985 spyder/plugins/findinfiles/widgets/combobox.py:81 spyder/plugins/projects/plugin.py:322
 msgid "Clear this list"
 msgstr "Limpar esta lista"
 
-#: spyder/plugins/editor/plugin.py:997
+#: spyder/plugins/editor/plugin.py:994
 msgid "Go to next file"
 msgstr "Ir para o próximo arquivo"
 
-#: spyder/plugins/editor/plugin.py:1003
+#: spyder/plugins/editor/plugin.py:1000
 msgid "Go to previous file"
 msgstr "Ir para o arquivo anterior"
 
-#: spyder/plugins/editor/plugin.py:1024
+#: spyder/plugins/editor/plugin.py:1021
 msgid "Open &recent"
 msgstr "Abrir &recente"
 
-#: spyder/plugins/editor/plugin.py:1686 spyder/plugins/toolbar/plugin.py:57
+#: spyder/plugins/editor/plugin.py:1681 spyder/plugins/toolbar/plugin.py:57
 msgid "File toolbar"
 msgstr "Barra de arquivo"
 
-#: spyder/plugins/editor/plugin.py:1688 spyder/plugins/toolbar/plugin.py:58
+#: spyder/plugins/editor/plugin.py:1683 spyder/plugins/toolbar/plugin.py:58
 msgid "Run toolbar"
 msgstr "Barra de execução"
 
-#: spyder/plugins/editor/plugin.py:1690 spyder/plugins/toolbar/plugin.py:59
+#: spyder/plugins/editor/plugin.py:1685 spyder/plugins/toolbar/plugin.py:59
 msgid "Debug toolbar"
 msgstr "Barra de depuração"
 
-#: spyder/plugins/editor/plugin.py:1693 spyder/plugins/mainmenu/plugin.py:66
+#: spyder/plugins/editor/plugin.py:1688 spyder/plugins/mainmenu/plugin.py:66
 msgid "&File"
 msgstr "&Arquivo"
 
-#: spyder/plugins/editor/plugin.py:1694 spyder/plugins/mainmenu/plugin.py:67
+#: spyder/plugins/editor/plugin.py:1689 spyder/plugins/mainmenu/plugin.py:67
 msgid "&Edit"
 msgstr "&Editar"
 
-#: spyder/plugins/editor/plugin.py:1695 spyder/plugins/mainmenu/plugin.py:68
+#: spyder/plugins/editor/plugin.py:1690 spyder/plugins/mainmenu/plugin.py:68
 msgid "&Search"
 msgstr "&Pesquisar"
 
-#: spyder/plugins/editor/plugin.py:1696 spyder/plugins/mainmenu/plugin.py:69
+#: spyder/plugins/editor/plugin.py:1691 spyder/plugins/mainmenu/plugin.py:69
 msgid "Sour&ce"
 msgstr "Códi&go"
 
-#: spyder/plugins/editor/plugin.py:1698 spyder/plugins/mainmenu/plugin.py:75
+#: spyder/plugins/editor/plugin.py:1693 spyder/plugins/mainmenu/plugin.py:76
 msgid "&Tools"
 msgstr "&Ferramentas"
 
-#: spyder/plugins/editor/plugin.py:1699 spyder/plugins/mainmenu/plugin.py:76
+#: spyder/plugins/editor/plugin.py:1694 spyder/plugins/mainmenu/plugin.py:77
 msgid "&View"
 msgstr "&Ver"
 
-#: spyder/plugins/editor/plugin.py:1700 spyder/plugins/mainmenu/plugin.py:77
+#: spyder/plugins/editor/plugin.py:1695 spyder/plugins/mainmenu/plugin.py:78
 msgid "&Help"
 msgstr "A&juda"
 
-#: spyder/plugins/editor/plugin.py:1936
+#: spyder/plugins/editor/plugin.py:1927
 msgid "Spyder Editor"
 msgstr "Editor Spyder"
 
-#: spyder/plugins/editor/plugin.py:1937
+#: spyder/plugins/editor/plugin.py:1928
 msgid "This is a temporary script file."
 msgstr "Este é um arquivo de script temporário."
 
-#: spyder/plugins/editor/plugin.py:2020 spyder/plugins/editor/plugin.py:2031 spyder/plugins/editor/plugin.py:2038 spyder/plugins/pylint/main_widget.py:479
+#: spyder/plugins/editor/plugin.py:2010 spyder/plugins/editor/plugin.py:2021 spyder/plugins/editor/plugin.py:2028 spyder/plugins/pylint/main_widget.py:479
 msgid "untitled"
 msgstr "sem título"
 
-#: spyder/plugins/editor/plugin.py:2117
+#: spyder/plugins/editor/plugin.py:2106
 msgid "Maximum number of recent files"
 msgstr "Número máximo de arquivos recentes"
 
-#: spyder/plugins/editor/plugin.py:2346
+#: spyder/plugins/editor/plugin.py:2337
 msgid "Printing..."
 msgstr "Imprimindo..."
 
@@ -2749,187 +2772,195 @@ msgstr "Mensagem de erro:"
 msgid "Hide all future autosave-related errors during this session"
 msgstr "Ocultar todos os erros futuros relacionados ao salvamento automático durante esta sessão"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:650
+#: spyder/plugins/editor/widgets/codeeditor.py:661
 msgid "click to open file"
 msgstr "clique para abrir o arquivo"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:652
+#: spyder/plugins/editor/widgets/codeeditor.py:663
 msgid "click to send email"
 msgstr "clique para enviar email"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:654
+#: spyder/plugins/editor/widgets/codeeditor.py:665
 msgid "click to open url"
 msgstr "clique para abrir o URL"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:656
+#: spyder/plugins/editor/widgets/codeeditor.py:667
 msgid "click to open"
 msgstr "clique para abrir"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3225
+#: spyder/plugins/editor/widgets/codeeditor.py:3317
 msgid "Code analysis"
 msgstr "Análise de código"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3353
+#: spyder/plugins/editor/widgets/codeeditor.py:3446
 msgid "To do"
 msgstr "To do"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3860
+#: spyder/plugins/editor/widgets/codeeditor.py:3954
 msgid "Removal error"
 msgstr "Erro de remoção"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3861
-msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
-msgstr "Não foi possível remover as saídas deste notebook. O erro é:\n\n"
+#: spyder/plugins/editor/widgets/codeeditor.py:3955
+msgid ""
+"It was not possible to remove outputs from this notebook. The error is:\n"
+"\n"
+msgstr ""
+"Não foi possível remover as saídas deste notebook. O erro é:\n"
+"\n"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3873 spyder/plugins/explorer/widgets/explorer.py:1683
+#: spyder/plugins/editor/widgets/codeeditor.py:3967 spyder/plugins/explorer/widgets/explorer.py:1683
 msgid "Conversion error"
 msgstr "Erro de conversão"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:3874 spyder/plugins/explorer/widgets/explorer.py:1684
-msgid "It was not possible to convert this notebook. The error is:\n\n"
-msgstr "Não foi possível converter esse notebook. O erro é:\n\n"
+#: spyder/plugins/editor/widgets/codeeditor.py:3968 spyder/plugins/explorer/widgets/explorer.py:1684
+msgid ""
+"It was not possible to convert this notebook. The error is:\n"
+"\n"
+msgstr ""
+"Não foi possível converter esse notebook. O erro é:\n"
+"\n"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4421
+#: spyder/plugins/editor/widgets/codeeditor.py:4518
 msgid "Clear all ouput"
 msgstr "Limpar todas as saídas"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4424 spyder/plugins/explorer/widgets/explorer.py:489
+#: spyder/plugins/editor/widgets/codeeditor.py:4521 spyder/plugins/explorer/widgets/explorer.py:489
 msgid "Convert to Python file"
 msgstr ""
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4427
+#: spyder/plugins/editor/widgets/codeeditor.py:4524
 msgid "Go to definition"
 msgstr "Ir para a definição"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4432 spyder/plugins/ipythonconsole/widgets/main_widget.py:477
+#: spyder/plugins/editor/widgets/codeeditor.py:4529 spyder/plugins/ipythonconsole/widgets/main_widget.py:488
 msgid "Inspect current object"
 msgstr "Inspecionar objeto"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4470 spyder/plugins/editor/widgets/printer.py:101 spyder/plugins/plots/widgets/main_widget.py:185 spyder/plugins/plots/widgets/main_widget.py:186 spyder/widgets/browser.py:162
+#: spyder/plugins/editor/widgets/codeeditor.py:4567 spyder/plugins/editor/widgets/printer.py:101 spyder/plugins/plots/widgets/main_widget.py:185 spyder/plugins/plots/widgets/main_widget.py:186 spyder/widgets/browser.py:162
 msgid "Zoom in"
 msgstr "Mais zoom"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4474 spyder/plugins/editor/widgets/printer.py:100 spyder/plugins/plots/widgets/main_widget.py:193 spyder/plugins/plots/widgets/main_widget.py:194 spyder/widgets/browser.py:170
+#: spyder/plugins/editor/widgets/codeeditor.py:4571 spyder/plugins/editor/widgets/printer.py:100 spyder/plugins/plots/widgets/main_widget.py:193 spyder/plugins/plots/widgets/main_widget.py:194 spyder/widgets/browser.py:170
 msgid "Zoom out"
 msgstr "Menos zoom"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4478
+#: spyder/plugins/editor/widgets/codeeditor.py:4575
 msgid "Zoom reset"
 msgstr "Resetar Zoom"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:4484 spyder/plugins/editor/widgets/codeeditor.py:5496
+#: spyder/plugins/editor/widgets/codeeditor.py:4581 spyder/plugins/editor/widgets/codeeditor.py:5571
 msgid "Generate docstring"
 msgstr "Gerar docstring"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:5076 spyder/plugins/preferences/api.py:839
+#: spyder/plugins/editor/widgets/codeeditor.py:5149 spyder/plugins/preferences/api.py:839
 msgid "Information"
 msgstr "Informação"
 
-#: spyder/plugins/editor/widgets/codeeditor.py:5077
+#: spyder/plugins/editor/widgets/codeeditor.py:5150
 msgid "This file is not part of a local repository or upstream/origin remotes are not defined!"
 msgstr "Este arquivo não faz parte de um repositório local ou os locais remotos upstream/origin não estão definidos!"
 
-#: spyder/plugins/editor/widgets/editor.py:286
+#: spyder/plugins/editor/widgets/editor.py:287
 msgid "Find symbols in file..."
 msgstr "Procurar símbolos no arquivo..."
 
-#: spyder/plugins/editor/widgets/editor.py:289
+#: spyder/plugins/editor/widgets/editor.py:290
 msgid "Copy path to clipboard"
 msgstr "Copiar caminho para área de transferência"
 
-#: spyder/plugins/editor/widgets/editor.py:293
+#: spyder/plugins/editor/widgets/editor.py:294
 msgid "Close all to the right"
 msgstr "Fechar todos à direita"
 
-#: spyder/plugins/editor/widgets/editor.py:295
+#: spyder/plugins/editor/widgets/editor.py:296
 msgid "Close all but this"
 msgstr "Fechar todos, menos este"
 
-#: spyder/plugins/editor/widgets/editor.py:298
+#: spyder/plugins/editor/widgets/editor.py:299
 msgid "Sort tabs alphabetically"
 msgstr "Classificar guias em ordem alfabética"
 
-#: spyder/plugins/editor/widgets/editor.py:302 spyder/plugins/explorer/widgets/explorer.py:421
+#: spyder/plugins/editor/widgets/editor.py:303 spyder/plugins/explorer/widgets/explorer.py:421
 msgid "Show in Finder"
 msgstr "Mostrar no Buscador"
 
-#: spyder/plugins/editor/widgets/editor.py:304
+#: spyder/plugins/editor/widgets/editor.py:305
 msgid "Show in external file explorer"
 msgstr "Mostrar no explorador de arquivos do sistema"
 
-#: spyder/plugins/editor/widgets/editor.py:419
+#: spyder/plugins/editor/widgets/editor.py:422
 msgid "Spyder can't show this file in the external file explorer because the <tt>xdg-utils</tt> package is not available on your system."
 msgstr "Spyder não pode mostrar este arquivo no explorador externo por causa que o pacote <tt>xdg-utils</tt> não está disponível no seu sistema."
 
-#: spyder/plugins/editor/widgets/editor.py:1303
+#: spyder/plugins/editor/widgets/editor.py:1300
 msgid "Temporary file"
 msgstr "Arquivo temporário"
 
-#: spyder/plugins/editor/widgets/editor.py:1433
+#: spyder/plugins/editor/widgets/editor.py:1430
 msgid "New window"
 msgstr "Nova janela"
 
-#: spyder/plugins/editor/widgets/editor.py:1435
+#: spyder/plugins/editor/widgets/editor.py:1432
 msgid "Create a new editor window"
 msgstr "Criar uma nova janela de edição"
 
-#: spyder/plugins/editor/widgets/editor.py:1441
+#: spyder/plugins/editor/widgets/editor.py:1438
 msgid "Split vertically"
 msgstr "Dividir verticalmente"
 
-#: spyder/plugins/editor/widgets/editor.py:1443
+#: spyder/plugins/editor/widgets/editor.py:1440
 msgid "Split vertically this editor window"
 msgstr "Dividir verticalmente esta janela de edição"
 
-#: spyder/plugins/editor/widgets/editor.py:1451
+#: spyder/plugins/editor/widgets/editor.py:1448
 msgid "Split horizontally"
 msgstr "Dividir horizontalmente"
 
-#: spyder/plugins/editor/widgets/editor.py:1453
+#: spyder/plugins/editor/widgets/editor.py:1450
 msgid "Split horizontally this editor window"
 msgstr "Dividir horizontalmente esta janela de edição"
 
-#: spyder/plugins/editor/widgets/editor.py:1461
+#: spyder/plugins/editor/widgets/editor.py:1458
 msgid "Close this panel"
 msgstr "Fechar este painel"
 
-#: spyder/plugins/editor/widgets/editor.py:1475 spyder/plugins/editor/widgets/editor.py:3368
+#: spyder/plugins/editor/widgets/editor.py:1472 spyder/plugins/editor/widgets/editor.py:3396
 msgid "Close window"
 msgstr "Fechar janela"
 
-#: spyder/plugins/editor/widgets/editor.py:1822
+#: spyder/plugins/editor/widgets/editor.py:1819
 msgid "<b>%s</b> has been modified.<br>Do you want to save changes?"
 msgstr "<b>%s</b> foi modificado.<br>Deseja salvar as mudanças?"
 
-#: spyder/plugins/editor/widgets/editor.py:1958 spyder/plugins/editor/widgets/editor.py:2147 spyder/plugins/explorer/widgets/utils.py:67
+#: spyder/plugins/editor/widgets/editor.py:1955 spyder/plugins/editor/widgets/editor.py:2144 spyder/plugins/explorer/widgets/utils.py:67
 msgid "Save Error"
 msgstr "Erro de Gravação"
 
-#: spyder/plugins/editor/widgets/editor.py:1959 spyder/plugins/editor/widgets/editor.py:2148 spyder/plugins/explorer/widgets/utils.py:68
+#: spyder/plugins/editor/widgets/editor.py:1956 spyder/plugins/editor/widgets/editor.py:2145 spyder/plugins/explorer/widgets/utils.py:68
 msgid "<b>Unable to save file '%s'</b><br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível salvar o arquivo '%s'</b><br><br>Mensagem de erro:<br>%s"
 
-#: spyder/plugins/editor/widgets/editor.py:2357
+#: spyder/plugins/editor/widgets/editor.py:2354
 msgid "<b>%s</b> is unavailable (this file may have been removed, moved or renamed outside Spyder).<br>Do you want to close it?"
 msgstr "<b>%s</b> está indisponível (o arquivo pode ter sido removido, movido ou renomeado fora do Spyder).<br>Deseja fechar?"
 
-#: spyder/plugins/editor/widgets/editor.py:2380
+#: spyder/plugins/editor/widgets/editor.py:2377
 msgid "<b>%s</b> has been modified outside Spyder.<br>Do you want to reload it and lose all your changes?"
 msgstr "<b>%s</b> foi modificado fora do Spyder.<br>Você deseja recarregar ele e perder todas as modificações?"
 
-#: spyder/plugins/editor/widgets/editor.py:2491
+#: spyder/plugins/editor/widgets/editor.py:2499
 msgid "All changes to <b>%s</b> will be lost.<br>Do you want to revert file from disk?"
 msgstr "Todas as modificações do <b>%s</b> serão perdidas.<br>Você deseja reverter o arquivo do disco?"
 
-#: spyder/plugins/editor/widgets/editor.py:2699
+#: spyder/plugins/editor/widgets/editor.py:2703
 msgid "Loading %s..."
 msgstr "Carregando %s..."
 
-#: spyder/plugins/editor/widgets/editor.py:2713
+#: spyder/plugins/editor/widgets/editor.py:2728
 msgid "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this automatically."
 msgstr "<b>%s</b> contém vários tipos de caracteres de fim de linha.<br>O Spyder irá corrigir automaticamente."
 
-#: spyder/plugins/editor/widgets/editor.py:3370
+#: spyder/plugins/editor/widgets/editor.py:3398
 msgid "Close this window"
 msgstr "Fechar esta janela"
 
@@ -2998,9 +3029,13 @@ msgid "Recover from autosave"
 msgstr "Recuperar do salvamento automático"
 
 #: spyder/plugins/editor/widgets/recover.py:129
-msgid "Autosave files found. What would you like to do?\n\n"
+msgid ""
+"Autosave files found. What would you like to do?\n"
+"\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
-msgstr "Arquivos de salvamento automático encontrados. O que você gostaria de fazer?\n\n"
+msgstr ""
+"Arquivos de salvamento automático encontrados. O que você gostaria de fazer?\n"
+"\n"
 "Essa caixa de diálogo será mostrada novamente na próxima inicialização se algum arquivo de salvamento automático não for restaurado, movido ou excluído."
 
 #: spyder/plugins/editor/widgets/recover.py:148
@@ -3235,7 +3270,7 @@ msgstr "Deseja mesmo apagar <b>%s</b>?"
 msgid "delete"
 msgstr "apagar"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1101 spyder/plugins/projects/plugin.py:600 spyder/plugins/projects/widgets/projectexplorer.py:329
+#: spyder/plugins/explorer/widgets/explorer.py:1101 spyder/plugins/projects/plugin.py:591 spyder/plugins/projects/widgets/projectexplorer.py:329
 msgid "Project Explorer"
 msgstr "Explorador de projetos"
 
@@ -3267,7 +3302,7 @@ msgstr "Você deseja mesmo renomear <b>%s</b> e sobrescrever o arquivo já exist
 msgid "<b>Unable to rename file <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível renomear arquivo <i>%s</i></b><br><br>Mensagem de erro:<br>%s"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1187 spyder/plugins/findinfiles/widgets/combobox.py:178 spyder/plugins/preferences/api.py:544 spyder/plugins/preferences/api.py:559 spyder/plugins/projects/widgets/projectdialog.py:100 spyder/plugins/projects/widgets/projectdialog.py:164 spyder/plugins/run/widgets.py:273 spyder/plugins/run/widgets.py:298 spyder/plugins/workingdirectory/container.py:211 spyder/widgets/pathmanager.py:376
+#: spyder/plugins/explorer/widgets/explorer.py:1187 spyder/plugins/findinfiles/widgets/combobox.py:178 spyder/plugins/preferences/api.py:544 spyder/plugins/preferences/api.py:559 spyder/plugins/projects/widgets/projectdialog.py:100 spyder/plugins/projects/widgets/projectdialog.py:164 spyder/plugins/pythonpath/widgets/pathmanager.py:425 spyder/plugins/run/widgets.py:273 spyder/plugins/run/widgets.py:298 spyder/plugins/workingdirectory/container.py:228
 msgid "Select directory"
 msgstr "Selecionar diretório"
 
@@ -3296,16 +3331,24 @@ msgid "File/Folder copy error"
 msgstr "Erro de cópia de arquivo/pasta"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1372
-msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
-msgstr "Não é possível copiar este tipo de arquivo(s) ou pasta(s). O erro foi:\n\n"
+msgid ""
+"Cannot copy this type of file(s) or folder(s). The error was:\n"
+"\n"
+msgstr ""
+"Não é possível copiar este tipo de arquivo(s) ou pasta(s). O erro foi:\n"
+"\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1419
 msgid "Error pasting file"
 msgstr "Erro ao colar arquivo"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1420 spyder/plugins/explorer/widgets/explorer.py:1448
-msgid "Unsupported copy operation. The error was:\n\n"
-msgstr "Operação de cópia não suportada. O erro foi:\n\n"
+msgid ""
+"Unsupported copy operation. The error was:\n"
+"\n"
+msgstr ""
+"Operação de cópia não suportada. O erro foi:\n"
+"\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1439
 msgid "Recursive copy"
@@ -3363,11 +3406,11 @@ msgstr "Nome do pacote:"
 msgid "New module"
 msgstr "Novo módulo"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1780 spyder/plugins/variableexplorer/widgets/importwizard.py:525
+#: spyder/plugins/explorer/widgets/explorer.py:1780 spyder/plugins/variableexplorer/widgets/importwizard.py:537
 msgid "Previous"
 msgstr "Anterior"
 
-#: spyder/plugins/explorer/widgets/explorer.py:1786 spyder/plugins/variableexplorer/widgets/importwizard.py:529 spyder/plugins/workingdirectory/container.py:126 spyder/plugins/workingdirectory/container.py:127
+#: spyder/plugins/explorer/widgets/explorer.py:1786 spyder/plugins/variableexplorer/widgets/importwizard.py:541 spyder/plugins/workingdirectory/container.py:144 spyder/plugins/workingdirectory/container.py:145
 msgid "Next"
 msgstr "Próximo"
 
@@ -3475,7 +3518,7 @@ msgstr "Procurar em vários arquivos"
 msgid "Search directory"
 msgstr "Procurar diretório"
 
-#: spyder/plugins/findinfiles/widgets/combobox.py:60 spyder/plugins/workingdirectory/container.py:98
+#: spyder/plugins/findinfiles/widgets/combobox.py:60 spyder/plugins/workingdirectory/container.py:119
 msgid "Current working directory"
 msgstr "Diretório de trabalho atual"
 
@@ -3511,7 +3554,7 @@ msgstr "Limpar outros diretórios"
 msgid "Do you want to clear the list of other directories?"
 msgstr "Você tem certeza que deseja limpar a lista de outros diretórios?"
 
-#: spyder/plugins/findinfiles/widgets/main_widget.py:89 spyder/widgets/findreplace.py:54
+#: spyder/plugins/findinfiles/widgets/main_widget.py:89 spyder/widgets/findreplace.py:58
 msgid "Regular expression error"
 msgstr "Erro na expressão regular"
 
@@ -3531,11 +3574,11 @@ msgstr "Excluir:"
 msgid "Exclude pattern"
 msgstr "Excluir padrão"
 
-#: spyder/plugins/findinfiles/widgets/main_widget.py:221 spyder/plugins/findinfiles/widgets/main_widget.py:247 spyder/widgets/findreplace.py:116
+#: spyder/plugins/findinfiles/widgets/main_widget.py:221 spyder/plugins/findinfiles/widgets/main_widget.py:247
 msgid "Regular expression"
 msgstr "Expressão regular"
 
-#: spyder/plugins/findinfiles/widgets/main_widget.py:222 spyder/plugins/findinfiles/widgets/main_widget.py:248
+#: spyder/plugins/findinfiles/widgets/main_widget.py:222 spyder/plugins/findinfiles/widgets/main_widget.py:248 spyder/widgets/findreplace.py:145
 msgid "Use regular expressions"
 msgstr "Use expressão regular"
 
@@ -3615,7 +3658,7 @@ msgstr "Conexões automáticas"
 msgid "This pane can automatically show an object's help information after a left parenthesis is written next to it. Below you can decide to which plugin you want to connect it to turn on this feature."
 msgstr "Este painel pode mostrar automaticamente a ajuda de um objeto depois de escrever um parênteses nele. A seguir você pode decidir a que painel/componente você deseja conectar para ativar esta função."
 
-#: spyder/plugins/help/confpage.py:33 spyder/plugins/ipythonconsole/widgets/main_widget.py:397 spyder/plugins/tours/tours.py:101
+#: spyder/plugins/help/confpage.py:33 spyder/plugins/ipythonconsole/widgets/main_widget.py:408 spyder/plugins/tours/tours.py:101
 msgid "IPython Console"
 msgstr "Console IPython"
 
@@ -3651,95 +3694,95 @@ msgstr "Não foi possível gerar ajuda rich text para este objeto.</br>Por favor
 msgid "No further documentation available"
 msgstr "Nenhuma documentação adicional disponível"
 
-#: spyder/plugins/help/utils/sphinxthread.py:80 spyder/plugins/help/widgets.py:303
+#: spyder/plugins/help/utils/sphinxthread.py:80 spyder/plugins/help/widgets.py:304
 msgid "No documentation available"
 msgstr "Nenhuma documentação disponível"
 
-#: spyder/plugins/help/widgets.py:318
+#: spyder/plugins/help/widgets.py:319
 msgid "Source"
 msgstr "Origem"
 
-#: spyder/plugins/help/widgets.py:324 spyder/plugins/outlineexplorer/widgets.py:56
+#: spyder/plugins/help/widgets.py:325 spyder/plugins/outlineexplorer/widgets.py:56
 msgid "Object"
 msgstr "Objeto"
 
-#: spyder/plugins/help/widgets.py:338 spyder/plugins/ipythonconsole/widgets/client.py:615 spyder/plugins/run/confpage.py:47 spyder/plugins/run/widgets.py:186
+#: spyder/plugins/help/widgets.py:339 spyder/plugins/ipythonconsole/widgets/client.py:615 spyder/plugins/run/confpage.py:47 spyder/plugins/run/widgets.py:186
 msgid "Console"
 msgstr "Console"
 
-#: spyder/plugins/help/widgets.py:389
+#: spyder/plugins/help/widgets.py:390
 msgid "Automatic import"
 msgstr "Importar automaticamente"
 
-#: spyder/plugins/help/widgets.py:396
+#: spyder/plugins/help/widgets.py:397
 msgid "Show Source"
 msgstr "Mostrar código fonte"
 
-#: spyder/plugins/help/widgets.py:402
+#: spyder/plugins/help/widgets.py:403
 msgid "Rich Text"
 msgstr "Rich Text"
 
-#: spyder/plugins/help/widgets.py:409
+#: spyder/plugins/help/widgets.py:410
 msgid "Plain Text"
 msgstr "Texto Simple"
 
-#: spyder/plugins/help/widgets.py:416
+#: spyder/plugins/help/widgets.py:417
 msgid "Lock/Unlock"
 msgstr "Bloquear/Desbloquear"
 
-#: spyder/plugins/help/widgets.py:424 spyder/plugins/onlinehelp/widgets.py:199 spyder/plugins/onlinehelp/widgets.py:200 spyder/widgets/browser.py:428
+#: spyder/plugins/help/widgets.py:425 spyder/plugins/onlinehelp/widgets.py:199 spyder/plugins/onlinehelp/widgets.py:200 spyder/widgets/browser.py:428
 msgid "Home"
 msgstr "Página inicial"
 
-#: spyder/plugins/help/widgets.py:503
+#: spyder/plugins/help/widgets.py:504
 msgid "Unlock"
 msgstr "Destrancar"
 
-#: spyder/plugins/help/widgets.py:506
+#: spyder/plugins/help/widgets.py:507
 msgid "Lock"
 msgstr "Trancar"
 
-#: spyder/plugins/help/widgets.py:615
+#: spyder/plugins/help/widgets.py:616
 msgid "The following error occurred when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
 msgstr "Ocorreu o seguinte erro quando o <b>Sphinx %s</b> foi chamado. <br>Erro na decodificação da docstring ou versão incompatível do Sphinx.<br><br>Mensagem de erro:<br>%s"
 
-#: spyder/plugins/help/widgets.py:767
+#: spyder/plugins/help/widgets.py:768
 msgid "Retrieving documentation"
 msgstr "Recuperando documentação"
 
-#: spyder/plugins/help/widgets.py:779
+#: spyder/plugins/help/widgets.py:780
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
 msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele no Editor, ou na frente dele no Console.%s"
 
-#: spyder/plugins/help/widgets.py:783
+#: spyder/plugins/help/widgets.py:784
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
 msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele no Editor, ou %s na frente dele no Console.%s"
 
-#: spyder/plugins/help/widgets.py:787
+#: spyder/plugins/help/widgets.py:788
 msgid "Help can also be shown automatically after writing a left parenthesis next to an object. You can activate this behavior in %s."
 msgstr "Ajuda também pode ser exibida automaticamente após escrever um parêntese esquerdo ao lado de um objeto. Você pode ativar esse comportamento em %s."
 
-#: spyder/plugins/help/widgets.py:791
+#: spyder/plugins/help/widgets.py:792
 msgid "Preferences > Help"
 msgstr "Preferências > Ajuda"
 
-#: spyder/plugins/help/widgets.py:803
+#: spyder/plugins/help/widgets.py:804
 msgid "Usage"
 msgstr "Uso"
 
-#: spyder/plugins/help/widgets.py:804
+#: spyder/plugins/help/widgets.py:805
 msgid "New to Spyder? Read our"
 msgstr "Novo no Spyder? Leia nosso"
 
-#: spyder/plugins/help/widgets.py:805
+#: spyder/plugins/help/widgets.py:806
 msgid "tutorial"
 msgstr "tutorial"
 
-#: spyder/plugins/help/widgets.py:821
+#: spyder/plugins/help/widgets.py:822
 msgid "Please consider installing Sphinx to get documentation rendered in rich text."
 msgstr "Por favor considere instalar o Sphinx para obter a documentação em rich text."
 
-#: spyder/plugins/help/widgets.py:1082
+#: spyder/plugins/help/widgets.py:1083
 msgid "No source code available."
 msgstr "O código fonte não está disponível."
 
@@ -3747,7 +3790,7 @@ msgstr "O código fonte não está disponível."
 msgid "Scroll automatically to last entry"
 msgstr "Ir automaticamente para a última entrada"
 
-#: spyder/plugins/history/plugin.py:58 spyder/plugins/history/widgets.py:111 spyder/plugins/pylint/confpage.py:31 spyder/plugins/pylint/main_widget.py:638
+#: spyder/plugins/history/plugin.py:58 spyder/plugins/history/widgets.py:112 spyder/plugins/pylint/confpage.py:31 spyder/plugins/pylint/main_widget.py:638
 msgid "History"
 msgstr "Histórico"
 
@@ -3755,375 +3798,387 @@ msgstr "Histórico"
 msgid "Provide command history for IPython Consoles"
 msgstr "Fornecer histórico de comandos para consoles IPython"
 
-#: spyder/plugins/ipythonconsole/confpage.py:30
+#: spyder/plugins/ipythonconsole/confpage.py:33
 msgid "Display initial banner"
 msgstr "Mostrar o banner inicial"
 
-#: spyder/plugins/ipythonconsole/confpage.py:31
-msgid "This option lets you hide the message shown at\n"
+#: spyder/plugins/ipythonconsole/confpage.py:34
+msgid ""
+"This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
-msgstr "Esta opção permite ocultar a mensagem que \n"
+msgstr ""
+"Esta opção permite ocultar a mensagem que \n"
 "aparece no topo do console quando aberto"
 
-#: spyder/plugins/ipythonconsole/confpage.py:35
+#: spyder/plugins/ipythonconsole/confpage.py:38
 msgid "Ask for confirmation before closing"
 msgstr "Mostrar janela de confirmação antes de fechar"
 
-#: spyder/plugins/ipythonconsole/confpage.py:38
+#: spyder/plugins/ipythonconsole/confpage.py:41
 msgid "Ask for confirmation before removing all user-defined variables"
 msgstr "Perguntar antes de remover todas variáveis definidas pelo usuário"
 
-#: spyder/plugins/ipythonconsole/confpage.py:41
-msgid "This option lets you hide the warning message shown\n"
+#: spyder/plugins/ipythonconsole/confpage.py:44
+msgid ""
+"This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
-msgstr "Esta opção permite ocultar a mensagem de aviso mostrada\n"
+msgstr ""
+"Esta opção permite ocultar a mensagem de aviso mostrada\n"
 "quando limpando as variáveis do Spyder."
 
-#: spyder/plugins/ipythonconsole/confpage.py:43 spyder/plugins/ipythonconsole/widgets/main_widget.py:468
+#: spyder/plugins/ipythonconsole/confpage.py:46 spyder/plugins/ipythonconsole/widgets/main_widget.py:479
 msgid "Show elapsed time"
 msgstr "Mostrar tempo de execução"
 
-#: spyder/plugins/ipythonconsole/confpage.py:45
+#: spyder/plugins/ipythonconsole/confpage.py:48
 msgid "Ask for confirmation before restarting"
 msgstr "Peça confirmação antes de reiniciar"
 
-#: spyder/plugins/ipythonconsole/confpage.py:47
-msgid "This option lets you hide the warning message shown\n"
+#: spyder/plugins/ipythonconsole/confpage.py:50
+msgid ""
+"This option lets you hide the warning message shown\n"
 "when restarting the kernel."
-msgstr "Esta opção permite ocultar a mensagem de aviso mostrada\n"
+msgstr ""
+"Esta opção permite ocultar a mensagem de aviso mostrada\n"
 "ao reiniciar o kernel."
 
-#: spyder/plugins/ipythonconsole/confpage.py:59
+#: spyder/plugins/ipythonconsole/confpage.py:62
 msgid "Completion type"
 msgstr "Tipo de conclusão"
 
-#: spyder/plugins/ipythonconsole/confpage.py:60
+#: spyder/plugins/ipythonconsole/confpage.py:63
 msgid "Decide what type of completion to use"
 msgstr "Decidir qual tipo de preenchimento de código usar"
 
-#: spyder/plugins/ipythonconsole/confpage.py:62
+#: spyder/plugins/ipythonconsole/confpage.py:65
 msgid "Graphical"
 msgstr "Gráfico"
 
-#: spyder/plugins/ipythonconsole/confpage.py:62
+#: spyder/plugins/ipythonconsole/confpage.py:65
 msgid "Plain"
 msgstr "Simples"
 
-#: spyder/plugins/ipythonconsole/confpage.py:62
+#: spyder/plugins/ipythonconsole/confpage.py:65
 msgid "Terminal"
 msgstr "Terminal"
 
-#: spyder/plugins/ipythonconsole/confpage.py:63
+#: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Completion:"
 msgstr "Preenchimento de código:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:73
+#: spyder/plugins/ipythonconsole/confpage.py:80
 msgid " lines"
 msgstr " linhas"
 
-#: spyder/plugins/ipythonconsole/confpage.py:73
+#: spyder/plugins/ipythonconsole/confpage.py:80
 msgid "Buffer:  "
 msgstr "Buffer: "
 
-#: spyder/plugins/ipythonconsole/confpage.py:75
-msgid "Set the maximum number of lines of text shown in the\n"
+#: spyder/plugins/ipythonconsole/confpage.py:82
+msgid ""
+"Set the maximum number of lines of text shown in the\n"
 "console before truncation. Specifying -1 disables it\n"
 "(not recommended!)"
-msgstr "Define o número máximo de linhas que serão mostradas\n"
+msgstr ""
+"Define o número máximo de linhas que serão mostradas\n"
 "no console, truncando as restantes. Especificando -1\n"
 "serão mostradas todas as linhas (não é recomendável!)"
 
-#: spyder/plugins/ipythonconsole/confpage.py:84
+#: spyder/plugins/ipythonconsole/confpage.py:91
 msgid "Support for graphics (Matplotlib)"
 msgstr "Suporte para criação de gráficos (Matplotlib)"
 
-#: spyder/plugins/ipythonconsole/confpage.py:85
+#: spyder/plugins/ipythonconsole/confpage.py:92
 msgid "Activate support"
 msgstr "Ativar suporte"
 
-#: spyder/plugins/ipythonconsole/confpage.py:87
+#: spyder/plugins/ipythonconsole/confpage.py:94
 msgid "Automatically load Pylab and NumPy modules"
 msgstr "Carregar automaticamente os módulos do Pylab e do NumPy"
 
-#: spyder/plugins/ipythonconsole/confpage.py:89
-msgid "This lets you load graphics support without importing\n"
+#: spyder/plugins/ipythonconsole/confpage.py:96
+msgid ""
+"This lets you load graphics support without importing\n"
 "the commands to do plots. Useful to work with other\n"
 "plotting libraries different to Matplotlib or to develop\n"
 "GUIs with Spyder."
-msgstr "Isso permite carregar o suporte gráfico sem importar\n"
+msgstr ""
+"Isso permite carregar o suporte gráfico sem importar\n"
 "os comandos para fazer gráficos. Útil para trabalhar com\n"
 "outras bibliotecas de plotagem além do Matplotlib ou para\n"
 "desenvolver UIs com o Spyder."
 
-#: spyder/plugins/ipythonconsole/confpage.py:102
+#: spyder/plugins/ipythonconsole/confpage.py:109
 msgid "Inline"
 msgstr "Em linha"
 
-#: spyder/plugins/ipythonconsole/confpage.py:104
+#: spyder/plugins/ipythonconsole/confpage.py:111
 msgid "Graphics backend"
 msgstr "Saída gráfica"
 
-#: spyder/plugins/ipythonconsole/confpage.py:105
+#: spyder/plugins/ipythonconsole/confpage.py:112
 msgid "Decide how graphics are going to be displayed in the console. If unsure, please select <b>%s</b> to put graphics inside the console or <b>%s</b> to interact with them (through zooming and panning) in a separate window."
 msgstr "Decide como os gráficos serão mostrados no console. Se não tem certeza, por favor selecione <b>%s</b> para colocar os gráficos no console ou <b>%s</b> para interagir com eles (através de zoom) em uma janela separada."
 
-#: spyder/plugins/ipythonconsole/confpage.py:120
+#: spyder/plugins/ipythonconsole/confpage.py:127
 msgid "Backend:"
 msgstr "Saída:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:123
+#: spyder/plugins/ipythonconsole/confpage.py:130
 msgid "This option will be applied the next time a console is opened."
 msgstr "Esta opção será aplicada na próxima vez que um console for aberto."
 
-#: spyder/plugins/ipythonconsole/confpage.py:134
+#: spyder/plugins/ipythonconsole/confpage.py:141
 msgid "Inline backend"
 msgstr "Saída em linha"
 
-#: spyder/plugins/ipythonconsole/confpage.py:135
+#: spyder/plugins/ipythonconsole/confpage.py:142
 msgid "Decide how to render the figures created by this backend"
 msgstr "Decida como renderizar as imagens criados por este tipo de saída gráfica"
 
-#: spyder/plugins/ipythonconsole/confpage.py:139
+#: spyder/plugins/ipythonconsole/confpage.py:146
 msgid "Format:"
 msgstr "Formato:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:143
+#: spyder/plugins/ipythonconsole/confpage.py:150
 msgid "Resolution:"
 msgstr "Resolução:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:143
+#: spyder/plugins/ipythonconsole/confpage.py:150
 msgid "dpi"
 msgstr "dpi"
 
-#: spyder/plugins/ipythonconsole/confpage.py:145
+#: spyder/plugins/ipythonconsole/confpage.py:152
 msgid "Only used when the format is PNG. Default is 72"
 msgstr "Só se usa quando o formato for PNG. O padrão é 72"
 
-#: spyder/plugins/ipythonconsole/confpage.py:148
+#: spyder/plugins/ipythonconsole/confpage.py:155
 msgid "Width:"
 msgstr "Largura:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:148 spyder/plugins/ipythonconsole/confpage.py:152
+#: spyder/plugins/ipythonconsole/confpage.py:155 spyder/plugins/ipythonconsole/confpage.py:159
 msgid "inches"
 msgstr "polegadas"
 
-#: spyder/plugins/ipythonconsole/confpage.py:150
+#: spyder/plugins/ipythonconsole/confpage.py:157
 msgid "Default is 6"
 msgstr "O padrão é 6"
 
-#: spyder/plugins/ipythonconsole/confpage.py:152
+#: spyder/plugins/ipythonconsole/confpage.py:159
 msgid "Height:"
 msgstr "Altura:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:154
+#: spyder/plugins/ipythonconsole/confpage.py:161
 msgid "Default is 4"
 msgstr "O padrão é 4"
 
-#: spyder/plugins/ipythonconsole/confpage.py:156
+#: spyder/plugins/ipythonconsole/confpage.py:163
 msgid "Use a tight layout for inline plots"
 msgstr "Usar um layout com margens estreitas para plots em linha"
 
-#: spyder/plugins/ipythonconsole/confpage.py:158
-msgid "Sets bbox_inches to \"tight\" when\n"
+#: spyder/plugins/ipythonconsole/confpage.py:165
+msgid ""
+"Sets bbox_inches to \"tight\" when\n"
 "plotting inline with matplotlib.\n"
 "When enabled, can cause discrepancies\n"
 "between the image displayed inline and\n"
 "that created using savefig."
-msgstr "Define bbox_inches como \"tight\" ao\n"
+msgstr ""
+"Define bbox_inches como \"tight\" ao\n"
 "plotar no console com matplotlib.\n"
 "Quando ativado pode causar discrepâncias\n"
 "entre a imagem exibida no console e a\n"
 "criada usando savefig."
 
-#: spyder/plugins/ipythonconsole/confpage.py:191
+#: spyder/plugins/ipythonconsole/confpage.py:198
 msgid "You can run several lines of code when a console is started. Please introduce each one separated by semicolons and a space, for example:<br><i>import os; import sys</i>"
 msgstr "Você pode executar várias linhas de código quando um console é iniciado. Por favor, insira cada uma delas separada por ponto e vírgula e um espaço, por exemplo:<br><i>import os; import sys</i>"
 
-#: spyder/plugins/ipythonconsole/confpage.py:197 spyder/plugins/ipythonconsole/confpage.py:234
+#: spyder/plugins/ipythonconsole/confpage.py:204 spyder/plugins/ipythonconsole/confpage.py:241
 msgid "Lines:"
 msgstr "Linhas:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:206
+#: spyder/plugins/ipythonconsole/confpage.py:213
 msgid "Run a file"
 msgstr "Executar arquivo"
 
-#: spyder/plugins/ipythonconsole/confpage.py:207
+#: spyder/plugins/ipythonconsole/confpage.py:214
 msgid "You can also run a whole file at startup instead of just some lines (This is similar to have a PYTHONSTARTUP file)."
 msgstr "Você também pode executar um arquivo por inteiro ao inicializar, ou invés de poucas linhas (Isso é similar a ter um arquivo PYTHONSTARTUP)."
 
-#: spyder/plugins/ipythonconsole/confpage.py:211
+#: spyder/plugins/ipythonconsole/confpage.py:218
 msgid "Use the following file:"
 msgstr "Use o seguinte arquivo:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:225
+#: spyder/plugins/ipythonconsole/confpage.py:232
 msgid "Run code while debugging"
 msgstr "Executar código enquanto depurar"
 
-#: spyder/plugins/ipythonconsole/confpage.py:226
+#: spyder/plugins/ipythonconsole/confpage.py:233
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt</i>"
 msgstr "Você pode rodar muitas linhas de código em cada nova solicitação enquanto depura. Por favor, introduzir cada um separadamente por ponto e vírgula e um espaço, por exemplo:<br><i>importar matplotlib.pyplot como ptl</i>"
 
-#: spyder/plugins/ipythonconsole/confpage.py:242
+#: spyder/plugins/ipythonconsole/confpage.py:249
 msgid "Debug"
 msgstr "Depurar"
 
-#: spyder/plugins/ipythonconsole/confpage.py:246
+#: spyder/plugins/ipythonconsole/confpage.py:253
 msgid "Prevent editor from closing files while debugging"
 msgstr "Impedir o edito de fechar arquivos durante depuração"
 
-#: spyder/plugins/ipythonconsole/confpage.py:248
+#: spyder/plugins/ipythonconsole/confpage.py:255
 msgid "This option prevents the user from closing a file while it is debugged."
 msgstr "Essa opção previne o usuário do fechamento de um arquivo enquanto ele for depurado."
 
-#: spyder/plugins/ipythonconsole/confpage.py:253
+#: spyder/plugins/ipythonconsole/confpage.py:260
 msgid "Stop debugging on first line of files without breakpoints"
 msgstr "Interromper depuração na primeira linha dos arquivo sem pontos de interrupção"
 
-#: spyder/plugins/ipythonconsole/confpage.py:255
+#: spyder/plugins/ipythonconsole/confpage.py:262
 msgid "This option lets you decide if the debugger should stop on the first line while debugging if no breakpoints are present."
 msgstr "Essa opção deixa você decidir se o depurador deveria parar na primeira linha enquanto rola a depuração e nenhum ponto de interrupção está presente."
 
-#: spyder/plugins/ipythonconsole/confpage.py:261
+#: spyder/plugins/ipythonconsole/confpage.py:268
 msgid "Ignore Python libraries while debugging"
 msgstr "Ignorar bibliotecas Python durante a depuração"
 
-#: spyder/plugins/ipythonconsole/confpage.py:262
+#: spyder/plugins/ipythonconsole/confpage.py:269
 msgid "This option lets you decide if the debugger should ignore the system libraries while debugging."
 msgstr "Esse opção deixa você decidir se o depurador deveria ignorar as bibliotecas do sistema enquanto depura."
 
-#: spyder/plugins/ipythonconsole/confpage.py:267
+#: spyder/plugins/ipythonconsole/confpage.py:274
 msgid "Process execute events while debugging"
 msgstr "Processo executa eventos durante depuração"
 
-#: spyder/plugins/ipythonconsole/confpage.py:268
+#: spyder/plugins/ipythonconsole/confpage.py:275
 msgid "This option lets you decide if the debugger should process the 'execute events' after each prompt, such as matplotlib 'show' command."
 msgstr "Esta opção deixa você decidir se o depurador deveria processar os 'eventos de execução' após cada pedido, tais como comando 'mostrar' do matplotlib."
 
-#: spyder/plugins/ipythonconsole/confpage.py:274
+#: spyder/plugins/ipythonconsole/confpage.py:281
 msgid "Use exclamation mark prefix for Pdb commands"
 msgstr "Usar prefixo exclamação para comandos Pdb"
 
-#: spyder/plugins/ipythonconsole/confpage.py:276
+#: spyder/plugins/ipythonconsole/confpage.py:283
 msgid "This option lets you decide if the Pdb commands should be prefixed by an exclamation mark. This helps in separating Pdb commands from Python code."
 msgstr "Essa opção deixa você decidir se os comandos Pdb deveriam ser prefixados por uma exclamação. Isso auxilia na separação de comandos Pdb do código Pyhton."
 
-#: spyder/plugins/ipythonconsole/confpage.py:285
+#: spyder/plugins/ipythonconsole/confpage.py:292
 msgid "Jedi completion"
 msgstr "Preenchimento de código usando Jedi"
 
-#: spyder/plugins/ipythonconsole/confpage.py:286
+#: spyder/plugins/ipythonconsole/confpage.py:293
 msgid "Enable Jedi-based <tt>Tab</tt> completion in the IPython console; similar to the greedy completer, but without evaluating the code.<br><b>Warning:</b> Slows down your console when working with large dataframes!"
 msgstr "Habilitar o preenchimento de código baseado em Jedi via <tt>Tab</tt> no console IPython; similar ao preenchimento ávido, mas sem rodar o código.<br><b>Aviso:</b> Pode deixar seu console lento quando estiver trabalhando com grandes dataframes!"
 
-#: spyder/plugins/ipythonconsole/confpage.py:293
+#: spyder/plugins/ipythonconsole/confpage.py:300
 msgid "Use Jedi completion in the IPython console"
 msgstr "Usar o preenchimento de código Jedi no console IPython"
 
-#: spyder/plugins/ipythonconsole/confpage.py:295
+#: spyder/plugins/ipythonconsole/confpage.py:302
 msgid "<b>Warning</b>: Slows down your console when working with large dataframes!<br>Allows completion of nested lists etc."
 msgstr "<b>Aviso</b>: Reduz a velocidade do console ao trabalhar com grandes dataframes!<br>Permite o preenchimento de código de listas aninhadas, etc."
 
-#: spyder/plugins/ipythonconsole/confpage.py:306
+#: spyder/plugins/ipythonconsole/confpage.py:313
 msgid "Greedy completion"
 msgstr "Preenchimento ávido"
 
-#: spyder/plugins/ipythonconsole/confpage.py:307
+#: spyder/plugins/ipythonconsole/confpage.py:314
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Warning:</b> Due to a bug, IPython's greedy completer requires a leading <tt>&lt;Space&gt;</tt> for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't."
 msgstr "Habilita o preenchimento de código usando a tecla <tt>Tab</tt> em elementos de listas, resultados de chamadas de funções, etc, <i>sem</i> atribuí-los a uma variável, como <tt>li[0].&lt;Tab&gt;</tt> ou <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Aviso:</b> Devido a um bug, o preenchimendo ávido do IPython precisa ser precedido por um <tt>&lt;Espaço&gt;</tt> para alguns preenchimentos; exemplo,  <tt>np.sin(&lt;Espaço&gt;np.&lt;Tab&gt;</tt> funcionam, enquanto <tt>np.sin(np.&lt;Tab&gt; </tt> não."
 
-#: spyder/plugins/ipythonconsole/confpage.py:319
+#: spyder/plugins/ipythonconsole/confpage.py:326
 msgid "Use greedy completion in the IPython console"
 msgstr "Usar preenchimento de código ávido no console IPython"
 
-#: spyder/plugins/ipythonconsole/confpage.py:331
+#: spyder/plugins/ipythonconsole/confpage.py:338
 msgid "Autocall"
 msgstr "Autocall"
 
-#: spyder/plugins/ipythonconsole/confpage.py:332
+#: spyder/plugins/ipythonconsole/confpage.py:339
 msgid "Autocall makes IPython automatically call any callable object even if you didn't type explicit parentheses.<br>For example, if you type <i>str 43</i> it becomes <i>str(43)</i> automatically."
 msgstr "Esta opção faz com que o Python chame automaticamente qualquer objeto mesmo se você não tenha digitado os parenteses.<br>Por exemplo, ao escrever <i>str 43</i>, ele será convertido automaticamente para <i>str(43)</i>."
 
-#: spyder/plugins/ipythonconsole/confpage.py:339
+#: spyder/plugins/ipythonconsole/confpage.py:346
 msgid "Smart"
 msgstr "Inteligente"
 
-#: spyder/plugins/ipythonconsole/confpage.py:340
+#: spyder/plugins/ipythonconsole/confpage.py:347
 msgid "Full"
 msgstr "Total"
 
-#: spyder/plugins/ipythonconsole/confpage.py:341
+#: spyder/plugins/ipythonconsole/confpage.py:348
 msgid "Off"
 msgstr "Desativado"
 
-#: spyder/plugins/ipythonconsole/confpage.py:343
+#: spyder/plugins/ipythonconsole/confpage.py:350
 msgid "Autocall:  "
 msgstr "Autocall: "
 
-#: spyder/plugins/ipythonconsole/confpage.py:344
+#: spyder/plugins/ipythonconsole/confpage.py:351
 msgid "On <b>%s</b> mode, Autocall is not applied if there are no arguments after the callable. On <b>%s</b> mode, all callable objects are automatically called (even if no arguments are present)."
 msgstr "No modo <b>%s</b>, o Autocall não é aplicado se não houver argumentos depois do objeto chamável. No modo <b>%s</b>, todos os objetos chamáveis são chamados automaticamente (mesmo se não houver argumentos presentes)."
 
-#: spyder/plugins/ipythonconsole/confpage.py:356
+#: spyder/plugins/ipythonconsole/confpage.py:363
 msgid "Symbolic mathematics"
 msgstr "Matemática simbólica"
 
-#: spyder/plugins/ipythonconsole/confpage.py:357
+#: spyder/plugins/ipythonconsole/confpage.py:364
 msgid "Perfom symbolic operations in the console (e.g. integrals, derivatives, vector calculus, etc) and get the outputs in a beautifully printed style (it requires the Sympy module)."
 msgstr "Realiza operações simbólicas no console (integrais, derivadas, cálculo vetorial, etc) tendo os resultados em um belo estilo impresso (requer o módulo Sympy)."
 
-#: spyder/plugins/ipythonconsole/confpage.py:363
+#: spyder/plugins/ipythonconsole/confpage.py:370
 msgid "Use symbolic math"
 msgstr "Usar matemática simbólica"
 
-#: spyder/plugins/ipythonconsole/confpage.py:364
+#: spyder/plugins/ipythonconsole/confpage.py:371
 msgid "This option loads the Sympy library to work with.<br>Please refer to its documentation to learn how to use it."
 msgstr "Esta opção carrega a biblioteca Sympy.<br> Por favor leia sua documentação para aprender a usá-la."
 
-#: spyder/plugins/ipythonconsole/confpage.py:374
+#: spyder/plugins/ipythonconsole/confpage.py:381
 msgid "Prompts"
 msgstr "Prompts"
 
-#: spyder/plugins/ipythonconsole/confpage.py:375
+#: spyder/plugins/ipythonconsole/confpage.py:382
 msgid "Modify how Input and Output prompts are shown in the console."
 msgstr "Modificar como as saídas e entradas são mostradas no console."
 
-#: spyder/plugins/ipythonconsole/confpage.py:379
+#: spyder/plugins/ipythonconsole/confpage.py:386
 msgid "Input prompt:"
 msgstr "Prompt de entrada:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:381
+#: spyder/plugins/ipythonconsole/confpage.py:388
 msgid "Default is<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr "O Padrão é<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:386
+#: spyder/plugins/ipythonconsole/confpage.py:393
 msgid "Output prompt:"
 msgstr "Prompt de saída:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:388
+#: spyder/plugins/ipythonconsole/confpage.py:395
 msgid "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr "O Padrão é<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
-#: spyder/plugins/ipythonconsole/confpage.py:404
+#: spyder/plugins/ipythonconsole/confpage.py:411
 msgid "Windows adjustments"
 msgstr "Ajustes das janelas"
 
-#: spyder/plugins/ipythonconsole/confpage.py:406
+#: spyder/plugins/ipythonconsole/confpage.py:413
 msgid "Hide command line output windows generated by the subprocess module."
 msgstr "Ocultar janelas de saída da linha de comandos geradas pelo módulo de subprocesso."
 
-#: spyder/plugins/ipythonconsole/confpage.py:418
+#: spyder/plugins/ipythonconsole/confpage.py:425
 msgid "Graphics"
 msgstr "Gráficos"
 
-#: spyder/plugins/ipythonconsole/confpage.py:420 spyder/plugins/workingdirectory/confpage.py:34
+#: spyder/plugins/ipythonconsole/confpage.py:427 spyder/plugins/workingdirectory/confpage.py:34
 msgid "Startup"
 msgstr "Inicialização"
 
-#: spyder/plugins/ipythonconsole/confpage.py:422
+#: spyder/plugins/ipythonconsole/confpage.py:429
 msgid "Debugger"
 msgstr "Depurado"
 
-#: spyder/plugins/ipythonconsole/plugin.py:215 spyder/plugins/ipythonconsole/plugin.py:218
+#: spyder/plugins/ipythonconsole/plugin.py:216 spyder/plugins/ipythonconsole/plugin.py:219
 msgid "IPython console"
 msgstr "Console IPython"
 
@@ -4179,15 +4234,16 @@ msgstr "Erro ao reiniciar kernel: %s\n"
 msgid "<br>Restarting kernel...<br>"
 msgstr "<br>Reiniciando o núcleo...<br>"
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:843
-msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed ({1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
+#: spyder/plugins/ipythonconsole/widgets/client.py:836
+#, fuzzy
+msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed ({1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment first (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
 msgstr "O ambiente ou instalação Python cujo interpretador está localizado em<pre> <tt>{0}</tt></pre>não tem o módulo <tt>spyder-kernels</tt> ou a versão correta dele instalado ({1}). Sem este módulo não é possível para o Spyder criar um console para você.<br><br>Você pode instalá-lo ativando seu ambiente (se necessário) e depois executando em um terminal do sistema:<pre> <tt>{2} </tt></pre>ou<pre> <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:64
 msgid "Figures now render in the Plots pane by default. To make them also appear inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane options menu."
 msgstr "Agora as figuras são renderizadas no painel Plots por padrão. Para que eles também apareçam embutidas no console, desmarque a opção \"Silenciar Plotagem Embutida\" no menu de opções do painel Plots."
 
-#: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:35 spyder/plugins/ipythonconsole/widgets/main_widget.py:435
+#: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:35 spyder/plugins/ipythonconsole/widgets/main_widget.py:446
 msgid "Connect to an existing kernel"
 msgstr "Conectar a um kernel já existente"
 
@@ -4251,139 +4307,147 @@ msgstr "Selecionar arquivo de conexão do kernel"
 msgid "Select SSH keyfile"
 msgstr "Selecionar arquivo de chave SSH"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:280
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:289
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
 msgstr "O diretório {} não está em modo de escrita e isto é necessário para criar consoles IPython. Por favor habilite a escrita no diretório."
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:359
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:368
 msgid "Press <b>Q</b> to exit pager"
 msgstr "Pressione <b>Q</b> para sair do pager"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:408
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:419
 msgid "New console (default settings)"
 msgstr "Novo console (configurações padrão)"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:415
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:426
 msgid "Restart kernel"
 msgstr "Reiniciar kernel"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:422 spyder/plugins/ipythonconsole/widgets/main_widget.py:593 spyder/plugins/ipythonconsole/widgets/shell.py:534 spyder/plugins/variableexplorer/widgets/main_widget.py:192
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:433 spyder/plugins/ipythonconsole/widgets/main_widget.py:604 spyder/plugins/ipythonconsole/widgets/shell.py:545 spyder/plugins/variableexplorer/widgets/main_widget.py:192
 msgid "Remove all variables"
 msgstr "Remover todas variáveis"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:429 spyder/plugins/ipythonconsole/widgets/main_widget.py:600 spyder/plugins/ipythonconsole/widgets/main_widget.py:601
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:440 spyder/plugins/ipythonconsole/widgets/main_widget.py:611 spyder/plugins/ipythonconsole/widgets/main_widget.py:612
 msgid "Interrupt kernel"
 msgstr "Interromper o kernel"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:436
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:447
 msgid "Open a new IPython console connected to an existing kernel"
 msgstr "Abrir um novo console do IPython conectado a um kernel existente"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:442
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:453
 msgid "Rename tab"
 msgstr "Renomear aba"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:450
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:461
 msgid "Show environment variables"
 msgstr "Mostrar variáveis de ambiente"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:459
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:470
 msgid "Show sys.path contents"
 msgstr "Mostrar conteúdo do sys.path"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:484
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:495
 msgid "Clear line or block"
 msgstr "Limpar linha ou bloco"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:490
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:501
 msgid "Clear console"
 msgstr "Limpar console"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:503
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:514
 msgid "Enter array table"
 msgstr "Insira matriz/vetor em tabela"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:509
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:520
 msgid "Enter array inline"
 msgstr "Insira a matriz/vetor em linha"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:528
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:540
 msgid "Special consoles"
 msgstr "Consoles especiais"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:563
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:575
 msgid "New Pylab console (data plotting)"
 msgstr "Novo console Pylab (plotagem de dados)"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:569
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:581
 msgid "New SymPy console (symbolic math)"
 msgstr "Novo console SymPy (matemática simbólica)"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:575
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:587
 msgid "New Cython console (Python with C extensions)"
 msgstr "Novo console Cython (Python com extensões C)"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:594
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:605
 msgid "Remove all variables from kernel namespace"
 msgstr "Remover todas as variáveis do namespace do kernel"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:615
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:653
 msgid "IPython documentation"
 msgstr "Documentação do IPython"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:618
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:656
 msgid "Intro to IPython"
 msgstr "Introdução ao IPython"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:623
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:661
 msgid "Quick reference"
 msgstr "Referência rápida"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:628
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:666
 msgid "Console help"
 msgstr "Ajuda do console"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1500
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1538
 msgid "IPython"
 msgstr "IPython"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1501
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1539
 msgid "Unable to connect to <b>%s</b>"
 msgstr "Não foi possível conectar a <b>%s</b>"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1579 spyder/plugins/ipythonconsole/widgets/main_widget.py:1602
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1617 spyder/plugins/ipythonconsole/widgets/main_widget.py:1640
 msgid "Connection error"
 msgstr "Erro de conexão"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1580
-msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
-msgstr "Ocorreu um erro ao tentar carregar o arquivo de conexão do kernel. O erro foi:\n\n"
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1618
+msgid ""
+"An error occurred while trying to load the kernel connection file. The error was:\n"
+"\n"
+msgstr ""
+"Ocorreu um erro ao tentar carregar o arquivo de conexão do kernel. O erro foi:\n"
+"\n"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1603
-msgid "Could not open ssh tunnel. The error was:\n\n"
-msgstr "Não foi possível criar um túnel ssh. O erro foi:\n\n"
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1641
+msgid ""
+"Could not open ssh tunnel. The error was:\n"
+"\n"
+msgstr ""
+"Não foi possível criar um túnel ssh. O erro foi:\n"
+"\n"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1877
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1915
 msgid "Do you want to close this console?"
 msgstr "Tem certeza que deseja fechar esse console?"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1885
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:1923
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
 msgstr "Você deseja fechar todos os outros consoles conectados ao mesmo kernel deste?"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2090 spyder/plugins/ipythonconsole/widgets/main_widget.py:2102
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2128 spyder/plugins/ipythonconsole/widgets/main_widget.py:2140
 msgid "The error is:<br><br><tt>{}</tt>"
 msgstr "O erro é:<br><br><tt>{}</tt>"
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2216
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2254
 msgid "The current file cannot be closed because it is in debug mode."
 msgstr "O arquivo atual não pode ser fechado porque está no modo de depuração."
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2268
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2306
 msgid "No IPython console is currently available to run <b>{}</b>.<br><br>Please open a new one and try again."
 msgstr "Não existe um console IPython para ser executado <b>{}</b>.<br><br>Por favor abra um novo console IPython e tente novamente."
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2361
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:2399
 msgid "No IPython console is currently available to run <b>%s</b>.<br><br>Please open a new one and try again."
 msgstr "Não existe um console IPython para ser executado <b>%s</b>.<br><br>Por favor abra um novo console IPython e tente novamente."
 
@@ -4459,27 +4523,31 @@ msgstr "Aplicar ao console atual e reiniciar o kernel"
 msgid "Apply to all existing consoles and restart all kernels"
 msgstr "Aplicar a todos os consoles existentes e reiniciar todos os kernels"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:535
+#: spyder/plugins/ipythonconsole/widgets/shell.py:267
+msgid "<br><br>The kernel appears to be dead, so it can't be interrupted. Please open a new console to keep working.<br>"
+msgstr ""
+
+#: spyder/plugins/ipythonconsole/widgets/shell.py:546
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
 msgstr "Todas as variáveis definidas pelo usuário serão removidas. Você tem certeza disso?"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:600
+#: spyder/plugins/ipythonconsole/widgets/shell.py:611
 msgid "<br><br>Removing all variables...<br>"
 msgstr "<br><br>Removendo todas variáveis...<br>"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:783
+#: spyder/plugins/ipythonconsole/widgets/shell.py:794
 msgid "Changing backend to Qt for Mayavi"
 msgstr "Alterando o back-end para Qt para Mayavi"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:980
+#: spyder/plugins/ipythonconsole/widgets/shell.py:991
 msgid "Kernel died, restarting"
 msgstr "O Kernel morreu, reiniciando"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:980
+#: spyder/plugins/ipythonconsole/widgets/shell.py:991
 msgid "Kernel restarting"
 msgstr "Reiniciando Kernel"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:1032
+#: spyder/plugins/ipythonconsole/widgets/shell.py:1043
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
 msgstr "Parece que você está tentando usar um módulo que não vem com o nosso instalador. Verifique <a href='{}'>este FAQ</a> em nossa documentação para aprender como fazer isso."
 
@@ -4532,9 +4600,11 @@ msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
 msgstr "O layout <b>{0}</b> será sobrescrito. Você deseja continuar?"
 
 #: spyder/plugins/layout/container.py:370
-msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid ""
+"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr "O esquema das janelas retornará para as configurações padrões: isso afeta a posição, tamanho e componentes da janela.\n"
+msgstr ""
+"O esquema das janelas retornará para as configurações padrões: isso afeta a posição, tamanho e componentes da janela.\n"
 "Deseja continuar?"
 
 #: spyder/plugins/layout/layouts.py:76
@@ -4670,9 +4740,11 @@ msgid "You are working with Python 2, this means that you can not import a modul
 msgstr "Você está utilizando Python 2, não é possível importar um módulo que contenha caracteres  que não são ascii."
 
 #: spyder/plugins/maininterpreter/confpage.py:232
-msgid "The following modules are not installed on your machine:\n"
+msgid ""
+"The following modules are not installed on your machine:\n"
 "%s"
-msgstr "Os seguintes módulos não estão instalados no seu computador:\n"
+msgstr ""
+"Os seguintes módulos não estão instalados no seu computador:\n"
 "%s"
 
 #: spyder/plugins/maininterpreter/confpage.py:239
@@ -4691,11 +4763,11 @@ msgstr "Menus principais"
 msgid "Provide main application menu management."
 msgstr "Fornece o gerenciamento do menu principal da aplicação."
 
-#: spyder/plugins/mainmenu/plugin.py:72
+#: spyder/plugins/mainmenu/plugin.py:73
 msgid "C&onsoles"
 msgstr "C&onsoles"
 
-#: spyder/plugins/mainmenu/plugin.py:74
+#: spyder/plugins/mainmenu/plugin.py:75
 msgid "&Projects"
 msgstr "&Projetos"
 
@@ -4983,19 +5055,19 @@ msgstr "Estilo de fonte"
 msgid "One or more of the settings you changed requires a restart to be applied.<br><br>Do you wish to restart now?"
 msgstr ""
 
-#: spyder/plugins/preferences/plugin.py:262 spyder/plugins/preferences/widgets/configdialog.py:48 spyder/plugins/preferences/widgets/container.py:109
+#: spyder/plugins/preferences/plugin.py:263 spyder/plugins/preferences/widgets/configdialog.py:51 spyder/plugins/preferences/widgets/container.py:107
 msgid "Preferences"
 msgstr "Preferências"
 
-#: spyder/plugins/preferences/plugin.py:265
+#: spyder/plugins/preferences/plugin.py:266
 msgid "This plugin provides access to Spyder preferences page"
 msgstr "Este plugin fornece acesso à página de preferências do Spyder"
 
-#: spyder/plugins/preferences/plugin.py:330
+#: spyder/plugins/preferences/plugin.py:332
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
 msgstr "O Spyder será reiniciado e voltará para suas definições padrões: <br><br>Deseja continuar?"
 
-#: spyder/plugins/preferences/widgets/container.py:117
+#: spyder/plugins/preferences/widgets/container.py:115
 msgid "Reset Spyder to factory defaults"
 msgstr "Restaurar as configuração padrão do Spyder"
 
@@ -5004,12 +5076,14 @@ msgid "Results"
 msgstr "Resultados"
 
 #: spyder/plugins/profiler/confpage.py:20
-msgid "Profiler plugin results (the output of python's profile/cProfile)\n"
+msgid ""
+"Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
-msgstr "Os resultados do plugin Profiler (a saída do profile/cProfile do python)\n"
+msgstr ""
+"Os resultados do plugin Profiler (a saída do profile/cProfile do python)\n"
 "são armazenados aqui:"
 
-#: spyder/plugins/profiler/plugin.py:63 spyder/plugins/profiler/widgets/main_widget.py:192 spyder/plugins/tours/tours.py:187
+#: spyder/plugins/profiler/plugin.py:63 spyder/plugins/profiler/widgets/main_widget.py:193 spyder/plugins/tours/tours.py:187
 msgid "Profiler"
 msgstr "Analisador"
 
@@ -5017,143 +5091,143 @@ msgstr "Analisador"
 msgid "Profile your scripts and find bottlenecks."
 msgstr "Avalie seus scripts e encontre gargalos."
 
-#: spyder/plugins/profiler/plugin.py:78 spyder/plugins/profiler/plugin.py:79 spyder/plugins/profiler/widgets/main_widget.py:200 spyder/plugins/profiler/widgets/main_widget.py:201
+#: spyder/plugins/profiler/plugin.py:78 spyder/plugins/profiler/plugin.py:79 spyder/plugins/profiler/widgets/main_widget.py:201 spyder/plugins/profiler/widgets/main_widget.py:202
 msgid "Run profiler"
 msgstr "Executar Profiler"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:208 spyder/plugins/profiler/widgets/main_widget.py:449 spyder/plugins/pylint/main_widget.py:513 spyder/plugins/pylint/main_widget.py:514 spyder/plugins/pylint/main_widget.py:869
+#: spyder/plugins/profiler/widgets/main_widget.py:209 spyder/plugins/profiler/widgets/main_widget.py:462 spyder/plugins/pylint/main_widget.py:513 spyder/plugins/pylint/main_widget.py:514 spyder/plugins/pylint/main_widget.py:869
 msgid "Select Python file"
 msgstr "Selecionar arquivo Python"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:214 spyder/plugins/pylint/main_widget.py:520
+#: spyder/plugins/profiler/widgets/main_widget.py:215 spyder/plugins/pylint/main_widget.py:520
 msgid "Output"
 msgstr "Saída"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:215
+#: spyder/plugins/profiler/widgets/main_widget.py:216
 msgid "Show program's output"
 msgstr "Mostrar saída do programa"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:221
+#: spyder/plugins/profiler/widgets/main_widget.py:222
 msgid "Collapse"
 msgstr "Colapsar"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:222
+#: spyder/plugins/profiler/widgets/main_widget.py:223
 msgid "Collapse one level up"
 msgstr "Subir um nível"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:228
+#: spyder/plugins/profiler/widgets/main_widget.py:229
 msgid "Expand"
 msgstr "Expandir"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:229
+#: spyder/plugins/profiler/widgets/main_widget.py:230
 msgid "Expand one level down"
 msgstr "Descer um nível"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:235 spyder/plugins/variableexplorer/widgets/main_widget.py:178 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:254 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:281
+#: spyder/plugins/profiler/widgets/main_widget.py:236 spyder/plugins/variableexplorer/widgets/main_widget.py:178 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:254 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:281
 msgid "Save data"
 msgstr "Salvar data"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:236
+#: spyder/plugins/profiler/widgets/main_widget.py:237
 msgid "Save profiling data"
 msgstr "Salvar dados"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:242
+#: spyder/plugins/profiler/widgets/main_widget.py:243
 msgid "Load data"
 msgstr "Carregar dados"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:243
+#: spyder/plugins/profiler/widgets/main_widget.py:244
 msgid "Load profiling data for comparison"
 msgstr "Carregar dados para comparação"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:249 spyder/plugins/profiler/widgets/main_widget.py:250
+#: spyder/plugins/profiler/widgets/main_widget.py:250 spyder/plugins/profiler/widgets/main_widget.py:251
 msgid "Clear comparison"
 msgstr "Limpar comparação"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:291
+#: spyder/plugins/profiler/widgets/main_widget.py:293
 msgid "Please install"
 msgstr "Por favor instale"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:292
+#: spyder/plugins/profiler/widgets/main_widget.py:294
 msgid "the Python profiler modules"
 msgstr "os módulos do Python Profiler"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:364
+#: spyder/plugins/profiler/widgets/main_widget.py:373
 msgid "Save profiler result"
 msgstr "Salvar resultados do profiler"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:369 spyder/plugins/profiler/widgets/main_widget.py:381
+#: spyder/plugins/profiler/widgets/main_widget.py:378 spyder/plugins/profiler/widgets/main_widget.py:395
 msgid "Profiler result"
 msgstr "Resultado do Profiler"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:379
+#: spyder/plugins/profiler/widgets/main_widget.py:393
 msgid "Select script to compare"
 msgstr "Selecione um script para comparar"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:463 spyder/plugins/profiler/widgets/main_widget.py:475
+#: spyder/plugins/profiler/widgets/main_widget.py:476 spyder/plugins/profiler/widgets/main_widget.py:488
 msgid "Profiler output"
 msgstr "Saída do Profiler"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:513
+#: spyder/plugins/profiler/widgets/main_widget.py:520
 msgid "Profiling, please wait..."
 msgstr "Processando, por favor aguarde..."
 
-#: spyder/plugins/profiler/widgets/main_widget.py:565 spyder/plugins/pylint/main_widget.py:394
+#: spyder/plugins/profiler/widgets/main_widget.py:573 spyder/plugins/pylint/main_widget.py:394
 msgid "Process failed to start"
 msgstr "O processo falhou ao iniciar"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:603
+#: spyder/plugins/profiler/widgets/main_widget.py:611
 msgid "Sorting data, please wait..."
 msgstr "Ordenando dados, por favor aguarde..."
 
-#: spyder/plugins/profiler/widgets/main_widget.py:665
+#: spyder/plugins/profiler/widgets/main_widget.py:673
 msgid "Function/Module"
 msgstr "Função/Módulo"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:665
+#: spyder/plugins/profiler/widgets/main_widget.py:673
 msgid "Total Time"
 msgstr "Tempo Total"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:665 spyder/plugins/profiler/widgets/main_widget.py:666
+#: spyder/plugins/profiler/widgets/main_widget.py:673 spyder/plugins/profiler/widgets/main_widget.py:674
 msgid "Diff"
 msgstr "Diff"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:666
+#: spyder/plugins/profiler/widgets/main_widget.py:674
 msgid "Calls"
 msgstr "Chamadas"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:666
+#: spyder/plugins/profiler/widgets/main_widget.py:674
 msgid "Local Time"
 msgstr "Hora Local"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:667
+#: spyder/plugins/profiler/widgets/main_widget.py:675
 msgid "File:line"
 msgstr "Arquivo:Linha"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:722
+#: spyder/plugins/profiler/widgets/main_widget.py:731
 msgid "Error when trying to load profiler results. The error was<br><br><tt>{0}</tt>"
 msgstr "Erro ao tentar carregar os resultados profiler. O erro foi<br><br><tt>{0}</tt>"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:884
+#: spyder/plugins/profiler/widgets/main_widget.py:894
 msgid "Function or module name"
 msgstr "Nome da função ou módulo"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:888
+#: spyder/plugins/profiler/widgets/main_widget.py:898
 msgid "Time in function (including sub-functions)"
 msgstr "Tempo decorrido na função (sub-funções incluídas)"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:897
+#: spyder/plugins/profiler/widgets/main_widget.py:907
 msgid "Local time in function (not in sub-functions)"
 msgstr "Tempo decorrido na função (excluindo sub-funções)"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:907
+#: spyder/plugins/profiler/widgets/main_widget.py:917
 msgid "Total number of calls (including recursion)"
 msgstr "Número total de chamadas (incluindo recursão)"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:917
+#: spyder/plugins/profiler/widgets/main_widget.py:927
 msgid "File:line where function is defined"
 msgstr "Arquivo:linha onde a função está definida"
 
-#: spyder/plugins/profiler/widgets/main_widget.py:922
+#: spyder/plugins/profiler/widgets/main_widget.py:932
 msgid "recursion"
 msgstr "recursão"
 
@@ -5161,63 +5235,63 @@ msgstr "recursão"
 msgid "Empty project"
 msgstr "Projeto vazio"
 
-#: spyder/plugins/projects/plugin.py:144 spyder/plugins/projects/plugin.py:616
+#: spyder/plugins/projects/plugin.py:139 spyder/plugins/projects/plugin.py:607
 msgid "Projects"
 msgstr "Projetos"
 
-#: spyder/plugins/projects/plugin.py:147
+#: spyder/plugins/projects/plugin.py:142
 msgid "Create Spyder projects and manage their files."
 msgstr "Crie projetos Spyder e gerencie seus arquivos."
 
-#: spyder/plugins/projects/plugin.py:309
+#: spyder/plugins/projects/plugin.py:302
 msgid "New Project..."
 msgstr "Novo Projeto..."
 
-#: spyder/plugins/projects/plugin.py:314
+#: spyder/plugins/projects/plugin.py:307
 msgid "Open Project..."
 msgstr "Abrir Projeto..."
 
-#: spyder/plugins/projects/plugin.py:319
+#: spyder/plugins/projects/plugin.py:312
 msgid "Close Project"
 msgstr "Fechar Projeto"
 
-#: spyder/plugins/projects/plugin.py:324
+#: spyder/plugins/projects/plugin.py:317
 msgid "Delete Project"
 msgstr "Deletar Projeto"
 
-#: spyder/plugins/projects/plugin.py:334
+#: spyder/plugins/projects/plugin.py:327
 msgid "Maximum number of recent projects..."
 msgstr "Número máximo de projetos recentes..."
 
-#: spyder/plugins/projects/plugin.py:339
+#: spyder/plugins/projects/plugin.py:332
 msgid "Recent Projects"
 msgstr "Projetos Recentes"
 
-#: spyder/plugins/projects/plugin.py:466
+#: spyder/plugins/projects/plugin.py:459
 msgid "<b>{}</b> is not a registered Spyder project type!"
 msgstr "<b>{}</b> não é um tipo de projeto Spyder registrado!"
 
-#: spyder/plugins/projects/plugin.py:477
+#: spyder/plugins/projects/plugin.py:470
 msgid "Open project"
 msgstr "Abrir projeto"
 
-#: spyder/plugins/projects/plugin.py:485
+#: spyder/plugins/projects/plugin.py:478
 msgid "<b>%s</b> is not a Spyder project!"
 msgstr "<b>%s</b> não é um projeto do Spyder!"
 
-#: spyder/plugins/projects/plugin.py:588
+#: spyder/plugins/projects/plugin.py:579
 msgid "Do you really want to delete <b>{filename}</b>?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
 msgstr "Você deseja mesmo deletar <b>{filename}</b>?<br><br><b>Nota:</b> Isso deletará apenas o projeto. Os arquivos continuarão no disco."
 
-#: spyder/plugins/projects/plugin.py:601
+#: spyder/plugins/projects/plugin.py:592
 msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>{error}"
 msgstr "<b>Não foi possível deletar <i>{varpath}</i></b><br><br>Mensagem de erro:<br>{error}"
 
-#: spyder/plugins/projects/plugin.py:617
+#: spyder/plugins/projects/plugin.py:608
 msgid "Maximum number of recent projects"
 msgstr "Número máximo de projetos recentes"
 
-#: spyder/plugins/projects/plugin.py:757
+#: spyder/plugins/projects/plugin.py:736
 msgid "<b>{}</b> is no longer a valid Spyder project! Since it is the current active project, it will be closed automatically."
 msgstr "<b>{}</b> não é mais um projeto do Spyder válido! Já que ele é projeto ativo no momento, ele será fechado automaticamente."
 
@@ -5249,7 +5323,7 @@ msgstr "Localização"
 msgid "Project type"
 msgstr "Tipo do projeto"
 
-#: spyder/plugins/projects/widgets/projectdialog.py:102 spyder/plugins/shortcuts/widgets/table.py:201 spyder/plugins/variableexplorer/widgets/importwizard.py:519
+#: spyder/plugins/projects/widgets/projectdialog.py:102 spyder/plugins/shortcuts/widgets/table.py:201 spyder/plugins/variableexplorer/widgets/importwizard.py:531
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -5380,6 +5454,83 @@ msgstr "Saída da análise de código"
 #: spyder/plugins/pylint/plugin.py:67
 msgid "Run Code Analysis."
 msgstr "Executar análise de código."
+
+#: spyder/plugins/pythonpath/container.py:70 spyder/plugins/pythonpath/plugin.py:70 spyder/plugins/pythonpath/widgets/pathmanager.py:98
+msgid "PYTHONPATH manager"
+msgstr "Gerenciar PYTHONPATH"
+
+#: spyder/plugins/pythonpath/plugin.py:73
+msgid "Manager of additional locations to search for Python modules."
+msgstr ""
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:105
+msgid "The paths listed below will be passed to IPython consoles and the Python language server as additional locations to search for Python modules."
+msgstr ""
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:147
+#, fuzzy
+msgid "Move path to the top"
+msgstr "Mover para o inicio"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:152
+#, fuzzy
+msgid "Move path up"
+msgstr "Mover para cima"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:157
+#, fuzzy
+msgid "Move path down"
+msgstr "Mover para baixo"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:162
+#, fuzzy
+msgid "Move path to the bottom"
+msgstr "Mover para o final"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:167 spyder/plugins/pythonpath/widgets/pathmanager.py:439 spyder/plugins/pythonpath/widgets/pathmanager.py:473
+msgid "Add path"
+msgstr "Adicionar caminho"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:172 spyder/plugins/pythonpath/widgets/pathmanager.py:494
+msgid "Remove path"
+msgstr "Remover caminho"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:179
+msgid "Export to PYTHONPATH environment variable"
+msgstr ""
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:250
+#, fuzzy
+msgid "Project path"
+msgstr "Nome do projeto"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:260 spyder/plugins/pythonpath/widgets/pathmanager.py:452
+msgid "User paths"
+msgstr ""
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:270
+msgid "System PYTHONPATH"
+msgstr ""
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:290
+msgid "Export"
+msgstr ""
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:291
+msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to clear the contents of PYTHONPATH before adding Spyder's path list?"
+msgstr ""
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:440
+msgid "This directory is already included in the list.<br> Do you want to move it to the top of it?"
+msgstr "Este diretório já está incluído na lista.<br> Você quer movê-lo para o topo?"
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:474
+msgid "This directory cannot be added to the path!<br><br>If you want to set a different Python interpreter, please go to <tt>Preferences > Main interpreter</tt>."
+msgstr "Este diretório não pode ser adicionado ao caminho!<br><br>Se você quiser definir um interpretador Python diferente, por favor, vá em <tt>Preferências > interpretador principal</tt>."
+
+#: spyder/plugins/pythonpath/widgets/pathmanager.py:495
+msgid "Do you really want to remove the selected path?"
+msgstr "Deseja realmente remover o caminho selecionado?"
 
 #: spyder/plugins/run/confpage.py:41
 msgid "The following are the default options for running files.These options may be overriden using the <b>Configuration per file</b> entry of the <b>Run</b> menu."
@@ -5917,14 +6068,18 @@ msgstr "Redimensionar"
 msgid "Background color"
 msgstr "Cor de fundo"
 
-#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:822 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1005 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:298 spyder/plugins/variableexplorer/widgets/texteditor.py:68 spyder/widgets/collectionseditor.py:1502
+#: spyder/plugins/variableexplorer/widgets/arrayeditor.py:822 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1005 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:298 spyder/plugins/variableexplorer/widgets/texteditor.py:68 spyder/widgets/collectionseditor.py:1505
 msgid "Save and Close"
 msgstr "Salvar e Fechar"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:101 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:440
-msgid "Opening this variable can be slow\n\n"
+msgid ""
+"Opening this variable can be slow\n"
+"\n"
 "Do you want to continue anyway?"
-msgstr "Abrir essa variável pode ser um processo lento\n\n"
+msgstr ""
+"Abrir essa variável pode ser um processo lento\n"
+"\n"
 "Deseja continuar mesmo assim?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:119
@@ -5964,9 +6119,11 @@ msgid "Spyder was unable to retrieve the value of this variable from the console
 msgstr "Não foi possível recuperar o valor desta variável do console.<br><br>A mensagem de erro foi:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:378
-msgid "It is not possible to display this value because\n"
+msgid ""
+"It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
-msgstr "Não é possível exibir esse valor porque ocorreu\n"
+msgstr ""
+"Não é possível exibir esse valor porque ocorreu\n"
 "um erro ao tentar fazer isso"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:621
@@ -6013,7 +6170,7 @@ msgstr "O formato ({}) éincorreto"
 msgid "Format ({}) should start with '%'"
 msgstr "O formato ({}) deve começar com '%'"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:106 spyder/plugins/variableexplorer/widgets/importwizard.py:427
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:106 spyder/plugins/variableexplorer/widgets/importwizard.py:439
 msgid "Import as"
 msgstr "Importar como"
 
@@ -6025,7 +6182,7 @@ msgstr "dados"
 msgid "code"
 msgstr "código"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:115 spyder/plugins/variableexplorer/widgets/importwizard.py:504
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:115 spyder/plugins/variableexplorer/widgets/importwizard.py:516
 msgid "text"
 msgstr "texto"
 
@@ -6061,51 +6218,51 @@ msgstr "Opções adicionais"
 msgid "Skip rows:"
 msgstr "Pular linhas:"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:183
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:185
 msgid "Comments:"
 msgstr "Comentários:"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:189
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:191
 msgid "Transpose"
 msgstr "Transpor"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:430
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:442
 msgid "array"
 msgstr "matriz"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:436
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:448
 msgid "list"
 msgstr "lista"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:441
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:453
 msgid "DataFrame"
 msgstr "DataFrame"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:487 spyder/plugins/variableexplorer/widgets/importwizard.py:571
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:499 spyder/plugins/variableexplorer/widgets/importwizard.py:583
 msgid "Import wizard"
 msgstr "Assistente de importação"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:492
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:504
 msgid "Raw text"
 msgstr "Texto sem formatação"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:495
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:507
 msgid "variable_name"
 msgstr "nome_da_variável"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:506
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:518
 msgid "table"
 msgstr "tabela"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:511
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:523
 msgid "Variable Name"
 msgstr "Nome da variável"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:534
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:546
 msgid "Done"
 msgstr "Feito"
 
-#: spyder/plugins/variableexplorer/widgets/importwizard.py:572
+#: spyder/plugins/variableexplorer/widgets/importwizard.py:584
 msgid "<b>Unable to proceed to next step</b><br><br>Please check your entries.<br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível prosseguir para o próximo passo</b><br><br>Por favor revise seus dados.<br><br>Mensagem de erro:<br>%s"
 
@@ -6421,15 +6578,15 @@ msgstr ""
 msgid "The directory when a new console is open will be the specified path"
 msgstr "Quando um novo console for aberto o diretório será o do caminho especificado"
 
-#: spyder/plugins/workingdirectory/container.py:119 spyder/plugins/workingdirectory/container.py:120 spyder/widgets/browser.py:129
+#: spyder/plugins/workingdirectory/container.py:137 spyder/plugins/workingdirectory/container.py:138 spyder/widgets/browser.py:129
 msgid "Back"
 msgstr "Anterior"
 
-#: spyder/plugins/workingdirectory/container.py:133 spyder/plugins/workingdirectory/container.py:134
+#: spyder/plugins/workingdirectory/container.py:151 spyder/plugins/workingdirectory/container.py:152
 msgid "Browse a working directory"
 msgstr "Selecionar um diretório de trabalho"
 
-#: spyder/plugins/workingdirectory/container.py:140 spyder/plugins/workingdirectory/container.py:141
+#: spyder/plugins/workingdirectory/container.py:158 spyder/plugins/workingdirectory/container.py:159
 msgid "Change to parent directory"
 msgstr "Mudar para diretório superior"
 
@@ -6465,7 +6622,11 @@ msgstr ""
 msgid "If you accept changes, this will modify the current user environment variables directly <b>in Windows registry</b>. Use it with precautions, at your own risks.<br><br>Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Spyder if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like <i>Python(x,y) Home</i> for example)"
 msgstr "Se você aceitar, as variáveis de ambiente atuais serão modificadas <b>no registro do Windows</b>. Use com precaução, em seu próprio risco.<br><br>Tenha em mente que para que as mudanças tenham efeito, você deverá reiniciar o processo pai deste aplicativo (simplesmente reinicie o Spyder se você executou ele de um atalho, caso contrário reinicie qualquer aplicativo pelo qual você você executou ele, como o <i>Python(x,y) Home</i>)"
 
-#: spyder/utils/programs.py:757
+#: spyder/utils/programs.py:752
+msgid "External terminal does not support a UNC file path as the working directory."
+msgstr ""
+
+#: spyder/utils/programs.py:766
 msgid "It was not possible to run this file in an external terminal"
 msgstr "Não foi possível executar este arquivo em um terminal externo"
 
@@ -6554,7 +6715,8 @@ msgid "Legal"
 msgstr "Legal"
 
 #: spyder/widgets/arraybuilder.py:200
-msgid "\n"
+msgid ""
+"\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Type an array in Matlab    : <code>[1 2;3 4]</code><br>\n"
 "           or Spyder simplified syntax : <code>1 2;3 4</code>\n"
@@ -6564,7 +6726,8 @@ msgid "\n"
 "           <b>Hint:</b><br>\n"
 "           Use two spaces or two tabs to generate a ';'.\n"
 "           "
-msgstr "\n"
+msgstr ""
+"\n"
 "           <b>Ajuda no Numpy Array/Matriz</b><br>\n"
 "           Definir uma matriz no Matlab    : <code>[1 2;3 4]</code><br>\n"
 "           ou na sintaxe simplificada do Spyder : <code>1 2;3 4</code>\n"
@@ -6576,7 +6739,8 @@ msgstr "\n"
 "           "
 
 #: spyder/widgets/arraybuilder.py:211
-msgid "\n"
+msgid ""
+"\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Enter an array in the table. <br>\n"
 "           Use Tab to move between cells.\n"
@@ -6586,7 +6750,8 @@ msgid "\n"
 "           <b>Hint:</b><br>\n"
 "           Use two tabs at the end of a row to move to the next row.\n"
 "           "
-msgstr "\n"
+msgstr ""
+"\n"
 "           <b>Ajuda no Numpy Array/Matriz</b><br>\n"
 "           Digite um array na tabela. <br>\n"
 "           Use Tab para se mover entre as células.\n"
@@ -6737,15 +6902,20 @@ msgstr "Área de transferência vazia"
 msgid "Nothing to be imported from clipboard."
 msgstr "Não há nada para ser importado da área de transferência."
 
-#: spyder/widgets/comboboxes.py:183
+#: spyder/widgets/comboboxes.py:174
+#, fuzzy
+msgid "Clear text"
+msgstr "Pesquisar texto"
+
+#: spyder/widgets/comboboxes.py:209
 msgid "Press enter to validate this entry"
 msgstr "Aperte enter para validar esta entrada"
 
-#: spyder/widgets/comboboxes.py:184
+#: spyder/widgets/comboboxes.py:210
 msgid "This entry is incorrect"
 msgstr "Esta entrada é incorreta"
 
-#: spyder/widgets/comboboxes.py:227
+#: spyder/widgets/comboboxes.py:256
 msgid "Press enter to validate this path"
 msgstr "Aperte enter para validar esse caminho"
 
@@ -6797,62 +6967,57 @@ msgstr ""
 msgid "Lock pane"
 msgstr ""
 
-#: spyder/widgets/findreplace.py:51
+#: spyder/widgets/findreplace.py:59
 msgid "No matches"
 msgstr "Sem correspondências"
 
-#: spyder/widgets/findreplace.py:52 spyder/widgets/findreplace.py:53 spyder/widgets/findreplace.py:80
-msgid "Search string"
-msgstr "Procurar string"
-
-#: spyder/widgets/findreplace.py:102
+#: spyder/widgets/findreplace.py:122
 msgid "Replace text"
 msgstr "Substituir texto"
 
-#: spyder/widgets/findreplace.py:107
+#: spyder/widgets/findreplace.py:131
 msgid "Find previous"
 msgstr "Localizar anterior"
 
-#: spyder/widgets/findreplace.py:111 spyder/widgets/findreplace.py:150
+#: spyder/widgets/findreplace.py:138
 msgid "Find next"
 msgstr "Localizar o próximo"
 
-#: spyder/widgets/findreplace.py:123
-msgid "Case Sensitive"
-msgstr "Diferenciar maiúsculas\n"
-"de minúsculas"
+#: spyder/widgets/findreplace.py:153
+#, fuzzy
+msgid "Enable case sensitive searches"
+msgstr "Pesquisa sensível a caixa"
 
-#: spyder/widgets/findreplace.py:129
-msgid "Whole words"
-msgstr "Palavras inteiras"
+#: spyder/widgets/findreplace.py:161
+msgid "Only search for whole words"
+msgstr ""
 
-#: spyder/widgets/findreplace.py:144
-msgid "Replace with:"
-msgstr "Substituir com:"
+#: spyder/widgets/findreplace.py:198
+#, fuzzy
+msgid "Replace"
+msgstr "Substituir texto"
 
-#: spyder/widgets/findreplace.py:146
-msgid "Replace string"
-msgstr "Substituir string"
+#: spyder/widgets/findreplace.py:202
+#, fuzzy
+msgid "Replace next occurrence"
+msgstr "Substituir texto"
 
-#: spyder/widgets/findreplace.py:155
-msgid "In selection"
-msgstr "Na seleção"
+#: spyder/widgets/findreplace.py:209
+#, fuzzy
+msgid "Replace occurrences in selection"
+msgstr "Indentar a linha ou seleção atual"
 
-#: spyder/widgets/findreplace.py:163
-msgid "All"
-msgstr "Tudo"
+#: spyder/widgets/findreplace.py:218
+msgid "Replace all occurrences"
+msgstr ""
 
-#: spyder/widgets/findreplace.py:653
+#: spyder/widgets/findreplace.py:737
 msgid "of"
 msgstr "do"
 
-#: spyder/widgets/findreplace.py:657
+#: spyder/widgets/findreplace.py:743
 msgid "matches"
 msgstr "correspondências"
-
-#: spyder/widgets/findreplace.py:660
-msgid "no matches"
-msgstr "sem correspondências"
 
 #: spyder/widgets/github/backend.py:149
 msgid "Invalid credentials"
@@ -6918,7 +7083,7 @@ msgstr "Token de acesso"
 msgid "Sign in"
 msgstr "Login"
 
-#: spyder/widgets/helperwidgets.py:389
+#: spyder/widgets/helperwidgets.py:417
 msgid "Spyder updates"
 msgstr "Atualizações do Spyder"
 
@@ -6941,74 +7106,6 @@ msgstr "Recolher seção"
 #: spyder/widgets/onecolumntree.py:111
 msgid "Expand section"
 msgstr "Expandir seção"
-
-#: spyder/widgets/pathmanager.py:80
-msgid "The paths listed below will be passed to IPython consoles and the language server as additional locations to search for Python modules.<br><br>Any paths in your system <tt>PYTHONPATH</tt> environment variable can be imported here if you'd like to use them."
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:124
-msgid "Move to top"
-msgstr "Mover para o inicio"
-
-#: spyder/widgets/pathmanager.py:130
-msgid "Move up"
-msgstr "Mover para cima"
-
-#: spyder/widgets/pathmanager.py:136
-msgid "Move down"
-msgstr "Mover para baixo"
-
-#: spyder/widgets/pathmanager.py:142
-msgid "Move to bottom"
-msgstr "Mover para o final"
-
-#: spyder/widgets/pathmanager.py:156 spyder/widgets/pathmanager.py:390 spyder/widgets/pathmanager.py:408
-msgid "Add path"
-msgstr "Adicionar caminho"
-
-#: spyder/widgets/pathmanager.py:162 spyder/widgets/pathmanager.py:429
-msgid "Remove path"
-msgstr "Remover caminho"
-
-#: spyder/widgets/pathmanager.py:168
-msgid "Import"
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:171
-msgid "Import from PYTHONPATH environment variable"
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:175 spyder/widgets/pathmanager.py:277
-msgid "Export"
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:178
-msgid "Export to PYTHONPATH environment variable"
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:228 spyder/widgets/pathmanager.py:263
-msgid "PYTHONPATH"
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:264
-msgid "Your <tt>PYTHONPATH</tt> environment variable is empty, so there is nothing to import."
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:278
-msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to clear the contents of PYTHONPATH before adding Spyder's path list?"
-msgstr ""
-
-#: spyder/widgets/pathmanager.py:391
-msgid "This directory is already included in the list.<br> Do you want to move it to the top of it?"
-msgstr "Este diretório já está incluído na lista.<br> Você quer movê-lo para o topo?"
-
-#: spyder/widgets/pathmanager.py:409
-msgid "This directory cannot be added to the path!<br><br>If you want to set a different Python interpreter, please go to <tt>Preferences > Main interpreter</tt>."
-msgstr "Este diretório não pode ser adicionado ao caminho!<br><br>Se você quiser definir um interpretador Python diferente, por favor, vá em <tt>Preferências > interpretador principal</tt>."
-
-#: spyder/widgets/pathmanager.py:430
-msgid "Do you really want to remove the selected path?"
-msgstr "Deseja realmente remover o caminho selecionado?"
 
 #: spyder/widgets/reporterror.py:137
 msgid "Issue reporter"
@@ -7166,3 +7263,34 @@ msgstr ""
 msgid "Unable to download the installer."
 msgstr ""
 
+#~ msgid "Show automatic completions after keyboard idle (ms):"
+#~ msgstr "Mostrar preenchimento automático de código após o teclado inativo (ms):"
+
+#~ msgid "Default is 300 milliseconds"
+#~ msgstr "O padrão é 300 milissegundos"
+
+#~ msgid "Search string"
+#~ msgstr "Procurar string"
+
+#~ msgid "Case Sensitive"
+#~ msgstr ""
+#~ "Diferenciar maiúsculas\n"
+#~ "de minúsculas"
+
+#~ msgid "Whole words"
+#~ msgstr "Palavras inteiras"
+
+#~ msgid "Replace with:"
+#~ msgstr "Substituir com:"
+
+#~ msgid "Replace string"
+#~ msgstr "Substituir string"
+
+#~ msgid "In selection"
+#~ msgstr "Na seleção"
+
+#~ msgid "All"
+#~ msgstr "Tudo"
+
+#~ msgid "no matches"
+#~ msgstr "sem correspondências"
