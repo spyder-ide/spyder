@@ -3309,6 +3309,7 @@ class EditorWidget(QSplitter):
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
+        editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
         editorsplitter = EditorSplitter(self, plugin, menu_actions,
@@ -3511,6 +3512,7 @@ class EditorPluginExample(QSplitter):
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
+        editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
         editor_layout.addWidget(self.editor_splitter)

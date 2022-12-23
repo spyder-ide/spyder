@@ -179,6 +179,7 @@ class RichText(QWidget, SpyderWidgetMixin):
 
         # Layout
         layout = QVBoxLayout()
+        layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.webview)
         layout.addWidget(self.find_widget)

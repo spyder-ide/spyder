@@ -424,6 +424,7 @@ class CodeEditor(TextEditBaseWidget):
         # Indicate occurrences of the selected word
         self.cursorPositionChanged.connect(self.__cursor_position_changed)
         self.__find_first_pos = None
+        self.__find_args = {}
 
         self.language = None
         self.supported_language = False
@@ -2635,6 +2636,13 @@ class CodeEditor(TextEditBaseWidget):
     def highlight_found_results(self, pattern, word=False, regexp=False,
                                 case=False):
         """Highlight all found patterns"""
+        self.__find_args = {
+            'pattern': pattern,
+            'word': word,
+            'regexp': regexp,
+            'case': case,
+        }
+
         pattern = to_text_string(pattern)
         if not pattern:
             return
@@ -2678,8 +2686,12 @@ class CodeEditor(TextEditBaseWidget):
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
         self.last_change_position = self.textCursor().position()
-        if self.found_results:
-            self.clear_found_results()
+
+        # If the change was on any of the lines were results were found,
+        # rehighlight them.
+        for result in self.found_results:
+            self.highlight_found_results(**self.__find_args)
+            break
 
     def get_linenumberarea_width(self):
         """
