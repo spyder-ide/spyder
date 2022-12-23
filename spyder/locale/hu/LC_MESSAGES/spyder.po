@@ -1,22 +1,21 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-12-23 09:53-0500\n"
-"PO-Revision-Date: 2022-10-18 18:25\n"
+"PO-Revision-Date: 2022-12-23 15:36\n"
 "Last-Translator: \n"
 "Language-Team: Hungarian\n"
-"Language: hu_HU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Crowdin-File: /5.x/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 80\n"
-"X-Crowdin-Language: hu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
+"X-Crowdin-Language: hu\n"
+"X-Crowdin-File: /5.x/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 80\n"
+"Language: hu_HU\n"
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
@@ -179,20 +178,17 @@ msgid "Initializing..."
 msgstr "Inicializálás..."
 
 #: spyder/app/restart.py:139
-msgid ""
-"It was not possible to close the previous Spyder instance.\n"
+msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
 msgstr "Spydert leállítani nem sikerültÚjakezdés elmaradt."
 
 #: spyder/app/restart.py:141
-msgid ""
-"Spyder could not reset to factory defaults.\n"
+msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
 msgstr "Viszzaállítas eredeti beállításokra nem sikerültÚjakezdés elmaradt."
 
 #: spyder/app/restart.py:143
-msgid ""
-"It was not possible to restart Spyder.\n"
+msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
 msgstr "Újakezdés nem sikerült"
 
@@ -225,9 +221,7 @@ msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr ""
 
 #: spyder/config/manager.py:697
-msgid ""
-"There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n"
-"\n"
+msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
 msgstr ""
 
@@ -712,8 +706,7 @@ msgid "Set this for high DPI displays when auto scaling does not work"
 msgstr ""
 
 #: spyder/plugins/application/confpage.py:202
-msgid ""
-"Enter values for different screens separated by semicolons ';'.\n"
+msgid "Enter values for different screens separated by semicolons ';'.\n"
 "Float values are supported"
 msgstr ""
 
@@ -958,8 +951,7 @@ msgid "Application update status"
 msgstr ""
 
 #: spyder/plugins/application/widgets/status.py:88
-msgid ""
-"Update installation will continue in the background.\n"
+msgid "Update installation will continue in the background.\n"
 "Click here to show the installation dialog again."
 msgstr ""
 
@@ -1032,9 +1024,8 @@ msgid "Show automatic completions after characters entered:"
 msgstr ""
 
 #: spyder/plugins/completion/confpage.py:53
-#, fuzzy
 msgid "Default is 1"
-msgstr "Az alapértelmezett: 79"
+msgstr ""
 
 #: spyder/plugins/completion/confpage.py:55
 msgid "Enable code snippets"
@@ -1141,14 +1132,12 @@ msgid "not reachable"
 msgstr "nem elérhető"
 
 #: spyder/plugins/completion/providers/kite/widgets/status.py:70
-msgid ""
-"Kite installation will continue in the background.\n"
+msgid "Kite installation will continue in the background.\n"
 "Click here to show the installation dialog again"
 msgstr ""
 
 #: spyder/plugins/completion/providers/kite/widgets/status.py:75
-msgid ""
-"Click here to show the\n"
+msgid "Click here to show the\n"
 "installation dialog again"
 msgstr ""
 
@@ -1369,8 +1358,7 @@ msgid "Enable Go to definition"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
-msgid ""
-"If enabled, left-clicking on an object name while \n"
+msgid "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
 msgstr ""
@@ -1388,8 +1376,7 @@ msgid "Enable hover hints"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
-msgid ""
-"If enabled, hovering the mouse pointer over an object\n"
+msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
 msgstr ""
@@ -1595,8 +1582,7 @@ msgid "down"
 msgstr "le"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:46
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
 msgstr ""
 
@@ -1805,16 +1791,12 @@ msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with 
 msgstr ""
 
 #: spyder/plugins/console/widgets/main_widget.py:118
-msgid ""
-"Spyder Internal Console\n"
-"\n"
+msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Please do not use it to run your code\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Please do not use it to run your code\n\n"
 msgstr ""
 
 #: spyder/plugins/console/widgets/main_widget.py:177 spyder/plugins/ipythonconsole/widgets/main_widget.py:507
@@ -1998,8 +1980,7 @@ msgid "Tab always indent"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:114
-msgid ""
-"If enabled, pressing Tab will always indent,\n"
+msgid "If enabled, pressing Tab will always indent,\n"
 "even when the cursor is not at the beginning\n"
 "of a line (when this option is enabled, code\n"
 "completion may be triggered using the alternate\n"
@@ -2011,8 +1992,7 @@ msgid "Automatically strip trailing spaces on changed lines"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:122
-msgid ""
-"If enabled, modified lines of code (excluding strings)\n"
+msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have their trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
 msgstr ""
@@ -2410,8 +2390,7 @@ msgid "Run cell"
 msgstr ""
 
 #: spyder/plugins/editor/plugin.py:726
-msgid ""
-"Run current cell \n"
+msgid "Run current cell \n"
 "[Use #%% to create cells]"
 msgstr ""
 
@@ -2768,24 +2747,16 @@ msgid "Removal error"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3955
-msgid ""
-"It was not possible to remove outputs from this notebook. The error is:\n"
-"\n"
-msgstr ""
-"Nem sikerült jegyzetfüzet kimenetes törölni. Hiba:\n"
-"\n"
+msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
+msgstr "Nem sikerült jegyzetfüzet kimenetes törölni. Hiba:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3967 spyder/plugins/explorer/widgets/explorer.py:1683
 msgid "Conversion error"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3968 spyder/plugins/explorer/widgets/explorer.py:1684
-msgid ""
-"It was not possible to convert this notebook. The error is:\n"
-"\n"
-msgstr ""
-"Jegyzetkönyv átalakítása nem sikerült. Error:\n"
-"\n"
+msgid "It was not possible to convert this notebook. The error is:\n\n"
+msgstr "Jegyzetkönyv átalakítása nem sikerült. Error:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4518
 msgid "Clear all ouput"
@@ -2996,9 +2967,7 @@ msgid "Recover from autosave"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:129
-msgid ""
-"Autosave files found. What would you like to do?\n"
-"\n"
+msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
 msgstr ""
 
@@ -3295,9 +3264,7 @@ msgid "File/Folder copy error"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1372
-msgid ""
-"Cannot copy this type of file(s) or folder(s). The error was:\n"
-"\n"
+msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1419
@@ -3305,9 +3272,7 @@ msgid "Error pasting file"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1420 spyder/plugins/explorer/widgets/explorer.py:1448
-msgid ""
-"Unsupported copy operation. The error was:\n"
-"\n"
+msgid "Unsupported copy operation. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1439
@@ -3763,8 +3728,7 @@ msgid "Display initial banner"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:34
-msgid ""
-"This option lets you hide the message shown at\n"
+msgid "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
 msgstr "Ez elbujtatja a kezdő üzenetet amikor új konzol nyílik."
 
@@ -3777,8 +3741,7 @@ msgid "Ask for confirmation before removing all user-defined variables"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:44
-msgid ""
-"This option lets you hide the warning message shown\n"
+msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
 msgstr ""
 
@@ -3791,8 +3754,7 @@ msgid "Ask for confirmation before restarting"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:50
-msgid ""
-"This option lets you hide the warning message shown\n"
+msgid "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
 msgstr ""
 
@@ -3829,12 +3791,10 @@ msgid "Buffer:  "
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:82
-msgid ""
-"Set the maximum number of lines of text shown in the\n"
+msgid "Set the maximum number of lines of text shown in the\n"
 "console before truncation. Specifying -1 disables it\n"
 "(not recommended!)"
-msgstr ""
-"Hány sort tároljon a konzol. -1 kikapcsolja \n"
+msgstr "Hány sort tároljon a konzol. -1 kikapcsolja \n"
 "(nem javasolt!)"
 
 #: spyder/plugins/ipythonconsole/confpage.py:91
@@ -3850,8 +3810,7 @@ msgid "Automatically load Pylab and NumPy modules"
 msgstr "Automatikusan betölteni pylab/numpy modulokat"
 
 #: spyder/plugins/ipythonconsole/confpage.py:96
-msgid ""
-"This lets you load graphics support without importing\n"
+msgid "This lets you load graphics support without importing\n"
 "the commands to do plots. Useful to work with other\n"
 "plotting libraries different to Matplotlib or to develop\n"
 "GUIs with Spyder."
@@ -3926,8 +3885,7 @@ msgid "Use a tight layout for inline plots"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:165
-msgid ""
-"Sets bbox_inches to \"tight\" when\n"
+msgid "Sets bbox_inches to \"tight\" when\n"
 "plotting inline with matplotlib.\n"
 "When enabled, can cause discrepancies\n"
 "between the image displayed inline and\n"
@@ -4355,15 +4313,11 @@ msgid "Connection error"
 msgstr "Csatlakozási hiba"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1618
-msgid ""
-"An error occurred while trying to load the kernel connection file. The error was:\n"
-"\n"
+msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1641
-msgid ""
-"Could not open ssh tunnel. The error was:\n"
-"\n"
+msgid "Could not open ssh tunnel. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1915
@@ -4539,8 +4493,7 @@ msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
 msgstr ""
 
 #: spyder/plugins/layout/container.py:370
-msgid ""
-"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
 msgstr "Ablak kirendezetet vissza az alapra: ablak helyzet, nagyság változandó.Folytatni?"
 
@@ -4677,11 +4630,9 @@ msgid "You are working with Python 2, this means that you can not import a modul
 msgstr "YPython 2-val nem lehet modult importálni miben nem-ascii betük vannak."
 
 #: spyder/plugins/maininterpreter/confpage.py:232
-msgid ""
-"The following modules are not installed on your machine:\n"
+msgid "The following modules are not installed on your machine:\n"
 "%s"
-msgstr ""
-"Ezek a modulok nem vannak telepítve:\n"
+msgstr "Ezek a modulok nem vannak telepítve:\n"
 "%s"
 
 #: spyder/plugins/maininterpreter/confpage.py:239
@@ -5013,8 +4964,7 @@ msgid "Results"
 msgstr "Eredmények"
 
 #: spyder/plugins/profiler/confpage.py:20
-msgid ""
-"Profiler plugin results (the output of python's profile/cProfile)\n"
+msgid "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr "Profilozó (python profile/cProfile kimenetei) eredményeketide tárolni"
 
@@ -5403,24 +5353,20 @@ msgid "The paths listed below will be passed to IPython consoles and the Python 
 msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:147
-#, fuzzy
 msgid "Move path to the top"
-msgstr "Mozgatás legfelülre"
+msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:152
-#, fuzzy
 msgid "Move path up"
-msgstr "Mozgatás fel"
+msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:157
-#, fuzzy
 msgid "Move path down"
-msgstr "Mozgatás le"
+msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:162
-#, fuzzy
 msgid "Move path to the bottom"
-msgstr "Mozgatás legalulra"
+msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:167 spyder/plugins/pythonpath/widgets/pathmanager.py:439 spyder/plugins/pythonpath/widgets/pathmanager.py:473
 msgid "Add path"
@@ -5435,9 +5381,8 @@ msgid "Export to PYTHONPATH environment variable"
 msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:250
-#, fuzzy
 msgid "Project path"
-msgstr "&Projectek"
+msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:260 spyder/plugins/pythonpath/widgets/pathmanager.py:452
 msgid "User paths"
@@ -6008,13 +5953,9 @@ msgid "Save and Close"
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:101 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:440
-msgid ""
-"Opening this variable can be slow\n"
-"\n"
+msgid "Opening this variable can be slow\n\n"
 "Do you want to continue anyway?"
-msgstr ""
-"Ezt a vátozót kinyitni lassú lehet\n"
-"\n"
+msgstr "Ezt a vátozót kinyitni lassú lehet\n\n"
 "Tovább?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:119
@@ -6054,8 +5995,7 @@ msgid "Spyder was unable to retrieve the value of this variable from the console
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:378
-msgid ""
-"It is not possible to display this value because\n"
+msgid "It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
 msgstr ""
 
@@ -6648,8 +6588,7 @@ msgid "Legal"
 msgstr ""
 
 #: spyder/widgets/arraybuilder.py:200
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Type an array in Matlab    : <code>[1 2;3 4]</code><br>\n"
 "           or Spyder simplified syntax : <code>1 2;3 4</code>\n"
@@ -6662,8 +6601,7 @@ msgid ""
 msgstr ""
 
 #: spyder/widgets/arraybuilder.py:211
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Enter an array in the table. <br>\n"
 "           Use Tab to move between cells.\n"
@@ -6816,9 +6754,8 @@ msgid "Nothing to be imported from clipboard."
 msgstr ""
 
 #: spyder/widgets/comboboxes.py:174
-#, fuzzy
 msgid "Clear text"
-msgstr "Egyszerű szöveg"
+msgstr ""
 
 #: spyder/widgets/comboboxes.py:209
 msgid "Press enter to validate this entry"
@@ -6905,18 +6842,16 @@ msgid "Only search for whole words"
 msgstr ""
 
 #: spyder/widgets/findreplace.py:198
-#, fuzzy
 msgid "Replace"
-msgstr "Csere ezzel:"
+msgstr ""
 
 #: spyder/widgets/findreplace.py:202
 msgid "Replace next occurrence"
 msgstr ""
 
 #: spyder/widgets/findreplace.py:209
-#, fuzzy
 msgid "Replace occurrences in selection"
-msgstr "Vonal vagy kivállasztást nagy betükre"
+msgstr ""
 
 #: spyder/widgets/findreplace.py:218
 msgid "Replace all occurrences"
@@ -7174,8 +7109,3 @@ msgstr ""
 msgid "Unable to download the installer."
 msgstr ""
 
-#~ msgid "Case Sensitive"
-#~ msgstr "Nagybetűérzékeny"
-
-#~ msgid "Whole words"
-#~ msgstr "Egész szavak"
