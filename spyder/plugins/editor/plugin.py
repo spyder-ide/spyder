@@ -258,6 +258,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
+        editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
         self.editorsplitter = EditorSplitter(self, self,
