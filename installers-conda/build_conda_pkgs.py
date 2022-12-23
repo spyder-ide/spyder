@@ -13,6 +13,7 @@ from configparser import ConfigParser
 from datetime import timedelta
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
+from shutil import copy
 from subprocess import check_call
 from textwrap import dedent
 from time import time
@@ -222,7 +223,7 @@ class SpyderCondaPkg(BuildCondaPkg):
             )
         # Copy source code patch to feedstock
         src_patch = self._fdstk_path / "recipe" / SPYPATCHFILE.name
-        src_patch.write_text(SPYPATCHFILE.read_text())
+        copy(SPYPATCHFILE, src_patch)
 
         # Remove osx_is_app
         meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
