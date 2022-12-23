@@ -17,6 +17,10 @@ on:
     types:
       - created
 
+concurrency:
+  group: installers-conda-${{ github.ref }}
+  cancel-in-progress: true
+
 name: Create conda-based installers for Windows, macOS, and Linux
 
 jobs:
