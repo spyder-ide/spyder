@@ -1632,6 +1632,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
+            self.find_widget.set_editor(self.get_current_editor())
             return True
         else:
             # editorstack was not removed!
