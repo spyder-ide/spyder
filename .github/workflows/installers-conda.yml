@@ -201,6 +201,8 @@ jobs:
               ls -al $app_path/Contents/MacOS
               cat $app_path/Contents/Info.plist
               echo ""
+              cat $app_path/Contents/MacOS/spyder-script
+              echo ""
           else
               echo "$app_path does not exist"
           fi
@@ -210,7 +212,7 @@ jobs:
         run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: ${{ env.PKG_FILE }}
           name: ${{ env.PKG_NAME }}
