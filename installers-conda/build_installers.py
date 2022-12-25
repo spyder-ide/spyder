@@ -221,7 +221,7 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": SPYVER,
         "channels": [
-            "napari/label/bundle_tools",
+            "napari/label/bundle_tools_2",
             "conda-forge",
         ],
         "conda_default_channels": ["conda-forge"],
@@ -242,10 +242,10 @@ def _definitions():
         "menu_packages": [
             "spyder",
         ],
-        "extra_files": {
-            str(RESOURCES / "bundle_readme.md"): "README.txt",
-            condarc: ".condarc",
-        },
+        "extra_files": [
+            {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+            {condarc: ".condarc"},
+        ],
     }
 
     if not args.no_local:
