@@ -24,7 +24,7 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 jobs:
-  build-noarch-conda-pkgs:
+  build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
     if: github.event_name != 'release'
@@ -96,8 +96,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs:
       - build-matrix
-      - build-noarch-conda-pkgs
-    if: ${{ ! failure() }}
+      - build-noarch-pkgs
+    if: contains(fromJson('["success", "skipped"]'), needs.build-noarch-pkgs.result) && needs.build-matrix.result == 'success'
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -114,7 +114,7 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
-      STATUS: ${{ needs.build-noarch-conda-pkgs.result }}
+      STATUS: ${{ needs.build-noarch-pkgs.result }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
