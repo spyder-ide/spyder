@@ -104,7 +104,7 @@ class FindReplace(QWidget):
             self.number_matches_text.hide
         )
 
-        self.warning_icon = ima.icon('warning')
+        self.no_matches_icon = ima.icon('no_matches')
         self.error_icon = ima.icon('error')
         self.messages_action = QAction(self)
         self.messages_action.setVisible(False)
@@ -745,7 +745,7 @@ class FindReplace(QWidget):
         else:
             self.number_matches_text.hide()
             if self.search_text.currentText():
-                self.show_warning()
+                self.show_no_matches()
 
     def update_matches(self):
         """Update total number of matches if text has changed in the editor."""
@@ -758,9 +758,9 @@ class FindReplace(QWidget):
             )
             self.change_number_matches(total_matches=number_matches)
 
-    def show_warning(self):
-        """Show a warning message with an icon when no matches can be found."""
-        self._show_icon_message('warning')
+    def show_no_matches(self):
+        """Show a no matches message with an icon."""
+        self._show_icon_message('no_matches')
 
     def show_error(self, error_msg):
         """Show a regexp error message with an icon."""
@@ -774,13 +774,13 @@ class FindReplace(QWidget):
         Parameters
         ----------
         kind: str
-            The kind of message. It can be 'warning' or 'error'.
+            The kind of message. It can be 'no_matches' or 'error'.
         extra_info:
             Extra info to add to the icon's tooltip.
         """
-        if kind == 'warning':
+        if kind == 'no_matches':
             tooltip = self.TOOLTIP['no_matches']
-            icon = self.warning_icon
+            icon = self.no_matches_icon
         else:
             tooltip = self.TOOLTIP['regexp_error']
             icon = self.error_icon
