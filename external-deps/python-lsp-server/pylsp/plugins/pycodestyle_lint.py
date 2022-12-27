@@ -2,8 +2,11 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
+
 import pycodestyle
+
 from pylsp import hookimpl, lsp
+from pylsp._utils import get_eol_chars
 
 try:
     from autopep8 import continued_indentation as autopep8_c_i
@@ -39,8 +42,18 @@ def pylsp_lint(workspace, document):
         kwargs = {k: v for k, v in opts.items() if v}
         styleguide = pycodestyle.StyleGuide(kwargs)
 
+        # Use LF to lint file because other line endings can give false positives.
+        # See spyder-ide/spyder#19565 for context.
+        source = document.source
+        eol_chars = get_eol_chars(source)
+        if eol_chars in ['\r', '\r\n']:
+            source = source.replace(eol_chars, '\n')
+            lines = source.splitlines(keepends=True)
+        else:
+            lines = document.lines
+
         c = pycodestyle.Checker(
-            filename=document.uri, lines=document.lines, options=styleguide.options,
+            filename=document.path, lines=lines, options=styleguide.options,
             report=PyCodeStyleDiagnosticReport(styleguide.options)
         )
         c.check_all()

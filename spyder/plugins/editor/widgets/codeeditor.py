@@ -1110,6 +1110,16 @@ class CodeEditor(TextEditBaseWidget):
             additional_msg = " cloned editor"
         else:
             additional_msg = ""
+
+            # We need to be sure that this signal is disconnected before
+            # calling document_did_open below because that method creates a
+            # unique connection for it and this method is called every time the
+            # server is restarted.
+            try:
+                self._timer_sync_symbols_and_folding.timeout.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+
             self.document_did_open()
 
         logger.debug(u"Completion services available for {0}: {1}".format(
@@ -1175,8 +1185,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # The connect is performed here instead of in __init__() because
         # notify_close() may have been called (which disconnects the signal).
-        # Qt.UniqueConnection is used to avoid duplicate signal-slot connections
-        # (just in case).
+        # Qt.UniqueConnection is used to avoid duplicate signal-slot
+        # connections (just in case).
         #
         # Note: PyQt5 throws if the signal is not unique (= already connected).
         # It is an error if this happens because as per LSP specification
