@@ -2637,7 +2637,7 @@ class EditorStack(QWidget):
             cloned_from.oe_proxy.sig_start_outline_spinner.connect(
                 editor.oe_proxy.emit_request_in_progress)
 
-            # This ensures that symbols will be requested and its infor saved
+            # This ensures that symbols will be requested and its info saved
             # for the clon.
             cloned_from.document_did_change()
 
@@ -3426,6 +3426,9 @@ class EditorWidget(QSplitter):
         """Actions to take when the splitter is moved."""
         # There's no need to update the Outline when the user moves the
         # splitter to hide it.
+        # Note: The 20 below was selected because the Outline can't have that
+        # small width. So, if the splitter position plus that amount is greater
+        # than the total widget width, it means the Outline was collapsed.
         if (position + 20) > self.size().width():
             self.outlineexplorer.change_tree_visibility(False)
         else:
