@@ -18,7 +18,8 @@ import re
 from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
-                            QLineEdit, QSizePolicy, QSpacerItem, QWidget)
+                            QLineEdit, QToolButton, QSizePolicy, QSpacerItem,
+                            QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -112,6 +113,11 @@ class FindReplace(QWidget):
             self.messages_action, QLineEdit.TrailingPosition)
         self.search_text.clear_action.triggered.connect(
             lambda: self.messages_action.setVisible(False)
+        )
+
+        # Button corresponding to the messages_action above
+        self.messages_button = (
+            self.search_text.lineEdit().findChildren(QToolButton)[1]
         )
 
         self.replace_on = False
@@ -249,11 +255,15 @@ class FindReplace(QWidget):
         self.search_text.installEventFilter(self)
 
     def eventFilter(self, widget, event):
-        """Event filter for search_text widget.
+        """
+        Event filter for search_text widget.
 
-        Emits signals when presing Enter and Shift+Enter.
-        This signals are used for search forward and backward.
-        Also, a crude hack to get tab working in the Find/Replace boxes.
+        Notes
+        -----
+        * Emit signals when Enter and Shift+Enter are pressed. These signals
+          are used for search forward and backward.
+        * Add crude hack to get tab working between the find/replace boxes.
+        * Reduce space between the messages_button and the clear one.
         """
 
         # Type check: Prevent error in PySide where 'event' may be of type
@@ -277,7 +287,13 @@ class FindReplace(QWidget):
                         self.search_text.currentText())
                 self.focusNextChild()
 
-        return super(FindReplace, self).eventFilter(widget, event)
+        if event.type() == QEvent.Paint:
+            self.messages_button.move(
+                self.search_text.lineEdit().width() - 42,
+                self.messages_button.y()
+            )
+
+        return super().eventFilter(widget, event)
 
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
