@@ -183,10 +183,19 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.filename = remove_backslashes(self.filename)
             extension = osp.splitext(self.filename)[1].lower()
 
+            if extension == '.spydata':
+                buttons = QMessageBox.Yes | QMessageBox.Cancel
+                answer = QMessageBox.warning(self, title,
+                           _("<b>Warning: '%s' files can contain malicious code!</b><br></br>"
+                              "Do not continue unless this file is from a trusted source. "
+                              "Would you like to import it anways?"
+                              ) % extension, buttons)
+                if answer == QMessageBox.Cancel:
+                    return
             if extension not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
                 answer = QMessageBox.question(self, title,
-                            _("<b>Unsupported file extension '%s'</b><br><br>"
+                           _("<b>Unsupported file extension '%s'</b><br><br>"
                               "Would you like to import it anyway "
                               "(by selecting a known file format)?"
                               ) % extension, buttons)
