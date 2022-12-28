@@ -991,12 +991,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_scrollpastend_enabled(scroll_past_end)
 
         # Line number area and indent guides
-        if cloned_from:
-            self.setFont(font)  # this is required for line numbers area
-            # Needed to show indent guides for splited editor panels
-            # See spyder-ide/spyder#10900
-            self.patch = cloned_from.patch
-            self.is_cloned = True
         self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
@@ -1041,7 +1035,19 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_format_on_save(format_on_save)
 
         if cloned_from is not None:
+            self.is_cloned = True
+
+            # This is required for the line number area
+            self.setFont(font)
+
+            # Needed to show indent guides for splited editor panels
+            # See spyder-ide/spyder#10900
+            self.patch = cloned_from.patch
+
+            # Clone text and other properties
             self.set_as_clone(cloned_from)
+
+            # Refresh panels
             self.panels.refresh()
         elif font is not None:
             self.set_font(font, color_scheme)
@@ -1107,7 +1113,7 @@ class CodeEditor(TextEditBaseWidget):
         self.completions_available = True
 
         if self.is_cloned:
-            additional_msg = " cloned editor"
+            additional_msg = "cloned editor"
         else:
             additional_msg = ""
 
@@ -1265,6 +1271,12 @@ class CodeEditor(TextEditBaseWidget):
         self.symbols_in_sync = False
         self.folding_in_sync = False
 
+        # Don't send request for cloned editors because it's not necessary.
+        # The original file should send the request.
+        if self.is_cloned:
+            return
+
+        # Get text
         text = self.get_text_with_eol()
         if self.is_ipython():
             # Send valid python text to LSP
