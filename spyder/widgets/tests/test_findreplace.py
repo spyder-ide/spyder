@@ -117,7 +117,7 @@ def test_messages_action(findreplace_editor, qtbot):
     qtbot.keyClicks(edit, 'foo')
     assert not findreplace.number_matches_text.isVisible()
     assert findreplace.messages_action.icon().cacheKey() == \
-           findreplace.warning_icon.cacheKey()
+           findreplace.no_matches_icon.cacheKey()
     assert findreplace.messages_action.toolTip() == \
            findreplace.TOOLTIP['no_matches']
 

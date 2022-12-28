@@ -113,6 +113,7 @@ class IconManager():
             'drag_dock_widget':        [('mdi.drag-variant',), {'color': self.MAIN_FG_COLOR}],
             'format_letter_case':      [('mdi.format-letter-case',), {'color': self.MAIN_FG_COLOR}],
             'format_letter_matches':   [('mdi.format-letter-matches',), {'color': self.MAIN_FG_COLOR}],
+            'no_matches':              [('mdi.do-not-disturb',), {'color': SpyderPalette.COLOR_WARN_2}],
             'clear_text':              [('mdi.backspace',), {'color': self.MAIN_FG_COLOR}],
             'regex':                   [('mdi.regex',), {'color': self.MAIN_FG_COLOR}],
             'log':                     [('mdi.file-document',), {'color': self.MAIN_FG_COLOR}],

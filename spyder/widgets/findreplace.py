@@ -18,7 +18,8 @@ import re
 from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
-                            QLineEdit, QSizePolicy, QSpacerItem, QWidget)
+                            QLineEdit, QToolButton, QSizePolicy, QSpacerItem,
+                            QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -104,7 +105,7 @@ class FindReplace(QWidget):
             self.number_matches_text.hide
         )
 
-        self.warning_icon = ima.icon('warning')
+        self.no_matches_icon = ima.icon('no_matches')
         self.error_icon = ima.icon('error')
         self.messages_action = QAction(self)
         self.messages_action.setVisible(False)
@@ -112,6 +113,11 @@ class FindReplace(QWidget):
             self.messages_action, QLineEdit.TrailingPosition)
         self.search_text.clear_action.triggered.connect(
             lambda: self.messages_action.setVisible(False)
+        )
+
+        # Button corresponding to the messages_action above
+        self.messages_button = (
+            self.search_text.lineEdit().findChildren(QToolButton)[1]
         )
 
         self.replace_on = False
@@ -249,11 +255,15 @@ class FindReplace(QWidget):
         self.search_text.installEventFilter(self)
 
     def eventFilter(self, widget, event):
-        """Event filter for search_text widget.
+        """
+        Event filter for search_text widget.
 
-        Emits signals when presing Enter and Shift+Enter.
-        This signals are used for search forward and backward.
-        Also, a crude hack to get tab working in the Find/Replace boxes.
+        Notes
+        -----
+        * Emit signals when Enter and Shift+Enter are pressed. These signals
+          are used for search forward and backward.
+        * Add crude hack to get tab working between the find/replace boxes.
+        * Reduce space between the messages_button and the clear one.
         """
 
         # Type check: Prevent error in PySide where 'event' may be of type
@@ -277,7 +287,13 @@ class FindReplace(QWidget):
                         self.search_text.currentText())
                 self.focusNextChild()
 
-        return super(FindReplace, self).eventFilter(widget, event)
+        if event.type() == QEvent.Paint:
+            self.messages_button.move(
+                self.search_text.lineEdit().width() - 42,
+                self.messages_button.y()
+            )
+
+        return super().eventFilter(widget, event)
 
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
@@ -745,7 +761,7 @@ class FindReplace(QWidget):
         else:
             self.number_matches_text.hide()
             if self.search_text.currentText():
-                self.show_warning()
+                self.show_no_matches()
 
     def update_matches(self):
         """Update total number of matches if text has changed in the editor."""
@@ -758,9 +774,9 @@ class FindReplace(QWidget):
             )
             self.change_number_matches(total_matches=number_matches)
 
-    def show_warning(self):
-        """Show a warning message with an icon when no matches can be found."""
-        self._show_icon_message('warning')
+    def show_no_matches(self):
+        """Show a no matches message with an icon."""
+        self._show_icon_message('no_matches')
 
     def show_error(self, error_msg):
         """Show a regexp error message with an icon."""
@@ -774,13 +790,13 @@ class FindReplace(QWidget):
         Parameters
         ----------
         kind: str
-            The kind of message. It can be 'warning' or 'error'.
+            The kind of message. It can be 'no_matches' or 'error'.
         extra_info:
             Extra info to add to the icon's tooltip.
         """
-        if kind == 'warning':
+        if kind == 'no_matches':
             tooltip = self.TOOLTIP['no_matches']
-            icon = self.warning_icon
+            icon = self.no_matches_icon
         else:
             tooltip = self.TOOLTIP['regexp_error']
             icon = self.error_icon
