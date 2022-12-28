@@ -28,13 +28,14 @@ import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
-from pkg_resources import parse_version
+from packaging.version import parse
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QMainWindow
+from spyder_kernels import __version__ as spyder_kernels_version
 import sympy
 
 # Local imports
@@ -488,8 +489,7 @@ def test_pylab_client(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.sympy_client
-@pytest.mark.xfail(parse_version('1.0') < parse_version(sympy.__version__) <
-                   parse_version('1.2'),
+@pytest.mark.xfail(parse('1.0') < parse(sympy.__version__) < parse('1.2'),
                    reason="A bug with sympy 1.1.1 and IPython-Qtconsole")
 def test_sympy_client(ipyconsole, qtbot):
     """Test that the SymPy console is working correctly."""
@@ -521,7 +521,7 @@ def test_sympy_client(ipyconsole, qtbot):
 @pytest.mark.cython_client
 @pytest.mark.skipif(
     (not sys.platform.startswith('linux') or
-     parse_version(ipy_release.version) == parse_version('7.11.0')),
+     parse(ipy_release.version) == parse('7.11.0')),
     reason="It only works reliably on Linux and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
@@ -2008,6 +2008,9 @@ def test_pdb_out(ipyconsole, qtbot):
 @pytest.mark.skipif(
     running_in_ci() and not os.name == 'nt',
     reason="Times out on Linux and macOS")
+@pytest.mark.skipif(
+    parse(spyder_kernels_version) < parse("3.0.0.dev0"),
+    reason="Not reliable with Spyder-kernels 2")
 def test_shutdown_kernel(ipyconsole, qtbot):
     """
     Check that the kernel is shutdown after creating plots with the
