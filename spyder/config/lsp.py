@@ -77,8 +77,13 @@ PYTHON_CONFIG = {
                 },
                 'jedi': {
                     'environment': None,
-                    'extra_paths': None,
+                    'extra_paths': [],
                     'env_vars': None,
+                    # Until we have a graphical way for users to add modules to
+                    # this option
+                    'auto_import_modules': [
+                        'numpy', 'matplotlib', 'pandas', 'scipy'
+                    ]
                 },
                 'jedi_completion': {
                     'enabled': True,
