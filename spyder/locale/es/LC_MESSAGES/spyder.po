@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-12-23 09:53-0500\n"
-"PO-Revision-Date: 2022-12-29 19:55\n"
+"PO-Revision-Date: 2022-12-29 20:54\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5442,11 +5442,11 @@ msgstr "Ruta del proyecto"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:260 spyder/plugins/pythonpath/widgets/pathmanager.py:452
 msgid "User paths"
-msgstr "Rutas de usuario"
+msgstr "Rutas del usuario"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:270
 msgid "System PYTHONPATH"
-msgstr ""
+msgstr "PYTHONPATH del sistema"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:290
 msgid "Export"
@@ -6554,7 +6554,7 @@ msgstr "Si acepta los cambios, se modificarán las variables de entorno del usua
 
 #: spyder/utils/programs.py:752
 msgid "External terminal does not support a UNC file path as the working directory."
-msgstr ""
+msgstr "La terminal externa no soporta una ruta de archivo UNC como el directorio de trabajo."
 
 #: spyder/utils/programs.py:766
 msgid "It was not possible to run this file in an external terminal"
@@ -6830,7 +6830,7 @@ msgstr "No hay nada para importar desde el portapapeles."
 
 #: spyder/widgets/comboboxes.py:174
 msgid "Clear text"
-msgstr ""
+msgstr "Limpiar texto"
 
 #: spyder/widgets/comboboxes.py:209
 msgid "Press enter to validate this entry"
@@ -6910,27 +6910,27 @@ msgstr "Buscar siguiente"
 
 #: spyder/widgets/findreplace.py:153
 msgid "Enable case sensitive searches"
-msgstr ""
+msgstr "Habilitar búsquedas sensibles a mayúsculas"
 
 #: spyder/widgets/findreplace.py:161
 msgid "Only search for whole words"
-msgstr ""
+msgstr "Únicamente buscar palabras completas"
 
 #: spyder/widgets/findreplace.py:198
 msgid "Replace"
-msgstr ""
+msgstr "Reemplazar"
 
 #: spyder/widgets/findreplace.py:202
 msgid "Replace next occurrence"
-msgstr ""
+msgstr "Reemplazar la siguiente ocurrencia"
 
 #: spyder/widgets/findreplace.py:209
 msgid "Replace occurrences in selection"
-msgstr ""
+msgstr "Reemplazar las ocurrencias en la selección"
 
 #: spyder/widgets/findreplace.py:218
 msgid "Replace all occurrences"
-msgstr ""
+msgstr "Reemplazar todas las ocurrencias"
 
 #: spyder/widgets/findreplace.py:737
 msgid "of"
