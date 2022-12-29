@@ -31,7 +31,7 @@ dependencies:
 - pyqt <5.16
 - pyqtwebengine <5.16
 - python-lsp-black >=1.2.0
-- python-lsp-server >=1.6.0,<1.7.0
+- python-lsp-server >=1.7.0,<1.8.0
 - pyxdg >=0.26
 - pyzmq >=22.1.0
 - qdarkstyle >=3.0.2,<3.1.0
@@ -42,7 +42,7 @@ dependencies:
 - rtree >=0.9.7
 - setuptools >=49.6.0
 - sphinx >=0.6.6
-- spyder-kernels >=2.4.0,<2.5.0
+- spyder-kernels >=2.4.1,<2.5.0
 - textdistance >=4.2.0
 - three-merge >=0.1.1
 - watchdog >=0.10.3
