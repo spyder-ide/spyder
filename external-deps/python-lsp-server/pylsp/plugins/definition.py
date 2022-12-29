@@ -17,6 +17,7 @@ def pylsp_definitions(config, workspace, document, position):
             follow_builtin_imports=settings.get('follow_builtin_imports', True),
             **code_position)
 
+        follow_builtin_defns = settings.get("follow_builtin_definitions", True)
         return [
             {
                 'uri': uris.uri_with(document.uri, path=str(d.module_path)),
@@ -25,7 +26,7 @@ def pylsp_definitions(config, workspace, document, position):
                     'end': {'line': d.line - 1, 'character': d.column + len(d.name)},
                 }
             }
-            for d in definitions if d.is_definition() and _not_internal_definition(d)
+            for d in definitions if d.is_definition() and (follow_builtin_defns or _not_internal_definition(d))
         ]
 
 

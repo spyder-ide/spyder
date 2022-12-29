@@ -3,11 +3,12 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import contextlib
+from pathlib import Path
 import os
 import tempfile
 
 from pylsp import lsp, uris
-from pylsp.workspace import Document
+from pylsp.workspace import Document, Workspace
 from pylsp.plugins import pylint_lint
 
 DOC_URI = uris.from_fs_path(__file__)
@@ -90,8 +91,9 @@ def test_lint_free_pylint(config, workspace):
     # Can't use temp_document because it might give us a file that doesn't
     # match pylint's naming requirements. We should be keeping this file clean
     # though, so it works for a test of an empty lint.
+    ws = Workspace(str(Path(__file__).absolute().parents[2]), workspace._endpoint)
     assert not pylint_lint.pylsp_lint(
-        config, workspace, Document(uris.from_fs_path(__file__), workspace), True)
+        config, ws, Document(uris.from_fs_path(__file__), ws), True)
 
 
 def test_lint_caching(workspace):
