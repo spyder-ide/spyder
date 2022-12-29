@@ -128,6 +128,12 @@ PYTHON_CONFIG = {
                     'group_cells': True
                 },
                 'pyls_flake8': {
+                    # This third-party plugin is deprecated now.
+                    'enabled': False,
+                },
+                'ruff': {
+                    # Disable it until we have a graphical option for users to
+                    # enable it.
                     'enabled': False,
                 }
             },
