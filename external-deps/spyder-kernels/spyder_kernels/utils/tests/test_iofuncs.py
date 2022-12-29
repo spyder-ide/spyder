@@ -88,7 +88,7 @@ def spydata_values():
     B = 'ham'
     C = np.eye(3)
     D = {'a': True, 'b': np.eye(4, dtype=np.complex128)}
-    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_)]
+    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_), np.eye(4, dtype=object)]
     return {'A': A, 'B': B, 'C': C, 'D': D, 'E': E}
 
 

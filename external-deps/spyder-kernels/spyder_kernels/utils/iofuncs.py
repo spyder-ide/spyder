@@ -415,7 +415,7 @@ def load_dictionary(filename):
             try:
                 saved_arrays = data.pop('__saved_arrays__')
                 for (name, index), fname in list(saved_arrays.items()):
-                    arr = np.load(osp.join(tmp_folder, fname))
+                    arr = np.load(osp.join(tmp_folder, fname), allow_pickle=True)
                     if index is None:
                         data[name] = arr
                     elif isinstance(data[name], dict):
