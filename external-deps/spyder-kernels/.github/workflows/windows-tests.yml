@@ -10,6 +10,10 @@ on:
     - master
     - 2.*
 
+concurrency:
+  group: windows-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows:
     name: Py${{ matrix.PYTHON_VERSION }}
@@ -50,10 +54,9 @@ jobs:
         run: |
           conda info
           conda list
-      - name: Set correct enconding
-        shell: bash -l {0}
-        if: matrix.PYTHON_VERSION == '2.7'
-        run: echo "::set-env name=PYTHONIOENCODING::cp1252"
       - name: Run tests
         shell: bash -l {0}
-        run: pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv
+        run: |
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          pytest spyder_kernels --cov=spyder_kernels -x -vv
