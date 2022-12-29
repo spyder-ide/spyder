@@ -31,6 +31,9 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y
+
+    # Install IPython 8
+    mamba install -c conda-forge ipython=8
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -52,6 +55,9 @@ else
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
+
+    # Install IPython 8
+    pip install ipython==8.7.0
 fi
 
 # Install subrepos from source
