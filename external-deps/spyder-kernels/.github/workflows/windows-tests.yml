@@ -10,6 +10,10 @@ on:
     - master
     - 2.*
 
+concurrency:
+  group: windows-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows:
     name: Py${{ matrix.PYTHON_VERSION }}
@@ -52,4 +56,7 @@ jobs:
           conda list
       - name: Run tests
         shell: bash -l {0}
-        run: pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv
+        run: |
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          pytest spyder_kernels --cov=spyder_kernels -x -vv

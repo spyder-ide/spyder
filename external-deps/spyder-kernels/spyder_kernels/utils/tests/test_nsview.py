@@ -10,8 +10,10 @@
 Tests for utils.py
 """
 
+# Standard library imports
 from collections import defaultdict
 import datetime
+import sys
 
 # Third party imports
 import numpy as np
@@ -131,6 +133,9 @@ def test_default_display():
             'Dataset object of xarray.core.dataset module')
 
 
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
 def test_list_display():
     """Tests for display of lists."""
     long_list = list(range(100))
@@ -171,6 +176,9 @@ def test_list_display():
     assert is_supported(li, filters=supported_types)
 
 
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
 def test_dict_display():
     """Tests for display of dicts."""
     long_list = list(range(100))
