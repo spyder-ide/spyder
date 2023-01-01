@@ -373,6 +373,7 @@ class AutosaveForStack(object):
         finfo = self.stack.data[index]
         if finfo.newly_created:
             return
+
         orig_filename = finfo.filename
         try:
             orig_hash = self.file_hashes[orig_filename]
@@ -381,8 +382,9 @@ class AutosaveForStack(object):
             # In this case, use an impossible value for the hash, so that
             # contents of buffer are considered different from contents of
             # original file.
-            logger.error('KeyError when retrieving hash of %s', orig_filename)
+            logger.debug('KeyError when retrieving hash of %s', orig_filename)
             orig_hash = None
+
         new_hash = self.stack.compute_hash(finfo)
         if orig_filename in self.name_mapping:
             autosave_filename = self.name_mapping[orig_filename]
