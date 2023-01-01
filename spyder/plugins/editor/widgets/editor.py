@@ -2494,17 +2494,32 @@ class EditorStack(QWidget):
         filename = finfo.filename
         if finfo.editor.document().isModified():
             self.msgbox = QMessageBox(
-                    QMessageBox.Warning,
-                    self.title,
-                    _("All changes to <b>%s</b> will be lost."
-                      "<br>Do you want to revert file from disk?"
-                      ) % osp.basename(filename),
-                    QMessageBox.Yes | QMessageBox.No,
-                    self)
+                QMessageBox.Warning,
+                self.title,
+                _("All changes to file <b>%s</b> will be lost.<br>"
+                  "Do you want to revert it from disk?") %
+                  osp.basename(filename),
+                QMessageBox.Yes | QMessageBox.No,
+                self
+            )
+
             answer = self.msgbox.exec_()
             if answer != QMessageBox.Yes:
                 return
-        self.reload(index)
+
+        # This is necessary to catch an error when trying to revert the
+        # contents of files not saved on disk (e.g. untitled ones).
+        # Fixes spyder-ide/spyder#20284
+        try:
+            self.reload(index)
+        except FileNotFoundError:
+            QMessageBox.critical(
+                self,
+                _("Error"),
+                _("File <b>%s</b> is not saved on disk, so it can't be "
+                  "reverted.") % osp.basename(filename),
+                QMessageBox.Ok
+            )
 
     def create_new_editor(self, fname, enc, txt, set_current, new=False,
                           cloned_from=None, add_where='end'):
