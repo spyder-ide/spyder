@@ -94,7 +94,7 @@ jobs:
       - name: Code Sign Application
         if: ${{github.event_name == 'release'}}
         run: |
-          pil=$(${pythonLocation} -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
+          pil=$(${pythonLocation}/bin/python -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
           rm -v ${DISTDIR}/Spyder.app/Contents/Frameworks/liblzma.5.dylib
           cp -v ${pil}/.dylibs/liblzma.5.dylib ${DISTDIR}/Spyder.app/Contents/Frameworks/
           ./codesign.sh "${DISTDIR}/Spyder.app"
