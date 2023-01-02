@@ -909,7 +909,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_widget.item_selected()
 
     def insert_completion(self, completion, completion_position):
-        """Insert a completion into the editor.
+        """
+        Insert a completion into the editor.
 
         completion_position is where the completion was generated.
 
@@ -944,15 +945,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 text = completion['insertText']
             text = to_text_string(text)
 
-            # Get word on the left of the cursor.
-            result = self.get_current_word_and_position(completion=True)
+            # Get word to the left of the cursor.
+            result = self.get_current_word_and_position(
+                completion=True, valid_python_variable=False)
             if result is not None:
                 current_text, start_position = result
                 end_position = start_position + len(current_text)
+
                 # Check if the completion position is in the expected range
                 if not start_position <= completion_position <= end_position:
                     return
                 cursor.setPosition(start_position)
+
                 # Remove the word under the cursor
                 cursor.setPosition(end_position,
                                    QTextCursor.KeepAnchor)
