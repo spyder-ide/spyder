@@ -121,6 +121,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install pcregrep
+        if: runner.os == 'macOS'
+        run: |
+          if [[ -z "$(which pcregrep)" ]]; then
+              brew install pcre
+          else
+              echo "$(which pcregrep) already installed."
+          fi
+
       - name: Setup Build Environment
         uses: mamba-org/provision-with-micromamba@main
         with:

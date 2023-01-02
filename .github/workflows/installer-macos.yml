@@ -66,6 +66,13 @@ jobs:
         with:
           python-version: '3.9.14'
           architecture: 'x64'
+      - name: Install pcregrep
+        run: |
+          if [[ -z "$(which pcregrep)" ]]; then
+              brew install pcre
+          else
+              echo "$(which pcregrep) already installed."
+          fi
       - name: Install Dependencies
         run: |
           INSTALL_FLAGS=()
