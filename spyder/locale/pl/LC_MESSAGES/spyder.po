@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-12-23 09:53-0500\n"
-"PO-Revision-Date: 2022-12-23 15:36\n"
+"PO-Revision-Date: 2023-01-07 16:50\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -402,7 +402,7 @@ msgstr ""
 
 #: spyder/dependencies.py:164
 msgid "Stdio support for our language server client"
-msgstr ""
+msgstr "Wsparcie Stdio dla klienta serwera języka"
 
 #: spyder/dependencies.py:168
 msgid "Cache the list of installed Python modules"
@@ -482,7 +482,7 @@ msgstr "Kernele Jupyter notebook dla konsoli Spydera"
 
 #: spyder/dependencies.py:247
 msgid "Compute distances between strings"
-msgstr ""
+msgstr "Oblicz odległości między ciągami znaków"
 
 #: spyder/dependencies.py:251
 msgid "3-way merge algorithm to merge document changes"
