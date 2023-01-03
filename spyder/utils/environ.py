@@ -63,7 +63,7 @@ def get_user_environment_variables():
         try:
             k, v = kv.split('=', 1)
             env_var[k] = v
-        except:
+        except Exception:
             pass
 
     return env_var
