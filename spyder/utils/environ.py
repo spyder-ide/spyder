@@ -10,6 +10,7 @@ Environment variable utilities.
 
 # Standard library imports
 import os
+import sys
 try:
     import winreg
 except Exception:
@@ -57,28 +58,19 @@ def get_user_environment_variables():
 
     try:
         if os.name == 'nt':
-            proc = run_shell_command("set", env=env, text=True)
-            stdout, stderr = proc.communicate()
-            res = stdout.strip().split(os.linesep)
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+            N = winreg.QueryInfoKey(key)[1]
+            env_var = dict([winreg.EnumValue(key, k)[:2] for k in range(N)])
         else:
-            # Use custom delimiter in case values have newlines: spyder-ide#20097
             cmd = (
-                f"{os.environ['SHELL']} -l -c "
-                """'for k in $(env); do echo "####$k"; done'"""
+                f"{os.environ['SHELL']} -l -c"
+                f""" "{sys.executable} -c 'import os; print(dict(os.environ))'" """
             )
             proc = run_shell_command(cmd, env=env, text=True)
             stdout, stderr = proc.communicate()
-            res = stdout.split("####")[1:]
+            env_var = eval(stdout, None)
     except Exception:
         return {}
-
-    env_var = {}
-    for kv in res:
-        try:
-            k, v = kv.split('=', 1)
-            env_var[k] = v
-        except Exception:
-            pass
 
     return env_var
 
