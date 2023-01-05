@@ -60,8 +60,11 @@ def get_user_environment_variables():
     res = stdout.decode().strip().split(os.linesep)
     env_var = {}
     for kv in res:
-        k, v = kv.split('=', 1)
-        env_var[k] = v
+        try:
+            k, v = kv.split('=', 1)
+            env_var[k] = v
+        except Exception:
+            pass
 
     return env_var
 

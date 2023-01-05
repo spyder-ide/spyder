@@ -97,7 +97,7 @@ jobs:
     needs:
       - build-matrix
       - build-noarch-pkgs
-    if: contains(fromJson('["success", "skipped"]'), needs.build-noarch-pkgs.result) && needs.build-matrix.result == 'success'
+    if: ${{ ! failure() && ! cancelled() }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -115,11 +115,22 @@ jobs:
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
       STATUS: ${{ needs.build-noarch-pkgs.result }}
+      MAT_STATUS: ${{ needs.build-matrix.result }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Install pcregrep
+        if: runner.os == 'macOS'
+        run: |
+          if [[ -z "$(which pcregrep)" ]]; then
+              brew install pcre
+          else
+              echo "$(which pcregrep) already installed."
+          fi
 
       - name: Setup Build Environment
         uses: mamba-org/provision-with-micromamba@main
