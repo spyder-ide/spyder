@@ -1083,7 +1083,7 @@ class BaseEditMixin(object):
         startpos = cursor.selectionStart()
 
         # Find a valid Python variable name
-        if valid_python_variable and not completion:
+        if valid_python_variable:
             match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
             if not match:
                 # This is assumed in several places of our codebase,

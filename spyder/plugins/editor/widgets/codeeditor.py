@@ -605,9 +605,6 @@ class CodeEditor(TextEditBaseWidget):
         self.patch = []
         self.leading_whitespaces = {}
 
-        # re-use parent of completion_widget (usually the main window)
-        completion_parent = self.completion_widget.parent()
-
         # Some events should not be triggered during undo/redo
         # such as line stripping
         self.is_undoing = False
@@ -1523,15 +1520,20 @@ class CodeEditor(TextEditBaseWidget):
 
         try:
             completions = params['params']
-            completions = ([] if completions is None else
-                           [completion for completion in completions
-                            if completion.get('insertText')
-                            or completion.get('textEdit', {}).get('newText')])
-            prefix = self.get_current_word(completion=True,
-                                           valid_python_variable=False)
-            if (len(completions) == 1
-                    and completions[0].get('insertText') == prefix
-                    and not completions[0].get('textEdit', {}).get('newText')):
+            completions = (
+                [] if completions is None else
+                [completion for completion in completions
+                 if completion.get('insertText')
+                 or completion.get('textEdit', {}).get('newText')]
+            )
+            prefix = self.get_current_word(
+                completion=True, valid_python_variable=False)
+
+            if (
+                len(completions) == 1 and
+                completions[0].get('insertText') == prefix and
+                not completions[0].get('textEdit', {}).get('newText')
+            ):
                 completions.pop()
 
             replace_end = self.textCursor().position()
@@ -1550,12 +1552,14 @@ class CodeEditor(TextEditBaseWidget):
                     text_insertion = completion['textEdit']['newText']
                 else:
                     text_insertion = completion['insertText']
+
                 first_insert_letter = text_insertion[0]
                 case_mismatch = (
                     (first_letter.isupper() and first_insert_letter.islower())
                     or
                     (first_letter.islower() and first_insert_letter.isupper())
                 )
+
                 # False < True, so case matches go first
                 return (case_mismatch, completion['sortText'])
 
@@ -1568,8 +1572,11 @@ class CodeEditor(TextEditBaseWidget):
                 if 'textEdit' in completion:
                     c_replace_start = completion['textEdit']['range']['start']
                     c_replace_end = completion['textEdit']['range']['end']
-                    if (c_replace_start == replace_start
-                            and c_replace_end == replace_end):
+
+                    if (
+                        c_replace_start == replace_start and
+                        c_replace_end == replace_end
+                    ):
                         insert_text = completion['textEdit']['newText']
                         completion['filterText'] = insert_text
                         completion['insertText'] = insert_text
@@ -4766,8 +4773,11 @@ class CodeEditor(TextEditBaseWidget):
                 self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                if (self.add_colons_enabled and self.is_python_like() and
-                        self.autoinsert_colons()):
+                if (
+                    self.add_colons_enabled and
+                    self.is_python_like() and
+                    self.autoinsert_colons()
+                ):
                     self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
                     if self.strip_trailing_spaces_on_modify:
@@ -4815,16 +4825,21 @@ class CodeEditor(TextEditBaseWidget):
                 trailing_spaces = leading_length - len(leading_text.rstrip())
                 trailing_text = self.get_text('cursor', 'eol')
                 matches = ('()', '[]', '{}', '\'\'', '""')
-                if (not leading_text.strip() and
-                        (leading_length > len(self.indent_chars))):
+                if (
+                    not leading_text.strip() and
+                    (leading_length > len(self.indent_chars))
+                ):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
                         self._handle_keypress_event(event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
-                elif (leading_text and trailing_text and
-                        (leading_text[-1] + trailing_text[0] in matches)):
+                elif (
+                    leading_text and
+                    trailing_text and
+                    (leading_text[-1] + trailing_text[0] in matches)
+                ):
                     cursor = self.textCursor()
                     cursor.movePosition(QTextCursor.PreviousCharacter)
                     cursor.movePosition(QTextCursor.NextCharacter,
@@ -4839,27 +4854,36 @@ class CodeEditor(TextEditBaseWidget):
             # redefine this basic action which should have been implemented
             # natively
             self.stdkey_end(shift, ctrl)
-        elif (text in self.auto_completion_characters and
-                self.automatic_completions):
+        elif (
+            text in self.auto_completion_characters and
+            self.automatic_completions
+        ):
             self.insert_text(text)
             if text == ".":
                 if not self.in_comment_or_string():
                     text = self.get_text('sol', 'cursor')
                     last_obj = getobj(text)
                     prev_char = text[-2] if len(text) > 1 else ''
-                    if (prev_char in {')', ']', '}'} or
-                            (last_obj and not last_obj.isdigit())):
+                    if (
+                        prev_char in {')', ']', '}'} or
+                        (last_obj and not last_obj.isdigit())
+                    ):
                         # Completions should be triggered immediately when
                         # an autocompletion character is introduced.
                         self.do_completion(automatic=True)
             else:
                 self.do_completion(automatic=True)
-        elif (text in self.signature_completion_characters and
-                not self.has_selected_text()):
+        elif (
+            text in self.signature_completion_characters and
+            not self.has_selected_text()
+        ):
             self.insert_text(text)
             self.request_signature()
-        elif (key == Qt.Key_Colon and not has_selection and
-                self.auto_unindent_enabled):
+        elif (
+            key == Qt.Key_Colon and
+            not has_selection and
+            self.auto_unindent_enabled
+        ):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
                 ind = lambda txt: len(txt) - len(txt.lstrip())
@@ -4870,8 +4894,13 @@ class CodeEditor(TextEditBaseWidget):
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             self._handle_keypress_event(event)
-        elif (key == Qt.Key_Space and not shift and not ctrl and not
-                has_selection and self.auto_unindent_enabled):
+        elif (
+            key == Qt.Key_Space and
+            not shift and
+            not ctrl and
+            not has_selection and
+            self.auto_unindent_enabled
+        ):
             self.completion_widget.hide()
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
@@ -4956,13 +4985,20 @@ class CodeEditor(TextEditBaseWidget):
         is_backspace = (
             self.is_completion_widget_visible() and key == Qt.Key_Backspace)
 
-        if (len(text) >= self.automatic_completions_after_chars
-                and self._last_key_pressed_text or is_backspace):
+        if (
+            (len(text) >= self.automatic_completions_after_chars) and
+            self._last_key_pressed_text or
+            is_backspace
+        ):
             # Perform completion on the fly
             if not self.in_comment_or_string():
                 # Variables can include numbers and underscores
-                if (text.isalpha() or text.isalnum() or '_' in text
-                        or '.' in text):
+                if (
+                    text.isalpha() or
+                    text.isalnum() or
+                    '_' in text
+                    or '.' in text
+                ):
                     self.do_completion(automatic=True)
                     self._last_key_pressed_text = ''
                     self._last_pressed_key = None

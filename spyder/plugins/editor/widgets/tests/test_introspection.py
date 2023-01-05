@@ -23,6 +23,10 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.utils import is_anaconda
+from spyder.plugins.completion.api import (
+    CompletionRequestTypes, CompletionItemKind)
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
+    path_as_uri)
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
 from spyder.py3compat import PY2
@@ -1176,6 +1180,76 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
 
     set_executable_config_helper()
     completion_plugin.after_configuration_update([])
+
+
+@pytest.mark.slow
+@pytest.mark.order(1)
+@flaky(max_runs=5)
+def test_dot_completions(completions_codeeditor, qtbot):
+    """
+    Test that completions after a dot are working as expected.
+
+    This is a regression test for issue spyder-ide/spyder#20285
+    """
+    code_editor, _ = completions_codeeditor
+    completion = code_editor.completion_widget
+
+    # Import module and check completions are shown for it after writing a dot
+    # after it
+    qtbot.keyClicks(code_editor, "import math")
+    qtbot.keyPress(code_editor, Qt.Key_Enter)
+
+    qtbot.wait(500)
+    assert not completion.isVisible()
+
+    with qtbot.waitSignal(completion.sig_show_completions, timeout=10000):
+        qtbot.keyClicks(code_editor, "math.")
+
+    qtbot.wait(500)
+    assert completion.isVisible()
+
+
+@pytest.mark.slow
+@pytest.mark.order(1)
+def test_completions_for_files_that_start_with_numbers(
+        mock_completions_codeeditor, qtbot):
+    """
+    Test that completions for files that start with numbers are handled as
+    expected.
+
+    This is a regression test for issue spyder-ide/spyder#20156
+    """
+    code_editor, mock_response = mock_completions_codeeditor
+    completion = code_editor.completion_widget
+    file_name = '000_testing.txt'
+
+    # Set text to complete and move cursor to the position we want to ask for
+    # completions.
+    qtbot.keyClicks(code_editor, "'0'")
+    code_editor.moveCursor(QTextCursor.PreviousCharacter)
+    qtbot.wait(500)
+
+    # Complete '0' -> '000_testing.txt'
+    mock_response.side_effect = lambda lang, method, params: {'params': [{
+        'label': f'{file_name}',
+        'kind': CompletionItemKind.FILE,
+        'sortText': (0, f'a{file_name}'),
+        'insertText': f'{file_name}',
+        'data': {'doc_uri': path_as_uri(__file__)},
+        'detail': '',
+        'documentation': '',
+        'filterText': f'{file_name}',
+        'insertTextFormat': 1,
+        'provider': 'LSP',
+        'resolve': True
+    }]} if method == CompletionRequestTypes.DOCUMENT_COMPLETION else None
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000):
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+
+    qtbot.wait(500)
+    assert code_editor.get_text_with_eol() == f"'{file_name}'"
 
 
 if __name__ == '__main__':
