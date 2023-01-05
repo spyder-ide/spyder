@@ -85,7 +85,7 @@ class PylintLinter:
             return cls.last_diags[document.path]
 
         cmd = [
-            'python',
+            sys.executable,
             '-c',
             'import sys; from pylint.lint import Run; Run(sys.argv[1:])',
             '-f',
