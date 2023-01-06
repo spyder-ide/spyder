@@ -526,7 +526,7 @@ class CodeEditor(TextEditBaseWidget):
         self.format_on_save = False
         self.format_eventloop = QEventLoop(None)
         self.format_timer = QTimer(self)
-        self.__cursor_position_before_format = 0
+        self.__line_number_before_format = 0
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -1804,10 +1804,6 @@ class CodeEditor(TextEditBaseWidget):
     # -------------------------------------------------------------------------
     def format_document_or_range(self):
         """Format current document or selected text."""
-        # Save current cursor position to restore it after the current text has
-        # been replaced by the auto-formatted one.
-        self.__cursor_position_before_format = self.textCursor().position()
-
         if self.has_selected_text() and self.range_formatting_enabled:
             self.format_document_range()
         else:
@@ -1816,6 +1812,8 @@ class CodeEditor(TextEditBaseWidget):
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):
         """Format current document."""
+        self.__line_number_before_format = self.textCursor().blockNumber()
+
         if not self.formatting_enabled:
             return
         if self.formatting_in_progress:
@@ -1849,6 +1847,8 @@ class CodeEditor(TextEditBaseWidget):
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def format_document_range(self):
         """Format selected text."""
+        self.__line_number_before_format = self.textCursor().blockNumber()
+
         if not self.range_formatting_enabled or not self.has_selected_text():
             return
         if self.formatting_in_progress:
@@ -2007,17 +2007,21 @@ class CodeEditor(TextEditBaseWidget):
             # Insert formatted text in place of the previous one
             cursor.insertText(merged_text)
 
-            # Don't run the lines below when testing because they give
-            # segfaults.
-            if not running_under_pytest():
-                # Restore previous cursor position and center it.
-                # Fixes spyder-ide/spyder#19958
-                cursor.setPosition(self.__cursor_position_before_format)
-                self.setTextCursor(cursor)
-                self.centerCursor()
-
             # End text insertion
             cursor.endEditBlock()
+
+            # Restore previous cursor line and center it.
+            # Fixes spyder-ide/spyder#19958
+            if self.__line_number_before_format < self.blockCount():
+                self.moveCursor(QTextCursor.Start)
+                cursor = self.textCursor()
+                cursor.movePosition(
+                    QTextCursor.Down,
+                    QTextCursor.MoveAnchor,
+                    self.__line_number_before_format
+                )
+                self.setTextCursor(cursor)
+                self.centerCursor()
 
     # ---- LSP: Code folding
     # -------------------------------------------------------------------------
