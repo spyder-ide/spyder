@@ -19,7 +19,7 @@ on:
 
   push:
     tags:
-      - v*rc*
+      - v*pre*
 
 concurrency:
   group: installers-conda-${{ github.ref }}
@@ -28,7 +28,7 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  IS_RC: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+  IS_PRE: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
 
 jobs:
   build-noarch-pkgs:
@@ -188,7 +188,7 @@ jobs:
           python build_conda_pkgs.py --build ${pkgs[@]}
 
       - name: Create Keychain
-        if: (github.event_name == 'release' || env.IS_RC == 'true') && runner.os == 'macOS'
+        if: (github.event_name == 'release' || env.IS_PRE == 'true') && runner.os == 'macOS'
         run: |
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
           CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
@@ -226,7 +226,7 @@ jobs:
           fi
 
       - name: Notarize package installer
-        if: (github.event_name == 'release' || env.IS_RC == 'true') && runner.os == 'macOS'
+        if: (github.event_name == 'release' || env.IS_PRE == 'true') && runner.os == 'macOS'
         run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
 
       - name: Upload Artifact

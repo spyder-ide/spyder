@@ -21,7 +21,7 @@ on:
 
   push:
     tags:
-      - v*rc*
+      - v*pre*
 
 concurrency:
   group: installer-win-${{ github.ref }}
@@ -30,7 +30,7 @@ concurrency:
 name: Create Windows Installer
 
 env:
-  IS_RC: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+  IS_PRE: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
 
 jobs:
   build:
