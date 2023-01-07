@@ -401,7 +401,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Check if there is a kernel that can be interrupted before trying
             # to do it.
             # Fixes spyder-ide/spyder#20212
-            if self.kernel_manager.has_kernel:
+            if self.kernel_manager and self.kernel_manager.has_kernel:
                 self.call_kernel(interrupt=True).raise_interrupt_signal()
             else:
                 self._append_html(
