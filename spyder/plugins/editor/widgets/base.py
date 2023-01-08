@@ -938,12 +938,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 end = self.get_position_line_number(end_line, end_col)
             cursor.setPosition(start)
             cursor.setPosition(end, QTextCursor.KeepAnchor)
-            text = to_text_string(completion['textEdit']['newText'])
+            text = str(completion['textEdit']['newText'])
         else:
             text = completion
             if isinstance(completion, dict):
                 text = completion['insertText']
-            text = to_text_string(text)
+            text = str(text)
 
             # Get word to the left of the cursor.
             result = self.get_current_word_and_position(
@@ -953,13 +953,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 end_position = start_position + len(current_text)
 
                 # Check if the completion position is in the expected range
-                if not start_position <= completion_position <= end_position:
+                if not (start_position <= completion_position <= end_position):
                     return
                 cursor.setPosition(start_position)
 
                 # Remove the word under the cursor
-                cursor.setPosition(end_position,
-                                   QTextCursor.KeepAnchor)
+                cursor.setPosition(end_position, QTextCursor.KeepAnchor)
             else:
                 # Check if we are in the correct position
                 if cursor.position() != completion_position:
