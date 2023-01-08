@@ -180,7 +180,7 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool)
+    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -2971,9 +2971,10 @@ class EditorStack(QWidget):
             run_cell_copy = self.run_cell_copy
             if method != "runcell":
                 run_cell_copy = False
+            post_mortem = CONF.get('run', 'post_mortem', False)
             self.sig_run_cell_in_ipyclient.emit(
                 text, cell_name, filename, run_cell_copy, method,
-                self.focus_to_editor)
+                self.focus_to_editor, post_mortem)
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):

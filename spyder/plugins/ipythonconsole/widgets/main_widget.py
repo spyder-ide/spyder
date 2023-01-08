@@ -1825,7 +1825,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 method='runcell', focus_to_editor=False):
+                 method='runcell', focus_to_editor=False, post_mortem=False):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -1848,10 +1848,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             elif is_spyder_kernel:
                 # Use custom function
                 line = (str(
-                        "{}({}, '{}')").format(
+                        "{}({}, '{}', post_mortem={})").format(
                                 str(method),
                                 repr(cell_name),
-                                norm(filename).replace("'", r"\'")))
+                                norm(filename).replace("'", r"\'"),
+                                post_mortem is True))
 
                 if method == "debugcell":
                     # To keep focus in editor after running debugfile

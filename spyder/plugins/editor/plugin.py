@@ -86,7 +86,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     # Signals
     sig_run_file_in_ipyclient = Signal(
         str, str, str, bool, bool, bool, bool, bool, str, bool)
-    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool)
+    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool, bool)
 
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)

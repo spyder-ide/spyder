@@ -4007,6 +4007,39 @@ def test_post_mortem(main_window, qtbot, tmpdir):
     assert "IPdb [" in control.toPlainText()
 
 
+# @pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.parametrize("post_mortem", [True, False])
+def test_post_mortem_run_cell(main_window, qtbot, tmpdir, post_mortem):
+    """Test post mortem works"""
+    # Check we can use custom complete for pdb
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_widget().get_focus_widget()
+
+    test_file = tmpdir.join('test.py')
+    test_file.write('raise RuntimeError\n')
+
+    # Load code in the editor
+    main_window.editor.load(to_text_string(test_file))
+
+    CONF.set('run', 'post_mortem', post_mortem)
+
+    # Wait for the console to be up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Run a cell
+    with qtbot.waitSignal(shell.executed):
+        run_cell_action = main_window.run_toolbar_actions[1]
+        run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
+        qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+
+    assert ("IPdb [" in control.toPlainText()) is post_mortem
+
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_run_unsaved_file_multiprocessing(main_window, qtbot):
