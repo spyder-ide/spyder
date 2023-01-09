@@ -28,7 +28,6 @@ from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 
 
-
 # =============================================================================
 # ---- Constants
 # =============================================================================
@@ -217,6 +216,10 @@ def ipyconsole(qtbot, request, tmpdir):
     with qtbot.waitExposed(window):
         window.resize(640, 480)
         window.show()
+
+    if auto_backend or tk_backend:
+        qtbot.wait(SHELL_TIMEOUT)
+        console.create_new_client()
 
     # Wait until the window is fully up
     qtbot.waitUntil(lambda: console.get_current_shellwidget() is not None)

@@ -123,39 +123,32 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(
-    running_in_ci() and not os.name == 'nt',
-    reason="Times out on Linux and macOS")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
+        shell.execute("get_ipython().kernel.eventloop")
 
     # Assert there are no errors in the console and we set the right
     # backend.
     control = ipyconsole.get_widget().get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
-    assert 'loop_qt5' in control.toPlainText()
+    assert ('loop_qt5' in control.toPlainText() or
+            'loop_qt' in control.toPlainText())
 
 
 @flaky(max_runs=3)
 @pytest.mark.tk_backend
-@pytest.mark.skipif(
-    running_in_ci() and not os.name == 'nt',
-    reason="Times out on Linux and macOS")
 def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
+        shell.execute("get_ipython().kernel.eventloop")
 
     # Assert we set the right backend in the kernel.
     control = ipyconsole.get_widget().get_focus_widget()
@@ -1934,9 +1927,6 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(
-    running_in_ci() and not os.name == 'nt',
-    reason="Times out on Linux and macOS")
 def test_restart_intertactive_backend(ipyconsole):
     """
     Test that we ask for a restart after switching to a different interactive
