@@ -46,6 +46,35 @@ else
     else
         echo "${app_path} does not exist"
     fi
+
+    spyder_exe=$(echo ${PREFIX}/envs/*/bin/spyder)
+    if [[ -e "$spyder_exe" ]]; then
+        case $SHELL in
+            (*"zsh") init_file=$HOME/.zshrc ;;
+            (*"bash") init_file=$HOME/.bashrc ;;
+        esac
+        echo "Aliasing Spyder's executable in $init_file ..."
+        sed -i "/alias spyder=/{h;s|=.*|=${spyder_exe}|};\${x;/^$/{s||\nalias spyder=${spyder_exe}|;H};x}" $init_file
+    else
+        echo "$spyder_exe not found. Alias not created."
+    fi
+
+    cat <<EOF
+
+Spyder can be launched by standard methods in Gnome and KDE desktop
+environments. Additionally, Spyder can be launched in Gnome desktop
+environments from the command line:
+
+$ gtk-launch spyder
+
+Spyder can be launched from the command line for all Linux variants
+by:
+
+$ spyder
+
+
+EOF
+
 fi
 
 echo "*** Post install script for __NAME__ complete"
