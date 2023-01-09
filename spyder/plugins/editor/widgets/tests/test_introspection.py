@@ -1193,6 +1193,7 @@ def test_dot_completions(completions_codeeditor, qtbot):
     """
     code_editor, _ = completions_codeeditor
     completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
 
     # Import module and check completions are shown for it after writing a dot
     # after it
@@ -1207,6 +1208,17 @@ def test_dot_completions(completions_codeeditor, qtbot):
 
     qtbot.wait(500)
     assert completion.isVisible()
+
+    # Select a raondom entry in the completion widget
+    entry_index = random.randint(0, 30)
+    inserted_entry = completion.completion_list[entry_index]['insertText']
+    for _ in range(entry_index):
+        qtbot.keyPress(completion, Qt.Key_Down, delay=50)
+
+    # Insert completion and check that the inserted text is the expected one
+    qtbot.keyPress(completion, Qt.Key_Enter)
+    qtbot.wait(500)
+    assert code_editor.toPlainText() == f'import math\nmath.{inserted_entry}'
 
 
 @pytest.mark.slow

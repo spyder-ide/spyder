@@ -952,13 +952,30 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 current_text, start_position = result
                 end_position = start_position + len(current_text)
 
-                # Check if the completion position is in the expected range
-                if not (start_position <= completion_position <= end_position):
-                    return
-                cursor.setPosition(start_position)
+                # Remove text under cursor only if it's not an autocompletion
+                # character
+                is_auto_completion_character = False
+                if self.objectName() == 'console':
+                    if current_text == '.':
+                        is_auto_completion_character = True
+                else:
+                    if current_text in self.auto_completion_characters:
+                        is_auto_completion_character = True
 
-                # Remove the word under the cursor
-                cursor.setPosition(end_position, QTextCursor.KeepAnchor)
+                if not is_auto_completion_character:
+                    # Check if the completion position is in the expected range
+                    if not (
+                        start_position <= completion_position <= end_position
+                    ):
+                        return
+                    cursor.setPosition(start_position)
+
+                    # Remove the word under the cursor
+                    cursor.setPosition(end_position, QTextCursor.KeepAnchor)
+                else:
+                    # Check if we are in the correct position
+                    if cursor.position() != completion_position:
+                        return
             else:
                 # Check if we are in the correct position
                 if cursor.position() != completion_position:
