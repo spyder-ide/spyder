@@ -9,9 +9,11 @@
 # Standard library imports
 import os
 import os.path as osp
+import random
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import QMessageBox
 import yapf
@@ -257,3 +259,60 @@ def test_closing_document_formatting(
     code_editor = editorstack.load(str(file_path)).editor
 
     assert code_editor.get_text_with_eol() == expected
+
+
+@pytest.mark.order(1)
+@pytest.mark.parametrize('formatter', [autopep8, black])
+def test_formatting_on_save(completions_editor, formatter, qtbot):
+    """
+    Check that auto-formatting on save works as expected and that we restore
+    the current line after doing it.
+
+    This includes a regression test for issue spyder-ide/spyder#19958
+    """
+    file_path, editorstack, code_editor, completion_plugin = completions_editor
+    text, expected = get_formatter_values(formatter, newline='\n')
+
+    # Set formatter
+    editorstack.set_format_on_save(True)
+    CONF.set(
+        'completions',
+        ('provider_configuration', 'lsp', 'values', 'formatting'),
+        formatter
+    )
+
+    with qtbot.waitSignal(completion_plugin.sig_editor_rpc):
+        completion_plugin.after_configuration_update([])
+    qtbot.wait(2000)
+
+    # Set text in editor
+    code_editor.set_text(text)
+
+    # Notify changes
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    # Set a random current line
+    current_line = random.randint(0, code_editor.blockCount())
+    code_editor.moveCursor(QTextCursor.Start)
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, current_line)
+    code_editor.setTextCursor(cursor)
+    qtbot.wait(500)
+
+    # Make a simple change to the file
+    code_editor.moveCursor(QTextCursor.EndOfLine)
+    qtbot.keyPress(code_editor, Qt.Key_Space)
+    qtbot.wait(500)
+
+    # Save the file
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
+        editorstack.save(force=True)
+    qtbot.wait(500)
+
+    # Check that auto-formatting was applied on save and that we restored the
+    # previous line.
+    assert code_editor.get_text_with_eol() == expected
+    assert code_editor.textCursor().blockNumber() == current_line
