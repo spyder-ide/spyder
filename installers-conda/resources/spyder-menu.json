@@ -21,8 +21,15 @@
                     ]
                 },
                 "osx": {
-                    "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"\nhere=$(dirname \"$0\")",
-                    "command": ["${here}/python", "${CONDA_PREFIX}/bin/spyder", "$@"],
+                    "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"",
+                    "command": [
+                        "{{ MENU_ITEM_LOCATION }}/Contents/MacOS/python",
+                        "{{ PREFIX }}/bin/spyder",
+                        "$@"
+                    ],
+                    "link_in_bundle": {
+                        "{{ PREFIX }}/bin/python": "{{ MENU_ITEM_LOCATION }}/Contents/MacOS/python"
+                    },
                     "CFBundleName": "Spyder",
                     "CFBundleDisplayName": "Spyder",
                     "CFBundleIdentifier": "org.spyder-ide.Spyder",

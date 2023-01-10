@@ -278,7 +278,6 @@ def _definitions():
                 "welcome_file": str(welcome_file),
                 "conclusion_text": "",
                 "readme_text": "",
-                "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
 
