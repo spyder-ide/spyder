@@ -12,13 +12,15 @@
             "terminal": false,
             "platforms": {
                 "win": {
-                    "desktop": true
+                    "desktop": true,
+                    "precommand": "set SPY_BRANCH=__SPY_BRANCH__\nset SPY_COMMIT=__SPY_COMMIT__"
                 },
                 "linux": {
                     "Categories": [
                         "Graphics",
                         "Science"
-                    ]
+                    ],
+                    "precommand": "export SPY_BRANCH=__SPY_BRANCH__ && export SPY_COMMIT=__SPY_COMMIT__"
                 },
                 "osx": {
                     "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"",
@@ -35,7 +37,9 @@
                     "CFBundleIdentifier": "org.spyder-ide.Spyder",
                     "CFBundleVersion": "__PKG_VERSION__",
                     "LSEnvironment": {
-                        "SPYDER_APP": "True"
+                        "SPYDER_APP": "True",
+                        "SPY_BRANCH": "__SPY_BRANCH__",
+                        "SPY_COMMIT": "__SPY_COMMIT__"
                     }
                 }
             }

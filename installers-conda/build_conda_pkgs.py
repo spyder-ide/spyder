@@ -66,6 +66,8 @@ class BuildCondaPkg:
         self._get_source(shallow=shallow)
         self._get_version()
 
+        self._patch_source()
+
         self.data = {'version': self.version}
         self.data.update(data)
 
@@ -77,7 +79,7 @@ class BuildCondaPkg:
 
         if self.source == HERE.parent:
             self._bld_src = self.source
-            repo = Repo(self.source)
+            self.repo = Repo(self.source)
         else:
             # Determine source and commit
             if self.source is not None:
@@ -97,10 +99,8 @@ class BuildCondaPkg:
                     f"Cloning source shallow from tag {self.shallow_ver}...")
             else:
                 self.logger.info("Cloning source...")
-            repo = Repo.clone_from(remote, **kwargs)
-            repo.git.checkout(commit)
-
-        self._patch_source(repo)
+            self.repo = Repo.clone_from(remote, **kwargs)
+            self.repo.git.checkout(commit)
 
         # Clone feedstock
         self.logger.info("Cloning feedstock...")
@@ -117,7 +117,7 @@ class BuildCondaPkg:
         """Get source version using setuptools_scm"""
         self.version = get_version(self._bld_src).split('+')[0]
 
-    def _patch_source(self, repo):
+    def _patch_source(self):
         pass
 
     def _patch_meta(self, meta):
@@ -127,7 +127,12 @@ class BuildCondaPkg:
         pass
 
     def patch_recipe(self):
-        """Patch conda build recipe"""
+        """
+        Patch conda build recipe
+
+        1. Patch meta.yaml
+        2. Patch build script
+        """
         if self._recipe_patched:
             return
 
@@ -161,9 +166,8 @@ class BuildCondaPkg:
         Build the conda package.
 
         1. Patch the recipe
-        2. Patch the build script
-        3. Build the package
-        4. Remove cloned repositories
+        2. Build the package
+        3. Remove cloned repositories
         """
         t0 = time()
         try:
@@ -193,16 +197,26 @@ class SpyderCondaPkg(BuildCondaPkg):
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
 
-    def _patch_source(self, repo):
+    def _patch_source(self):
         self.logger.info("Creating Spyder source patch...")
 
-        patch = repo.git.format_patch(
+        patch = self.repo.git.format_patch(
             "..origin/installers-conda-patch", "--stdout", "-U3"
         )
         # newline keyword is not added to pathlib until Python>=3.10,
         # so we must use open to ensure LF on Windows
         with open(SPYPATCHFILE, 'w', newline='\n') as f:
             f.write(patch)
+
+        self.logger.info("Creating Spyder menu file...")
+        _menufile = RESOURCES / "spyder-menu.json"
+        menufile = DIST / "spyder-menu.json"
+        commit, branch = self.repo.head.commit.name_rev.split()
+        text = _menufile.read_text()
+        text = text.replace("__PKG_VERSION__", self.version)
+        text = text.replace("__SPY_BRANCH__", branch)
+        text = text.replace("__SPY_COMMIT__", commit[:8])
+        menufile.write_text(text)
 
     def _patch_meta(self, meta):
         # Add source code patch
@@ -266,18 +280,30 @@ class SpyderCondaPkg(BuildCondaPkg):
 
         if os.name == 'posix':
             file = self._fdstk_path / "recipe" / "build.sh"
-            build_patch = RESOURCES / "build-patch.sh"
             text = file.read_text()
-            text += build_patch.read_text()
+            text += dedent(
+                """
+                # Create the Menu directory
+                mkdir -p "${PREFIX}/Menu"
+
+                # Copy menu.json template
+                cp "${SRC_DIR}/installers-conda/dist/spyder-menu.json" "${PREFIX}/Menu/spyder-menu.json"
+
+                # Copy application icons
+                if [[ $OSTYPE == "darwin"* ]]; then
+                    cp "${SRC_DIR}/img_src/spyder.icns" "${PREFIX}/Menu/spyder.icns"
+                else
+                    cp "${SRC_DIR}/branding/logo/logomark/spyder-logomark-background.png" "${PREFIX}/Menu/spyder.png"
+                fi
+                """
+            )
+
         if os.name == 'nt':
             file = self._fdstk_path / "recipe" / "bld.bat"
             text = file.read_text()
             text = text.replace(
                 r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
-                r"""powershell -Command"""
-                r""" "(gc %SRC_DIR%\installers-conda\resources\spyder-menu.json)"""
-                r""" -replace '__PKG_VERSION__', '%PKG_VERSION%' | """
-                r"""Out-File -encoding ASCII %MENU_DIR%\spyder-menu.json" """
+                r"copy %SRC_DIR%\installers-conda\dist\spyder-menu.json %MENU_DIR%\spyder-menu.json"
             )
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         file.write_text(text)
