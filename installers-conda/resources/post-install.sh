@@ -26,25 +26,26 @@ echo "$(declare -p)"
 if [[ $OSTYPE == "darwin"* ]]; then
     # macOS
     ENV_PREFIX=$(cd "${PREFIX}/envs/__NAME_LOWER__"; pwd)
-    app_path="$(dirname ${DSTROOT})/Applications/__NAME__.app"
+    shortcut_path="$(dirname ${DSTROOT})/Applications/__NAME__.app"
 
-    if [[ -e "$app_path" ]]; then
+    if [[ -e "$shortcut_path" ]]; then
         echo "Creating python symbolic link..."
-        ln -sf "${ENV_PREFIX}/bin/python" "$app_path/Contents/MacOS/python"
+        ln -sf "${ENV_PREFIX}/bin/python" "$shortcut_path/Contents/MacOS/python"
     else
-        echo "ERROR: $app_path does not exist"
+        echo "ERROR: $shortcut_path does not exist"
         exit 1
     fi
 
 else
     # Linux
     name_lower=${INSTALLER_NAME,,}
-    app_path="$HOME/.local/share/applications/${name_lower}_${name_lower}.desktop"
-    if [[ -e ${app_path} ]]; then
-        echo "Renaming ${app_path}..."
-        mv -f "${app_path}" "$(dirname ${app_path})/${name_lower}.desktop"
+    _shortcut_path="$HOME/.local/share/applications/${name_lower}_${name_lower}.desktop"
+    shortcut_path="$(dirname ${_shortcut_path})/${name_lower}.desktop"
+    if [[ -e ${_shortcut_path} ]]; then
+        echo "Renaming ${_shortcut_path}..."
+        mv -f "${_shortcut_path}" "${shortcut_path}"
     else
-        echo "${app_path} does not exist"
+        echo "${_shortcut_path} does not exist"
     fi
 
     spyder_exe=$(echo ${PREFIX}/envs/*/bin/spyder)
@@ -59,8 +60,17 @@ else
         echo "$spyder_exe not found. Alias not created."
     fi
 
+    echo "Creating uninstall script..."
+    cat <<EOF > ${PREFIX}/uninstall.sh
+#!/bin/bash
+rm -rf ${shortcut_path}
+rm -rf ${PREFIX}
+EOF
+    chmod +x ${PREFIX}/uninstall.sh
+
     cat <<EOF
 
+###############################################################################
 Spyder can be launched by standard methods in Gnome and KDE desktop
 environments. Additionally, Spyder can be launched in Gnome desktop
 environments from the command line:
@@ -72,6 +82,11 @@ by:
 
 $ spyder
 
+To uninstall Spyder, from the command line:
+
+$ ${PREFIX}/uninstall.sh
+
+###############################################################################
 
 EOF
 
