@@ -19,11 +19,18 @@ on:
     types:
       - created
 
+  push:
+    tags:
+      - v*pre*
+
 concurrency:
   group: installer-win-${{ github.ref }}
   cancel-in-progress: true
 
 name: Create Windows Installer
+
+env:
+  IS_PRE: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
 
 jobs:
   build:
