@@ -20,25 +20,32 @@ case $SHELL in
     (*"zsh") shell_init=$HOME/.zshrc ;;
     (*"bash") shell_init=$HOME/.bashrc ;;
 esac
-spyder_exe=$(echo ${PREFIX}/envs/*/bin/spyder)
+spy_exe=$(echo ${PREFIX}/envs/*/bin/spyder)
+u_spy_exe=${PREFIX}/uninstall-spyder.sh
 
-
-if [[ ! -e "$spyder_exe" ]]; then
-    echo "$spyder_exe not found. Alias not created."
+if [[ ! -e "$spy_exe" ]]; then
+    echo "$spy_exe not found. Alias not created."
 elif [[ -z "$shell_init" ]]; then
     echo "Aliasing for $SHELL not implemented."
 else
     echo "Aliasing Spyder's executable in $shell_init ..."
-    sed -i "/alias spyder=/{h;s|=.*|=${spyder_exe}|};\${x;/^$/{s||\nalias spyder=${spyder_exe}|;H};x}" $shell_init
+    m1="# <<<< Added by Spyder <<<<"
+    m2="# >>>> Added by Spyder >>>>"
+    new_text="$m1\nalias spyder=${spy_exe}\nalias uninstall-spyder=${u_spy_exe}\n$m2"
+    sed -i "/$m1/,/$m2/{h;/$m2/ s|.*|${new_text}|; t; d};\${x;/^$/{s||\n${new_text}|;H};x}" $shell_init
 fi
 
 echo "Creating uninstall script..."
-cat <<EOF > ${PREFIX}/uninstall.sh
+cat <<EOF > ${u_spy_exe}
 #!/bin/bash
 rm -rf ${shortcut_path}
 rm -rf ${PREFIX}
 EOF
-chmod +x ${PREFIX}/uninstall.sh
+if [[ -n "$shell_init" ]]; then
+    # Remove aliases from shell startup
+    echo "sed -i '/$m1/,/$m2/d' $shell_init" >> ${u_spy_exe}
+fi
+chmod +x ${u_spy_exe}
 
 cat <<EOF
 
@@ -56,7 +63,7 @@ $ spyder
 
 To uninstall Spyder, you need to run from the following from the command line:
 
-$ ${PREFIX}/uninstall.sh
+$ uninstall-spyder
 
 ###############################################################################
 
