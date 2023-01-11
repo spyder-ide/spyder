@@ -110,6 +110,14 @@ jobs:
         run: |
           conda info
           conda list
+      # Notes:
+      # 1. This only works for conda, probably because it has the necessary
+      #    MSYS2 packages to create the connection.
+      # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
+      #    usage.
+      #- name: Setup remote ssh connection
+      #  if: env.USE_CONDA == 'true'
+      #  uses: mxschmitt/action-tmate@v3
       - name: Run manifest checks
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
