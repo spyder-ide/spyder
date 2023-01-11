@@ -128,6 +128,17 @@ To release a new version of Spyder you need to follow these steps:
 
 * Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
 
+### Check release candidate
+
+* Update version in `__init__.py` (set release version, remove 'dev0', add 'preX'), then
+
+      git add .
+      git commit -m "Release X.X.XpreX"
+      git tag vX.X.XpreX
+      git push upstream --tags
+
+* If workflows succeed, proceed to steps to publish the release; otherwise merge a fix PR and repeat previous steps with incremented 'preX'
+
 ## To do the release
 
 * Close the current milestone on Github

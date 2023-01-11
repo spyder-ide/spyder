@@ -17,17 +17,24 @@ on:
     types:
       - created
 
+  push:
+    tags:
+      - v*pre*
+
 concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
 name: Create conda-based installers for Windows, macOS, and Linux
 
+env:
+  IS_PRE: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+
 jobs:
   build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
-    if: github.event_name != 'release'
+    if: github.event_name == 'pull_request'
     strategy:
       matrix:
         pkg: ["python-lsp-server", "qdarkstyle", "qtconsole"]
@@ -82,7 +89,7 @@ jobs:
         "
         python_version="'3.9'"
 
-        if [[ ${GITHUB_EVENT_NAME} != 'release' ]]; then
+        if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
             target_platform=$target_platform", 'win-64'"
             include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
         fi
@@ -152,7 +159,7 @@ jobs:
           env
 
       - name: Download Local Conda Packages
-        if: github.event_name != 'release'
+        if: github.event_name == 'pull_request'
         uses: actions/download-artifact@v3
         with:
           path: ${{ env.ARTIFACTS_PATH }}
@@ -175,13 +182,13 @@ jobs:
       - name: Build ${{ matrix.target-platform }} conda packages
         run: |
           pkgs=("spyder")
-          if [[ $GITHUB_EVENT_NAME != "release" ]]; then
+          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
               pkgs+=("spyder-kernels")
           fi
           python build_conda_pkgs.py --build ${pkgs[@]}
 
       - name: Create Keychain
-        if: github.event_name == 'release' && runner.os == 'macOS'
+        if: (github.event_name == 'release' || env.IS_PRE == 'true') && runner.os == 'macOS'
         run: |
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
           CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
@@ -219,7 +226,7 @@ jobs:
           fi
 
       - name: Notarize package installer
-        if: github.event_name == 'release' && runner.os == 'macOS'
+        if: (github.event_name == 'release' || env.IS_PRE == 'true') && runner.os == 'macOS'
         run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
 
       - name: Upload Artifact
