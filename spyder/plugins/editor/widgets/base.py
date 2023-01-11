@@ -25,14 +25,16 @@ from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 # Local imports
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
-from spyder.py3compat import PY3, to_text_string
-from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
-from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
+from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
+from spyder.py3compat import PY3, to_text_string
 from spyder.utils.palette import SpyderPalette
+from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
+from spyder.widgets.mixins import BaseEditMixin
+
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
@@ -941,8 +943,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             text = str(completion['textEdit']['newText'])
         else:
             text = completion
+            kind = None
             if isinstance(completion, dict):
                 text = completion['insertText']
+                kind = completion['kind']
             text = str(text)
 
             # Get word to the left of the cursor.
@@ -962,6 +966,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     if current_text in self.auto_completion_characters:
                         is_auto_completion_character = True
 
+                # Adjustments for file completions
+                if kind == CompletionItemKind.FILE:
+                    # This is necessary to inseert file completions when
+                    # requesting them next to a colon
+                    if current_text in ['"', "'"]:
+                        current_text = ''
+                        start_position += 1
+
+                    # And this insert completions for files or directories that
+                    # start with a dot
+                    if current_text in ['".', "'."]:
+                        current_text = '.'
+                        start_position += 1
+
                 if not is_auto_completion_character:
                     # Check if the completion position is in the expected range
                     if not (
@@ -971,7 +989,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     cursor.setPosition(start_position)
 
                     # Remove the word under the cursor
-                    cursor.setPosition(end_position, QTextCursor.KeepAnchor)
+                    if current_text:
+                        cursor.setPosition(
+                            end_position, QTextCursor.KeepAnchor
+                        )
                 else:
                     # Check if we are in the correct position
                     if cursor.position() != completion_position:

@@ -1223,34 +1223,37 @@ def test_dot_completions(completions_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-def test_completions_for_files_that_start_with_numbers(
-        mock_completions_codeeditor, qtbot):
+@pytest.mark.parametrize("filename", ['000_test.txt', '.hidden', 'any_file'])
+def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     """
-    Test that completions for files that start with numbers are handled as
-    expected.
+    Test that completions for files are handled as expected.
 
-    This is a regression test for issue spyder-ide/spyder#20156
+    This includes a regression test for issue spyder-ide/spyder#20156
     """
     code_editor, mock_response = mock_completions_codeeditor
     completion = code_editor.completion_widget
-    file_name = '000_testing.txt'
 
     # Set text to complete and move cursor to the position we want to ask for
     # completions.
-    qtbot.keyClicks(code_editor, "'0'")
+    if filename == 'any_file':
+        # This checks if we're able to introduce file completions as expected
+        # for any file when requesting them inside a string.
+        qtbot.keyClicks(code_editor, "''")
+    else:
+        qtbot.keyClicks(code_editor, f"'{filename[0]}'")
     code_editor.moveCursor(QTextCursor.PreviousCharacter)
     qtbot.wait(500)
 
     # Complete '0' -> '000_testing.txt'
     mock_response.side_effect = lambda lang, method, params: {'params': [{
-        'label': f'{file_name}',
+        'label': f'{filename}',
         'kind': CompletionItemKind.FILE,
-        'sortText': (0, f'a{file_name}'),
-        'insertText': f'{file_name}',
+        'sortText': (0, f'a{filename}'),
+        'insertText': f'{filename}',
         'data': {'doc_uri': path_as_uri(__file__)},
         'detail': '',
         'documentation': '',
-        'filterText': f'{file_name}',
+        'filterText': f'{filename}',
         'insertTextFormat': 1,
         'provider': 'LSP',
         'resolve': True
@@ -1261,7 +1264,7 @@ def test_completions_for_files_that_start_with_numbers(
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
     qtbot.wait(500)
-    assert code_editor.get_text_with_eol() == f"'{file_name}'"
+    assert code_editor.get_text_with_eol() == f"'{filename}'"
 
 
 if __name__ == '__main__':
