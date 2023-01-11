@@ -44,17 +44,17 @@ cat <<EOF
 
 ###############################################################################
 Spyder can be launched by standard methods in Gnome and KDE desktop
-environments. Additionally, Spyder can be launched in Gnome desktop
-environments from the command line:
+environments. Additionally, Spyder can be launched in Gtk-based desktop
+environments (e.g. Xfce) from the command line:
 
 $ gtk-launch spyder
 
-Spyder can be launched from the command line for all Linux variants
+Spyder can also be launched from the command line for all Linux variants
 by:
 
 $ spyder
 
-To uninstall Spyder, from the command line:
+To uninstall Spyder, you need to run from the following from the command line:
 
 $ ${PREFIX}/uninstall.sh
 
