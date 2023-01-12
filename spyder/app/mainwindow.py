@@ -338,7 +338,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         # To set all dockwidgets tabs to be on top (in case we want to do it
         # in the future)
-        # self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
+        # self.setTabPosition(Qt.DockWidgetArea.AllDockWidgetAreas, QTabWidget.North)
 
         logger.info("End of MainWindow constructor")
 

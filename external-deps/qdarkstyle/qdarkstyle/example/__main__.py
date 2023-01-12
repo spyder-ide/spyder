@@ -160,7 +160,7 @@ def main():
     dw_buttons = QtWidgets.QDockWidget()
     dw_buttons.setObjectName('buttons')
     uic.loadUi(os.path.join(here, 'ui/dw_buttons.ui'), dw_buttons)
-    window.addDockWidget(QtCore.Qt.RightDockWidgetArea, dw_buttons)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dw_buttons)
 
     # Set state indeterminate #275
     dw_buttons.checkBoxTristate.stateChanged.connect(dw_buttons.checkBoxTristateDis.setCheckState)
@@ -199,43 +199,43 @@ def main():
     dw_displays = QtWidgets.QDockWidget()
     dw_displays.setObjectName('displays')
     uic.loadUi(os.path.join(here, 'ui/dw_displays.ui'), dw_displays)
-    window.addDockWidget(QtCore.Qt.RightDockWidgetArea, dw_displays)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dw_displays)
 
     # Create docks for inputs - no fields
     dw_inputs_no_fields = QtWidgets.QDockWidget()
     dw_inputs_no_fields.setObjectName('inputs_no_fields')
     uic.loadUi(os.path.join(here, 'ui/dw_inputs_no_fields.ui'), dw_inputs_no_fields)
-    window.addDockWidget(QtCore.Qt.RightDockWidgetArea, dw_inputs_no_fields)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dw_inputs_no_fields)
 
     # Create docks for inputs - fields
     dw_inputs_fields = QtWidgets.QDockWidget()
     dw_inputs_fields.setObjectName('inputs_fields')
     uic.loadUi(os.path.join(here, 'ui/dw_inputs_fields.ui'), dw_inputs_fields)
-    window.addDockWidget(QtCore.Qt.RightDockWidgetArea, dw_inputs_fields)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dw_inputs_fields)
 
     # Create docks for widgets
     dw_widgets = QtWidgets.QDockWidget()
     dw_widgets.setObjectName('widgets')
     uic.loadUi(os.path.join(here, 'ui/dw_widgets.ui'), dw_widgets)
-    window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_widgets)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dw_widgets)
 
     # Create docks for views
     dw_views = QtWidgets.QDockWidget()
     dw_views.setObjectName('views')
     uic.loadUi(os.path.join(here, 'ui/dw_views.ui'), dw_views)
-    window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_views)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dw_views)
 
     # Create docks for containers - no tabs
     dw_containers_no_tabs = QtWidgets.QDockWidget()
     dw_containers_no_tabs.setObjectName('containers_no_tabs')
     uic.loadUi(os.path.join(here, 'ui/dw_containers_no_tabs.ui'), dw_containers_no_tabs)
-    window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_containers_no_tabs)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dw_containers_no_tabs)
 
     # Create docks for containters - tabs
     dw_containers_tabs = QtWidgets.QDockWidget()
     dw_containers_tabs.setObjectName('containers_tabs')
     uic.loadUi(os.path.join(here, 'ui/dw_containers_tabs.ui'), dw_containers_tabs)
-    window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_containers_tabs)
+    window.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dw_containers_tabs)
 
     # Tabify right docks
     window.tabifyDockWidget(dw_buttons, dw_displays)

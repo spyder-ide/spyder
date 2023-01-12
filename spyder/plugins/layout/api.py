@@ -418,7 +418,7 @@ class BaseGridLayoutType:
                         dock = docks[key]
 
                     main_window.addDockWidget(
-                        Qt.LeftDockWidgetArea, dock, direction)
+                        Qt.DockWidgetArea.LeftDockWidgetArea, dock, direction)
 
         # Find dock splits in the vertical direction
         direction = Qt.Vertical

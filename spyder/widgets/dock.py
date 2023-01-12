@@ -243,8 +243,8 @@ class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
 
     # Attributes
-    ALLOWED_AREAS = Qt.AllDockWidgetAreas
-    LOCATION = Qt.LeftDockWidgetArea
+    ALLOWED_AREAS = Qt.DockWidgetArea.AllDockWidgetAreas
+    LOCATION = Qt.DockWidgetArea.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
 
     # Signals
