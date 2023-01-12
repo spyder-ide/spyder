@@ -641,7 +641,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
-        clayout = ColorLayout(QColor(Qt.black), self)
+        clayout = ColorLayout(QColor(Qt.GlobalColor.black), self)
         clayout.lineedit.setMaximumWidth(80)
         if tip is not None:
             clayout.setToolTip(tip)
@@ -662,7 +662,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
-        clayout = ColorLayout(QColor(Qt.black), self)
+        clayout = ColorLayout(QColor(Qt.GlobalColor.black), self)
         clayout.lineedit.setMaximumWidth(80)
         if tip is not None:
             clayout.setToolTip(tip)

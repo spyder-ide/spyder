@@ -26,7 +26,7 @@ class IndentationGuide(Panel):
         i_width(int): identation width in characters.
         """
         Panel.__init__(self)
-        self.color = Qt.darkGray
+        self.color = Qt.GlobalColor.darkGray
         self.i_width = 4
         self.bar_offset = 0
 

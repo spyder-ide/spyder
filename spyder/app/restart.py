@@ -105,7 +105,7 @@ class Restarter(QWidget):
         self.splash.showMessage(text,
                                 int(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter |
                                     Qt.AlignmentFlag.AlignAbsolute),
-                                QColor(Qt.white))
+                                QColor(Qt.GlobalColor.white))
 
     def animate_ellipsis(self):
         """Animate dots at the end of the splash screen message."""

@@ -1372,7 +1372,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.splash.showMessage(message,
                                 int(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter |
                                     Qt.AlignmentFlag.AlignAbsolute),
-                                QColor(Qt.white))
+                                QColor(Qt.GlobalColor.white))
         QApplication.processEvents()
 
     def change_last_focused_widget(self, old, now):
@@ -1775,7 +1775,7 @@ def main(options, args):
         splash.showMessage(
             _("Initializing..."),
             int(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignAbsolute),
-            QColor(Qt.white)
+            QColor(Qt.GlobalColor.white)
         )
         QApplication.processEvents()
 

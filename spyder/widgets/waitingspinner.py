@@ -51,7 +51,7 @@ class QWaitingSpinner(QWidget):
         self._disableParentWhenSpinning = disableParentWhenSpinning
 
         # WAS IN initialize()
-        self._color = QColor(Qt.black)
+        self._color = QColor(Qt.GlobalColor.black)
         self._roundness = 100.0
         self._minimumTrailOpacity = 3.14159265358979323846
         self._trailFadePercentage = 80.0
@@ -81,7 +81,7 @@ class QWaitingSpinner(QWidget):
 
         self.updatePosition()
         painter = QPainter(self)
-        painter.fillRect(self.rect(), Qt.transparent)
+        painter.fillRect(self.rect(), Qt.GlobalColor.transparent)
         painter.setRenderHint(QPainter.Antialiasing, True)
 
         if self._currentCounter >= self._numberOfLines:
@@ -199,7 +199,7 @@ class QWaitingSpinner(QWidget):
     def setRoundness(self, roundness):
         self._roundness = max(0.0, min(100.0, roundness))
 
-    def setColor(self, color=Qt.black):
+    def setColor(self, color=Qt.GlobalColor.black):
         self._color = QColor(color)
 
     def setRevolutionsPerSecond(self, revolutionsPerSecond):

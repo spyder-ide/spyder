@@ -33,7 +33,7 @@ class LineNumberArea(Panel):
 
         self.setMouseTracking(True)
         self.scrollable = True
-        self.linenumbers_color = QColor(Qt.darkGray)
+        self.linenumbers_color = QColor(Qt.GlobalColor.darkGray)
 
         # Markers
         self._markers_margin = True

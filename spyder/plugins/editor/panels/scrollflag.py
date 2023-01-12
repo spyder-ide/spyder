@@ -46,9 +46,9 @@ class ScrollFlagArea(Panel):
         self._range_indicator_is_visible = False
         self._alt_key_is_down = False
 
-        self._slider_range_color = QColor(Qt.gray)
+        self._slider_range_color = QColor(Qt.GlobalColor.gray)
         self._slider_range_color.setAlphaF(.85)
-        self._slider_range_brush = QColor(Qt.gray)
+        self._slider_range_brush = QColor(Qt.GlobalColor.gray)
         self._slider_range_brush.setAlphaF(.5)
 
         self._update_list_timer = QTimer(self)

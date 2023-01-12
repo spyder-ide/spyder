@@ -546,7 +546,7 @@ class FadingTipBox(FadingDialog):
 
         painter.fillPath(self.round_rect_path, self.color_back)
         painter.fillPath(self.top_rect_path, self.color_top)
-        painter.strokePath(self.round_rect_path, QPen(Qt.gray, 1))
+        painter.strokePath(self.round_rect_path, QPen(Qt.GlobalColor.gray, 1))
 
         # TODO: Build the pointing arrow?
 
@@ -615,7 +615,7 @@ class AnimatedTour(QWidget):
         self.duration_tips = [333, 333]
         self.opacity_canvas = [0.0, 0.7]
         self.opacity_tips = [0.0, 1.0]
-        self.color = Qt.black
+        self.color = Qt.GlobalColor.black
         self.easing_curve = [QEasingCurve.Linear]
 
         self.current_step = 0

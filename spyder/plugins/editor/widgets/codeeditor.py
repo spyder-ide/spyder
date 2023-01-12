@@ -532,7 +532,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self._mouse_left_button_pressed = False
-        self.ctrl_click_color = QColor(Qt.blue)
+        self.ctrl_click_color = QColor(Qt.GlobalColor.blue)
 
         self._bookmarks_blocks = {}
         self.bookmarks = []

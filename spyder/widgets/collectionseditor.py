@@ -356,13 +356,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def get_bgcolor(self, index):
         """Background color depending on value"""
         if index.column() == 0:
-            color = QColor(Qt.lightGray)
+            color = QColor(Qt.GlobalColor.lightGray)
             color.setAlphaF(.05)
         elif index.column() < 3:
-            color = QColor(Qt.lightGray)
+            color = QColor(Qt.GlobalColor.lightGray)
             color.setAlphaF(.2)
         else:
-            color = QColor(Qt.lightGray)
+            color = QColor(Qt.GlobalColor.lightGray)
             color.setAlphaF(.3)
         return color
 
