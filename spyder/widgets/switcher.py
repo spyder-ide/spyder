@@ -194,7 +194,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         """Separator Item represented as <hr>."""
         super(SwitcherSeparatorItem, self).__init__(parent=parent,
                                                     styles=styles)
-        self.setFlags(Qt.NoItemFlags)
+        self.setFlags(Qt.ItemFlag.NoItemFlags)
         self._set_rendered_text()
 
     # --- Helpers
@@ -305,7 +305,7 @@ class SwitcherItem(SwitcherBaseItem):
         self._section_visible = True
 
         # Setup
-        self.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+        self.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
 
         if icon:
             self.setIcon(icon)

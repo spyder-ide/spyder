@@ -518,7 +518,7 @@ class LSPServersModel(QAbstractTableModel):
     def flags(self, index):
         """Qt Override."""
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index))
 
     def data(self, index, role=Qt.DisplayRole):

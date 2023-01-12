@@ -161,7 +161,7 @@ class ConfigDialog(QDialog):
         except TypeError:
             pass
         item.setText(widget.get_name())
-        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
+        item.setFlags(Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
 
     def check_all_settings(self):

@@ -191,13 +191,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
         item.setIcon(ima.icon('DirClosedIcon'))
 
         if path in self.project_path:
-            item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
+            item.setFlags(Qt.ItemFlag.NoItemFlags | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Checked)
         elif path in self.not_active_path:
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Unchecked)
         else:
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Checked)
 
         return item
@@ -208,7 +208,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Header is centered and it can't be selected
         header.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
-        header.setFlags(Qt.ItemIsEnabled)
+        header.setFlags(Qt.ItemFlag.ItemIsEnabled)
 
         # Make header appear in bold
         font = header.font()

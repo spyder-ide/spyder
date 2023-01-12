@@ -154,7 +154,7 @@ class ClassFunctionDropdown(Panel):
         combobox.addItem(_('<None>'), 0)
         model = combobox.model()
         item = model.item(0)
-        item.setFlags(Qt.NoItemFlags)
+        item.setFlags(Qt.ItemFlag.NoItemFlags)
 
         cb_data = []
         for item in data:

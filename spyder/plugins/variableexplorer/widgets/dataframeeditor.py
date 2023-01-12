@@ -429,7 +429,7 @@ class DataFrameModel(QAbstractTableModel):
     def flags(self, index):
         """Set flags"""
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+                                Qt.ItemFlag.ItemIsEditable))
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""

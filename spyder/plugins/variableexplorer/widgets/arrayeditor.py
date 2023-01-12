@@ -364,9 +364,9 @@ class ArrayModel(QAbstractTableModel):
     def flags(self, index):
         """Set editable flag"""
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+                                Qt.ItemFlag.ItemIsEditable))
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""
