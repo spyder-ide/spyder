@@ -105,7 +105,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         self.setLayout(layout)
 
     def disable_tcp(self, state):
-        if state == Qt.Checked:
+        if state == Qt.CheckState.Checked:
             self.advanced_host.textbox.setEnabled(False)
             self.advanced_port.spinbox.setEnabled(False)
             self.external_server.stateChanged.disconnect()
@@ -119,7 +119,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             self.external_server.stateChanged.connect(self.disable_stdio)
 
     def disable_stdio(self, state):
-        if state == Qt.Checked:
+        if state == Qt.CheckState.Checked:
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
             self.advanced_module.textbox.setEnabled(False)

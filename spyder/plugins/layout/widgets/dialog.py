@@ -87,9 +87,9 @@ class LayoutModel(QAbstractTableModel):
         elif role == Qt.CheckStateRole:
             if column == 0:
                 if state:
-                    return Qt.Checked
+                    return Qt.CheckState.Checked
                 else:
-                    return Qt.Unchecked
+                    return Qt.CheckState.Unchecked
             if column == 1:
                 return to_qvariant(state)
         return to_qvariant()

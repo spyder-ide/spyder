@@ -57,7 +57,7 @@ def test_check_uncheck_path(pathmanager):
     for row in range(1, pathmanager.listwidget.count()):
         item = pathmanager.listwidget.item(row)
         if item not in pathmanager.headers:
-            assert item.checkState() == Qt.Checked
+            assert item.checkState() == Qt.CheckState.Checked
 
 
 @pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
@@ -88,7 +88,7 @@ def test_export_to_PYTHONPATH(pathmanager, mocker):
 
     # Uncheck 'path2' and assert that it is removed from PYTHONPATH when it
     # is synchronized with Spyder's path list
-    pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
+    pathmanager.listwidget.item(6).setCheckState(Qt.CheckState.Unchecked)
     pathmanager.export_pythonpath()
     expected_pathlist = ['p1', 'p3']
     env = get_user_env()
@@ -101,7 +101,7 @@ def test_export_to_PYTHONPATH(pathmanager, mocker):
 
     # Uncheck 'path3' and assert that it is kept in PYTHONPATH when it
     # is synchronized with Spyder's path list
-    pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
+    pathmanager.listwidget.item(6).setCheckState(Qt.CheckState.Unchecked)
     pathmanager.export_pythonpath()
     expected_pathlist = ['p3', 'p1']
     env = get_user_env()
@@ -206,7 +206,7 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     pathmanager.add_path(dir1)
     pathmanager.add_path(dir2)
     pathmanager.add_path(dir3)
-    pathmanager.set_row_check_state(2, Qt.Unchecked)
+    pathmanager.set_row_check_state(2, Qt.CheckState.Unchecked)
     assert not all(pathmanager.get_path_dict().values())
 
     def interact_message_box():

@@ -164,7 +164,7 @@ def main():
 
     # Set state indeterminate #275
     dw_buttons.checkBoxTristate.stateChanged.connect(dw_buttons.checkBoxTristateDis.setCheckState)
-    dw_buttons.checkBoxTristate.setCheckState(QtCore.Qt.PartiallyChecked)
+    dw_buttons.checkBoxTristate.setCheckState(QtCore.Qt.CheckState.PartiallyChecked)
 
     # Add actions on popup toolbuttons
     menu = QtWidgets.QMenu()

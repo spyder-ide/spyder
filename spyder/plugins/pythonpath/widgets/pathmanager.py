@@ -192,13 +192,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         if path in self.project_path:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked)
+            item.setCheckState(Qt.CheckState.Checked)
         elif path in self.not_active_path:
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Unchecked)
+            item.setCheckState(Qt.CheckState.Unchecked)
         else:
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked)
+            item.setCheckState(Qt.CheckState.Checked)
 
         return item
 
@@ -342,7 +342,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
             if item not in self.headers:
                 if path in self.project_path and not project_path:
                     continue
-                odict[path] = item.checkState() == Qt.Checked
+                odict[path] = item.checkState() == Qt.CheckState.Checked
         return odict
 
     def get_user_path(self):
@@ -433,7 +433,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         if directory in self.get_path_dict():
             item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
-            item.setCheckState(Qt.Checked)
+            item.setCheckState(Qt.CheckState.Checked)
             answer = QMessageBox.question(
                 self,
                 _("Add path"),
