@@ -26,7 +26,6 @@ from spyder.config.base import get_conf_path, running_in_ci
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
-from spyder.py3compat import PY2
 
 
 HERE = osp.abspath(osp.dirname(__file__))
@@ -560,7 +559,6 @@ def test_advance_cell(editor_cells_bot):
     assert editor.get_cursor_line_column() == (6, 0)
 
 
-@pytest.mark.skipif(PY2, reason="Python2 does not support unicode very well")
 def test_get_current_word(base_editor_bot, qtbot):
     """Test getting selected valid python word."""
     editor_stack = base_editor_bot

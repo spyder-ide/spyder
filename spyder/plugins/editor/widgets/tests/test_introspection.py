@@ -29,7 +29,6 @@ from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
-from spyder.py3compat import PY2
 from spyder.config.manager import CONF
 
 
@@ -55,8 +54,8 @@ def set_executable_config_helper(executable=None):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
-                    reason='Only works on Linux and Python 3')
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason='Only works on Linux')
 @flaky(max_runs=5)
 def test_fallback_completions(completions_codeeditor, qtbot):
     code_editor, completion_plugin = completions_codeeditor
@@ -516,12 +515,9 @@ def test_completions(completions_codeeditor, qtbot):
 
     qtbot.keyPress(completion, Qt.Key_Tab)
 
-    if PY2:
-        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
-    else:
-        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
-                                                        "hypot(*coordinates)",
-                                                        'hypot(coordinates)']
+    assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                    "hypot(*coordinates)",
+                                                    'hypot(coordinates)']
 
     print([(x['label'], x['provider']) for x in sig.args[0]])
 
@@ -553,12 +549,9 @@ def test_completions(completions_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    if PY2:
-        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
-    else:
-        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
-                                                        "hypot(*coordinates)",
-                                                        'hypot(coordinates)']
+    assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                    "hypot(*coordinates)",
+                                                    'hypot(coordinates)']
 
     # right for () + enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)

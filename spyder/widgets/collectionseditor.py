@@ -19,8 +19,8 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
 import datetime
+import io
 import re
 import sys
 import warnings
@@ -48,8 +48,8 @@ from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
-                              is_type_text_string, NUMERIC_TYPES)
+from spyder.py3compat import (is_binary_string, to_text_string,
+                              is_type_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (
@@ -70,6 +70,7 @@ MAX_SERIALIZED_LENGHT = 1e6
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
+NUMERIC_TYPES = (int, float) + get_numeric_numpy_types()
 
 def natsort(s):
     """
@@ -408,14 +409,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            elif not isinstance(
-                value, NUMERIC_TYPES + get_numeric_numpy_types()
-            ):
+            elif not isinstance(value, NUMERIC_TYPES):
                 display = to_text_string(value)
             else:
                 display = value
         if role == Qt.UserRole:
-            if isinstance(value, NUMERIC_TYPES + get_numeric_numpy_types()):
+            if isinstance(value, NUMERIC_TYPES):
                 return to_qvariant(value)
             else:
                 return to_qvariant(display)
@@ -1217,10 +1216,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             # to copy the whole thing in a tab separated format
             if (isinstance(obj, (np.ndarray, np.ma.MaskedArray)) and
                     np.ndarray is not FakeObject):
-                if PY3:
-                    output = io.BytesIO()
-                else:
-                    output = io.StringIO()
+                output = io.BytesIO()
                 try:
                     np.savetxt(output, obj, delimiter='\t')
                 except Exception:
@@ -1240,10 +1236,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                                         _("It was not possible to copy "
                                           "this dataframe"))
                     return
-                if PY3:
-                    obj = output.getvalue()
-                else:
-                    obj = output.getvalue().decode('utf-8')
+                obj = output.getvalue()
                 output.close()
             elif is_binary_string(obj):
                 obj = to_text_string(obj, 'utf8')

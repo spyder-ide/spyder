@@ -19,7 +19,6 @@ import zmq
 from zmq.ssh import tunnel as zmqtunnel
 
 from spyder_kernels.comms.commbase import CommBase, CommError
-from spyder.py3compat import TimeoutError
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 
 logger = logging.getLogger(__name__)

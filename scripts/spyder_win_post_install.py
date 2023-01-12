@@ -7,12 +7,7 @@ import os
 import sys
 import os.path as osp
 import struct
-try:
-    # Python 2
-    import _winreg as winreg
-except ImportError:
-    # Python 3
-    import winreg  # analysis:ignore
+import winreg
 
 
 EWS = "Edit with Spyder"

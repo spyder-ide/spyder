@@ -25,7 +25,7 @@ from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 # Local imports
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
-from spyder.py3compat import PY3, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
@@ -483,7 +483,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
         # spyder-ide/spyder#1546).
-        if os.name == 'nt' and PY3:
+        if os.name == 'nt':
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
                        .replace('\u0085', '\n')

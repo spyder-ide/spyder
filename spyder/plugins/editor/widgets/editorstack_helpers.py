@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+from collections.abc import MutableSequence
 import logging
 
 # Third party imports
@@ -13,7 +14,7 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.utils.findtasks import find_tasks
-from spyder.py3compat import to_text_string, MutableSequence
+from spyder.py3compat import to_text_string
 
 logger = logging.getLogger(__name__)
 
