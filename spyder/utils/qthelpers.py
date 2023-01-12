@@ -246,7 +246,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if text is not None or tip is not None:
         button.setToolTip(text if tip is None else tip)
     if text_beside_icon:
-        button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
     button.setAutoRaise(autoraise)
     if triggered is not None:
         button.clicked.connect(triggered)
@@ -296,7 +296,7 @@ def action2button(action, autoraise=True, text_beside_icon=False, parent=None,
     button.setDefaultAction(action)
     button.setAutoRaise(autoraise)
     if text_beside_icon:
-        button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
     if icon:
         action.setIcon(icon)
     return button
