@@ -79,7 +79,7 @@ def test_status_bar_widget_signal(status_bar, qtbot):
     assert len(plugin.STATUS_WIDGETS) == 4
 
     with qtbot.waitSignal(w.sig_clicked, timeout=1000):
-        qtbot.mouseRelease(w, Qt.LeftButton)
+        qtbot.mouseRelease(w, Qt.MouseButton.LeftButton)
 
     assert w.get_tooltip() == 'tooltip'
     assert w.get_icon() == 'icon'

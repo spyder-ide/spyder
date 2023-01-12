@@ -624,7 +624,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     else:
         # Click the debug button
         with qtbot.waitSignal(shell.executed):
-            qtbot.mouseClick(debug_button, Qt.LeftButton)
+            qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # Verify that we are at first breakpoint
     shell.clear_console()
@@ -642,7 +642,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 
     # Click the debug button
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # Wait until continue and stop on the breakpoint
     qtbot.waitUntil(lambda: "IPdb [2]:" in control.toPlainText())
@@ -840,7 +840,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
 
     # Start running
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(run_button, Qt.MouseButton.LeftButton)
 
     assert "runfile" in shell._control.toPlainText()
     assert "3" in shell._control.toPlainText()
@@ -1206,7 +1206,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
@@ -1583,7 +1583,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize a random plugin
     plugin_1 = get_random_plugin()
-    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
 
     # Load test file
     test_file = osp.join(LOCATION, 'script.py')
@@ -1597,15 +1597,15 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         plugin_1.toggle_view(False)
 
     # Maximize editor
-    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
     assert main_window.editor._ismaximized
 
     # Verify that the action minimizes the plugin too
-    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
     assert not main_window.editor._ismaximized
 
     # Don't call switch_to_plugin when the IPython console is undocked
-    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
     assert main_window.editor._ismaximized
     ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
     ipyconsole.create_window()
@@ -1620,11 +1620,11 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     # Maximize a plugin and check that it's unmaximized after clicking the
     # debug button
     plugin_2 = get_random_plugin()
-    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
     qtbot.waitUntil(lambda: 'IPdb' in shell._control.toPlainText())
     assert not plugin_2.get_widget().get_maximized_state()
     assert not max_action.isChecked()
@@ -1635,15 +1635,15 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     debug_next_button = main_window.debug_toolbar.widgetForAction(
         debug_next_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_next_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_next_button, Qt.MouseButton.LeftButton)
     assert not main_window.editor._ismaximized
     assert not max_action.isChecked()
 
     # Check that running debugging actions unmaximizes plugins
     plugin_2.get_widget().get_focus_widget().setFocus()
-    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_next_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_next_button, Qt.MouseButton.LeftButton)
     assert not plugin_2.get_widget().get_maximized_state()
     assert not max_action.isChecked()
     if hasattr(plugin_2, '_hide_after_test'):
@@ -1654,12 +1654,12 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     stop_debug_button = main_window.debug_toolbar.widgetForAction(
         stop_debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+        qtbot.mouseClick(stop_debug_button, Qt.MouseButton.LeftButton)
 
     # Maximize a plugin and check that it's unmaximized after running a file
     plugin_3 = get_random_plugin()
-    qtbot.mouseClick(max_button, Qt.LeftButton)
-    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(run_button, Qt.MouseButton.LeftButton)
     assert not plugin_3.get_widget().get_maximized_state()
     assert not max_action.isChecked()
     if hasattr(plugin_3, '_hide_after_test'):
@@ -1669,8 +1669,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     plugin_4 = get_random_plugin()
     run_cell_action = main_window.run_toolbar_actions[1]
     run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
-    qtbot.mouseClick(max_button, Qt.LeftButton)
-    qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(run_cell_button, Qt.MouseButton.LeftButton)
     assert not plugin_4.get_widget().get_maximized_state()
     assert not max_action.isChecked()
     if hasattr(plugin_4, '_hide_after_test'):
@@ -1682,8 +1682,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     run_selection_action = main_window.run_toolbar_actions[3]
     run_selection_button = main_window.run_toolbar.widgetForAction(
         run_selection_action)
-    qtbot.mouseClick(max_button, Qt.LeftButton)
-    qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+    qtbot.mouseClick(max_button, Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(run_selection_button, Qt.MouseButton.LeftButton)
     assert not plugin_5.get_widget().get_maximized_state()
     assert not max_action.isChecked()
     if hasattr(plugin_5, '_hide_after_test'):
@@ -1729,7 +1729,7 @@ def test_issue_4066(main_window, qtbot):
 
     # Close editor
     ok_widget = obj_editor.btn_close
-    qtbot.mouseClick(ok_widget, Qt.LeftButton)
+    qtbot.mouseClick(ok_widget, Qt.MouseButton.LeftButton)
 
     # Wait for the segfault
     qtbot.wait(3000)
@@ -1795,7 +1795,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
@@ -1871,7 +1871,7 @@ def test_stop_dbg(main_window, qtbot):
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # Move to the next line
     with qtbot.waitSignal(shell.executed):
@@ -1882,7 +1882,7 @@ def test_stop_dbg(main_window, qtbot):
     stop_debug_button = main_window.debug_toolbar.widgetForAction(
         stop_debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+        qtbot.mouseClick(stop_debug_button, Qt.MouseButton.LeftButton)
 
     # Assert there are only two ipdb prompts in the console
     assert shell._control.toPlainText().count('IPdb') == 2
@@ -1916,7 +1916,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
     qtbot.waitUntil(lambda: 'IPdb' in control.toPlainText())
 
     # Set LOCATION as cwd
@@ -1959,7 +1959,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # Get to an object that can be plotted
     for _ in range(3):
@@ -2654,7 +2654,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
 
     # Click the debug button
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
         qtbot.wait(1000)
 
     # Continue debugging
@@ -3062,7 +3062,7 @@ def test_debug_unsaved_file(main_window, qtbot):
     qtbot.wait(500)
 
     # Start debugging
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # There is a breakpoint, so it should continue
     qtbot.waitUntil(
@@ -3357,7 +3357,7 @@ def test_runcell_pdb(main_window, qtbot):
 
     # Start debugging
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     for key in ['!n', '!n', '!s', '!n', '!n']:
         with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
@@ -3741,7 +3741,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
 
     # Start debugging
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # b should not be there (running namespace) and the local a should be 5
     qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data and
@@ -3947,7 +3947,7 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     # This code should run even on windows
 
     # Start running
-    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.mouseClick(run_button, Qt.MouseButton.LeftButton)
 
     # Because multiprocessing is behaving strangly on windows, only some
     # situations will work. This is one of these situations so it shouldn't
@@ -4088,7 +4088,7 @@ hello()
 
     # Start debugging
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     # Check `test` has a value of 1
     # Here we use "waitUntil" because `shell.executed` is emitted twice
@@ -4222,7 +4222,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.waitUntil(lambda: tour_dialog.isVisible(), timeout=2000)
 
     # Check that clicking dismiss hides the dialog and disables it
-    qtbot.mouseClick(tour_dialog.dismiss_button, Qt.LeftButton)
+    qtbot.mouseClick(tour_dialog.dismiss_button, Qt.MouseButton.LeftButton)
     qtbot.waitUntil(lambda: not tour_dialog.isVisible(),
                     timeout=2000)
     assert not tours.get_conf('show_tour_message')
@@ -4237,7 +4237,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.waitUntil(lambda: tour_dialog.isVisible(), timeout=5000)
 
     # Run the tour and confirm it's running and the dialog is closed
-    qtbot.mouseClick(tour_dialog.launch_tour_button, Qt.LeftButton)
+    qtbot.mouseClick(tour_dialog.launch_tour_button, Qt.MouseButton.LeftButton)
     qtbot.waitUntil(lambda: animated_tour.is_running, timeout=9000)
     assert not tour_dialog.isVisible()
     assert not tours.get_conf('show_tour_message')
@@ -4427,7 +4427,7 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
                                   timeout=5000):
                 editor_stack.tabs.setCurrentIndex(i)
                 qtbot.mouseClick(editor_stack.tabs.currentWidget(),
-                                 Qt.LeftButton)
+                                 Qt.MouseButton.LeftButton)
                 code_editor.set_text(code.format(i=i))
                 qtbot.wait(300)  # Make changes visible
 
@@ -4445,7 +4445,7 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     def move_across_tabs(editorstack):
         for i in range(editorstack.tabs.count()):
             editorstack.tabs.setCurrentIndex(i)
-            qtbot.mouseClick(editorstack.tabs.currentWidget(), Qt.LeftButton)
+            qtbot.mouseClick(editorstack.tabs.currentWidget(), Qt.MouseButton.LeftButton)
             qtbot.wait(300)  # Make changes visible
 
     # Wait until symbol services are up
@@ -4607,7 +4607,7 @@ def test_prevent_closing(main_window, qtbot):
 
     # Start debugging
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
 
     CONF.set('ipython_console', 'pdb_prevent_closing', False)
     # Check we can close a file we debug if the option is disabled
@@ -4645,7 +4645,7 @@ def test_continue_first_line(main_window, qtbot):
     CONF.set('ipython_console', 'pdb_stop_first_line', False)
     # Start debugging
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.mouseClick(debug_button, Qt.MouseButton.LeftButton)
     # The debugging should finish
     qtbot.waitUntil(lambda: not shell.is_debugging())
     CONF.set('ipython_console', 'pdb_stop_first_line', True)
@@ -4914,7 +4914,7 @@ if __name__ == "__main__":
     run_action = main_window.run_toolbar_actions[0]
     run_button = main_window.run_toolbar.widgetForAction(run_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(run_button, Qt.MouseButton.LeftButton)
     qtbot.wait(1000)
 
     assert 'Test stdout' in control.toPlainText()
@@ -4946,7 +4946,7 @@ crash_func()
     # Click the run button
     run_action = main_window.run_toolbar_actions[0]
     run_button = main_window.run_toolbar.widgetForAction(run_action)
-    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.mouseClick(run_button, Qt.MouseButton.LeftButton)
 
     qtbot.waitUntil(lambda: 'Segmentation fault' in control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
@@ -4973,10 +4973,10 @@ def test_focus_to_editor(main_window, qtbot, tmpdir, focus_to_editor):
                 wait=1000
             ):
                 with qtbot.waitSignal(shell.executed):
-                    qtbot.mouseClick(button, Qt.LeftButton)
+                    qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
         else:
             with qtbot.waitSignal(shell.executed):
-                qtbot.mouseClick(button, Qt.LeftButton)
+                qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
 
         # Check the right widget has focus
         focus_widget = QApplication.focusWidget()
@@ -5190,7 +5190,7 @@ def test_debug_unsaved_function(main_window, qtbot):
 
     # run file
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(run_button, Qt.MouseButton.LeftButton)
 
     # debug foo
     with qtbot.waitSignal(shell.executed):

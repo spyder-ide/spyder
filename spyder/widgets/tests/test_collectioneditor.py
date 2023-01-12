@@ -834,7 +834,7 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     view = editor.widget.editor
     header = view.horizontalHeader()
     with qtbot.waitSignal(header.sectionClicked, timeout=200):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
+        qtbot.mouseClick(header.viewport(), Qt.MouseButton.LeftButton, pos=QPoint(1, 1))
 
     # Assert data was sorted correctly.
     assert data(view.model, 0, 0) == 9999

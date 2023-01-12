@@ -166,7 +166,7 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
     with qtbot.waitSignal(code_editor.sig_display_object_info,
                           timeout=30000) as blocker:
         qtbot.mouseMove(code_editor, point)
-        qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point)
+        qtbot.mouseClick(code_editor, Qt.MouseButton.LeftButton, pos=point)
         qtbot.waitUntil(lambda: code_editor.tooltip_widget.isVisible(),
                         timeout=10000)
 
@@ -217,6 +217,6 @@ def test_get_hints_not_triggered(qtbot, completions_codeeditor, text):
     with qtbot.waitSignal(code_editor.completions_response_signal,
                           timeout=30000):
         qtbot.mouseMove(code_editor, point)
-        qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point)
+        qtbot.mouseClick(code_editor, Qt.MouseButton.LeftButton, pos=point)
         qtbot.wait(1000)
         assert not code_editor.tooltip_widget.isVisible()

@@ -140,7 +140,7 @@ def test_clear_shortcut(create_shortcut_editor, qtbot):
     shortcut is working as expected.
     """
     shortcut_editor = create_shortcut_editor('editor', 'delete line')
-    qtbot.mouseClick(shortcut_editor.button_clear, Qt.LeftButton)
+    qtbot.mouseClick(shortcut_editor.button_clear, Qt.MouseButton.LeftButton)
     assert shortcut_editor.new_sequence == ''
 
 
@@ -188,19 +188,19 @@ def test_clear_back_new_sequence(create_shortcut_editor, qtbot):
     qtbot.keyClick(shortcut_editor, Qt.Key.Key_D)
 
     # Remove last key sequence entered.
-    qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.LeftButton)
+    qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.MouseButton.LeftButton)
     assert shortcut_editor.new_sequence == 'Ctrl+X, A, Ctrl+B'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
     assert shortcut_editor.button_ok.isEnabled()
 
     # Remove second to last key sequence entered.
-    qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.LeftButton)
+    qtbot.mouseClick(shortcut_editor.button_back_sequence, Qt.MouseButton.LeftButton)
     assert shortcut_editor.new_sequence == 'Ctrl+X, A'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
     assert shortcut_editor.button_ok.isEnabled()
 
     # Clear all entered key sequences.
-    qtbot.mouseClick(shortcut_editor.btn_clear_sequence, Qt.LeftButton)
+    qtbot.mouseClick(shortcut_editor.btn_clear_sequence, Qt.MouseButton.LeftButton)
     assert shortcut_editor.new_sequence == ''
     assert shortcut_editor.warning == SEQUENCE_EMPTY
     assert not shortcut_editor.button_ok.isEnabled()
@@ -248,7 +248,7 @@ def test_sequence_single_key(create_shortcut_editor, qtbot):
     assert not shortcut_editor.button_ok.isEnabled()
 
     # Check this is working as expected when a valid single key is pressed.
-    qtbot.mouseClick(shortcut_editor.btn_clear_sequence, Qt.LeftButton)
+    qtbot.mouseClick(shortcut_editor.btn_clear_sequence, Qt.MouseButton.LeftButton)
     qtbot.keyClick(shortcut_editor, Qt.Key.Key_Home)
     assert shortcut_editor.new_sequence == 'Home'
     assert shortcut_editor.warning == NO_WARNING
@@ -264,7 +264,7 @@ def test_set_sequence_to_default(create_shortcut_editor, qtbot):
     default_sequence = CONF.get(
         'shortcuts', "{}/{}".format('editor', 'delete line'))
 
-    qtbot.mouseClick(shortcut_editor.button_default, Qt.LeftButton)
+    qtbot.mouseClick(shortcut_editor.button_default, Qt.MouseButton.LeftButton)
     assert shortcut_editor.new_sequence == default_sequence
     assert shortcut_editor.warning == NO_WARNING
     assert shortcut_editor.button_ok.isEnabled()

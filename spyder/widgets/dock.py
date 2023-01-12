@@ -53,7 +53,7 @@ class TabFilter(QObject):
         self.dock_tabbar.setCurrentIndex(self.from_index)
 
         try:
-            if event.button() == Qt.RightButton:
+            if event.button() == Qt.MouseButton.RightButton:
                 if self.from_index == -1:
                     self.show_nontab_menu(event)
                 else:

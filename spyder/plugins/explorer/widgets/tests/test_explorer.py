@@ -196,7 +196,7 @@ def test_single_click_to_open(qtbot, file_explorer):
                     rect = treewidget.visualRect(index)
                     pos = rect.center()
                     qtbot.mouseClick(
-                        treewidget.viewport(), Qt.LeftButton, pos=pos)
+                        treewidget.viewport(), Qt.MouseButton.LeftButton, pos=pos)
 
                     if single_click:
                         assert full_path == file_explorer.label1.text()

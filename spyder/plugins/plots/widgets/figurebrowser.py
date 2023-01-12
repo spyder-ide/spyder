@@ -413,7 +413,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # ---- Panning
         # Set ClosedHandCursor:
         elif event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
+            if event.button() == Qt.MouseButton.LeftButton:
                 QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
                 self._ispanning = True
                 self.xclick = event.globalX()
@@ -1028,7 +1028,7 @@ class FigureThumbnail(QWidget):
         clicked.
         """
         if event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
+            if event.button() == Qt.MouseButton.LeftButton:
                 self.sig_canvas_clicked.emit(self)
 
         return super().eventFilter(widget, event)

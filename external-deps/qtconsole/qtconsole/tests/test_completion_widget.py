@@ -68,7 +68,7 @@ class TestCompletionWidget(unittest.TestCase):
         self.assertEqual(self.text_edit.toPlainText(), "item3")
 
     def test_droplist_completer_mousepick(self):
-        leftButton = QtCore.Qt.LeftButton
+        leftButton = QtCore.Qt.MouseButton.LeftButton
 
         w = CompletionWidget(self.console)
         w.show_items(self.text_edit.textCursor(), ["item1", "item2", "item3"])

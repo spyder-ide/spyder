@@ -295,7 +295,7 @@ class ScrollFlagArea(Panel):
 
     def mousePressEvent(self, event):
         """Override Qt method"""
-        if self.slider and event.button() == Qt.LeftButton:
+        if self.slider and event.button() == Qt.MouseButton.LeftButton:
             vsb = self.editor.verticalScrollBar()
             value = self.position_to_value(event.pos().y())
             vsb.setValue(int(value-vsb.pageStep()/2))

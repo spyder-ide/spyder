@@ -217,7 +217,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # Set the cursor position to the center of the editor.
     w = editor.width()
     h = editor.height()
-    qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w//2, h//2))
+    qtbot.mousePress(editor, Qt.MouseButton.LeftButton, pos=QPoint(w//2, h//2))
 
     # Hold the alt key and assert that the slider range indicator is visible.
     # Because it is not possible to simulate the action of holding the alt
@@ -235,7 +235,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its middle range position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
-        qtbot.mousePress(editor.viewport(), Qt.LeftButton,
+        qtbot.mousePress(editor.viewport(), Qt.MouseButton.LeftButton,
                          Qt.AltModifier, QPoint(w//2, h//2))
     assert vsb.value() == (vsb.minimum()+vsb.maximum())//2
 
@@ -243,7 +243,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its minimum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
-        qtbot.mousePress(editor.viewport(), Qt.LeftButton,
+        qtbot.mousePress(editor.viewport(), Qt.MouseButton.LeftButton,
                          Qt.AltModifier, QPoint(w//2, 1))
     assert vsb.value() == vsb.minimum()
 
@@ -251,7 +251,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its maximum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
-        qtbot.mousePress(editor.viewport(), Qt.LeftButton,
+        qtbot.mousePress(editor.viewport(), Qt.MouseButton.LeftButton,
                          Qt.AltModifier, QPoint(w//2, h-1))
     assert vsb.value() == vsb.maximum()
 

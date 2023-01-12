@@ -160,7 +160,7 @@ def test_replace_text_button(findreplace_editor, qtbot):
     assert findreplace.replace_text_button.isChecked()
 
     # Hide with the close button and show find row only
-    qtbot.mouseClick(findreplace.close_button, Qt.LeftButton)
+    qtbot.mouseClick(findreplace.close_button, Qt.MouseButton.LeftButton)
     findreplace.show(hide_replace=True)
     qtbot.wait(500)
     assert not findreplace.replace_text_button.isChecked()

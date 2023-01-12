@@ -445,7 +445,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         # Make middle-click paste safe.
         elif getattr(event, 'button', False) and \
                 etype == QtCore.QEvent.MouseButtonRelease and \
-                event.button() == QtCore.Qt.MiddleButton and \
+                event.button() == QtCore.Qt.MouseButton.MiddleButton and \
                 obj == self._control.viewport():
             cursor = self._control.cursorForPosition(event.pos())
             self._control.setTextCursor(cursor)

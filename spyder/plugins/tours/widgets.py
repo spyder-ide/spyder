@@ -569,7 +569,7 @@ class FadingTipBox(FadingDialog):
         self.parent.raise_()
         self.raise_()
 
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             pass
 #            clicked_widget = self.childAt(event.x(), event.y())
 #            if clicked_widget == self.label_current:

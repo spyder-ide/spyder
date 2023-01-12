@@ -157,7 +157,7 @@ class TabBar(QTabBar):
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.__drag_start_pos = QPoint(event.pos())
         QTabBar.mousePressEvent(self, event)
 
@@ -167,7 +167,7 @@ class TabBar(QTabBar):
         # between plugins, but righit now it's breaking the regular
         # Qt drag behavior for tabs, so we're commenting it for
         # now
-        #if event.buttons() == Qt.MouseButtons(Qt.LeftButton) and \
+        #if event.buttons() == Qt.MouseButtons(Qt.MouseButton.LeftButton) and \
         #   (event.pos() - self.__drag_start_pos).manhattanLength() > \
         #        QApplication.startDragDistance():
         #    drag = QDrag(self)
@@ -224,7 +224,7 @@ class TabBar(QTabBar):
     def mouseDoubleClickEvent(self, event):
         """Override Qt method to trigger the tab name editor."""
         if self.rename_tabs is True and \
-                event.buttons() == Qt.MouseButtons(Qt.LeftButton):
+                event.buttons() == Qt.MouseButtons(Qt.MouseButton.LeftButton):
             # Tab index
             index = self.tabAt(event.pos())
             if index >= 0:

@@ -245,7 +245,7 @@ class LineNumberArea(Panel):
         else:
             self.editor.hide_tooltip()
 
-        if event.buttons() == Qt.LeftButton:
+        if event.buttons() == Qt.MouseButton.LeftButton:
             self._released = line_number
             self.editor.select_lines(self._pressed, self._released)
 

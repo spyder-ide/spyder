@@ -119,7 +119,7 @@ def test_connection_dialog_remembers_input_with_ssh_passphrase(
 
     # Press ok and save connection settings
     qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+                     Qt.MouseButton.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -146,7 +146,7 @@ def test_connection_dialog_doesnt_remember_input_with_ssh_passphrase(
 
     # Press ok and save connection settings
     qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+                     Qt.MouseButton.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -172,7 +172,7 @@ def test_connection_dialog_remembers_input_with_password(
 
     # Press ok and save connection settings
     qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+                     Qt.MouseButton.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
@@ -198,7 +198,7 @@ def test_connection_dialog_doesnt_remember_input_with_password(
 
     # Press ok and save connection settings
     qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+                     Qt.MouseButton.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()

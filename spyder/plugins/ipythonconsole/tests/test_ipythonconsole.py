@@ -1659,14 +1659,14 @@ def test_stop_pdb(ipyconsole, qtbot):
     shell.execute("import time; time.sleep(10)")
     qtbot.wait(500)
     with qtbot.waitSignal(shell.executed, timeout=1000):
-        qtbot.mouseClick(stop_button, Qt.LeftButton)
+        qtbot.mouseClick(stop_button, Qt.MouseButton.LeftButton)
     assert "KeyboardInterrupt" in control.toPlainText()
     # We are still in the debugger
     assert "IPdb [2]:" in control.toPlainText()
     assert "In [2]:" not in control.toPlainText()
     # Leave the debugger
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(stop_button, Qt.LeftButton)
+        qtbot.mouseClick(stop_button, Qt.MouseButton.LeftButton)
     assert "In [2]:" in control.toPlainText()
 
 

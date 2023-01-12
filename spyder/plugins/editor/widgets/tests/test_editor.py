@@ -435,24 +435,24 @@ def test_replace_invalid_regex(editor_find_replace_bot, qtbot):
     qtbot.keyClicks(finder.replace_text, 'anything')
 
     if not finder.re_button.isChecked():
-        qtbot.mouseClick(finder.re_button, Qt.LeftButton)
+        qtbot.mouseClick(finder.re_button, Qt.MouseButton.LeftButton)
 
-    qtbot.mouseClick(finder.replace_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_sel_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_sel_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_all_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
 
     # Test with valid search_text and invalid replace_text
     qtbot.keyClicks(finder.search_text, 'anything')
     qtbot.keyClicks(finder.replace_text, '\\')
 
-    qtbot.mouseClick(finder.replace_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_sel_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_sel_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_all_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
 
 
@@ -472,14 +472,14 @@ def test_replace_honouring_case(editor_find_replace_bot, qtbot):
 
     # Make sure regex button is set
     if not finder.re_button.isChecked():
-        qtbot.mouseClick(finder.re_button, Qt.LeftButton)
+        qtbot.mouseClick(finder.re_button, Qt.MouseButton.LeftButton)
 
     # Make sure case button is not set
     if finder.case_button.isChecked():
-        qtbot.mouseClick(finder.case_button, Qt.LeftButton)
+        qtbot.mouseClick(finder.case_button, Qt.MouseButton.LeftButton)
 
     # Replace all
-    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_all_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == expected_new_text
 
 

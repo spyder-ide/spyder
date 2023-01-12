@@ -886,7 +886,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.MouseButton.LeftButton:
             QTableView.mousePressEvent(self, event)
             return
         index_clicked = self.indexAt(event.pos())

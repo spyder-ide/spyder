@@ -77,7 +77,7 @@ def test_class_func_selector(completions_codeeditor, qtbot):
             == 'SomeOtherObject.hello_3.nested_func')
 
     # Check go to line works for class selector
-    qtbot.mouseClick(panel.class_cb, Qt.LeftButton, pos=QPoint(5, 5))
+    qtbot.mouseClick(panel.class_cb, Qt.MouseButton.LeftButton, pos=QPoint(5, 5))
     listview = panel.class_cb.findChild(QListView)
     qtbot.keyPress(listview, Qt.Key.Key_Up)
     qtbot.keyPress(listview, Qt.Key.Key_Return)
@@ -88,7 +88,7 @@ def test_class_func_selector(completions_codeeditor, qtbot):
 
     # Check go to line works for func selector
     panel.method_cb.setFocus()
-    qtbot.mouseClick(panel.method_cb, Qt.LeftButton, pos=QPoint(5, 5))
+    qtbot.mouseClick(panel.method_cb, Qt.MouseButton.LeftButton, pos=QPoint(5, 5))
     listview = panel.method_cb.findChild(QListView)
     qtbot.keyPress(listview, Qt.Key.Key_Down)
     qtbot.keyPress(listview, Qt.Key.Key_Down)

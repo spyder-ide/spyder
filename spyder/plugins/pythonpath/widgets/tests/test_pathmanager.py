@@ -150,14 +150,14 @@ def test_remove_item_and_reply_no(qtbot, pathmanager):
         buttons = messagebox.findChildren(QPushButton)
         for button in buttons:
             if 'no' in button.text().lower():
-                qtbot.mouseClick(button, Qt.LeftButton)
+                qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
                 break
 
     timer = QTimer()
     timer.setSingleShot(True)
     timer.timeout.connect(interact_message_box)
     timer.start(100)
-    qtbot.mouseClick(pathmanager.remove_button, Qt.LeftButton)
+    qtbot.mouseClick(pathmanager.remove_button, Qt.MouseButton.LeftButton)
 
     # Back to main thread
     assert pathmanager.count() == count
@@ -176,7 +176,7 @@ def test_remove_item_and_reply_yes(qtbot, pathmanager):
         buttons = messagebox.findChildren(QPushButton)
         for button in buttons:
             if 'yes' in button.text().lower():
-                qtbot.mouseClick(button, Qt.LeftButton)
+                qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
                 break
 
     timer = QTimer()
@@ -184,7 +184,7 @@ def test_remove_item_and_reply_yes(qtbot, pathmanager):
     timer.timeout.connect(interact_message_box)
     timer.start(100)
     pathmanager.listwidget.setCurrentRow(4)
-    qtbot.mouseClick(pathmanager.remove_button, Qt.LeftButton)
+    qtbot.mouseClick(pathmanager.remove_button, Qt.MouseButton.LeftButton)
 
     # Back to main thread
     assert pathmanager.count() == (count - 1)
@@ -214,7 +214,7 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
         buttons = messagebox.findChildren(QPushButton)
         for button in buttons:
             if 'yes' in button.text().lower():
-                qtbot.mouseClick(button, Qt.LeftButton)
+                qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
                 break
 
     timer = QTimer()

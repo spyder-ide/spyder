@@ -5439,9 +5439,9 @@ class CodeEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()
-        self._mouse_left_button_pressed = event.button() == Qt.LeftButton
+        self._mouse_left_button_pressed = event.button() == Qt.MouseButton.LeftButton
 
-        if event.button() == Qt.LeftButton and ctrl:
+        if event.button() == Qt.MouseButton.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
             uri = self._last_hover_pattern_text
@@ -5449,14 +5449,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.go_to_uri_from_cursor(uri)
             else:
                 self.go_to_definition_from_cursor(cursor)
-        elif event.button() == Qt.LeftButton and alt:
+        elif event.button() == Qt.MouseButton.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self._mouse_left_button_pressed = False
 
         self.request_cursor_event()
