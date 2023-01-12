@@ -453,7 +453,7 @@ class FoldingPanel(Panel):
                 if self._mouse_over_line is None:
                     # mouse enter fold scope
                     QApplication.setOverrideCursor(
-                        QCursor(Qt.PointingHandCursor))
+                        QCursor(Qt.CursorShape.PointingHandCursor))
                 if (self._mouse_over_line != block.blockNumber() and
                         self._mouse_over_line is not None):
                     # fold scope changed, a previous block was highlighter so

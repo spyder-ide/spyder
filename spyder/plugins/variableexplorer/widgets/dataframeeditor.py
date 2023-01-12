@@ -1368,7 +1368,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     @Slot()
     def resize_to_contents(self):
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         self.dataTable.resizeColumnsToContents()
         self.dataModel.fetch_more(columns=True)
         self.dataTable.resizeColumnsToContents()

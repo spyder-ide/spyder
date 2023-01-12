@@ -515,7 +515,7 @@ class ArrayView(QTableView):
     @Slot()
     def resize_to_contents(self):
         """Resize cells to contents"""
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         self.resizeColumnsToContents()
         self.model().fetch_more(columns=True)
         self.resizeColumnsToContents()

@@ -414,7 +414,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # Set ClosedHandCursor:
         elif event.type() == QEvent.MouseButtonPress:
             if event.button() == Qt.LeftButton:
-                QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+                QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
                 self._ispanning = True
                 self.xclick = event.globalX()
                 self.yclick = event.globalY()

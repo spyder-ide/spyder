@@ -5111,7 +5111,7 @@ class CodeEditor(TextEditBaseWidget):
         text = self.get_word_at(pos)
         if text and not sourcecode.is_keyword(to_text_string(text)):
             if not self.__cursor_changed:
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                QApplication.setOverrideCursor(QCursor(Qt.CursorShape.PointingHandCursor))
                 self.__cursor_changed = True
             cursor = self.cursorForPosition(pos)
             cursor.select(QTextCursor.WordUnderCursor)
@@ -5148,7 +5148,7 @@ class CodeEditor(TextEditBaseWidget):
 
             if not self.__cursor_changed:
                 QApplication.setOverrideCursor(
-                    QCursor(Qt.PointingHandCursor))
+                    QCursor(Qt.CursorShape.PointingHandCursor))
                 self.__cursor_changed = True
 
             self.sig_uri_found.emit(pattern_text)

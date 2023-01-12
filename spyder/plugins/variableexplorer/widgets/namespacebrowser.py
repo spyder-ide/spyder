@@ -218,7 +218,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 except Exception as error:
                     error_message = str(error)
             else:
-                QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+                QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
                 QApplication.processEvents()
                 error_message = self.shellwidget.load_data(self.filename,
                                                            extension)
@@ -259,7 +259,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         else:
             return False
 
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         QApplication.processEvents()
 
         error_message = self.shellwidget.save_namespace(self.filename)

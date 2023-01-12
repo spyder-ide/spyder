@@ -127,7 +127,7 @@ class BasePlugin(BasePluginMixin):
     def starting_long_process(self, message):
         """
         Show a message in main window's status bar and changes the
-        mouse to Qt.WaitCursor when starting a long process.
+        mouse to Qt.CursorShape.WaitCursor when starting a long process.
 
         Parameters
         ----------
@@ -140,7 +140,7 @@ class BasePlugin(BasePluginMixin):
     def ending_long_process(self, message=""):
         """
         Clear main window's status bar after a long process and restore
-        mouse to the OS deault.
+        mouse to the OS default.
 
         Parameters
         ----------

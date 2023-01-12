@@ -622,7 +622,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     def before_long_process(self, message):
         """
         Show a message in main window's status bar and change the mouse
-        pointer to Qt.WaitCursor when starting a long process.
+        pointer to Qt.CursorShape.WaitCursor when starting a long process.
 
         Parameters
         ----------
@@ -632,7 +632,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         if message:
             self.show_status_message(message)
 
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         QApplication.processEvents()
 
     def after_long_process(self, message=""):
@@ -1020,7 +1020,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
     def before_long_process(self, message):
         """
         Show a message in main window's status bar, change the mouse pointer
-        to Qt.WaitCursor and start spinner when starting a long process.
+        to Qt.CursorShape.WaitCursor and start spinner when starting a long process.
 
         Parameters
         ----------

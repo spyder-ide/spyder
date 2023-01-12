@@ -301,7 +301,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
             item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
             if event.pos().x() > item_identation:
                 # When hovering over results
-                self.setCursor(Qt.PointingHandCursor)
+                self.setCursor(Qt.CursorShape.PointingHandCursor)
             else:
                 # On every other element
-                self.setCursor(Qt.ArrowCursor)
+                self.setCursor(Qt.CursorShape.ArrowCursor)

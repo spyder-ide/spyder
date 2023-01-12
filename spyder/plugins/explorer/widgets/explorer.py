@@ -831,10 +831,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
                 if event.pos().x() > item_identation:
                     # When hovering over directories or files
-                    self.setCursor(Qt.PointingHandCursor)
+                    self.setCursor(Qt.CursorShape.PointingHandCursor)
                 else:
                     # On every other element
-                    self.setCursor(Qt.ArrowCursor)
+                    self.setCursor(Qt.CursorShape.ArrowCursor)
 
             self.setToolTip(self.get_filename(index))
 

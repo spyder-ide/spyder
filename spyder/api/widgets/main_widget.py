@@ -440,7 +440,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         # Change the cursor shape when dragging
         if top_level:
-            QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
         else:
             QApplication.restoreOverrideCursor()
 

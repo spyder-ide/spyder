@@ -101,7 +101,7 @@ class ToolTipWidget(QLabel):
         self._url = url
 
         if url:
-            QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+            QApplication.setOverrideCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             new_text, old_text = link_hovered, link
         else:
             new_text, old_text = link, link_hovered

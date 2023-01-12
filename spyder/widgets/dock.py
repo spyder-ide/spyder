@@ -155,7 +155,7 @@ class CloseButton(QToolButton):
         self.setStyleSheet(css.toString())
 
     def enterEvent(self, event):
-        self.setCursor(Qt.ArrowCursor)
+        self.setCursor(Qt.CursorShape.ArrowCursor)
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5, 3)
         self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
         self.setIcon(ima.icon('lock'))
@@ -209,18 +209,18 @@ class DockTitleBar(QWidget):
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
 
     def mouseReleaseEvent(self, event):
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
         QWidget.mouseReleaseEvent(self, event)
 
     def mousePressEvent(self, event):
-        self.setCursor(Qt.ClosedHandCursor)
+        self.setCursor(Qt.CursorShape.ClosedHandCursor)
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6)
         QWidget.mousePressEvent(self, event)
 
     def enterEvent(self, event):
         # To signal that dock widgets can be dragged from here
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
         self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
         super().enterEvent(event)
 

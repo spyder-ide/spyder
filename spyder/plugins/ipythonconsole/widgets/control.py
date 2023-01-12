@@ -110,7 +110,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         """Detect anchors and change cursor shape accordingly."""
         self.anchor = self.anchorAt(event.pos())
         if self.anchor:
-            QApplication.setOverrideCursor(Qt.PointingHandCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
         else:
             QApplication.restoreOverrideCursor()
         super(ControlWidget, self).mouseMoveEvent(event)
@@ -119,7 +119,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         """Ooen anchors when clicked."""
         if self.anchor:
             QDesktopServices.openUrl(QUrl(self.anchor))
-            QApplication.setOverrideCursor(Qt.ArrowCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
             self.anchor = None
         else:
             super(ControlWidget, self).mouseReleaseEvent(event)
