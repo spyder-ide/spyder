@@ -168,7 +168,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             self._proxy_style = SpyderProxyStyle(None)
 
         # Enabling scaling for high dpi
-        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        qapp.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
 
         # Set Windows app icon to use .ico file
         if os.name == "nt":
@@ -1708,11 +1708,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def _test_setting_opengl(self, option):
         """Get the current OpenGL implementation in use"""
         if option == 'software':
-            return QCoreApplication.testAttribute(Qt.AA_UseSoftwareOpenGL)
+            return QCoreApplication.testAttribute(Qt.ApplicationAttribute.AA_UseSoftwareOpenGL)
         elif option == 'desktop':
-            return QCoreApplication.testAttribute(Qt.AA_UseDesktopOpenGL)
+            return QCoreApplication.testAttribute(Qt.ApplicationAttribute.AA_UseDesktopOpenGL)
         elif option == 'gles':
-            return QCoreApplication.testAttribute(Qt.AA_UseOpenGLES)
+            return QCoreApplication.testAttribute(Qt.ApplicationAttribute.AA_UseOpenGLES)
 
 
 #==============================================================================
@@ -1757,7 +1757,7 @@ def main(options, args):
     # **** Set high DPI scaling ****
     # This attribute must be set before creating the application.
     if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-        QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
+        QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling,
                                       CONF.get('main', 'high_dpi_scaling'))
 
     # **** Set debugging info ****
