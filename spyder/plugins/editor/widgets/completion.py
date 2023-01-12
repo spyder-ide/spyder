@@ -482,7 +482,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         # keyboard input is lost.
         # Fixes spyder-ide/spyder#1318.
         if sys.platform == "darwin":
-            if event.reason() != Qt.ActiveWindowFocusReason:
+            if event.reason() != Qt.FocusReason.ActiveWindowFocusReason:
                 self.hide()
         else:
             # Avoid an error when running tests that show

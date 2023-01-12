@@ -163,7 +163,7 @@ class TabSwitcherWidget(QListWidget):
         """Reimplement Qt method to close the widget when loosing focus."""
         event.ignore()
         if sys.platform == "darwin":
-            if event.reason() != Qt.ActiveWindowFocusReason:
+            if event.reason() != Qt.FocusReason.ActiveWindowFocusReason:
                 self.close()
         else:
             self.close()
