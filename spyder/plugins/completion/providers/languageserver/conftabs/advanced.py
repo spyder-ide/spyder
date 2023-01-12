@@ -45,11 +45,11 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         # Advanced options
         self.advanced_module = self.create_lineedit(
             _("Module for the Python language server: "),
-            'advanced/module', alignment=Qt.Horizontal,
+            'advanced/module', alignment=Qt.Orientation.Horizontal,
             word_wrap=False)
         self.advanced_host = self.create_lineedit(
             _("IP Address and port to bind the server to: "),
-            'advanced/host', alignment=Qt.Horizontal,
+            'advanced/host', alignment=Qt.Orientation.Horizontal,
             word_wrap=False)
         self.advanced_port = self.create_spinbox(
             ":", "", 'advanced/port', min_=1, max_=65535, step=1)

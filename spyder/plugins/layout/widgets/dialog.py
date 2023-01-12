@@ -147,7 +147,7 @@ class LayoutSaveDialog(QDialog):
         self.combo_box.clearEditText()
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
                                            QDialogButtonBox.Cancel,
-                                           Qt.Horizontal, self)
+                                           Qt.Orientation.Horizontal, self)
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
@@ -197,7 +197,7 @@ class LayoutSettingsDialog(QDialog):
         self.button_delete = QPushButton(_('Delete Layout'))
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
                                            QDialogButtonBox.Cancel,
-                                           Qt.Horizontal, self)
+                                           Qt.Orientation.Horizontal, self)
         self.group_box = QGroupBox(_("Layout Display and Order"))
         self.table = QTableView(self)
         self.ok_button = self.button_box.button(QDialogButtonBox.Ok)

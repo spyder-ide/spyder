@@ -138,7 +138,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self)
+            Qt.Orientation.Horizontal, self)
 
         self.accept_btns.accepted.connect(self.save_connection_settings)
         self.accept_btns.accepted.connect(self.accept)

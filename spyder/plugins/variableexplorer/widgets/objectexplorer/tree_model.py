@@ -179,7 +179,7 @@ class TreeModel(QAbstractItemModel):
         return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEditable
 
     def headerData(self, section, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.DisplayRole:
             return self._attr_cols[section].name
         else:
             return None

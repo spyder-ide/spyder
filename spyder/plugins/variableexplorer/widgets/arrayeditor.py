@@ -372,7 +372,7 @@ class ArrayModel(QAbstractTableModel):
         """Set header data"""
         if role != Qt.DisplayRole:
             return to_qvariant()
-        labels = self.xlabels if orientation == Qt.Horizontal else self.ylabels
+        labels = self.xlabels if orientation == Qt.Orientation.Horizontal else self.ylabels
         if labels is None:
             return to_qvariant(int(section))
         else:

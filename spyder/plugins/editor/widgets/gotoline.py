@@ -53,7 +53,7 @@ class GoToLineDialog(QDialog):
         glayout.addWidget(last_label_v, 2, 1, Qt.AlignmentFlag.AlignVCenter)
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-                                Qt.Vertical, self)
+                                Qt.Orientation.Vertical, self)
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         btnlayout = QVBoxLayout()

@@ -442,7 +442,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return to_qvariant()
         i_column = int(section)
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             headers = (self.header0, _("Type"), _("Size"), _("Value"),
                        _("Score"))
             return to_qvariant(headers[i_column])
@@ -550,7 +550,7 @@ class BaseHeaderView(QHeaderView):
     sig_user_resized_section = Signal(int, int, int)
 
     def __init__(self, parent=None):
-        super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
+        super(BaseHeaderView, self).__init__(Qt.Orientation.Horizontal, parent)
         self._handle_section_is_pressed = False
         self.sectionResized.connect(self.sectionResizeEvent)
         # Needed to enable sorting by column

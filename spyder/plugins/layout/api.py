@@ -400,7 +400,7 @@ class BaseGridLayoutType:
         layout_data = []
 
         # Find dock splits in the horizontal direction
-        direction = Qt.Horizontal
+        direction = Qt.Orientation.Horizontal
         for row in range(0, self._rows + 1):
             dock = None
             for col in range(0, self._cols + 1):
@@ -421,7 +421,7 @@ class BaseGridLayoutType:
                         Qt.DockWidgetArea.LeftDockWidgetArea, dock, direction)
 
         # Find dock splits in the vertical direction
-        direction = Qt.Vertical
+        direction = Qt.Orientation.Vertical
         for col in range(0, self._cols + 1):
             dock = None
             for row in range(0, self._rows + 1):
@@ -497,8 +497,8 @@ class BaseGridLayoutType:
                     row_stretches.append(stretch)
 
         main_window.showMaximized()
-        main_window.resizeDocks(column_docks, column_stretches, Qt.Horizontal)
-        main_window.resizeDocks(row_docks, row_stretches, Qt.Vertical)
+        main_window.resizeDocks(column_docks, column_stretches, Qt.Orientation.Horizontal)
+        main_window.resizeDocks(row_docks, row_stretches, Qt.Orientation.Vertical)
 
         # Restore displayed external plugins
         for plugin_id in external_plugins_to_show:

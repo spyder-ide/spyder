@@ -139,11 +139,11 @@ def test_dataframe_simpleindex(qtbot):
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "0"
-    assert header.headerData(1, Qt.Horizontal,
+    assert header.headerData(1, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "1"
-    assert header.headerData(5, Qt.Horizontal,
+    assert header.headerData(5, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "5"
 
 
@@ -154,11 +154,11 @@ def test_dataframe_simpleindex_custom_columns():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "a"
-    assert header.headerData(1, Qt.Horizontal,
+    assert header.headerData(1, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "b"
-    assert header.headerData(4, Qt.Horizontal,
+    assert header.headerData(4, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "e"
 
 
@@ -175,7 +175,7 @@ def test_dataframe_multiindex():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == 0
     assert data_header(header, 0, 0) == 'bar'
     assert data_header(header, 1, 0) == 'one'
@@ -197,7 +197,7 @@ def test_header_bom():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "Date (MMM-YY)"
 
 
@@ -209,17 +209,17 @@ def test_header_encoding():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "Unnamed: 0"
-    assert "Unieke_Idcode" in header.headerData(1, Qt.Horizontal,
+    assert "Unieke_Idcode" in header.headerData(1, Qt.Orientation.Horizontal,
                                                 Qt.DisplayRole)
-    assert header.headerData(2, Qt.Horizontal,
+    assert header.headerData(2, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "a"
-    assert header.headerData(3, Qt.Horizontal,
+    assert header.headerData(3, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "b"
-    assert header.headerData(4, Qt.Horizontal,
+    assert header.headerData(4, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "c"
-    assert header.headerData(5, Qt.Horizontal,
+    assert header.headerData(5, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "d"
 
 
@@ -394,7 +394,7 @@ def test_dataframeeditor_with_various_indexes():
         assert dfm.rowCount() == 20
         assert dfm.columnCount() == 1
         header = editor.table_header.model()
-        assert header.headerData(0, Qt.Horizontal,
+        assert header.headerData(0, Qt.Orientation.Horizontal,
                                  Qt.DisplayRole) == "0"
 
         if rng_name == "Index":
@@ -721,7 +721,7 @@ def test_non_ascii_index():
     header = editor.table_header.model()
     dfm = editor.model()
 
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "кодирование"
     assert data_index(index, 0, 0) == 'пример'
     assert data(dfm, 0, 0) == 'файла'
@@ -741,7 +741,7 @@ def test_no_convert_strings_to_unicode():
     header = editor.table_header.model()
     dfm = editor.model()
 
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) != u"кодирование"
     assert data_index(index, 0, 0) != u'пример'
     assert data(dfm, 0, 0) != u'файла'

@@ -124,7 +124,7 @@ def editor_splitter_layout_bot(editor_splitter_bot):
 def test_init(editor_splitter_bot):
     """"Test __init__."""
     es = editor_splitter_bot
-    assert es.orientation() == Qt.Horizontal
+    assert es.orientation() == Qt.Orientation.Horizontal
     assert es.testAttribute(Qt.WA_DeleteOnClose)
     assert not es.childrenCollapsible()
     assert not es.toolbar_list
@@ -231,7 +231,7 @@ def test_split(editor_splitter_layout_bot):
 
     # Split main panel with default split.
     es.split()  # Call directly.
-    assert es.orientation() == Qt.Vertical
+    assert es.orientation() == Qt.Orientation.Vertical
     assert not es.editorstack.horsplit_action.isEnabled()
     assert es.editorstack.versplit_action.isEnabled()
     assert es.count() == 2
@@ -244,7 +244,7 @@ def test_split(editor_splitter_layout_bot):
 
     # Create a horizontal split on original widget.
     es.editorstack.sig_split_horizontally.emit()  # Call from signal.
-    assert es.orientation() == Qt.Horizontal
+    assert es.orientation() == Qt.Orientation.Horizontal
     assert es.editorstack.horsplit_action.isEnabled()
     assert not es.editorstack.versplit_action.isEnabled()
     assert es.count() == 3
@@ -256,8 +256,8 @@ def test_split(editor_splitter_layout_bot):
     # Test splitting one of the children.
     es1 = es.widget(1)
     es1.editorstack.sig_split_vertically.emit()
-    assert es.orientation() == Qt.Horizontal  # Main split didn't change.
-    assert es1.orientation() == Qt.Vertical  # Child splitter.
+    assert es.orientation() == Qt.Orientation.Horizontal  # Main split didn't change.
+    assert es1.orientation() == Qt.Orientation.Vertical  # Child splitter.
     assert not es1.editorstack.horsplit_action.isEnabled()
     assert es1.editorstack.versplit_action.isEnabled()
     assert es1.count() == 2
@@ -275,18 +275,18 @@ def test_iter_editorstacks(editor_splitter_bot):
     assert es_iter() == [(es.editorstack, es.orientation())]
 
     # Split once.
-    es.split(Qt.Vertical)
+    es.split(Qt.Orientation.Vertical)
     esw1 = es.widget(1)
     assert es_iter() == [(es.editorstack, es.orientation()),
                          (esw1.editorstack, esw1.orientation())]
 
     # Second splitter on base isn't iterated.
-    es.split(Qt.Horizontal)
+    es.split(Qt.Orientation.Horizontal)
     assert es_iter() == [(es.editorstack, es.orientation()),
                          (esw1.editorstack, esw1.orientation())]
 
     # Split a child.
-    esw1.split(Qt.Vertical)
+    esw1.split(Qt.Orientation.Vertical)
     esw1w1 = es.widget(1).widget(1)
     assert es_iter() == [(es.editorstack, es.orientation()),
                          (esw1.editorstack, esw1.orientation()),
@@ -311,7 +311,7 @@ def test_get_layout_settings(editor_splitter_bot, qtbot, mocker):
 
     mocker.patch.object(EditorSplitter, "iter_editorstacks")
     EditorSplitter.iter_editorstacks.return_value = (
-        [(stack1, Qt.Vertical), (stack2, Qt.Horizontal)])
+        [(stack1, Qt.Orientation.Vertical), (stack2, Qt.Orientation.Horizontal)])
 
     setting = es.get_layout_settings()
     assert setting['hexstate']

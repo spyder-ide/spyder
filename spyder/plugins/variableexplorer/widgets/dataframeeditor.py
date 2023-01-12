@@ -765,7 +765,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
     def headerData(self, section, orientation, role):
         """Get the information to put in the header."""
         if role == Qt.TextAlignmentRole:
-            if orientation == Qt.Horizontal:
+            if orientation == Qt.Orientation.Horizontal:
                 return Qt.AlignmentFlag.AlignCenter
             else:
                 return int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -773,7 +773,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
             return None
         if self.axis == 1 and self._shape[1] <= 1:
             return None
-        orient_axis = 0 if orientation == Qt.Horizontal else 1
+        orient_axis = 0 if orientation == Qt.Orientation.Horizontal else 1
         if self.model.header_shape[orient_axis] > 1:
             header = section
         else:
@@ -857,19 +857,19 @@ class DataFrameLevelModel(QAbstractTableModel):
         By default it returns 'Index i', where i is the section in the index
         """
         if role == Qt.TextAlignmentRole:
-            if orientation == Qt.Horizontal:
+            if orientation == Qt.Orientation.Horizontal:
                 return Qt.AlignmentFlag.AlignCenter
             else:
                 return int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
-        if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
+        if self.model.header_shape[0] <= 1 and orientation == Qt.Orientation.Horizontal:
             if self.model.name(1,section):
                 return self.model.name(1,section)
             return _('Index')
         elif self.model.header_shape[0] <= 1:
             return None
-        elif self.model.header_shape[1] <= 1 and orientation == Qt.Vertical:
+        elif self.model.header_shape[1] <= 1 and orientation == Qt.Orientation.Vertical:
             return None
         return _('Index') + ' ' + to_text_string(section)
 
@@ -941,8 +941,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         self.setWindowTitle(title)
 
-        self.hscroll = QScrollBar(Qt.Horizontal)
-        self.vscroll = QScrollBar(Qt.Vertical)
+        self.hscroll = QScrollBar(Qt.Orientation.Horizontal)
+        self.vscroll = QScrollBar(Qt.Orientation.Vertical)
 
         # Create the view for the level
         self.create_table_level()

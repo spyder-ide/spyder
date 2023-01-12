@@ -478,7 +478,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return radiobutton
 
     def create_lineedit(self, text, option, default=NoDefault,
-                        tip=None, alignment=Qt.Vertical, regex=None,
+                        tip=None, alignment=Qt.Orientation.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
                         content_type=None, section=None):
         if section is not None and section != self.CONF_SECTION:
@@ -487,7 +487,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
         edit.content_type = content_type
-        layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
+        layout = QVBoxLayout() if alignment == Qt.Orientation.Vertical else QHBoxLayout()
         layout.addWidget(label)
         layout.addWidget(edit)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -534,7 +534,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_browsedir(self, text, option, default=NoDefault, tip=None,
                          section=None):
         widget = self.create_lineedit(text, option, default, section=section,
-                                      alignment=Qt.Horizontal)
+                                      alignment=Qt.Orientation.Horizontal)
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
@@ -564,7 +564,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_browsefile(self, text, option, default=NoDefault, tip=None,
                           filters=None, section=None):
         widget = self.create_lineedit(text, option, default, section=section,
-                                      alignment=Qt.Horizontal)
+                                      alignment=Qt.Orientation.Horizontal)
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break

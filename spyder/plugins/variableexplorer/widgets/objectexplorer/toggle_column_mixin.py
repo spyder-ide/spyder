@@ -55,7 +55,7 @@ class ToggleColumnMixIn(object):
         self.__toggle_functions = []  # for keeping references
 
         for col in range(horizontal_header.count()):
-            column_label = self.model().headerData(col, Qt.Horizontal,
+            column_label = self.model().headerData(col, Qt.Orientation.Horizontal,
                                                    Qt.DisplayRole)
             logger.debug("Adding: col {}: {}".format(col, column_label))
             action = QAction(str(column_label),

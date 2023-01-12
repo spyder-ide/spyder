@@ -202,7 +202,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                    "<i>import os; import sys</i>"))
         run_lines_label.setWordWrap(True)
         run_lines_edit = self.create_lineedit(_("Lines:"), 'startup/run_lines',
-                                              '', alignment=Qt.Horizontal)
+                                              '', alignment=Qt.Orientation.Horizontal)
 
         run_lines_layout = QVBoxLayout()
         run_lines_layout.addWidget(run_lines_label)
@@ -238,7 +238,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             "<i>import matplotlib.pyplot as plt</i>"))
         pdb_run_lines_label.setWordWrap(True)
         pdb_run_lines_edit = self.create_lineedit(
-            _("Lines:"), 'startup/pdb_run_lines', '', alignment=Qt.Horizontal)
+            _("Lines:"), 'startup/pdb_run_lines', '', alignment=Qt.Orientation.Horizontal)
 
         pdb_run_lines_layout = QVBoxLayout()
         pdb_run_lines_layout.addWidget(pdb_run_lines_label)
@@ -388,14 +388,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _('Default is<br>'
               'In [&lt;span class="in-prompt-number"&gt;'
               '%i&lt;/span&gt;]:'),
-            alignment=Qt.Horizontal)
+            alignment=Qt.Orientation.Horizontal)
         out_prompt_edit = self.create_lineedit(
             _("Output prompt:"),
             'out_prompt', '',
             _('Default is<br>'
               'Out[&lt;span class="out-prompt-number"&gt;'
               '%i&lt;/span&gt;]:'),
-            alignment=Qt.Horizontal)
+            alignment=Qt.Orientation.Horizontal)
 
         prompts_layout = QVBoxLayout()
         prompts_layout.addWidget(prompts_label)

@@ -102,7 +102,7 @@ class ProjectDialog(QDialog):
         self.button_cancel = QPushButton(_('Cancel'))
         self.button_create = QPushButton(_('Create'))
 
-        self.bbox = QDialogButtonBox(Qt.Horizontal)
+        self.bbox = QDialogButtonBox(Qt.Orientation.Horizontal)
         self.bbox.addButton(self.button_cancel, QDialogButtonBox.ActionRole)
         self.bbox.addButton(self.button_create, QDialogButtonBox.ActionRole)
 

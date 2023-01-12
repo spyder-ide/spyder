@@ -233,7 +233,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         layout.setSpacing(0)
 
         layout.addLayout(self.tools_layout)
-        self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
+        self.central_splitter = QSplitter(self, orientation=Qt.Orientation.Vertical)
         layout.addWidget(self.central_splitter)
         self.setLayout(layout)
 

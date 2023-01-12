@@ -65,37 +65,37 @@ def test_objectexplorer(objectexplorer):
     header = editor.obj_tree.header()
     header_model = header.model()
     assert not header.isSectionHidden(0)
-    assert header_model.headerData(0, Qt.Horizontal,
+    assert header_model.headerData(0, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Name"
     assert not header.isSectionHidden(1)
-    assert header_model.headerData(1, Qt.Horizontal,
+    assert header_model.headerData(1, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Type"
     assert not header.isSectionHidden(2)
-    assert header_model.headerData(2, Qt.Horizontal,
+    assert header_model.headerData(2, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Size"
     assert not header.isSectionHidden(3)
-    assert header_model.headerData(3, Qt.Horizontal,
+    assert header_model.headerData(3, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Value"
     assert not header.isSectionHidden(4)
-    assert header_model.headerData(4, Qt.Horizontal,
+    assert header_model.headerData(4, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Callable"
     assert not header.isSectionHidden(5)
-    assert header_model.headerData(5, Qt.Horizontal,
+    assert header_model.headerData(5, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Path"
     assert header.isSectionHidden(6)
-    assert header_model.headerData(6, Qt.Horizontal,
+    assert header_model.headerData(6, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Id"
     assert header.isSectionHidden(7)
-    assert header_model.headerData(7, Qt.Horizontal,
+    assert header_model.headerData(7, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Attribute"
     assert header.isSectionHidden(8)
-    assert header_model.headerData(8, Qt.Horizontal,
+    assert header_model.headerData(8, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Routine"
     assert header.isSectionHidden(9)
-    assert header_model.headerData(9, Qt.Horizontal,
+    assert header_model.headerData(9, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "File"
     assert header.isSectionHidden(10)
-    assert header_model.headerData(10, Qt.Horizontal,
+    assert header_model.headerData(10, Qt.Orientation.Horizontal,
                                    Qt.DisplayRole) == "Source file"
 
     model = editor.obj_tree.model()

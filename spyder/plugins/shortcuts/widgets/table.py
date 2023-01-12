@@ -578,12 +578,12 @@ class ShortcutsModel(QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Qt Override."""
         if role == Qt.TextAlignmentRole:
-            if orientation == Qt.Horizontal:
+            if orientation == Qt.Orientation.Horizontal:
                 return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
             return to_qvariant(int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter))
         if role != Qt.DisplayRole:
             return to_qvariant()
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             if section == CONTEXT:
                 return to_qvariant(_("Context"))
             elif section == NAME:

@@ -253,9 +253,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         if self.paging in ('hsplit', 'vsplit'):
             self._splitter = QtWidgets.QSplitter()
             if self.paging == 'hsplit':
-                self._splitter.setOrientation(QtCore.Qt.Horizontal)
+                self._splitter.setOrientation(QtCore.Qt.Orientation.Horizontal)
             else:
-                self._splitter.setOrientation(QtCore.Qt.Vertical)
+                self._splitter.setOrientation(QtCore.Qt.Orientation.Vertical)
             self._splitter.addWidget(self._control)
             layout.addWidget(self._splitter)
         else:
@@ -2352,9 +2352,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             raise NotImplementedError("""can only switch if --paging=hsplit or
                     --paging=vsplit is used.""")
         if paging == 'hsplit':
-            self._splitter.setOrientation(QtCore.Qt.Horizontal)
+            self._splitter.setOrientation(QtCore.Qt.Orientation.Horizontal)
         elif paging == 'vsplit':
-            self._splitter.setOrientation(QtCore.Qt.Vertical)
+            self._splitter.setOrientation(QtCore.Qt.Orientation.Vertical)
         elif paging == 'inside':
             raise NotImplementedError("""switching to 'inside' paging not
                     supported yet.""")

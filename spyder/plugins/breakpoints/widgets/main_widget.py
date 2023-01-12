@@ -127,7 +127,7 @@ class BreakpointTableModel(QAbstractTableModel):
             return to_qvariant()
 
         i_column = int(section)
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             return to_qvariant(COLUMN_HEADERS[i_column])
         else:
             return to_qvariant()
