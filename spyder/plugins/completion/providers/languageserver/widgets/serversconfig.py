@@ -543,15 +543,15 @@ class LSPServersModel(QAbstractTableModel):
                     text = '&nbsp;<tt>External server</tt>'
                 return to_qvariant(text.format(server.cmd, server.args))
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Qt Override."""
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
-            return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter))
         if role != Qt.DisplayRole:
             return to_qvariant()
         if orientation == Qt.Horizontal:

@@ -204,7 +204,7 @@ class KiteInstallation(QWidget):
         self.cancel_button = QPushButton()
         self.cancel_button.setIcon(ima.icon('DialogCloseButton'))
         self.cancel_button.hide()
-        progress_layout.addWidget(self._progress_bar, alignment=Qt.AlignLeft)
+        progress_layout.addWidget(self._progress_bar, alignment=Qt.AlignmentFlag.AlignLeft)
         progress_layout.addWidget(self.cancel_button)
         self._progress_widget.setLayout(progress_layout)
 

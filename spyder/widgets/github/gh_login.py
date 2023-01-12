@@ -63,7 +63,7 @@ class DlgGitHubLogin(QDialog):
                                                                     TOKEN_URL))
         token_lbl_msg.setOpenExternalLinks(True)
         token_lbl_msg.setWordWrap(True)
-        token_lbl_msg.setAlignment(Qt.AlignJustify)
+        token_lbl_msg.setAlignment(Qt.AlignmentFlag.AlignJustify)
 
         lbl_token = QLabel("Token: ")
         token_form_layout.setWidget(1, QFormLayout.LabelRole, lbl_token)

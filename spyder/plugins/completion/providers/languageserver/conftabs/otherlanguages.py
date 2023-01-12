@@ -41,7 +41,7 @@ class OtherLanguagesConfigTab(SpyderPreferencesTab):
               ).format(lsp_url=LSP_URL))
         servers_label.setOpenExternalLinks(True)
         servers_label.setWordWrap(True)
-        servers_label.setAlignment(Qt.AlignJustify)
+        servers_label.setAlignment(Qt.AlignmentFlag.AlignJustify)
 
         # Servers table
         table_group = QGroupBox(_('Available servers:'))

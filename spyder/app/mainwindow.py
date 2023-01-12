@@ -1370,8 +1370,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             logger.info(message)
         self.splash.show()
         self.splash.showMessage(message,
-                                int(Qt.AlignBottom | Qt.AlignCenter |
-                                    Qt.AlignAbsolute),
+                                int(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter |
+                                    Qt.AlignmentFlag.AlignAbsolute),
                                 QColor(Qt.white))
         QApplication.processEvents()
 
@@ -1774,7 +1774,7 @@ def main(options, args):
         splash.show()
         splash.showMessage(
             _("Initializing..."),
-            int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
+            int(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignAbsolute),
             QColor(Qt.white)
         )
         QApplication.processEvents()

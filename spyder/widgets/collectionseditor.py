@@ -426,11 +426,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             if index.column() == 3:
                 if len(display.splitlines()) < 3:
-                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
+                    return to_qvariant(int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter))
                 else:
-                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignTop))
+                    return to_qvariant(int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop))
             else:
-                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:

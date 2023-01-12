@@ -137,7 +137,7 @@ class RecoveryDialog(QDialog):
         """Add a label to specified cell in table."""
         label = QLabel(txt)
         label.setMargin(5)
-        label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self.table.setCellWidget(row, col, label)
 
     def add_table(self):

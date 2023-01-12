@@ -56,7 +56,7 @@ class EmojiPanel(Panel):
         painter.setPen(QColor('white'))
         font_height = self.editor.fontMetrics().height()
         painter.drawText(0, top, self.sizeHint().width(),
-                         font_height, int(Qt.AlignRight | Qt.AlignBottom),
+                         font_height, int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom),
                          '👀')
 
     def paintEvent(self, event):

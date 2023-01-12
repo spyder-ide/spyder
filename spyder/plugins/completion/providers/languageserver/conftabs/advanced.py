@@ -36,7 +36,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
         advanced_label.setWordWrap(True)
-        advanced_label.setAlignment(Qt.AlignJustify)
+        advanced_label.setAlignment(Qt.AlignmentFlag.AlignJustify)
 
         # Advanced settings checkbox
         self.advanced_options_check = self.create_checkbox(

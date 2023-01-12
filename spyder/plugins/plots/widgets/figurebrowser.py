@@ -329,7 +329,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             QScrollArea.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
-        self.setAlignment(Qt.AlignCenter)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
             "#figviewport {background-color:" + str(background_color) + "}")
@@ -988,7 +988,7 @@ class FigureThumbnail(QWidget):
         """Setup the main layout of the widget."""
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
+        layout.addWidget(self.canvas, 0, 0, Qt.AlignmentFlag.AlignCenter)
         layout.setSizeConstraint(layout.SetFixedSize)
 
     def highlight_canvas(self, highlight):

@@ -173,7 +173,7 @@ class ShortcutEditor(QDialog):
             _("Press the new shortcut and select 'Ok' to confirm, "
               "click 'Cancel' to revert to the previous state, "
               "or use 'Clear' to unbind the command from a shortcut."))
-        self.label_info.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.label_info.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.label_info.setWordWrap(True)
         layout_info = QHBoxLayout()
         layout_info.setContentsMargins(0, 0, 0, 0)
@@ -192,7 +192,7 @@ class ShortcutEditor(QDialog):
         self.helper_button.setIcon(QIcon())
         self.label_warning = QLabel()
         self.label_warning.setWordWrap(True)
-        self.label_warning.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.label_warning.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         self.button_default = QPushButton(_('Default'))
         self.button_ok = QPushButton(_('Ok'))
@@ -572,15 +572,15 @@ class ShortcutsModel(QAbstractTableModel):
                 # hidden.
                 return to_qvariant(self.scores[row])
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Qt Override."""
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
-            return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter))
         if role != Qt.DisplayRole:
             return to_qvariant()
         if orientation == Qt.Horizontal:

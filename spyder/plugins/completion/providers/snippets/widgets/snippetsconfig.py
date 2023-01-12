@@ -455,7 +455,7 @@ class SnippetsModel(QAbstractTableModel):
             elif column == self.DESCRIPTION:
                 return to_qvariant(snippet.description)
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
         elif role == Qt.ToolTipRole:
             return to_qvariant(_("Double-click to view or edit"))
         return to_qvariant()
@@ -463,8 +463,8 @@ class SnippetsModel(QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
-            return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter))
         if role != Qt.DisplayRole:
             return to_qvariant()
         if orientation == Qt.Horizontal:

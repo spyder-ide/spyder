@@ -291,7 +291,7 @@ class PreviewTableModel(QAbstractTableModel):
             return to_qvariant(get_color(
                 self._data[index.row()][index.column()], 0.5))
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignRight|Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignVCenter))
         return to_qvariant()
 
     def setData(self, index, value, role=Qt.EditRole):

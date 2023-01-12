@@ -42,8 +42,8 @@ _ALL_PREDICATES = (inspect.ismodule, inspect.isclass, inspect.ismethod,
 
 # The cast to int is necessary to avoid a bug in PySide, See:
 # https://bugreports.qt-project.org/browse/PYSIDE-20
-ALIGN_LEFT = int(Qt.AlignVCenter | Qt.AlignLeft)
-ALIGN_RIGHT = int(Qt.AlignVCenter | Qt.AlignRight)
+ALIGN_LEFT = int(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+ALIGN_RIGHT = int(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
 
 logger = logging.getLogger(__name__)
 

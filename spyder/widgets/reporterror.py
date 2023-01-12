@@ -159,7 +159,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
                        project_url=__project_url__))
         self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
-        self.main_label.setAlignment(Qt.AlignJustify)
+        self.main_label.setAlignment(Qt.AlignmentFlag.AlignJustify)
         self.main_label.setStyleSheet('font-size: 12px;')
 
         # Issue title
@@ -184,7 +184,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
               "clear way to reproduce them will be closed.")
         )
         self.steps_text.setWordWrap(True)
-        self.steps_text.setAlignment(Qt.AlignJustify)
+        self.steps_text.setAlignment(Qt.AlignmentFlag.AlignJustify)
         self.steps_text.setStyleSheet('font-size: 12px;')
 
         # Field to input the description of the problem

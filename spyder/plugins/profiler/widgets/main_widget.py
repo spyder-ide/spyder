@@ -898,31 +898,31 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
             child_item.setToolTip(1, _('Time in function '
                                        '(including sub-functions)'))
             child_item.setData(1, Qt.DisplayRole, cum_time)
-            child_item.setTextAlignment(1, Qt.AlignRight)
+            child_item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight)
 
             child_item.setData(2, Qt.DisplayRole, cum_time_dif[0])
             child_item.setForeground(2, QColor(cum_time_dif[1]))
-            child_item.setTextAlignment(2, Qt.AlignLeft)
+            child_item.setTextAlignment(2, Qt.AlignmentFlag.AlignLeft)
 
             child_item.setToolTip(3, _('Local time in function '
                                        '(not in sub-functions)'))
 
             child_item.setData(3, Qt.DisplayRole, loc_time)
-            child_item.setTextAlignment(3, Qt.AlignRight)
+            child_item.setTextAlignment(3, Qt.AlignmentFlag.AlignRight)
 
             child_item.setData(4, Qt.DisplayRole, loc_time_dif[0])
             child_item.setForeground(4, QColor(loc_time_dif[1]))
-            child_item.setTextAlignment(4, Qt.AlignLeft)
+            child_item.setTextAlignment(4, Qt.AlignmentFlag.AlignLeft)
 
             child_item.setToolTip(5, _('Total number of calls '
                                        '(including recursion)'))
 
             child_item.setData(5, Qt.DisplayRole, total_calls)
-            child_item.setTextAlignment(5, Qt.AlignRight)
+            child_item.setTextAlignment(5, Qt.AlignmentFlag.AlignRight)
 
             child_item.setData(6, Qt.DisplayRole, total_calls_dif[0])
             child_item.setForeground(6, QColor(total_calls_dif[1]))
-            child_item.setTextAlignment(6, Qt.AlignLeft)
+            child_item.setTextAlignment(6, Qt.AlignmentFlag.AlignLeft)
 
             child_item.setToolTip(7, _('File:line '
                                        'where function is defined'))

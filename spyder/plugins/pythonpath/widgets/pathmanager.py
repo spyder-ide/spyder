@@ -207,7 +207,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         header = QListWidgetItem(text)
 
         # Header is centered and it can't be selected
-        header.setTextAlignment(Qt.AlignHCenter)
+        header.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
         header.setFlags(Qt.ItemIsEnabled)
 
         # Make header appear in bold

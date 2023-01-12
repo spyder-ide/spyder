@@ -273,8 +273,8 @@ class ArrayBuilderDialog(QDialog):
         # layout
         self._layout = QHBoxLayout()
         self._layout.addWidget(self._widget)
-        self._layout.addWidget(self._button_warning, 1, Qt.AlignTop)
-        self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
+        self._layout.addWidget(self._button_warning, 1, Qt.AlignmentFlag.AlignTop)
+        self._layout.addWidget(self._button_help, 1, Qt.AlignmentFlag.AlignTop)
         self.setLayout(self._layout)
 
         self._widget.setFocus()

@@ -168,7 +168,7 @@ class AboutDialog(QDialog):
         for label in [self.label_overview, self.label_community,
                       self.label_legal]:
             label.setWordWrap(True)
-            label.setAlignment(Qt.AlignTop)
+            label.setAlignment(Qt.AlignmentFlag.AlignTop)
             label.setOpenExternalLinks(True)
             label.setTextInteractionFlags(Qt.TextBrowserInteraction)
             label.setContentsMargins(15, 0, 25, 0)
@@ -178,7 +178,7 @@ class AboutDialog(QDialog):
         self.label_pic = QLabel(self)
         self.label_pic.setPixmap(
             pixmap.scaledToWidth(100, Qt.SmoothTransformation))
-        self.label_pic.setAlignment(Qt.AlignBottom)
+        self.label_pic.setAlignment(Qt.AlignmentFlag.AlignBottom)
         self.info = QLabel((
             """
             <div style='font-family: "{font_family}";
@@ -196,7 +196,7 @@ class AboutDialog(QDialog):
             installer=versions['installer'],
             font_family=font_family,
             font_size=font_size))
-        self.info.setAlignment(Qt.AlignHCenter)
+        self.info.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         btn = QPushButton(_("Copy version info"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)

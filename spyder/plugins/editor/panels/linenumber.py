@@ -220,7 +220,7 @@ class LineNumberArea(Panel):
 
                 painter.drawText(0, top, self.width(),
                                  font_height,
-                                 int(Qt.AlignRight | Qt.AlignBottom),
+                                 int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom),
                                  str(line_number))
 
     def leaveEvent(self, event):

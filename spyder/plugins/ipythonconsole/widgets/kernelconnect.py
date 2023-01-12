@@ -43,7 +43,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             "ipythonconsole.html#using-external-kernels\">"
             "our documentation</a>.</p>"))
         main_label.setWordWrap(True)
-        main_label.setAlignment(Qt.AlignJustify)
+        main_label.setAlignment(Qt.AlignmentFlag.AlignJustify)
         main_label.setOpenExternalLinks(True)
 
         # Connection file

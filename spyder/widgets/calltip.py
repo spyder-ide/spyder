@@ -70,7 +70,7 @@ class ToolTipWidget(QLabel):
         self.setForegroundRole(QPalette.ToolTipText)
         self.setBackgroundRole(QPalette.ToolTipBase)
         self.setPalette(QToolTip.palette())
-        self.setAlignment(Qt.AlignLeft)
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.setIndent(1)
         self.setFrameStyle(QFrame.NoFrame)
         style = self.style()
@@ -278,7 +278,7 @@ class CallTipWidget(QLabel):
         self.setBackgroundRole(QPalette.ToolTipBase)
         self.setPalette(QToolTip.palette())
 
-        self.setAlignment(Qt.AlignLeft)
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.setIndent(1)
         self.setFrameStyle(QFrame.NoFrame)
         self.setMargin(1 + self.style().pixelMetric(

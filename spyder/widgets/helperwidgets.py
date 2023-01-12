@@ -76,7 +76,7 @@ class MessageCheckBox(QMessageBox):
         size = 9
         check_layout = QVBoxLayout()
         check_layout.addItem(QSpacerItem(size, size))
-        check_layout.addWidget(self._checkbox, 0, Qt.AlignRight)
+        check_layout.addWidget(self._checkbox, 0, Qt.AlignmentFlag.AlignRight)
         check_layout.addItem(QSpacerItem(size, size))
 
         # Access the Layout of the MessageBox to add the Checkbox
@@ -296,7 +296,7 @@ class IconLineEdit(QLineEdit):
             text = fm.elidedText(self.text(), self.ellipsis_place,
                                  text_rect.width())
             painter.setPen(QColor(QStylePalette.COLOR_TEXT_1))
-            painter.drawText(text_rect, int(Qt.AlignLeft | Qt.AlignVCenter),
+            painter.drawText(text_rect, int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter),
                              text)
             return
 

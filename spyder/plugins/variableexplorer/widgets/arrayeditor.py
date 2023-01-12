@@ -294,7 +294,7 @@ class ArrayModel(QAbstractTableModel):
                         self.readonly = True
                         return repr(value)
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignCenter|Qt.AlignmentFlag.AlignVCenter))
         elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
                 and value is not np.ma.masked and not self.has_inf):
             try:
@@ -403,7 +403,7 @@ class ArrayDelegate(QItemDelegate):
         elif value is not np.ma.masked:
             editor = QLineEdit(parent)
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            editor.setAlignment(Qt.AlignCenter)
+            editor.setAlignment(Qt.AlignmentFlag.AlignCenter)
             if is_number(self.dtype):
                 validator = QDoubleValidator(editor)
                 validator.setLocale(QLocale('C'))

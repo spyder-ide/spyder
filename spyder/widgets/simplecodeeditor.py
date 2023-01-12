@@ -402,7 +402,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                         top,
                         self.linenumberarea.width() - right_padding,
                         self.fontMetrics().height(),
-                        Qt.AlignRight, str(number),
+                        Qt.AlignmentFlag.AlignRight, str(number),
                     )
 
                 block = block.next()

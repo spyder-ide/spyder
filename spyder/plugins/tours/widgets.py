@@ -345,7 +345,7 @@ class FadingTipBox(FadingDialog):
         self.label_content.setMinimumWidth(self.fixed_width)
         self.label_content.setMaximumWidth(self.fixed_width)
 
-        self.label_current.setAlignment(Qt.AlignCenter)
+        self.label_current.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.label_content.setWordWrap(True)
 
