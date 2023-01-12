@@ -297,7 +297,7 @@ class CodeEditor(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         # Projects
         self.current_project_path = None

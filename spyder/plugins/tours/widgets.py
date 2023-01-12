@@ -176,7 +176,7 @@ class FadingCanvas(FadingDialog):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setModal(False)
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self.set_funcs_before_fade_in([self.update_canvas])
         self.set_funcs_after_fade_out([lambda: self.update_widgets(None),
@@ -382,9 +382,9 @@ class FadingTipBox(FadingDialog):
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
 
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         for widget in self.widgets:
-            widget.setFocusPolicy(Qt.NoFocus)
+            widget.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             widget.setStyleSheet(self.stylesheet)
 
         layout_top = QHBoxLayout()

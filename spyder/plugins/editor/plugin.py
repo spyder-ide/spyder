@@ -275,7 +275,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.splitter.setStretchFactor(1, 1)
         layout.addWidget(self.splitter)
         self.setLayout(layout)
-        self.setFocusPolicy(Qt.ClickFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         # Editor's splitter state
         state = self.get_option('splitter_state', None)

@@ -270,14 +270,14 @@ class ShortcutEditor(QDialog):
             self.button_clear, self.button_default, self.button_cancel,
             self.button_ok, self.btn_clear_sequence, self.button_back_sequence)
         for w in widgets:
-            w.setFocusPolicy(Qt.NoFocus)
+            w.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             w.clearFocus()
 
     @Slot()
     def reject(self):
         """Slot for rejected signal."""
         # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
-        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # Qt.FocusPolicy.NoFocus for the buttons, if the cancel button was clicked without
         # first setting focus to the button, it would cause a seg fault crash.
         self.button_cancel.setFocus()
         super(ShortcutEditor, self).reject()
@@ -286,7 +286,7 @@ class ShortcutEditor(QDialog):
     def accept(self):
         """Slot for accepted signal."""
         # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
-        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # Qt.FocusPolicy.NoFocus for the buttons, if the cancel button was clicked without
         # first setting focus to the button, it would cause a seg fault crash.
         self.button_ok.setFocus()
         super(ShortcutEditor, self).accept()

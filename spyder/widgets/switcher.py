@@ -79,7 +79,7 @@ class KeyPressFilter(QObject):
 class SwitcherDelegate(HTMLDelegate):
     """
     This delegate allows the list view of the switcher to look like it has
-    the focus, even when its focus policy is set to Qt.NoFocus.
+    the focus, even when its focus policy is set to Qt.FocusPolicy.NoFocus.
     """
 
     def paint(self, painter, option, index):
@@ -573,7 +573,7 @@ class Switcher(QDialog):
         self.edit.setPlaceholderText(help_text if help_text else '')
         self.list.setMinimumWidth(self._MIN_WIDTH)
         self.list.setItemDelegate(SwitcherDelegate(self))
-        self.list.setFocusPolicy(Qt.NoFocus)
+        self.list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.list.setSelectionBehavior(self.list.SelectItems)
         self.list.setSelectionMode(self.list.SingleSelection)
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
