@@ -106,7 +106,7 @@ def _config_shortcut(action, context, name, keystr, parent):
     preferences page.
     """
     qsc = QShortcut(QKeySequence(keystr), parent, action)
-    qsc.setContext(Qt.WidgetWithChildrenShortcut)
+    qsc.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
     sc = Shortcut(data=(qsc, context, name))
     return sc
 

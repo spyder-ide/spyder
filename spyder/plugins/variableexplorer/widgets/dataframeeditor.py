@@ -617,7 +617,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                                     shortcut=keybinding('Copy'),
                                     icon=ima.icon('editcopy'),
                                     triggered=self.copy,
-                                    context=Qt.WidgetShortcut)
+                                    context=Qt.ShortcutContext.WidgetShortcut)
         functions = ((_("To bool"), bool), (_("To complex"), complex),
                      (_("To int"), int), (_("To float"), float),
                      (_("To str"), to_text_string))
@@ -627,7 +627,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 self.change_type(func)
             types_in_menu += [create_action(self, name,
                                             triggered=slot,
-                                            context=Qt.WidgetShortcut)]
+                                            context=Qt.ShortcutContext.WidgetShortcut)]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)
         return menu

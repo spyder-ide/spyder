@@ -129,7 +129,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             text=_("Back"),
             icon=self.create_icon('previous'),
             triggered=original_back_action.trigger,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         original_forward_action = self.pageAction(QWebEnginePage.Forward)
@@ -138,7 +138,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             text=_("Forward"),
             icon=self.create_icon('next'),
             triggered=original_forward_action.trigger,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         original_select_action = self.pageAction(QWebEnginePage.SelectAll)
@@ -146,7 +146,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             name=WebViewActions.SelectAll,
             text=_("Select all"),
             triggered=original_select_action.trigger,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         original_copy_action = self.pageAction(QWebEnginePage.Copy)
@@ -154,7 +154,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             name=WebViewActions.Copy,
             text=_("Copy"),
             triggered=original_copy_action.trigger,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         self.zoom_in_action = self.create_action(
@@ -162,7 +162,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             text=_("Zoom in"),
             icon=self.create_icon('zoom_in'),
             triggered=self.zoom_in,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         self.zoom_out_action = self.create_action(
@@ -170,7 +170,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             text=_("Zoom out"),
             icon=self.create_icon('zoom_out'),
             triggered=self.zoom_out,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         original_inspect_action = self.pageAction(
@@ -179,7 +179,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             name=WebViewActions.Inspect,
             text=_("Inspect"),
             triggered=original_inspect_action.trigger,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         original_refresh_action = self.pageAction(QWebEnginePage.Reload)
@@ -188,7 +188,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             text=_("Refresh"),
             icon=self.create_icon('refresh'),
             triggered=original_refresh_action.trigger,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         original_stop_action = self.pageAction(QWebEnginePage.Stop)
@@ -197,7 +197,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             text=_("Stop"),
             icon=self.create_icon('stop'),
             triggered=original_stop_action.trigger,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         menu = self.create_menu(WebViewMenus.Context)

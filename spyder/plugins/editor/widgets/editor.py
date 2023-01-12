@@ -308,7 +308,7 @@ class EditorStack(QWidget):
             triggered=self.show_in_external_file_explorer,
             shortcut=CONF.get_shortcut(context="Editor",
                                        name="show in external file explorer"),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
@@ -1443,7 +1443,7 @@ class EditorStack(QWidget):
             triggered=self.sig_split_vertically,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split vertically'),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.horsplit_action = create_action(
             self,
@@ -1453,7 +1453,7 @@ class EditorStack(QWidget):
             triggered=self.sig_split_horizontally,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split horizontally'),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.close_action = create_action(
             self,
@@ -1462,7 +1462,7 @@ class EditorStack(QWidget):
             triggered=self.close_split,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='close split panel'),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         # Regular actions
         actions = [MENU_SEPARATOR, self.versplit_action,

@@ -312,7 +312,7 @@ def toggle_actions(actions, enable):
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
-                  context=Qt.WindowShortcut, option=None, section=None,
+                  context=Qt.ShortcutContext.WindowShortcut, option=None, section=None,
                   id_=None, plugin=None, context_name=None,
                   register_action=False, overwrite=False):
     """Create a QAction"""
@@ -333,11 +333,11 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if menurole is not None:
         action.setMenuRole(menurole)
 
-    # Workround for Mac because setting context=Qt.WidgetShortcut
+    # Workround for Mac because setting context=Qt.ShortcutContext.WidgetShortcut
     # there doesn't have any effect
     if sys.platform == 'darwin':
         action._shown_shortcut = None
-        if context == Qt.WidgetShortcut:
+        if context == Qt.ShortcutContext.WidgetShortcut:
             if shortcut is not None:
                 action._shown_shortcut = shortcut
             else:

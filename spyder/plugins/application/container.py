@@ -128,7 +128,7 @@ class ApplicationContainer(PluginMainContainer):
             text=_("Spyder documentation"),
             icon=self.create_icon("DialogHelpButton"),
             triggered=lambda: start_file(__docs_url__),
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context="_")
 
@@ -193,7 +193,7 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('restart'),
             tip=_("Restart"),
             triggered=self.restart_normal,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True)
 
@@ -202,7 +202,7 @@ class ApplicationContainer(PluginMainContainer):
             _("&Restart in debug mode"),
             tip=_("Restart in debug mode"),
             triggered=self.restart_debug,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True)
 

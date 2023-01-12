@@ -324,14 +324,14 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             printkey = "Ctrl+Shift+P"
         action.setShortcut(printkey)
-        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
         action.triggered.connect(self.print_)
         self.addAction(action)
         self.print_action = action
 
         action = QtWidgets.QAction('Save as HTML/XML', None)
         action.setShortcut(QtGui.QKeySequence.Save)
-        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
         action.triggered.connect(self.export_html)
         self.addAction(action)
         self.export_action = action
@@ -344,7 +344,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             selectall = "Ctrl+Shift+A"
         action.setShortcut(selectall)
-        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
         action.triggered.connect(self.select_all_smart)
         self.addAction(action)
         self.select_all_action = action
@@ -352,7 +352,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self.increase_font_size = QtWidgets.QAction("Bigger Font",
                 self,
                 shortcut=QtGui.QKeySequence.ZoomIn,
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                shortcutContext=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
                 statusTip="Increase the font size by one point",
                 triggered=self._increase_font_size)
         self.addAction(self.increase_font_size)
@@ -360,7 +360,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self.decrease_font_size = QtWidgets.QAction("Smaller Font",
                 self,
                 shortcut=QtGui.QKeySequence.ZoomOut,
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                shortcutContext=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
                 statusTip="Decrease the font size by one point",
                 triggered=self._decrease_font_size)
         self.addAction(self.decrease_font_size)
@@ -368,7 +368,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self.reset_font_size = QtWidgets.QAction("Normal Font",
                 self,
                 shortcut="Ctrl+0",
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                shortcutContext=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
                 statusTip="Restore the Normal font size",
                 triggered=self.reset_font)
         self.addAction(self.reset_font_size)

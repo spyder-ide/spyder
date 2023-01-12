@@ -376,7 +376,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             name='switch to ' + self._name,
             text=self.get_title(),
             toggled=lambda checked: self.toggle_view(checked),
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
             shortcut_context='_',
         )
 

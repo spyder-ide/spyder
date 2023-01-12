@@ -375,7 +375,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addAction(action)
 
         if defer_shortcut:
-            action.setShortcutContext(QtCore.Qt.WidgetShortcut)
+            action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetShortcut)
 
     def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar

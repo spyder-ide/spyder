@@ -79,7 +79,7 @@ class Shortcuts(SpyderPluginV2):
             text=_("Shortcuts Summary"),
             triggered=self.show_summary,
             register_shortcut=True,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
         )
 
     @on_plugin_available(plugin=Plugins.Preferences)

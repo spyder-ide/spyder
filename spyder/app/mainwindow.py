@@ -476,7 +476,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
             sc = QShortcut(QKeySequence(), self,
                            lambda: self.switch_to_plugin(plugin))
-            sc.setContext(Qt.ApplicationShortcut)
+            sc.setContext(Qt.ShortcutContext.ApplicationShortcut)
             plugin._shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
@@ -850,7 +850,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             icon=ima.icon('filelist'),
             tip=_('Fast switch between files'),
             triggered=self.open_switcher,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             id_='file_switcher'
         )
         self.register_shortcut(self.file_switcher_action, context="_",
@@ -860,7 +860,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             icon=ima.icon('symbol_find'),
             tip=_('Fast symbol search in file'),
             triggered=self.open_symbolfinder,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             id_='symbol_finder'
         )
         self.register_shortcut(self.symbol_finder_action, context="_",
@@ -873,7 +873,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                                    icon=icon,
                                    triggered=self.global_callback,
                                    data=method_name,
-                                   context=Qt.WidgetShortcut)
+                                   context=Qt.ShortcutContext.WidgetShortcut)
             self.register_shortcut(action, "Editor", text)
             return action
 

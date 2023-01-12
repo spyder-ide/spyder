@@ -1240,7 +1240,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
 
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,
-                      context=Qt.WidgetWithChildrenShortcut, initial=None,
+                      context=Qt.ShortcutContext.WidgetWithChildrenShortcut, initial=None,
                       register_shortcut=False):
         """
         name: str

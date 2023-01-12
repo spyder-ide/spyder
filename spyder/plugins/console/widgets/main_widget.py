@@ -178,7 +178,7 @@ class ConsoleWidget(PluginMainWidget):
             tip=_("Quit"),
             icon=self.create_icon('exit'),
             triggered=self.sig_quit_requested,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True,
             menurole=QAction.QuitRole

@@ -334,7 +334,7 @@ class BasePluginWidgetMixin(object):
             action = create_action(self, title,
                              toggled=lambda checked: self.toggle_view(checked),
                              shortcut=QKeySequence(self.shortcut),
-                             context=Qt.WidgetShortcut)
+                             context=Qt.ShortcutContext.WidgetShortcut)
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))

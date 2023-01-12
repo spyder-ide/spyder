@@ -83,7 +83,7 @@ class Pylint(SpyderDockablePlugin):
             tip=_("Run code analysis"),
             icon=self.create_icon("pylint"),
             triggered=self.start_code_analysis,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True
         )
         pylint_act.setEnabled(is_module_installed("pylint"))

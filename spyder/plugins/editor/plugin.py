@@ -508,7 +508,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("&New file..."),
                 icon=ima.icon('filenew'), tip=_("New file"),
                 triggered=self.new,
-                context=Qt.WidgetShortcut
+                context=Qt.ShortcutContext.WidgetShortcut
         )
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_shortcut_to_tip=True)
@@ -525,7 +525,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
                 triggered=self.load,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file", add_shortcut_to_tip=True)
 
@@ -536,21 +536,21 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.save_action = create_action(self, _("&Save"),
                 icon=ima.icon('filesave'), tip=_("Save file"),
                 triggered=self.save,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.save_action, context="Editor",
                                name="Save file", add_shortcut_to_tip=True)
 
         self.save_all_action = create_action(self, _("Sav&e all"),
                 icon=ima.icon('save_all'), tip=_("Save all files"),
                 triggered=self.save_all,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.save_all_action, context="Editor",
                                name="Save all", add_shortcut_to_tip=True)
 
         save_as_action = create_action(self, _("Save &as..."), None,
                 ima.icon('filesaveas'), tip=_("Save current file as..."),
                 triggered=self.save_as,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(save_as_action, "Editor", "Save As")
 
         save_copy_as_action = create_action(self, _("Save copy as..."), None,
@@ -570,7 +570,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.close_all_action = create_action(self, _("C&lose all"),
                 icon=ima.icon('filecloseall'), tip=_("Close all opened files"),
                 triggered=self.close_all_files,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.close_all_action, context="Editor",
                                name="Close all")
 
@@ -578,25 +578,25 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         _text = _("&Find text")
         find_action = create_action(self, _text, icon=ima.icon('find'),
                                     tip=_text, triggered=self.find,
-                                    context=Qt.WidgetShortcut)
+                                    context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(find_action, context="find_replace",
                                name="Find text", add_shortcut_to_tip=True)
         find_next_action = create_action(self, _("Find &next"),
                                          icon=ima.icon('findnext'),
                                          triggered=self.find_next,
-                                         context=Qt.WidgetShortcut)
+                                         context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(find_next_action, context="find_replace",
                                name="Find next")
         find_previous_action = create_action(self, _("Find &previous"),
                                              icon=ima.icon('findprevious'),
                                              triggered=self.find_previous,
-                                             context=Qt.WidgetShortcut)
+                                             context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(find_previous_action, context="find_replace",
                                name="Find previous")
         _text = _("&Replace text")
         replace_action = create_action(self, _text, icon=ima.icon('replace'),
                                        tip=_text, triggered=self.replace,
-                                       context=Qt.WidgetShortcut)
+                                       context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(replace_action, context="find_replace",
                                name="Replace text")
 
@@ -605,7 +605,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                     _("Set/Clear breakpoint"),
                                     icon=ima.icon('breakpoint_big'),
                                     triggered=self.set_or_clear_breakpoint,
-                                    context=Qt.WidgetShortcut)
+                                    context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint")
 
@@ -613,7 +613,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                             _("Set/Edit conditional breakpoint"),
                             icon=ima.icon('breakpoint_cond_big'),
                             triggered=self.set_or_edit_conditional_breakpoint,
-                            context=Qt.WidgetShortcut)
+                            context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
                                name="Conditional breakpoint")
 
@@ -702,21 +702,21 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                             tip=_("Run selection or "
                                                   "current line"),
                                             triggered=self.run_selection,
-                                            context=Qt.WidgetShortcut)
+                                            context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", add_shortcut_to_tip=True)
 
         run_to_line_action = create_action(self, _("Run &to current line"),
                                            tip=_("Run to current line"),
                                            triggered=self.run_to_line,
-                                           context=Qt.WidgetShortcut)
+                                           context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(run_to_line_action, context="Editor",
                                name="Run to line", add_shortcut_to_tip=True)
 
         run_from_line_action = create_action(self, _("Run &from current line"),
                                              tip=_("Run from current line"),
                                              triggered=self.run_from_line,
-                                             context=Qt.WidgetShortcut)
+                                             context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(run_from_line_action, context="Editor",
                                name="Run from line", add_shortcut_to_tip=True)
 
@@ -726,7 +726,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                             tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
-                            context=Qt.WidgetShortcut)
+                            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.register_shortcut(run_cell_action, context="Editor",
                                name="Run cell", add_shortcut_to_tip=True)
@@ -737,7 +737,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             icon=ima.icon('run_cell_advance'),
             tip=_("Run current cell and go to the next one "),
             triggered=self.run_cell_and_advance,
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.register_shortcut(run_cell_advance_action, context="Editor",
                                name="Run cell and advance",
@@ -750,7 +750,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             tip=_("Debug current cell "
                   "(Alt+Shift+Enter)"),
             triggered=self.debug_cell,
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.register_shortcut(self.debug_cell_action, context="Editor",
                                name="Debug cell",
@@ -760,7 +760,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                    _("Re-run last cell"),
                    tip=_("Re run last cell "),
                    triggered=self.re_run_last_cell,
-                   context=Qt.WidgetShortcut)
+                   context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(re_run_last_cell_action,
                                context="Editor",
                                name='re-run last cell',
@@ -789,7 +789,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Previous warning/error"), icon=ima.icon('prev_wng'),
                 tip=_("Go to previous code analysis warning/error"),
                 triggered=self.go_to_previous_warning,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.previous_warning_action,
                                context="Editor",
                                name="Previous warning",
@@ -798,7 +798,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Next warning/error"), icon=ima.icon('next_wng'),
                 tip=_("Go to next code analysis warning/error"),
                 triggered=self.go_to_next_warning,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.next_warning_action,
                                context="Editor",
                                name="Next warning",
@@ -808,7 +808,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Last edit location"), icon=ima.icon('last_edit_location'),
                 tip=_("Go to last edit location"),
                 triggered=self.go_to_last_edit_location,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.previous_edit_cursor_action,
                                context="Editor",
                                name="Last edit location",
@@ -817,7 +817,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Previous cursor position"), icon=ima.icon('prev_cursor'),
                 tip=_("Go to previous cursor position"),
                 triggered=self.go_to_previous_cursor_position,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.previous_cursor_action,
                                context="Editor",
                                name="Previous cursor position",
@@ -826,7 +826,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Next cursor position"), icon=ima.icon('next_cursor'),
                 tip=_("Go to next cursor position"),
                 triggered=self.go_to_next_cursor_position,
-                context=Qt.WidgetShortcut)
+                context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.next_cursor_action,
                                context="Editor",
                                name="Next cursor position",
@@ -836,47 +836,47 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.toggle_comment_action = create_action(self,
                 _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
                 tip=_("Comment current line or selection"),
-                triggered=self.toggle_comment, context=Qt.WidgetShortcut)
+                triggered=self.toggle_comment, context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.toggle_comment_action, context="Editor",
                                name="Toggle comment")
         blockcomment_action = create_action(self, _("Add &block comment"),
                 tip=_("Add block comment around "
                             "current line or selection"),
-                triggered=self.blockcomment, context=Qt.WidgetShortcut)
+                triggered=self.blockcomment, context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(blockcomment_action, context="Editor",
                                name="Blockcomment")
         unblockcomment_action = create_action(self,
                 _("R&emove block comment"),
                 tip = _("Remove comment block around "
                               "current line or selection"),
-                triggered=self.unblockcomment, context=Qt.WidgetShortcut)
+                triggered=self.unblockcomment, context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(unblockcomment_action, context="Editor",
                                name="Unblockcomment")
 
         # ----------------------------------------------------------------------
         # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
-        # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
+        # (context=Qt.ShortcutContext.WidgetShortcut -> disable shortcut for other widgets)
         self.indent_action = create_action(self,
                 _("Indent"), "Tab", icon=ima.icon('indent'),
                 tip=_("Indent current line or selection"),
-                triggered=self.indent, context=Qt.WidgetShortcut)
+                triggered=self.indent, context=Qt.ShortcutContext.WidgetShortcut)
         self.unindent_action = create_action(self,
                 _("Unindent"), "Shift+Tab", icon=ima.icon('unindent'),
                 tip=_("Unindent current line or selection"),
-                triggered=self.unindent, context=Qt.WidgetShortcut)
+                triggered=self.unindent, context=Qt.ShortcutContext.WidgetShortcut)
 
         self.text_uppercase_action = create_action(self,
                 _("Toggle Uppercase"), icon=ima.icon('toggle_uppercase'),
                 tip=_("Change to uppercase current line or selection"),
-                triggered=self.text_uppercase, context=Qt.WidgetShortcut)
+                triggered=self.text_uppercase, context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.text_uppercase_action, context="Editor",
                                name="transform to uppercase")
 
         self.text_lowercase_action = create_action(self,
                 _("Toggle Lowercase"), icon=ima.icon('toggle_lowercase'),
                 tip=_("Change to lowercase current line or selection"),
-                triggered=self.text_lowercase, context=Qt.WidgetShortcut)
+                triggered=self.text_lowercase, context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(self.text_lowercase_action, context="Editor",
                                name="transform to lowercase")
         # ----------------------------------------------------------------------
@@ -918,7 +918,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             _('Format file or selection with {0}').format(
                 formatter.capitalize()),
             shortcut=CONF.get_shortcut('editor', 'autoformatting'),
-            context=Qt.WidgetShortcut,
+            context=Qt.ShortcutContext.WidgetShortcut,
             triggered=self.format_document_or_selection)
         self.formatting_action.setEnabled(False)
 
@@ -967,7 +967,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         gotoline_action = create_action(self, _("Go to line..."),
                                         icon=ima.icon('gotoline'),
                                         triggered=self.go_to_line,
-                                        context=Qt.WidgetShortcut)
+                                        context=Qt.ShortcutContext.WidgetShortcut)
         self.register_shortcut(gotoline_action, context="Editor",
                                name="Go to line")
 
