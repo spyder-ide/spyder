@@ -64,7 +64,7 @@ def test_switcher(dlg_switcher, qtbot):
     assert dlg_switcher.isVisible()
 
     # Test that the dialog is closed properly on Esc keypress
-    qtbot.keyClick(dlg_switcher.edit, Qt.Key_Escape)
+    qtbot.keyClick(dlg_switcher.edit, Qt.Key.Key_Escape)
     assert not dlg_switcher.isVisible()
 
 

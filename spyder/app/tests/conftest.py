@@ -68,7 +68,7 @@ def open_file_in_editor(main_window, fname, directory=None):
                 w.setDirectory(directory)
             input_field = w.findChildren(QLineEdit)[0]
             input_field.setText(fname)
-            QTest.keyClick(w, Qt.Key_Enter)
+            QTest.keyClick(w, Qt.Key.Key_Enter)
 
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
@@ -79,7 +79,7 @@ def reset_run_code(qtbot, shell, code_editor, nsb):
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() == 0, timeout=EVAL_TIMEOUT)
     code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Home, modifier=Qt.ControlModifier)
 
 
 def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,

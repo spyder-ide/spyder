@@ -201,7 +201,7 @@ class SearchInComboBox(QComboBox):
 
     def eventFilter(self, widget, event):
         """Used to handle key events on the QListView of the combobox."""
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Delete:
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key.Key_Delete:
             index = self.view().currentIndex().row()
             if index >= EXTERNAL_PATHS:
                 # Remove item and update the view.

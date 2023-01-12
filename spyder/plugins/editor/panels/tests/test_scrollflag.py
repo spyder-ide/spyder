@@ -224,7 +224,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # key down in pytest-qt, this is done through a flag in the ScrollFlagArea
     # that is set to True when pressing the alt key and to false when releasing
     # it. This flag is only used for testing purpose.
-    qtbot.keyPress(editor, Qt.Key_Alt)
+    qtbot.keyPress(editor, Qt.Key.Key_Alt)
     editor.resize(600, 150)
     x = int(sfa.width()/2)
     y = int(sfa.height()/2)
@@ -261,7 +261,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     x = int(sfa.width()/2)
     y = int(sfa.height()/2)
     qtbot.mouseMove(sfa, pos=QPoint(x*100, y), delay=-1)
-    qtbot.keyRelease(editor, Qt.Key_Alt)
+    qtbot.keyRelease(editor, Qt.Key.Key_Alt)
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible, timeout=3000)
 
 

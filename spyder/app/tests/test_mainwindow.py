@@ -402,7 +402,7 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     code_editor = main_window.editor.get_focus_widget()
 
     # Run test file
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
     qtbot.wait(500)
 
     help_plugin = main_window.help
@@ -443,7 +443,7 @@ def test_get_help_ipython_console_special_characters(
     code_editor = main_window.editor.get_focus_widget()
 
     # Run test file
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
     qtbot.wait(500)
 
     help_plugin = main_window.help
@@ -600,13 +600,13 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     if debugcell:
         # Advance 2 cells
         for i in range(2):
-            qtbot.keyClick(code_editor, Qt.Key_Return,
+            qtbot.keyClick(code_editor, Qt.Key.Key_Return,
                            modifier=Qt.ShiftModifier)
             qtbot.wait(500)
 
         # Debug the cell
         with qtbot.waitSignal(shell.executed):
-            qtbot.keyClick(code_editor, Qt.Key_Return,
+            qtbot.keyClick(code_editor, Qt.Key.Key_Return,
                            modifier=Qt.AltModifier | Qt.ShiftModifier)
 
         # Make sure everything is ready
@@ -680,7 +680,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
     qtbot.wait(500)
 
     # --- Assert we're in cwd after execution ---
@@ -701,7 +701,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
     qtbot.wait(500)
 
     # --- Assert we're in fixed dir after execution ---
@@ -739,7 +739,7 @@ def test_dedicated_consoles(main_window, qtbot):
     CONF.set('run', 'configurations', [config_entry])
 
     # --- Run test file and assert that we get a dedicated console ---
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
     qtbot.wait(500)
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
@@ -763,7 +763,7 @@ def test_dedicated_consoles(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('zz = -1')
 
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
     qtbot.waitUntil(lambda: shell.is_defined('zz'))
     assert shell.is_defined('zz')
 
@@ -776,7 +776,7 @@ def test_dedicated_consoles(main_window, qtbot):
     CONF.set('run', 'configurations', [config_entry])
 
     qtbot.wait(500)
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
     qtbot.waitUntil(lambda: not shell.is_defined('zz'))
     assert not shell.is_defined('zz')
 
@@ -885,7 +885,7 @@ def test_change_types_in_varexp(main_window, qtbot):
 
     # Try to change types
     qtbot.keyClicks(QApplication.focusWidget(), "'s'")
-    qtbot.keyClick(QApplication.focusWidget(), Qt.Key_Enter)
+    qtbot.keyClick(QApplication.focusWidget(), Qt.Key.Key_Enter)
     qtbot.wait(1000)
 
     # Assert object remains the same
@@ -988,7 +988,7 @@ def test_run_cython_code(main_window, qtbot):
     main_window.editor.load(osp.join(LOCATION, 'pyx_script.pyx'))
 
     # Run file
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
@@ -1010,7 +1010,7 @@ def test_run_cython_code(main_window, qtbot):
     main_window.editor.load(osp.join(LOCATION, 'pyx_lib_import.py'))
 
     # Run file
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -1100,7 +1100,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Prese Enter there
-    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key.Key_Enter)
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
@@ -1155,7 +1155,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Press Enter there
-    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key.Key_Enter)
 
     # Assert that the file was open
     assert 'script.py' in editorstack.get_current_filename()
@@ -1245,7 +1245,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     editor = main_window.editor
     code_editor = editor.get_focus_widget()
     code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
@@ -1256,7 +1256,7 @@ def test_run_code(main_window, qtbot, tmpdir):
         modifier = Qt.MetaModifier
 
     # ---- Run file ----
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
@@ -1273,7 +1273,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     # ---- Run lines ----
     # Run the whole file line by line
     for _ in range(code_editor.blockCount()):
-        qtbot.keyClick(code_editor, Qt.Key_F9)
+        qtbot.keyClick(code_editor, Qt.Key.Key_F9)
         qtbot.wait(200)
 
     # Wait until all objects have appeared in the variable explorer
@@ -1293,8 +1293,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Move to line 10 then move one characters into the line and
     # run lines above
     editor.go_to_line(10)
-    qtbot.keyClick(code_editor, Qt.Key_Right)
-    qtbot.keyClick(code_editor, Qt.Key_F9, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Right)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F9, modifier=Qt.ShiftModifier)
     qtbot.wait(500)
 
     assert shell.get_value('a') == 10
@@ -1311,8 +1311,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Set 'a' to a different value before hand to avoid errors in shell
     shell.execute('a = 100')
     editor.go_to_line(6)
-    qtbot.keyClick(code_editor, Qt.Key_Right)
-    qtbot.keyClick(code_editor, Qt.Key_F9, modifier=modifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Right)
+    qtbot.keyClick(code_editor, Qt.Key.Key_F9, modifier=modifier)
     qtbot.wait(500)
 
     assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
@@ -1327,10 +1327,10 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Run the five cells present in file
     # Add an unnamed cell at the top of the file
     qtbot.keyClicks(code_editor, 'a = 10')
-    qtbot.keyClick(code_editor, Qt.Key_Return)
-    qtbot.keyClick(code_editor, Qt.Key_Up)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Up)
     for _ in range(5):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(500)
 
     # Check for errors and the runcell function
@@ -1340,9 +1340,9 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # Rerun
     shell.setFocus()
-    qtbot.keyClick(shell._control, Qt.Key_Up)
+    qtbot.keyClick(shell._control, Qt.Key.Key_Up)
     qtbot.wait(500)
-    qtbot.keyClick(shell._control, Qt.Key_Enter, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(shell._control, Qt.Key.Key_Enter, modifier=Qt.ShiftModifier)
     qtbot.wait(500)
     code_editor.setFocus()
 
@@ -1367,7 +1367,7 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Run cell ----
     # Run the first cell in file
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=modifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=modifier)
 
     # Wait until the object has appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -1378,17 +1378,17 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # Press Ctrl+Enter a second time to verify that we're *not* advancing
     # to the next cell
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=modifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=modifier)
     assert nsb.editor.source_model.rowCount() == 1
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Debug cell ------
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return,
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return,
                        modifier=Qt.AltModifier | Qt.ShiftModifier)
     qtbot.keyClicks(shell._control, '!c')
-    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.keyClick(shell._control, Qt.Key.Key_Enter)
 
     # Wait until the object has appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -1398,11 +1398,11 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Re-run last cell ----
     # Run the first three cells in file
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.wait(500)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.wait(500)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
 
     # Wait until objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 2,
@@ -1417,7 +1417,7 @@ def test_run_code(main_window, qtbot, tmpdir):
                     timeout=EVAL_TIMEOUT)
 
     # Re-run last cell
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.AltModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.AltModifier)
 
     # Wait until the object has appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -1467,7 +1467,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     # Move to the editor's first line
     code_editor = main_window.editor.get_focus_widget()
     code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
@@ -1475,7 +1475,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     # ---- Run cell and advance ----
     # Run the three cells present in file
     for _ in range(4):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(500)
 
     # Check for errors and the copied code
@@ -1805,14 +1805,14 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     # Verify that c works
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!c')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() == 1)
 
     # Verify that n works
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!n')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() == 2)
 
@@ -1820,25 +1820,25 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     # the debugging session.
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!n')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!n')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() == 3)
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!n')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!n')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!n')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Assert that the prompt appear
     shell.clear_console()
@@ -1928,7 +1928,7 @@ def test_change_cwd_dbg(main_window, qtbot):
 
     # Get cwd in console
     qtbot.keyClicks(control, 'import os; os.getcwd()')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Assert cwd is the right one
     qtbot.waitUntil(lambda: tempfile.gettempdir() in control.toPlainText())
@@ -1965,7 +1965,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
     for _ in range(3):
         with qtbot.waitSignal(shell.executed):
             qtbot.keyClicks(control, '!n')
-            qtbot.keyClick(control, Qt.Key_Enter)
+            qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Generate the plot from the Variable Explorer
     nsb.editor.plot('li', 'plot')
@@ -2659,7 +2659,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
 
     # Continue debugging
     qtbot.keyClicks(shell._control, '!c')
-    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.keyClick(shell._control, Qt.Key.Key_Enter)
     qtbot.wait(500)
 
     with qtbot.waitSignal(shell.executed):
@@ -2669,7 +2669,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(shell._control, '!q')
-        qtbot.keyClick(shell._control, Qt.Key_Enter)
+        qtbot.keyClick(shell._control, Qt.Key.Key_Enter)
 
     # Clear all breakpoints
     main_window.editor.clear_all_breakpoints()
@@ -2863,7 +2863,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     code_editor.set_text(u'print(0)\nprint(ññ)')
 
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.waitUntil(lambda: u'print(0)' in shell._control.toPlainText())
     assert u'ññ' not in shell._control.toPlainText()
 
@@ -2880,7 +2880,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     # Check shortcut run cell and advance reset
     code_editor.setFocus()
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
 
     qtbot.waitUntil(lambda: u'ññ' in shell._control.toPlainText(),
                     timeout=EVAL_TIMEOUT)
@@ -3160,14 +3160,14 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     # Move to the editor's first line
     code_editor = main_window.editor.get_focus_widget()
     code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
 
     # ---- Run file ----
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_F5)
+        qtbot.keyClick(code_editor, Qt.Key.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
@@ -3190,7 +3190,7 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
 
     # ---- Run file again ----
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_F5)
+        qtbot.keyClick(code_editor, Qt.Key.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
@@ -3226,14 +3226,14 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
     # Move to the editor's first line
     code_editor = main_window.editor.get_focus_widget()
     code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Home, modifier=Qt.ControlModifier)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
 
     # ---- Run file ----
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_F5)
+        qtbot.keyClick(code_editor, Qt.Key.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
@@ -3311,13 +3311,13 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     code_editor = main_window.editor.get_focus_widget()
     # call runcell
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.waitUntil(lambda: 'runcell(0' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
     assert 'runcell(0' in shell._control.toPlainText()
     assert 'cell is empty' not in shell._control.toPlainText()
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.waitUntil(lambda: 'runcell(1' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
     assert 'runcell(1' in shell._control.toPlainText()
@@ -3362,14 +3362,14 @@ def test_runcell_pdb(main_window, qtbot):
     for key in ['!n', '!n', '!s', '!n', '!n']:
         with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
             qtbot.keyClicks(shell._control, key)
-            qtbot.keyClick(shell._control, Qt.Key_Enter)
+            qtbot.keyClick(shell._control, Qt.Key.Key_Enter)
 
     assert shell.get_value('abba') == 27
 
     code_editor.setFocus()
     # call runcell
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     assert "runcell" in shell._control.toPlainText()
 
     # Make sure the local variables are detected
@@ -3405,9 +3405,9 @@ def test_runcell_cache(main_window, qtbot, debug):
     # Run the two cells
     code_editor.setFocus()
     code_editor.move_cursor(0)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.wait(100)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.wait(500)
 
     qtbot.waitUntil(lambda: "Done" in shell._control.toPlainText())
@@ -3508,7 +3508,7 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
             shell.execute('%debug')
         with qtbot.waitSignal(shell.executed):
             qtbot.keyClicks(control, '!u')
-            qtbot.keyClick(control, Qt.Key_Enter)
+            qtbot.keyClick(control, Qt.Key.Key_Enter)
 
         # Wait until both files are open
         qtbot.waitUntil(
@@ -3574,14 +3574,14 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
     # Run a random command, make sure we don't move
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!a')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(1000)
     assert current_filename == main_window.editor.get_current_editor().filename
 
     # Go up and enter second file
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!u')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.waitUntil(
         lambda: osp.samefile(
             main_window.editor.get_current_editor().filename,
@@ -3601,7 +3601,7 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
         # go back to the second file with where
         with qtbot.waitSignal(shell.executed):
             qtbot.keyClicks(control, '!w')
-            qtbot.keyClick(control, Qt.Key_Enter)
+            qtbot.keyClick(control, Qt.Key.Key_Enter)
         qtbot.wait(1000)
 
         # Make sure we moved
@@ -3613,7 +3613,7 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
         # Stay at the same place
         with qtbot.waitSignal(shell.executed):
             qtbot.keyClicks(control, '!a')
-            qtbot.keyClick(control, Qt.Key_Enter)
+            qtbot.keyClick(control, Qt.Key.Key_Enter)
         qtbot.wait(1000)
 
         # Make sure we didn't move
@@ -3645,7 +3645,7 @@ def test_runcell_after_restart(main_window, qtbot):
 
     # call runcell
     code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Return, modifier=Qt.ShiftModifier)
     qtbot.waitUntil(
         lambda: "test_runcell_after_restart" in shell._control.toPlainText())
 
@@ -4703,7 +4703,7 @@ def test_pdb_without_comm(main_window, qtbot):
     qtbot.waitUntil(
         lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
-    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.waitUntil(
         lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
@@ -4844,9 +4844,9 @@ def test_copy_paste(main_window, qtbot, tmpdir):
     assert expected in shell._control.toPlainText()
 
     # Test paste at zero indentation
-    qtbot.keyClick(code_editor, Qt.Key_Backspace)
-    qtbot.keyClick(code_editor, Qt.Key_Backspace)
-    qtbot.keyClick(code_editor, Qt.Key_Backspace)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Backspace)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Backspace)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Backspace)
     # Check again that the clipboard is ready
     assert QApplication.clipboard().text() == (
         "def c():\n            print()\n")
@@ -4856,7 +4856,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
 
     # Test paste at automatic indentation
     qtbot.keyClick(code_editor, "z", modifier=Qt.ControlModifier)
-    qtbot.keyClick(code_editor, Qt.Key_Tab)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Tab)
     qtbot.keyClick(code_editor, "v", modifier=Qt.ControlModifier)
     expected = (
         "\n"
@@ -5450,13 +5450,13 @@ def test_switch_to_plugin(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Switch to the IPython console and check the focus is there
-    qtbot.keyClick(main_window, Qt.Key_I,
+    qtbot.keyClick(main_window, Qt.Key.Key_I,
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
     control = main_window.ipyconsole.get_widget().get_focus_widget()
     assert QApplication.focusWidget() is control
 
     # Switch to the editor and assert the focus is there
-    qtbot.keyClick(main_window, Qt.Key_E,
+    qtbot.keyClick(main_window, Qt.Key.Key_E,
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
     code_editor = main_window.editor.get_current_editor()
     assert QApplication.focusWidget() is code_editor

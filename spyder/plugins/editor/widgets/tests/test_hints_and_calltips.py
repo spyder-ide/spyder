@@ -58,7 +58,7 @@ def test_hide_calltip(completions_codeeditor, qtbot):
     assert calltip.isVisible()
     qtbot.keyClicks(code_editor, ')', delay=330)
     qtbot.waitUntil(lambda: not calltip.isVisible(), timeout=3000)
-    qtbot.keyClick(code_editor, Qt.Key_Enter, delay=330)
+    qtbot.keyClick(code_editor, Qt.Key.Key_Enter, delay=330)
     assert not calltip.isVisible()
 
 
@@ -97,7 +97,7 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
     # Bracket autocompletion enabled
     with qtbot.waitSignal(code_editor.sig_signature_invoked,
                           timeout=30000) as blocker:
-        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=1000)
+        qtbot.keyPress(code_editor, Qt.Key.Key_ParenLeft, delay=1000)
 
         # This is needed to leave time for the calltip to appear
         # and make the tests succeed
@@ -113,7 +113,7 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
     bracket_extension.enable = False
     with qtbot.waitSignal(code_editor.sig_signature_invoked,
                           timeout=30000) as blocker:
-        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=1000)
+        qtbot.keyPress(code_editor, Qt.Key.Key_ParenLeft, delay=1000)
 
         # This is needed to leave time for the calltip to appear
         # and make the tests succeed
@@ -153,7 +153,7 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
 
     # Get cursor coordinates
     code_editor.moveCursor(QTextCursor.End)
-    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Left)
 
     # Wait a bit in case the window manager repositions the window.
     qtbot.wait(1000)
@@ -204,7 +204,7 @@ def test_get_hints_not_triggered(qtbot, completions_codeeditor, text):
     code_editor.moveCursor(QTextCursor.End)
 
     for _ in range(3):
-        qtbot.keyPress(code_editor, Qt.Key_Left)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Left)
 
     # Wait a bit in case the window manager repositions the window.
     qtbot.wait(1000)

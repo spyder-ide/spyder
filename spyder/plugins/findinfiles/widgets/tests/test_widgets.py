@@ -467,7 +467,7 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     for i in range(EXTERNAL_PATHS):
         searchin_combobox.view().setCurrentIndex(
             searchin_combobox.model().index(i, 0))
-        qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
+        qtbot.keyPress(searchin_combobox.view(), Qt.Key.Key_Delete)
 
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
@@ -476,7 +476,7 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     # Delete the first external path in the list.
     searchin_combobox.view().setCurrentIndex(
             searchin_combobox.model().index(EXTERNAL_PATHS, 0))
-    qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
+    qtbot.keyPress(searchin_combobox.view(), Qt.Key.Key_Delete)
 
     expected_results.pop(0)
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
@@ -487,7 +487,7 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     # Delete the second external path in the remaining list.
     searchin_combobox.view().setCurrentIndex(
             searchin_combobox.model().index(EXTERNAL_PATHS+1, 0))
-    qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
+    qtbot.keyPress(searchin_combobox.view(), Qt.Key.Key_Delete)
 
     expected_results.pop(1)
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
@@ -498,7 +498,7 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     # Delete the last external path in the list.
     searchin_combobox.view().setCurrentIndex(
             searchin_combobox.model().index(searchin_combobox.count()-1, 0))
-    qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
+    qtbot.keyPress(searchin_combobox.view(), Qt.Key.Key_Delete)
 
     expected_results.pop()
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
@@ -510,7 +510,7 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     # Delete the last remaining external path in the list.
     searchin_combobox.view().setCurrentIndex(
             searchin_combobox.model().index(EXTERNAL_PATHS, 0))
-    qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
+    qtbot.keyPress(searchin_combobox.view(), Qt.Key.Key_Delete)
 
     assert searchin_combobox.count() == EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == []

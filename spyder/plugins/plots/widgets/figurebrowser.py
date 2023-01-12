@@ -639,10 +639,10 @@ class ThumbnailScrollBar(QFrame):
         """
         if event.type() == QEvent.KeyPress:
             key = event.key()
-            if key == Qt.Key_Up:
+            if key == Qt.Key.Key_Up:
                 self.go_previous_thumbnail()
                 return True
-            elif key == Qt.Key_Down:
+            elif key == Qt.Key.Key_Down:
                 self.go_next_thumbnail()
                 return True
         if event.type() == QEvent.Resize:

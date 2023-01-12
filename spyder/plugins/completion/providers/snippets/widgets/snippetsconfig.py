@@ -780,11 +780,11 @@ class SnippetTable(QTableView):
     def keyPressEvent(self, event):
         """Qt Override."""
         key = event.key()
-        if key in [Qt.Key_Enter, Qt.Key_Return]:
+        if key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self.show_editor()
-        elif key in [Qt.Key_Backtab]:
+        elif key in [Qt.Key.Key_Backtab]:
             self.parent().reset_btn.setFocus()
-        elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+        elif key in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right]:
             super(SnippetTable, self).keyPressEvent(event)
         else:
             super(SnippetTable, self).keyPressEvent(event)

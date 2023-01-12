@@ -495,7 +495,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         meta = event.modifiers() & Qt.MetaModifier
         # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
         # copying text in HTML. See spyder-ide/spyder#2285.
-        if (ctrl or meta) and key == Qt.Key_C:
+        if (ctrl or meta) and key == Qt.Key.Key_C:
             self.copy()
         else:
             super(TextEditBaseWidget, self).keyPressEvent(event)

@@ -51,31 +51,31 @@ def test_editor_lower_to_upper(codeeditor):
     [
         ("for i in range(2): ",
          "for i in range(2): \n    \n     \n    ",
-         [Qt.Key_Enter, Qt.Key_Enter, ' ', Qt.Key_Enter],
+         [Qt.Key.Key_Enter, Qt.Key.Key_Enter, ' ', Qt.Key.Key_Enter],
          False),
         ('for i in range(2): ',
          'for i in range(2):\n\n    ',
-         [Qt.Key_Enter, Qt.Key_Enter],
+         [Qt.Key.Key_Enter, Qt.Key.Key_Enter],
          True),
         ('myvar = 2 ',
          'myvar = 2\n',
-         [Qt.Key_Enter],
+         [Qt.Key.Key_Enter],
          True),
         ('somecode = 1\nmyvar = 2 \nmyvar = 3',
          'somecode = 1\nmyvar = 2 \nmyvar = 3',
-         [' ', Qt.Key_Up, Qt.Key_Up],
+         [' ', Qt.Key.Key_Up, Qt.Key.Key_Up],
          True),
         ('somecode = 1\nmyvar = 2 ',
          'somecode = 1\nmyvar = 2 ',
-         [Qt.Key_Left],
+         [Qt.Key.Key_Left],
          True),
         ('"""This is a string with important spaces\n    ',
          '"""This is a string with important spaces\n    \n',
-         [Qt.Key_Enter],
+         [Qt.Key.Key_Enter],
          True),
         ('"""string   ',
          '"""string   \n',
-         [Qt.Key_Enter],
+         [Qt.Key.Key_Enter],
          True),
         ('somecode = 1\nmyvar = 2',
          'somecode = 1\nmyvar = 2',
@@ -87,35 +87,35 @@ def test_editor_lower_to_upper(codeeditor):
          True),
         ('a=1\na=2 \na=3',
          'a=1\na=2 \na=3',
-         [(Qt.LeftButton, 6), Qt.Key_Up],
+         [(Qt.LeftButton, 6), Qt.Key.Key_Up],
          True),
         ('def fun():\n    """fun',
          'def fun():\n    """fun\n\n    ',
-         [Qt.Key_Enter, Qt.Key_Enter],
+         [Qt.Key.Key_Enter, Qt.Key.Key_Enter],
          True),
         ('def fun():\n    """fun',
          'def fun():\n    """fun\n    \n    ',
-         [Qt.Key_Enter, Qt.Key_Enter],
+         [Qt.Key.Key_Enter, Qt.Key.Key_Enter],
          False),
         ("('🚫')",
          "('🚫')\n",
-         [Qt.Key_Enter],
+         [Qt.Key.Key_Enter],
          True),
         ("def fun():",
          "def fun():\n\n    ",
-         [Qt.Key_Enter, Qt.Key_Enter],
+         [Qt.Key.Key_Enter, Qt.Key.Key_Enter],
          True),
         ("def fun():",
          "def fun():\n\n\n",
-         [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Enter],
+         [Qt.Key.Key_Enter, Qt.Key.Key_Enter, Qt.Key.Key_Enter],
          True),
         ("def fun():\n    i = 0\n# no indent",
          "def fun():\n    i = 0\n# no indent\n",
-         [Qt.Key_Enter],
+         [Qt.Key.Key_Enter],
          True),
         ("if a:\n    def b():\n        i = 1",
          "if a:\n    def b():\n        i = 1\n\n    ",
-         [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Backspace],
+         [Qt.Key.Key_Enter, Qt.Key.Key_Enter, Qt.Key.Key_Backspace],
          True),
     ])
 def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
@@ -216,7 +216,7 @@ def test_undo_return(codeeditor, qtbot):
     cursor = editor.textCursor()
     cursor.setPosition(14)
     editor.setTextCursor(cursor)
-    qtbot.keyPress(editor, Qt.Key_Return)
+    qtbot.keyPress(editor, Qt.Key.Key_Return)
     assert editor.toPlainText() == returned_text
     qtbot.keyPress(editor, "z", modifier=Qt.ControlModifier)
     assert editor.toPlainText() == text
@@ -327,17 +327,17 @@ def test_editor_backspace_char(codeeditor, qtbot):
     cursor.setPosition(expected_column)
     editor.setTextCursor(cursor)
     for line in range(3):
-        qtbot.keyPress(editor, Qt.Key_Backspace)
+        qtbot.keyPress(editor, Qt.Key.Key_Backspace)
         expected_column -= 1
         assert editor.textCursor().columnNumber() == expected_column
-        qtbot.keyPress(editor, Qt.Key_Down)
+        qtbot.keyPress(editor, Qt.Key.Key_Down)
         assert editor.textCursor().columnNumber() == expected_column
 
     for line in range(3):
-        qtbot.keyPress(editor, Qt.Key_Backspace)
+        qtbot.keyPress(editor, Qt.Key.Key_Backspace)
         expected_column -= 1
         assert editor.textCursor().columnNumber() == expected_column
-        qtbot.keyPress(editor, Qt.Key_Up)
+        qtbot.keyPress(editor, Qt.Key.Key_Up)
         assert editor.textCursor().columnNumber() == expected_column
 
 
@@ -353,19 +353,19 @@ def test_editor_backspace_selection(codeeditor, qtbot):
 
     # This first subtest does not trigger the original bug
     for press in range(3):
-        qtbot.keyPress(editor, Qt.Key_Left, Qt.ShiftModifier)
+        qtbot.keyPress(editor, Qt.Key.Key_Left, Qt.ShiftModifier)
     expected_column -= 3
-    qtbot.keyPress(editor, Qt.Key_Backspace)
+    qtbot.keyPress(editor, Qt.Key.Key_Backspace)
     assert editor.textCursor().columnNumber() == expected_column
-    qtbot.keyPress(editor, Qt.Key_Down)
+    qtbot.keyPress(editor, Qt.Key.Key_Down)
     assert editor.textCursor().columnNumber() == expected_column
 
     # However, this second subtest does trigger the original bug
     for press in range(3):
-        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
-    qtbot.keyPress(editor, Qt.Key_Backspace)
+        qtbot.keyPress(editor, Qt.Key.Key_Right, Qt.ShiftModifier)
+    qtbot.keyPress(editor, Qt.Key.Key_Backspace)
     assert editor.textCursor().columnNumber() == expected_column
-    qtbot.keyPress(editor, Qt.Key_Down)
+    qtbot.keyPress(editor, Qt.Key.Key_Down)
     assert editor.textCursor().columnNumber() == expected_column
 
 
@@ -379,15 +379,15 @@ def test_editor_delete_char(codeeditor, qtbot):
     cursor.setPosition(expected_column)
     editor.setTextCursor(cursor)
     for line in range(3):
-        qtbot.keyPress(editor, Qt.Key_Delete)
+        qtbot.keyPress(editor, Qt.Key.Key_Delete)
         assert editor.textCursor().columnNumber() == expected_column
-        qtbot.keyPress(editor, Qt.Key_Down)
+        qtbot.keyPress(editor, Qt.Key.Key_Down)
         assert editor.textCursor().columnNumber() == expected_column
 
     for line in range(3):
-        qtbot.keyPress(editor, Qt.Key_Delete)
+        qtbot.keyPress(editor, Qt.Key.Key_Delete)
         assert editor.textCursor().columnNumber() == expected_column
-        qtbot.keyPress(editor, Qt.Key_Up)
+        qtbot.keyPress(editor, Qt.Key.Key_Up)
         assert editor.textCursor().columnNumber() == expected_column
 
 
@@ -405,19 +405,19 @@ def test_editor_delete_selection(codeeditor, qtbot):
 
     # This first subtest does not trigger the original bug
     for press in range(3):
-        qtbot.keyPress(editor, Qt.Key_Left, Qt.ShiftModifier)
+        qtbot.keyPress(editor, Qt.Key.Key_Left, Qt.ShiftModifier)
     expected_column -= 3
-    qtbot.keyPress(editor, Qt.Key_Delete)
+    qtbot.keyPress(editor, Qt.Key.Key_Delete)
     assert editor.textCursor().columnNumber() == expected_column
-    qtbot.keyPress(editor, Qt.Key_Down)
+    qtbot.keyPress(editor, Qt.Key.Key_Down)
     assert editor.textCursor().columnNumber() == expected_column
 
     # However, this second subtest does trigger the original bug
     for press in range(3):
-        qtbot.keyPress(editor, Qt.Key_Right, Qt.ShiftModifier)
-    qtbot.keyPress(editor, Qt.Key_Delete)
+        qtbot.keyPress(editor, Qt.Key.Key_Right, Qt.ShiftModifier)
+    qtbot.keyPress(editor, Qt.Key.Key_Delete)
     assert editor.textCursor().columnNumber() == expected_column
-    qtbot.keyPress(editor, Qt.Key_Up)
+    qtbot.keyPress(editor, Qt.Key.Key_Up)
     assert editor.textCursor().columnNumber() == expected_column
 
 
@@ -446,15 +446,15 @@ def test_qtbug35861(qtbot):
 
     assert widget.textCursor().columnNumber() == expected_column
     for line in range(4):
-        qtbot.keyClick(widget, Qt.Key_Backspace)
+        qtbot.keyClick(widget, Qt.Key.Key_Backspace)
         assert widget.textCursor().columnNumber() == (expected_column - 1)
-        qtbot.keyClick(widget, Qt.Key_Down)
+        qtbot.keyClick(widget, Qt.Key.Key_Down)
         assert widget.textCursor().columnNumber() == expected_column
 
     for line in range(4):
-        qtbot.keyClick(widget, Qt.Key_Backspace)
+        qtbot.keyClick(widget, Qt.Key.Key_Backspace)
         assert widget.textCursor().columnNumber() == (expected_column - 1)
-        qtbot.keyClick(widget, Qt.Key_Up)
+        qtbot.keyClick(widget, Qt.Key.Key_Up)
         assert widget.textCursor().columnNumber() == expected_column
 
 
@@ -597,7 +597,7 @@ def test_cell_highlight(codeeditor, qtbot):
     assert editor.current_cell[0].selectionEnd() == 9
 
     # Delete cell
-    qtbot.keyPress(editor, Qt.Key_Backspace)
+    qtbot.keyPress(editor, Qt.Key.Key_Backspace)
     assert editor.current_cell[0].selectionStart() == 0
     assert editor.current_cell[0].selectionEnd() == 8
 
@@ -610,7 +610,7 @@ def test_cell_highlight(codeeditor, qtbot):
     cursor = editor.textCursor()
     cursor.setPosition(5)
     editor.setTextCursor(cursor)
-    qtbot.keyPress(editor, Qt.Key_Delete)
+    qtbot.keyPress(editor, Qt.Key.Key_Delete)
     assert editor.current_cell[0].selectionStart() == 0
     assert editor.current_cell[0].selectionEnd() == 8
 

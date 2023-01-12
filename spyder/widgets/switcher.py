@@ -64,13 +64,13 @@ class KeyPressFilter(QObject):
     def eventFilter(self, src, e):
         """Override Qt eventFilter."""
         if e.type() == QEvent.KeyPress:
-            if e.key() == Qt.Key_Up:
+            if e.key() == Qt.Key.Key_Up:
                 self.sig_up_key_pressed.emit()
                 return True
-            elif e.key() == Qt.Key_Down:
+            elif e.key() == Qt.Key.Key_Down:
                 self.sig_down_key_pressed.emit()
                 return True
-            elif (e.key() == Qt.Key_Return):
+            elif (e.key() == Qt.Key.Key_Return):
                 self.sig_enter_key_pressed.emit()
                 return True
         return super(KeyPressFilter, self).eventFilter(src, e)

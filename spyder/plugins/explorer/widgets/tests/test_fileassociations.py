@@ -159,7 +159,7 @@ def test_file_assoc_widget(file_assoc_widget):
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
         assert widget._dlg_input.lineedit.text() == extension
         assert not widget._dlg_input.button_ok.isEnabled()
-        qtbot.keyClick(widget._dlg_input.button_cancel, Qt.Key_Return)
+        qtbot.keyClick(widget._dlg_input.button_cancel, Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_1)
     qtbot.mouseClick(widget.button_add, Qt.LeftButton)
@@ -169,7 +169,7 @@ def test_file_assoc_widget(file_assoc_widget):
 
     def interact_with_dialog_2():
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
-        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key_Return)
+        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_2)
     qtbot.mouseClick(widget.button_add, Qt.LeftButton)
@@ -196,7 +196,7 @@ def test_file_assoc_widget(file_assoc_widget):
     def interact_with_dialog_3():
         widget._dlg_input.lineedit.clear()
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
-        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key_Return)
+        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_3)
     qtbot.mouseClick(widget.button_edit, Qt.LeftButton)
@@ -218,10 +218,10 @@ def test_file_assoc_widget(file_assoc_widget):
         count = widget._dlg_applications.list.count()
         if count > 0:
             widget._dlg_applications.list.setCurrentRow(count - 1)
-            qtbot.keyClick(widget._dlg_applications.button_ok, Qt.Key_Return)
+            qtbot.keyClick(widget._dlg_applications.button_ok, Qt.Key.Key_Return)
         else:
             qtbot.keyClick(widget._dlg_applications.button_cancel,
-                           Qt.Key_Return)
+                           Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_4)
     qtbot.mouseClick(widget.button_add_application, Qt.LeftButton)

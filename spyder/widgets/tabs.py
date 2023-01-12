@@ -77,7 +77,7 @@ class EditTabNamePopup(QLineEdit):
         if ((event.type() == QEvent.MouseButtonPress and
                  not self.geometry().contains(event.globalPos())) or
                 (event.type() == QEvent.KeyPress and
-                 event.key() == Qt.Key_Escape)):
+                 event.key() == Qt.Key.Key_Escape)):
             # Exits editing
             self.hide()
             return True
@@ -389,13 +389,13 @@ class BaseTabs(QTabWidget):
         handled = False
         if ctrl and self.count() > 0:
             index = self.currentIndex()
-            if key == Qt.Key_PageUp:
+            if key == Qt.Key.Key_PageUp:
                 if index > 0:
                     self.setCurrentIndex(index - 1)
                 else:
                     self.setCurrentIndex(self.count() - 1)
                 handled = True
-            elif key == Qt.Key_PageDown:
+            elif key == Qt.Key.Key_PageDown:
                 if index < self.count() - 1:
                     self.setCurrentIndex(index + 1)
                 else:

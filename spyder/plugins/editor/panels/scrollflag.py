@@ -302,13 +302,13 @@ class ScrollFlagArea(Panel):
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
-        if event.key() == Qt.Key_Alt:
+        if event.key() == Qt.Key.Key_Alt:
             self._alt_key_is_down = False
             self.update()
 
     def keyPressEvent(self, event):
         """Override Qt method"""
-        if event.key() == Qt.Key_Alt:
+        if event.key() == Qt.Key.Key_Alt:
             self._alt_key_is_down = True
             self.update()
 

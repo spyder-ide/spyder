@@ -69,17 +69,17 @@ def test_dialog(error_dialog, qtbot):
 
     # Assert backspace works as expected
     qtbot.keyClicks(dlg.input_description, desc_text)
-    qtbot.keyPress(dlg.input_description, Qt.Key_Backspace)
+    qtbot.keyPress(dlg.input_description, Qt.Key.Key_Backspace)
     assert not dlg.submit_btn.isEnabled()
 
     dlg.input_description.selectAll()
-    qtbot.keyPress(dlg.input_description, Qt.Key_Backspace)
+    qtbot.keyPress(dlg.input_description, Qt.Key.Key_Backspace)
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
     ini_pos = dlg.input_description.get_position('sof')
     dlg.input_description.set_cursor_position(ini_pos)
     dlg.input_description.set_cursor_position('eol')
-    qtbot.keyPress(dlg.input_description, Qt.Key_Backspace)
+    qtbot.keyPress(dlg.input_description, Qt.Key.Key_Backspace)
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
     # Assert chars label works as expected

@@ -176,7 +176,7 @@ def test_single_click_to_open(qtbot, file_explorer):
     treewidget = file_explorer.explorer.treewidget
     model = treewidget.model()
     cwd = os.getcwd()
-    qtbot.keyClick(treewidget, Qt.Key_Up)  # To focus and select the 1st item
+    qtbot.keyClick(treewidget, Qt.Key.Key_Up)  # To focus and select the 1st item
     initial_index = treewidget.currentIndex()  # To keep a reference
 
     def run_test_helper(single_click, initial_index):
@@ -186,7 +186,7 @@ def test_single_click_to_open(qtbot, file_explorer):
         file_explorer.label1.setText('')
 
         for __ in range(4):  # 4 items inside `/spyder/plugins/explorer/`
-            qtbot.keyClick(treewidget, Qt.Key_Down)
+            qtbot.keyClick(treewidget, Qt.Key.Key_Down)
             index = treewidget.currentIndex()
             path = model.data(index)
             if path:
@@ -284,16 +284,16 @@ def test_clicked(qtbot, file_explorer_associations, tmp_path):
     qtbot.wait(500)
 
     # Select first item
-    qtbot.keyClick(widget, Qt.Key_Up)
+    qtbot.keyClick(widget, Qt.Key.Key_Up)
 
     # Test click
     def interact():
         msgbox = widget.findChild(QMessageBox)
         assert msgbox
-        qtbot.keyClick(msgbox, Qt.Key_Return)
+        qtbot.keyClick(msgbox, Qt.Key.Key_Return)
 
     _ = create_timer(interact)
-    qtbot.keyClick(widget, Qt.Key_Return)
+    qtbot.keyClick(widget, Qt.Key.Key_Return)
 
     # Test no message box
     def interact_2():
@@ -302,7 +302,7 @@ def test_clicked(qtbot, file_explorer_associations, tmp_path):
 
     widget.set_file_associations({})
     _ = create_timer(interact_2)
-    qtbot.keyClick(widget, Qt.Key_Return)
+    qtbot.keyClick(widget, Qt.Key.Key_Return)
 
 
 @pytest.mark.order(1)
@@ -317,7 +317,7 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
     def interact():
         msgbox = widget.findChild(QMessageBox)
         assert msgbox
-        qtbot.keyClick(msgbox, Qt.Key_Return)
+        qtbot.keyClick(msgbox, Qt.Key.Key_Return)
 
     return_codes = {'some-command': 1}
     _ = create_timer(interact)
@@ -328,7 +328,7 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
     def interact_2():
         msgbox = widget.findChild(QMessageBox)
         assert msgbox
-        qtbot.keyClick(msgbox, Qt.Key_Return)
+        qtbot.keyClick(msgbox, Qt.Key.Key_Return)
 
     return_codes = {'some-command': 1, 'some-other-command': 1}
     _ = create_timer(interact_2)
@@ -345,12 +345,12 @@ def test_open_association(qtbot, file_explorer_associations, tmp_path):
     fpath.write_text(u'hello!')
 
     # Select first item
-    qtbot.keyClick(widget, Qt.Key_Down)
+    qtbot.keyClick(widget, Qt.Key.Key_Down)
 
     def interact():
         msgbox = widget.findChild(QMessageBox)
         assert msgbox
-        qtbot.keyClick(msgbox, Qt.Key_Return)
+        qtbot.keyClick(msgbox, Qt.Key.Key_Return)
 
     _ = create_timer(interact)
     widget.open_association('some-app')

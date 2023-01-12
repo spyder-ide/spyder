@@ -205,7 +205,7 @@ class SnippetsExtension(EditorExtension):
                 line, column = self.editor.get_cursor_line_column()
                 node, snippet, __ = self._find_node_by_position(
                     line, column)
-                if key == Qt.Key_Tab:
+                if key == Qt.Key.Key_Tab:
                     event.accept()
                     next_snippet = ((self.active_snippet + 1) %
                                     len(self.snippets_map))
@@ -213,7 +213,7 @@ class SnippetsExtension(EditorExtension):
 
                     if next_snippet == 0:
                         self.reset()
-                elif key == Qt.Key_Escape:
+                elif key == Qt.Key.Key_Escape:
                     self.reset()
                     event.accept()
                 elif len(text) > 0:

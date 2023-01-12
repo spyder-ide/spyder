@@ -315,7 +315,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         #  if not on current line)
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier    # meta=ctrl in OSX
-        if event.key() == Qt.Key_C and \
+        if event.key() == Qt.Key.Key_C and \
           ((Qt.MetaModifier | Qt.ControlModifier) & event.modifiers()):
             if meta and sys.platform == 'darwin':
                 self.interrupt()
@@ -325,7 +325,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             return True
 
         if self.new_input_line and ( len(event.text()) or event.key() in \
-           (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right) ):
+           (Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right) ):
             self.on_new_line()
 
         return False
@@ -344,33 +344,33 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
         cursor_position = self.get_position('cursor')
 
-        if key in (Qt.Key_Return, Qt.Key_Enter):
+        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             if self.is_cursor_on_last_line():
                 self._key_enter()
             # add and run selection
             else:
                 self.insert_text(self.get_selected_text(), at_end=True)
 
-        elif key == Qt.Key_Insert and not shift and not ctrl:
+        elif key == Qt.Key.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
 
-        elif key == Qt.Key_Delete:
+        elif key == Qt.Key.Key_Delete:
             if self.has_selected_text():
                 self.check_selection()
                 self.remove_selected_text()
             elif self.is_cursor_on_last_line():
                 self.stdkey_clear()
 
-        elif key == Qt.Key_Backspace:
+        elif key == Qt.Key.Key_Backspace:
             self._key_backspace(cursor_position)
 
-        elif key == Qt.Key_Tab:
+        elif key == Qt.Key.Key_Tab:
             self._key_tab()
 
-        elif key == Qt.Key_Space and ctrl:
+        elif key == Qt.Key.Key_Space and ctrl:
             self._key_ctrl_space()
 
-        elif key == Qt.Key_Left:
+        elif key == Qt.Key.Key_Left:
             if self.current_prompt_pos == cursor_position:
                 # Avoid moving cursor on prompt
                 return
@@ -378,20 +378,20 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
                      else self.move_cursor_to_next
             method('word' if ctrl else 'character', direction='left')
 
-        elif key == Qt.Key_Right:
+        elif key == Qt.Key.Key_Right:
             if self.is_cursor_at_end():
                 return
             method = self.extend_selection_to_next if shift \
                      else self.move_cursor_to_next
             method('word' if ctrl else 'character', direction='right')
 
-        elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
+        elif (key == Qt.Key.Key_Home) or ((key == Qt.Key.Key_Up) and ctrl):
             self._key_home(shift, ctrl)
 
-        elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
+        elif (key == Qt.Key.Key_End) or ((key == Qt.Key.Key_Down) and ctrl):
             self._key_end(shift, ctrl)
 
-        elif key == Qt.Key_Up:
+        elif key == Qt.Key.Key_Up:
             if not self.is_cursor_on_last_line():
                 self.set_cursor_position('eof')
             y_cursor = self.get_coordinates(cursor_position)[1]
@@ -401,7 +401,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             else:
                 self.browse_history(backward=True)
 
-        elif key == Qt.Key_Down:
+        elif key == Qt.Key.Key_Down:
             if not self.is_cursor_on_last_line():
                 self.set_cursor_position('eof')
             y_cursor = self.get_coordinates(cursor_position)[1]
@@ -411,43 +411,43 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             else:
                 self.browse_history(backward=False)
 
-        elif key in (Qt.Key_PageUp, Qt.Key_PageDown):
+        elif key in (Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
             #XXX: Find a way to do this programmatically instead of calling
             # widget keyhandler (this won't work if the *event* is coming from
             # the event queue - i.e. if the busy buffer is ever implemented)
             ConsoleBaseWidget.keyPressEvent(self, event)
 
-        elif key == Qt.Key_Escape and shift:
+        elif key == Qt.Key.Key_Escape and shift:
             self.clear_line()
 
-        elif key == Qt.Key_Escape:
+        elif key == Qt.Key.Key_Escape:
             self._key_escape()
 
-        elif key == Qt.Key_L and ctrl:
+        elif key == Qt.Key.Key_L and ctrl:
             self.clear_terminal()
 
-        elif key == Qt.Key_V and ctrl:
+        elif key == Qt.Key.Key_V and ctrl:
             self.paste()
 
-        elif key == Qt.Key_X and ctrl:
+        elif key == Qt.Key.Key_X and ctrl:
             self.cut()
 
-        elif key == Qt.Key_Z and ctrl:
+        elif key == Qt.Key.Key_Z and ctrl:
             self.undo()
 
-        elif key == Qt.Key_Y and ctrl:
+        elif key == Qt.Key.Key_Y and ctrl:
             self.redo()
 
-        elif key == Qt.Key_A and ctrl:
+        elif key == Qt.Key.Key_A and ctrl:
             self.selectAll()
 
-        elif key == Qt.Key_Question and not self.has_selected_text():
+        elif key == Qt.Key.Key_Question and not self.has_selected_text():
             self._key_question(text)
 
-        elif key == Qt.Key_ParenLeft and not self.has_selected_text():
+        elif key == Qt.Key.Key_ParenLeft and not self.has_selected_text():
             self._key_parenleft(text)
 
-        elif key == Qt.Key_Period and not self.has_selected_text():
+        elif key == Qt.Key.Key_Period and not self.has_selected_text():
             self._key_period(text)
 
         elif len(text) and not self.isReadOnly():

@@ -368,11 +368,11 @@ class FinderLineEdit(QLineEdit):
         This should be override.
         """
         key = event.key()
-        if key in [Qt.Key_Up]:
+        if key in [Qt.Key.Key_Up]:
             self._parent.previous_row()
-        elif key in [Qt.Key_Down]:
+        elif key in [Qt.Key.Key_Down]:
             self._parent.next_row()
-        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+        elif key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self._parent.selected_element()
         else:
             super(FinderLineEdit, self).keyPressEvent(event)

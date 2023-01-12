@@ -66,7 +66,7 @@ class BaseComboBox(QComboBox):
         if not isinstance(event, QEvent):
             return True
 
-        if (event.type() == QEvent.KeyPress) and (event.key() == Qt.Key_Tab):
+        if (event.type() == QEvent.KeyPress) and (event.key() == Qt.Key.Key_Tab):
             self.sig_tab_pressed.emit(True)
             return True
         return QComboBox.event(self, event)
@@ -76,11 +76,11 @@ class BaseComboBox(QComboBox):
 
         Handle key press events.
         """
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+        if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
             if self.add_current_text_if_valid():
                 self.selected()
                 self.hide_completer()
-        elif event.key() == Qt.Key_Escape:
+        elif event.key() == Qt.Key.Key_Escape:
             self.set_current_text(self.selected_text)
             self.hide_completer()
         else:

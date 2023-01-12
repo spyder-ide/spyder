@@ -305,15 +305,15 @@ class NamespacesBrowserFinder(FinderLineEdit):
     def keyPressEvent(self, event):
         """Qt and FilterLineEdit Override."""
         key = event.key()
-        if key in [Qt.Key_Up]:
+        if key in [Qt.Key.Key_Up]:
             self.load_all_variables()
             self._parent.previous_row()
-        elif key in [Qt.Key_Down]:
+        elif key in [Qt.Key.Key_Down]:
             self.load_all_variables()
             self._parent.next_row()
-        elif key in [Qt.Key_Escape]:
+        elif key in [Qt.Key.Key_Escape]:
             self.main.sig_hide_finder_requested.emit()
-        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+        elif key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             # TODO: Check if an editor needs to be shown
             pass
         else:

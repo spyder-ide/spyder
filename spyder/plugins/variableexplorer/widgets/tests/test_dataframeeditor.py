@@ -113,9 +113,9 @@ def test_dataframe_to_type(qtbot):
 
     # Show context menu and select option `To bool`
     view.menu.show()
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    qtbot.keyPress(view.menu, Qt.Key.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key.Key_Return)
 
     # Check that changes where made from the editor
     assert editor.btn_save_and_close.isEnabled()
@@ -538,19 +538,19 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
             dialog.show()
         view = dialog.dataTable
 
-        qtbot.keyClick(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key.Key_Right)
         qtbot.keyClicks(view, '5')
-        qtbot.keyClick(view, Qt.Key_Down)
-        qtbot.keyClick(view, Qt.Key_Space)
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
-        qtbot.keyClick(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key.Key_Up)
         qtbot.keyClicks(view, '6')
-        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
         qtbot.wait(200)
         dialog.accept()
         qtbot.wait(500)
@@ -615,17 +615,17 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
             dialog.show()
         view = dialog.dataTable
 
-        qtbot.keyClick(view, Qt.Key_Right)
-        qtbot.keyClick(view, Qt.Key_Down)
-        qtbot.keyClick(view, Qt.Key_Space)
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key.Key_Right)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), "42")
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == count * 2 - 1
-        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
         qtbot.keyClick(view, '1')
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
         MockQMessageBox.critical.assert_called_with(
             ANY, "Error", ("Editing dtype {0!s} not yet supported."
                            .format(type(test_df.iloc[1, 0]).__name__)))
@@ -688,12 +688,12 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
             dialog.show()
         view = dialog.dataTable
 
-        qtbot.keyClick(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key.Key_Right)
         for test_str in test_strs:
-            qtbot.keyClick(view, Qt.Key_Space)
-            qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClick(view, Qt.Key.Key_Space)
+            qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Backspace)
             qtbot.keyClicks(view.focusWidget(), test_str)
-            qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+            qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
             assert not MockQMessageBox.critical.called
         qtbot.wait(200)
         dialog.accept()

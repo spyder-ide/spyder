@@ -509,7 +509,7 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
 
     # Press keyboard shortcut corresponding to save
     qtbot.keyPress(
-        completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300)
+        completion, Qt.Key.Key_S, modifier=Qt.ControlModifier, delay=300)
 
     # Assert file was saved
     with open(file_path, 'r') as f:

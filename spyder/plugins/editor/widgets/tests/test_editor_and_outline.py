@@ -340,10 +340,10 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        qtbot.keyPress(code_editor, Qt.Key_Return)
-        qtbot.keyPress(code_editor, Qt.Key_Return)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Return)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Return)
 
-    qtbot.keyPress(code_editor, Qt.Key_Up)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Up)
     code_editor.paste()
 
     qtbot.wait(3000)
@@ -372,10 +372,10 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        qtbot.keyPress(code_editor, Qt.Key_Return)
-        qtbot.keyPress(code_editor, Qt.Key_Return)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Return)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Return)
 
-    qtbot.keyPress(code_editor, Qt.Key_Up)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Up)
     code_editor.paste()
     qtbot.wait(3000)
 
@@ -391,9 +391,9 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
-        qtbot.keyPress(code_editor, Qt.Key_Return)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Return)
         qtbot.keyClicks(code_editor, 'self.y = None')
-        qtbot.keyPress(code_editor, Qt.Key_Return)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Return)
 
     with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
         code_editor.request_symbols()
@@ -438,7 +438,7 @@ def foo():
 
     # Remove content
     code_editor.selectAll()
-    qtbot.keyPress(code_editor, Qt.Key_Delete)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Delete)
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):

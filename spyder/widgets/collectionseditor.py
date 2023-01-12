@@ -913,9 +913,9 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""
-        if event.key() == Qt.Key_Delete:
+        if event.key() == Qt.Key.Key_Delete:
             self.remove_item()
-        elif event.key() == Qt.Key_F2:
+        elif event.key() == Qt.Key.Key_F2:
             self.rename_item()
         elif event == QKeySequence.Copy:
             self.copy()

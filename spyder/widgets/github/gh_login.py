@@ -120,7 +120,7 @@ class DlgGitHubLogin(QDialog):
     def eventFilter(self, obj, event):
         interesting_objects = [self.le_token]
         if obj in interesting_objects and event.type() == QEvent.KeyPress:
-            if (event.key() == Qt.Key_Return and
+            if (event.key() == Qt.Key.Key_Return and
                     event.modifiers() & Qt.ControlModifier and
                     self.bt_sign_in.isEnabled()):
                 self.accept()

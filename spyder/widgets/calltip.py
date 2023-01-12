@@ -300,10 +300,10 @@ class CallTipWidget(QLabel):
                 cursor = self._text_edit.textCursor()
                 prev_char = self._text_edit.get_character(cursor.position(),
                                                           offset=-1)
-                if key in (Qt.Key_Enter, Qt.Key_Return,
-                           Qt.Key_Down, Qt.Key_Up):
+                if key in (Qt.Key.Key_Enter, Qt.Key.Key_Return,
+                           Qt.Key.Key_Down, Qt.Key.Key_Up):
                     self.hide()
-                elif key == Qt.Key_Escape:
+                elif key == Qt.Key.Key_Escape:
                     self.hide()
                     return True
                 elif prev_char == ')':

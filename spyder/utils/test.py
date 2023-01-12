@@ -21,4 +21,4 @@ def close_message_box(qtbot):
     top_level_widgets = QApplication.topLevelWidgets()
     for w in top_level_widgets:
         if isinstance(w, QMessageBox):
-            qtbot.keyClick(w, Qt.Key_Enter)
+            qtbot.keyClick(w, Qt.Key.Key_Enter)

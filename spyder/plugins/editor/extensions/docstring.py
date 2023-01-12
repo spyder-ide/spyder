@@ -1027,7 +1027,7 @@ class QMenuOnlyForEnter(QMenu):
     def keyPressEvent(self, event):
         """Close the instance if key is not enter key."""
         key = event.key()
-        if key not in (Qt.Key_Enter, Qt.Key_Return):
+        if key not in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             self.code_editor.keyPressEvent(event)
             self.close()
         else:

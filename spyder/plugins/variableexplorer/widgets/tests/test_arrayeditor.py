@@ -109,7 +109,7 @@ def test_type_errors(setup_arrayeditor, qtbot):
     Fixes spyder-ide/spyder#5254.
     """
     dlg = setup_arrayeditor
-    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
     assert_array_equal(contents, np.ones(10))
 
@@ -123,14 +123,14 @@ def test_type_errors(setup_arrayeditor, qtbot):
 def test_arrayeditor_format(setup_arrayeditor, qtbot):
     """Changes the format of the array and validates its selected content."""
     dlg = setup_arrayeditor
-    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
-    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key.Key_Down, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1\n2\n"
     dlg.arraywidget.view.model().set_format("%.18e")
     assert dlg.arraywidget.view.model().get_format() == "%.18e"
-    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
-    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key.Key_Down, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
 
@@ -225,13 +225,13 @@ def test_arrayeditor_edit_1d_array(qtbot):
         dlg.show()
     view = dlg.arraywidget.view
 
-    qtbot.keyPress(view, Qt.Key_Down)
-    qtbot.keyPress(view, Qt.Key_Up)
+    qtbot.keyPress(view, Qt.Key.Key_Down)
+    qtbot.keyPress(view, Qt.Key.Key_Up)
     qtbot.keyClicks(view, '1')
-    qtbot.keyPress(view, Qt.Key_Down)
+    qtbot.keyPress(view, Qt.Key.Key_Down)
     qtbot.keyClicks(view, '0')
-    qtbot.keyPress(view, Qt.Key_Down)
-    qtbot.keyPress(view, Qt.Key_Return)
+    qtbot.keyPress(view, Qt.Key.Key_Down)
+    qtbot.keyPress(view, Qt.Key.Key_Return)
     assert np.sum(exp_arr == dlg.get_value()) == 5
 
 
@@ -245,14 +245,14 @@ def test_arrayeditor_edit_2d_array(qtbot):
         dlg.show()
     view = dlg.arraywidget.view
 
-    qtbot.keyPress(view, Qt.Key_Down)
-    qtbot.keyPress(view, Qt.Key_Right)
+    qtbot.keyPress(view, Qt.Key.Key_Down)
+    qtbot.keyPress(view, Qt.Key.Key_Right)
     qtbot.keyClicks(view, '3')
-    qtbot.keyPress(view, Qt.Key_Down)
-    qtbot.keyPress(view, Qt.Key_Right)
+    qtbot.keyPress(view, Qt.Key.Key_Down)
+    qtbot.keyPress(view, Qt.Key.Key_Right)
     qtbot.keyClicks(view, '0')
-    qtbot.keyPress(view, Qt.Key_Left)
-    qtbot.keyPress(view, Qt.Key_Return)
+    qtbot.keyPress(view, Qt.Key.Key_Left)
+    qtbot.keyPress(view, Qt.Key.Key_Return)
 
     assert np.sum(diff_arr != dlg.get_value()) == 2
 
@@ -270,7 +270,7 @@ def test_arrayeditor_edit_complex_array(qtbot):
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
-    qtbot.keyPress(view, Qt.Key_Down)
+    qtbot.keyPress(view, Qt.Key.Key_Down)
 
     # Prevent the test from failing
     qtbot.wait(300)
@@ -278,7 +278,7 @@ def test_arrayeditor_edit_complex_array(qtbot):
     # This is the actual editor widget on the cell
     cell_editor = view.viewport().focusWidget()
     qtbot.keyClicks(cell_editor, str(cnum))
-    qtbot.keyPress(cell_editor, Qt.Key_Return)
+    qtbot.keyPress(cell_editor, Qt.Key.Key_Return)
     dlg.accept()
 
 
@@ -338,19 +338,19 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
             dialog.show()
         view = dialog.arraywidget.view
 
-        qtbot.keyClick(view, Qt.Key_Down)
-        qtbot.keyClick(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Up)
         qtbot.keyClicks(view, '5')
-        qtbot.keyClick(view, Qt.Key_Down)
-        qtbot.keyClick(view, Qt.Key_Space)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Space)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponent)))
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
-        qtbot.keyClick(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key.Key_Up)
         qtbot.keyClicks(view, '6')
-        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
         qtbot.wait(200)
         dialog.accept()
         qtbot.wait(500)

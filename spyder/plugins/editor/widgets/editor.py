@@ -147,16 +147,16 @@ class TabSwitcherWidget(QListWidget):
 
             for key in qsc.split('+'):
                 key = key.lower()
-                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
-                        (key == 'alt' and event.key() == Qt.Key_Alt)):
+                if ((key == 'ctrl' and event.key() == Qt.Key.Key_Control) or
+                        (key == 'alt' and event.key() == Qt.Key.Key_Alt)):
                     self.item_selected()
         event.accept()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method to allow cyclic behavior."""
-        if event.key() == Qt.Key_Down:
+        if event.key() == Qt.Key.Key_Down:
             self.select_row(1)
-        elif event.key() == Qt.Key_Up:
+        elif event.key() == Qt.Key.Key_Up:
             self.select_row(-1)
 
     def focusOutEvent(self, event):

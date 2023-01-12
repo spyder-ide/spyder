@@ -119,11 +119,11 @@ class ShortcutFinder(FinderLineEdit):
     def keyPressEvent(self, event):
         """Qt and FilterLineEdit Override."""
         key = event.key()
-        if key in [Qt.Key_Up]:
+        if key in [Qt.Key.Key_Up]:
             self._parent.previous_row()
-        elif key in [Qt.Key_Down]:
+        elif key in [Qt.Key.Key_Down]:
             self._parent.next_row()
-        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+        elif key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self._parent.show_editor()
         else:
             super(ShortcutFinder, self).keyPressEvent(event)
@@ -308,13 +308,13 @@ class ShortcutEditor(QDialog):
     def keyPressEvent(self, event):
         """Qt method override."""
         event_key = event.key()
-        if not event_key or event_key == Qt.Key_unknown:
+        if not event_key or event_key == Qt.Key.Key_unknown:
             return
         if len(self._qsequences) == 4:
             # QKeySequence accepts a maximum of 4 different sequences.
             return
-        if event_key in [Qt.Key_Control, Qt.Key_Shift,
-                         Qt.Key_Alt, Qt.Key_Meta]:
+        if event_key in [Qt.Key.Key_Control, Qt.Key.Key_Shift,
+                         Qt.Key.Key_Alt, Qt.Key.Key_Meta]:
             # The event corresponds to just and only a special key.
             return
 
@@ -820,21 +820,21 @@ class ShortcutsTable(QTableView):
     def keyPressEvent(self, event):
         """Qt Override."""
         key = event.key()
-        if key in [Qt.Key_Enter, Qt.Key_Return]:
+        if key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self.show_editor()
-        elif key in [Qt.Key_Tab]:
+        elif key in [Qt.Key.Key_Tab]:
             self.finder.setFocus()
-        elif key in [Qt.Key_Backtab]:
+        elif key in [Qt.Key.Key_Backtab]:
             self.parent().reset_btn.setFocus()
-        elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+        elif key in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right]:
             super(ShortcutsTable, self).keyPressEvent(event)
-        elif key not in [Qt.Key_Escape, Qt.Key_Space]:
+        elif key not in [Qt.Key.Key_Escape, Qt.Key.Key_Space]:
             text = event.text()
             if text:
                 if re.search(VALID_FINDER_CHARS, text) is not None:
                     self.finder.setFocus()
                     self.finder.set_text(text)
-        elif key in [Qt.Key_Escape]:
+        elif key in [Qt.Key.Key_Escape]:
             self.finder.keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, event):

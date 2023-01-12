@@ -315,14 +315,14 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         alt = event.modifiers() & Qt.AltModifier
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
-        altgr = event.modifiers() and (key == Qt.Key_AltGr)
+        altgr = event.modifiers() and (key == Qt.Key.Key_AltGr)
 
         # Needed to properly handle Neo2 and other keyboard layouts
         # See spyder-ide/spyder#11293
         neo2_level4 = (key == 0)  # AltGr (ISO_Level5_Shift) in Neo2 on Linux
         modifier = shift or ctrl or alt or altgr or neo2_level4
 
-        if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
+        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Tab):
             # Check that what was selected can be selected,
             # otherwise timing issues
             item = self.currentItem()
@@ -334,29 +334,29 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             else:
                 self.hide()
                 self.textedit.keyPressEvent(event)
-        elif key == Qt.Key_Escape:
+        elif key == Qt.Key.Key_Escape:
             self.hide()
-        elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
+        elif key in (Qt.Key.Key_Left, Qt.Key.Key_Right) or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
         elif (
-            key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown)
+            key in (Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_PageUp, Qt.Key.Key_PageDown)
             and not modifier
         ):
             self.textedit._completions_hint_idle = True
-            if key == Qt.Key_Up and self.currentRow() == 0:
+            if key == Qt.Key.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
-            elif key == Qt.Key_Down and self.currentRow() == self.count()-1:
+            elif key == Qt.Key.Key_Down and self.currentRow() == self.count()-1:
                 self.setCurrentRow(0)
             else:
                 QListWidget.keyPressEvent(self, event)
-        elif key in (Qt.Key_Home, Qt.Key_End):
+        elif key in (Qt.Key.Key_Home, Qt.Key.Key_End):
             # This allows users to easily move to the beginning/end of the
             # current line when this widget is visible.
             # Fixes spyder-ide/spyder#19989
             self.hide()
             self.textedit.keyPressEvent(event)
-        elif key == Qt.Key_Backspace:
+        elif key == Qt.Key.Key_Backspace:
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)
         elif len(text):

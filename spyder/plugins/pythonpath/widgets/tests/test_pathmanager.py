@@ -126,7 +126,7 @@ def test_invalid_directories(qtbot, pathmanager):
 
     def interact_message_box():
         child = pathmanager.findChild(QMessageBox)
-        qtbot.keyPress(child, Qt.Key_Enter)
+        qtbot.keyPress(child, Qt.Key.Key_Enter)
 
     for path in paths:
         timer = QTimer()

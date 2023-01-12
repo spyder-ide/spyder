@@ -35,7 +35,7 @@ def test_shortcutssummary(dlg_shortcuts, qtbot):
     assert not dlg_shortcuts._layout.isEmpty()
 
     # Test that the dialog is closed properly on Esc keypress
-    qtbot.keyClick(dlg_shortcuts, Qt.Key_Escape)
+    qtbot.keyClick(dlg_shortcuts, Qt.Key.Key_Escape)
     assert not dlg_shortcuts.isVisible()
 
 

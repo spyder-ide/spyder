@@ -83,14 +83,14 @@ class DescriptionWidget(SimpleCodeEditor):
 
         if cursor_position < self.header_end_pos:
             self.restrict_cursor_position(self.header_end_pos, 'eof')
-        elif key == Qt.Key_Backspace:
+        elif key == Qt.Key.Key_Backspace:
             if self.has_selected_text():
                 self.remove_text()
             elif self.header_end_pos == cursor_position:
                 return
             else:
                 self.stdkey_backspace()
-        elif key == Qt.Key_X and ctrl:
+        elif key == Qt.Key.Key_X and ctrl:
             self.cut()
         else:
             super().keyPressEvent(event)
