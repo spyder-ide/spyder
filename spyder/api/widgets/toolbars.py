@@ -40,8 +40,8 @@ ToolbarItemEntry = Tuple[ToolbarItem, Optional[str], Optional[str],
 # ---- Constants
 # ----------------------------------------------------------------------------
 class ToolbarLocation:
-    Top = Qt.TopToolBarArea
-    Bottom = Qt.BottomToolBarArea
+    Top = Qt.ToolBarArea.TopToolBarArea
+    Bottom = Qt.ToolBarArea.BottomToolBarArea
 
 
 # ---- Event filters
