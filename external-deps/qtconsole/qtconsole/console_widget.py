@@ -432,7 +432,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     key in self._ctrl_down_remap:
                 new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                             self._ctrl_down_remap[key],
-                                            QtCore.Qt.NoModifier)
+                                            QtCore.Qt.KeyboardModifier.NoModifier)
                 QtWidgets.QApplication.instance().sendEvent(obj, new_event)
                 return True
 
@@ -1381,13 +1381,13 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     self._control.textCursor().insertText(chr(4))
                     new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                                 QtCore.Qt.Key_Return,
-                                                QtCore.Qt.NoModifier)
+                                                QtCore.Qt.KeyboardModifier.NoModifier)
                     QtWidgets.QApplication.instance().sendEvent(self._control, new_event)
                     intercepted = True
                 else:
                     new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                                 QtCore.Qt.Key_Delete,
-                                                QtCore.Qt.NoModifier)
+                                                QtCore.Qt.KeyboardModifier.NoModifier)
                     QtWidgets.QApplication.instance().sendEvent(self._control, new_event)
                     intercepted = True
 
@@ -1627,14 +1627,14 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                      QtCore.Qt.Key_Tab):
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_PageDown,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 
         elif key == QtCore.Qt.Key_Backspace:
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_PageUp,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 
@@ -1642,7 +1642,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         elif key == QtCore.Qt.Key_J:
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_Down,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 
@@ -1650,7 +1650,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         elif key == QtCore.Qt.Key_K:
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_Up,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 

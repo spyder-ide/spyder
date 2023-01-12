@@ -1062,7 +1062,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.calltip_widget.hide()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
-                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+                                Qt.LeftButton, Qt.LeftButton, Qt.KeyboardModifier.NoModifier)
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use

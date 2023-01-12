@@ -124,7 +124,7 @@ def test_array_table_array(botarray):
     qtbot.keyClick(widget, Qt.Key.Key_Tab)
     qtbot.keyClick(widget, Qt.Key.Key_6)
     qtbot.keyClick(widget, Qt.Key.Key_Tab)  # Hack: in the tests the selected cell is wrong
-    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.NoModifier)
+    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.KeyboardModifier.NoModifier)
     value = dialog.text()
     assert value == 'np.array([[1, 2, 3],\n          [4, 5, 6]])'
 
@@ -162,7 +162,7 @@ def test_array_table_array_empty_items(botarray):  # analysis:ignore
     qtbot.keyClick(widget, Qt.Key.Key_Tab)
     qtbot.keyClick(widget, Qt.Key.Key_6)
     qtbot.keyClick(widget, Qt.Key.Key_Tab)  # Hack: in the tests the selected cell is wrong
-    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.NoModifier)
+    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.KeyboardModifier.NoModifier)
     value = dialog.text()
     assert value == 'np.array([[0, 2, 3],\n          [0, 5, 6]])'
 
@@ -181,7 +181,7 @@ def test_array_table_array_spaces_in_item(botarray):  # analysis:ignore
     qtbot.keyClick(widget, Qt.Key.Key_Tab)
     qtbot.keyClick(widget, Qt.Key.Key_6)
     qtbot.keyClick(widget, Qt.Key.Key_Tab)  # Hack: in the tests the selected cell is wrong
-    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.NoModifier)
+    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.KeyboardModifier.NoModifier)
     value = dialog.text()
     assert value == 'np.array([[0, 2, 3],\n          [0, 5, 6]])'
 
@@ -189,6 +189,6 @@ def test_array_table_array_spaces_in_item(botarray):  # analysis:ignore
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_array_table_matrix_empty(botarray):  # analysis:ignore
     qtbot, dialog, widget = botarray
-    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.NoModifier)
+    qtbot.keyClick(widget, Qt.Key.Key_Return, modifier=Qt.KeyboardModifier.NoModifier)
     value = dialog.text()
     assert value == ''

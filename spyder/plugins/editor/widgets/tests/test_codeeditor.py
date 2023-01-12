@@ -139,7 +139,7 @@ def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
             widget.mousePressEvent(QMouseEvent(
                     QEvent.MouseButtonPress, xypos,
                     button, button,
-                    Qt.NoModifier))
+                    Qt.KeyboardModifier.NoModifier))
         else:
             qtbot.keyPress(widget, key)
     assert widget.toPlainText() == expected_text

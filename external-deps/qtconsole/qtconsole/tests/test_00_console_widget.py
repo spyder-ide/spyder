@@ -330,7 +330,7 @@ class TestConsoleWidget(unittest.TestCase):
     def test_link_handling(self):
         noButton = QtCore.Qt.NoButton
         noButtons = QtCore.Qt.NoButton
-        noModifiers = QtCore.Qt.NoModifier
+        noModifiers = QtCore.Qt.KeyboardModifier.NoModifier
         MouseMove = QtCore.QEvent.MouseMove
         QMouseEvent = QtGui.QMouseEvent
 
