@@ -963,22 +963,45 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     if current_text == '.':
                         is_auto_completion_character = True
                 else:
-                    if current_text in self.auto_completion_characters:
+                    if (
+                        kind != CompletionItemKind.FILE and
+                        current_text in self.auto_completion_characters
+                    ):
                         is_auto_completion_character = True
 
                 # Adjustments for file completions
                 if kind == CompletionItemKind.FILE:
-                    # This is necessary to inseert file completions when
-                    # requesting them next to a colon
                     if current_text in ['"', "'"]:
+                        # This is necessary to insert file completions when
+                        # requesting them next to a colon
                         current_text = ''
                         start_position += 1
-
-                    # And this insert completions for files or directories that
-                    # start with a dot
-                    if current_text in ['".', "'."]:
+                    elif current_text in ['".', "'."]:
+                        # This inserts completions for files or directories
+                        # that start with a dot
                         current_text = '.'
                         start_position += 1
+                    elif current_text == '.':
+                        # This is needed if users are asking for file
+                        # completions to the right of a dot
+                        cursor_1 = self.textCursor()
+                        found_start = False
+
+                        # Select text backwards until we find where the file
+                        # name starts
+                        while not found_start:
+                            cursor_1.movePosition(
+                                QTextCursor.PreviousCharacter,
+                                QTextCursor.KeepAnchor,
+                            )
+
+                            selection = str(cursor_1.selectedText())
+                            if text.startswith(selection):
+                                found_start = True
+
+                        current_text = str(cursor_1.selectedText())
+                        start_position = cursor_1.selectionStart()
+                        end_position = cursor_1.selectionEnd()
 
                 if not is_auto_completion_character:
                     # Check if the completion position is in the expected range

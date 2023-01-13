@@ -1223,7 +1223,9 @@ def test_dot_completions(completions_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.parametrize("filename", ['000_test.txt', '.hidden', 'any_file'])
+@pytest.mark.parametrize(
+    "filename", ['000_test.txt', '.hidden', 'any_file.txt', 'abc.py',
+                 'part.0.parquet'])
 def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     """
     Test that completions for files are handled as expected.
@@ -1235,10 +1237,18 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
 
     # Set text to complete and move cursor to the position we want to ask for
     # completions.
-    if filename == 'any_file':
+    if filename == 'any_file.txt':
         # This checks if we're able to introduce file completions as expected
         # for any file when requesting them inside a string.
         qtbot.keyClicks(code_editor, "''")
+    elif filename == 'abc.py':
+        # This checks that we can insert file completions correctly after a
+        # dot
+        qtbot.keyClicks(code_editor, "'abc.'")
+    elif filename == 'part.0.parquet':
+        # This checks that we can insert file completions next to a dot when a
+        # filename has several dots.
+        qtbot.keyClicks(code_editor, "'part.0.'")
     else:
         qtbot.keyClicks(code_editor, f"'{filename[0]}'")
     code_editor.moveCursor(QTextCursor.PreviousCharacter)
