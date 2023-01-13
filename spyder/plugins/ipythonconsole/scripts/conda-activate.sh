@@ -8,7 +8,7 @@ CONDA_ENV_PYTHON=$3
 SPYDER_KERNEL_SPEC=$4
 
 # Activate kernel environment
-if [[ "$CONDA_ACTIVATE_SCRIPT" = *"_conda.exe" ]]; then
+if [[ "$CONDA_ACTIVATE_SCRIPT" = *"conda.exe" ]]; then
     eval "$($CONDA_ACTIVATE_SCRIPT shell.bash activate $CONDA_ENV_PATH)"
 else
     source $CONDA_ACTIVATE_SCRIPT $CONDA_ENV_PATH
