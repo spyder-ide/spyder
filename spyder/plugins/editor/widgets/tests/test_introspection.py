@@ -1225,7 +1225,7 @@ def test_dot_completions(completions_codeeditor, qtbot):
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "filename", ['000_test.txt', '.hidden', 'any_file.txt', 'abc.py',
-                 'part.0.parquet'])
+                 'part.0.parquet', '/home', '/usr/bin'])
 def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     """
     Test that completions for files are handled as expected.
@@ -1249,21 +1249,35 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
         # This checks that we can insert file completions next to a dot when a
         # filename has several dots.
         qtbot.keyClicks(code_editor, "'part.0.'")
+    elif filename == '/home':
+        # This checks that we can insert file completions next to a /
+        qtbot.keyClicks(code_editor, "'/'")
+    elif filename == '/usr/bin':
+        # This checks that we can insert file completions next to a / placed at
+        # second-level
+        qtbot.keyClicks(code_editor, "'/usr/'")
     else:
         qtbot.keyClicks(code_editor, f"'{filename[0]}'")
     code_editor.moveCursor(QTextCursor.PreviousCharacter)
     qtbot.wait(500)
 
-    # Complete '0' -> '000_testing.txt'
+    # Set text that will be completed
+    if filename == '/home':
+        completion_text = 'home'
+    elif filename == '/usr/bin':
+        completion_text = 'bin'
+    else:
+        completion_text = filename
+
     mock_response.side_effect = lambda lang, method, params: {'params': [{
-        'label': f'{filename}',
+        'label': f'{completion_text}',
         'kind': CompletionItemKind.FILE,
-        'sortText': (0, f'a{filename}'),
-        'insertText': f'{filename}',
+        'sortText': (0, f'a{completion_text}'),
+        'insertText': f'{completion_text}',
         'data': {'doc_uri': path_as_uri(__file__)},
         'detail': '',
         'documentation': '',
-        'filterText': f'{filename}',
+        'filterText': f'{completion_text}',
         'insertTextFormat': 1,
         'provider': 'LSP',
         'resolve': True

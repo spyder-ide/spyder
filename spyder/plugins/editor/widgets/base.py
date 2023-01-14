@@ -971,19 +971,22 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
                 # Adjustments for file completions
                 if kind == CompletionItemKind.FILE:
-                    if current_text in ['"', "'"]:
-                        # This is necessary to insert file completions when
-                        # requesting them next to a colon
-                        current_text = ''
-                        start_position += 1
-                    elif current_text in ['".', "'."]:
+                    special_chars = ['"', "'", '/']
+
+                    if any(
+                        [current_text.endswith(c) for c in special_chars]
+                    ):
+                        # This is necessary when completions are requested next
+                        # to special characters.
+                        start_position = end_position
+                    elif current_text.endswith('.') and len(current_text) > 1:
                         # This inserts completions for files or directories
                         # that start with a dot
-                        current_text = '.'
-                        start_position += 1
+                        start_position = end_position - 1
                     elif current_text == '.':
                         # This is needed if users are asking for file
-                        # completions to the right of a dot
+                        # completions to the right of a dot when some of its
+                        # name is part of the completed text
                         cursor_1 = self.textCursor()
                         found_start = False
 
@@ -1012,10 +1015,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     cursor.setPosition(start_position)
 
                     # Remove the word under the cursor
-                    if current_text:
-                        cursor.setPosition(
-                            end_position, QTextCursor.KeepAnchor
-                        )
+                    cursor.setPosition(end_position, QTextCursor.KeepAnchor)
                 else:
                     # Check if we are in the correct position
                     if cursor.position() != completion_position:
