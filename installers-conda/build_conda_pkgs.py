@@ -200,8 +200,8 @@ class SpyderCondaPkg(BuildCondaPkg):
     def _patch_source(self):
         self.logger.info("Creating Spyder source patch...")
 
-        patch = self.repo.git.format_patch(
-            "..origin/installers-conda-patch", "--stdout", "-U3"
+        patch = self.repo.git.diff(
+            "...origin/installers-conda-patch"
         )
         # newline keyword is not added to pathlib until Python>=3.10,
         # so we must use open to ensure LF on Windows
