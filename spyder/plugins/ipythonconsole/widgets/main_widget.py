@@ -51,6 +51,11 @@ from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
+from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.programs import get_interpreter_info
+from spyder.utils.pyenv import get_list_pyenv_envs
+from spyder.utils.workers import WorkerManager
+from spyder.config.base import is_pynsist, running_in_mac_app
 
 
 # Localization and logging
@@ -100,6 +105,7 @@ class IPythonConsoleWidgetActions:
 class IPythonConsoleWidgetOptionsMenus:
     SpecialConsoles = 'special_consoles_submenu'
     Documentation = 'documentation_submenu'
+    EnvironmentConsoles = 'environment_consoles_submenu'
 
 
 class IPythonConsoleWidgetOptionsMenuSections:
@@ -305,6 +311,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.interrupt_action = None
         self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
+        self.path_to_env = {}
+        self.envs = {}
+        self.value = ''
+        self.default_interpreter = sys.executable
 
         # Disable infowidget if requested by the user
         self.enable_infowidget = True
@@ -397,6 +407,12 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
+
+        # Worker to compute envs in a thread
+        self._worker_manager = WorkerManager(max_threads=1)
+
+        # Update the list of envs at startup
+        self.get_envs()
 
     def on_close(self):
         self.mainwindow_close = True
@@ -535,12 +551,18 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # --- Setting options menu
         options_menu = self.get_options_menu()
+
+        self.console_environment_menu = self.create_menu(
+            IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
+            _('New console in environment'))
+
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
             _('Special consoles'))
 
         for item in [
                 self.create_client_action,
+                self.console_environment_menu,
                 self.special_console_menu,
                 self.connect_to_kernel_action]:
             self.add_item_to_menu(
@@ -589,6 +611,23 @@ class IPythonConsoleWidget(PluginMainWidget):
             triggered=self.create_cython_client,
         )
 
+        environment_consoles_names = self.envs.keys()
+        environment_consoles = []
+        for item in environment_consoles_names:
+            action = self.create_action(
+                IPythonConsoleWidgetActions.CreateCythonClient,
+                item,
+                icon=self.create_icon('ipython_console'),
+                triggered=self.create_cython_client,
+            )
+            environment_consoles.insert(action)
+
+        for item in environment_consoles:
+            self.add_item_to_menu(
+                item,
+                menu=self.console_environment_menu
+            )
+
         for item in [
                 create_pylab_action,
                 create_sympy_action,
@@ -626,6 +665,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         for item in [
                 self.create_client_action,
+                self.console_environment_menu,
                 self.special_console_menu,
                 self.connect_to_kernel_action]:
             self.add_item_to_menu(
@@ -697,6 +737,70 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
 
+    def _get_envs(self):
+        """Get the list of environments in the system."""
+        # Compute info of default interpreter to have it available in
+        # case we need to switch to it. This will avoid lags when
+        # doing that in get_value.
+        #if self.default_interpreter not in self.path_to_env:
+        #    self._get_env_info(self.default_interpreter)
+
+        # Get envs
+        conda_env = get_list_conda_envs()
+        pyenv_env = get_list_pyenv_envs()
+        return {**conda_env, **pyenv_env}
+
+    def _get_env_info(self, path):
+        """Get environment information."""
+        path = path.lower() if os.name == 'nt' else path
+        try:
+            name = self.path_to_env[path]
+        except KeyError:
+            if (
+                self.default_interpreter == path
+                and (running_in_mac_app() or is_pynsist())
+            ):
+                name = 'internal'
+            elif 'conda' in path:
+                name = 'conda'
+            elif 'pyenv' in path:
+                name = 'pyenv'
+            else:
+                name = 'custom'
+            version = get_interpreter_info(path)
+            self.path_to_env[path] = name
+            self.envs[name] = (path, version)
+        __, version = self.envs[name]
+        return f'{name} ({version})'
+
+    def get_envs(self):
+        """
+        Get the list of environments in a thread to keep them up to
+        date.
+        """
+        self._worker_manager.terminate_all()
+        worker = self._worker_manager.create_python_worker(self._get_envs)
+        #worker.sig_finished.connect(self.update_envs)
+        worker.start()
+
+    def update_envs(self, worker, output, error):
+        """Update the list of environments in the system."""
+        self.envs.update(**output)
+        for env in list(self.envs.keys()):
+            path, version = self.envs[env]
+            # Save paths in lowercase on Windows to avoid issues with
+            # capitalization.
+            path = path.lower() if os.name == 'nt' else path
+            self.path_to_env[path] = env
+
+        self.update_interpreter()
+
+    def update_interpreter(self, interpreter=None):
+        """Set main interpreter and update information."""
+        if interpreter:
+            self._interpreter = interpreter
+        self.value = self._get_env_info(self._interpreter)
+        self.set_value(self.value)
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
     def change_clients_help_connection(self, value):
