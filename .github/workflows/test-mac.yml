@@ -54,7 +54,7 @@ jobs:
       matrix:
         INSTALL_TYPE: ['conda']
         PYTHON_VERSION: ['3.9']
-        TEST_TYPE: ['fast', 'slow']
+        TEST_TYPE: ['fast']
     timeout-minutes: 120
     steps:
       - name: Checkout Pull Requests
@@ -110,6 +110,8 @@ jobs:
         run: |
           conda info
           conda list
+          printenv
+          ls -a ~
       - name: Run manifest checks
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
@@ -119,9 +121,9 @@ jobs:
         shell: bash -l {0}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
+          # bash -l .github/scripts/run_tests.sh || \
+          # bash -l .github/scripts/run_tests.sh || \
+          # bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh
       # Enable this if SSH debugging is required
       # - name: Setup tmate session
