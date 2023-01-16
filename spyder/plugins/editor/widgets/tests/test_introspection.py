@@ -1225,7 +1225,7 @@ def test_dot_completions(completions_codeeditor, qtbot):
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "filename", ['000_test.txt', '.hidden', 'any_file.txt', 'abc.py',
-                 'part.0.parquet', '/home', '/usr/bin'])
+                 'part.0.parquet', '/home', '/usr/bin', r'C:\\Users'])
 def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     """
     Test that completions for files are handled as expected.
@@ -1256,6 +1256,9 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
         # This checks that we can insert file completions next to a / placed at
         # second-level
         qtbot.keyClicks(code_editor, "'/usr/'")
+    elif filename == r'C:\\Users':
+        # This checks that we can insert file completions next to a \
+        qtbot.keyClicks(code_editor, r"'C:\\'")
     else:
         qtbot.keyClicks(code_editor, f"'{filename[0]}'")
     code_editor.moveCursor(QTextCursor.PreviousCharacter)
@@ -1266,6 +1269,8 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
         completion_text = 'home'
     elif filename == '/usr/bin':
         completion_text = 'bin'
+    elif filename == r'C:\\Users':
+        completion_text = 'Users'
     else:
         completion_text = filename
 

@@ -971,7 +971,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
                 # Adjustments for file completions
                 if kind == CompletionItemKind.FILE:
-                    special_chars = ['"', "'", '/']
+                    special_chars = ['"', "'", '/', '\\']
 
                     if any(
                         [current_text.endswith(c) for c in special_chars]
