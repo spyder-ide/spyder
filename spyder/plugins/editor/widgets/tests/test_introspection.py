@@ -1209,7 +1209,7 @@ def test_dot_completions(completions_codeeditor, qtbot):
     qtbot.wait(500)
     assert completion.isVisible()
 
-    # Select a raondom entry in the completion widget
+    # Select a random entry in the completion widget
     entry_index = random.randint(0, 30)
     inserted_entry = completion.completion_list[entry_index]['insertText']
     for _ in range(entry_index):
@@ -1225,7 +1225,7 @@ def test_dot_completions(completions_codeeditor, qtbot):
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "filename", ['000_test.txt', '.hidden', 'any_file.txt', 'abc.py',
-                 'part.0.parquet', '/home', '/usr/bin', r'C:\\Users'])
+                 'part.0.parquet'])
 def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     """
     Test that completions for files are handled as expected.
@@ -1249,40 +1249,20 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
         # This checks that we can insert file completions next to a dot when a
         # filename has several dots.
         qtbot.keyClicks(code_editor, "'part.0.'")
-    elif filename == '/home':
-        # This checks that we can insert file completions next to a /
-        qtbot.keyClicks(code_editor, "'/'")
-    elif filename == '/usr/bin':
-        # This checks that we can insert file completions next to a / placed at
-        # second-level
-        qtbot.keyClicks(code_editor, "'/usr/'")
-    elif filename == r'C:\\Users':
-        # This checks that we can insert file completions next to a \
-        qtbot.keyClicks(code_editor, r"'C:\\'")
     else:
         qtbot.keyClicks(code_editor, f"'{filename[0]}'")
     code_editor.moveCursor(QTextCursor.PreviousCharacter)
     qtbot.wait(500)
 
-    # Set text that will be completed
-    if filename == '/home':
-        completion_text = 'home'
-    elif filename == '/usr/bin':
-        completion_text = 'bin'
-    elif filename == r'C:\\Users':
-        completion_text = 'Users'
-    else:
-        completion_text = filename
-
     mock_response.side_effect = lambda lang, method, params: {'params': [{
-        'label': f'{completion_text}',
+        'label': f'{filename}',
         'kind': CompletionItemKind.FILE,
-        'sortText': (0, f'a{completion_text}'),
-        'insertText': f'{completion_text}',
+        'sortText': (0, f'a{filename}'),
+        'insertText': f'{filename}',
         'data': {'doc_uri': path_as_uri(__file__)},
         'detail': '',
         'documentation': '',
-        'filterText': f'{completion_text}',
+        'filterText': f'{filename}',
         'insertTextFormat': 1,
         'provider': 'LSP',
         'resolve': True
@@ -1294,6 +1274,84 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
 
     qtbot.wait(500)
     assert code_editor.get_text_with_eol() == f"'{filename}'"
+
+
+@pytest.mark.slow
+@pytest.mark.order(1)
+@pytest.mark.parametrize(
+    "directory",
+    [
+         pytest.param(
+             '/home',
+             marks=pytest.mark.skipif(
+                 not sys.platform.startswith('linux'),
+                 reason='Only works on Linux'
+             )
+        ),
+        pytest.param(
+            'C:\\Users',
+            marks=pytest.mark.skipif(
+                not os.name == 'nt',
+                reason='Only works on Windows'
+            )
+        ),
+        pytest.param(
+            'C:\\Windows\\System32',
+            marks=pytest.mark.skipif(
+                not os.name == 'nt',
+                reason='Only works on Windows'
+            )
+        ),
+        pytest.param(
+            '/Library/Frameworks',
+            marks=pytest.mark.skipif(
+                not sys.platform == 'darwin',
+                reason='Only works on macOS'
+            )
+        )
+    ]
+)
+def test_directory_completions(directory, completions_codeeditor, qtbot):
+    """
+    Test that directory completions work as expected.
+    """
+    code_editor, _ = completions_codeeditor
+    completion = code_editor.completion_widget
+
+    qtbot.wait(500)
+    assert not completion.isVisible()
+
+    if directory == '/home':
+        qtbot.keyClicks(code_editor, "'/'")
+    elif directory == 'C:\\Users':
+        qtbot.keyClicks(code_editor, r"'C:\\'")
+    elif directory == 'C:\\Windows\\System32':
+        qtbot.keyClicks(code_editor, r"'C:\\Windows\\'")
+    else:
+        qtbot.keyClicks(code_editor, "'/Library/'")
+
+    code_editor.moveCursor(QTextCursor.PreviousCharacter)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000):
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+
+    qtbot.wait(500)
+    assert completion.isVisible()
+
+    # Select the corresponding entry in the completion widget
+    selected_entry = False
+    while not selected_entry:
+        item = completion.currentItem()
+        label = item.data(Qt.AccessibleTextRole).split()[0]
+        if directory.split(os.sep)[-1] in label:
+            selected_entry = True
+        else:
+            qtbot.keyPress(completion, Qt.Key_Down, delay=50)
+
+    # Insert completion and check that the inserted text is the expected one
+    qtbot.keyPress(completion, Qt.Key_Enter)
+    qtbot.wait(500)
+    assert osp.normpath(code_editor.toPlainText()) == f"'{directory}{os.sep}'"
 
 
 if __name__ == '__main__':
