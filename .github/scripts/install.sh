@@ -19,6 +19,9 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
+        # This is necessary for our tests related to conda envs to pass since
+        # the release of Mamba 1.1.0
+        mamba init
         mamba env update --file requirements/windows.yml
     elif [ "$OS" = "macos" ]; then
         mamba env update --file requirements/macos.yml
