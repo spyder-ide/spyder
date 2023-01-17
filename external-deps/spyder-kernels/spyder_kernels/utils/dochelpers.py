@@ -7,9 +7,6 @@
 # -----------------------------------------------------------------------------
 
 """Utilities and wrappers around inspect module"""
-
-from __future__ import print_function
-
 import builtins
 import inspect
 import re
