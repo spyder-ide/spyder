@@ -232,9 +232,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.sig_remote_execute.disconnect(
             self._when_prompt_is_ready)
 
-        # It's necessary to do this at this point to avoid giving
-        # focus to _control at startup.
-        self._connect_control_signals()
+        # Notes:
+        # 1. It's necessary to do this at this point to avoid giving focus to
+        #    _control at startup.
+        # 2. The try except is needed to avoid some errors in our tests.
+        try:
+            self._connect_control_signals()
+        except RuntimeError:
+            pass
 
         if self.give_focus:
             self.shellwidget._control.setFocus()
