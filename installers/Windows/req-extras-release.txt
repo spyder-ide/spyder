@@ -21,3 +21,6 @@ sympy
 
 # Spyder external plugins
 spyder-terminal>=1.2.2
+
+# Constraint PyZMQ to be <25
+pyzmq<25
