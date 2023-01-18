@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2022-12-23 09:53-0500\n"
-"PO-Revision-Date: 2022-12-23 15:36\n"
+"PO-Revision-Date: 2023-01-04 02:05\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1030,7 +1030,7 @@ msgstr "Afficher les complétions automatiques après la saisie des caractères:
 
 #: spyder/plugins/completion/confpage.py:53
 msgid "Default is 1"
-msgstr ""
+msgstr "Par défaut, 1"
 
 #: spyder/plugins/completion/confpage.py:55
 msgid "Enable code snippets"
@@ -4167,7 +4167,7 @@ msgstr "<br>Redémarrage du noyau...<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:836
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed ({1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment first (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "L'environnement ou installation Python dont l'interpréteur est situé à<pre>    <tt>{0}</tt></pre>n'a pas le module <tt>spyder-kernels</tt> ou la bonne version de celui-ci installé ({1}). Sans ce module il n'est pas possible pour Spyder de créer une console pour vous.<br><br>Vous pouvez l'installer en activant d'abord votre environnement (si nécessaire) puis en cours d'exécution dans un terminal système :<pre>    <tt>{2}</tt></pre>ou<pre>    <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:64
 msgid "Figures now render in the Plots pane by default. To make them also appear inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane options menu."
@@ -4447,7 +4447,7 @@ msgstr "Appliquer à toutes les consoles existantes et redémarrer tous les noya
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:267
 msgid "<br><br>The kernel appears to be dead, so it can't be interrupted. Please open a new console to keep working.<br>"
-msgstr ""
+msgstr "<br><br>Le noyau semble mort, donc il ne peut pas être interrompu. Veuillez ouvrir une nouvelle console pour continuer de travailler.<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:546
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
@@ -5376,27 +5376,27 @@ msgstr "Gestionnaire de PYTHONPATH"
 
 #: spyder/plugins/pythonpath/plugin.py:73
 msgid "Manager of additional locations to search for Python modules."
-msgstr ""
+msgstr "Gestionnaire d'emplacements supplémentaires où rechercher des modules Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:105
 msgid "The paths listed below will be passed to IPython consoles and the Python language server as additional locations to search for Python modules."
-msgstr ""
+msgstr "Les chemins listés ci-dessous seront passés aux consoles IPython et au serveur de langage Python en tant qu'emplacements supplémentaires où rechercher des modules Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:147
 msgid "Move path to the top"
-msgstr ""
+msgstr "Déplacer le chemin en haut"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:152
 msgid "Move path up"
-msgstr ""
+msgstr "Remonter le chemin"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:157
 msgid "Move path down"
-msgstr ""
+msgstr "Déplacer le chemin vers le bas"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:162
 msgid "Move path to the bottom"
-msgstr ""
+msgstr "Déplacer le chemin en bas"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:167 spyder/plugins/pythonpath/widgets/pathmanager.py:439 spyder/plugins/pythonpath/widgets/pathmanager.py:473
 msgid "Add path"
@@ -5412,15 +5412,15 @@ msgstr "Exporter vers une variable d'environnement PYTHONPATH"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:250
 msgid "Project path"
-msgstr ""
+msgstr "Chemin du projet"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:260 spyder/plugins/pythonpath/widgets/pathmanager.py:452
 msgid "User paths"
-msgstr ""
+msgstr "Chemins utilisateur"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:270
 msgid "System PYTHONPATH"
-msgstr ""
+msgstr "PYTHONPATH du système"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:290
 msgid "Export"
@@ -6528,7 +6528,7 @@ msgstr "Si vous acceptez les changements effectués, cela modifiera les variable
 
 #: spyder/utils/programs.py:752
 msgid "External terminal does not support a UNC file path as the working directory."
-msgstr ""
+msgstr "Le terminal externe ne supporte pas un chemin de fichier UNC comme répertoire de travail."
 
 #: spyder/utils/programs.py:766
 msgid "It was not possible to run this file in an external terminal"
@@ -6803,7 +6803,7 @@ msgstr "Aucune donnée ne peut être importée depuis le presse-papiers."
 
 #: spyder/widgets/comboboxes.py:174
 msgid "Clear text"
-msgstr ""
+msgstr "Effacer le texte"
 
 #: spyder/widgets/comboboxes.py:209
 msgid "Press enter to validate this entry"
@@ -6883,27 +6883,27 @@ msgstr "Rechercher le suivant"
 
 #: spyder/widgets/findreplace.py:153
 msgid "Enable case sensitive searches"
-msgstr ""
+msgstr "Activer les recherches sensibles à la casse"
 
 #: spyder/widgets/findreplace.py:161
 msgid "Only search for whole words"
-msgstr ""
+msgstr "Rechercher seulement des mots entiers"
 
 #: spyder/widgets/findreplace.py:198
 msgid "Replace"
-msgstr ""
+msgstr "Remplacer"
 
 #: spyder/widgets/findreplace.py:202
 msgid "Replace next occurrence"
-msgstr ""
+msgstr "Remplacer l'occurrence suivante"
 
 #: spyder/widgets/findreplace.py:209
 msgid "Replace occurrences in selection"
-msgstr ""
+msgstr "Remplacer les occurrences dans la sélection"
 
 #: spyder/widgets/findreplace.py:218
 msgid "Replace all occurrences"
-msgstr ""
+msgstr "Remplacer toutes les occurrences"
 
 #: spyder/widgets/findreplace.py:737
 msgid "of"
