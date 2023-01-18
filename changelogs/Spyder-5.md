@@ -55,7 +55,6 @@ In this release 12 issues were closed.
 In this release 16 pull requests were closed.
 
 
-
 ----
 
 
