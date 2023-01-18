@@ -1,5 +1,26 @@
 # History of changes
 
+## Version 1.7.1 (2023/01/17)
+
+### Issues Closed
+
+* [Issue 332](https://github.com/python-lsp/python-lsp-server/issues/332) - Failed to load hook pylsp_lint: too many values to unpack (expected 3) ([PR 329](https://github.com/python-lsp/python-lsp-server/pull/329) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 338](https://github.com/python-lsp/python-lsp-server/pull/338) - Use shlex.split() to split pylint flags, by [@hfrentzel](https://github.com/hfrentzel)
+* [PR 337](https://github.com/python-lsp/python-lsp-server/pull/337) - Improve Jedi file completions for directories, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 334](https://github.com/python-lsp/python-lsp-server/pull/334) - Include missing Pylint "information" category, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 333](https://github.com/python-lsp/python-lsp-server/pull/333) - Add top constraint to Pylint and fix constraint for `whatthepatch`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 329](https://github.com/python-lsp/python-lsp-server/pull/329) - Fix pydocstyle linting with its 6.2.0 version, by [@ccordoba12](https://github.com/ccordoba12) ([332](https://github.com/python-lsp/python-lsp-server/issues/332))
+* [PR 327](https://github.com/python-lsp/python-lsp-server/pull/327) - Use `sys.executable` instead of `python` in Pylint plugin, by [@bnavigator](https://github.com/bnavigator)
+
+In this release 6 pull requests were closed.
+
+----
+
 ## Version 1.7.0 (2022/12/29)
 
 ### New features
