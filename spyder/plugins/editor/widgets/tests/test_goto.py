@@ -105,7 +105,7 @@ def test_goto_uri(qtbot, codeeditor, mocker, params):
     qtbot.mouseMove(code_editor, point, delay=500)
 
     with qtbot.waitSignal(code_editor.sig_uri_found, timeout=3000) as blocker:
-        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Control, delay=500)
         args = blocker.args
         print([param, expected_output_1])
         print([args])
@@ -150,7 +150,7 @@ def test_goto_uri_project_root_path(qtbot, codeeditor, mocker, tmpdir):
     # Check valid with project open
     with qtbot.waitSignal(code_editor.sig_file_uri_preprocessed,
                           timeout=3000) as blocker:
-        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Control, delay=500)
         args = blocker.args
         assert args[0] == expected_output_path
 
@@ -161,7 +161,7 @@ def test_goto_uri_project_root_path(qtbot, codeeditor, mocker, tmpdir):
     code_editor.set_current_project_path()
     with qtbot.waitSignal(code_editor.sig_file_uri_preprocessed,
                           timeout=3000) as blocker:
-        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Control, delay=500)
         args = blocker.args
         assert args[0] == expected_output_path
 
@@ -178,7 +178,7 @@ def test_goto_uri_message_box(qtbot, codeeditor, mocker):
     def interact():
         msgbox = code_editor.findChild(QMessageBox)
         assert msgbox
-        qtbot.keyClick(msgbox, Qt.Key_Return)
+        qtbot.keyClick(msgbox, Qt.Key.Key_Return)
 
     timer = QTimer()
     timer.setSingleShot(True)
@@ -203,5 +203,5 @@ def test_pattern_highlight_regression(qtbot, codeeditor):
     qtbot.wait(500)
     code_editor.moveCursor(QTextCursor.End)
     qtbot.wait(500)
-    qtbot.keyClick(code_editor, Qt.Key_1)
+    qtbot.keyClick(code_editor, Qt.Key.Key_1)
     qtbot.wait(1000)

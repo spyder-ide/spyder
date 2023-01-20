@@ -41,14 +41,14 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
     qtbot.keyClicks(code_editor, 'thing', delay=delay)
     qtbot.wait(500)
     assert completion.isHidden()
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
+    qtbot.keyPress(code_editor, Qt.Key.Key_Enter, delay=300)  # newline
 
     # Hide even within a function
     qtbot.keyClicks(code_editor, 'print(something', delay=delay)
     qtbot.wait(500)
     assert completion.isHidden()
     qtbot.keyClicks(code_editor, ')', delay=delay)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
+    qtbot.keyPress(code_editor, Qt.Key.Key_Enter, delay=300)  # newline
 
     # Hide even inside comprehension
     qtbot.keyClicks(code_editor, 'a = {something', delay=delay)
@@ -57,30 +57,30 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
 
     # Hide if removing spaces before a word
     code_editor.moveCursor(cursor.End)
-    qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
+    qtbot.keyPress(code_editor, Qt.Key.Key_Enter)  # newline
     qtbot.keyClicks(code_editor, 'some', delay=delay)
-    qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
+    qtbot.keyPress(code_editor, Qt.Key.Key_Enter)  # newline
     qtbot.keyClicks(code_editor, '  None', delay=delay)
     if completion.isVisible():
-        qtbot.keyPress(completion, Qt.Key_Enter)
+        qtbot.keyPress(completion, Qt.Key.Key_Enter)
     code_editor.moveCursor(cursor.StartOfWord)
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Backspace)
     qtbot.wait(2000)
     assert completion.isHidden()
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Backspace)
     qtbot.wait(2000)
     assert completion.isHidden()
 
     # Hide if removing spaces before a word even not at the start of line.
     code_editor.moveCursor(cursor.End)
-    qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
+    qtbot.keyPress(code_editor, Qt.Key.Key_Enter)  # newline
     qtbot.keyClicks(code_editor, 'some +  some ', delay=delay)
-    qtbot.keyPress(code_editor, Qt.Key_Left)
-    qtbot.keyPress(code_editor, Qt.Key_Left)
-    qtbot.keyPress(code_editor, Qt.Key_Left)
-    qtbot.keyPress(code_editor, Qt.Key_Left)
-    qtbot.keyPress(code_editor, Qt.Key_Left)
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Backspace)
     qtbot.wait(2000)
     assert completion.isHidden()
 
@@ -104,7 +104,7 @@ def test_automatic_completions_widget_visible(completions_codeeditor, qtbot):
     code_editor.set_text('import math')
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
+    qtbot.keyPress(code_editor, Qt.Key.Key_Enter, delay=300)  # newline
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000):
@@ -112,11 +112,11 @@ def test_automatic_completions_widget_visible(completions_codeeditor, qtbot):
 
     assert completion.isVisible()
 
-    qtbot.keyPress(code_editor, Qt.Key_Backspace, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Backspace, delay=300)
     qtbot.wait(500)
     assert completion.isVisible()
 
-    qtbot.keyPress(code_editor, Qt.Key_Backspace, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Backspace, delay=300)
     qtbot.wait(500)
     assert completion.isVisible()
 

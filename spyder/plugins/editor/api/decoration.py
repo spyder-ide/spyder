@@ -194,7 +194,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
             self.cursor.clearSelection()
         self.format.setProperty(QTextFormat.FullWidthSelection, flag)
 
-    def set_as_underlined(self, color=Qt.blue):
+    def set_as_underlined(self, color=Qt.GlobalColor.blue):
         """
         Underlines the text.
 
@@ -204,7 +204,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
             QTextCharFormat.SingleUnderline)
         self.format.setUnderlineColor(color)
 
-    def set_as_spell_check(self, color=Qt.blue):
+    def set_as_spell_check(self, color=Qt.GlobalColor.blue):
         """
         Underlines text as a spellcheck error.
 

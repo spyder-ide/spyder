@@ -87,8 +87,8 @@ def test_completions(console_plugin, qtbot):
 
     # Get completions
     qtbot.keyClicks(shell, 'impor')
-    qtbot.keyClick(shell, Qt.Key_Tab)
-    qtbot.keyClick(shell.completion_widget, Qt.Key_Enter)
+    qtbot.keyClick(shell, Qt.Key.Key_Tab)
+    qtbot.keyClick(shell.completion_widget, Qt.Key.Key_Enter)
 
     # Assert completion was introduced in the console
     assert u'import' in shell.toPlainText()

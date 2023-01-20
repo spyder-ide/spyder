@@ -147,23 +147,23 @@ class TabSwitcherWidget(QListWidget):
 
             for key in qsc.split('+'):
                 key = key.lower()
-                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
-                        (key == 'alt' and event.key() == Qt.Key_Alt)):
+                if ((key == 'ctrl' and event.key() == Qt.Key.Key_Control) or
+                        (key == 'alt' and event.key() == Qt.Key.Key_Alt)):
                     self.item_selected()
         event.accept()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method to allow cyclic behavior."""
-        if event.key() == Qt.Key_Down:
+        if event.key() == Qt.Key.Key_Down:
             self.select_row(1)
-        elif event.key() == Qt.Key_Up:
+        elif event.key() == Qt.Key.Key_Up:
             self.select_row(-1)
 
     def focusOutEvent(self, event):
         """Reimplement Qt method to close the widget when loosing focus."""
         event.ignore()
         if sys.platform == "darwin":
-            if event.reason() != Qt.ActiveWindowFocusReason:
+            if event.reason() != Qt.FocusReason.ActiveWindowFocusReason:
                 self.close()
         else:
             self.close()
@@ -308,7 +308,7 @@ class EditorStack(QWidget):
             triggered=self.show_in_external_file_explorer,
             shortcut=CONF.get_shortcut(context="Editor",
                                        name="show in external file explorer"),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
@@ -1443,7 +1443,7 @@ class EditorStack(QWidget):
             triggered=self.sig_split_vertically,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split vertically'),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.horsplit_action = create_action(
             self,
@@ -1453,7 +1453,7 @@ class EditorStack(QWidget):
             triggered=self.sig_split_horizontally,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split horizontally'),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         self.close_action = create_action(
             self,
@@ -1462,7 +1462,7 @@ class EditorStack(QWidget):
             triggered=self.close_split,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='close split panel'),
-            context=Qt.WidgetShortcut)
+            context=Qt.ShortcutContext.WidgetShortcut)
 
         # Regular actions
         actions = [MENU_SEPARATOR, self.versplit_action,
@@ -1492,8 +1492,8 @@ class EditorStack(QWidget):
         self.versplit_action.setEnabled(True)
 
     def set_orientation(self, orientation):
-        self.horsplit_action.setEnabled(orientation == Qt.Horizontal)
-        self.versplit_action.setEnabled(orientation == Qt.Vertical)
+        self.horsplit_action.setEnabled(orientation == Qt.Orientation.Horizontal)
+        self.versplit_action.setEnabled(orientation == Qt.Orientation.Vertical)
 
     def update_actions(self):
         state = self.get_stack_count() > 0
@@ -3098,9 +3098,9 @@ class EditorSplitter(QSplitter):
             self.plugin.clone_editorstack(editorstack=self.editorstack)
         self.editorstack.destroyed.connect(self.editorstack_closed)
         self.editorstack.sig_split_vertically.connect(
-            lambda: self.split(orientation=Qt.Vertical))
+            lambda: self.split(orientation=Qt.Orientation.Vertical))
         self.editorstack.sig_split_horizontally.connect(
-            lambda: self.split(orientation=Qt.Horizontal))
+            lambda: self.split(orientation=Qt.Orientation.Horizontal))
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
@@ -3159,7 +3159,7 @@ class EditorSplitter(QSplitter):
 
         self.__give_focus_to_remaining_editor()
 
-    def split(self, orientation=Qt.Vertical):
+    def split(self, orientation=Qt.Orientation.Vertical):
         """Create and attach a new EditorSplitter to the current EditorSplitter.
 
         The new EditorSplitter widget will contain an EditorStack that
@@ -3230,7 +3230,7 @@ class EditorSplitter(QSplitter):
                 clines = [finfo.editor.get_cursor_line_number()
                           for finfo in editorstack.data]
                 cfname = editorstack.get_current_filename()
-            splitsettings.append((orientation == Qt.Vertical, cfname, clines))
+            splitsettings.append((orientation == Qt.Orientation.Vertical, cfname, clines))
         return dict(hexstate=qbytearray_to_str(self.saveState()),
                     sizes=self.sizes(), splitsettings=splitsettings)
 
@@ -3263,7 +3263,7 @@ class EditorSplitter(QSplitter):
         editor = None
         for i, (is_vertical, cfname, clines) in enumerate(splitsettings):
             if i > 0:
-                splitter.split(Qt.Vertical if is_vertical else Qt.Horizontal)
+                splitter.split(Qt.Orientation.Vertical if is_vertical else Qt.Orientation.Horizontal)
                 splitter = splitter.widget(1)
             editorstack = splitter.widget(0)
             for j, finfo in enumerate(editorstack.data):

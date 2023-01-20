@@ -376,7 +376,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             name='switch to ' + self._name,
             text=self.get_title(),
             toggled=lambda checked: self.toggle_view(checked),
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
             shortcut_context='_',
         )
 
@@ -440,7 +440,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         # Change the cursor shape when dragging
         if top_level:
-            QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
         else:
             QApplication.restoreOverrideCursor()
 

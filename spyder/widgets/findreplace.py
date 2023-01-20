@@ -275,13 +275,13 @@ class FindReplace(QWidget):
             key = event.key()
             shift = event.modifiers() & Qt.ShiftModifier
 
-            if key == Qt.Key_Return:
+            if key == Qt.Key.Key_Return:
                 if shift:
                     self.return_shift_pressed.emit()
                 else:
                     self.return_pressed.emit()
 
-            if key == Qt.Key_Tab:
+            if key == Qt.Key.Key_Tab:
                 if self.search_text.hasFocus():
                     self.replace_text.set_current_text(
                         self.search_text.currentText())

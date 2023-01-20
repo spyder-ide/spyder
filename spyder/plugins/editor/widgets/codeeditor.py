@@ -297,7 +297,7 @@ class CodeEditor(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         # Projects
         self.current_project_path = None
@@ -532,7 +532,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self._mouse_left_button_pressed = False
-        self.ctrl_click_color = QColor(Qt.blue)
+        self.ctrl_click_color = QColor(Qt.GlobalColor.blue)
 
         self._bookmarks_blocks = {}
         self.bookmarks = []
@@ -4661,7 +4661,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.sig_key_released.emit(event)
         key = event.key()
-        direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
+        direction_keys = {Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Down}
         if key in direction_keys:
             self.request_cursor_event()
 
@@ -4669,7 +4669,7 @@ class CodeEditor(TextEditBaseWidget):
         # trigger the emission of the valueChanged signal in
         # verticalScrollBar.
         # See https://bugreports.qt.io/browse/QTBUG-25365
-        if key in {Qt.Key_Up,  Qt.Key_Down}:
+        if key in {Qt.Key.Key_Up,  Qt.Key.Key_Down}:
             self.update_decorations_timer.start()
 
         # This necessary to run our Pygments highlighter again after the
@@ -4744,15 +4744,15 @@ class CodeEditor(TextEditBaseWidget):
             self.clear_occurrences()
 
 
-        if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
+        if key in {Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Down}:
             self.hide_tooltip()
 
         if event.isAccepted():
             # The event was handled by one of the editor extension.
             return
 
-        if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
-                   Qt.Key_Meta, Qt.KeypadModifier]:
+        if key in [Qt.Key.Key_Control, Qt.Key.Key_Shift, Qt.Key.Key_Alt,
+                   Qt.Key.Key_Meta, Qt.KeypadModifier]:
             # The user pressed only a modifier key.
             if ctrl:
                 pos = self.mapFromGlobal(QCursor.pos())
@@ -4775,7 +4775,7 @@ class CodeEditor(TextEditBaseWidget):
         if text not in self.auto_completion_characters:
             if text in operators or text in delimiters:
                 self.completion_widget.hide()
-        if key in (Qt.Key_Enter, Qt.Key_Return):
+        if key in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             if not shift and not ctrl:
                 if (
                     self.add_colons_enabled and
@@ -4818,9 +4818,9 @@ class CodeEditor(TextEditBaseWidget):
                         self.fix_indent(comment_or_string=cmt_or_str,
                                         cur_indent=cur_indent)
                     self.textCursor().endEditBlock()
-        elif key == Qt.Key_Insert and not shift and not ctrl:
+        elif key == Qt.Key.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
-        elif key == Qt.Key_Backspace and not shift and not ctrl:
+        elif key == Qt.Key.Key_Backspace and not shift and not ctrl:
             if has_selection or not self.intelligent_backspace:
                 self._handle_keypress_event(event)
             else:
@@ -4851,9 +4851,9 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                 else:
                     self._handle_keypress_event(event)
-        elif key == Qt.Key_Home:
+        elif key == Qt.Key.Key_Home:
             self.stdkey_home(shift, ctrl)
-        elif key == Qt.Key_End:
+        elif key == Qt.Key.Key_End:
             # See spyder-ide/spyder#495: on MacOS X, it is necessary to
             # redefine this basic action which should have been implemented
             # natively
@@ -4884,7 +4884,7 @@ class CodeEditor(TextEditBaseWidget):
             self.insert_text(text)
             self.request_signature()
         elif (
-            key == Qt.Key_Colon and
+            key == Qt.Key.Key_Colon and
             not has_selection and
             self.auto_unindent_enabled
         ):
@@ -4899,7 +4899,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.unindent(force=True)
             self._handle_keypress_event(event)
         elif (
-            key == Qt.Key_Space and
+            key == Qt.Key.Key_Space and
             not shift and
             not ctrl and
             not has_selection and
@@ -4916,7 +4916,7 @@ class CodeEditor(TextEditBaseWidget):
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             self._handle_keypress_event(event)
-        elif key == Qt.Key_Tab and not ctrl:
+        elif key == Qt.Key.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
             if not has_selection and not self.tab_mode:
@@ -4924,7 +4924,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 # indent the selected text
                 self.indent_or_replace()
-        elif key == Qt.Key_Backtab and not ctrl:
+        elif key == Qt.Key.Key_Backtab and not ctrl:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
             if not has_selection and not self.tab_mode:
@@ -4954,14 +4954,14 @@ class CodeEditor(TextEditBaseWidget):
 
         key = self._last_pressed_key
         if key is not None:
-            if key in [Qt.Key_Return, Qt.Key_Escape,
-                       Qt.Key_Tab, Qt.Key_Backtab, Qt.Key_Space]:
+            if key in [Qt.Key.Key_Return, Qt.Key.Key_Escape,
+                       Qt.Key.Key_Tab, Qt.Key.Key_Backtab, Qt.Key.Key_Space]:
                 self._last_pressed_key = None
                 return
 
         # Correctly handle completions when Backspace key is pressed.
         # We should not show the widget if deleting a space before a word.
-        if key == Qt.Key_Backspace:
+        if key == Qt.Key.Key_Backspace:
             cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
             prev_text = to_text_string(cursor.selectedText())
@@ -4987,7 +4987,7 @@ class CodeEditor(TextEditBaseWidget):
             text = to_text_string(cursor.selectedText())
 
         is_backspace = (
-            self.is_completion_widget_visible() and key == Qt.Key_Backspace)
+            self.is_completion_widget_visible() and key == Qt.Key.Key_Backspace)
 
         if (
             (len(text) >= self.automatic_completions_after_chars) and
@@ -5111,7 +5111,7 @@ class CodeEditor(TextEditBaseWidget):
         text = self.get_word_at(pos)
         if text and not sourcecode.is_keyword(to_text_string(text)):
             if not self.__cursor_changed:
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                QApplication.setOverrideCursor(QCursor(Qt.CursorShape.PointingHandCursor))
                 self.__cursor_changed = True
             cursor = self.cursorForPosition(pos)
             cursor.select(QTextCursor.WordUnderCursor)
@@ -5148,7 +5148,7 @@ class CodeEditor(TextEditBaseWidget):
 
             if not self.__cursor_changed:
                 QApplication.setOverrideCursor(
-                    QCursor(Qt.PointingHandCursor))
+                    QCursor(Qt.CursorShape.PointingHandCursor))
                 self.__cursor_changed = True
 
             self.sig_uri_found.emit(pattern_text)
@@ -5439,9 +5439,9 @@ class CodeEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()
-        self._mouse_left_button_pressed = event.button() == Qt.LeftButton
+        self._mouse_left_button_pressed = event.button() == Qt.MouseButton.LeftButton
 
-        if event.button() == Qt.LeftButton and ctrl:
+        if event.button() == Qt.MouseButton.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
             uri = self._last_hover_pattern_text
@@ -5449,14 +5449,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.go_to_uri_from_cursor(uri)
             else:
                 self.go_to_definition_from_cursor(cursor)
-        elif event.button() == Qt.LeftButton and alt:
+        elif event.button() == Qt.MouseButton.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self._mouse_left_button_pressed = False
 
         self.request_cursor_event()

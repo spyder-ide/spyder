@@ -63,7 +63,7 @@ class DlgGitHubLogin(QDialog):
                                                                     TOKEN_URL))
         token_lbl_msg.setOpenExternalLinks(True)
         token_lbl_msg.setWordWrap(True)
-        token_lbl_msg.setAlignment(Qt.AlignJustify)
+        token_lbl_msg.setAlignment(Qt.AlignmentFlag.AlignJustify)
 
         lbl_token = QLabel("Token: ")
         token_form_layout.setWidget(1, QFormLayout.LabelRole, lbl_token)
@@ -120,7 +120,7 @@ class DlgGitHubLogin(QDialog):
     def eventFilter(self, obj, event):
         interesting_objects = [self.le_token]
         if obj in interesting_objects and event.type() == QEvent.KeyPress:
-            if (event.key() == Qt.Key_Return and
+            if (event.key() == Qt.Key.Key_Return and
                     event.modifiers() & Qt.ControlModifier and
                     self.bt_sign_in.isEnabled()):
                 self.accept()

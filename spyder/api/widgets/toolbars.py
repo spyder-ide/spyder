@@ -40,8 +40,8 @@ ToolbarItemEntry = Tuple[ToolbarItem, Optional[str], Optional[str],
 # ---- Constants
 # ----------------------------------------------------------------------------
 class ToolbarLocation:
-    Top = Qt.TopToolBarArea
-    Bottom = Qt.BottomToolBarArea
+    Top = Qt.ToolBarArea.TopToolBarArea
+    Bottom = Qt.ToolBarArea.BottomToolBarArea
 
 
 # ---- Event filters
@@ -253,7 +253,7 @@ class SpyderToolbar(QToolBar):
                 widget = self.widgetForAction(item)
 
                 if text_beside_icon:
-                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+                    widget.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
                 if item.isCheckable():
                     widget.setCheckable(True)
@@ -352,7 +352,7 @@ class MainWidgetToolbar(SpyderToolbar):
 
                 text_beside_icon = getattr(item, 'text_beside_icon', False)
                 if text_beside_icon:
-                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+                    widget.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
                 if item.isCheckable():
                     widget.setCheckable(True)

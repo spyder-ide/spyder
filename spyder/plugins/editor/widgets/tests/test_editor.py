@@ -367,7 +367,7 @@ def test_replace_current_selected_line(editor_find_replace_bot, qtbot):
     finder.show(hide_replace=False)
     qtbot.keyClicks(finder.search_text, 'spam')
     qtbot.keyClicks(finder.replace_text, 'ham')
-    qtbot.keyPress(finder.replace_text, Qt.Key_Return)
+    qtbot.keyPress(finder.replace_text, Qt.Key.Key_Return)
     assert editor.toPlainText()[0:-1] == expected_new_text
 
 
@@ -383,25 +383,25 @@ def test_replace_enter_press(editor_find_replace_bot, qtbot):
     finder.search_text.lineEdit().setFocus()
 
     # search forward
-    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key.Key_Return)
     assert editor.get_cursor_line_column() == (1,4)
 
-    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key.Key_Return)
     assert editor.get_cursor_line_column() == (2,4)
 
-    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key.Key_Return)
     assert editor.get_cursor_line_column() == (3,4)
 
     # search backwards
-    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return,
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key.Key_Return,
                    modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (2,4)
 
-    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return,
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key.Key_Return,
                    modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (1,4)
 
-    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return,
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key.Key_Return,
                    modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (3,4)
 
@@ -418,7 +418,7 @@ def test_replace_plain_regex(editor_find_replace_bot, qtbot):
 
     qtbot.keyClicks(finder.search_text, 'spam')
     qtbot.keyClicks(finder.replace_text, r'.\[()]*test')
-    qtbot.keyPress(finder.replace_text, Qt.Key_Return)
+    qtbot.keyPress(finder.replace_text, Qt.Key.Key_Return)
     assert editor.toPlainText()[0:-1] == expected_new_text
 
 
@@ -435,24 +435,24 @@ def test_replace_invalid_regex(editor_find_replace_bot, qtbot):
     qtbot.keyClicks(finder.replace_text, 'anything')
 
     if not finder.re_button.isChecked():
-        qtbot.mouseClick(finder.re_button, Qt.LeftButton)
+        qtbot.mouseClick(finder.re_button, Qt.MouseButton.LeftButton)
 
-    qtbot.mouseClick(finder.replace_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_sel_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_sel_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_all_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
 
     # Test with valid search_text and invalid replace_text
     qtbot.keyClicks(finder.search_text, 'anything')
     qtbot.keyClicks(finder.replace_text, '\\')
 
-    qtbot.mouseClick(finder.replace_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_sel_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_sel_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
-    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_all_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == old_text
 
 
@@ -472,14 +472,14 @@ def test_replace_honouring_case(editor_find_replace_bot, qtbot):
 
     # Make sure regex button is set
     if not finder.re_button.isChecked():
-        qtbot.mouseClick(finder.re_button, Qt.LeftButton)
+        qtbot.mouseClick(finder.re_button, Qt.MouseButton.LeftButton)
 
     # Make sure case button is not set
     if finder.case_button.isChecked():
-        qtbot.mouseClick(finder.case_button, Qt.LeftButton)
+        qtbot.mouseClick(finder.case_button, Qt.MouseButton.LeftButton)
 
     # Replace all
-    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_all_button, Qt.MouseButton.LeftButton)
     assert editor.toPlainText() == expected_new_text
 
 
@@ -619,7 +619,7 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot,
     editor.set_text(text)
 
     finder.focusNextChild = MagicMock(name="focusNextChild")
-    qtbot.keyPress(finder.search_text, Qt.Key_Tab)
+    qtbot.keyPress(finder.search_text, Qt.Key.Key_Tab)
     finder.focusNextChild.assert_called_once_with()
 
 
@@ -645,7 +645,7 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
     qtbot.wait(100)
     assert finder.search_text.hasFocus()
     assert not finder.replace_text.hasFocus()
-    qtbot.keyPress(finder.search_text, Qt.Key_Tab)
+    qtbot.keyPress(finder.search_text, Qt.Key.Key_Tab)
     qtbot.wait(100)
     assert not finder.search_text.hasFocus()
     assert finder.replace_text.hasFocus()
@@ -662,7 +662,7 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     finder.search_text.setFocus()
     finder.search_text.set_current_text('This is some test text!')
     qtbot.wait(500)
-    qtbot.keyClick(finder.search_text, Qt.Key_Tab)
+    qtbot.keyClick(finder.search_text, Qt.Key.Key_Tab)
     assert finder.replace_text.currentText() == 'This is some test text!'
 
 

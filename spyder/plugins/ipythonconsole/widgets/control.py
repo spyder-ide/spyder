@@ -89,7 +89,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
-        if (key == Qt.Key_ParenLeft and not self.has_selected_text()
+        if (key == Qt.Key.Key_ParenLeft and not self.has_selected_text()
                 and self.help_enabled and not self.parent()._reading):
             self._key_paren_left(text)
         else:
@@ -110,7 +110,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         """Detect anchors and change cursor shape accordingly."""
         self.anchor = self.anchorAt(event.pos())
         if self.anchor:
-            QApplication.setOverrideCursor(Qt.PointingHandCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
         else:
             QApplication.restoreOverrideCursor()
         super(ControlWidget, self).mouseMoveEvent(event)
@@ -119,7 +119,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         """Ooen anchors when clicked."""
         if self.anchor:
             QDesktopServices.openUrl(QUrl(self.anchor))
-            QApplication.setOverrideCursor(Qt.ArrowCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
             self.anchor = None
         else:
             super(ControlWidget, self).mouseReleaseEvent(event)
@@ -148,7 +148,7 @@ class PageControlWidget(QTextEdit, BaseEditMixin):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
 
-        if key == Qt.Key_Slash and self.isVisible():
+        if key == Qt.Key.Key_Slash and self.isVisible():
             self.sig_show_find_widget_requested.emit()
         else:
             # Let the parent widget handle the key press event

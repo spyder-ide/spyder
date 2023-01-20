@@ -45,15 +45,15 @@ class GoToLineDialog(QDialog):
         last_label_v = QLabel("%d" % editor.get_line_count())
 
         glayout = QGridLayout()
-        glayout.addWidget(label, 0, 0, Qt.AlignVCenter | Qt.AlignRight)
-        glayout.addWidget(self.lineedit, 0, 1, Qt.AlignVCenter)
-        glayout.addWidget(cl_label, 1, 0, Qt.AlignVCenter | Qt.AlignRight)
-        glayout.addWidget(cl_label_v, 1, 1, Qt.AlignVCenter)
-        glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter | Qt.AlignRight)
-        glayout.addWidget(last_label_v, 2, 1, Qt.AlignVCenter)
+        glayout.addWidget(label, 0, 0, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
+        glayout.addWidget(self.lineedit, 0, 1, Qt.AlignmentFlag.AlignVCenter)
+        glayout.addWidget(cl_label, 1, 0, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
+        glayout.addWidget(cl_label_v, 1, 1, Qt.AlignmentFlag.AlignVCenter)
+        glayout.addWidget(last_label, 2, 0, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
+        glayout.addWidget(last_label_v, 2, 1, Qt.AlignmentFlag.AlignVCenter)
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-                                Qt.Vertical, self)
+                                Qt.Orientation.Vertical, self)
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         btnlayout = QVBoxLayout()

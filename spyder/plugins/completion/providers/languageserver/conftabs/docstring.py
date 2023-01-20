@@ -60,19 +60,19 @@ class DocstringConfigTab(SpyderPreferencesTab):
             'pydocstyle/convention')
         self.docstring_style_select = self.create_lineedit(
             _("Show the following errors:"),
-            'pydocstyle/select', alignment=Qt.Horizontal, word_wrap=False,
+            'pydocstyle/select', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D413, D414"))
         self.docstring_style_ignore = self.create_lineedit(
             _("Ignore the following errors:"),
-            'pydocstyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
+            'pydocstyle/ignore', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Example codes: D107, D402"))
         self.docstring_style_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
-            'pydocstyle/match', alignment=Qt.Horizontal, word_wrap=False,
+            'pydocstyle/match', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Skip test files: (?!test_).*\\.py"))
         self.docstring_style_match_dir = self.create_lineedit(
             _("Only check in directories matching these patterns:"),
-            'pydocstyle/match_dir', alignment=Qt.Horizontal, word_wrap=False,
+            'pydocstyle/match_dir', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Skip dot directories: [^\\.].*"))
 
         # Custom option handling

@@ -453,7 +453,7 @@ class FoldingPanel(Panel):
                 if self._mouse_over_line is None:
                     # mouse enter fold scope
                     QApplication.setOverrideCursor(
-                        QCursor(Qt.PointingHandCursor))
+                        QCursor(Qt.CursorShape.PointingHandCursor))
                 if (self._mouse_over_line != block.blockNumber() and
                         self._mouse_over_line is not None):
                     # fold scope changed, a previous block was highlighter so
@@ -617,10 +617,10 @@ class FoldingPanel(Panel):
         Override key press to select the current scope if the user wants
         to deleted a folded scope (without selecting it).
         """
-        delete_request = event.key() in {Qt.Key_Delete, Qt.Key_Backspace}
+        delete_request = event.key() in {Qt.Key.Key_Delete, Qt.Key.Key_Backspace}
         cursor = self.editor.textCursor()
         if cursor.hasSelection():
-            if event.key() == Qt.Key_Return:
+            if event.key() == Qt.Key.Key_Return:
                 delete_request = True
 
         if event.text() or delete_request:

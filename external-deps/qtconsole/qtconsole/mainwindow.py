@@ -73,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # hide tab bar at first, since we have no tabs:
         self.tab_widget.tabBar().setVisible(False)
         # prevent focus in tab bar
-        self.tab_widget.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.tab_widget.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
 
     def update_tab_bar_visibility(self):
         """ update visibility of the tabBar depending of the number of tab
@@ -375,7 +375,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addAction(action)
 
         if defer_shortcut:
-            action.setShortcutContext(QtCore.Qt.WidgetShortcut)
+            action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetShortcut)
 
     def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar

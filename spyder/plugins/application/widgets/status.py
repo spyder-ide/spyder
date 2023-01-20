@@ -68,7 +68,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
         # Set font size and aligment attributes fro custom widget to
         # match default label values
-        self.custom_widget.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.custom_widget.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.custom_widget.setFont(self.text_font)
 
         # Signals

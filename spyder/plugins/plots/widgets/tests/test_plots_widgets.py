@@ -346,7 +346,7 @@ def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
     for i in [1, 0, 2]:
         qtbot.mouseClick(
-            figbrowser.thumbnails_sb._thumbnails[i].canvas, Qt.LeftButton)
+            figbrowser.thumbnails_sb._thumbnails[i].canvas, Qt.MouseButton.LeftButton)
         assert figbrowser.thumbnails_sb.get_current_index() == i
         assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[i]
         assert figbrowser.figviewer.figcanvas.fig == figs[i]

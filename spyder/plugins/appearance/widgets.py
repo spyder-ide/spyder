@@ -102,7 +102,7 @@ class SchemeEditor(QDialog):
         self.widgets[scheme_name] = {}
 
         # Widget setup
-        line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        line_edit.label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.setWindowTitle(_('Color scheme editor'))
 
         # Layout
@@ -137,7 +137,7 @@ class SchemeEditor(QDialog):
                         option,
                         without_layout=True,
                         )
-                    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                     group_layout.addWidget(label, row+1, 0)
                     group_layout.addLayout(clayout, row+1, 1)
 
@@ -149,7 +149,7 @@ class SchemeEditor(QDialog):
                         option,
                         without_layout=True,
                         )
-                    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                     group_layout.addWidget(label, row+1, 0)
                     group_layout.addLayout(clayout, row+1, 1)
                     group_layout.addWidget(cb_bold, row+1, 2)

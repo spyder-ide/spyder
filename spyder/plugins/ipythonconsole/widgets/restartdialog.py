@@ -71,7 +71,7 @@ class ConsoleRestartDialog(QDialog):
         layout.addWidget(self._restart_current)
         layout.addWidget(self._restart_all)
         layout.addSpacing(10)
-        layout.addWidget(self._action_button, 0, Qt.AlignRight)
+        layout.addWidget(self._action_button, 0, Qt.AlignmentFlag.AlignRight)
         layout.setContentsMargins(20, 20, 20, 20)
         self.setLayout(layout)
 

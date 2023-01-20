@@ -81,7 +81,7 @@ BACKGROUND_NUMBER_HUERANGE = 0.33 # (hue for smallest) minus (hue for largest)
 BACKGROUND_NUMBER_SATURATION = 0.7
 BACKGROUND_NUMBER_VALUE = 1.0
 BACKGROUND_NUMBER_ALPHA = 0.6
-BACKGROUND_NONNUMBER_COLOR = Qt.lightGray
+BACKGROUND_NONNUMBER_COLOR = Qt.GlobalColor.lightGray
 BACKGROUND_INDEX_ALPHA = 0.8
 BACKGROUND_STRING_ALPHA = 0.05
 BACKGROUND_MISC_ALPHA = 0.3
@@ -429,7 +429,7 @@ class DataFrameModel(QAbstractTableModel):
     def flags(self, index):
         """Set flags"""
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+                                Qt.ItemFlag.ItemIsEditable))
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""
@@ -617,7 +617,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                                     shortcut=keybinding('Copy'),
                                     icon=ima.icon('editcopy'),
                                     triggered=self.copy,
-                                    context=Qt.WidgetShortcut)
+                                    context=Qt.ShortcutContext.WidgetShortcut)
         functions = ((_("To bool"), bool), (_("To complex"), complex),
                      (_("To int"), int), (_("To float"), float),
                      (_("To str"), to_text_string))
@@ -627,7 +627,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 self.change_type(func)
             types_in_menu += [create_action(self, name,
                                             triggered=slot,
-                                            context=Qt.WidgetShortcut)]
+                                            context=Qt.ShortcutContext.WidgetShortcut)]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)
         return menu
@@ -765,15 +765,15 @@ class DataFrameHeaderModel(QAbstractTableModel):
     def headerData(self, section, orientation, role):
         """Get the information to put in the header."""
         if role == Qt.TextAlignmentRole:
-            if orientation == Qt.Horizontal:
-                return Qt.AlignCenter
+            if orientation == Qt.Orientation.Horizontal:
+                return Qt.AlignmentFlag.AlignCenter
             else:
-                return int(Qt.AlignRight | Qt.AlignVCenter)
+                return int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.axis == 1 and self._shape[1] <= 1:
             return None
-        orient_axis = 0 if orientation == Qt.Horizontal else 1
+        orient_axis = 0 if orientation == Qt.Orientation.Horizontal else 1
         if self.model.header_shape[orient_axis] > 1:
             header = section
         else:
@@ -857,19 +857,19 @@ class DataFrameLevelModel(QAbstractTableModel):
         By default it returns 'Index i', where i is the section in the index
         """
         if role == Qt.TextAlignmentRole:
-            if orientation == Qt.Horizontal:
-                return Qt.AlignCenter
+            if orientation == Qt.Orientation.Horizontal:
+                return Qt.AlignmentFlag.AlignCenter
             else:
-                return int(Qt.AlignRight | Qt.AlignVCenter)
+                return int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
-        if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
+        if self.model.header_shape[0] <= 1 and orientation == Qt.Orientation.Horizontal:
             if self.model.name(1,section):
                 return self.model.name(1,section)
             return _('Index')
         elif self.model.header_shape[0] <= 1:
             return None
-        elif self.model.header_shape[1] <= 1 and orientation == Qt.Vertical:
+        elif self.model.header_shape[1] <= 1 and orientation == Qt.Orientation.Vertical:
             return None
         return _('Index') + ' ' + to_text_string(section)
 
@@ -941,8 +941,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         self.setWindowTitle(title)
 
-        self.hscroll = QScrollBar(Qt.Horizontal)
-        self.vscroll = QScrollBar(Qt.Vertical)
+        self.hscroll = QScrollBar(Qt.Orientation.Horizontal)
+        self.vscroll = QScrollBar(Qt.Orientation.Vertical)
 
         # Create the view for the level
         self.create_table_level()
@@ -1368,7 +1368,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     @Slot()
     def resize_to_contents(self):
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         self.dataTable.resizeColumnsToContents()
         self.dataModel.fetch_more(columns=True)
         self.dataTable.resizeColumnsToContents()

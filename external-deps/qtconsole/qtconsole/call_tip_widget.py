@@ -32,7 +32,7 @@ class CallTipWidget(QtWidgets.QLabel):
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase)
         self.setPalette(QtWidgets.QToolTip.palette())
 
-        self.setAlignment(QtCore.Qt.AlignLeft)
+        self.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
         self.setIndent(1)
         self.setFrameStyle(QtWidgets.QFrame.NoFrame)
         self.setMargin(1 + self.style().pixelMetric(

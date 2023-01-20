@@ -146,7 +146,7 @@ class ApplicationsDialog(QDialog):
 
     def setup(self, applications=None):
         """Load installed applications."""
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         self.list.clear()
         if applications is None:
             apps = get_installed_applications()

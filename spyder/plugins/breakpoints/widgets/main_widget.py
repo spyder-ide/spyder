@@ -127,7 +127,7 @@ class BreakpointTableModel(QAbstractTableModel):
             return to_qvariant()
 
         i_column = int(section)
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             return to_qvariant(COLUMN_HEADERS[i_column])
         else:
             return to_qvariant()
@@ -151,9 +151,9 @@ class BreakpointTableModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             if index.column() == COL_LINE:
                 # Align line number right
-                return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter))
             else:
-                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter))
         elif role == Qt.ToolTipRole:
             if index.column() == COL_FILE:
                 # Return full file name (in last position)

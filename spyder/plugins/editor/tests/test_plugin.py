@@ -439,7 +439,7 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
 
     # Write some blank lines on it.
     for __ in range(3):
-        qtbot.keyClick(codeeditor, Qt.Key_Return)
+        qtbot.keyClick(codeeditor, Qt.Key.Key_Return)
 
     # Save file and check that it has the right eol.
     editorstack.save()

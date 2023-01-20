@@ -168,7 +168,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             self._proxy_style = SpyderProxyStyle(None)
 
         # Enabling scaling for high dpi
-        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        qapp.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
 
         # Set Windows app icon to use .ico file
         if os.name == "nt":
@@ -338,7 +338,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         # To set all dockwidgets tabs to be on top (in case we want to do it
         # in the future)
-        # self.setTabPosition(Qt.AllDockWidgetAreas, QTabWidget.North)
+        # self.setTabPosition(Qt.DockWidgetArea.AllDockWidgetAreas, QTabWidget.North)
 
         logger.info("End of MainWindow constructor")
 
@@ -476,7 +476,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
             sc = QShortcut(QKeySequence(), self,
                            lambda: self.switch_to_plugin(plugin))
-            sc.setContext(Qt.ApplicationShortcut)
+            sc.setContext(Qt.ShortcutContext.ApplicationShortcut)
             plugin._shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
@@ -850,7 +850,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             icon=ima.icon('filelist'),
             tip=_('Fast switch between files'),
             triggered=self.open_switcher,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             id_='file_switcher'
         )
         self.register_shortcut(self.file_switcher_action, context="_",
@@ -860,7 +860,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             icon=ima.icon('symbol_find'),
             tip=_('Fast symbol search in file'),
             triggered=self.open_symbolfinder,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             id_='symbol_finder'
         )
         self.register_shortcut(self.symbol_finder_action, context="_",
@@ -873,7 +873,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                                    icon=icon,
                                    triggered=self.global_callback,
                                    data=method_name,
-                                   context=Qt.WidgetShortcut)
+                                   context=Qt.ShortcutContext.WidgetShortcut)
             self.register_shortcut(action, "Editor", text)
             return action
 
@@ -1370,9 +1370,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             logger.info(message)
         self.splash.show()
         self.splash.showMessage(message,
-                                int(Qt.AlignBottom | Qt.AlignCenter |
-                                    Qt.AlignAbsolute),
-                                QColor(Qt.white))
+                                int(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter |
+                                    Qt.AlignmentFlag.AlignAbsolute),
+                                QColor(Qt.GlobalColor.white))
         QApplication.processEvents()
 
     def change_last_focused_widget(self, old, now):
@@ -1708,11 +1708,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def _test_setting_opengl(self, option):
         """Get the current OpenGL implementation in use"""
         if option == 'software':
-            return QCoreApplication.testAttribute(Qt.AA_UseSoftwareOpenGL)
+            return QCoreApplication.testAttribute(Qt.ApplicationAttribute.AA_UseSoftwareOpenGL)
         elif option == 'desktop':
-            return QCoreApplication.testAttribute(Qt.AA_UseDesktopOpenGL)
+            return QCoreApplication.testAttribute(Qt.ApplicationAttribute.AA_UseDesktopOpenGL)
         elif option == 'gles':
-            return QCoreApplication.testAttribute(Qt.AA_UseOpenGLES)
+            return QCoreApplication.testAttribute(Qt.ApplicationAttribute.AA_UseOpenGLES)
 
 
 #==============================================================================
@@ -1757,7 +1757,7 @@ def main(options, args):
     # **** Set high DPI scaling ****
     # This attribute must be set before creating the application.
     if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-        QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
+        QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling,
                                       CONF.get('main', 'high_dpi_scaling'))
 
     # **** Set debugging info ****
@@ -1774,8 +1774,8 @@ def main(options, args):
         splash.show()
         splash.showMessage(
             _("Initializing..."),
-            int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
-            QColor(Qt.white)
+            int(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignAbsolute),
+            QColor(Qt.GlobalColor.white)
         )
         QApplication.processEvents()
 

@@ -113,7 +113,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
             # See spyder-ide/spyder#9044.
             self.text_font = QFont(QFont().defaultFamily(),
                                    weight=QFont.Normal)
-            self.label_value.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.label_value.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             self.label_value.setFont(self.text_font)
 
         # Custom widget
@@ -143,7 +143,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
         layout.addSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignVCenter)
+        layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         # Setup
         self.update_tooltip()

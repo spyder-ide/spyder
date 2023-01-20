@@ -169,7 +169,7 @@ def test_update_decorations_when_scrolling(qtbot):
 
         # Simulate continuously pressing the down arrow key.
         for __ in range(200):
-            qtbot.keyPress(editor, Qt.Key_Down)
+            qtbot.keyPress(editor, Qt.Key.Key_Down)
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
@@ -177,7 +177,7 @@ def test_update_decorations_when_scrolling(qtbot):
 
         # Simulate continuously pressing the up arrow key.
         for __ in range(200):
-            qtbot.keyPress(editor, Qt.Key_Up)
+            qtbot.keyPress(editor, Qt.Key.Key_Up)
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)

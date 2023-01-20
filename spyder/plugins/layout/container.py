@@ -82,7 +82,7 @@ class LayoutContainer(PluginMainContainer):
             text=_('Close current pane'),
             icon=self.create_icon('close_pane'),
             triggered=self._plugin.close_current_dockwidget,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_'
         )
@@ -93,7 +93,7 @@ class LayoutContainer(PluginMainContainer):
             text=_('Maximize current pane'),
             icon=self.create_icon('maximize'),
             toggled=lambda state: self._plugin.maximize_dockwidget(),
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_')
 
@@ -102,7 +102,7 @@ class LayoutContainer(PluginMainContainer):
             LayoutContainerActions.Fullscreen,
             text=_('Fullscreen mode'),
             triggered=self._plugin.toggle_fullscreen,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_')
         if sys.platform == 'darwin':
@@ -116,7 +116,7 @@ class LayoutContainer(PluginMainContainer):
             text='',
             triggered=lambda checked:
                 self._plugin.toggle_lock(),
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_'
         )
@@ -125,14 +125,14 @@ class LayoutContainer(PluginMainContainer):
             LayoutContainerActions.SaveLayoutAction,
             _("Save current layout"),
             triggered=self.show_save_layout,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=False,
         )
         self._show_preferences_action = self.create_action(
             LayoutContainerActions.ShowLayoutPreferencesAction,
             text=_("Layout preferences"),
             triggered=self.show_layout_settings,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=False,
         )
         self._reset_action = self.create_action(
@@ -147,14 +147,14 @@ class LayoutContainer(PluginMainContainer):
             LayoutContainerActions.NextLayout,
             _("Use next layout"),
             triggered=self.toggle_next_layout,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_')
         self._toggle_previous_layout_action = self.create_action(
             LayoutContainerActions.PreviousLayout,
             _("Use previous layout"),
             triggered=self.toggle_previous_layout,
-            context=Qt.ApplicationShortcut,
+            context=Qt.ShortcutContext.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_')
 

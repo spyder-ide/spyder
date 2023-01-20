@@ -70,7 +70,7 @@ class ShortcutsSummaryDialog(QDialog):
         font_title.setBold(True)
 
         title_label = QLabel(self._shortcuts_summary_title)
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(font_title)
 
         # iter over shortcuts and create GroupBox for each context

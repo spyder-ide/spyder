@@ -233,7 +233,7 @@ class GithubBackend(BaseBackend):
         gh = github.GitHub()
         try:
             qApp = QApplication.instance()
-            qApp.setOverrideCursor(Qt.WaitCursor)
+            qApp.setOverrideCursor(Qt.CursorShape.WaitCursor)
             ret = gh.gists.post(
                 description="SpyderIDE log", public=True,
                 files={'SpyderIDE.log': {"content": log_content}})

@@ -1441,7 +1441,7 @@ class TracebackLinksMixin(object):
         text = self.get_line_at(event.pos())
         if get_error_match(text):
             if not self.__cursor_changed:
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                QApplication.setOverrideCursor(QCursor(Qt.CursorShape.PointingHandCursor))
                 self.__cursor_changed = True
             event.accept()
             return

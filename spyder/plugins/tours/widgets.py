@@ -176,7 +176,7 @@ class FadingCanvas(FadingDialog):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setModal(False)
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self.set_funcs_before_fade_in([self.update_canvas])
         self.set_funcs_after_fade_out([lambda: self.update_widgets(None),
@@ -277,7 +277,7 @@ class FadingCanvas(FadingDialog):
     def reject(self):
         """Override Qt method"""
         if not self.is_fade_running():
-            key = Qt.Key_Escape
+            key = Qt.Key.Key_Escape
             self.key_pressed = key
             self.sig_key_pressed.emit()
 
@@ -345,7 +345,7 @@ class FadingTipBox(FadingDialog):
         self.label_content.setMinimumWidth(self.fixed_width)
         self.label_content.setMaximumWidth(self.fixed_width)
 
-        self.label_current.setAlignment(Qt.AlignCenter)
+        self.label_current.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.label_content.setWordWrap(True)
 
@@ -382,9 +382,9 @@ class FadingTipBox(FadingDialog):
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
 
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         for widget in self.widgets:
-            widget.setFocusPolicy(Qt.NoFocus)
+            widget.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             widget.setStyleSheet(self.stylesheet)
 
         layout_top = QHBoxLayout()
@@ -546,7 +546,7 @@ class FadingTipBox(FadingDialog):
 
         painter.fillPath(self.round_rect_path, self.color_back)
         painter.fillPath(self.top_rect_path, self.color_top)
-        painter.strokePath(self.round_rect_path, QPen(Qt.gray, 1))
+        painter.strokePath(self.round_rect_path, QPen(Qt.GlobalColor.gray, 1))
 
         # TODO: Build the pointing arrow?
 
@@ -555,9 +555,9 @@ class FadingTipBox(FadingDialog):
         key = event.key()
         self.key_pressed = key
 
-        keys = [Qt.Key_Right, Qt.Key_Left, Qt.Key_Down, Qt.Key_Up,
-                Qt.Key_Escape, Qt.Key_PageUp, Qt.Key_PageDown,
-                Qt.Key_Home, Qt.Key_End, Qt.Key_Menu]
+        keys = [Qt.Key.Key_Right, Qt.Key.Key_Left, Qt.Key.Key_Down, Qt.Key.Key_Up,
+                Qt.Key.Key_Escape, Qt.Key.Key_PageUp, Qt.Key.Key_PageDown,
+                Qt.Key.Key_Home, Qt.Key.Key_End, Qt.Key.Key_Menu]
 
         if key in keys:
             if not self.is_fade_running():
@@ -569,7 +569,7 @@ class FadingTipBox(FadingDialog):
         self.parent.raise_()
         self.raise_()
 
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             pass
 #            clicked_widget = self.childAt(event.x(), event.y())
 #            if clicked_widget == self.label_current:
@@ -597,7 +597,7 @@ class FadingTipBox(FadingDialog):
     def reject(self):
         """Qt method to handle escape key event"""
         if not self.is_fade_running():
-            key = Qt.Key_Escape
+            key = Qt.Key.Key_Escape
             self.key_pressed = key
             self.sig_key_pressed.emit()
 
@@ -615,7 +615,7 @@ class AnimatedTour(QWidget):
         self.duration_tips = [333, 333]
         self.opacity_canvas = [0.0, 0.7]
         self.opacity_tips = [0.0, 1.0]
-        self.color = Qt.black
+        self.color = Qt.GlobalColor.black
         self.easing_curve = [QEasingCurve.Linear]
 
         self.current_step = 0
@@ -881,19 +881,19 @@ class AnimatedTour(QWidget):
     def _key_pressed(self):
         key = self.tips.key_pressed
 
-        if ((key == Qt.Key_Right or key == Qt.Key_Down or
-             key == Qt.Key_PageDown) and self.step_current != self.steps - 1):
+        if ((key == Qt.Key.Key_Right or key == Qt.Key.Key_Down or
+             key == Qt.Key.Key_PageDown) and self.step_current != self.steps - 1):
             self.next_step()
-        elif ((key == Qt.Key_Left or key == Qt.Key_Up or
-               key == Qt.Key_PageUp) and self.step_current != 0):
+        elif ((key == Qt.Key.Key_Left or key == Qt.Key.Key_Up or
+               key == Qt.Key.Key_PageUp) and self.step_current != 0):
             self.previous_step()
-        elif key == Qt.Key_Escape:
+        elif key == Qt.Key.Key_Escape:
             self.close_tour()
-        elif key == Qt.Key_Home and self.step_current != 0:
+        elif key == Qt.Key.Key_Home and self.step_current != 0:
             self.first_step()
-        elif key == Qt.Key_End and self.step_current != self.steps - 1:
+        elif key == Qt.Key.Key_End and self.step_current != self.steps - 1:
             self.last_step()
-        elif key == Qt.Key_Menu:
+        elif key == Qt.Key.Key_Menu:
             pos = self.tips.label_current.pos()
             self.tips.context_menu_requested(pos)
 

@@ -202,7 +202,7 @@ class ApplicationConfigPage(PluginConfigPage):
             tip=_("Enter values for different screens "
                   "separated by semicolons ';'.\n"
                   "Float values are supported"),
-            alignment=Qt.Horizontal,
+            alignment=Qt.Orientation.Horizontal,
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
 

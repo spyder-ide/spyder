@@ -159,20 +159,20 @@ def test_file_assoc_widget(file_assoc_widget):
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
         assert widget._dlg_input.lineedit.text() == extension
         assert not widget._dlg_input.button_ok.isEnabled()
-        qtbot.keyClick(widget._dlg_input.button_cancel, Qt.Key_Return)
+        qtbot.keyClick(widget._dlg_input.button_cancel, Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_1)
-    qtbot.mouseClick(widget.button_add, Qt.LeftButton)
+    qtbot.mouseClick(widget.button_add, Qt.MouseButton.LeftButton)
 
     # Test add valid association
     extension = '*.zpam,MANIFEST.in'
 
     def interact_with_dialog_2():
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
-        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key_Return)
+        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_2)
-    qtbot.mouseClick(widget.button_add, Qt.LeftButton)
+    qtbot.mouseClick(widget.button_add, Qt.MouseButton.LeftButton)
     assert widget.list_extensions.count() == 3
     assert widget.list_extensions.item(2).text() == extension
 
@@ -196,20 +196,20 @@ def test_file_assoc_widget(file_assoc_widget):
     def interact_with_dialog_3():
         widget._dlg_input.lineedit.clear()
         qtbot.keyClicks(widget._dlg_input.lineedit, extension)
-        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key_Return)
+        qtbot.keyClick(widget._dlg_input.button_ok, Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_3)
-    qtbot.mouseClick(widget.button_edit, Qt.LeftButton)
+    qtbot.mouseClick(widget.button_edit, Qt.MouseButton.LeftButton)
     assert widget.list_extensions.count() == 4
     assert widget.list_extensions.item(2).text() == extension
 
     # Test remove associations
-    qtbot.mouseClick(widget.button_remove, Qt.LeftButton)
+    qtbot.mouseClick(widget.button_remove, Qt.MouseButton.LeftButton)
     assert widget.list_extensions.count() == 3
 
     # Test set default
     widget.list_applications.setCurrentRow(1)
-    qtbot.mouseClick(widget.button_default, Qt.LeftButton)
+    qtbot.mouseClick(widget.button_default, Qt.MouseButton.LeftButton)
     assert 'App name 2' in widget.list_applications.item(0).text()
 
     # Test add application
@@ -218,13 +218,13 @@ def test_file_assoc_widget(file_assoc_widget):
         count = widget._dlg_applications.list.count()
         if count > 0:
             widget._dlg_applications.list.setCurrentRow(count - 1)
-            qtbot.keyClick(widget._dlg_applications.button_ok, Qt.Key_Return)
+            qtbot.keyClick(widget._dlg_applications.button_ok, Qt.Key.Key_Return)
         else:
             qtbot.keyClick(widget._dlg_applications.button_cancel,
-                           Qt.Key_Return)
+                           Qt.Key.Key_Return)
 
     _ = create_timer(interact_with_dialog_4)
-    qtbot.mouseClick(widget.button_add_application, Qt.LeftButton)
+    qtbot.mouseClick(widget.button_add_application, Qt.MouseButton.LeftButton)
     count = widget.list_applications.count()
     assert count in [2, 3]
 
@@ -236,7 +236,7 @@ def test_file_assoc_widget(file_assoc_widget):
 
     # Test remove application
     widget.list_applications.setCurrentRow(0)
-    qtbot.mouseClick(widget.button_remove_application, Qt.LeftButton)
+    qtbot.mouseClick(widget.button_remove_application, Qt.MouseButton.LeftButton)
     count = widget.list_applications.count()
     assert count in [1, 2]
     assert 'App name 1' in widget.list_applications.item(0).text()

@@ -383,7 +383,7 @@ class BaseSH(QSyntaxHighlighter):
         self.highlight_patterns(text, offset=offset)
 
     def rehighlight(self):
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         QSyntaxHighlighter.rehighlight(self)
         QApplication.restoreOverrideCursor()
 

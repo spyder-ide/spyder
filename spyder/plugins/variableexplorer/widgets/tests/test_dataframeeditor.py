@@ -113,9 +113,9 @@ def test_dataframe_to_type(qtbot):
 
     # Show context menu and select option `To bool`
     view.menu.show()
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    qtbot.keyPress(view.menu, Qt.Key.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key.Key_Return)
 
     # Check that changes where made from the editor
     assert editor.btn_save_and_close.isEnabled()
@@ -139,11 +139,11 @@ def test_dataframe_simpleindex(qtbot):
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "0"
-    assert header.headerData(1, Qt.Horizontal,
+    assert header.headerData(1, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "1"
-    assert header.headerData(5, Qt.Horizontal,
+    assert header.headerData(5, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "5"
 
 
@@ -154,11 +154,11 @@ def test_dataframe_simpleindex_custom_columns():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "a"
-    assert header.headerData(1, Qt.Horizontal,
+    assert header.headerData(1, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "b"
-    assert header.headerData(4, Qt.Horizontal,
+    assert header.headerData(4, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "e"
 
 
@@ -175,7 +175,7 @@ def test_dataframe_multiindex():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == 0
     assert data_header(header, 0, 0) == 'bar'
     assert data_header(header, 1, 0) == 'one'
@@ -197,7 +197,7 @@ def test_header_bom():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "Date (MMM-YY)"
 
 
@@ -209,17 +209,17 @@ def test_header_encoding():
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     header = editor.table_header.model()
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "Unnamed: 0"
-    assert "Unieke_Idcode" in header.headerData(1, Qt.Horizontal,
+    assert "Unieke_Idcode" in header.headerData(1, Qt.Orientation.Horizontal,
                                                 Qt.DisplayRole)
-    assert header.headerData(2, Qt.Horizontal,
+    assert header.headerData(2, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "a"
-    assert header.headerData(3, Qt.Horizontal,
+    assert header.headerData(3, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "b"
-    assert header.headerData(4, Qt.Horizontal,
+    assert header.headerData(4, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "c"
-    assert header.headerData(5, Qt.Horizontal,
+    assert header.headerData(5, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "d"
 
 
@@ -394,7 +394,7 @@ def test_dataframeeditor_with_various_indexes():
         assert dfm.rowCount() == 20
         assert dfm.columnCount() == 1
         header = editor.table_header.model()
-        assert header.headerData(0, Qt.Horizontal,
+        assert header.headerData(0, Qt.Orientation.Horizontal,
                                  Qt.DisplayRole) == "0"
 
         if rng_name == "Index":
@@ -538,19 +538,19 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
             dialog.show()
         view = dialog.dataTable
 
-        qtbot.keyClick(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key.Key_Right)
         qtbot.keyClicks(view, '5')
-        qtbot.keyClick(view, Qt.Key_Down)
-        qtbot.keyClick(view, Qt.Key_Space)
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
-        qtbot.keyClick(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key.Key_Up)
         qtbot.keyClicks(view, '6')
-        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
         qtbot.wait(200)
         dialog.accept()
         qtbot.wait(500)
@@ -615,17 +615,17 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
             dialog.show()
         view = dialog.dataTable
 
-        qtbot.keyClick(view, Qt.Key_Right)
-        qtbot.keyClick(view, Qt.Key_Down)
-        qtbot.keyClick(view, Qt.Key_Space)
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key.Key_Right)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), "42")
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == count * 2 - 1
-        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key.Key_Down)
         qtbot.keyClick(view, '1')
-        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
         MockQMessageBox.critical.assert_called_with(
             ANY, "Error", ("Editing dtype {0!s} not yet supported."
                            .format(type(test_df.iloc[1, 0]).__name__)))
@@ -688,12 +688,12 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
             dialog.show()
         view = dialog.dataTable
 
-        qtbot.keyClick(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key.Key_Right)
         for test_str in test_strs:
-            qtbot.keyClick(view, Qt.Key_Space)
-            qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClick(view, Qt.Key.Key_Space)
+            qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Backspace)
             qtbot.keyClicks(view.focusWidget(), test_str)
-            qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+            qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
             assert not MockQMessageBox.critical.called
         qtbot.wait(200)
         dialog.accept()
@@ -721,7 +721,7 @@ def test_non_ascii_index():
     header = editor.table_header.model()
     dfm = editor.model()
 
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) == "кодирование"
     assert data_index(index, 0, 0) == 'пример'
     assert data(dfm, 0, 0) == 'файла'
@@ -741,7 +741,7 @@ def test_no_convert_strings_to_unicode():
     header = editor.table_header.model()
     dfm = editor.model()
 
-    assert header.headerData(0, Qt.Horizontal,
+    assert header.headerData(0, Qt.Orientation.Horizontal,
                              Qt.DisplayRole) != u"кодирование"
     assert data_index(index, 0, 0) != u'пример'
     assert data(dfm, 0, 0) != u'файла'

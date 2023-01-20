@@ -58,16 +58,16 @@ class LayoutModel(QAbstractTableModel):
         ui_name, name, state = self.row(row)
 
         if name in self.read_only:
-            return Qt.NoItemFlags
+            return Qt.ItemFlag.NoItemFlags
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         column = index.column()
         if column in [0]:
-            return Qt.ItemFlags(int(Qt.ItemIsEnabled | Qt.ItemIsSelectable |
-                                    Qt.ItemIsUserCheckable |
-                                    Qt.ItemIsEditable))
+            return Qt.ItemFlags(int(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable |
+                                    Qt.ItemFlag.ItemIsUserCheckable |
+                                    Qt.ItemFlag.ItemIsEditable))
         else:
-            return Qt.ItemFlags(Qt.ItemIsEnabled)
+            return Qt.ItemFlags(Qt.ItemFlag.ItemIsEnabled)
 
     def data(self, index, role=Qt.DisplayRole):
         """Override Qt method"""
@@ -87,9 +87,9 @@ class LayoutModel(QAbstractTableModel):
         elif role == Qt.CheckStateRole:
             if column == 0:
                 if state:
-                    return Qt.Checked
+                    return Qt.CheckState.Checked
                 else:
-                    return Qt.Unchecked
+                    return Qt.CheckState.Unchecked
             if column == 1:
                 return to_qvariant(state)
         return to_qvariant()
@@ -147,7 +147,7 @@ class LayoutSaveDialog(QDialog):
         self.combo_box.clearEditText()
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
                                            QDialogButtonBox.Cancel,
-                                           Qt.Horizontal, self)
+                                           Qt.Orientation.Horizontal, self)
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
@@ -197,7 +197,7 @@ class LayoutSettingsDialog(QDialog):
         self.button_delete = QPushButton(_('Delete Layout'))
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
                                            QDialogButtonBox.Cancel,
-                                           Qt.Horizontal, self)
+                                           Qt.Orientation.Horizontal, self)
         self.group_box = QGroupBox(_("Layout Display and Order"))
         self.table = QTableView(self)
         self.ok_button = self.button_box.button(QDialogButtonBox.Ok)

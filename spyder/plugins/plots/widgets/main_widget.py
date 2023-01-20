@@ -73,7 +73,7 @@ class PlotsWidget(ShellConnectMainWidget):
         self._right_clicked_thumbnail = None
 
         # Widget setup
-        self.zoom_disp.setAlignment(Qt.AlignCenter)
+        self.zoom_disp.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.zoom_disp.setButtonSymbols(QSpinBox.NoButtons)
         self.zoom_disp.setReadOnly(True)
         self.zoom_disp.setSuffix(' %')

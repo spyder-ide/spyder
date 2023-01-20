@@ -119,11 +119,11 @@ class ShortcutFinder(FinderLineEdit):
     def keyPressEvent(self, event):
         """Qt and FilterLineEdit Override."""
         key = event.key()
-        if key in [Qt.Key_Up]:
+        if key in [Qt.Key.Key_Up]:
             self._parent.previous_row()
-        elif key in [Qt.Key_Down]:
+        elif key in [Qt.Key.Key_Down]:
             self._parent.next_row()
-        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+        elif key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self._parent.show_editor()
         else:
             super(ShortcutFinder, self).keyPressEvent(event)
@@ -173,7 +173,7 @@ class ShortcutEditor(QDialog):
             _("Press the new shortcut and select 'Ok' to confirm, "
               "click 'Cancel' to revert to the previous state, "
               "or use 'Clear' to unbind the command from a shortcut."))
-        self.label_info.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.label_info.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.label_info.setWordWrap(True)
         layout_info = QHBoxLayout()
         layout_info.setContentsMargins(0, 0, 0, 0)
@@ -192,7 +192,7 @@ class ShortcutEditor(QDialog):
         self.helper_button.setIcon(QIcon())
         self.label_warning = QLabel()
         self.label_warning.setWordWrap(True)
-        self.label_warning.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.label_warning.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         self.button_default = QPushButton(_('Default'))
         self.button_ok = QPushButton(_('Ok'))
@@ -270,14 +270,14 @@ class ShortcutEditor(QDialog):
             self.button_clear, self.button_default, self.button_cancel,
             self.button_ok, self.btn_clear_sequence, self.button_back_sequence)
         for w in widgets:
-            w.setFocusPolicy(Qt.NoFocus)
+            w.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             w.clearFocus()
 
     @Slot()
     def reject(self):
         """Slot for rejected signal."""
         # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
-        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # Qt.FocusPolicy.NoFocus for the buttons, if the cancel button was clicked without
         # first setting focus to the button, it would cause a seg fault crash.
         self.button_cancel.setFocus()
         super(ShortcutEditor, self).reject()
@@ -286,7 +286,7 @@ class ShortcutEditor(QDialog):
     def accept(self):
         """Slot for accepted signal."""
         # Added for spyder-ide/spyder#5426.  Due to the focusPolicy of
-        # Qt.NoFocus for the buttons, if the cancel button was clicked without
+        # Qt.FocusPolicy.NoFocus for the buttons, if the cancel button was clicked without
         # first setting focus to the button, it would cause a seg fault crash.
         self.button_ok.setFocus()
         super(ShortcutEditor, self).accept()
@@ -308,13 +308,13 @@ class ShortcutEditor(QDialog):
     def keyPressEvent(self, event):
         """Qt method override."""
         event_key = event.key()
-        if not event_key or event_key == Qt.Key_unknown:
+        if not event_key or event_key == Qt.Key.Key_unknown:
             return
         if len(self._qsequences) == 4:
             # QKeySequence accepts a maximum of 4 different sequences.
             return
-        if event_key in [Qt.Key_Control, Qt.Key_Shift,
-                         Qt.Key_Alt, Qt.Key_Meta]:
+        if event_key in [Qt.Key.Key_Control, Qt.Key.Key_Shift,
+                         Qt.Key.Key_Alt, Qt.Key.Key_Meta]:
             # The event corresponds to just and only a special key.
             return
 
@@ -531,7 +531,7 @@ class ShortcutsModel(QAbstractTableModel):
     def flags(self, index):
         """Qt Override."""
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index)))
 
     def data(self, index, role=Qt.DisplayRole):
@@ -572,18 +572,18 @@ class ShortcutsModel(QAbstractTableModel):
                 # hidden.
                 return to_qvariant(self.scores[row])
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Qt Override."""
         if role == Qt.TextAlignmentRole:
-            if orientation == Qt.Horizontal:
-                return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
-            return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+            if orientation == Qt.Orientation.Horizontal:
+                return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter))
         if role != Qt.DisplayRole:
             return to_qvariant()
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             if section == CONTEXT:
                 return to_qvariant(_("Context"))
             elif section == NAME:
@@ -820,21 +820,21 @@ class ShortcutsTable(QTableView):
     def keyPressEvent(self, event):
         """Qt Override."""
         key = event.key()
-        if key in [Qt.Key_Enter, Qt.Key_Return]:
+        if key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self.show_editor()
-        elif key in [Qt.Key_Tab]:
+        elif key in [Qt.Key.Key_Tab]:
             self.finder.setFocus()
-        elif key in [Qt.Key_Backtab]:
+        elif key in [Qt.Key.Key_Backtab]:
             self.parent().reset_btn.setFocus()
-        elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+        elif key in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right]:
             super(ShortcutsTable, self).keyPressEvent(event)
-        elif key not in [Qt.Key_Escape, Qt.Key_Space]:
+        elif key not in [Qt.Key.Key_Escape, Qt.Key.Key_Space]:
             text = event.text()
             if text:
                 if re.search(VALID_FINDER_CHARS, text) is not None:
                     self.finder.setFocus()
                     self.finder.set_text(text)
-        elif key in [Qt.Key_Escape]:
+        elif key in [Qt.Key.Key_Escape]:
             self.finder.keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, event):

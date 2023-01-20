@@ -351,7 +351,7 @@ class SpyderActionMixin:
     # name where it is applied).
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,
-                      context=Qt.WidgetWithChildrenShortcut, initial=None,
+                      context=Qt.ShortcutContext.WidgetWithChildrenShortcut, initial=None,
                       register_shortcut=False, section=None, option=None,
                       parent=None, register_action=True, overwrite=False,
                       context_name=None, menurole=None):

@@ -46,9 +46,9 @@ class ScrollFlagArea(Panel):
         self._range_indicator_is_visible = False
         self._alt_key_is_down = False
 
-        self._slider_range_color = QColor(Qt.gray)
+        self._slider_range_color = QColor(Qt.GlobalColor.gray)
         self._slider_range_color.setAlphaF(.85)
-        self._slider_range_brush = QColor(Qt.gray)
+        self._slider_range_brush = QColor(Qt.GlobalColor.gray)
         self._slider_range_brush.setAlphaF(.5)
 
         self._update_list_timer = QTimer(self)
@@ -295,20 +295,20 @@ class ScrollFlagArea(Panel):
 
     def mousePressEvent(self, event):
         """Override Qt method"""
-        if self.slider and event.button() == Qt.LeftButton:
+        if self.slider and event.button() == Qt.MouseButton.LeftButton:
             vsb = self.editor.verticalScrollBar()
             value = self.position_to_value(event.pos().y())
             vsb.setValue(int(value-vsb.pageStep()/2))
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
-        if event.key() == Qt.Key_Alt:
+        if event.key() == Qt.Key.Key_Alt:
             self._alt_key_is_down = False
             self.update()
 
     def keyPressEvent(self, event):
         """Override Qt method"""
-        if event.key() == Qt.Key_Alt:
+        if event.key() == Qt.Key.Key_Alt:
             self._alt_key_is_down = True
             self.update()
 

@@ -294,7 +294,7 @@ class ArrayModel(QAbstractTableModel):
                         self.readonly = True
                         return repr(value)
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignCenter|Qt.AlignmentFlag.AlignVCenter))
         elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
                 and value is not np.ma.masked and not self.has_inf):
             try:
@@ -364,15 +364,15 @@ class ArrayModel(QAbstractTableModel):
     def flags(self, index):
         """Set editable flag"""
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+                                Qt.ItemFlag.ItemIsEditable))
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""
         if role != Qt.DisplayRole:
             return to_qvariant()
-        labels = self.xlabels if orientation == Qt.Horizontal else self.ylabels
+        labels = self.xlabels if orientation == Qt.Orientation.Horizontal else self.ylabels
         if labels is None:
             return to_qvariant(int(section))
         else:
@@ -403,7 +403,7 @@ class ArrayDelegate(QItemDelegate):
         elif value is not np.ma.masked:
             editor = QLineEdit(parent)
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            editor.setAlignment(Qt.AlignCenter)
+            editor.setAlignment(Qt.AlignmentFlag.AlignCenter)
             if is_number(self.dtype):
                 validator = QDoubleValidator(editor)
                 validator.setLocale(QLocale('C'))
@@ -515,7 +515,7 @@ class ArrayView(QTableView):
     @Slot()
     def resize_to_contents(self):
         """Resize cells to contents"""
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         self.resizeColumnsToContents()
         self.model().fetch_more(columns=True)
         self.resizeColumnsToContents()
@@ -527,7 +527,7 @@ class ArrayView(QTableView):
                                          shortcut=keybinding('Copy'),
                                          icon=ima.icon('editcopy'),
                                          triggered=self.copy,
-                                         context=Qt.WidgetShortcut)
+                                         context=Qt.ShortcutContext.WidgetShortcut)
         menu = QMenu(self)
         add_actions(menu, [self.copy_action, ])
         return menu

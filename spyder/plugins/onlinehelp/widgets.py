@@ -333,7 +333,7 @@ class PydocBrowser(PluginMainWidget):
         server_needed = checked and self.server is None
         if force or server_needed or not self.is_server_running():
             self.sig_toggle_view_changed.disconnect(self.initialize)
-            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
             self.start_server()
 
     def is_server_running(self):

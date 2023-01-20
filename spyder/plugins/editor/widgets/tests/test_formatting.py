@@ -303,7 +303,7 @@ def test_formatting_on_save(completions_editor, formatter, qtbot):
 
     # Make a simple change to the file
     code_editor.moveCursor(QTextCursor.EndOfLine)
-    qtbot.keyPress(code_editor, Qt.Key_Space)
+    qtbot.keyPress(code_editor, Qt.Key.Key_Space)
     qtbot.wait(500)
 
     # Save the file

@@ -328,9 +328,9 @@ class TestConsoleWidget(unittest.TestCase):
             cursor.insertText('')
 
     def test_link_handling(self):
-        noButton = QtCore.Qt.NoButton
-        noButtons = QtCore.Qt.NoButton
-        noModifiers = QtCore.Qt.NoModifier
+        noButton = QtCore.Qt.MouseButton.NoButton
+        noButtons = QtCore.Qt.MouseButton.NoButton
+        noModifiers = QtCore.Qt.KeyboardModifier.NoModifier
         MouseMove = QtCore.QEvent.MouseMove
         QMouseEvent = QtGui.QMouseEvent
 

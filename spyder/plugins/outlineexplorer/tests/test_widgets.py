@@ -136,7 +136,7 @@ def test_go_to_cursor_position(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem() is None
     qtbot.mouseClick(
         outlineexplorer.get_toolbutton(OutlineExplorerToolbuttons.GoToCursor),
-        Qt.LeftButton)
+        Qt.MouseButton.LeftButton)
     assert outlineexplorer.treewidget.currentItem().text(0) == 'inner'
 
 
@@ -159,7 +159,7 @@ def test_follow_cursor(create_outlineexplorer, qtbot):
     # Go to cursor to open the cursor
     qtbot.mouseClick(
         outlineexplorer.get_toolbutton(OutlineExplorerToolbuttons.GoToCursor),
-        Qt.LeftButton)
+        Qt.MouseButton.LeftButton)
 
     # Check if follows
     editor._editor.go_to_line(1)
@@ -188,7 +188,7 @@ def test_go_to_cursor_position_with_new_file(create_outlineexplorer, qtbot):
     filename = CASES['text']['file']
     qtbot.mouseClick(
         outlineexplorer.get_toolbutton(OutlineExplorerToolbuttons.GoToCursor),
-        Qt.LeftButton)
+        Qt.MouseButton.LeftButton)
     assert outlineexplorer.treewidget.currentItem().text(0) == filename
 
 
@@ -213,7 +213,7 @@ def test_go_to_last_item(create_outlineexplorer, qtbot):
     # toolbar :
     qtbot.mouseClick(
         outlineexplorer.get_toolbutton(OutlineExplorerToolbuttons.GoToCursor),
-        Qt.LeftButton)
+        Qt.MouseButton.LeftButton)
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
 

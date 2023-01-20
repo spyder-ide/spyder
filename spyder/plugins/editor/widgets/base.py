@@ -497,7 +497,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         meta = event.modifiers() & Qt.MetaModifier
         # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
         # copying text in HTML. See spyder-ide/spyder#2285.
-        if (ctrl or meta) and key == Qt.Key_C:
+        if (ctrl or meta) and key == Qt.Key.Key_C:
             self.copy()
         else:
             super(TextEditBaseWidget, self).keyPressEvent(event)
@@ -1122,7 +1122,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.calltip_widget.hide()
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
-                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+                                Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use

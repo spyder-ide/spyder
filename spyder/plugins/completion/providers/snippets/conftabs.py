@@ -46,7 +46,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
               "the settings").format(grammar_url))
         snippets_info_label.setOpenExternalLinks(True)
         snippets_info_label.setWordWrap(True)
-        snippets_info_label.setAlignment(Qt.AlignJustify)
+        snippets_info_label.setAlignment(Qt.AlignmentFlag.AlignJustify)
 
         self.snippets_language_cb = QComboBox(self)
         self.snippets_language_cb.setToolTip(

@@ -71,7 +71,7 @@ class ArrayInline(QLineEdit):
 
     def keyPressEvent(self, event):
         """Override Qt method."""
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+        if event.key() in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self._parent.process_text()
             if self._parent.is_valid():
                 self._parent.keyPressEvent(event)
@@ -86,7 +86,7 @@ class ArrayInline(QLineEdit):
         This is needed to be able to intercept the Tab key press event.
         """
         if event.type() == QEvent.KeyPress:
-            if (event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space):
+            if (event.key() == Qt.Key.Key_Tab or event.key() == Qt.Key.Key_Space):
                 text = self.text()
                 cursor = self.cursorPosition()
 
@@ -120,7 +120,7 @@ class ArrayTable(QTableWidget):
     def keyPressEvent(self, event):
         """Override Qt method."""
         super(ArrayTable, self).keyPressEvent(event)
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+        if event.key() in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             # To avoid having to enter one final tab
             self.setDisabled(True)
             self.setDisabled(False)
@@ -273,8 +273,8 @@ class ArrayBuilderDialog(QDialog):
         # layout
         self._layout = QHBoxLayout()
         self._layout.addWidget(self._widget)
-        self._layout.addWidget(self._button_warning, 1, Qt.AlignTop)
-        self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
+        self._layout.addWidget(self._button_warning, 1, Qt.AlignmentFlag.AlignTop)
+        self._layout.addWidget(self._button_help, 1, Qt.AlignmentFlag.AlignTop)
         self.setLayout(self._layout)
 
         self._widget.setFocus()
@@ -284,7 +284,7 @@ class ArrayBuilderDialog(QDialog):
         QToolTip.hideText()
         ctrl = event.modifiers() & Qt.ControlModifier
 
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+        if event.key() in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             if ctrl:
                 self.process_text(array=False)
             else:
@@ -299,7 +299,7 @@ class ArrayBuilderDialog(QDialog):
 
         Useful when in line edit mode.
         """
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key.Key_Tab:
             return False
 
         return super(ArrayBuilderDialog, self).event(event)

@@ -253,7 +253,7 @@ class CollectionsDelegate(QItemDelegate):
             else:
                 editor = QLineEdit(parent=parent)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-                editor.setAlignment(Qt.AlignLeft)
+                editor.setAlignment(Qt.AlignmentFlag.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after
                 # evaluation. So the object on which this method is trying to
@@ -532,7 +532,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
             else:
                 editor = QLineEdit(parent=parent)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-                editor.setAlignment(Qt.AlignLeft)
+                editor.setAlignment(Qt.AlignmentFlag.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after
                 # evaluation. So the object on which this method is trying to

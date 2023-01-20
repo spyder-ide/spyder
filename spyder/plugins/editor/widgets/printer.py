@@ -36,7 +36,7 @@ class SpyderPrinter(QPrinter):
         header = '%s - %s - Page %s' % (self.docName(), self.date, pagenr)
         painter.save()
         painter.setFont(self.header_font)
-        painter.setPen(QColor(Qt.black))
+        painter.setPen(QColor(Qt.GlobalColor.black))
         if drawing:
             painter.drawText(area.right()-painter.fontMetrics().width(header),
                              area.top()+painter.fontMetrics().ascent(), header)

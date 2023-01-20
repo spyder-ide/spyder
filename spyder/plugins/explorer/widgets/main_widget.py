@@ -325,15 +325,15 @@ class FileExplorerTest(QWidget):
         self.label_dir = QLabel("<b>Open dir:</b>")
         self.label_file = QLabel("<b>Open file:</b>")
         self.label1 = QLabel()
-        self.label_dir.setAlignment(Qt.AlignRight)
+        self.label_dir.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.label2 = QLabel()
         self.label_option = QLabel("<b>Option changed:</b>")
         self.label3 = QLabel()
 
         # Setup
         self.explorer.set_current_folder(self.directory)
-        self.label_file.setAlignment(Qt.AlignRight)
-        self.label_option.setAlignment(Qt.AlignRight)
+        self.label_file.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.label_option.setAlignment(Qt.AlignmentFlag.AlignRight)
 
         # Layout
         hlayout1 = QHBoxLayout()

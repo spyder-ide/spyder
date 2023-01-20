@@ -518,7 +518,7 @@ class LSPServersModel(QAbstractTableModel):
     def flags(self, index):
         """Qt Override."""
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index))
 
     def data(self, index, role=Qt.DisplayRole):
@@ -543,18 +543,18 @@ class LSPServersModel(QAbstractTableModel):
                     text = '&nbsp;<tt>External server</tt>'
                 return to_qvariant(text.format(server.cmd, server.args))
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Qt Override."""
         if role == Qt.TextAlignmentRole:
-            if orientation == Qt.Horizontal:
-                return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
-            return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+            if orientation == Qt.Orientation.Horizontal:
+                return to_qvariant(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+            return to_qvariant(int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter))
         if role != Qt.DisplayRole:
             return to_qvariant()
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             if section == LANGUAGE:
                 return to_qvariant(_("Language"))
             elif section == ADDR:
@@ -703,11 +703,11 @@ class LSPServerTable(QTableView):
     def keyPressEvent(self, event):
         """Qt Override."""
         key = event.key()
-        if key in [Qt.Key_Enter, Qt.Key_Return]:
+        if key in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self.show_editor()
-        elif key in [Qt.Key_Backtab]:
+        elif key in [Qt.Key.Key_Backtab]:
             self.parent().reset_btn.setFocus()
-        elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+        elif key in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right]:
             super(LSPServerTable, self).keyPressEvent(event)
         else:
             super(LSPServerTable, self).keyPressEvent(event)

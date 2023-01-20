@@ -43,7 +43,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             "ipythonconsole.html#using-external-kernels\">"
             "our documentation</a>.</p>"))
         main_label.setWordWrap(True)
-        main_label.setAlignment(Qt.AlignJustify)
+        main_label.setAlignment(Qt.AlignmentFlag.AlignJustify)
         main_label.setOpenExternalLinks(True)
 
         # Connection file
@@ -138,7 +138,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         # Ok and Cancel buttons
         self.accept_btns = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self)
+            Qt.Orientation.Horizontal, self)
 
         self.accept_btns.accepted.connect(self.save_connection_settings)
         self.accept_btns.accepted.connect(self.accept)

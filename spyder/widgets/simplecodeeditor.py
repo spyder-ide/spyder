@@ -395,14 +395,14 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                     else:
                         font.setWeight(font.Normal)
                         painter.setFont(font)
-                        painter.setPen(QColor(Qt.darkGray))
+                        painter.setPen(QColor(Qt.GlobalColor.darkGray))
                     right_padding = self.linenumberarea._right_padding
                     painter.drawText(
                         0,
                         top,
                         self.linenumberarea.width() - right_padding,
                         self.fontMetrics().height(),
-                        Qt.AlignRight, str(number),
+                        Qt.AlignmentFlag.AlignRight, str(number),
                     )
 
                 block = block.next()

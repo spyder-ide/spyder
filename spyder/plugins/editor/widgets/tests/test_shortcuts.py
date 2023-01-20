@@ -88,11 +88,11 @@ def test_start_and_end_of_document_shortcuts(editor_bot):
     assert editor.get_cursor_line_column() == (0, 0)
 
     # Go to the end of the document.
-    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_End, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (4, 0)
 
     # Go to the start of the document.
-    qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Home, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (0, 0)
 
 
@@ -110,20 +110,20 @@ def test_del_undo_redo_shortcuts(editor_bot):
     editor = editorstack.get_current_editor()
 
     # Delete the first character of the first line.
-    qtbot.keyClick(editor, Qt.Key_Delete)
+    qtbot.keyClick(editor, Qt.Key.Key_Delete)
     assert editor.toPlainText() == 'ine1\nLine2\nLine3\nLine4\n'
 
     # Undo the last action with Ctrl+Z.
-    qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Z, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Line1\nLine2\nLine3\nLine4\n'
 
     # Redo the last action with Ctrl+Shift+Z .
-    qtbot.keyClick(editor, Qt.Key_Z,
+    qtbot.keyClick(editor, Qt.Key.Key_Z,
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
     assert editor.toPlainText() == 'ine1\nLine2\nLine3\nLine4\n'
 
     # Undo the last action again with Ctrl+Z.
-    qtbot.keyClick(editor, Qt.Key_Z, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Z, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Line1\nLine2\nLine3\nLine4\n'
 
 
@@ -140,23 +140,23 @@ def test_copy_cut_paste_shortcuts(editor_bot):
     QApplication.clipboard().clear()
 
     # Select and Copy the first line in the editor.
-    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_End, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1'
 
-    qtbot.keyClick(editor, Qt.Key_C, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_C, modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == 'Line1'
 
     # Paste the selected text.
-    qtbot.keyClick(editor, Qt.Key_Home)
-    qtbot.keyClick(editor, Qt.Key_V, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Home)
+    qtbot.keyClick(editor, Qt.Key.Key_V, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Line1Line1\nLine2\nLine3\nLine4\n'
 
     # Select and Cut the first line in the editor.
-    qtbot.keyClick(editor, Qt.Key_Home)
-    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Home)
+    qtbot.keyClick(editor, Qt.Key.Key_End, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1Line1'
 
-    qtbot.keyClick(editor, Qt.Key_X, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_X, modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == 'Line1Line1'
     assert editor.toPlainText() == '\nLine2\nLine3\nLine4\n'
 
@@ -173,7 +173,7 @@ def test_select_all_shortcut(editor_bot):
     editor = editorstack.get_current_editor()
 
     # Select all the text in the editor.
-    qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_A, modifier=Qt.ControlModifier)
     assert editor.get_selected_text() == 'Line1\nLine2\nLine3\nLine4\n'
 
 
@@ -191,7 +191,7 @@ def test_delete_line_shortcut(editor_bot):
 
     # Delete the second line in the editor.
     editor.go_to_line(2)
-    qtbot.keyClick(editor, Qt.Key_D, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_D, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Line1\nLine3\nLine4\n'
 
 
@@ -206,12 +206,12 @@ def test_go_to_line_shortcut(editor_bot, mocker):
     """
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
-    qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Home, modifier=Qt.ControlModifier)
 
     # Go to line 3.
     mocker.patch.object(GoToLineDialog, 'exec_', return_value=True)
     mocker.patch.object(GoToLineDialog, 'get_line_number', return_value=3)
-    qtbot.keyClick(editor, Qt.Key_L, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_L, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (2, 0)
 
 
@@ -228,8 +228,8 @@ def test_transform_to_lowercase_shortcut(editor_bot):
     editor = editorstack.get_current_editor()
 
     # Transform all the text to lowercase.
-    qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
-    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_A, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_U, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'line1\nline2\nline3\nline4\n'
 
 
@@ -246,8 +246,8 @@ def test_transform_to_uppercase_shortcut(editor_bot):
     editor = editorstack.get_current_editor()
 
     # Transform all the text to uppercase.
-    qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
-    qtbot.keyClick(editor, Qt.Key_U,
+    qtbot.keyClick(editor, Qt.Key.Key_A, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_U,
                    modifier=Qt.ControlModifier | Qt.ShiftModifier)
     assert editor.toPlainText() == 'LINE1\nLINE2\nLINE3\nLINE4\n'
 
@@ -266,19 +266,19 @@ def test_next_and_previous_word_shortcuts(editor_bot):
 
     # Go to the next word 3 times.
     assert editor.get_cursor_line_column() == (0, 0)
-    qtbot.keyClick(editor, Qt.Key_Right, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Right, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (0, 5)
-    qtbot.keyClick(editor, Qt.Key_Right, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Right, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (1, 0)
-    qtbot.keyClick(editor, Qt.Key_Right, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Right, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (1, 5)
 
     # Go to the previous word 3 times.
-    qtbot.keyClick(editor, Qt.Key_Left, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Left, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (1, 0)
-    qtbot.keyClick(editor, Qt.Key_Left, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Left, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (0, 5)
-    qtbot.keyClick(editor, Qt.Key_Left, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Left, modifier=Qt.ControlModifier)
     assert editor.get_cursor_line_column() == (0, 0)
 
 
@@ -296,24 +296,24 @@ def test_builtin_shift_del_and_ins(editor_bot):
     QApplication.clipboard().clear()
 
     # Select the first line of the editor.
-    qtbot.keyClick(editor, Qt.Key_End, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_End, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1'
 
     # Copy the selection with Ctrl+Ins.
-    qtbot.keyClick(editor, Qt.Key_Insert, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Insert, modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == 'Line1'
 
     # Paste the copied text at the end of the line with Shift+Ins.
-    qtbot.keyClick(editor, Qt.Key_End)
-    qtbot.keyClick(editor, Qt.Key_Insert, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_End)
+    qtbot.keyClick(editor, Qt.Key.Key_Insert, modifier=Qt.ShiftModifier)
     assert editor.toPlainText() == 'Line1Line1\nLine2\nLine3\nLine4\n'
 
     # Select the second line in the editor again.
-    qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Home, modifier=Qt.ShiftModifier)
     assert editor.get_selected_text() == 'Line1Line1'
 
     # Cut the selection with Shift+Del.
-    qtbot.keyClick(editor, Qt.Key_Delete, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Delete, modifier=Qt.ShiftModifier)
     assert QApplication.clipboard().text() == 'Line1Line1'
     assert editor.toPlainText() == '\nLine2\nLine3\nLine4\n'
 
@@ -330,24 +330,24 @@ def test_builtin_undo_redo(editor_bot):
 
     # Write something on a new line.
     qtbot.keyClicks(editor, 'Something')
-    qtbot.keyClick(editor, Qt.Key_Return)
+    qtbot.keyClick(editor, Qt.Key.Key_Return)
     assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
 
     # Undo the last action with Alt+Backspace.
-    qtbot.keyClick(editor, Qt.Key_Backspace, modifier=Qt.AltModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Backspace, modifier=Qt.AltModifier)
     assert editor.toPlainText() == 'SomethingLine1\nLine2\nLine3\nLine4\n'
 
     # Undo the second to last action with Alt+Backspace.
-    qtbot.keyClick(editor, Qt.Key_Backspace, modifier=Qt.AltModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Backspace, modifier=Qt.AltModifier)
     assert editor.toPlainText() == 'Line1\nLine2\nLine3\nLine4\n'
 
     # Redo the second to last action with Alt+Shift+Backspace.
-    qtbot.keyClick(editor, Qt.Key_Backspace,
+    qtbot.keyClick(editor, Qt.Key.Key_Backspace,
                    modifier=Qt.AltModifier | Qt.ShiftModifier)
     assert editor.toPlainText() == 'SomethingLine1\nLine2\nLine3\nLine4\n'
 
     # Redo the last action with Ctrl+Y.
-    qtbot.keyClick(editor, Qt.Key_Y, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key.Key_Y, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
 
 

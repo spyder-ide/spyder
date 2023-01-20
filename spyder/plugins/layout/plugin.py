@@ -725,7 +725,7 @@ class Layout(SpyderPluginV2):
                 # Automatically show the outline if the editor was maximized:
                 outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
                 self.main.addDockWidget(
-                    Qt.RightDockWidgetArea,
+                    Qt.DockWidgetArea.RightDockWidgetArea,
                     outline_explorer.dockwidget)
                 outline_explorer.dockwidget.show()
         else:

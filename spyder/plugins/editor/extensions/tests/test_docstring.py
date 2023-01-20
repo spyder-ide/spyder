@@ -360,12 +360,12 @@ def test_editor_docstring_below_def_by_shortcut(qtbot, editor_auto_docstring,
     None.
 
     """''',
-         Qt.Key_Enter),
+         Qt.Key.Key_Enter),
         ('''def foo():
 ''',
          '''def foo():
     """a''',
-         Qt.Key_A)
+         Qt.Key.Key_A)
     ])
 def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
                                         text, expected, key):
@@ -379,13 +379,13 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
     cursor.setPosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
 
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
-    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
-    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
+    qtbot.keyPress(editor, Qt.Key.Key_Space)
+    qtbot.keyPress(editor, Qt.Key.Key_Space)
+    qtbot.keyPress(editor, Qt.Key.Key_Space)
+    qtbot.keyPress(editor, Qt.Key.Key_Space)
+    qtbot.keyPress(editor, Qt.Key.Key_QuoteDbl)
+    qtbot.keyPress(editor, Qt.Key.Key_QuoteDbl)
+    qtbot.keyPress(editor, Qt.Key.Key_QuoteDbl)
     qtbot.wait(1000)
     qtbot.keyPress(editor.menu_docstring, key)
     qtbot.wait(1000)

@@ -287,7 +287,7 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
         # Add a single quote to fix the error
         editor.move_cursor(-2)
-        qtbot.keyPress(editor, Qt.Key_Apostrophe)
+        qtbot.keyPress(editor, Qt.Key.Key_Apostrophe)
         assert editor.toPlainText() == "print('test')\n"
 
     # Assert that the error is gone.
@@ -333,7 +333,7 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
         # Add a bracket to fix the error
         editor.move_cursor(-1)
-        qtbot.keyPress(editor, Qt.Key_ParenRight)
+        qtbot.keyPress(editor, Qt.Key.Key_ParenRight)
         assert editor.toPlainText() == "print('test')\n"
 
     # Assert that the error is gone.

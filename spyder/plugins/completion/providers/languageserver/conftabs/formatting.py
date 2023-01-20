@@ -51,20 +51,20 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         # Code style options
         self.code_style_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
-            'pycodestyle/filename', alignment=Qt.Horizontal, word_wrap=False,
+            'pycodestyle/filename', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Check Python files: *.py"))
         self.code_style_exclude = self.create_lineedit(
             _("Exclude files or directories matching these patterns:"),
-            'pycodestyle/exclude', alignment=Qt.Horizontal, word_wrap=False,
+            'pycodestyle/exclude', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Exclude all test files: (?!test_).*\\.py"))
         code_style_select = self.create_lineedit(
             _("Show the following errors or warnings:").format(
                 code_style_codes_url),
-            'pycodestyle/select', alignment=Qt.Horizontal, word_wrap=False,
+            'pycodestyle/select', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E113, W391"))
         code_style_ignore = self.create_lineedit(
             _("Ignore the following errors or warnings:"),
-            'pycodestyle/ignore', alignment=Qt.Horizontal, word_wrap=False,
+            'pycodestyle/ignore', alignment=Qt.Orientation.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E201, E303"))
         self.code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,

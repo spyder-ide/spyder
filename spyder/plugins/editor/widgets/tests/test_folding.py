@@ -102,7 +102,7 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
     # unfolded when searching
     finder.show()
     qtbot.keyClicks(finder.search_text, 'print')
-    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    qtbot.keyPress(finder.search_text, Qt.Key.Key_Return)
     assert line_search.isVisible()
     editor.toggle_code_folding(False)
 

@@ -534,16 +534,16 @@ def test_save_history_dbg(ipyconsole, qtbot):
     # Enter an expression
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, 'aa = 10')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Add a pdb command to make sure it is not saved
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClicks(control, '!u')
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Add an empty line to make sure it is not saved
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Clear console (for some reason using shell.clear_console
     # doesn't work here)
@@ -555,7 +555,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
     # Press Up arrow button and assert we get the last
     # introduced command
-    qtbot.keyClick(control, Qt.Key_Up)
+    qtbot.keyClick(control, Qt.Key.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
     # Open new widget
@@ -575,21 +575,21 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
     # Press Up arrow button and assert we get the last
     # introduced command
-    qtbot.keyClick(control, Qt.Key_Up)
+    qtbot.keyClick(control, Qt.Key.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     # Add a multiline statment and ckeck we can browse it correctly
     shell._pdb_history.append('if True:\n    print(1)')
     shell._pdb_history.append('print(2)')
     shell._pdb_history.append('if True:\n    print(10)')
     shell._pdb_history_index = len(shell._pdb_history)
     # The continuation prompt is here
-    qtbot.keyClick(control, Qt.Key_Up)
+    qtbot.keyClick(control, Qt.Key.Key_Up)
     assert '...:     print(10)' in control.toPlainText()
     shell._control.set_cursor_position(shell._control.get_position('eof') - 25)
-    qtbot.keyClick(control, Qt.Key_Up)
+    qtbot.keyClick(control, Qt.Key.Key_Up)
     assert '...:     print(1)' in control.toPlainText()
 
 
@@ -739,7 +739,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
@@ -751,7 +751,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Assert that there's no new plots in the console
     assert shell._control.toHtml().count('img src') == 1
@@ -759,7 +759,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     # Test if the plot is shown with plt.show()
     qtbot.keyClicks(control, 'plt.show()')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Assert that there's a new plots in the console
     assert shell._control.toHtml().count('img src') == 2
@@ -853,7 +853,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     # Test reset magic
     qtbot.keyClicks(control, 'bb = 10')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     assert shell.get_value('bb') == 10
 
     shell.reset_namespace()
@@ -861,7 +861,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
     qtbot.keyClicks(control, 'bb')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     assert "*** NameError: name 'bb' is not defined" in control.toPlainText()
 
@@ -1172,7 +1172,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.wait(500)
 
     qtbot.keyClicks(control, 'cb')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     # Jedi completion takes time to start up the first time
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs',
                     timeout=6000)
@@ -1182,11 +1182,11 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
         shell.execute('cbba = 1')
     qtbot.waitUntil(lambda: check_value('cbba', 1))
     qtbot.keyClicks(control, 'cb')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(shell._completion_widget.isVisible)
     # cbs is another solution, so not completed yet
     assert control.toPlainText().split()[-1] == 'cb'
-    qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
+    qtbot.keyClick(shell._completion_widget, Qt.Key.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
     # Enter debugging mode
@@ -1196,75 +1196,75 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     # Test complete in debug mode
     # check abs is completed twice (as the cursor moves)
     qtbot.keyClicks(control, 'ab')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abs')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # A second time to check a function call doesn't cause a problem
     qtbot.keyClicks(control, 'print(ab')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(
         lambda: control.toPlainText().split()[-1] == 'print(abs')
     qtbot.keyClicks(control, ')')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Enter an expression
     qtbot.keyClicks(control, 'baab = 10')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(100)
     qtbot.waitUntil(lambda: check_value('baab', 10))
 
     # Check baab is completed
     qtbot.keyClicks(control, 'baa')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Check the completion widget is shown for abba, abs
     qtbot.keyClicks(control, 'abba = 10')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(100)
     qtbot.waitUntil(lambda: check_value('abba', 10))
     qtbot.keyClicks(control, 'ab')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(shell._completion_widget.isVisible)
     assert control.toPlainText().split()[-1] == 'ab'
-    qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
+    qtbot.keyClick(shell._completion_widget, Qt.Key.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abba')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Create a class
     qtbot.keyClicks(control, 'class A(): baba = 1')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(100)
     qtbot.waitUntil(lambda: shell.is_defined('A'))
     qtbot.keyClicks(control, 'a = A()')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(100)
     qtbot.waitUntil(lambda: shell.is_defined('a'))
 
     # Check we can complete attributes
     qtbot.keyClicks(control, 'a.ba')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'a.baba')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Check we can complete pdb command names
     qtbot.keyClicks(control, '!longl')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!longlist')
 
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     # Check we can use custom complete for pdb
     test_file = tmpdir.join('test.py')
@@ -1272,10 +1272,10 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     # Set a breakpoint in the new file
     qtbot.keyClicks(control, '!b ' + str(test_file) + ':1')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     # Check we can complete the breakpoint number
     qtbot.keyClicks(control, '!ignore ')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
@@ -1295,12 +1295,12 @@ def test_pdb_multiline(ipyconsole, qtbot):
 
     # Test reset magic
     qtbot.keyClicks(control, 'if True:')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(500)
     qtbot.keyClicks(control, 'bb = 10')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(500)
-    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(500)
 
     assert shell.get_value('bb') == 10
@@ -1325,12 +1325,12 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
 
     qtbot.keyClicks(control, '!s')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
     qtbot.wait(500)
 
     qtbot.keyClicks(control, '!q')
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.keyClick(control, Qt.Key.Key_Enter)
 
     if show_lib:
         assert 'iostream.py' in control.toPlainText()
@@ -1624,7 +1624,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab',
                     timeout=SHELL_TIMEOUT)
     # quit one layer
@@ -1633,7 +1633,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     assert control.toPlainText().split()[-2:] == ["IPdb", "[4]:"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
-    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.keyClick(control, Qt.Key.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab',
                     timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
@@ -1659,14 +1659,14 @@ def test_stop_pdb(ipyconsole, qtbot):
     shell.execute("import time; time.sleep(10)")
     qtbot.wait(500)
     with qtbot.waitSignal(shell.executed, timeout=1000):
-        qtbot.mouseClick(stop_button, Qt.LeftButton)
+        qtbot.mouseClick(stop_button, Qt.MouseButton.LeftButton)
     assert "KeyboardInterrupt" in control.toPlainText()
     # We are still in the debugger
     assert "IPdb [2]:" in control.toPlainText()
     assert "In [2]:" not in control.toPlainText()
     # Leave the debugger
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(stop_button, Qt.LeftButton)
+        qtbot.mouseClick(stop_button, Qt.MouseButton.LeftButton)
     assert "In [2]:" in control.toPlainText()
 
 

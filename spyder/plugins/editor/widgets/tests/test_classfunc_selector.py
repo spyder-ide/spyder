@@ -66,21 +66,21 @@ def test_class_func_selector(completions_codeeditor, qtbot):
 
     # Check line is followed
     for _ in range(7):
-        qtbot.keyPress(code_editor, Qt.Key_Down)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Down)
     assert panel.class_cb.currentText() == 'SomeObject'
     assert panel.method_cb.currentText() == 'SomeObject.__init__'
 
     for _ in range(18):
-        qtbot.keyPress(code_editor, Qt.Key_Down)
+        qtbot.keyPress(code_editor, Qt.Key.Key_Down)
     assert panel.class_cb.currentText() == 'SomeOtherObject'
     assert (panel.method_cb.currentText()
             == 'SomeOtherObject.hello_3.nested_func')
 
     # Check go to line works for class selector
-    qtbot.mouseClick(panel.class_cb, Qt.LeftButton, pos=QPoint(5, 5))
+    qtbot.mouseClick(panel.class_cb, Qt.MouseButton.LeftButton, pos=QPoint(5, 5))
     listview = panel.class_cb.findChild(QListView)
-    qtbot.keyPress(listview, Qt.Key_Up)
-    qtbot.keyPress(listview, Qt.Key_Return)
+    qtbot.keyPress(listview, Qt.Key.Key_Up)
+    qtbot.keyPress(listview, Qt.Key.Key_Return)
     qtbot.wait(1000)
     cursor = code_editor.textCursor()
     assert cursor.blockNumber() == 4
@@ -88,11 +88,11 @@ def test_class_func_selector(completions_codeeditor, qtbot):
 
     # Check go to line works for func selector
     panel.method_cb.setFocus()
-    qtbot.mouseClick(panel.method_cb, Qt.LeftButton, pos=QPoint(5, 5))
+    qtbot.mouseClick(panel.method_cb, Qt.MouseButton.LeftButton, pos=QPoint(5, 5))
     listview = panel.method_cb.findChild(QListView)
-    qtbot.keyPress(listview, Qt.Key_Down)
-    qtbot.keyPress(listview, Qt.Key_Down)
-    qtbot.keyPress(listview, Qt.Key_Return)
+    qtbot.keyPress(listview, Qt.Key.Key_Down)
+    qtbot.keyPress(listview, Qt.Key.Key_Down)
+    qtbot.keyPress(listview, Qt.Key.Key_Return)
     qtbot.wait(1000)
     cursor = code_editor.textCursor()
     assert cursor.blockNumber() == 9

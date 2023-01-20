@@ -93,15 +93,15 @@ def set_opengl_implementation(option):
     See spyder-ide/spyder#7447 for the details.
     """
     if option == 'software':
-        QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_UseSoftwareOpenGL)
         if QQuickWindow is not None:
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.Software)
     elif option == 'desktop':
-        QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_UseDesktopOpenGL)
         if QQuickWindow is not None:
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
     elif option == 'gles':
-        QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
+        QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_UseOpenGLES)
         if QQuickWindow is not None:
             QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
 
@@ -308,7 +308,7 @@ def create_window(WindowClass, app, splash, options, args):
 
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':
-        QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
+        QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
     if running_in_mac_app():

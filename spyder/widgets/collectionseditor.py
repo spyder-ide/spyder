@@ -356,13 +356,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def get_bgcolor(self, index):
         """Background color depending on value"""
         if index.column() == 0:
-            color = QColor(Qt.lightGray)
+            color = QColor(Qt.GlobalColor.lightGray)
             color.setAlphaF(.05)
         elif index.column() < 3:
-            color = QColor(Qt.lightGray)
+            color = QColor(Qt.GlobalColor.lightGray)
             color.setAlphaF(.2)
         else:
-            color = QColor(Qt.lightGray)
+            color = QColor(Qt.GlobalColor.lightGray)
             color.setAlphaF(.3)
         return color
 
@@ -426,11 +426,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             if index.column() == 3:
                 if len(display.splitlines()) < 3:
-                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
+                    return to_qvariant(int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter))
                 else:
-                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignTop))
+                    return to_qvariant(int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop))
             else:
-                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
@@ -442,7 +442,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return to_qvariant()
         i_column = int(section)
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             headers = (self.header0, _("Type"), _("Size"), _("Value"),
                        _("Score"))
             return to_qvariant(headers[i_column])
@@ -454,9 +454,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         # This method was implemented in CollectionsModel only, but to enable
         # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+                                Qt.ItemFlag.ItemIsEditable))
 
     def reset(self):
         self.beginResetModel()
@@ -550,7 +550,7 @@ class BaseHeaderView(QHeaderView):
     sig_user_resized_section = Signal(int, int, int)
 
     def __init__(self, parent=None):
-        super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
+        super(BaseHeaderView, self).__init__(Qt.Orientation.Horizontal, parent)
         self._handle_section_is_pressed = False
         self.sectionResized.connect(self.sectionResizeEvent)
         # Needed to enable sorting by column
@@ -560,7 +560,7 @@ class BaseHeaderView(QHeaderView):
     def mousePressEvent(self, e):
         super(BaseHeaderView, self).mousePressEvent(e)
         self._handle_section_is_pressed = (self.cursor().shape() ==
-                                           Qt.SplitHCursor)
+                                           Qt.CursorShape.SplitHCursor)
 
     def mouseReleaseEvent(self, e):
         super(BaseHeaderView, self).mouseReleaseEvent(e)
@@ -886,7 +886,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.MouseButton.LeftButton:
             QTableView.mousePressEvent(self, event)
             return
         index_clicked = self.indexAt(event.pos())
@@ -913,9 +913,9 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""
-        if event.key() == Qt.Key_Delete:
+        if event.key() == Qt.Key.Key_Delete:
             self.remove_item()
-        elif event.key() == Qt.Key_F2:
+        elif event.key() == Qt.Key.Key_F2:
             self.rename_item()
         elif event == QKeySequence.Copy:
             self.copy()

@@ -33,7 +33,7 @@ class LineNumberArea(Panel):
 
         self.setMouseTracking(True)
         self.scrollable = True
-        self.linenumbers_color = QColor(Qt.darkGray)
+        self.linenumbers_color = QColor(Qt.GlobalColor.darkGray)
 
         # Markers
         self._markers_margin = True
@@ -220,7 +220,7 @@ class LineNumberArea(Panel):
 
                 painter.drawText(0, top, self.width(),
                                  font_height,
-                                 int(Qt.AlignRight | Qt.AlignBottom),
+                                 int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom),
                                  str(line_number))
 
     def leaveEvent(self, event):
@@ -245,7 +245,7 @@ class LineNumberArea(Panel):
         else:
             self.editor.hide_tooltip()
 
-        if event.buttons() == Qt.LeftButton:
+        if event.buttons() == Qt.MouseButton.LeftButton:
             self._released = line_number
             self.editor.select_lines(self._pressed, self._released)
 

@@ -253,9 +253,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         if self.paging in ('hsplit', 'vsplit'):
             self._splitter = QtWidgets.QSplitter()
             if self.paging == 'hsplit':
-                self._splitter.setOrientation(QtCore.Qt.Horizontal)
+                self._splitter.setOrientation(QtCore.Qt.Orientation.Horizontal)
             else:
-                self._splitter.setOrientation(QtCore.Qt.Vertical)
+                self._splitter.setOrientation(QtCore.Qt.Orientation.Vertical)
             self._splitter.addWidget(self._control)
             layout.addWidget(self._splitter)
         else:
@@ -324,14 +324,14 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             printkey = "Ctrl+Shift+P"
         action.setShortcut(printkey)
-        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
         action.triggered.connect(self.print_)
         self.addAction(action)
         self.print_action = action
 
         action = QtWidgets.QAction('Save as HTML/XML', None)
         action.setShortcut(QtGui.QKeySequence.Save)
-        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
         action.triggered.connect(self.export_html)
         self.addAction(action)
         self.export_action = action
@@ -344,7 +344,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             selectall = "Ctrl+Shift+A"
         action.setShortcut(selectall)
-        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        action.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
         action.triggered.connect(self.select_all_smart)
         self.addAction(action)
         self.select_all_action = action
@@ -352,7 +352,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self.increase_font_size = QtWidgets.QAction("Bigger Font",
                 self,
                 shortcut=QtGui.QKeySequence.ZoomIn,
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                shortcutContext=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
                 statusTip="Increase the font size by one point",
                 triggered=self._increase_font_size)
         self.addAction(self.increase_font_size)
@@ -360,7 +360,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self.decrease_font_size = QtWidgets.QAction("Smaller Font",
                 self,
                 shortcut=QtGui.QKeySequence.ZoomOut,
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                shortcutContext=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
                 statusTip="Decrease the font size by one point",
                 triggered=self._decrease_font_size)
         self.addAction(self.decrease_font_size)
@@ -368,7 +368,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self.reset_font_size = QtWidgets.QAction("Normal Font",
                 self,
                 shortcut="Ctrl+0",
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                shortcutContext=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
                 statusTip="Restore the Normal font size",
                 triggered=self.reset_font)
         self.addAction(self.reset_font_size)
@@ -432,7 +432,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     key in self._ctrl_down_remap:
                 new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                             self._ctrl_down_remap[key],
-                                            QtCore.Qt.NoModifier)
+                                            QtCore.Qt.KeyboardModifier.NoModifier)
                 QtWidgets.QApplication.instance().sendEvent(obj, new_event)
                 return True
 
@@ -445,7 +445,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         # Make middle-click paste safe.
         elif getattr(event, 'button', False) and \
                 etype == QtCore.QEvent.MouseButtonRelease and \
-                event.button() == QtCore.Qt.MiddleButton and \
+                event.button() == QtCore.Qt.MouseButton.MiddleButton and \
                 obj == self._control.viewport():
             cursor = self._control.cursorForPosition(event.pos())
             self._control.setTextCursor(cursor)
@@ -1381,13 +1381,13 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                     self._control.textCursor().insertText(chr(4))
                     new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                                 QtCore.Qt.Key_Return,
-                                                QtCore.Qt.NoModifier)
+                                                QtCore.Qt.KeyboardModifier.NoModifier)
                     QtWidgets.QApplication.instance().sendEvent(self._control, new_event)
                     intercepted = True
                 else:
                     new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                                 QtCore.Qt.Key_Delete,
-                                                QtCore.Qt.NoModifier)
+                                                QtCore.Qt.KeyboardModifier.NoModifier)
                     QtWidgets.QApplication.instance().sendEvent(self._control, new_event)
                     intercepted = True
 
@@ -1627,14 +1627,14 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                      QtCore.Qt.Key_Tab):
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_PageDown,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 
         elif key == QtCore.Qt.Key_Backspace:
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_PageUp,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 
@@ -1642,7 +1642,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         elif key == QtCore.Qt.Key_J:
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_Down,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 
@@ -1650,7 +1650,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         elif key == QtCore.Qt.Key_K:
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_Up,
-                                        QtCore.Qt.NoModifier)
+                                        QtCore.Qt.KeyboardModifier.NoModifier)
             QtWidgets.QApplication.instance().sendEvent(self._page_control, new_event)
             return True
 
@@ -2352,9 +2352,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
             raise NotImplementedError("""can only switch if --paging=hsplit or
                     --paging=vsplit is used.""")
         if paging == 'hsplit':
-            self._splitter.setOrientation(QtCore.Qt.Horizontal)
+            self._splitter.setOrientation(QtCore.Qt.Orientation.Horizontal)
         elif paging == 'vsplit':
-            self._splitter.setOrientation(QtCore.Qt.Vertical)
+            self._splitter.setOrientation(QtCore.Qt.Orientation.Vertical)
         elif paging == 'inside':
             raise NotImplementedError("""switching to 'inside' paging not
                     supported yet.""")

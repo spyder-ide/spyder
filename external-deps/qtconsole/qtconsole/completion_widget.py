@@ -36,7 +36,7 @@ class CompletionWidget(QtWidgets.QListWidget):
         self.setAttribute(QtCore.Qt.WA_StaticContents)
         original_policy = text_edit.focusPolicy()
 
-        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         text_edit.setFocusPolicy(original_policy)
 
         # Ensure that the text edit keeps focus when widget is displayed.

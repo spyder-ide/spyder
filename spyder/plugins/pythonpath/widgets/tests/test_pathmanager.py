@@ -57,7 +57,7 @@ def test_check_uncheck_path(pathmanager):
     for row in range(1, pathmanager.listwidget.count()):
         item = pathmanager.listwidget.item(row)
         if item not in pathmanager.headers:
-            assert item.checkState() == Qt.Checked
+            assert item.checkState() == Qt.CheckState.Checked
 
 
 @pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
@@ -88,7 +88,7 @@ def test_export_to_PYTHONPATH(pathmanager, mocker):
 
     # Uncheck 'path2' and assert that it is removed from PYTHONPATH when it
     # is synchronized with Spyder's path list
-    pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
+    pathmanager.listwidget.item(6).setCheckState(Qt.CheckState.Unchecked)
     pathmanager.export_pythonpath()
     expected_pathlist = ['p1', 'p3']
     env = get_user_env()
@@ -101,7 +101,7 @@ def test_export_to_PYTHONPATH(pathmanager, mocker):
 
     # Uncheck 'path3' and assert that it is kept in PYTHONPATH when it
     # is synchronized with Spyder's path list
-    pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
+    pathmanager.listwidget.item(6).setCheckState(Qt.CheckState.Unchecked)
     pathmanager.export_pythonpath()
     expected_pathlist = ['p3', 'p1']
     env = get_user_env()
@@ -126,7 +126,7 @@ def test_invalid_directories(qtbot, pathmanager):
 
     def interact_message_box():
         child = pathmanager.findChild(QMessageBox)
-        qtbot.keyPress(child, Qt.Key_Enter)
+        qtbot.keyPress(child, Qt.Key.Key_Enter)
 
     for path in paths:
         timer = QTimer()
@@ -150,14 +150,14 @@ def test_remove_item_and_reply_no(qtbot, pathmanager):
         buttons = messagebox.findChildren(QPushButton)
         for button in buttons:
             if 'no' in button.text().lower():
-                qtbot.mouseClick(button, Qt.LeftButton)
+                qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
                 break
 
     timer = QTimer()
     timer.setSingleShot(True)
     timer.timeout.connect(interact_message_box)
     timer.start(100)
-    qtbot.mouseClick(pathmanager.remove_button, Qt.LeftButton)
+    qtbot.mouseClick(pathmanager.remove_button, Qt.MouseButton.LeftButton)
 
     # Back to main thread
     assert pathmanager.count() == count
@@ -176,7 +176,7 @@ def test_remove_item_and_reply_yes(qtbot, pathmanager):
         buttons = messagebox.findChildren(QPushButton)
         for button in buttons:
             if 'yes' in button.text().lower():
-                qtbot.mouseClick(button, Qt.LeftButton)
+                qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
                 break
 
     timer = QTimer()
@@ -184,7 +184,7 @@ def test_remove_item_and_reply_yes(qtbot, pathmanager):
     timer.timeout.connect(interact_message_box)
     timer.start(100)
     pathmanager.listwidget.setCurrentRow(4)
-    qtbot.mouseClick(pathmanager.remove_button, Qt.LeftButton)
+    qtbot.mouseClick(pathmanager.remove_button, Qt.MouseButton.LeftButton)
 
     # Back to main thread
     assert pathmanager.count() == (count - 1)
@@ -206,7 +206,7 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     pathmanager.add_path(dir1)
     pathmanager.add_path(dir2)
     pathmanager.add_path(dir3)
-    pathmanager.set_row_check_state(2, Qt.Unchecked)
+    pathmanager.set_row_check_state(2, Qt.CheckState.Unchecked)
     assert not all(pathmanager.get_path_dict().values())
 
     def interact_message_box():
@@ -214,7 +214,7 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
         buttons = messagebox.findChildren(QPushButton)
         for button in buttons:
             if 'yes' in button.text().lower():
-                qtbot.mouseClick(button, Qt.LeftButton)
+                qtbot.mouseClick(button, Qt.MouseButton.LeftButton)
                 break
 
     timer = QTimer()

@@ -123,7 +123,7 @@ def test_messages_action(findreplace_editor, qtbot):
 
     # Assert messages_action is not visible when there's no text
     edit.selectAll()
-    qtbot.keyClick(edit, Qt.Key_Delete)
+    qtbot.keyClick(edit, Qt.Key.Key_Delete)
     assert not findreplace.messages_action.isVisible()
 
     # Search with wrong regexp
@@ -160,7 +160,7 @@ def test_replace_text_button(findreplace_editor, qtbot):
     assert findreplace.replace_text_button.isChecked()
 
     # Hide with the close button and show find row only
-    qtbot.mouseClick(findreplace.close_button, Qt.LeftButton)
+    qtbot.mouseClick(findreplace.close_button, Qt.MouseButton.LeftButton)
     findreplace.show(hide_replace=True)
     qtbot.wait(500)
     assert not findreplace.replace_text_button.isChecked()
@@ -203,7 +203,7 @@ def test_update_matches(findreplace_editor, qtbot):
     # Check we don't update matches when the widget is hidden
     findreplace.hide()
     qtbot.wait(500)
-    qtbot.keyClick(editor, Qt.Key_Return)
+    qtbot.keyClick(editor, Qt.Key.Key_Return)
     qtbot.keyClicks(editor, 'foo')
     qtbot.wait(500)
     assert findreplace.number_matches_text.text() == '3 matches'

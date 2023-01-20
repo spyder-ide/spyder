@@ -758,16 +758,16 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
         indicies = [view.source_model.get_index_from_key(key) for key in keys]
 
         for _ in range(3):
-            qtbot.keyClick(view, Qt.Key_Right)
+            qtbot.keyClick(view, Qt.Key.Key_Right)
         last_row = -1
         rows_to_test = [index.row() for index in indicies]
         for row in rows_to_test:
             for _ in range(row - last_row - 1):
-                qtbot.keyClick(view, Qt.Key_Down)
-            qtbot.keyClick(view, Qt.Key_Space)
-            qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+                qtbot.keyClick(view, Qt.Key.Key_Down)
+            qtbot.keyClick(view, Qt.Key.Key_Space)
+            qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Backspace)
             qtbot.keyClicks(view.focusWidget(), "2")
-            qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+            qtbot.keyClick(view.focusWidget(), Qt.Key.Key_Down)
             last_row = row
 
         qtbot.wait(100)
@@ -834,7 +834,7 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     view = editor.widget.editor
     header = view.horizontalHeader()
     with qtbot.waitSignal(header.sectionClicked, timeout=200):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
+        qtbot.mouseClick(header.viewport(), Qt.MouseButton.LeftButton, pos=QPoint(1, 1))
 
     # Assert data was sorted correctly.
     assert data(view.model, 0, 0) == 9999

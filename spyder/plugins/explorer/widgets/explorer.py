@@ -776,13 +776,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
-        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if event.key() in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             self.clicked()
-        elif event.key() == Qt.Key_F2:
+        elif event.key() == Qt.Key.Key_F2:
             self.rename()
-        elif event.key() == Qt.Key_Delete:
+        elif event.key() == Qt.Key.Key_Delete:
             self.delete()
-        elif event.key() == Qt.Key_Backspace:
+        elif event.key() == Qt.Key.Key_Backspace:
             self.go_to_parent_directory()
         else:
             QTreeView.keyPressEvent(self, event)
@@ -831,10 +831,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
                 if event.pos().x() > item_identation:
                     # When hovering over directories or files
-                    self.setCursor(Qt.PointingHandCursor)
+                    self.setCursor(Qt.CursorShape.PointingHandCursor)
                 else:
                     # On every other element
-                    self.setCursor(Qt.ArrowCursor)
+                    self.setCursor(Qt.CursorShape.ArrowCursor)
 
             self.setToolTip(self.get_filename(index))
 

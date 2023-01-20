@@ -95,7 +95,7 @@ def test_sort_by_column(namespacebrowser, qtbot):
 
     with qtbot.waitSignal(header.sectionClicked):
         browser.show()
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
+        qtbot.mouseClick(header.viewport(), Qt.MouseButton.LeftButton, pos=QPoint(1, 1))
 
     # Check sort effect
     assert data_table(model, 2, 4) == [['b_variable', 'a_variable'],
@@ -145,7 +145,7 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
     # Sort
     header = browser.editor.horizontalHeader()
     with qtbot.waitSignal(header.sectionClicked):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
+        qtbot.mouseClick(header.viewport(), Qt.MouseButton.LeftButton, pos=QPoint(1, 1))
 
     # Assert we loaded all data before performing the sort.
     assert data(model, 0, 0) == 'i'

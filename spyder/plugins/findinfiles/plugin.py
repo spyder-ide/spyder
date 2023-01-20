@@ -64,7 +64,7 @@ class FindInFiles(SpyderDockablePlugin):
             tip=_("Search text in multiple files"),
             triggered=self.find,
             register_shortcut=True,
-            context=Qt.WindowShortcut
+            context=Qt.ShortcutContext.WindowShortcut
         )
         self.refresh_search_directory()
 

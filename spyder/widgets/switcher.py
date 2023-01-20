@@ -64,13 +64,13 @@ class KeyPressFilter(QObject):
     def eventFilter(self, src, e):
         """Override Qt eventFilter."""
         if e.type() == QEvent.KeyPress:
-            if e.key() == Qt.Key_Up:
+            if e.key() == Qt.Key.Key_Up:
                 self.sig_up_key_pressed.emit()
                 return True
-            elif e.key() == Qt.Key_Down:
+            elif e.key() == Qt.Key.Key_Down:
                 self.sig_down_key_pressed.emit()
                 return True
-            elif (e.key() == Qt.Key_Return):
+            elif (e.key() == Qt.Key.Key_Return):
                 self.sig_enter_key_pressed.emit()
                 return True
         return super(KeyPressFilter, self).eventFilter(src, e)
@@ -79,7 +79,7 @@ class KeyPressFilter(QObject):
 class SwitcherDelegate(HTMLDelegate):
     """
     This delegate allows the list view of the switcher to look like it has
-    the focus, even when its focus policy is set to Qt.NoFocus.
+    the focus, even when its focus policy is set to Qt.FocusPolicy.NoFocus.
     """
 
     def paint(self, painter, option, index):
@@ -194,7 +194,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         """Separator Item represented as <hr>."""
         super(SwitcherSeparatorItem, self).__init__(parent=parent,
                                                     styles=styles)
-        self.setFlags(Qt.NoItemFlags)
+        self.setFlags(Qt.ItemFlag.NoItemFlags)
         self._set_rendered_text()
 
     # --- Helpers
@@ -305,7 +305,7 @@ class SwitcherItem(SwitcherBaseItem):
         self._section_visible = True
 
         # Setup
-        self.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+        self.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
 
         if icon:
             self.setIcon(icon)
@@ -573,7 +573,7 @@ class Switcher(QDialog):
         self.edit.setPlaceholderText(help_text if help_text else '')
         self.list.setMinimumWidth(self._MIN_WIDTH)
         self.list.setItemDelegate(SwitcherDelegate(self))
-        self.list.setFocusPolicy(Qt.NoFocus)
+        self.list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.list.setSelectionBehavior(self.list.SelectItems)
         self.list.setSelectionMode(self.list.SingleSelection)
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)

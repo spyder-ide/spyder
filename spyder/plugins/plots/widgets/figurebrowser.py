@@ -329,7 +329,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             QScrollArea.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
-        self.setAlignment(Qt.AlignCenter)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
             "#figviewport {background-color:" + str(background_color) + "}")
@@ -413,8 +413,8 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # ---- Panning
         # Set ClosedHandCursor:
         elif event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
-                QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+            if event.button() == Qt.MouseButton.LeftButton:
+                QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
                 self._ispanning = True
                 self.xclick = event.globalX()
                 self.yclick = event.globalY()
@@ -639,10 +639,10 @@ class ThumbnailScrollBar(QFrame):
         """
         if event.type() == QEvent.KeyPress:
             key = event.key()
-            if key == Qt.Key_Up:
+            if key == Qt.Key.Key_Up:
                 self.go_previous_thumbnail()
                 return True
-            elif key == Qt.Key_Down:
+            elif key == Qt.Key.Key_Down:
                 self.go_next_thumbnail()
                 return True
         if event.type() == QEvent.Resize:
@@ -988,7 +988,7 @@ class FigureThumbnail(QWidget):
         """Setup the main layout of the widget."""
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
+        layout.addWidget(self.canvas, 0, 0, Qt.AlignmentFlag.AlignCenter)
         layout.setSizeConstraint(layout.SetFixedSize)
 
     def highlight_canvas(self, highlight):
@@ -1028,7 +1028,7 @@ class FigureThumbnail(QWidget):
         clicked.
         """
         if event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
+            if event.button() == Qt.MouseButton.LeftButton:
                 self.sig_canvas_clicked.emit(self)
 
         return super().eventFilter(widget, event)

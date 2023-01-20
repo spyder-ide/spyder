@@ -159,7 +159,7 @@ def test_close_quotes_in_brackets(qtbot, editor_close_quotes):
     assert editor.toPlainText() == 'foo("")'
     assert editor.textCursor().columnNumber() == 5
     # Test not closing when single quote is before a bracket
-    qtbot.keyPress(editor, Qt.Key_Delete)  # now 'foo(")'
+    qtbot.keyPress(editor, Qt.Key.Key_Delete)  # now 'foo(")'
     qtbot.keyClicks(editor, '"')
     assert editor.toPlainText() == 'foo("")'
     assert editor.textCursor().columnNumber() == 6

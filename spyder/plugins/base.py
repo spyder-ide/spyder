@@ -92,10 +92,10 @@ class BasePluginMixin(object):
     def _starting_long_process(self, message):
         """
         Show message in main window's status bar and change cursor to
-        Qt.WaitCursor
+        Qt.CursorShape.WaitCursor
         """
         self._show_status_message(message)
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
         QApplication.processEvents()
 
     def _ending_long_process(self, message=""):
@@ -334,7 +334,7 @@ class BasePluginWidgetMixin(object):
             action = create_action(self, title,
                              toggled=lambda checked: self.toggle_view(checked),
                              shortcut=QKeySequence(self.shortcut),
-                             context=Qt.WidgetShortcut)
+                             context=Qt.ShortcutContext.WidgetShortcut)
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))
