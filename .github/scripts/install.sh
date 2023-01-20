@@ -37,6 +37,9 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # Install IPython 8
     mamba install -c conda-forge ipython=8
+
+    # Install PyZMQ 24 to avoid hangs
+    mamba install -c conda-forge pyzmq=24
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -61,6 +64,9 @@ else
 
     # Install IPython 8
     pip install ipython==8.7.0
+
+    # Install PyZMQ 24 to avoid hangs
+    pip install pyzmq==24.0.1
 fi
 
 # Install subrepos from source
