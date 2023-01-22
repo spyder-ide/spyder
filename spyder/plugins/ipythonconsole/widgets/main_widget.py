@@ -1067,7 +1067,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         - Do this as early as possible to make it a low priority and
           overrideable.
         """
-        if os.name == 'nt':
+        if os.name == 'nt' and sys.version_info[:2] >= (3, 8):
             # Tests on Linux hang if we don't leave this import here.
             import tornado
             if tornado.version_info >= (6, 1):
