@@ -35,9 +35,8 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
-from spyder.py3compat import (is_binary_string, is_string,
-                              is_text_string, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import (is_binary_string, is_string, is_text_string,
+                              to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog

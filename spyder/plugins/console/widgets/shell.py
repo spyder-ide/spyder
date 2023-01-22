@@ -30,8 +30,7 @@ from qtpy.QtWidgets import QApplication, QMenu
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
-from spyder.py3compat import (is_string, is_text_string,
-                              to_text_string)
+from spyder.py3compat import is_string, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -562,7 +561,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         except TypeError:
             text = b"".join(self.__buffer)
             try:
-                text = text.decode( locale.getdefaultlocale()[1] )
+                text = text.decode(locale.getdefaultlocale()[1])
             except:
                 pass
 

@@ -15,9 +15,9 @@
 
 # Standard library imports
 import builtins
-from time import time
 import os
 import threading
+from time import time
 
 # Third party imports
 from qtpy.QtCore import QEventLoop, QObject, Signal, Slot

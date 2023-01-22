@@ -6,16 +6,17 @@
 
 """Spyder Language Server Protocol Client common util functions."""
 
-import re
+# Standard library imports
 import os
 import os.path as osp
-from spyder.utils.encoding import to_unicode
-
-
 import pathlib
+import re
 from urllib.parse import urlparse
 from urllib.parse import quote_from_bytes as urlquote_from_bytes
 from urllib.request import url2pathname
+
+# Local imports
+from spyder.utils.encoding import to_unicode
 
 
 def as_posix(path_obj):

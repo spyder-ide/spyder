@@ -26,7 +26,6 @@ from IPython.core.application import get_ipython_dir
 from flaky import flaky
 from packaging.version import parse
 import pytest
-from qtpy import PYQT5
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QMessageBox
@@ -797,8 +796,7 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt',
-                    reason="It times out frequently")
+@pytest.mark.skipif(os.name == 'nt', reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
     Test that Matplotlib backend is changed correctly when

@@ -3033,8 +3033,7 @@ def test_go_to_definition(main_window, qtbot, capsys):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="It times out on macOS")
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
 def test_debug_unsaved_file(main_window, qtbot):
     """Test that we can debug an unsaved file."""
     # Wait until the window is fully up

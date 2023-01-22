@@ -11,6 +11,7 @@ Text data Importing Wizard based on Qt
 # Standard library imports
 import datetime
 from functools import partial as ft_partial
+import io
 from itertools import zip_longest
 
 # Third party imports

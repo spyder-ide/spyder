@@ -67,10 +67,13 @@ from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6
 
+# To handle large collections
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
+# Numeric types
 NUMERIC_TYPES = (int, float) + get_numeric_numpy_types()
+
 
 def natsort(s):
     """
