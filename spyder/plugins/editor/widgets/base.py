@@ -30,7 +30,7 @@ from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
-from spyder.py3compat import PY3, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
@@ -485,7 +485,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
         # spyder-ide/spyder#1546).
-        if os.name == 'nt' and PY3:
+        if os.name == 'nt':
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
                        .replace('\u0085', '\n')

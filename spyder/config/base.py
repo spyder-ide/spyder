@@ -25,7 +25,7 @@ import warnings
 
 # Local imports
 from spyder import __version__
-from spyder.py3compat import is_unicode, PY3, to_text_string, is_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 
 #==============================================================================
@@ -102,7 +102,7 @@ def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
 # Debug helpers
 #==============================================================================
 # This is needed after restarting and using debug_print
-STDOUT = sys.stdout if PY3 else codecs.getwriter('utf-8')(sys.stdout)
+STDOUT = sys.stdout
 STDERR = sys.stderr
 
 
@@ -118,13 +118,10 @@ def debug_print(*message):
     warnings.warn("debug_print is deprecated; use the logging module instead.")
     if get_debug_level():
         ss = STDOUT
-        if PY3:
-            # This is needed after restarting and using debug_print
-            for m in message:
-                ss.buffer.write(str(m).encode('utf-8'))
-            print('', file=ss)
-        else:
-            print(*message, file=ss)
+        # This is needed after restarting and using debug_print
+        for m in message:
+            ss.buffer.write(str(m).encode('utf-8'))
+        print('', file=ss)
 
 
 #==============================================================================
@@ -147,8 +144,7 @@ def get_conf_subfolder():
     #    embed a PY2 interpreter in PY3)
     # 2. We need to save the list of installed modules (for code
     #    completion) separately for each version
-    if PY3:
-        SUBFOLDER = SUBFOLDER + '-py3'
+    SUBFOLDER = SUBFOLDER + '-py3'
 
     # If running a development/beta version, save config in a separate
     # directory to avoid wiping or contaiminating the user's saved stable
@@ -490,7 +486,7 @@ def get_translation(modname, dirname=None):
 
     def translate_dumb(x):
         """Dumb function to not use translations."""
-        if not is_unicode(x):
+        if not is_text_string(x):
             return to_text_string(x, "utf-8")
         return x
 
@@ -517,10 +513,8 @@ def get_translation(modname, dirname=None):
         lgettext = _trans.lgettext
 
         def translate_gettext(x):
-            if not PY3 and is_unicode(x):
-                x = x.encode("utf-8")
             y = lgettext(x)
-            if is_text_string(y) and PY3:
+            if is_text_string(y):
                 return y
             else:
                 return to_text_string(y, "utf-8")

@@ -9,6 +9,7 @@ Base plugin class
 """
 
 # Standard library imports
+import configparser
 import inspect
 import os
 import sys
@@ -24,7 +25,7 @@ from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import configparser, is_text_string, qbytearray_to_str
+from spyder.py3compat import is_text_string, qbytearray_to_str
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,

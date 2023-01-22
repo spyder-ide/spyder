@@ -8,7 +8,6 @@ This module contains the Scroll Flag panel
 """
 
 # Standard library imports
-from __future__ import division
 import sys
 from math import ceil
 

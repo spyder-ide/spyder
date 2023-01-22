@@ -18,6 +18,7 @@ import locale
 import re
 import os
 import os.path as osp
+import pathlib
 import sys
 import time
 import errno
@@ -28,13 +29,8 @@ from atomicwrites import atomic_write
 
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_unicode, PY2)
+                              is_text_string)
 from spyder.utils.external.binaryornot.check import is_binary
-
-if PY2:
-    import pathlib2 as pathlib
-else:
-    import pathlib
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -90,7 +86,7 @@ def to_fs_from_unicode(unic):
     Return a byte string version of unic encoded using the file
     system encoding.
     """
-    if is_unicode(unic):
+    if is_text_string(unic):
         try:
             string = unic.encode(FS_ENCODING)
         except (UnicodeError, TypeError):
@@ -215,7 +211,7 @@ def encode(text, orig_coding):
 
 def to_unicode(string):
     """Convert a string to unicode"""
-    if not is_unicode(string):
+    if not is_text_string(string):
         for codec in CODECS:
             try:
                 unic = to_text_string(string, codec)
@@ -258,7 +254,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             file_stat = os.stat(absolute_filename)
             original_mode = file_stat.st_mode
             creation = file_stat.st_atime
-        except OSError:  # Change to FileNotFoundError for PY3
+        except FileNotFoundError:
             # Creating a new file, emulate what os.open() does
             umask = os.umask(0)
             os.umask(umask)
