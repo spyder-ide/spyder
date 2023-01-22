@@ -1,31 +1,28 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.4.1 is released!
+**Subject**: [ANN] Spyder 5.4.2 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.4.1** has been released and is available for
+I'm pleased to announce that Spyder **5.4.2** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes seven weeks and six days after version 5.4.0 and it contains the
+This release comes two weeks and six days after version 5.4.1 and it contains the
 following new features and important fixes:
 
-* Support for IPython 8
-* Improvements for code completion and help offered for scientific modules (Numpy, Pandas, Matplotlib and Scipy)
-* Improvements to the UX/UI of the FindReplace widget (find and replace functionality)
-* New PYTHONPATH manager plugin
-* Improve/fix errors regarding the `New Window` and `Split window` Editor funtionality and general `RuntimeError`s on the Editor
-* Improvements when syncing symbols and folding code functionality for the Editor
-* Fix PYTHONPATH handling for the IPython console
-* Some fixes for code completion and code style linting functionality 
-* Some fixes/improvements regarding UX/UI for the IPython console pane, menu and context menu generation
-* Some improvements regarding UX/UI for the current working directory toolbar
-* Improvements to the way Spyder handles menus sections additions
+* Improvements to the experimental conda-based Linux installer (shortcut icon, improvements to execute the installer script)
+* Fix issues detected with PyZMQ 25
+* Fix dot completions and improve support for files and directories completions
+* Fix getting current user enviroment variables
+* Fix cursor position restauration after autoformat when saving files
+* Fix error when reverting unexisting files
+* Improvements to the workflows to build conda-based installers
+* Fix some issues related with Python 3.11 compatibility
 
-In this release we fixed 29 issues and merged 44 pull requests that amount
-to more than 248 commits. For a full list of fixes, please see our
+In this release we fixed 12 issues and merged 16 pull requests that amount
+to more than 67 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
