@@ -742,15 +742,19 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         if wdir is not None:
             # wdir can come with / as os.sep, so we need to take care of it.
             wdir = wdir.replace('/', '\\')
-        
-        if osp.splitdrive(wdir)[0].startswith("\\\\"): #UNC paths start with \\
-            from qtpy.QtWidgets import QMessageBox
-            from spyder.config.base import _
-            QMessageBox.critical(None, _('Run'),
-                                 _("External terminal does not support a UNC "
-                                   "file path as the working directory."),
-                                 QMessageBox.Ok)
-            return
+
+            # UNC paths start with \\
+            if osp.splitdrive(wdir)[0].startswith("\\\\"):
+                from qtpy.QtWidgets import QMessageBox
+                from spyder.config.base import _
+                QMessageBox.critical(
+                    None,
+                    _('Run'),
+                    _("External terminals does not support a UNC file path as "
+                      "the working directory."),
+                    QMessageBox.Ok
+                )
+                return
 
         # python_exe must be quoted in case it has spaces
         cmd = f'start cmd.exe /K ""{executable}" '
@@ -760,10 +764,13 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
-            QMessageBox.critical(None, _('Run'),
-                                 _("It was not possible to run this file in "
-                                   "an external terminal"),
-                                 QMessageBox.Ok)
+            QMessageBox.critical(
+                None,
+                _('Run'),
+                _("It was not possible to run this file in an external "
+                  "terminal"),
+                QMessageBox.Ok
+            )
     elif sys.platform.startswith('linux'):
         programs = [{'cmd': 'gnome-terminal', 'execute-option': '-x'},
                     {'cmd': 'konsole', 'execute-option': '-e'},
