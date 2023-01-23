@@ -75,6 +75,7 @@ class IPythonConsoleWidgetActions:
     CreateCythonClient = 'create cython client'
     CreateSymPyClient = 'create cympy client'
     CreatePyLabClient = 'create pylab client'
+    CreateNewClientEnvironment = 'create environment client'
 
     # Current console actions
     ClearConsole = 'Clear shell'
@@ -610,18 +611,17 @@ class IPythonConsoleWidget(PluginMainWidget):
             icon=self.create_icon('ipython_console'),
             triggered=self.create_cython_client,
         )
-
-        environment_consoles_names = self.envs.keys()
+        environment_consoles_names = get_list_conda_envs() #self.envs
         environment_consoles = []
         for item in environment_consoles_names:
             action = self.create_action(
-                IPythonConsoleWidgetActions.CreateCythonClient,
-                item,
+                IPythonConsoleWidgetActions.CreateNewClientEnvironment,
+                " ".join([item, "(", environment_consoles_names[item][1], ")"]),
                 icon=self.create_icon('ipython_console'),
-                triggered=self.create_cython_client,
+                triggered=self.create_environment_client,
             )
-            environment_consoles.insert(action)
-
+            environment_consoles.append(action)
+        
         for item in environment_consoles:
             self.add_item_to_menu(
                 item,
@@ -631,7 +631,8 @@ class IPythonConsoleWidget(PluginMainWidget):
         for item in [
                 create_pylab_action,
                 create_sympy_action,
-                create_cython_action]:
+                create_cython_action
+                ]:
             self.add_item_to_menu(
                 item,
                 menu=self.special_console_menu
@@ -780,7 +781,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """
         self._worker_manager.terminate_all()
         worker = self._worker_manager.create_python_worker(self._get_envs)
-        #worker.sig_finished.connect(self.update_envs)
+        worker.sig_finished.connect(self.update_envs)
         worker.start()
 
     def update_envs(self, worker, output, error):
@@ -793,14 +794,26 @@ class IPythonConsoleWidget(PluginMainWidget):
             path = path.lower() if os.name == 'nt' else path
             self.path_to_env[path] = env
 
-        self.update_interpreter()
+    #   self.update_context_menu()
 
-    def update_interpreter(self, interpreter=None):
-        """Set main interpreter and update information."""
-        if interpreter:
-            self._interpreter = interpreter
-        self.value = self._get_env_info(self._interpreter)
-        self.set_value(self.value)
+    #def update_context_menu(self):
+    #   """Update context menu information."""
+    #   environment_consoles_names = get_list_conda_envs()
+    #   environment_consoles = []
+    #   for item in environment_consoles_names:
+    #       action = self.create_action(
+    #           IPythonConsoleWidgetActions.CreateCythonClient,
+    #           str(item),
+    #           icon=self.create_icon('ipython_console'),
+    #           triggered=self.create_cython_client,
+    #       )
+    #       environment_consoles.append(action)
+    #   for item in environment_consoles:
+    #       self.add_item_to_menu(
+    #           item,
+    #           menu=self.console_environment_menu
+    #       )
+
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
     def change_clients_help_connection(self, value):
@@ -1567,7 +1580,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
-                         str_id='A')
+                         str_id='JUANSE')
         std_dir = self._test_dir if self._test_dir else None
         cf, km, kc, stderr_obj, stdout_obj = self.get_new_kernel(
             is_cython, is_pylab, is_sympy, std_dir=std_dir, cache=cache)
@@ -1784,6 +1797,10 @@ class IPythonConsoleWidget(PluginMainWidget):
     def create_cython_client(self):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
+
+    def create_environment_client(self):
+        """Force creation of Environment client"""
+        self.create_new_client()
 
     def get_new_kernel(self, is_cython=False, is_pylab=False,
                        is_sympy=False, std_dir=None, cache=True):
