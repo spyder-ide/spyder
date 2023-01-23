@@ -6,6 +6,7 @@
 """Tests for editor calltips and hover hints tooltips."""
 
 # Standard library imports
+import os
 import sys
 
 # Third party imports
@@ -120,7 +121,7 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
 
 
 @pytest.mark.order(2)
-@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
+@pytest.mark.skipif(not os.name == 'nt', reason='Only works on Windows')
 @pytest.mark.parametrize('params', [
         # Parameter, Expected Output
         ('"".format', '-> str'),

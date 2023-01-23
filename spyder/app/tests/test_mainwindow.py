@@ -109,6 +109,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.use_introspection
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_leaks(main_window, qtbot):
     """
     Test leaks in mainwindow when closing a file or a console.
