@@ -512,7 +512,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
-            _('Special consoles'))
+            _('New special console'))
 
         for item in [
                 self.create_client_action,
@@ -571,7 +571,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 IPythonConsoleWidgetActions.CreateNewClientEnvironment,
                 " ".join([item, "(", environment_consoles_names[item][1], ")"]),
                 icon=self.create_icon('ipython_console'),
-                triggered=self.create_environment_client,
+                triggered=lambda: self.create_environment_client(item),
             )
             environment_consoles.append(action)
         
@@ -1466,11 +1466,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None):
+                          cache=True, initial_cwd=None, environment=''):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
-                         str_id='JUANSE')
+                         str_id=environment)
 
         client = ClientWidget(
             self,
@@ -1597,9 +1597,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
 
-    def create_environment_client(self):
+    def create_environment_client(self, environment):
         """Force creation of Environment client"""
-        self.create_new_client()
+        self.create_new_client(environment=environment)
 
     @Slot(str)
     def create_client_from_path(self, path):
