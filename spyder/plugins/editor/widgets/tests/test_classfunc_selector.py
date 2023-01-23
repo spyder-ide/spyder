@@ -41,7 +41,6 @@ class SomeOtherObject:
 """
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_class_func_selector(completions_codeeditor, qtbot):

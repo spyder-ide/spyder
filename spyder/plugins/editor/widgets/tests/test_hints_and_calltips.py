@@ -6,7 +6,6 @@
 """Tests for editor calltips and hover hints tooltips."""
 
 # Standard library imports
-import os
 import sys
 
 # Third party imports
@@ -29,7 +28,6 @@ def {SIG}:
 some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 def test_hide_calltip(completions_codeeditor, qtbot):
     """Test that calltips are hidden when a matching ')' is found."""
@@ -59,7 +57,6 @@ def test_hide_calltip(completions_codeeditor, qtbot):
     assert not calltip.isVisible()
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
@@ -122,7 +119,6 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
     bracket_extension.enable = True
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('params', [
@@ -174,7 +170,6 @@ def test_get_hints(qtbot, completions_codeeditor, params, capsys):
         assert captured.err == ''
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('text', [

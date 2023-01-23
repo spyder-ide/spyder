@@ -52,7 +52,6 @@ def set_executable_config_helper(executable=None):
         CONF.set('main_interpreter', 'executable', executable)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='Only works on Linux')
@@ -132,7 +131,6 @@ def test_fallback_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 def test_space_completion(completions_codeeditor, qtbot):
     """Validate completion's space character handling."""
@@ -168,7 +166,6 @@ def test_space_completion(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(running_in_ci(), reason='Fails on CI!')
@@ -216,7 +213,6 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=10)
 def test_automatic_completions(completions_codeeditor, qtbot):
@@ -308,7 +304,6 @@ def test_automatic_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
@@ -343,7 +338,6 @@ def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
         pass
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
@@ -365,7 +359,6 @@ def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
         pass
 
 
-@pytest.mark.slow
 @flaky(max_runs=10)
 def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
@@ -440,7 +433,6 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     qtbot.keyPress(completion, Qt.Key_Enter)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completions(completions_codeeditor, qtbot):
@@ -681,7 +673,6 @@ def test_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on Windows')
 def test_code_snippets(completions_codeeditor, qtbot):
@@ -909,7 +900,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.skipif((not check_if_kite_installed()
                      or not check_if_kite_running()),
                     reason="It's not meant to be run without kite installed "
@@ -992,7 +982,6 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completion_order(completions_codeeditor, qtbot):
@@ -1034,7 +1023,6 @@ def test_completion_order(completions_codeeditor, qtbot):
     assert first_completion['insertText'] == 'ImportError'
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_text_snippet_completions(completions_codeeditor, qtbot):
@@ -1061,7 +1049,6 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason='Hangs on Windows')
@@ -1115,7 +1102,6 @@ def spam():
     qtbot.wait(500)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(not is_anaconda(), reason='Requires conda to be installed')
 @pytest.mark.skipif(not running_in_ci_with_conda(), reason='Run tests only on CI with conda.')
@@ -1175,7 +1161,6 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     completion_plugin.after_configuration_update([])
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_dot_completions(completions_codeeditor, qtbot):
@@ -1214,7 +1199,6 @@ def test_dot_completions(completions_codeeditor, qtbot):
     assert code_editor.toPlainText() == f'import math\nmath.{inserted_entry}'
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "filename", ['000_test.txt', '.hidden', 'any_file.txt', 'abc.py',
@@ -1269,7 +1253,6 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     assert code_editor.get_text_with_eol() == f"'{filename}'"
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "directory",
