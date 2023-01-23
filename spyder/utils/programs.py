@@ -6,8 +6,6 @@
 
 """Running programs utilities."""
 
-from __future__ import print_function
-
 # Standard library imports
 from ast import literal_eval
 from getpass import getuser

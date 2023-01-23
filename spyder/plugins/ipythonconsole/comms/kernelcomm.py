@@ -15,7 +15,6 @@ import pickle
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
 from spyder_kernels.comms.commbase import CommBase
-from spyder.py3compat import TimeoutError
 
 logger = logging.getLogger(__name__)
 TIMEOUT_KERNEL_START = 30

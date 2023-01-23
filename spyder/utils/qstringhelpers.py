@@ -6,16 +6,11 @@
 
 """QString compatibility."""
 
-from spyder.py3compat import PY2
-
 
 def qstring_length(text):
     """
     Tries to compute what the length of an utf16-encoded QString would be.
     """
-    if PY2:
-        # I don't know what this is encoded in, so there is nothing I can do.
-        return len(text)
     utf16_text = text.encode('utf16')
     length = len(utf16_text) // 2
     # Remove Byte order mark.

@@ -9,7 +9,6 @@ Text editor dialog
 """
 
 # Standard library imports
-from __future__ import print_function
 import sys
 
 # Third party imports
