@@ -89,27 +89,42 @@ jobs:
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
-      - name: Install Conda
-        if: env.RUN_BUILD == 'true'
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Create conda test environment
+        if: env.USE_CONDA == 'true'
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          activate-environment: test
-          auto-update-conda: false
-          auto-activate-base: false
-          python-version: ${{ matrix.PYTHON_VERSION }}
-          channels: conda-forge,defaults
-          channel-priority: strict
-          miniforge-variant: Mambaforge
-      - name: Create test environment
+          environment-file: requirements/main.yml
+          environment-name: test
+          cache-downloads: true
+          extra-specs: |
+            python=${{ matrix.PYTHON_VERSION }}
+      - name: Create pip test environment
+        if: env.USE_CONDA != 'true'
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: false
+          environment-name: test
+          cache-downloads: true
+          channels: conda-forge
+          extra-specs: |
+            python=${{ matrix.PYTHON_VERSION }}
+      - name: Install additional dependencies
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
-      - name: Show test environment
-        if: env.RUN_BUILD == 'true'
+      - name: Show conda test environment
+        if: env.USE_CONDA == 'true'
         shell: bash -l {0}
         run: |
-          conda info
-          conda list
+          micromamba info
+          micromamba list
+      - name: Show pip test environment
+        if: env.USE_CONDA != 'true'
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+          pip list
       # Notes:
       # 1. This only works for conda, probably because it has the necessary
       #    MSYS2 packages to create the connection.
@@ -118,6 +133,7 @@ jobs:
       #- name: Setup remote ssh connection
       #  if: env.USE_CONDA == 'true'
       #  uses: mxschmitt/action-tmate@v3
+      #  timeout-minutes: 45
       - name: Run manifest checks
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}

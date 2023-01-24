@@ -26,6 +26,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
+from spyder.utils.conda import get_list_conda_envs
 
 
 # =============================================================================
@@ -66,22 +67,19 @@ def get_console_background_color(style_sheet):
     return background_color
 
 
-def get_conda_test_env(test_env_name='spytest-ž'):
+def get_conda_test_env():
     """
-    Return the full prefix path of the given `test_env_name` and its
-    executable.
+    Return the full prefix path of the env used to test kernel activation and
+    its executable.
     """
-    if 'envs' in sys.prefix:
-        root_prefix = osp.dirname(osp.dirname(sys.prefix))
-    else:
-        root_prefix = sys.prefix
+    # Get conda env to use
+    test_env_executable = get_list_conda_envs()['conda: spytest-ž'][0]
 
-    test_env_prefix = osp.join(root_prefix, 'envs', test_env_name)
-
+    # Get the env prefix
     if os.name == 'nt':
-        test_env_executable = osp.join(test_env_prefix, 'python.exe')
+        test_env_prefix = osp.dirname(test_env_executable)
     else:
-        test_env_executable = osp.join(test_env_prefix, 'bin', 'python')
+        test_env_prefix = osp.dirname(osp.dirname(test_env_executable))
 
     return (test_env_prefix, test_env_executable)
 

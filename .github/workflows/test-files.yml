@@ -91,18 +91,15 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
-      - name: Install Conda
-        if: env.RUN_BUILD == 'true'
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Create conda test environment
+        uses: mamba-org/provision-with-micromamba@main
         with:
-           activate-environment: test
-           auto-update-conda: false
-           auto-activate-base: false
-           python-version: ${{ matrix.PYTHON_VERSION }}
-           channels: conda-forge,defaults
-           channel-priority: strict
-           miniforge-variant: Mambaforge
-      - name: Create test environment
+          environment-file: requirements/main.yml
+          environment-name: test
+          cache-downloads: true
+          extra-specs: |
+            python=${{ matrix.PYTHON_VERSION }}
+      - name: Install additional dependencies
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
