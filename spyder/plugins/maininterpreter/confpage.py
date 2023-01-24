@@ -69,8 +69,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
         # Python executable Group
         pyexec_group = QGroupBox(_("Python interpreter"))
         pyexec_bg = QButtonGroup(pyexec_group)
-        pyexec_label = QLabel(_("Select the Python interpreter for all Spyder "
-                                "consoles"))
+        pyexec_label = QLabel(_("Select the Python interpreter used for "
+                                "default Spyder consoles and code completion"))
         self.def_exec_radio = self.create_radiobutton(
             _("Default (i.e. the same as Spyder's)"),
             'default',
