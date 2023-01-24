@@ -99,11 +99,14 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     CONF_SECTION = 'ipython_console'
 
     def __init__(self, is_cython=False, is_pylab=False,
-                 is_sympy=False, **kwargs):
+                 is_sympy=False, is_environment=False,
+                 path_to_environment='', **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
         self.is_pylab = is_pylab
         self.is_sympy = is_sympy
+        self.is_environment = is_environment
+        self.path_to_environment = path_to_environment
 
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
@@ -113,6 +116,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     def argv(self):
         """Command to start kernels"""
         # Python interpreter used to start kernels
+        if self.is_environment:
+            pyexec = self.path_to_environment
         if self.get_conf('default', section='main_interpreter'):
             pyexec = get_python_executable()
         else:

@@ -567,14 +567,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         environment_consoles_names = get_list_conda_envs() #self.envs
         environment_consoles = []
         for item in environment_consoles_names:
+            path_to_environment = environment_consoles_names[item][0]
+            name = str(item)
             action = self.create_action(
-                IPythonConsoleWidgetActions.CreateNewClientEnvironment,
+                IPythonConsoleWidgetActions.CreateNewClientEnvironment + str(item),
                 " ".join([item, "(", environment_consoles_names[item][1], ")"]),
                 icon=self.create_icon('ipython_console'),
-                triggered=lambda: self.create_environment_client(item),
+                triggered=lambda: self.create_environment_client(
+                    path_to_environment=path_to_environment, environment=name),
             )
             environment_consoles.append(action)
-        
+
         for item in environment_consoles:
             self.add_item_to_menu(
                 item,
@@ -750,7 +753,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     #def update_context_menu(self):
     #   """Update context menu information."""
-    #   environment_consoles_names = get_list_conda_envs()
+    #   environment_consoles_names =  get_list_conda_envs()
     #   environment_consoles = []
     #   for item in environment_consoles_names:
     #       action = self.create_action(
@@ -1466,7 +1469,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None, environment=''):
+                          cache=True, initial_cwd=None, environment='',
+                          is_environment=False, path_to_environment=''):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
@@ -1496,7 +1500,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         kernel_spec = SpyderKernelSpec(
             is_cython=is_cython,
             is_pylab=is_pylab,
-            is_sympy=is_sympy
+            is_sympy=is_sympy,
+            is_environment=is_environment,
+            path_to_environment=path_to_environment
         )
 
         try:
@@ -1597,9 +1603,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
 
-    def create_environment_client(self, environment):
+    def create_environment_client(self, environment, path_to_environment):
         """Force creation of Environment client"""
-        self.create_new_client(environment=environment)
+        self.create_new_client(is_environment=True, environment=environment,
+                               path_to_environment=path_to_environment)
 
     @Slot(str)
     def create_client_from_path(self, path):
@@ -1648,12 +1655,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # For help requests
         control.sig_help_requested.connect(self.sig_help_requested)
-
-        shellwidget.sig_pdb_step.connect(
-            lambda fname, lineno, shellwidget=shellwidget:
-            self.pdb_has_stopped(fname, lineno, shellwidget))
-        shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
-
+        
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
