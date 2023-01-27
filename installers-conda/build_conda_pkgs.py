@@ -318,13 +318,6 @@ class PylspCondaPkg(BuildCondaPkg):
     shallow_ver = "v1.4.1"
 
 
-class QdarkstyleCondaPkg(BuildCondaPkg):
-    name = "qdarkstyle"
-    source = os.environ.get('QDARKSTYLE_SOURCE')
-    feedstock = "https://github.com/conda-forge/qdarkstyle-feedstock"
-    shallow_ver = "v3.0.2"
-
-
 class QtconsoleCondaPkg(BuildCondaPkg):
     name = "qtconsole"
     source = os.environ.get('QTCONSOLE_SOURCE')
@@ -342,7 +335,6 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
 PKGS = {
     SpyderCondaPkg.name: SpyderCondaPkg,
     PylspCondaPkg.name: PylspCondaPkg,
-    QdarkstyleCondaPkg.name: QdarkstyleCondaPkg,
     QtconsoleCondaPkg.name: QtconsoleCondaPkg,
     SpyderKernelsCondaPkg.name: SpyderKernelsCondaPkg
 }
@@ -363,9 +355,9 @@ if __name__ == "__main__":
                 SpyderKernelsCondaPkg
 
             Spyder will be packaged from this repository (in its checked-out
-            state). qdarkstyle, qtconsole, spyder-kernels, and
-            python-lsp-server will be packaged from the remote and commit
-            specified in their respective .gitrepo files in external-deps.
+            state). qtconsole, spyder-kernels, and python-lsp-server will be
+            packaged from the remote and commit specified in their respective
+            .gitrepo files in external-deps.
 
             Alternatively, any external-deps may be packaged from an arbitrary
             git repository (in its checked out state) by setting the
