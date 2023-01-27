@@ -37,7 +37,7 @@ jobs:
     if: github.event_name == 'pull_request'
     strategy:
       matrix:
-        pkg: ["python-lsp-server", "qdarkstyle", "qtconsole"]
+        pkg: ["python-lsp-server", "qtconsole"]
         python-version: ["3.9"]
     defaults:
       run:
