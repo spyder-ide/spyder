@@ -59,7 +59,7 @@ jobs:
       EXE_NAME: ${{ matrix.build_type == 'Lite' && github.event_name == 'pull_request' && github.event.action != 'labeled' && 'Spyder_64bit_lite.exe' || matrix.build_type == 'Lite' && 'Spyder_64bit_lite.exe' || 'Spyder_64bit_full.exe' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install Python
