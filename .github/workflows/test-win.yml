@@ -67,14 +67,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Fetch branches
         run: git fetch --prune --unshallow
-      - name: Check build skips
-        if: github.event_name == 'pull_request'
-        shell: bash -l {0}
-        run: source .github/scripts/check_skip.sh
-      - name: Check build runs
-        if: github.event_name != 'pull_request'
-        shell: bash -l {0}
-        run: echo "RUN_BUILD=true" >> $GITHUB_ENV
       - name: Cache conda
         uses: actions/cache@v2
         env:
@@ -84,7 +76,6 @@ jobs:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
-        if: env.RUN_BUILD == 'true'
         uses: actions/cache@v2
         with:
           path: ~\AppData\Local\pip\Cache
@@ -109,7 +100,6 @@ jobs:
           extra-specs: |
             python=${{ matrix.PYTHON_VERSION }}
       - name: Install additional dependencies
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
       - name: Show conda test environment
@@ -135,11 +125,9 @@ jobs:
       #  uses: mxschmitt/action-tmate@v3
       #  timeout-minutes: 45
       - name: Run manifest checks
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: check-manifest
       - name: Run tests
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
@@ -148,6 +136,5 @@ jobs:
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh
       - name: Coverage
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: codecov
