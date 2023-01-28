@@ -12,7 +12,6 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
-import codecs
 import locale
 import os
 import os.path as osp

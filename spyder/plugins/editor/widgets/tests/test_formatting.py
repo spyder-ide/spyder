@@ -76,7 +76,6 @@ def get_formatter_values(formatter, newline, range_fmt=False, max_line=False):
 
 
 # ---- Tests
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize('formatter', [autopep8, yapf, black])
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
@@ -117,7 +116,6 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
     assert code_editor.get_text_with_eol() == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize('formatter', [autopep8, yapf, black])
 @pytest.mark.parametrize('newline', ['\r\n', '\r', '\n'])
@@ -172,7 +170,6 @@ def test_document_range_formatting(formatter, newline, completions_codeeditor,
     assert code_editor.get_text_with_eol() == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize('formatter', [autopep8, black])
 def test_max_line_length(formatter, completions_codeeditor, qtbot):
@@ -216,7 +213,6 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
     assert code_editor.get_text_with_eol() == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize('formatter', [autopep8, black])
 def test_closing_document_formatting(

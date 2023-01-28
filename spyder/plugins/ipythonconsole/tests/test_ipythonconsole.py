@@ -44,7 +44,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY)
 from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.utils.programs import get_temp_dir
-from spyder.utils.conda import get_conda_root_prefix
+from spyder.utils.conda import get_list_conda_envs
 
 
 @flaky(max_runs=3)
@@ -2149,10 +2149,7 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
 
     # Point to an interpreter without Spyder-kernels
     ipyconsole.set_conf('default', False, section='main_interpreter')
-    if os.name == 'nt':
-        pyexec = osp.join(get_conda_root_prefix(), 'python.exe')
-    else:
-        pyexec = osp.join(get_conda_root_prefix(), 'bin', 'python')
+    pyexec = get_list_conda_envs()['conda: base'][0]
     ipyconsole.set_conf('executable', pyexec, section='main_interpreter')
 
     # Restart kernel
