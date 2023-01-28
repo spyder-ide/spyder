@@ -24,7 +24,7 @@ if [ "$USE_CONDA" = "true" ]; then
     micromamba install check-manifest -c conda-forge codecov -q -y
 
     # Install PyZMQ 24 to avoid hangs
-    mamba install -c conda-forge pyzmq=24
+    micromamba install -c conda-forge pyzmq=24
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
