@@ -14,6 +14,7 @@ NOTE: DO NOT add fixtures here. It could generate problems with
 import os
 import os.path as osp
 import re
+import sys
 
 # ---- To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
@@ -66,12 +67,38 @@ def pytest_collection_modifyitems(config, items):
     skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
     skip_passed = pytest.mark.skip(reason="Test passed in previous runs")
 
+    # Break test suite in CIs according to the following criteria:
+    # * Mark all main window tests, and a percentage of the IPython console
+    #   ones on Linux and Mac, as slow.
+    # * All other tests will be considered as fast.
+    # This provides a more balanced partitioning of our test suite (in terms of
+    # necessary time to run it) between the slow and fast slots we have on CIs.
+    slow_items = []
+    if os.environ.get('CI'):
+        slow_items = [
+            item for item in items if 'test_mainwindow' in item.nodeid
+        ]
+
+        if not os.name == 'nt':
+            ipyconsole_items = [
+                item for item in items if 'test_ipythonconsole' in item.nodeid
+            ]
+
+            if sys.platform == 'darwin':
+                percentage = 0.6
+            else:
+                percentage = 0.5
+
+            for i, item in enumerate(ipyconsole_items):
+                if i < len(ipyconsole_items) * percentage:
+                    slow_items.append(item)
+
     for item in items:
         if slow_option:
-            if "slow" not in item.keywords:
+            if item not in slow_items:
                 item.add_marker(skip_fast)
         else:
-            if "slow" in item.keywords:
+            if item in slow_items:
                 item.add_marker(skip_slow)
 
         if item.nodeid in passed_tests:

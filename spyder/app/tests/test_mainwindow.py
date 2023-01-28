@@ -67,7 +67,6 @@ from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.single_instance
 @pytest.mark.known_leak
@@ -114,7 +113,6 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     main_window.editor.close_file()
 
 
-@pytest.mark.slow
 @pytest.mark.use_introspection
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_leaks(main_window, qtbot):
@@ -199,7 +197,6 @@ def test_leaks(main_window, qtbot):
     assert n_code_editor <= n_code_editor_init
 
 
-@pytest.mark.slow
 def test_lock_action(main_window, qtbot):
     """Test the lock interface action."""
     # Wait until the window is fully up
@@ -233,7 +230,6 @@ def test_lock_action(main_window, qtbot):
     assert main_window.layouts._interface_locked
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(sys.platform.startswith('linux') and not running_in_ci(),
                     reason='Fails on Linux when run locally')
@@ -290,7 +286,6 @@ def test_default_plugin_actions(main_window, qtbot):
     assert file_explorer.dockwidget.isVisible()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     'main_window',
@@ -312,7 +307,6 @@ def test_opengl_implementation(main_window, qtbot):
     CONF.set('main', 'opengl', 'automatic')
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     np.__version__ < '1.14.0',
@@ -350,7 +344,6 @@ def test_filter_numpy_warning(main_window, qtbot):
     CONF.set('variable_explorer', 'minmax', False)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform == 'darwin',
                     reason="Fails on other than macOS")
@@ -408,7 +401,6 @@ def test_get_help_combo(main_window, qtbot):
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
 
 
-@pytest.mark.slow
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
 def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     """
@@ -448,7 +440,6 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
         timeout=6000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
 def test_get_help_ipython_console_special_characters(
@@ -494,7 +485,6 @@ def test_get_help_ipython_console_special_characters(
                     timeout=6000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and running_in_ci(),
                     reason="Times out on Windows")
@@ -520,7 +510,6 @@ def test_get_help_ipython_console(main_window, qtbot):
     qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=6000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Does not work on Mac and Windows!")
@@ -546,7 +535,8 @@ def test_get_help_editor(main_window, qtbot, object_info):
     main_window.editor.new(fname="test.py", text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
-    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
+    qtbot.waitUntil(lambda: code_editor.completions_available,
+                    timeout=COMPLETION_TIMEOUT)
 
     # Write some object in the editor
     object_name, expected_text = object_info
@@ -566,7 +556,6 @@ def test_get_help_editor(main_window, qtbot, object_info):
     assert check_text(webpage, expected_text)
 
 
-@pytest.mark.slow
 def test_window_title(main_window, tmpdir, qtbot):
     """Test window title with non-ascii characters."""
     # Wait until the window is fully up
@@ -596,7 +585,6 @@ def test_window_title(main_window, tmpdir, qtbot):
     projects.close_project()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Fails sometimes on Windows and Mac")
@@ -686,7 +674,6 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     main_window.editor.close_file()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on windows!')
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
@@ -747,7 +734,6 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     CONF.set('run', 'configurations', [])
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.no_new_console
 @flaky(max_runs=3)
@@ -822,7 +808,6 @@ def test_dedicated_consoles(main_window, qtbot):
     CONF.set('run', 'configurations', [])
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Fails frequently on Linux")
@@ -909,7 +894,6 @@ def test_connection_to_external_kernel(main_window, qtbot):
 
 
 @pytest.mark.order(1)
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
@@ -940,7 +924,6 @@ def test_change_types_in_varexp(main_window, qtbot):
     assert shell.get_value('a') == 10
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
@@ -983,7 +966,6 @@ def test_change_cwd_ipython_console(
         temp_dir)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
@@ -1016,7 +998,6 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
@@ -1074,7 +1055,6 @@ def test_run_cython_code(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@pytest.mark.slow
 def test_project_path(main_window, tmpdir, qtbot):
     """Test project path added to spyder_pythonpath and IPython Console."""
     projects = main_window.projects
@@ -1122,7 +1102,6 @@ def test_project_path(main_window, tmpdir, qtbot):
     assert path not in shell.get_value("os_path")
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
 def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
@@ -1179,7 +1158,6 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     projects.close_project()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that file are run from the Project explorer."""
@@ -1239,7 +1217,6 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     projects.close_project()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
@@ -1279,7 +1256,6 @@ def test_set_new_breakpoints(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
@@ -1497,7 +1473,6 @@ def test_run_code(main_window, qtbot, tmpdir):
     main_window.editor.close_file()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 @pytest.mark.parametrize('main_window',
@@ -1557,7 +1532,6 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     CONF.set('editor', 'run_cell_copy', False)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 def test_open_files_in_new_editor_window(main_window, qtbot):
@@ -1583,7 +1557,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     assert editorstack.get_stack_count() == 2
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_close_when_file_is_changed(main_window, qtbot):
     """Test closing spyder when there is a file with modifications open."""
@@ -1604,7 +1577,6 @@ def test_close_when_file_is_changed(main_window, qtbot):
     qtbot.wait(3000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working as expected."""
@@ -1748,7 +1720,6 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         plugin_5.toggle_view(False)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt' or running_in_ci() and (PYQT5 and PYQT_VERSION >= '5.9'),
@@ -1794,7 +1765,6 @@ def test_issue_4066(main_window, qtbot):
     qtbot.wait(3000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
@@ -1830,7 +1800,6 @@ def test_varexp_edit_inline(main_window, qtbot):
     qtbot.wait(3000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="It times out sometimes on Windows and macOS")
@@ -1909,7 +1878,6 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
@@ -1949,7 +1917,6 @@ def test_stop_dbg(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="It only works on Linux")
@@ -1992,7 +1959,6 @@ def test_change_cwd_dbg(main_window, qtbot):
     assert tempfile.gettempdir() in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
@@ -2032,7 +1998,6 @@ def test_varexp_magic_dbg(main_window, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     'main_window',
@@ -2081,7 +2046,6 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     assert compare_images(ipython_figname, plots_figname, 0.1) is None
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     (parse_version(ipy_release.version) >= parse_version('7.23.0') and
@@ -2204,7 +2168,6 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 @pytest.mark.skip
 @flaky(max_runs=3)
-@pytest.mark.slow
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_switcher(main_window, qtbot, tmpdir):
@@ -2256,7 +2219,8 @@ def example_def_2():
     main_window.editor.set_current_filename(str(file_a))
 
     code_editor = main_window.editor.get_focus_widget()
-    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
+    qtbot.waitUntil(lambda: code_editor.completions_available,
+                    timeout=COMPLETION_TIMEOUT)
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal,
@@ -2273,7 +2237,6 @@ def example_def_2():
 
 
 @flaky(max_runs=3)
-@pytest.mark.slow
 def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
     """
     Test that the file switcher is working as expected when called from the
@@ -2303,7 +2266,6 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.slow
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
@@ -2333,7 +2295,8 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     main_window.editor.load(str(file))
 
     code_editor = main_window.editor.get_focus_widget()
-    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
+    qtbot.waitUntil(lambda: code_editor.completions_available,
+                    timeout=COMPLETION_TIMEOUT)
 
     with qtbot.waitSignal(
             code_editor.completions_response_signal,
@@ -2351,7 +2314,6 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     assert editorstack.switcher_dlg.count() == 2
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="Times out sometimes on macOS")
@@ -2393,7 +2355,6 @@ def test_run_static_code_analysis(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.slow
 @pytest.mark.close_main_window
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and running_in_ci(),
@@ -2419,7 +2380,6 @@ def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.slow
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
 @pytest.mark.skipif(
     sys.platform == 'darwin' and running_in_ci(),
@@ -2487,7 +2447,6 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     assert help_pane_menuitem.isChecked()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.close_main_window
 def test_report_issue(main_window, qtbot):
@@ -2505,7 +2464,6 @@ def test_report_issue(main_window, qtbot):
     assert main_window.console.get_widget()._report_dlg.close()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     not os.name == 'nt', reason="It segfaults on Linux and Mac")
@@ -2544,7 +2502,6 @@ def test_custom_layouts(main_window, qtbot):
                                 assert plugin.isVisible()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not running_in_ci() or sys.platform.startswith('linux'),
                     reason="Only runs in CIs and fails on Linux sometimes")
@@ -2586,7 +2543,6 @@ def test_programmatic_custom_layouts(main_window, qtbot):
                             assert plugin.isVisible()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_save_on_runfile(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
@@ -2613,7 +2569,6 @@ def test_save_on_runfile(main_window, qtbot):
     os.remove(test_file_copy)
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Fails on Linux sometimes")
@@ -2663,7 +2618,6 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
     qtbot.wait(1000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     sys.platform == 'darwin', reason="Segfaults on MacOS after passing")
@@ -2692,7 +2646,6 @@ def test_report_comms_error(qtbot, main_window):
     CONF.set('main', 'show_internal_errors', False)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_break_while_running(main_window, qtbot, tmpdir):
     """Test that we can set breakpoints while running."""
@@ -2770,7 +2723,6 @@ def preferences_dialog_helper(qtbot, main_window, section):
     return dlg, index, page
 
 
-@pytest.mark.slow
 def test_preferences_run_section_exists(main_window, qtbot):
     """
     Test for spyder-ide/spyder#13524 regression.
@@ -2793,7 +2745,6 @@ def test_preferences_run_section_exists(main_window, qtbot):
     qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
-@pytest.mark.slow
 def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#10139 regression.
@@ -2870,7 +2821,6 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
 def test_preferences_change_font_regression(main_window, qtbot):
     """
@@ -2900,7 +2850,6 @@ def test_preferences_change_font_regression(main_window, qtbot):
     qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(
     sys.platform == 'darwin',
     reason="Changes of Shitf+Return shortcut cause an ambiguous shortcut")
@@ -2963,7 +2912,6 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     assert u'ññ' in shell._control.toPlainText()
 
 
-@pytest.mark.slow
 def test_preferences_shortcut_reset_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#11132 regression.
@@ -2986,7 +2934,6 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
         timeout=EVAL_TIMEOUT)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=3)
 def test_preferences_change_interpreter(qtbot, main_window):
@@ -3022,7 +2969,6 @@ def test_preferences_change_interpreter(qtbot, main_window):
     assert jedi['extra_paths'] == []
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Segfaults on Linux")
 def test_preferences_last_page_is_loaded(qtbot, main_window):
@@ -3054,7 +3000,6 @@ def test_preferences_last_page_is_loaded(qtbot, main_window):
                     timeout=5000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
@@ -3076,7 +3021,8 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_no_def)
     code_editor = main_window.editor.get_focus_widget()
-    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
+    qtbot.waitUntil(lambda: code_editor.completions_available,
+                    timeout=COMPLETION_TIMEOUT)
 
     # Move cursor to the left one character to be next to
     # FramelessWindowHint
@@ -3096,7 +3042,8 @@ def test_go_to_definition(main_window, qtbot, capsys):
     # Create new editor with code and wait until LSP is ready
     main_window.editor.new(text=code_def)
     code_editor = main_window.editor.get_focus_widget()
-    qtbot.waitUntil(lambda: code_editor.completions_available, timeout=COMPLETION_TIMEOUT)
+    qtbot.waitUntil(lambda: code_editor.completions_available,
+                    timeout=COMPLETION_TIMEOUT)
 
     # Move cursor to the left one character to be next to QtCore
     code_editor.move_cursor(-1)
@@ -3112,7 +3059,6 @@ def test_go_to_definition(main_window, qtbot, capsys):
     assert 'QtCore.py' in _get_filenames()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
 def test_debug_unsaved_file(main_window, qtbot):
@@ -3149,7 +3095,6 @@ def test_debug_unsaved_file(main_window, qtbot):
         lambda: "1---> 2 print(1)" in control.toPlainText())
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "debug", [True, False])
@@ -3194,7 +3139,6 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
         pass
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_runcell_leading_indent(main_window, qtbot, tmpdir):
     """Test the runcell command with leading indent."""
@@ -3217,7 +3161,6 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
     assert "This is not valid Python code" not in shell._control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
@@ -3284,7 +3227,6 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     assert data(nsb.editor.model, 4, 0) == 's'
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_varexp_remove(main_window, qtbot, tmpdir):
     """
@@ -3337,7 +3279,6 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
     assert data(nsb.editor.model, 2, 0) == 's'
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_varexp_refresh(main_window, qtbot):
     """
@@ -3369,7 +3310,6 @@ def test_varexp_refresh(main_window, qtbot):
     assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.no_new_console
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
@@ -3409,7 +3349,6 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     assert 'cell is empty' in shell._control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Fails on linux")
@@ -3460,7 +3399,6 @@ def test_runcell_pdb(main_window, qtbot):
     assert "abba 27" in shell._control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("debug", [False, True])
 @pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
@@ -3498,7 +3436,6 @@ def test_runcell_cache(main_window, qtbot, debug):
     qtbot.waitUntil(lambda: "Done" in shell._control.toPlainText())
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     """Check that on path manager updates, consoles correctly update."""
@@ -3546,7 +3483,6 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
                         timeout=SHELL_TIMEOUT)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or sys.platform == 'darwin',
                     reason="It times out on macOS and Windows")
@@ -3612,7 +3548,6 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
         QApplication.processEvents = super_processEvents
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
 @pytest.mark.parametrize("where", [True, False])
@@ -3711,7 +3646,6 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
             str(test_file))
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="Fails sometimes on macOS")
@@ -3744,7 +3678,6 @@ def test_runcell_after_restart(main_window, qtbot):
     assert "error" not in shell._control.toPlainText().lower()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     not os.name == 'nt',
@@ -3796,7 +3729,6 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
             os.remove(to_text_string(write_file))
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_running_namespace(main_window, qtbot, tmpdir):
     """
@@ -3851,7 +3783,6 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     assert nsb.editor.source_model._data['b']['view'] == '10'
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     """
@@ -3917,7 +3848,6 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     assert 0 < int(nsb.editor.source_model._data['i']['view']) <= 9
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_debug_namespace(main_window, qtbot, tmpdir):
     """
@@ -3983,7 +3913,6 @@ def test_debug_namespace(main_window, qtbot, tmpdir):
     assert 'file1_local_ns' in nsb.editor.source_model._data
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_post_mortem(main_window, qtbot, tmpdir):
     """Test post mortem works"""
@@ -4004,7 +3933,6 @@ def test_post_mortem(main_window, qtbot, tmpdir):
     assert "IPdb [" in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     """Test that we can run an unsaved file with multiprocessing."""
@@ -4059,7 +3987,6 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
             timeout=SHELL_TIMEOUT)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     """
@@ -4089,7 +4016,6 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
                     timeout=3000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_varexp_cleared_after_reset(main_window, qtbot):
     """
@@ -4134,7 +4060,6 @@ def test_varexp_cleared_after_reset(main_window, qtbot):
                     timeout=3000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_immediate_debug(main_window, qtbot):
     """
@@ -4150,7 +4075,6 @@ def test_immediate_debug(main_window, qtbot):
         shell.execute("%debug print()")
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_local_namespace(main_window, qtbot, tmpdir):
     """
@@ -4226,7 +4150,6 @@ hello()
             nsb.editor.source_model._data['test']['view'] == '3')
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
@@ -4295,7 +4218,6 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     assert request_order == expected_requests
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     'main_window',
@@ -4349,7 +4271,6 @@ def test_tour_message(main_window, qtbot):
     qtbot.waitUntil(lambda: not animated_tour.is_running, timeout=9000)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
@@ -4493,7 +4414,6 @@ def test_update_outline(main_window, qtbot, tmpdir):
     CONF.set('editor', 'filenames', [])
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(3)
@@ -4683,7 +4603,6 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     main_window.projects.close_project()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_prevent_closing(main_window, qtbot):
     """
@@ -4721,7 +4640,6 @@ def test_prevent_closing(main_window, qtbot):
     assert shell.is_debugging()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_continue_first_line(main_window, qtbot):
     """
@@ -4762,7 +4680,6 @@ def test_continue_first_line(main_window, qtbot):
     assert "b = 9" in shell._control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
@@ -4793,7 +4710,6 @@ def test_outline_no_init(main_window, qtbot):
     assert len(treewidget.editor_tree_cache[editor_id]) > 0
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform.startswith('linux'),
                     reason="Flaky on Linux")
@@ -4840,7 +4756,6 @@ def test_pdb_ipykernel(main_window, qtbot):
     kc.stop_channels()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Flaky on Mac and Windows")
@@ -4874,7 +4789,6 @@ def test_print_comms(main_window, qtbot):
             in control.toPlainText())
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="UTF8 on Windows")
 def test_goto_find(main_window, qtbot, tmpdir):
@@ -4926,7 +4840,6 @@ def test_goto_find(main_window, qtbot, tmpdir):
         assert position == match_positions[i]
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt',
@@ -4991,7 +4904,6 @@ def test_copy_paste(main_window, qtbot, tmpdir):
     assert expected in code_editor.toPlainText()
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
 def test_add_external_plugins_to_dependencies(main_window, qtbot):
     """Test that we register external plugins in the main window."""
@@ -5010,7 +4922,6 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
     assert 'spyder-boilerplate' in external_names
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_print_multiprocessing(main_window, qtbot, tmpdir):
     """Test print commands from multiprocessing."""
@@ -5048,7 +4959,6 @@ if __name__ == "__main__":
     assert 'Test stderr' in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt',
@@ -5082,7 +4992,6 @@ crash_func()
     assert 'in crash_func' in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 @pytest.mark.parametrize("focus_to_editor", [True, False])
@@ -5178,7 +5087,6 @@ foo(1)
     check_focus(debug_cell_button)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Tour messes up focus on Windows")
 def test_focus_for_plugins_with_raise_and_focus(main_window, qtbot):
@@ -5216,7 +5124,6 @@ def test_focus_for_plugins_with_raise_and_focus(main_window, qtbot):
     assert focus_widget is find.get_widget().get_focus_widget()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
@@ -5268,7 +5175,6 @@ def test_rename_files_in_editor_after_folder_rename(main_window, mocker,
     assert codeeditor.filename == osp.join(str(tmpdir), new_path, fname)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_history_from_ipyconsole(main_window, qtbot):
     """
@@ -5294,7 +5200,6 @@ def test_history_from_ipyconsole(main_window, qtbot):
     assert text.splitlines()[-1] == code
 
 
-@pytest.mark.slow
 def test_debug_unsaved_function(main_window, qtbot):
     """
     Test that a breakpoint in an unsaved file is reached.
@@ -5336,7 +5241,6 @@ def test_debug_unsaved_function(main_window, qtbot):
     assert "1---> 2     print(1)" in control.toPlainText()
 
 
-@pytest.mark.slow
 @pytest.mark.close_main_window
 def test_out_runfile_runcell(main_window, qtbot):
     """
@@ -5368,7 +5272,6 @@ def test_out_runfile_runcell(main_window, qtbot):
             assert not "]: " + str(num) in control.toPlainText()
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Does not work on Mac and Windows")
@@ -5428,7 +5331,6 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     assert len(frames_browser.frames) == expected_number_threads
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_debugger_plugin(main_window, qtbot):
     """Test debugger plugin."""
@@ -5519,7 +5421,6 @@ def test_debugger_plugin(main_window, qtbot):
     assert not enter_debug_action.isEnabled()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_enter_debugger(main_window, qtbot):
     """
@@ -5602,7 +5503,6 @@ def test_enter_debugger(main_window, qtbot):
         shell.execute('q')
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_recursive_debug(main_window, qtbot):
     """Test recurside debug."""
@@ -5645,7 +5545,6 @@ def test_recursive_debug(main_window, qtbot):
         shell.execute('q')
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     os.name == 'nt',
@@ -5716,7 +5615,6 @@ def test_interrupt(main_window, qtbot):
         shell.execute('q')
 
 
-@pytest.mark.slow
 def test_visible_plugins(main_window, qtbot):
     """
     Test that saving and restoring visible plugins works as expected.
@@ -5758,7 +5656,6 @@ def test_visible_plugins(main_window, qtbot):
     assert set(selected) == set(visible_plugins)
 
 
-@pytest.mark.slow
 def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
     """
     Test that the current working directory is synced between the IPython
@@ -5793,7 +5690,6 @@ def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
         assert shell_cwd == workdir.get_workdir() == files.get_current_folder()
 
 
-@pytest.mark.slow
 def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     """
     Test that the initial current working directory for new consoles is synced
@@ -5878,7 +5774,6 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
            files.get_current_folder()
 
 
-@pytest.mark.slow
 def test_debug_selection(main_window, qtbot):
     """test debug selection."""
     # Wait until the window is fully up
@@ -5940,7 +5835,6 @@ def test_debug_selection(main_window, qtbot):
     assert "%%debug" in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
@@ -5988,7 +5882,6 @@ def test_outline_namespace_package(main_window, qtbot, tmpdir):
     CONF.set('editor', 'filenames', [])
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(
     sys.platform == 'darwin',
     reason="Only works on Windows and Linux")
@@ -6018,7 +5911,6 @@ def test_switch_to_plugin(main_window, qtbot):
     assert QApplication.focusWidget() is code_editor
 
 
-@pytest.mark.slow
 def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
     """
     Test that PYTHONPATH is passed to IPython consoles under different

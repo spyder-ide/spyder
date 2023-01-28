@@ -21,7 +21,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.config.base import running_in_ci, running_in_ci_with_conda
+from spyder.config.base import running_in_ci
+from spyder.config.manager import CONF
 from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
@@ -29,30 +30,25 @@ from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
-from spyder.config.manager import CONF
+from spyder.utils.conda import get_list_conda_envs
 
 
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 
-def set_executable_config_helper(executable=None):
+def set_executable_config_helper(completion_plugin, executable=None):
     if executable is None:
-        CONF.set('main_interpreter', 'default', True)
-        CONF.set('main_interpreter', 'custom', False)
-        CONF.set('main_interpreter', 'custom_interpreter', sys.executable)
-        CONF.set('main_interpreter', 'custom_interpreters_list',
-                 [sys.executable])
-        CONF.set('main_interpreter', 'executable', sys.executable)
+        completion_plugin.set_conf('executable', sys.executable,
+                                   'main_interpreter')
+        completion_plugin.set_conf('default', True, 'main_interpreter')
+        completion_plugin.set_conf('custom', False, 'main_interpreter')
     else:
-        CONF.set('main_interpreter', 'default', False)
-        CONF.set('main_interpreter', 'custom', True)
-        CONF.set('main_interpreter', 'custom_interpreter', executable)
-        CONF.set('main_interpreter', 'custom_interpreters_list', [executable])
-        CONF.set('main_interpreter', 'executable', executable)
+        completion_plugin.set_conf('executable', executable,
+                                   'main_interpreter')
+        completion_plugin.set_conf('default', False, 'main_interpreter')
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='Only works on Linux')
@@ -132,7 +128,6 @@ def test_fallback_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 def test_space_completion(completions_codeeditor, qtbot):
     """Validate completion's space character handling."""
@@ -168,7 +163,6 @@ def test_space_completion(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(running_in_ci(), reason='Fails on CI!')
@@ -216,7 +210,6 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=10)
 def test_automatic_completions(completions_codeeditor, qtbot):
@@ -308,7 +301,6 @@ def test_automatic_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
@@ -343,7 +335,6 @@ def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
         pass
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
@@ -365,7 +356,6 @@ def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
         pass
 
 
-@pytest.mark.slow
 @flaky(max_runs=10)
 def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
@@ -440,7 +430,6 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     qtbot.keyPress(completion, Qt.Key_Enter)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completions(completions_codeeditor, qtbot):
@@ -681,7 +670,6 @@ def test_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on Windows')
 def test_code_snippets(completions_codeeditor, qtbot):
@@ -909,7 +897,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.skipif((not check_if_kite_installed()
                      or not check_if_kite_running()),
                     reason="It's not meant to be run without kite installed "
@@ -992,7 +979,6 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completion_order(completions_codeeditor, qtbot):
@@ -1034,7 +1020,6 @@ def test_completion_order(completions_codeeditor, qtbot):
     assert first_completion['insertText'] == 'ImportError'
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_text_snippet_completions(completions_codeeditor, qtbot):
@@ -1061,7 +1046,6 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason='Hangs on Windows')
@@ -1115,69 +1099,55 @@ def spam():
     qtbot.wait(500)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(not is_anaconda(), reason='Requires conda to be installed')
-@pytest.mark.skipif(not running_in_ci_with_conda(), reason='Run tests only on CI with conda.')
-@pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
-                    reason="Quite flaky with Linux on CI")
-@pytest.mark.skipif(running_in_ci() and sys.platform == 'darwin',
-                    reason="Quite flaky with MacOS on CI")
 @flaky(max_runs=20)
+@pytest.mark.skipif(not is_anaconda(), reason='Requires conda to work')
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Works reliably on Linux")
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
-    """Exercise code completion when adding extra paths."""
+    """
+    Exercise code completions when using another Jedi environment, i.e. a
+    different Python interpreter.
+    """
     code_editor, completion_plugin = completions_codeeditor
     completion = code_editor.completion_widget
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
 
     # Get jedi test env
-    conda_envs_path = os.path.dirname(sys.prefix)
-    conda_jedi_env = os.path.join(conda_envs_path, 'jedi-test-env')
-
-    if os.name == 'nt':
-        py_exe = os.path.join(conda_jedi_env, 'python.exe')
-    else:
-        py_exe = os.path.join(conda_jedi_env, 'bin', 'python')
-
-    print(sys.executable)
-    print(py_exe)
-
+    py_exe = get_list_conda_envs()['conda: jedi-test-env'][0]
     assert os.path.isfile(py_exe)
 
-    # Set environment
-    set_executable_config_helper()
-    completion_plugin.after_configuration_update([])
-    qtbot.wait(2000)
-
-    qtbot.keyClicks(code_editor, 'import flas')
+    # Check that we can't code complete Flask in the default interpreter
+    # because it doesn't have it.
+    qtbot.keyClicks(code_editor, 'import flas', delay=40)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.wait(2000)
     assert code_editor.toPlainText() == 'import flas'
 
-    # Reset extra paths
-    set_executable_config_helper(py_exe)
-    completion_plugin.after_configuration_update([])
-    qtbot.wait(2000)
-
+    # Set interpreter that has Flask and check we can provide completions for
+    # it
     code_editor.set_text('')
+    set_executable_config_helper(completion_plugin, py_exe)
+    completion_plugin.after_configuration_update([])
+    qtbot.wait(5000)
+
+    qtbot.keyClicks(code_editor, 'import flas', delay=40)
     qtbot.wait(2000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'import flas')
         qtbot.wait(2000)
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-
-    qtbot.keyPress(completion, Qt.Key_Tab)
 
     assert "flask" in [x['label'] for x in sig.args[0]]
     assert code_editor.toPlainText() == 'import flask'
 
-    set_executable_config_helper()
+    set_executable_config_helper(completion_plugin)
     completion_plugin.after_configuration_update([])
+    qtbot.wait(5000)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_dot_completions(completions_codeeditor, qtbot):
@@ -1216,7 +1186,6 @@ def test_dot_completions(completions_codeeditor, qtbot):
     assert code_editor.toPlainText() == f'import math\nmath.{inserted_entry}'
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "filename", ['000_test.txt', '.hidden', 'any_file.txt', 'abc.py',
@@ -1271,7 +1240,6 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
     assert code_editor.get_text_with_eol() == f"'{filename}'"
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "directory",
