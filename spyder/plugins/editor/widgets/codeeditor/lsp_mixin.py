@@ -143,7 +143,8 @@ class LSPMixin:
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread(None)
-        self.update_folding_thread.finished.connect(self.finish_code_folding)
+        self.update_folding_thread.finished.connect(
+            self._finish_update_folding)
 
         # Autoformat on save
         self.format_on_save = False
@@ -1251,32 +1252,20 @@ class LSPMixin:
         if ranges is None:
             return
 
-        # Compute extended_ranges here because get_text_region ends up
-        # calling paintEvent and that method can't be called in a
-        # thread due to Qt restrictions.
-        try:
-            extended_ranges = []
-            for start, end in ranges:
-                text_region = self.get_text_region(start, end)
-                extended_ranges.append((start, end, text_region))
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing folding")
-        finally:
-            self.folding_in_sync = True
-
-        # Update folding in a thread
+        # Update folding info in a thread
         self.update_folding_thread.run = functools.partial(
-            self.update_and_merge_folding, extended_ranges
-        )
+            self._update_folding_info, ranges)
         self.update_folding_thread.start()
 
-    def update_and_merge_folding(self, extended_ranges):
-        """Update and merge new folding information."""
+    def _update_folding_info(self, ranges):
+        """Update folding information with new data from the LSP."""
         try:
+            lines = self.toPlainText().splitlines()
+            extended_ranges = []
+            for start, end in ranges:
+                text_region = self.get_text_region(start, end, lines)
+                extended_ranges.append((start, end, text_region))
+
             folding_panel = self.panels.get(FoldingPanel)
 
             current_tree, root = merge_folding(
@@ -1292,8 +1281,8 @@ class LSPMixin:
         except Exception:
             self.log_lsp_handle_errors("Error when processing folding")
 
-    def finish_code_folding(self):
-        """Finish processing code folding."""
+    def _finish_update_folding(self):
+        """Finish updating code folding."""
         folding_panel = self.panels.get(FoldingPanel)
 
         # Check if we actually have folding info to update before trying to do
@@ -1306,6 +1295,8 @@ class LSPMixin:
         if self.indent_guides._enabled and len(self.patch) > 0:
             line, column = self.get_cursor_line_column()
             self.update_whitespace_count(line, column)
+
+        self.folding_in_sync = True
 
     # ---- Save/close file
     # -------------------------------------------------------------------------
