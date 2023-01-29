@@ -963,18 +963,24 @@ class BaseEditMixin(object):
         cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
         return to_text_string(cursor.selectedText())
 
-    def get_text_region(self, start_line, end_line):
-        """Return text lines spanned from *start_line* to *end_line*."""
-        start_block = self.document().findBlockByNumber(start_line)
-        end_block = self.document().findBlockByNumber(end_line)
+    def get_text_region(self, start_line, end_line, lines=None):
+        """
+        Return text in a given region.
 
-        start_cursor = QTextCursor(start_block)
-        start_cursor.movePosition(QTextCursor.StartOfBlock)
-        end_cursor = QTextCursor(end_block)
-        end_cursor.movePosition(QTextCursor.EndOfBlock)
-        end_position = end_cursor.position()
-        start_cursor.setPosition(end_position, mode=QTextCursor.KeepAnchor)
-        return self.get_selected_text(start_cursor)
+        Parameters
+        ----------
+        start_line: int
+            Start line of the region.
+        end_line: int
+            End line of the region.
+        lines: list, optional (default None)
+            File lines.
+        """
+        if lines is None:
+            lines = self.toPlainText().splitlines()
+
+        lines_in_region = lines[start_line:end_line + 1]
+        return self.get_line_separator().join(lines_in_region)
 
     def get_text(self, position_from, position_to, remove_newlines=True):
         """Returns text between *position_from* and *position_to*.
