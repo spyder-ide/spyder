@@ -91,8 +91,10 @@ jobs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
       include: ${{ steps.build-matrix.outputs.include }}
       python_version: ${{ steps.build-matrix.outputs.python_version }}
+
     steps:
-    - id: build-matrix
+    - name: Determine Build Matrix
+      id: build-matrix
       run: |
         target_platform="'osx-64', 'linux-64'"
         include="\
@@ -109,6 +111,12 @@ jobs:
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
         echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
+
+    - name: Remove Label
+      if: github.event.action == 'labeled'
+      uses: actions-ecosystem/action-remove-labels@v1
+      with:
+        labels: build-installer-artifacts
 
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
@@ -264,11 +272,3 @@ jobs:
           asset_path: ${{ env.PKG_FILE }}
           asset_name: ${{ env.PKG_NAME }}
           asset_content_type: application/octet-stream
-
-  remove_label:
-    runs-on: ubuntu-latest
-    if: always() && github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts'
-    steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: build-installer-artifacts
