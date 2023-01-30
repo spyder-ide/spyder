@@ -10,13 +10,10 @@ spyder.py3compat
 
 Transitional module providing compatibility functions intended to help
 migrating from Python 2 to Python 3.
-
-This module should be fully compatible with:
-    * Python >=v2.6
-    * Python 3
 """
 
 import operator
+import pickle  # noqa. For compatibility with spyder-line-profiler
 
 
 #==============================================================================
@@ -66,8 +63,6 @@ def to_binary_string(obj, encoding='utf-8'):
 #==============================================================================
 # Misc.
 #==============================================================================
-# Python 3
-
 def qbytearray_to_str(qba):
     """Convert QByteArray object to str in a way compatible with Python 3"""
     return str(bytes(qba.toHex().data()).decode())
