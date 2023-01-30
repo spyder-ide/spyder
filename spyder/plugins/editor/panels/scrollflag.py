@@ -8,8 +8,9 @@ This module contains the Scroll Flag panel
 """
 
 # Standard library imports
-import sys
+import logging
 from math import ceil
+import sys
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, QThread, QTimer
@@ -21,6 +22,9 @@ from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import is_block_safe
 
+
+# For logging
+logger = logging.getLogger(__name__)
 
 # Time to wait before refreshing flags
 REFRESH_RATE = 1000
@@ -126,6 +130,8 @@ class ScrollFlagArea(Panel):
 
     def update_flags(self):
         """Update flags list in a thread."""
+        logger.debug("Updating current flags")
+
         self._dict_flag_list = {
             'error': [],
             'warning': [],
