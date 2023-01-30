@@ -5334,6 +5334,7 @@ def test_outline_namespace_package(main_window, qtbot, tmpdir):
 @pytest.mark.skipif(
     sys.platform == 'darwin',
     reason="Only works on Windows and Linux")
+@pytest.mark.order(before='test_tour_message')
 def test_switch_to_plugin(main_window, qtbot):
     """
     Test that switching between the two most important plugins, the Editor and
