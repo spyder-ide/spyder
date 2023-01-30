@@ -124,7 +124,7 @@ jobs:
     needs:
       - build-matrix
       - build-noarch-pkgs
-    if: ${{ ! failure() && ! cancelled() }}
+    if: ${{ ! failure() && ! cancelled() && needs.build-matrix.result == 'success' }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
