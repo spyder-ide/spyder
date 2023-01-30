@@ -12,7 +12,7 @@ import sys
 from math import ceil
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt, QTimer
+from qtpy.QtCore import QSize, Qt, QThread, QTimer
 from qtpy.QtGui import QPainter, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
@@ -22,9 +22,10 @@ from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import is_block_safe
 
 
+# Time to wait before refreshing flags
 REFRESH_RATE = 1000
 
-# Maximum number of flags to print in a file
+# Maximum number of flags to paint in a file
 MAX_FLAGS = 1000
 
 
@@ -56,6 +57,11 @@ class ScrollFlagArea(Panel):
 
         # Dictionary with flag lists
         self._dict_flag_list = {}
+
+        # Thread to update flags on it.
+        self._update_flags_thread = QThread(None)
+        self._update_flags_thread.run = self._update_flags
+        self._update_flags_thread.finished.connect(self.update)
 
     def on_install(self, editor):
         """Manages install setup of the pane."""
@@ -90,6 +96,8 @@ class ScrollFlagArea(Panel):
 
     def closeEvent(self, event):
         self._update_list_timer.stop()
+        self._update_flags_thread.quit()
+        self._update_flags_thread.wait()
         super().closeEvent(event)
 
     def sizeHint(self):
@@ -117,13 +125,7 @@ class ScrollFlagArea(Panel):
         self._update_list_timer.start(REFRESH_RATE)
 
     def update_flags(self):
-        """
-        Update flags list.
-
-        This parses the entire file, which can take a lot of time for
-        large files. Save all the flags in lists for painting during
-        paint events.
-        """
+        """Update flags list in a thread."""
         self._dict_flag_list = {
             'error': [],
             'warning': [],
@@ -131,6 +133,12 @@ class ScrollFlagArea(Panel):
             'breakpoint': [],
         }
 
+        # This prevents freezing the interface by running this computation on
+        # the main thread
+        self._update_flags_thread.start()
+
+    def _update_flags(self):
+        """Update flags list."""
         editor = self.editor
         block = editor.document().firstBlock()
         while block.isValid():
@@ -138,7 +146,6 @@ class ScrollFlagArea(Panel):
             data = block.userData()
             if data:
                 if data.code_analysis:
-                    # Paint the errors and warnings
                     for _, _, severity, _ in data.code_analysis:
                         if severity == DiagnosticSeverity.ERROR:
                             flag_type = 'error'
@@ -156,8 +163,6 @@ class ScrollFlagArea(Panel):
                     self._dict_flag_list[flag_type].append(block)
 
             block = block.next()
-
-        self.update()
 
     def paintEvent(self, event):
         """
