@@ -136,7 +136,7 @@ To release a new version of Spyder you need to follow these steps:
       git commit -m "Release X.X.XpreX [ci skip]"
       git push upstream 5.x
 
-* Manually activate the workflows:
+* Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)):
     - Create Windows Installer
     - Create macOS App Bundle and DMG
     - Create conda-based installers for Windows, macOS, and Linux
