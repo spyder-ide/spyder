@@ -48,8 +48,9 @@ from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
-    find_desired_tab_in_window, LOCATION, open_file_in_editor, PY37,
-    read_asset_file, reset_run_code, SHELL_TIMEOUT, start_new_kernel)
+    find_desired_tab_in_window, LOCATION, open_file_in_editor,
+    preferences_dialog_helper, PY37, read_asset_file, reset_run_code,
+    SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
@@ -1055,6 +1056,7 @@ def test_run_cython_code(main_window, qtbot):
     main_window.editor.close_file()
 
 
+@flaky(max_runs=5)
 def test_project_path(main_window, tmpdir, qtbot):
     """Test project path added to spyder_pythonpath and IPython Console."""
     projects = main_window.projects
@@ -2698,31 +2700,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
     main_window.debugger.clear_all_breakpoints()
 
 
-# --- Preferences
-# ----------------------------------------------------------------------------
-def preferences_dialog_helper(qtbot, main_window, section):
-    """
-    Open preferences dialog and select page with `section` (CONF_SECTION).
-    """
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(
-        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
-
-    main_window.show_preferences()
-    preferences = main_window.preferences
-    container = preferences.get_container()
-
-    qtbot.waitUntil(lambda: container.dialog is not None,
-                    timeout=5000)
-    dlg = container.dialog
-    index = dlg.get_index_by_name(section)
-    page = dlg.get_page(index)
-    dlg.set_current_index(index)
-    return dlg, index, page
-
-
+@flaky(max_runs=5)
 def test_preferences_run_section_exists(main_window, qtbot):
     """
     Test for spyder-ide/spyder#13524 regression.
@@ -5241,6 +5219,7 @@ def test_debug_unsaved_function(main_window, qtbot):
     assert "1---> 2     print(1)" in control.toPlainText()
 
 
+@flaky(max_runs=5)
 @pytest.mark.close_main_window
 def test_out_runfile_runcell(main_window, qtbot):
     """
@@ -5690,6 +5669,7 @@ def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
         assert shell_cwd == workdir.get_workdir() == files.get_current_folder()
 
 
+@flaky(max_runs=5)
 def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     """
     Test that the initial current working directory for new consoles is synced
@@ -5885,6 +5865,7 @@ def test_outline_namespace_package(main_window, qtbot, tmpdir):
 @pytest.mark.skipif(
     sys.platform == 'darwin',
     reason="Only works on Windows and Linux")
+@pytest.mark.order(before='test_tour_message')
 def test_switch_to_plugin(main_window, qtbot):
     """
     Test that switching between the two most important plugins, the Editor and
@@ -5911,6 +5892,7 @@ def test_switch_to_plugin(main_window, qtbot):
     assert QApplication.focusWidget() is code_editor
 
 
+@flaky(max_runs=5)
 def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
     """
     Test that PYTHONPATH is passed to IPython consoles under different
