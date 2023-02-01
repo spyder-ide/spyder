@@ -1,5 +1,10 @@
 on:
   pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
@@ -21,6 +26,8 @@ on:
     tags:
       - v*pre*
 
+  workflow_dispatch:
+
 concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
@@ -28,13 +35,17 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  IS_PRE: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'labeled' }}
+  IS_BUILD: ${{ github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts' }}
+  IS_LABELED_PR: ${{ github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts' }}
+  IS_RELEASE: ${{ github.event_name == 'release' }}
+  IS_PRE: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) || (github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts') }}
 
 jobs:
   build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
     strategy:
       matrix:
         pkg: ["python-lsp-server", "qtconsole"]
@@ -75,12 +86,15 @@ jobs:
   build-matrix:
     name: Determine Build Matrix
     runs-on: ubuntu-latest
+    if: github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts'
     outputs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
       include: ${{ steps.build-matrix.outputs.include }}
       python_version: ${{ steps.build-matrix.outputs.python_version }}
+
     steps:
-    - id: build-matrix
+    - name: Determine Build Matrix
+      id: build-matrix
       run: |
         target_platform="'osx-64', 'linux-64'"
         include="\
@@ -89,7 +103,7 @@ jobs:
         "
         python_version="'3.9'"
 
-        if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
+        if [[ $IS_STANDARD_PR == 'true' ]]; then
             target_platform=$target_platform", 'win-64'"
             include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
         fi
@@ -98,13 +112,19 @@ jobs:
         echo "include=[$include]" >> $GITHUB_OUTPUT
         echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
 
+    - name: Remove Label
+      if: github.event.action == 'labeled'
+      uses: actions-ecosystem/action-remove-labels@v1
+      with:
+        labels: build-installer-artifacts
+
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     needs:
       - build-matrix
       - build-noarch-pkgs
-    if: ${{ ! failure() && ! cancelled() }}
+    if: ${{ ! failure() && ! cancelled() && needs.build-matrix.result == 'success' }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -121,7 +141,7 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
-      STATUS: ${{ needs.build-noarch-pkgs.result }}
+      BNP_STATUS: ${{ needs.build-noarch-pkgs.result }}
       MAT_STATUS: ${{ needs.build-matrix.result }}
 
     steps:
@@ -159,7 +179,7 @@ jobs:
           env
 
       - name: Download Local Conda Packages
-        if: github.event_name == 'pull_request'
+        if: env.IS_STANDARD_PR
         uses: actions/download-artifact@v3
         with:
           path: ${{ env.ARTIFACTS_PATH }}
@@ -182,13 +202,13 @@ jobs:
       - name: Build ${{ matrix.target-platform }} conda packages
         run: |
           pkgs=("spyder")
-          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
+          if [[ $IS_STANDARD_PR == "true" ]]; then
               pkgs+=("spyder-kernels")
           fi
           python build_conda_pkgs.py --build ${pkgs[@]}
 
       - name: Create Keychain
-        if: (github.event_name == 'release' || env.IS_PRE == 'true') && runner.os == 'macOS'
+        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
         run: |
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
           CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
@@ -226,7 +246,7 @@ jobs:
           fi
 
       - name: Notarize package installer
-        if: (github.event_name == 'release' || env.IS_PRE == 'true') && runner.os == 'macOS'
+        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
         run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
 
       - name: Upload Artifact
