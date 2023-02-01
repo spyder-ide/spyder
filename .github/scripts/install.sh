@@ -75,7 +75,14 @@ conda list -n jedi-test-env
 
 # Create environment to test conda env activation before launching a kernel
 conda create -n spytest-ž -q -y -c conda-forge python=3.9
-conda run -n spytest-ž python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
+
+# `conda run` fails on Windows without a clear reason
+if [ "$OS" = "win" ]; then
+    /c/Miniconda/envs/spytest-ž/python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
+else
+    conda run -n spytest-ž python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
+fi
+
 conda list -n spytest-ž
 
 # Install pyenv on Linux systems
