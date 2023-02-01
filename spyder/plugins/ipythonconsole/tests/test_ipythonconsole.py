@@ -18,6 +18,7 @@ import sys
 from textwrap import dedent
 
 # Third party imports
+from ipykernel._version import __version__ as ipykernel_version
 import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
@@ -139,6 +140,9 @@ def test_auto_backend(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.tk_backend
+@pytest.mark.skipif(
+    os.name == 'nt' and (parse(ipykernel_version) == parse('6.21.0')),
+    reason="Fails on Windows with IPykernel 6.21.0")
 def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
