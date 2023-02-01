@@ -11,9 +11,10 @@ import copy
 import functools
 
 # Third party imports
-from qtpy.QtGui import QTextCursor, QColor
-from qtpy.QtCore import Qt, QMutex, QMutexLocker
 from diff_match_patch import diff_match_patch
+from qtpy.QtCore import QMutex, QMutexLocker, Qt
+from qtpy.QtGui import QTextCursor, QColor
+from superqt.utils import qdebounced
 
 try:
     from rtree import index
@@ -98,7 +99,7 @@ class SnippetsExtension(EditorExtension):
             self.index = index.Index()
 
     def on_state_changed(self, state):
-        """Connect/disconnect sig_key_pressed signal."""
+        """Connect/disconnect editor signals."""
         if state:
             self.editor.sig_key_pressed.connect(self._on_key_pressed)
             self.editor.sig_insert_completion.connect(self.insert_snippet)
@@ -714,6 +715,7 @@ class SnippetsExtension(EditorExtension):
                 current_node = nearest_text.tokens[-1]
         return current_node, nearest_snippet, nearest_text
 
+    @qdebounced(timeout=20)
     def cursor_changed(self, line, col):
         if not rtree_available:
             return
