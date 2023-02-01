@@ -68,7 +68,7 @@ COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 _bool_false = ['false', 'f', '0', '0.', '0.0', ' ']
 
 # Default format for data frames with floats
-DEFAULT_FORMAT = '%.6g'
+DEFAULT_FORMAT = '.6g'
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
@@ -354,11 +354,11 @@ class DataFrameModel(QAbstractTableModel):
             value = self.get_value(row, column)
             if isinstance(value, float):
                 try:
-                    return to_qvariant(self._format_spec % value)
+                    return to_qvariant(format(value, self._format_spec))
                 except (ValueError, TypeError):
-                    # may happen if format = '%d' and value = NaN;
+                    # may happen if format = 'd' and value = NaN;
                     # see spyder-ide/spyder#4139.
-                    return to_qvariant(DEFAULT_FORMAT % value)
+                    return to_qvariant(format(value, DEFAULT_FORMAT))
             elif is_type_text_string(value):
                 # Don't perform any conversion on strings
                 # because it leads to differences between
@@ -1017,8 +1017,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
-        format_spec = '%' + self.get_conf('dataframe_format')
-        self.dataModel.set_format_spec(format_spec)
+        self.dataModel.set_format_spec(self.get_conf('dataframe_format'))
 
         return True
 
@@ -1307,18 +1306,12 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         if valid:
             format_spec = str(format_spec)
             try:
-                format_spec % 1.1
+                format(1.1, format_spec)
             except:
                 msg = _("Format ({}) is incorrect").format(format_spec)
                 QMessageBox.critical(self, _("Error"), msg)
                 return
-            if not format_spec.startswith('%'):
-                msg = _("Format ({}) should start with '%'").format(format_spec)
-                QMessageBox.critical(self, _("Error"), msg)
-                return
             self.dataModel.set_format_spec(format_spec)
-
-            format_spec = format_spec[1:]
             self.set_conf('dataframe_format', format_spec)
 
     def get_value(self):

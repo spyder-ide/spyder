@@ -348,40 +348,39 @@ def test_dataframemodel_get_bgcolor_with_missings():
 
 def test_dataframemodel_with_format_percent_d_and_nan():
     """
-    Test DataFrameModel with format `%d` and dataframe containing NaN
+    Test DataFrameModel with format `d` and dataframe containing NaN
 
     Regression test for spyder-ide/spyder#4139.
     """
     np_array = numpy.zeros(2)
     np_array[1] = numpy.nan
     dataframe = DataFrame(np_array)
-    dfm = DataFrameModel(dataframe, format_spec='%d')
+    dfm = DataFrameModel(dataframe, format_spec='d')
     assert data(dfm, 0, 0) == '0'
     assert data(dfm, 1, 0) == 'nan'
 
 def test_change_format(qtbot, monkeypatch):
     mockQInputDialog = Mock()
-    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('%10.3e', True)
+    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('10.3e', True)
     monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor.QInputDialog', mockQInputDialog)
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     editor.change_format()
-    assert editor.dataModel._format_spec == '%10.3e'
+    assert editor.dataModel._format_spec == '10.3e'
     assert editor.get_conf('dataframe_format') == '10.3e'
     editor.set_conf('dataframe_format', '.6g')
 
-def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch):
-    mockQInputDialog = Mock()
-    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('xxx%f', True)
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor'
-                        '.QInputDialog', mockQInputDialog)
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor'
-                        '.QMessageBox.critical', Mock())
-    df = DataFrame([[0]])
-    editor = DataFrameEditor(None)
-    editor.setup_and_check(df)
-    editor.change_format()
+
+def test_dataframemodel_with_format_thousands():
+    """
+    Check that format can include thousands separator.
+
+    Regression test for spyder-ide/spyder#14518.
+    """
+    dataframe = DataFrame([10000.1])
+    dfm = DataFrameModel(dataframe, format_spec=',.2f')
+    assert data(dfm, 0, 0) == '10,000.10'
 
 
 def test_dataframeeditor_with_various_indexes():

@@ -41,48 +41,48 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
-# Note: string and unicode data types will be formatted with '%s' (see below)
+# Note: string and unicode data types will be formatted with 's' (see below)
 SUPPORTED_FORMATS = {
-    'single': '%.6g',
-    'double': '%.6g',
-    'float_': '%.6g',
-    'longfloat': '%.6g',
-    'float16': '%.6g',
-    'float32': '%.6g',
-    'float64': '%.6g',
-    'float96': '%.6g',
-    'float128': '%.6g',
-    'csingle': '%r',
-    'complex_': '%r',
-    'clongfloat': '%r',
-    'complex64': '%r',
-    'complex128': '%r',
-    'complex192': '%r',
-    'complex256': '%r',
-    'byte': '%d',
-    'bytes8': '%s',
-    'short': '%d',
-    'intc': '%d',
-    'int_': '%d',
-    'longlong': '%d',
-    'intp': '%d',
-    'int8': '%d',
-    'int16': '%d',
-    'int32': '%d',
-    'int64': '%d',
-    'ubyte': '%d',
-    'ushort': '%d',
-    'uintc': '%d',
-    'uint': '%d',
-    'ulonglong': '%d',
-    'uintp': '%d',
-    'uint8': '%d',
-    'uint16': '%d',
-    'uint32': '%d',
-    'uint64': '%d',
-    'bool_': '%r',
-    'bool8': '%r',
-    'bool': '%r',
+    'single': '.6g',
+    'double': '.6g',
+    'float_': '.6g',
+    'longfloat': '.6g',
+    'float16': '.6g',
+    'float32': '.6g',
+    'float64': '.6g',
+    'float96': '.6g',
+    'float128': '.6g',
+    'csingle': 'r',
+    'complex_': 'r',
+    'clongfloat': 'r',
+    'complex64': 'r',
+    'complex128': 'r',
+    'complex192': 'r',
+    'complex256': 'r',
+    'byte': 'd',
+    'bytes8': 's',
+    'short': 'd',
+    'intc': 'd',
+    'int_': 'd',
+    'longlong': 'd',
+    'intp': 'd',
+    'int8': 'd',
+    'int16': 'd',
+    'int32': 'd',
+    'int64': 'd',
+    'ubyte': 'd',
+    'ushort': 'd',
+    'uintc': 'd',
+    'uint': 'd',
+    'ulonglong': 'd',
+    'uintp': 'd',
+    'uint8': 'd',
+    'uint16': 'd',
+    'uint32': 'd',
+    'uint64': 'd',
+    'bool_': 'r',
+    'bool8': 'r',
+    'bool': 'r',
 }
 
 
@@ -120,7 +120,7 @@ class ArrayModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, data, format_spec="%.6g", xlabels=None, ylabels=None,
+    def __init__(self, data, format_spec=".6g", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
@@ -288,7 +288,8 @@ class ArrayModel(QAbstractTableModel):
                     return value_to_display(value)
                 else:
                     try:
-                        return to_qvariant(self._format_spec % value)
+                        format_spec = self._format_spec
+                        return to_qvariant(format(value, format_spec))
                     except TypeError:
                         self.readonly = True
                         return repr(value)
@@ -346,7 +347,8 @@ class ArrayModel(QAbstractTableModel):
             return False
 
         # Add change to self.changes
-        self.changes[(i, j)] = val
+        # Use self.test_array to convert to correct dtype
+        self.changes[(i, j)] = self.test_array[0]
         self.dataChanged.emit(index, index)
 
         if not is_string(val):
@@ -559,8 +561,9 @@ class ArrayView(QTableView):
         _data = self.model().get_data()
         output = io.BytesIO()
         try:
+            fmt = '%' + self.model().get_format_spec()
             np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t', fmt=self.model().get_format_spec())
+                       delimiter='\t', fmt=fmt)
         except:
             QMessageBox.warning(self, _("Warning"),
                                 _("It was not possible to copy values for "
@@ -592,7 +595,7 @@ class ArrayEditorWidget(QWidget):
             self.old_data_shape = self.data.shape
             self.data.shape = (1, 1)
 
-        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
+        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, 's')
         self.model = ArrayModel(self.data, format_spec=format_spec, xlabels=xlabels,
                                 ylabels=ylabels, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
@@ -622,7 +625,7 @@ class ArrayEditorWidget(QWidget):
         if valid:
             format_spec = str(format_spec)
             try:
-                format_spec % 1.1
+                format(1.1, format_spec)
             except:
                 QMessageBox.critical(self, _("Error"),
                                      _("Format (%s) is incorrect") % format_spec)

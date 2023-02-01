@@ -127,12 +127,23 @@ def test_arrayeditor_format(setup_arrayeditor, qtbot):
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1\n2\n"
-    dlg.arraywidget.view.model().set_format_spec("%.18e")
-    assert dlg.arraywidget.view.model().get_format_spec() == "%.18e"
+    dlg.arraywidget.view.model().set_format_spec(".18e")
+    assert dlg.arraywidget.view.model().get_format_spec() == ".18e"
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
+
+
+@pytest.mark.parametrize(
+    'data',
+    [np.array([10000])]
+)
+def test_arrayeditor_format_thousands(setup_arrayeditor):
+    """Check that format can include thousands separator."""
+    model = setup_arrayeditor.arraywidget.model
+    model.set_format_spec(',.2f')
+    assert model.data(model.index(0, 0)) == '10,000.00'
 
 
 def test_arrayeditor_with_inf_array(qtbot, recwarn):
