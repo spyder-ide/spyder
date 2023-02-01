@@ -355,7 +355,7 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     np_array = numpy.zeros(2)
     np_array[1] = numpy.nan
     dataframe = DataFrame(np_array)
-    dfm = DataFrameModel(dataframe, format='%d')
+    dfm = DataFrameModel(dataframe, format_spec='%d')
     assert data(dfm, 0, 0) == '0'
     assert data(dfm, 1, 0) == 'nan'
 
@@ -367,7 +367,7 @@ def test_change_format(qtbot, monkeypatch):
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     editor.change_format()
-    assert editor.dataModel._format == '%10.3e'
+    assert editor.dataModel._format_spec == '%10.3e'
     assert editor.get_conf('dataframe_format') == '10.3e'
     editor.set_conf('dataframe_format', '.6g')
 

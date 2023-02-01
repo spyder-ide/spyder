@@ -120,7 +120,7 @@ class ArrayModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, data, format="%.6g", xlabels=None, ylabels=None,
+    def __init__(self, data, format_spec="%.6g", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
@@ -145,7 +145,7 @@ class ArrayModel(QAbstractTableModel):
         self.alp = .6 # Alpha-channel
 
         self._data = data
-        self._format = format
+        self._format_spec = format_spec
 
         self.total_rows = self._data.shape[0]
         self.total_cols = self._data.shape[1]
@@ -192,18 +192,18 @@ class ArrayModel(QAbstractTableModel):
             else:
                 self.cols_loaded = self.total_cols
 
-    def get_format(self):
+    def get_format_spec(self):
         """Return current format"""
-        # Avoid accessing the private attribute _format from outside
-        return self._format
+        # Avoid accessing the private attribute _format_spec from outside
+        return self._format_spec
 
     def get_data(self):
         """Return data"""
         return self._data
 
-    def set_format(self, format):
+    def set_format_spec(self, format_spec):
         """Change display format"""
-        self._format = format
+        self._format_spec = format_spec
         self.reset()
 
     def columnCount(self, qindex=QModelIndex()):
@@ -288,7 +288,7 @@ class ArrayModel(QAbstractTableModel):
                     return value_to_display(value)
                 else:
                     try:
-                        return to_qvariant(self._format % value)
+                        return to_qvariant(self._format_spec % value)
                     except TypeError:
                         self.readonly = True
                         return repr(value)
@@ -560,7 +560,7 @@ class ArrayView(QTableView):
         output = io.BytesIO()
         try:
             np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t', fmt=self.model().get_format())
+                       delimiter='\t', fmt=self.model().get_format_spec())
         except:
             QMessageBox.warning(self, _("Warning"),
                                 _("It was not possible to copy values for "
@@ -592,8 +592,8 @@ class ArrayEditorWidget(QWidget):
             self.old_data_shape = self.data.shape
             self.data.shape = (1, 1)
 
-        format = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
-        self.model = ArrayModel(self.data, format=format, xlabels=xlabels,
+        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
+        self.model = ArrayModel(self.data, format_spec=format_spec, xlabels=xlabels,
                                 ylabels=ylabels, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
 
@@ -616,18 +616,18 @@ class ArrayEditorWidget(QWidget):
     @Slot()
     def change_format(self):
         """Change display format"""
-        format, valid = QInputDialog.getText(self, _( 'Format'),
+        format_spec, valid = QInputDialog.getText(self, _( 'Format'),
                                  _( "Float formatting"),
-                                 QLineEdit.Normal, self.model.get_format())
+                                 QLineEdit.Normal, self.model.get_format_spec())
         if valid:
-            format = str(format)
+            format_spec = str(format_spec)
             try:
-                format % 1.1
+                format_spec % 1.1
             except:
                 QMessageBox.critical(self, _("Error"),
-                                     _("Format (%s) is incorrect") % format)
+                                     _("Format (%s) is incorrect") % format_spec)
                 return
-            self.model.set_format(format)
+            self.model.set_format_spec(format_spec)
 
 
 class ArrayEditor(BaseDialog):
