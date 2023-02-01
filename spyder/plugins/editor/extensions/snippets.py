@@ -90,7 +90,6 @@ class SnippetsExtension(EditorExtension):
         self.starting_position = None
         self.modification_lock = QMutex()
         self.event_lock = QMutex()
-        self.update_lock = QMutex()
         self.node_position = {}
         self.snippets_map = {}
         self.undo_stack = []
@@ -590,7 +589,8 @@ class SnippetsExtension(EditorExtension):
 
     @lock
     def remove_selection(self, selection_start, selection_end):
-        self._remove_selection(selection_start, selection_end)
+        if self.is_snippet_active:
+            self._remove_selection(selection_start, selection_end)
 
     def _remove_selection(self, selection_start, selection_end):
         start_node, _, _ = self._find_node_by_position(*selection_start)
@@ -713,6 +713,7 @@ class SnippetsExtension(EditorExtension):
             text_ids = set([id(token) for token in nearest_text.tokens])
             if node_id not in text_ids:
                 current_node = nearest_text.tokens[-1]
+
         return current_node, nearest_snippet, nearest_text
 
     @qdebounced(timeout=20)
@@ -724,14 +725,16 @@ class SnippetsExtension(EditorExtension):
             self.inserting_snippet = False
             return
 
-        node, nearest_snippet, _ = self._find_node_by_position(line, col)
-        if node is None:
-            ignore = self.editor.is_undoing or self.editor.is_redoing
-            if not ignore:
-                self.reset()
-        else:
-            if nearest_snippet is not None:
-                self.active_snippet = nearest_snippet.number
+        if self.is_snippet_active:
+            node, nearest_snippet, _ = self._find_node_by_position(line, col)
+
+            if node is None:
+                ignore = self.editor.is_undoing or self.editor.is_redoing
+                if not ignore:
+                    self.reset()
+            else:
+                if nearest_snippet is not None:
+                    self.active_snippet = nearest_snippet.number
 
     def reset(self, partial_reset=False):
         self.node_number = 0
