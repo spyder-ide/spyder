@@ -10,6 +10,9 @@ Environment variable utilities.
 
 # Standard library imports
 import os
+from pathlib import Path
+import re
+import sys
 try:
     import winreg
 except Exception:
@@ -51,25 +54,22 @@ def get_user_environment_variables():
     env_var : dict
         Key-value pairs of environment variables.
     """
-    if os.name == 'nt':
-        cmd = "set"
-    else:
-        cmd = "printenv"
-    proc = run_shell_command(cmd)
-    stdout, stderr = proc.communicate()
-
     try:
-        res = stdout.decode().strip().split(os.linesep)
+        if os.name == 'nt':
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+            N = winreg.QueryInfoKey(key)[1]
+            env_var = dict([winreg.EnumValue(key, k)[:2] for k in range(N)])
+        else:
+            shell = os.environ.get("SHELL", "/bin/bash")
+            cmd = (
+                f"{shell} -l -c"
+                f""" "{sys.executable} -c 'import os; print(dict(os.environ))'" """
+            )
+            proc = run_shell_command(cmd, env={}, text=True)
+            stdout, stderr = proc.communicate()
+            env_var = eval(stdout, None)
     except Exception:
         return {}
-
-    env_var = {}
-    for kv in res:
-        try:
-            k, v = kv.split('=', 1)
-            env_var[k] = v
-        except Exception:
-            pass
 
     return env_var
 
