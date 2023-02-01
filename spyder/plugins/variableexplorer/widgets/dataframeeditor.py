@@ -118,13 +118,13 @@ class DataFrameModel(QAbstractTableModel):
     https://github.com/wavexx/gtabview/blob/master/gtabview/models.py
     """
 
-    def __init__(self, dataFrame, format=DEFAULT_FORMAT, parent=None):
+    def __init__(self, dataFrame, format_spec=DEFAULT_FORMAT, parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
         self.df_columns_list = None
         self.df_index_list = None
-        self._format = format
+        self._format_spec = format_spec
         self.complex_intran = None
         self.display_error_idxs = []
 
@@ -265,14 +265,14 @@ class DataFrameModel(QAbstractTableModel):
                 max_min = None
             self.max_min_col.append(max_min)
 
-    def get_format(self):
-        """Return current format"""
-        # Avoid accessing the private attribute _format from outside
-        return self._format
+    def get_format_spec(self):
+        """Return current format+spec"""
+        # Avoid accessing the private attribute _format_spec from outside
+        return self._format_spec
 
-    def set_format(self, format):
+    def set_format_spec(self, format_spec):
         """Change display format"""
-        self._format = format
+        self._format_spec = format_spec
         self.reset()
 
     def bgcolor(self, state):
@@ -354,7 +354,7 @@ class DataFrameModel(QAbstractTableModel):
             value = self.get_value(row, column)
             if isinstance(value, float):
                 try:
-                    return to_qvariant(self._format % value)
+                    return to_qvariant(self._format_spec % value)
                 except (ValueError, TypeError):
                     # may happen if format = '%d' and value = NaN;
                     # see spyder-ide/spyder#4139.
@@ -1017,8 +1017,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
-        format = '%' + self.get_conf('dataframe_format')
-        self.dataModel.set_format(format)
+        format_spec = '%' + self.get_conf('dataframe_format')
+        self.dataModel.set_format_spec(format_spec)
 
         return True
 
@@ -1301,26 +1301,25 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         """
         Ask user for display format for floats and use it.
         """
-        format, valid = QInputDialog.getText(self, _('Format'),
-                                             _("Float formatting"),
-                                             QLineEdit.Normal,
-                                             self.dataModel.get_format())
+        format_spec, valid = QInputDialog.getText(
+            self, _('Format'), _("Float formatting"), QLineEdit.Normal,
+            self.dataModel.get_format_spec())
         if valid:
-            format = str(format)
+            format_spec = str(format_spec)
             try:
-                format % 1.1
+                format_spec % 1.1
             except:
-                msg = _("Format ({}) is incorrect").format(format)
+                msg = _("Format ({}) is incorrect").format(format_spec)
                 QMessageBox.critical(self, _("Error"), msg)
                 return
-            if not format.startswith('%'):
-                msg = _("Format ({}) should start with '%'").format(format)
+            if not format_spec.startswith('%'):
+                msg = _("Format ({}) should start with '%'").format(format_spec)
                 QMessageBox.critical(self, _("Error"), msg)
                 return
-            self.dataModel.set_format(format)
+            self.dataModel.set_format_spec(format_spec)
 
-            format = format[1:]
-            self.set_conf('dataframe_format', format)
+            format_spec = format_spec[1:]
+            self.set_conf('dataframe_format', format_spec)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
