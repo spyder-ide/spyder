@@ -81,35 +81,42 @@ def get_user_env():
 
 
 def set_user_env(env, parent=None):
-    """Set HKCU (current user) environment variables"""
-    if os.name != 'nt':
-        raise NotImplementedError("Not implemented for %s platforms", os.name)
+    """
+    Set user environment variables via HKCU (Windows) or
+    shell startup file (unix).
+    """
+    env_dict = listdict2envdict(env)
 
-    reg = listdict2envdict(env)
-    types = dict()
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
-    for name in reg:
+    if os.name == 'nt':
+        types = dict()
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+        for name in env_dict:
+            try:
+                _x, types[name] = winreg.QueryValueEx(key, name)
+            except WindowsError:
+                types[name] = winreg.REG_EXPAND_SZ
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
+                             winreg.KEY_SET_VALUE)
+        for name in env_dict:
+            winreg.SetValueEx(key, name, 0, types[name], env_dict[name])
         try:
-            _x, types[name] = winreg.QueryValueEx(key, name)
-        except WindowsError:
-            types[name] = winreg.REG_EXPAND_SZ
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
-                         winreg.KEY_SET_VALUE)
-    for name in reg:
-        winreg.SetValueEx(key, name, 0, types[name], reg[name])
-    try:
-        from win32gui import SendMessageTimeout
-        from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
-                              SMTO_ABORTIFHUNG)
-        SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
-                           "Environment", SMTO_ABORTIFHUNG, 5000)
-    except Exception:
-        QMessageBox.warning(
-            parent, _("Warning"),
-            _("Module <b>pywin32 was not found</b>.<br>"
-              "Please restart this Windows <i>session</i> "
-              "(not the computer) for changes to take effect.")
-        )
+            from win32gui import SendMessageTimeout
+            from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
+                                  SMTO_ABORTIFHUNG)
+            SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
+                               "Environment", SMTO_ABORTIFHUNG, 5000)
+        except Exception:
+            QMessageBox.warning(
+                parent, _("Warning"),
+                _("Module <b>pywin32 was not found</b>.<br>"
+                  "Please restart this Windows <i>session</i> "
+                  "(not the computer) for changes to take effect.")
+            )
+    elif os.name == 'posix':
+        text = "\n".join([f"export {k}={v}" for k, v in env_dict.items()])
+        amend_user_shell_init(text)
+    else:
+        raise NotImplementedError("Not implemented for platform %s", os.name)
 
 
 def amend_user_shell_init(text="", restore=False):
