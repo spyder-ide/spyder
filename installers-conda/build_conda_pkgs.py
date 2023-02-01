@@ -48,6 +48,7 @@ SPYPATCHFILE = DIST / "installers-conda.patch"
 class BuildCondaPkg:
     """Base class for building a conda package for conda-based installer"""
     name = None
+    norm = True
     source = None
     feedstock = None
     shallow_ver = None
@@ -115,7 +116,8 @@ class BuildCondaPkg:
 
     def _get_version(self):
         """Get source version using setuptools_scm"""
-        self.version = get_version(self._bld_src).split('+')[0]
+        v = get_version(self._bld_src, normalize=self.norm)
+        self.version = v.lstrip('v').split('+')[0]
 
     def _patch_source(self):
         pass
@@ -193,6 +195,7 @@ class BuildCondaPkg:
 
 class SpyderCondaPkg(BuildCondaPkg):
     name = "spyder"
+    norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"

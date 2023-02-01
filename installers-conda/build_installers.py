@@ -129,7 +129,7 @@ yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
-SPYVER = get_version(SPYREPO).strip().split("+")[0]
+SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
 
 specs = {
     "spyder": "=" + SPYVER,
