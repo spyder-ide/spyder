@@ -1,10 +1,5 @@
 on:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - labeled
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
@@ -22,10 +17,6 @@ on:
     types:
       - created
 
-  push:
-    tags:
-      - v*pre*
-
   workflow_dispatch:
 
 concurrency:
@@ -35,17 +26,15 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'labeled' }}
-  IS_BUILD: ${{ github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts' }}
-  IS_LABELED_PR: ${{ github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts' }}
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
-  IS_PRE: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) || (github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts') }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' }}
 
 jobs:
   build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    if: github.event_name == 'pull_request'
     strategy:
       matrix:
         pkg: ["python-lsp-server", "qtconsole"]
@@ -86,7 +75,6 @@ jobs:
   build-matrix:
     name: Determine Build Matrix
     runs-on: ubuntu-latest
-    if: github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts'
     outputs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
       include: ${{ steps.build-matrix.outputs.include }}
@@ -112,19 +100,13 @@ jobs:
         echo "include=[$include]" >> $GITHUB_OUTPUT
         echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
 
-    - name: Remove Label
-      if: github.event.action == 'labeled'
-      uses: actions-ecosystem/action-remove-labels@v1
-      with:
-        labels: build-installer-artifacts
-
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     needs:
       - build-matrix
       - build-noarch-pkgs
-    if: ${{ ! failure() && ! cancelled() && needs.build-matrix.result == 'success' }}
+    if: ${{ ! failure() && ! cancelled() }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
