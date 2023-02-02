@@ -172,6 +172,8 @@ jobs:
         with:
           environment-file: installers-conda/build-environment.yml
           extra-specs: python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-env: true
 
       - name: Env Variables
         run: |
