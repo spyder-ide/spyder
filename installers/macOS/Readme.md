@@ -74,11 +74,10 @@ This will install Spyder, the packages required for building Spyder, and extra p
 If you use external environments, such as conda, for your IPython consoles, you don't need `req-scientific.txt`.
 The build command also provides an option to exclude these packages, so you may install them and still build the application without them.
 
-If your Spyder repo is checked out at a release commit or a commit that does not require synchronized commits for `python-lsp-server`, `qdarkstyle`, `qtconsole`, or `spyder-kernels`, then you should be able to proceed to building the application in the next section.
+If your Spyder repo is checked out at a release commit or a commit that does not require synchronized commits for `python-lsp-server`, `qtconsole`, or `spyder-kernels`, then you should be able to proceed to building the application in the next section.
 However, if you need to synchronize the commits of these packages, then you must install them from Spyder's `external-deps` subrepo directory.
 
 ```
-(spy-build) $ python -m pip install --no-deps -e ../../external-deps/qdarkstyle
 (spy-build) $ python -m pip install --no-deps -e ../../external-deps/qtconsole
 (spy-build) $ python -m pip install --no-deps -e ../../external-deps/spyder-kernels
 (spy-build) $ export SETUPTOOLS_SCM_PRETEND_VERSION=`../../python pylsp_utils.py`

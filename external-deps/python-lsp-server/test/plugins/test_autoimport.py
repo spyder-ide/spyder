@@ -101,6 +101,11 @@ def test_autoimport_class(completions):
     assert len(completions) == 0
 
 
+@pytest.mark.parametrize("completions", [("""\n""", 0)], indirect=True)
+def test_autoimport_empty_line(completions):
+    assert len(completions) == 0
+
+
 @pytest.mark.parametrize("completions", [("""class Test(NamedTupl):""", 20)],
                          indirect=True)
 def test_autoimport_class_complete(completions):

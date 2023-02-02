@@ -16,12 +16,11 @@ from typing import Optional, Union, TypeVar
 from qtpy.QtWidgets import QAction, QMenu
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
 from spyder.utils.qthelpers import add_actions, SpyderAction
 
 
-# --- Constants
-# ----------------------------------------------------------------------------
+# ---- Constants
+# -----------------------------------------------------------------------------
 MENU_SEPARATOR = None
 
 
@@ -39,8 +38,8 @@ class PluginMainWidgetMenus:
     Options = 'options_menu'
 
 
-# --- Widgets
-# ----------------------------------------------------------------------------
+# ---- Widgets
+# -----------------------------------------------------------------------------
 class SpyderMenu(QMenu):
     """
     A QMenu subclass to implement additional functionality for Spyder.
@@ -55,7 +54,7 @@ class SpyderMenu(QMenu):
         self._actions = []
         self._actions_map = {}
         self.unintroduced_actions = {}
-        self.unintroduced_sections = []
+        self._after_sections = {}
         self._dirty = False
         self.menu_id = menu_id
 
@@ -85,7 +84,7 @@ class SpyderMenu(QMenu):
         self._actions = []
         self._actions_map = {}
         self.unintroduced_actions = {}
-        self.unintroduced_sections = []
+        self._after_sections = {}
 
     def add_action(self: T,
                    action: Union[SpyderAction, T],
@@ -151,18 +150,8 @@ class SpyderMenu(QMenu):
 
             self._actions = new_actions
 
-        if before_section is not None:
-            if before_section in self._sections:
-                self._update_sections(section, before_section)
-            else:
-                # If `before_section` has not been introduced yet to the menu,
-                # we save `section` to introduce it when the menu is rendered.
-                if (section, before_section) not in self.unintroduced_sections:
-                    self.unintroduced_sections.append(
-                        (section, before_section)
-                    )
-        elif section not in self._sections:
-            self._sections.append(section)
+        if section not in self._sections:
+            self._add_section(section, before_section)
 
         # Track state of menu to avoid re-rendering if menu has not changed
         self._dirty = True
@@ -217,39 +206,6 @@ class SpyderMenu(QMenu):
         if self._dirty:
             self.clear()
 
-            # Iterate over unintroduced sections until all of them have been
-            # introduced.
-            try:
-                iter_sections = iter(self.unintroduced_sections)
-                while len(self.unintroduced_sections) > 0:
-                    section, before_section = next(iter_sections)
-                    self._update_sections(section, before_section)
-
-                    # If section was introduced, remove it from the list and
-                    # update iterator.
-                    if section in self._sections:
-                        self.unintroduced_sections.remove(
-                            (section, before_section)
-                        )
-                        iter_sections = iter(self.unintroduced_sections)
-            except StopIteration:
-                # Internally, this should only happen in the Tools menu because
-                # the External section can be empty if Kite is not available.
-                # Fixes spyder-ide/spyder#16287
-                # Note: We can't use the ToolsMenuSections enum here to prevent
-                # a circular import.
-                left_sections = [('tools_section', 'external_section')]
-
-                if self.unintroduced_sections == left_sections:
-                    self._update_sections('tools_section', 'extras_section')
-                else:
-                    raise SpyderAPIError(
-                        f"You're trying to introduce some sections before "
-                        f"others that don't have any actions. This is the "
-                        f"list of (section, before_section) that's failing to "
-                        f"be added:\n\n{self.unintroduced_sections}"
-                    )
-
             # Update actions with those that were not introduced because
             # a `before` action they required was not part of the menu yet.
             for before, actions in self.unintroduced_actions.items():
@@ -261,15 +217,60 @@ class SpyderMenu(QMenu):
             add_actions(self, actions)
             self._dirty = False
 
-    def _update_sections(self, section, before_section):
-        """Update sections ordering."""
-        new_sections = []
-        for sec in self._sections:
-            if sec == before_section:
-                new_sections.append(section)
-            if sec != section:
-                new_sections.append(sec)
-        self._sections = new_sections
+    def _add_section(self, section, before_section=None):
+        """
+        Add a new section to the list of sections in this menu.
+
+        Parameters
+        ----------
+        before_section: str or None
+            Make `section` appear before another one.
+        """
+        inserted_before_other = False
+
+        if before_section is not None:
+            if before_section in self._sections:
+                # If before_section was already introduced, we simply need to
+                # insert the new section on its position, which will put it
+                # exactly behind before_section.
+                idx = self._sections.index(before_section)
+                self._sections.insert(idx, section)
+                inserted_before_other = True
+            else:
+                # If before_section hasn't been introduced yet, we know we need
+                # to insert it after section when it's finally added to the
+                # menu. So, we preserve that info in the _after_sections dict.
+                self._after_sections[before_section] = section
+
+                # Append section to the list of sections because we assume
+                # people build menus from top to bottom, i.e. they add its
+                # upper sections first.
+                self._sections.append(section)
+        else:
+            self._sections.append(section)
+
+        # Check if section should be inserted after another one, according to
+        # what we have in _after_sections.
+        after_section = self._after_sections.pop(section, None)
+
+        if after_section is not None:
+            if not inserted_before_other:
+                # Insert section to the right of after_section, if it was not
+                # inserted before another one.
+                if section in self._sections:
+                    self._sections.remove(section)
+
+                index = self._sections.index(after_section)
+                self._sections.insert(index + 1, section)
+            else:
+                # If section was already inserted before another one, then we
+                # need to move after_section to its left instead.
+                if after_section in self._sections:
+                    self._sections.remove(after_section)
+
+                idx = self._sections.index(section)
+                idx = idx if (idx == 0) else (idx - 1)
+                self._sections.insert(idx, after_section)
 
 
 class MainWidgetMenu(SpyderMenu):

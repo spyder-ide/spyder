@@ -7,6 +7,7 @@
 """Qt utilities."""
 
 # Standard library imports
+import configparser
 import functools
 from math import pi
 import logging
@@ -15,6 +16,8 @@ import os.path as osp
 import re
 import sys
 import types
+from urllib.parse import unquote
+
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -29,7 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
 # Local imports
 from spyder.config.base import running_in_mac_app
 from spyder.config.manager import CONF
-from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
@@ -40,11 +43,6 @@ from spyder.widgets.waitingspinner import QWaitingSpinner
 # Third party imports
 if sys.platform == "darwin" and not running_in_mac_app():
     import applaunchservices as als
-
-if PY2:
-    from urllib import unquote
-else:
-    from urllib.parse import unquote
 
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?

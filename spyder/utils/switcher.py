@@ -15,11 +15,8 @@ import sys
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import iteritems, PY2
+from spyder.py3compat import iteritems
 from spyder.utils.icon_manager import ima
-
-if PY2:
-    from itertools import izip as zip
 
 
 def shorten_paths(path_list, is_unsaved):

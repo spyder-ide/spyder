@@ -1,6 +1,11 @@
 # Based on https://github.com/tlambert03/napari/blob/master/.github/workflows/make_bundle.yml
 on:
   pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
     paths:
       - 'installers/Windows/**'
       - '.github/workflows/installer-win.yml'
@@ -19,31 +24,46 @@ on:
     types:
       - created
 
+  push:
+    tags:
+      - v*pre*
+
+  workflow_dispatch:
+
+concurrency:
+  group: installer-win-${{ github.ref }}
+  cancel-in-progress: true
+
 name: Create Windows Installer
+
+env:
+  IS_PRE: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) || (github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts') }}
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'labeled' }}
 
 jobs:
   build:
     name: Windows installer
     runs-on: windows-latest
+    if: github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts'
     strategy:
       matrix:
         build_type: ['Lite', 'Full']
     env:
-      UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree QDarkStyle PyNaCl psutil' || 'pip python-slugify Rtree PyNaCl psutil' }}
+      UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && github.event.action != 'labeled' && 'pip spyder-kernels python-slugify Rtree QDarkStyle PyNaCl psutil' || 'pip python-slugify Rtree PyNaCl psutil' }}
       SKIP_PACKAGES: 'bcrypt slugify'
-      ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle nacl psutil' || 'blib2to3 _black_version blackd rtree nacl psutil' }}
+      ADD_PACKAGES: ${{github.event_name == 'pull_request' && github.event.action != 'labeled' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle nacl psutil' || 'blib2to3 _black_version blackd rtree nacl psutil' }}
       PYNSIST_REQ: pynsist==2.7
-      EXTRA_FLAG: ${{ matrix.build_type == 'Full' && github.event_name == 'pull_request' && '-ep installers/Windows/req-extras-pull-request.txt' || matrix.build_type == 'Lite' && github.event_name == 'pull_request' && '-ep installers/Windows/req-pull-request.txt' || matrix.build_type == 'Full' && '-ep installers/Windows/req-extras-release.txt' || '-ep installers/Windows/req-release.txt' }}
+      EXTRA_FLAG: ${{ matrix.build_type == 'Full' && github.event_name == 'pull_request' && github.event.action != 'labeled' && '-ep installers/Windows/req-extras-pull-request.txt' || matrix.build_type == 'Lite' && github.event_name == 'pull_request' && github.event.action != 'labeled' && '-ep installers/Windows/req-pull-request.txt' || matrix.build_type == 'Full' && '-ep installers/Windows/req-extras-release.txt' || '-ep installers/Windows/req-release.txt' }}
       SUFFIX_FLAG: ${{ matrix.build_type == 'Lite' && '-s lite' || '-s full' }}
       TEMPLATE_FAG: '-t installers/Windows/assets/nsist/spyder.nsi'
-      EXE_NAME: ${{ matrix.build_type == 'Lite' && github.event_name == 'pull_request' && 'Spyder_64bit_lite.exe' || matrix.build_type == 'Lite' && 'Spyder_64bit_lite.exe' || 'Spyder_64bit_full.exe' }}
+      EXE_NAME: ${{ matrix.build_type == 'Lite' && github.event_name == 'pull_request' && github.event.action != 'labeled' && 'Spyder_64bit_lite.exe' || matrix.build_type == 'Lite' && 'Spyder_64bit_lite.exe' || 'Spyder_64bit_full.exe' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8.10
       - name: Install yarg

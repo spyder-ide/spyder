@@ -1,43 +1,30 @@
 #!/bin/bash -ex
 
-# Adjust PATH in macOS
-if [ "$OS" = "macos" ]; then
-    PATH=/Users/runner/miniconda3/envs/test/bin:/Users/runner/miniconda3/condabin:$PATH
-fi
-
 # Install gdb
 if [ "$USE_GDB" = "true" ]; then
-    mamba install gdb -c conda-forge -q -y
+    micromamba install gdb -c conda-forge -q -y
 fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
-    # Install Python and main dependencies
-    mamba install python=$PYTHON_VERSION -q -y
-    mamba env update --file requirements/main.yml
-
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
-        mamba env update --file requirements/windows.yml
+        micromamba install --file requirements/windows.yml
     elif [ "$OS" = "macos" ]; then
-        mamba env update --file requirements/macos.yml
+        micromamba install --file requirements/macos.yml
     else
-        mamba env update --file requirements/linux.yml
+        micromamba install --file requirements/linux.yml
     fi
 
     # Install test dependencies
-    mamba env update --file requirements/tests.yml
+    micromamba install --file requirements/tests.yml
 
     # To check our manifest and coverage
-    mamba install check-manifest codecov -c conda-forge -q -y
+    micromamba install check-manifest -c conda-forge codecov -q -y
 
-    # Numpy 1.23 is not giving completions on the editor and the console
-    if [ "$OS" = "win" ]; then
-        mamba install numpy=1.22
-    else
-        mamba install 'numpy<1.23'
-    fi
+    # Install PyZMQ 24 to avoid hangs
+    micromamba install -c conda-forge pyzmq=24
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -54,14 +41,14 @@ else
     # To check our manifest and coverage
     pip install -q check-manifest codecov
 
-    # Numpy 1.23 is not giving completions on the editor and the console
-    pip install 'numpy<1.23'
-
     # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
+
+    # Install PyZMQ 24 to avoid hangs
+    pip install pyzmq==24.0.1
 fi
 
 # Install subrepos from source
@@ -76,15 +63,29 @@ popd
 python -bb -X dev -W error -m build
 python -bb -X dev -W error -m pip install --no-deps dist/spyder*.whl
 
-# Create environment for Jedi environments tests
-mamba create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
-mamba list -n jedi-test-env
+# Adjust PATH on Windows so that we can use conda below. This needs to be done
+# at this point or the pip slots fail.
+if [ "$OS" = "win" ]; then
+    PATH=/c/Miniconda/Scripts/:$PATH
+fi
 
-# Create environment to test conda activation before launching a spyder kernel
-mamba create -n spytest-ž -q -y python=3.6 spyder-kernels
-mamba list -n spytest-ž
+# Create environment for Jedi environment tests
+conda create -n jedi-test-env -q -y python=3.9 flask
+conda list -n jedi-test-env
 
-# Install pyenv in Posix systems
+# Create environment to test conda env activation before launching a kernel
+conda create -n spytest-ž -q -y -c conda-forge python=3.9
+
+# `conda run` fails on Windows without a clear reason
+if [ "$OS" = "win" ]; then
+    /c/Miniconda/envs/spytest-ž/python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
+else
+    conda run -n spytest-ž python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
+fi
+
+conda list -n spytest-ž
+
+# Install pyenv on Linux systems
 if [ "$RUN_SLOW" = "false" ]; then
     if [ "$OS" = "linux" ]; then
         curl https://pyenv.run | bash

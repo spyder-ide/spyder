@@ -27,14 +27,11 @@ __metaclass__ = type
 import errno, os
 from time import time as _uniquefloat
 
-from spyder.py3compat import PY2, to_binary_string
+from spyder.py3compat import to_binary_string
 from spyder.utils.programs import is_spyder_process
 
 def unique():
-    if PY2:
-        return str(long(_uniquefloat() * 1000))
-    else:
-        return str(int(_uniquefloat() * 1000))
+    return str(int(_uniquefloat() * 1000))
 
 from os import rename
 if not os.name == 'nt':

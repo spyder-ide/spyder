@@ -1,5 +1,75 @@
 # History of changes
 
+## Version 1.7.1 (2023/01/17)
+
+### Issues Closed
+
+* [Issue 332](https://github.com/python-lsp/python-lsp-server/issues/332) - Failed to load hook pylsp_lint: too many values to unpack (expected 3) ([PR 329](https://github.com/python-lsp/python-lsp-server/pull/329) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 338](https://github.com/python-lsp/python-lsp-server/pull/338) - Use shlex.split() to split pylint flags, by [@hfrentzel](https://github.com/hfrentzel)
+* [PR 337](https://github.com/python-lsp/python-lsp-server/pull/337) - Improve Jedi file completions for directories, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 334](https://github.com/python-lsp/python-lsp-server/pull/334) - Include missing Pylint "information" category, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 333](https://github.com/python-lsp/python-lsp-server/pull/333) - Add top constraint to Pylint and fix constraint for `whatthepatch`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 329](https://github.com/python-lsp/python-lsp-server/pull/329) - Fix pydocstyle linting with its 6.2.0 version, by [@ccordoba12](https://github.com/ccordoba12) ([332](https://github.com/python-lsp/python-lsp-server/issues/332))
+* [PR 327](https://github.com/python-lsp/python-lsp-server/pull/327) - Use `sys.executable` instead of `python` in Pylint plugin, by [@bnavigator](https://github.com/bnavigator)
+
+In this release 6 pull requests were closed.
+
+----
+
+## Version 1.7.0 (2022/12/29)
+
+### New features
+
+* Add a new plugin to provide autoimport functionality (disabled by default).
+* Add progress reporting.
+* Make `jedi_definition` plugin follow definitions to `pyi` files.
+* Add support for flake8 version 6.
+* Add support for Yapf ignore patterns.
+* Add mccabe setting to flake8 plugin.
+
+### Issues Closed
+
+* [Issue 317](https://github.com/python-lsp/python-lsp-server/issues/317) - Is there a configuration option to enable jumping to builtin module stubs? ([PR 321](https://github.com/python-lsp/python-lsp-server/pull/321) by [@bzoracler](https://github.com/bzoracler))
+* [Issue 307](https://github.com/python-lsp/python-lsp-server/issues/307) - Autoimport keep throwing exception when delete a line ([PR 309](https://github.com/python-lsp/python-lsp-server/pull/309) by [@douo](https://github.com/douo))
+* [Issue 301](https://github.com/python-lsp/python-lsp-server/issues/301) - `textDocument/documentSymbol` returns empty result for non-existing files ([PR 302](https://github.com/python-lsp/python-lsp-server/pull/302) by [@rear1019](https://github.com/rear1019))
+* [Issue 292](https://github.com/python-lsp/python-lsp-server/issues/292) - List of allowed values for pylsp.plugins.pydocstyle.convention in CONFIGURATION.md incorrect ([PR 295](https://github.com/python-lsp/python-lsp-server/pull/295) by [@doolio](https://github.com/doolio))
+* [Issue 201](https://github.com/python-lsp/python-lsp-server/issues/201) - Progress support ([PR 236](https://github.com/python-lsp/python-lsp-server/pull/236) by [@syphar](https://github.com/syphar))
+* [Issue 34](https://github.com/python-lsp/python-lsp-server/issues/34) - Auto-import? ([PR 199](https://github.com/python-lsp/python-lsp-server/pull/199) by [@bagel897](https://github.com/bagel897))
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 323](https://github.com/python-lsp/python-lsp-server/pull/323) - Don't show signature for modules in hovers, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 322](https://github.com/python-lsp/python-lsp-server/pull/322) - Change Pylint run to set cwd correctly, by [@Corentin-pro](https://github.com/Corentin-pro)
+* [PR 321](https://github.com/python-lsp/python-lsp-server/pull/321) - Expose setting to follow builtin and extension definitions to stub files, by [@bzoracler](https://github.com/bzoracler) ([317](https://github.com/python-lsp/python-lsp-server/issues/317))
+* [PR 319](https://github.com/python-lsp/python-lsp-server/pull/319) - Fix Pycodestyle linting with line endings other than LF , by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 318](https://github.com/python-lsp/python-lsp-server/pull/318) - Ensure proper document match to avoid empty outline (Symbols), by [@mnauw](https://github.com/mnauw)
+* [PR 316](https://github.com/python-lsp/python-lsp-server/pull/316) - Support Flake8 version 6, by [@bnavigator](https://github.com/bnavigator)
+* [PR 312](https://github.com/python-lsp/python-lsp-server/pull/312) - Update Readme with link to python-lsp-ruff and mention to code actions, by [@jhossbach](https://github.com/jhossbach)
+* [PR 311](https://github.com/python-lsp/python-lsp-server/pull/311) - Make flake8 respect configuration, by [@delfick](https://github.com/delfick)
+* [PR 309](https://github.com/python-lsp/python-lsp-server/pull/309) - Fix autoimport raising AttributeError in some cases, by [@douo](https://github.com/douo) ([307](https://github.com/python-lsp/python-lsp-server/issues/307))
+* [PR 306](https://github.com/python-lsp/python-lsp-server/pull/306) - Fix the completion of `include_function_objects`, by [@llan-ml](https://github.com/llan-ml)
+* [PR 305](https://github.com/python-lsp/python-lsp-server/pull/305) - Report autoimport progress, by [@bagel897](https://github.com/bagel897)
+* [PR 302](https://github.com/python-lsp/python-lsp-server/pull/302) - Fix symbols for non-existing (unsaved) files, by [@rear1019](https://github.com/rear1019) ([301](https://github.com/python-lsp/python-lsp-server/issues/301))
+* [PR 300](https://github.com/python-lsp/python-lsp-server/pull/300) - Fix autoimport plugin not being disabled by default, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 296](https://github.com/python-lsp/python-lsp-server/pull/296) - Update outdated username in docs, by [@bagel897](https://github.com/bagel897)
+* [PR 295](https://github.com/python-lsp/python-lsp-server/pull/295) - Update allowed values for pydocstyle convention in CONFIGURATION.md, by [@doolio](https://github.com/doolio) ([292](https://github.com/python-lsp/python-lsp-server/issues/292))
+* [PR 290](https://github.com/python-lsp/python-lsp-server/pull/290) - Fix Debian package name, by [@jspricke](https://github.com/jspricke)
+* [PR 236](https://github.com/python-lsp/python-lsp-server/pull/236) - Add progress reporting, by [@syphar](https://github.com/syphar) ([201](https://github.com/python-lsp/python-lsp-server/issues/201))
+* [PR 199](https://github.com/python-lsp/python-lsp-server/pull/199) - Add a plugin to provide autoimport functionality, by [@bagel897](https://github.com/bagel897) ([34](https://github.com/python-lsp/python-lsp-server/issues/34))
+* [PR 63](https://github.com/python-lsp/python-lsp-server/pull/63) - Add mccabe setting to flake8, by [@baco](https://github.com/baco)
+* [PR 60](https://github.com/python-lsp/python-lsp-server/pull/60) - Add support for Yapf ignore patterns, by [@jjlorenzo](https://github.com/jjlorenzo)
+
+In this release 20 pull requests were closed.
+
+----
+
 ## Version 1.6.0 (2022/11/02)
 
 ### New features

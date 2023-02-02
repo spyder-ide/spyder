@@ -2,7 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
-import os.path as osp
+import os
 
 import parso
 
@@ -100,7 +100,8 @@ def pylsp_completions(config, document, position):
             if c.type == 'function':
                 completion_dict = _format_completion(
                     c,
-                    False,
+                    markup_kind=preferred_markup_kind,
+                    include_params=False,
                     resolve=resolve_eagerly,
                     resolve_label_or_snippet=(i < max_to_resolve)
                 )
@@ -218,10 +219,20 @@ def _format_completion(d, markup_kind: str, include_params=True, resolve=False, 
     if resolve:
         completion = _resolve_completion(completion, d, markup_kind)
 
+    # Adjustments for file completions
     if d.type == 'path':
-        path = osp.normpath(d.name)
+        path = os.path.normpath(d.name)
         path = path.replace('\\', '\\\\')
         path = path.replace('/', '\\/')
+
+        # If the completion ends with os.sep, it means it's a directory. So we add an escaped os.sep
+        # at the end to ease additional file completions.
+        if d.name.endswith(os.sep):
+            if os.name == 'nt':
+                path = path + '\\\\'
+            else:
+                path = path + '\\/'
+
         completion['insertText'] = path
 
     if include_params and not is_exception_class(d.name):

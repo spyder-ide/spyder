@@ -53,7 +53,7 @@ from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
                                 reset_config_files, running_under_pytest)
 from spyder.utils.external import lockfile
-from spyder.py3compat import is_unicode
+from spyder.py3compat import is_text_string
 
 
 # Get argv
@@ -91,7 +91,7 @@ def send_args_to_spyder(args):
                 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                        socket.IPPROTO_TCP)
                 client.connect(("127.0.0.1", port))
-                if is_unicode(arg):
+                if is_text_string(arg):
                     arg = arg.encode('utf-8')
                 client.send(osp.abspath(arg))
                 client.close()

@@ -39,7 +39,6 @@ from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
     KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
-from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
@@ -978,7 +977,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         - Do this as early as possible to make it a low priority and
           overrideable.
         """
-        if os.name == 'nt' and PY38_OR_MORE:
+        if os.name == 'nt' and sys.version_info[:2] >= (3, 8):
             # Tests on Linux hang if we don't leave this import here.
             import tornado
             if tornado.version_info >= (6, 1):

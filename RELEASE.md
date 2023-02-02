@@ -128,6 +128,23 @@ To release a new version of Spyder you need to follow these steps:
 
 * Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
 
+### Check release candidate
+
+* Update version in `__init__.py` (set release version, remove 'dev0', add 'preX'), then
+
+      git add .
+      git commit -m "Release X.X.XpreX [ci skip]"
+      git push upstream 5.x
+
+* Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)):
+    - Create Windows Installer
+    - Create macOS App Bundle and DMG
+    - Create conda-based installers for Windows, macOS, and Linux
+
+* Download and test the installation of the resulting artifacts.
+
+* If either of the previous two steps fail merge a fix PR and begin again with incremented 'preX'.
+
 ## To do the release
 
 * Close the current milestone on Github

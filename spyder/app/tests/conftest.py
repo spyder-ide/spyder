@@ -217,6 +217,29 @@ def create_namespace_project(tmpdir):
     spy_project.set_recent_files(abs_filenames)
 
 
+def preferences_dialog_helper(qtbot, main_window, section):
+    """
+    Open preferences dialog and select page with `section` (CONF_SECTION).
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    main_window.show_preferences()
+    preferences = main_window.preferences
+    container = preferences.get_container()
+
+    qtbot.waitUntil(lambda: container.dialog is not None,
+                    timeout=5000)
+    dlg = container.dialog
+    index = dlg.get_index_by_name(section)
+    page = dlg.get_page(index)
+    dlg.set_current_index(index)
+    return dlg, index, page
+
+
 # =============================================================================
 # ---- Pytest hooks
 # =============================================================================

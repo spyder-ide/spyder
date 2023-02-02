@@ -3,38 +3,44 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
+
 """Tests for close quotes."""
 
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QFont, QTextCursor
 
 # Local imports
-from spyder.utils.qthelpers import qapplication
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.plugins.editor.extensions.closequotes import (
         CloseQuotesExtension)
 
 
-# --- Fixtures
+# ---- Fixtures
 # -----------------------------------------------------------------------------
 @pytest.fixture
-def editor_close_quotes():
+def editor_close_quotes(qtbot):
     """Set up Editor with close quotes activated."""
-    app = qapplication()
     editor = CodeEditor(parent=None)
-    kwargs = {}
-    kwargs['language'] = 'Python'
-    kwargs['close_quotes'] = True
-    editor.setup_editor(**kwargs)
+    editor.setup_editor(
+        color_scheme='spyder/dark',
+        font=QFont("Courier New", 10),
+        language='Python',
+        close_quotes=True
+    )
+
+    editor.resize(480, 360)
+    editor.show()
+    qtbot.addWidget(editor)
+
     return editor
 
-# --- Tests
+
+# ---- Tests
 # -----------------------------------------------------------------------------
-
-
 @pytest.mark.parametrize(
     'text, expected_text, cursor_column',
     [
@@ -48,6 +54,10 @@ def editor_close_quotes():
         ("''''", "''''''", 3),
         ('"some_string"', '"some_string"', 13),  # Write a string
         ("'some_string'", "'some_string'", 13),
+        (r'"\""', r'"\""', 4),  # Write escaped quotes
+        (r"'\''", r"'\''", 4),
+        (r'"\\"', r'"\\"', 4),  # Don't enter escaped quote if the previous
+        (r"'\\'", r"'\\'", 4),  # char is a backslash (for Windows paths)
     ])
 def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
                       cursor_column):
@@ -55,6 +65,8 @@ def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
     editor = editor_close_quotes
 
     qtbot.keyClicks(editor, text)
+    if not running_in_ci():
+        qtbot.wait(1000)
     assert editor.toPlainText() == expected_text
 
     assert cursor_column == TextHelper(editor).current_column_nbr()

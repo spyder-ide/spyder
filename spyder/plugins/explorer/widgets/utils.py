@@ -19,7 +19,6 @@ from qtpy.QtWidgets import QFileIconProvider, QMessageBox
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.py3compat import str_lower
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 
@@ -83,7 +82,7 @@ def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', folders_only=False):
             continue
         elif re.search(include, item):
             namelist.append(item)
-    return sorted(dirlist, key=str_lower) + sorted(namelist, key=str_lower)
+    return sorted(dirlist, key=str.lower) + sorted(namelist, key=str.lower)
 
 
 def has_subdirectories(path, include, exclude):

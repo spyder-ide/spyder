@@ -286,7 +286,6 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
     assert results == ['text1.txt', 'foo1.py', 'foo2.py']
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
@@ -403,7 +402,6 @@ def test_editor_outlineexplorer(qtbot, completions_codeeditor_outline):
     assert root_tree == tree
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 def test_empty_file(qtbot, completions_codeeditor_outline):
     """

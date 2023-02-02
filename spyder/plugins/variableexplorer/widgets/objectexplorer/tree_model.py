@@ -29,7 +29,6 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
     TreeItem)
-from spyder.py3compat import to_unichr
 from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
@@ -146,9 +145,9 @@ class TreeModel(QAbstractItemModel):
                 attr = self._attr_cols[col].data_fn(tree_item)
                 # Replace carriage returns and line feeds with unicode glyphs
                 # so that all table rows fit on one line.
-                return (attr.replace('\r\n', to_unichr(0x21B5))
-                            .replace('\n', to_unichr(0x21B5))
-                            .replace('\r', to_unichr(0x21B5)))
+                return (attr.replace('\r\n', chr(0x21B5))
+                            .replace('\n', chr(0x21B5))
+                            .replace('\r', chr(0x21B5)))
             except Exception as ex:
                 # logger.exception(ex)
                 return "**ERROR**: {}".format(ex)

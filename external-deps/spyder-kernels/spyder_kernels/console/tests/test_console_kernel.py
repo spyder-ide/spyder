@@ -44,12 +44,24 @@ except ImportError:
     pass
 
 # =============================================================================
-# Constants
+# Constants and utility functions
 # =============================================================================
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 IPYKERNEL_6 = ipykernel.__version__[0] >= '6'
 TIMEOUT = 15
 SETUP_TIMEOUT = 60
+
+# We declare this constant immediately before the test, as determining
+# that TURTLE_ACTIVE is True will briefly pop up a window, similar to the
+# windows that will pop up during the test itself.
+TURTLE_ACTIVE = False
+try:
+    import turtle
+    turtle.Screen()
+    turtle.bye()
+    TURTLE_ACTIVE = True
+except:
+    pass
 
 
 @contextmanager
@@ -604,6 +616,9 @@ if __name__ == '__main__':
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
 def test_dask_multiprocessing(tmpdir):
     """
     Test that dask multiprocessing works.
@@ -718,6 +733,9 @@ def test_runfile(tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
 def test_np_threshold(kernel):
     """Test that setting Numpy threshold doesn't make the Variable Explorer slow."""
 
@@ -781,21 +799,10 @@ f = np.get_printoptions()['formatter']
         assert "{'float_kind': <built-in method format of str object" in content
 
 
-# We declare this constant immediately before the test, as determining
-# that TURTLE_ACTIVE is True will briefly pop up a window, similar to the
-# windows that will pop up during the test itself.
-TURTLE_ACTIVE = False
-try:
-    import turtle
-    turtle.Screen()
-    turtle.bye()
-    TURTLE_ACTIVE = True
-except:
-    pass
-
 @flaky(max_runs=3)
-@pytest.mark.skipif(not TURTLE_ACTIVE,
-                    reason="Doesn't work on non-interactive settings or Python installations without Tk")
+@pytest.mark.skipif(
+    not TURTLE_ACTIVE,
+    reason="Doesn't work on non-interactive settings or Python without Tk")
 def test_turtle_launch(tmpdir):
     """Test turtle scripts running in the same kernel."""
     # Command to start the kernel

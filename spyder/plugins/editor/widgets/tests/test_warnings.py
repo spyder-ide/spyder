@@ -61,7 +61,6 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     return editor, completion_plugin
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_ignore_warnings(qtbot, completions_codeeditor_linting):
@@ -113,7 +112,6 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     assert warnings == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_adding_warnings(qtbot, completions_codeeditor_linting):
@@ -148,7 +146,6 @@ def test_adding_warnings(qtbot, completions_codeeditor_linting):
         assert any([expected in warning for expected in expected_warnings[i]])
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_move_warnings(qtbot, completions_codeeditor_linting):
@@ -184,7 +181,6 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
     assert 7 == editor.get_cursor_line_number()
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_get_warnings(qtbot, completions_codeeditor_linting):
@@ -217,7 +213,6 @@ def test_get_warnings(qtbot, completions_codeeditor_linting):
     assert warnings == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting):
@@ -256,7 +251,6 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
     assert editor.get_current_warnings() == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting):
@@ -296,7 +290,6 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
     assert editor.get_current_warnings() == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linting):
@@ -342,7 +335,6 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     assert editor.get_current_warnings() == expected
 
 
-@pytest.mark.slow
 @pytest.mark.order(2)
 @flaky(max_runs=5)
 @pytest.mark.parametrize(

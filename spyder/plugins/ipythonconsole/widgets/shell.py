@@ -282,7 +282,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.shutting_down:
             return
         self.shutting_down = True
-        self.kernel_handler.close(shutdown_kernel)
+        if self.kernel_handler is not None:
+            self.kernel_handler.close(shutdown_kernel)
         super().shutdown()
 
     def reset_kernel_state(self):
@@ -393,12 +394,26 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
         self._execute_queue = []
+
         if self.spyder_kernel_ready:
             self._reading = False
-            self.call_kernel(interrupt=True).raise_interrupt_signal()
+
+            # Check if there is a kernel that can be interrupted before trying
+            # to do it.
+            # Fixes spyder-ide/spyder#20212
+            if self.kernel_manager and self.kernel_manager.has_kernel:
+                self.call_kernel(interrupt=True).raise_interrupt_signal()
+            else:
+                self._append_html(
+                    _("<br><br>The kernel appears to be dead, so it can't be "
+                      "interrupted. Please open a new console to keep "
+                      "working.<br>")
+                )
         else:
-            self._append_plain_text(
-                'Cannot interrupt a non-Spyder kernel I did not start.\n')
+            self._append_html(
+                _("<br><br>It is not possible to interrupt a non-Spyder "
+                  "kernel I did not start.<br>")
+            )
 
     def execute(self, source=None, hidden=False, interactive=False):
         """
@@ -631,7 +646,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if sympy_o:
             lines = """
 These commands were executed:
->>> from __future__ import division
 >>> from sympy import *
 >>> x, y, z, t = symbols('x y z t')
 >>> k, m, n = symbols('k m n', integer=True)
@@ -748,7 +762,6 @@ the sympy module (e.g. plot)
                     self.silent_execute("from pylab import *")
                 if kernel_env.get('SPY_SYMPY_O') == 'True':
                     sympy_init = """
-                        from __future__ import division
                         from sympy import *
                         x, y, z, t = symbols('x y z t')
                         k, m, n = symbols('k m n', integer=True)

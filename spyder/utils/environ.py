@@ -57,11 +57,19 @@ def get_user_environment_variables():
         cmd = "printenv"
     proc = run_shell_command(cmd)
     stdout, stderr = proc.communicate()
-    res = stdout.decode().strip().split(os.linesep)
+
+    try:
+        res = stdout.decode().strip().split(os.linesep)
+    except Exception:
+        return {}
+
     env_var = {}
     for kv in res:
-        k, v = kv.split('=', 1)
-        env_var[k] = v
+        try:
+            k, v = kv.split('=', 1)
+            env_var[k] = v
+        except Exception:
+            pass
 
     return env_var
 

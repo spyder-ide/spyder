@@ -293,3 +293,73 @@ def test_settings_of_added_workspace(pylsp, tmpdir):
     workspace1_object = pylsp.workspaces[workspace1['uri']]
     workspace1_jedi_settings = workspace1_object._config.plugin_settings('jedi')
     assert workspace1_jedi_settings == server_settings['pylsp']['plugins']['jedi']
+
+
+def test_progress_simple(workspace, consumer):
+    with workspace.report_progress("some_title"):
+        pass
+
+    # same method for all calls
+    assert all(call[0][0]["method"] == "$/progress" for call in consumer.call_args_list)
+
+    # same token used in all calls
+    assert len({call[0][0]["params"]["token"] for call in consumer.call_args_list}) == 1
+
+    assert [call[0][0]["params"]["value"] for call in consumer.call_args_list] == [
+        {"kind": "begin", "title": "some_title"},
+        {"kind": "end"},
+    ]
+
+
+def test_progress_with_percent(workspace, consumer):
+    with workspace.report_progress(
+        "some_title", "initial message", percentage=1
+    ) as progress_message:
+        progress_message("ten", 10)
+        progress_message("fifty", 50)
+        progress_message("ninety", 90)
+
+    # same method for all calls
+    assert all(call[0][0]["method"] == "$/progress" for call in consumer.call_args_list)
+
+    # same token used in all calls
+    assert len({call[0][0]["params"]["token"] for call in consumer.call_args_list}) == 1
+
+    assert [call[0][0]["params"]["value"] for call in consumer.call_args_list] == [
+        {
+            "kind": "begin",
+            "message": "initial message",
+            "percentage": 1,
+            "title": "some_title",
+        },
+        {"kind": "report", "message": "ten", "percentage": 10},
+        {"kind": "report", "message": "fifty", "percentage": 50},
+        {"kind": "report", "message": "ninety", "percentage": 90},
+        {"kind": "end"},
+    ]
+
+
+def test_progress_with_exception(workspace, consumer):
+    class DummyError(Exception):
+        pass
+
+    try:
+        with workspace.report_progress("some_title"):
+            raise DummyError("something")
+    except DummyError:
+        # we're using a specific exception class here so
+        # any other exceptions happening in progress
+        # reporting would correctly be raised in the
+        # test.
+        pass
+
+    # same method for all calls
+    assert all(call[0][0]["method"] == "$/progress" for call in consumer.call_args_list)
+
+    # same token used in all calls
+    assert len({call[0][0]["params"]["token"] for call in consumer.call_args_list}) == 1
+
+    assert [call[0][0]["params"]["value"] for call in consumer.call_args_list] == [
+        {"kind": "begin", "title": "some_title"},
+        {"kind": "end"},
+    ]
