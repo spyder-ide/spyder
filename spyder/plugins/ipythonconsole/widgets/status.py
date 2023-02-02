@@ -29,7 +29,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def get_tooltip(self):
         """Return localized tool tip for widget."""
-        return _("Matplotlib interactive.")
+        return _("Click to toggle interactive or inline plotting")
 
     def toggle_matplotlib(self):
         """Toggle matplotlib ineractive."""
@@ -57,7 +57,11 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def update(self, gui):
         """Update interactive state."""
         self._gui = gui
-        self.set_value(_("Matplotlib: {}").format(gui))
+        if gui == "inline":
+            text = gui
+        else:
+            text = "interactive"
+        self.set_value(_("Matplotlib: {}").format(text))
 
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
