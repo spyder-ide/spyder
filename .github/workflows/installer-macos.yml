@@ -74,7 +74,7 @@ jobs:
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Setup Python
