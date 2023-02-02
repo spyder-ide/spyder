@@ -659,8 +659,15 @@ class ArrayEditor(BaseDialog):
         """
         self.data = data
         readonly = readonly or not self.data.flags.writeable
-        is_record_array = data.dtype.names is not None
         is_masked_array = isinstance(data, np.ma.MaskedArray)
+
+        # This is necessary in case users subclass ndarray and set the dtype
+        # to an object that is not an actual dtype.
+        # Fixes spyder-ide/spyder#20462
+        if hasattr(data.dtype, 'names'):
+            is_record_array = data.dtype.names is not None
+        else:
+            is_record_array = False
 
         if data.ndim > 3:
             self.error(_("Arrays with more than 3 dimensions are not "
@@ -675,7 +682,14 @@ class ArrayEditor(BaseDialog):
                          "number"))
             return False
         if not is_record_array:
-            dtn = data.dtype.name
+            # This is necessary in case users subclass ndarray and set the
+            # dtype to an object that is not an actual dtype.
+            # Fixes spyder-ide/spyder#20462
+            if hasattr(data.dtype, 'name'):
+                dtn = data.dtype.name
+            else:
+                dtn = 'Unknown'
+
             if dtn == 'object':
                 # If the array doesn't have shape, we can't display it
                 if data.shape == ():
@@ -687,7 +701,7 @@ class ArrayEditor(BaseDialog):
                 self.readonly = readonly = True
             elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
                     and not dtn.startswith('unicode')):
-                arr = _("%s arrays") % data.dtype.name
+                arr = _("%s arrays") % dtn
                 self.error(_("%s are currently not supported") % arr)
                 return False
 
