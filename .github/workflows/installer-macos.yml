@@ -1,10 +1,5 @@
 on:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - labeled
     paths:
       - 'installers/macOS/**'
       - '.github/workflows/installer-macos.yml'
@@ -23,10 +18,6 @@ on:
     types:
       - created
 
-  push:
-    tags:
-      - v*pre*
-
   workflow_dispatch:
 
 concurrency:
@@ -36,14 +27,13 @@ concurrency:
 name: Create macOS App Bundle and DMG
 
 env:
-  IS_PRE: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) || (github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts') }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
 
 jobs:
   matrix_prep:
     name: Determine Build Matrix
     runs-on: macos-11
-    if: github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts'
     outputs:
       build_type: ${{ steps.set-matrix.outputs.build_type }}
     steps:
@@ -98,7 +88,7 @@ jobs:
           ${pythonLocation}/bin/python -m pip install -U pip setuptools
           ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
       - name: Install Subrepos
-        if: ${{github.event_name == 'pull_request' && github.event.action != 'labeled'}}
+        if: ${{github.event_name == 'pull_request'}}
         run: ${pythonLocation}/bin/python -bb -X dev -W error ${GITHUB_WORKSPACE}/install_dev_repos.py --not-editable --no-install spyder
       - name: Show Build Environment
         run: |

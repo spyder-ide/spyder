@@ -190,7 +190,7 @@ jobs:
           env
 
       - name: Download Local Conda Packages
-        if: env.IS_STANDARD_PR
+        if: needs.build-noarch-pkgs.result == 'success'
         uses: actions/download-artifact@v3
         with:
           path: ${{ env.ARTIFACTS_PATH }}
@@ -267,14 +267,14 @@ jobs:
           name: ${{ env.PKG_NAME }}
 
       - name: Get Release
-        if: github.event_name == 'release'
+        if: env.IS_RELEASE == 'true'
         id: get_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         uses: bruceadams/get-release@v1.2.0
 
       - name: Upload Release Asset
-        if: github.event_name == 'release'
+        if: env.IS_RELEASE == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
