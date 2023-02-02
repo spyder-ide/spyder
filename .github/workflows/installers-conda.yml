@@ -18,6 +18,27 @@ on:
       - created
 
   workflow_dispatch:
+    inputs:
+      pre:
+        description: 'Build as release candidate'
+        required: false
+        default: true
+        type: boolean
+      mac:
+        description: 'Build macOS installer'
+        required: false
+        default: true
+        type: boolean
+      linux:
+        description: 'Build Linux installer'
+        required: false
+        default: true
+        type: boolean
+      win:
+        description: 'Build Windows installer'
+        required: false
+        default: true
+        type: boolean
 
 concurrency:
   group: installers-conda-${{ github.ref }}
@@ -26,15 +47,15 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' }}
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
-  IS_PRE: ${{ github.event_name == 'workflow_dispatch' }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
 
 jobs:
   build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     strategy:
       matrix:
         pkg: ["python-lsp-server", "qtconsole"]
