@@ -69,7 +69,7 @@ def pytest_collection_modifyitems(config, items):
 
     # Break test suite in CIs according to the following criteria:
     # * Mark all main window tests, and a percentage of the IPython console
-    #   ones on Linux and Mac, as slow.
+    #   ones, as slow.
     # * All other tests will be considered as fast.
     # This provides a more balanced partitioning of our test suite (in terms of
     # necessary time to run it) between the slow and fast slots we have on CIs.
@@ -79,19 +79,20 @@ def pytest_collection_modifyitems(config, items):
             item for item in items if 'test_mainwindow' in item.nodeid
         ]
 
-        if not os.name == 'nt':
-            ipyconsole_items = [
-                item for item in items if 'test_ipythonconsole' in item.nodeid
-            ]
+        ipyconsole_items = [
+            item for item in items if 'test_ipythonconsole' in item.nodeid
+        ]
 
-            if sys.platform == 'darwin':
-                percentage = 0.6
-            else:
-                percentage = 0.5
+        if os.name == 'nt':
+            percentage = 0.6
+        elif sys.platform == 'darwin':
+            percentage = 0.6
+        else:
+            percentage = 0.5
 
-            for i, item in enumerate(ipyconsole_items):
-                if i < len(ipyconsole_items) * percentage:
-                    slow_items.append(item)
+        for i, item in enumerate(ipyconsole_items):
+            if i < len(ipyconsole_items) * percentage:
+                slow_items.append(item)
 
     for item in items:
         if slow_option:
