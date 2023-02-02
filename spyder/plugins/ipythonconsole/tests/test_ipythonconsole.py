@@ -1254,6 +1254,7 @@ def test_calltip(ipyconsole, qtbot):
 @pytest.mark.test_environment_interpreter
 @pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
+@pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_conda_env_activation(ipyconsole, qtbot):
     """
     Test that the conda environment associated with an external interpreter
