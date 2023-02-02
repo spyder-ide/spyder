@@ -112,6 +112,44 @@ def set_user_env(env, parent=None):
         )
 
 
+def amend_user_shell_init(text="", restore=False):
+    """Set user environment variable for pytests on unix platforms"""
+    if os.name == "nt":
+        return
+
+    HOME = Path(os.environ["HOME"])
+    SHELL = os.environ.get("SHELL", "/bin/bash")
+    if "bash" in SHELL:
+        init_files = [".bash_profile", ".bash_login", ".profile"]
+    elif "zsh" in SHELL:
+        init_files = [".zprofile", ".zshrc"]
+    else:
+        raise Exception(f"{SHELL} not supported.")
+
+    for file in init_files:
+        init_file = HOME / file
+        if init_file.exists():
+            break
+
+    script = init_file.read_text() if init_file.exists() else ""
+    m1 = "# <<<< Spyder Environment <<<<"
+    m2 = "# >>>> Spyder Environment >>>>"
+    if restore:
+        if init_file.exists() and (m1 in script and m2 in script):
+            new_text = ""
+        else:
+            return
+    else:
+        new_text = f"{m1}\n" + text + f"\n{m2}"
+
+    if m1 in script and m2 in script:
+        _script = re.sub(f"{m1}(.*){m2}", new_text, script, flags=re.DOTALL)
+    else:
+        _script = script.rstrip() + "\n\n" + new_text
+
+    init_file.write_text(_script.rstrip() + "\n")
+
+
 def clean_env(env_vars):
     """
     Remove non-ascii entries from a dictionary of environments variables.
