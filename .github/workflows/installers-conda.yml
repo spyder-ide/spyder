@@ -50,6 +50,9 @@ env:
   IS_STANDARD_PR: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
   IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
+  BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
+  BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
+  BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
 
 jobs:
   build-noarch-pkgs:
@@ -105,17 +108,22 @@ jobs:
     - name: Determine Build Matrix
       id: build-matrix
       run: |
-        target_platform="'osx-64', 'linux-64'"
-        include="\
-        {'os': 'macos-11', 'target-platform': 'osx-64'},\
-        {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
-        "
-        python_version="'3.9'"
+        [[ $IS_RELEASE == "true" ]] && BUILD_WIN="false"
 
-        if [[ $IS_STANDARD_PR == 'true' ]]; then
-            target_platform=$target_platform", 'win-64'"
-            include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        if [[ $BUILD_MAC == "true" ]]; then
+            target_platform="'osx-64'"
+            include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
         fi
+        if [[ $BUILD_LNX == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
+            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64'}"
+        fi
+        if [[ $BUILD_WIN == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'win-64'"
+            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        fi
+
+        python_version="'3.9'"
 
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
