@@ -59,6 +59,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.py3compat import qbytearray_to_str, to_text_string
+from spyder.utils.environ import set_user_env, amend_user_shell_init
 from spyder.utils.misc import remove_backslashes
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.dock import DockTitleBar
@@ -718,7 +719,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # --- Set run options for this file ---
     rc = RunConfiguration().get()
-    
+
     # A dedicated console is used when these three options are False
     rc['default'] = rc['current'] = rc['systerm'] = False
     rc['clear_namespace'] = False
@@ -1401,7 +1402,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
                     timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
-    
+
     # try running cell without file name
     shell.clear()
     # Clean namespace
@@ -5342,7 +5343,8 @@ def test_switch_to_plugin(main_window, qtbot):
 
 
 @flaky(max_runs=5)
-def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
+def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
+                                restore_user_env):
     """
     Test that PYTHONPATH is passed to IPython consoles under different
     scenarios.
@@ -5356,7 +5358,10 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
     # Add a new directory to PYTHONPATH
     new_dir = tmp_path / 'new_dir'
     new_dir.mkdir()
-    os.environ['PYTHONPATH'] = str(new_dir)
+    if os.name == "nt":
+        set_user_env({"PYTHONPATH": str(new_dir)})
+    else:
+        amend_user_shell_init(f"export PYTHONPATH={new_dir}")
 
     # Open Pythonpath dialog to detect new_dir
     ppm = main_window.get_plugin(Plugins.PythonpathManager)
