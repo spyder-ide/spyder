@@ -43,9 +43,8 @@ from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
                             QHBoxLayout, QInputDialog, QLineEdit, QMenu,
-                            QMessageBox, QPushButton, QTableView,
-                            QScrollBar, QTableWidget, QFrame,
-                            QItemDelegate)
+                            QMessageBox, QPushButton, QTableView, QScrollBar,
+                            QTableWidget, QFrame, QItemDelegate)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports

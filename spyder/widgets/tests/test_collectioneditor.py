@@ -273,7 +273,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot):
     editor.delegate.createEditor(None, None, editor.model.index(0, 3))
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
-    dataframe_editor.dataModel._format_spec == '%10d'
+    dataframe_editor.dataModel._format_spec == '10d'
 
 
 def test_collectionsmodel_with_two_ints():
