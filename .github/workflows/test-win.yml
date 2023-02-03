@@ -33,6 +33,8 @@ on:
       - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
+  workflow_dispatch:
+
 concurrency:
   group: test-win-${{ github.ref }}
   cancel-in-progress: true
