@@ -4,7 +4,9 @@ set -e
 echo "*** Running post install script for ${INSTALLER_NAME} ..."
 
 echo "Args = $@"
-echo "$(declare -p)"
+echo "Environment variables:"
+env | sort
+echo ""
 
 name_lower=${INSTALLER_NAME,,}
 shortcut_path="$HOME/.local/share/applications/${name_lower}_${name_lower}.desktop"

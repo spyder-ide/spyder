@@ -184,7 +184,7 @@ jobs:
           [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
           [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
 
-          env
+          env | sort
 
       - name: Download Local Conda Packages
         if: needs.build-noarch-pkgs.result == 'success'
