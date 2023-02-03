@@ -7,7 +7,8 @@
 """
 Tests for environ.py
 """
-# Standard imports
+
+# Standard library imports
 import os
 
 # Test library imports
@@ -20,6 +21,7 @@ from qtpy.QtCore import QTimer
 from spyder.utils.environ import (get_user_environment_variables,
                                   UserEnvDialog, amend_user_shell_init)
 from spyder.utils.test import close_message_box
+from spyder.app.tests.conftest import restore_user_env
 
 
 @pytest.fixture

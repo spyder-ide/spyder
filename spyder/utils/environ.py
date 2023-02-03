@@ -22,7 +22,7 @@ except Exception:
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_in_ci
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
@@ -57,8 +57,10 @@ def get_user_environment_variables():
     try:
         if os.name == 'nt':
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
-            N = winreg.QueryInfoKey(key)[1]
-            env_var = dict([winreg.EnumValue(key, k)[:2] for k in range(N)])
+            num_values = winreg.QueryInfoKey(key)[1]
+            env_var = dict(
+                [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
+            )
         else:
             shell = os.environ.get("SHELL", "/bin/bash")
             cmd = (
@@ -82,8 +84,8 @@ def get_user_env():
 
 def set_user_env(env, parent=None):
     """
-    Set user environment variables via HKCU (Windows) or
-    shell startup file (unix).
+    Set user environment variables via HKCU (Windows) or shell startup file
+    (Unix).
     """
     env_dict = listdict2envdict(env)
 
@@ -112,7 +114,7 @@ def set_user_env(env, parent=None):
                   "Please restart this Windows <i>session</i> "
                   "(not the computer) for changes to take effect.")
             )
-    elif os.name == 'posix':
+    elif os.name == 'posix' and running_in_ci():
         text = "\n".join([f"export {k}={v}" for k, v in env_dict.items()])
         amend_user_shell_init(text)
     else:
@@ -120,7 +122,7 @@ def set_user_env(env, parent=None):
 
 
 def amend_user_shell_init(text="", restore=False):
-    """Set user environment variable for pytests on unix platforms"""
+    """Set user environment variable for pytests on Unix platforms"""
     if os.name == "nt":
         return
 
