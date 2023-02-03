@@ -41,10 +41,10 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
                          QItemSelectionModel, QEvent)
 from qtpy.QtGui import QColor, QCursor
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
-                            QHBoxLayout, QInputDialog, QLineEdit, QMenu,
-                            QMessageBox, QPushButton, QTableView, QScrollBar,
-                            QTableWidget, QFrame, QItemDelegate)
+from qtpy.QtWidgets import (QApplication, QCheckBox, QGridLayout, QHBoxLayout,
+                            QInputDialog, QLineEdit, QMenu, QMessageBox,
+                            QPushButton, QTableView, QScrollBar, QTableWidget,
+                            QFrame, QItemDelegate)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
