@@ -18,6 +18,7 @@ from qtpy.QtCore import QTimer, Signal
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
+from spyder.config.base import is_pynsist, running_in_mac_app
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
@@ -47,6 +48,13 @@ class InterpreterStatus(BaseTimerStatus):
         self.path_to_env = {}
         self.envs = {}
         self.value = ''
+        self.default_interpreter = sys.executable
+
+        if is_pynsist():
+            # Be sure to use 'python' executable instead of 'pythonw' since
+            # no output is generated with 'pythonw'.
+            self.default_interpreter = self.default_interpreter.replace(
+                'pythonw.exe', 'python.exe').lower()
 
         # Worker to compute envs in a thread
         self._worker_manager = WorkerManager(max_threads=1)
@@ -108,8 +116,8 @@ class InterpreterStatus(BaseTimerStatus):
         # Compute info of default interpreter to have it available in
         # case we need to switch to it. This will avoid lags when
         # doing that in get_value.
-        if sys.executable not in self.path_to_env:
-            self._get_env_info(sys.executable)
+        if self.default_interpreter not in self.path_to_env:
+            self._get_env_info(self.default_interpreter)
 
         # Get envs
         conda_env = get_list_conda_envs()
@@ -122,9 +130,10 @@ class InterpreterStatus(BaseTimerStatus):
         try:
             name = self.path_to_env[path]
         except KeyError:
-            win_app_path = osp.join(
-                'AppData', 'Local', 'Programs', 'spyder')
-            if 'Spyder.app' in path or win_app_path in path:
+            if (
+                self.default_interpreter == path
+                and (running_in_mac_app() or is_pynsist())
+            ):
                 name = 'internal'
             elif 'conda' in path:
                 name = 'conda'

@@ -30,7 +30,6 @@ from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.mixins import SpyderPluginObserver
 from spyder.api.translations import get_translation
-from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -269,6 +268,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     To be used by plugins tracking main window position changes.
     """
 
+    sig_unmaximize_plugin_requested = Signal((), (object,))
+    """
+    This signal is emitted to inform the main window that it needs to
+    unmaximize the currently maximized plugin, if any.
+
+    Parameters
+    ----------
+    plugin_instance: SpyderDockablePlugin
+        Unmaximize plugin only if it is not `plugin_instance`.
+    """
+
     # --- Private attributes -------------------------------------------------
     # ------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration
@@ -310,21 +320,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 container.setup()
                 container.update_actions()
 
-            if isinstance(container, PluginMainContainer):
-                # TODO: This signals should also affect the main_widgets?
-                # Currently this is not working for
-                # instances of PluginMainWidget subclasses
-                # Default signals to connect in main container or main widget.
-                container.sig_exception_occurred.connect(
-                    self.sig_exception_occurred)
-                container.sig_free_memory_requested.connect(
-                    self.sig_free_memory_requested)
-                container.sig_quit_requested.connect(
-                    self.sig_quit_requested)
-                container.sig_redirect_stdio_requested.connect(
-                    self.sig_redirect_stdio_requested)
-                container.sig_restart_requested.connect(
-                    self.sig_restart_requested)
+            # Default signals to connect in main container or main widget.
+            container.sig_free_memory_requested.connect(
+                self.sig_free_memory_requested)
+            container.sig_quit_requested.connect(self.sig_quit_requested)
+            container.sig_restart_requested.connect(self.sig_restart_requested)
+            container.sig_redirect_stdio_requested.connect(
+                self.sig_redirect_stdio_requested)
+            container.sig_exception_occurred.connect(
+                self.sig_exception_occurred)
+            container.sig_unmaximize_plugin_requested.connect(
+                self.sig_unmaximize_plugin_requested)
 
             self.after_container_creation()
 
@@ -398,9 +404,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         return self._main
 
-    def get_plugin(self, plugin_name):
+    def get_plugin(self, plugin_name, error=True):
         """
-        Return a plugin instance by providing the plugin's NAME.
+        Get a plugin instance by providing its name.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin from which its instance will be returned.
+        error: bool
+            Whether to raise errors when trying to return the plugin's
+            instance.
         """
         # Ensure that this plugin has the plugin corresponding to
         # `plugin_name` listed as required or optional.
@@ -410,7 +424,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         if plugin_name in full_set or Plugins.All in full_set:
             try:
-                return self._main.get_plugin(plugin_name)
+                return self._main.get_plugin(plugin_name, error=error)
             except SpyderAPIError as e:
                 if plugin_name in optional:
                     return None
@@ -538,6 +552,46 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         if self._conf is not None and options_set:
             if notify:
                 self.after_configuration_update(list(options_set))
+
+    def disable_conf(self, option, section=None):
+        """
+        Disable notifications for an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            Name of the option, either a string or a tuple of strings.
+        section: str
+            Section in the configuration system.
+        """
+        if self._conf is not None:
+            section = self.CONF_SECTION if section is None else section
+            if section is None:
+                raise SpyderAPIError(
+                    'A spyder plugin must define a `CONF_SECTION` class '
+                    'attribute!'
+                )
+            self._conf.disable_notifications(section, option)
+
+    def restore_conf(self, option, section=None):
+        """
+        Restore notifications for an option in the Spyder configuration system.
+
+        Parameters
+        ----------
+        option: Union[str, Tuple[str, ...]]
+            Name of the option, either a string or a tuple of strings.
+        section: str
+            Section in the configuration system.
+        """
+        if self._conf is not None:
+            section = self.CONF_SECTION if section is None else section
+            if section is None:
+                raise SpyderAPIError(
+                    'A spyder plugin must define a `CONF_SECTION` class '
+                    'attribute!'
+                )
+            self._conf.restore_notifications(section, option)
 
     @Slot(str)
     @Slot(str, int)
@@ -1003,7 +1057,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         Switch to plugin and define if focus should be given or not.
         """
-        self.sig_switch_to_plugin_requested.emit(self, force_focus)
+        if self.get_widget().windowwidget is None:
+            self.sig_switch_to_plugin_requested.emit(self, force_focus)
 
     def set_ancestor(self, ancestor_widget):
         """
@@ -1027,6 +1082,9 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def create_dockwidget(self, mainwindow):
         return self.get_widget().create_dockwidget(mainwindow)
+
+    def create_window(self):
+        self.get_widget().create_window()
 
     def close_window(self, save_undocked=False):
         self.get_widget().close_window(save_undocked=save_undocked)

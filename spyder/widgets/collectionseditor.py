@@ -1564,6 +1564,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                  create_menu=False):
         BaseTableView.__init__(self, parent)
 
+        self.namespacebrowser = parent
         self.shellwidget = shellwidget
         self.var_properties = {}
         self.dictfilter = None
@@ -1616,18 +1617,18 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))
-        self.shellwidget.refresh_namespacebrowser()
+        self.namespacebrowser.refresh_namespacebrowser()
 
     def remove_values(self, names):
         """Remove values from data"""
         for name in names:
             self.shellwidget.remove_value(name)
-        self.shellwidget.refresh_namespacebrowser()
+        self.namespacebrowser.refresh_namespacebrowser()
 
     def copy_value(self, orig_name, new_name):
         """Copy value"""
         self.shellwidget.copy_value(orig_name, new_name)
-        self.shellwidget.refresh_namespacebrowser()
+        self.namespacebrowser.refresh_namespacebrowser()
 
     def is_list(self, name):
         """Return True if variable is a list, a tuple or a set"""

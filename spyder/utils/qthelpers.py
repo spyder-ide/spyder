@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_mac_app_bundle_path
+from spyder.config.base import running_in_mac_app
 from spyder.config.manager import CONF
 from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils.icon_manager import ima
@@ -38,7 +38,7 @@ from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
 # Third party imports
-if sys.platform == "darwin":
+if sys.platform == "darwin" and not running_in_mac_app():
     import applaunchservices as als
 
 if PY2:
@@ -116,7 +116,9 @@ def qapplication(translate=True, test_time=3):
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
 
-    if sys.platform == "darwin" and CONF.get('main', 'mac_open_file', False):
+    if (sys.platform == "darwin"
+            and not running_in_mac_app()
+            and CONF.get('main', 'mac_open_file', False)):
         # Register app if setting is set
         register_app_launchservices()
 
@@ -776,13 +778,7 @@ def register_app_launchservices(
     """
     app = QApplication.instance()
 
-    # If macOS app, set ourselves to open files at startup
-    bundle = get_mac_app_bundle_path()
-    if bundle:
-        old_handler = als.get_bundle_identifier_for_path(bundle)
-    else:
-        # Else, just restore the previous handler
-        old_handler = als.get_UTI_handler(uniform_type_identifier, role)
+    old_handler = als.get_UTI_handler(uniform_type_identifier, role)
 
     app._original_handlers[(uniform_type_identifier, role)] = old_handler
 

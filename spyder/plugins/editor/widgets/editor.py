@@ -1033,6 +1033,19 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_color_scheme(color_scheme)
 
+                # Update the most important extra selections so new color
+                # schemes appear to users as expected.
+                finfo.editor.unhighlight_current_line()
+                finfo.editor.unhighlight_current_cell()
+                finfo.editor.clear_occurrences()
+
+                if self.highlight_current_line_enabled:
+                    finfo.editor.highlight_current_line()
+                if self.highlight_current_cell_enabled:
+                    finfo.editor.highlight_current_cell()
+                if self.occurrence_highlighting_enabled:
+                    finfo.editor.mark_occurrences()
+
     def set_wrap_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'wrap')
         self.wrap_enabled = state
@@ -1600,7 +1613,13 @@ class EditorStack(QWidget):
 
             filename = self.data[index].filename
             self.remove_from_data(index)
-            finfo.editor.notify_close()
+            editor = finfo.editor
+            editor.notify_close()
+            editor.setParent(None)
+            editor.completion_widget.setParent(None)
+            if self.parent():
+                # Can be None in tests
+                self.get_plugin().unregister_widget_shortcuts(editor)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -2778,7 +2797,8 @@ class EditorStack(QWidget):
         text = line.lstrip()
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
-        editor.move_cursor_to_next('line', 'down')
+        if self.focus_to_editor:
+            editor.move_cursor_to_next('line', 'down')
         return (text, (line_off_from, line_off_to),
                 (line_col_from, line_col_to), enc)
 

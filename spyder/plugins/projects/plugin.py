@@ -392,10 +392,7 @@ class Projects(SpyderDockablePlugin):
     def unmaximize(self):
         """Unmaximize the currently maximized plugin, if not self."""
         if self.main:
-            if (self.main.last_plugin is not None and
-                    self.main.last_plugin._ismaximized and
-                    self.main.last_plugin is not self):
-                self.main.maximize_dockwidget()
+            self.sig_unmaximize_plugin_requested[object].emit(self)
 
     def build_opener(self, project):
         """Build function opening passed project"""
@@ -436,6 +433,7 @@ class Projects(SpyderDockablePlugin):
         project_type = data.get("project_type", EmptyProject.ID)
 
         if result:
+            logger.debug(f'Creating a project at {root_path}')
             self._create_project(root_path, project_type_id=project_type)
             dlg.close()
 
@@ -940,11 +938,11 @@ class Projects(SpyderDockablePlugin):
 
             # This is necessary to catch an error for projects created in
             # Spyder 4 or older versions.
-            # Fixes spyder-ide/spyder17097
+            # Fixes spyder-ide/spyder#17097
             try:
                 project_type_id = config[WORKSPACE].get(
                     "project_type", EmptyProject.ID)
-            except KeyError:
+            except Exception:
                 pass
 
         EmptyProject._PARENT_PLUGIN = self

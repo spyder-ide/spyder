@@ -343,9 +343,6 @@ class PylintWidget(PluginMainWidget):
         self.treewidget.sig_edit_goto_requested.connect(
             self.sig_edit_goto_requested)
 
-    def on_close(self):
-        self.stop_code_analysis()
-
     # --- Private API
     # ------------------------------------------------------------------------
     @Slot()
@@ -475,7 +472,7 @@ class PylintWidget(PluginMainWidget):
             for fname in self.curr_filenames:
                 if _("untitled") not in fname:
                     filename = osp.normpath(fname)
-                    list_save_files.append(fname)
+                    list_save_files.append(filename)
 
             self.curr_filenames = list_save_files[:MAX_HISTORY_ENTRIES]
             self.set_conf("history_filenames", self.curr_filenames)

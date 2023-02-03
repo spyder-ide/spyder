@@ -26,6 +26,14 @@ _ = get_translation('spyder')
 
 class AppearanceConfigPage(PluginConfigPage):
 
+    def __init__(self, plugin, parent):
+        super().__init__(plugin, parent)
+        self.pre_apply_callback = self.check_color_scheme_notification
+
+        # Notifications for this option are disabled when the plugin is
+        # initialized, so we need to restore them here.
+        CONF.restore_notifications(section='appearance', option='ui_theme')
+
     def setup_page(self):
         names = self.get_option("names")
         try:
@@ -38,13 +46,17 @@ class AppearanceConfigPage(PluginConfigPage):
         theme_group = QGroupBox(_("Main interface"))
 
         # Interface Widgets
-        ui_themes = ['Automatic', 'Light', 'Dark']
-        ui_theme_choices = list(zip(ui_themes, [ui_theme.lower()
-                                                for ui_theme in ui_themes]))
-        ui_theme_combo = self.create_combobox(_('Interface theme'),
-                                              ui_theme_choices,
-                                              'ui_theme',
-                                              restart=True)
+        ui_theme_choices = [
+            (_('Automatic'), 'automatic'),
+            (_('Light'), 'light'),
+            (_('Dark'), 'dark')
+        ]
+        ui_theme_combo = self.create_combobox(
+            _('Interface theme'),
+            ui_theme_choices,
+            'ui_theme',
+            restart=True
+        )
         self.ui_combobox = ui_theme_combo.combobox
 
         themes = ['Spyder 2', 'Spyder 3']
@@ -192,6 +204,11 @@ class AppearanceConfigPage(PluginConfigPage):
                     # Ask for a restart
                     self.changed_options.add('ui_theme')
 
+        # We need to restore notifications for these options so they can be
+        # changed when the user selects other values for them.
+        for option in ['selected', 'ui_theme']:
+            CONF.restore_notifications(section='appearance', option=option)
+
         self.update_combobox()
         self.update_preview()
 
@@ -211,6 +228,10 @@ class AppearanceConfigPage(PluginConfigPage):
     def current_scheme_index(self):
         return self.schemes_combobox.currentIndex()
 
+    @property
+    def current_ui_theme_index(self):
+        return self.ui_combobox.currentIndex()
+
     def update_combobox(self):
         """Recreates the combobox contents."""
         index = self.current_scheme_index
@@ -224,7 +245,12 @@ class AppearanceConfigPage(PluginConfigPage):
 
         # Useful for retrieving the actual data
         for n in names + custom_names:
-            self.scheme_choices_dict[self.get_option('{0}/name'.format(n))] = n
+            # Make option value a string to prevent errors when using it
+            # as widget text.
+            # See spyder-ide/spyder#18929
+            self.scheme_choices_dict[
+                str(self.get_option('{0}/name'.format(n)))
+            ] = n
 
         if custom_names:
             choices = names + [None] + custom_names
@@ -237,7 +263,11 @@ class AppearanceConfigPage(PluginConfigPage):
         for name in choices:
             if name is None:
                 continue
-            combobox.addItem(self.get_option('{0}/name'.format(name)), name)
+            # Make option value a string to prevent errors when using it
+            # as widget text.
+            # See spyder-ide/spyder#18929
+            item_name = str(self.get_option('{0}/name'.format(name)))
+            combobox.addItem(item_name, name)
 
         if custom_names:
             combobox.insertSeparator(len(names))
@@ -358,9 +388,11 @@ class AppearanceConfigPage(PluginConfigPage):
         if answer == QMessageBox.Yes:
             # Put the combobox in Spyder by default, when deleting a scheme
             names = self.get_option('names')
-            self.set_scheme('spyder')
-            self.schemes_combobox.setCurrentIndex(names.index('spyder'))
-            self.set_option('selected', 'spyder')
+            default_theme = 'spyder'
+            if self.is_dark_interface():
+                default_theme = 'spyder/dark'
+            self.schemes_combobox.setCurrentIndex(names.index(default_theme))
+            self.set_option('selected', default_theme)
 
             # Delete from custom_names
             custom_names = self.get_option('custom_names', [])
@@ -437,3 +469,19 @@ class AppearanceConfigPage(PluginConfigPage):
             )
 
         return mismatch
+
+    def check_color_scheme_notification(self):
+        """
+        Check if it's necessary to notify plugins to update their color scheme.
+        """
+        ui_theme_map = {0: 'automatic', 1: 'light', 2: 'dark'}
+        ui_theme = ui_theme_map[self.current_ui_theme_index]
+        mismatch = self.color_scheme_and_ui_theme_mismatch(
+            self.current_scheme, ui_theme)
+
+        # We don't need to apply the selected color scheme if there's a
+        # mismatch between it and the UI theme. Instead, we only we need to ask
+        # for a restart.
+        if mismatch:
+            for option in ['selected', 'ui_theme']:
+                CONF.disable_notifications(section='appearance', option=option)

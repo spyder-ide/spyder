@@ -1,31 +1,26 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.3.1 is released!
+**Subject**: [ANN] Spyder 5.3.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.3.1** has been released and is available for
+I'm pleased to announce that Spyder **5.3.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes seven weeks after version 5.3.0 and it contains the
-following new features, important fixes and new API features:
+This release comes six weeks and five days after version 5.3.2 and it contains the
+following new features and important fixes:
 
-* Add a toolbar to the Variable Explorer viewer for dictionaries, lists and sets to easily access the
-  functionality available through its context menu.
-* Add navigation with extra buttons in the editor for mouses that support them.
-* Add `--no-web-widgets` command line option to disable plugins/widgets that use Qt Webengine widgets.
-* Fix several important bugs related to the `Autoformat on save` functionality.
-* Fix options related to the `Working directory` entry in Preferences.
-* Make code completion widget entries accessible to screen readers.
-* Add `get_command_line_options` to `SpyderPluginV2` so that plugins can access the command line options
-  passed to Spyder.
-* The current interpreter used by all Spyder plugins can be accessed now through the `executable` option
-  of the Main interpreter plugin.
+* Printing files now uses a light syntax highlighting theme to prevent printing files with dark backgrounds.
+* MacOS standalone installer now are build using MacOS 11 instead of MacOS 10.15
+* Fix several bugs related with the Layout plugin (save visible plugins to restore their visiility and tabify behavior for external plugins).
+* Fix several bugs related with the focus management between the Editor and other panes.
+* Improve Find and Replace speed on the Editor.
+* Fixes to the MacOS standalone application to support being code signed.
 
-In this release we fixed 37 issues and merged 52 pull requests that amount
-to more than 230 commits. For a full list of fixes, please see our
+In this release we fixed 33 issues and merged 48 pull requests that amount
+to more than 225 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -37,7 +32,7 @@ creating your favorite environment!
 
 Enjoy!
 
-Carlos
+Daniel
 
 
 ----

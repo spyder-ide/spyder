@@ -13,6 +13,7 @@ NOTE: DO NOT add fixtures here. It could generate problems with
 
 import os
 import os.path as osp
+import re
 
 # ---- To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
@@ -41,15 +42,15 @@ def get_passed_tests():
         with open('pytest_log.txt') as f:
             logfile = f.readlines()
 
-        # All lines that start with 'spyder' are tests. The rest are
-        # informative messages.
-        tests = []
+        # Detect all tests that passed before.
+        test_re = re.compile(r'(spyder.*) [^ ]*(SKIPPED|PASSED|XFAIL)')
+        tests = set()
         for line in logfile:
-            if line.startswith('spyder'):
-                tests.append(line.split()[0])
+            match = test_re.match(line)
+            if match:
+                tests.add(match.group(1))
 
-        # Don't include the last test to repeat it again.
-        return tests[:-1]
+        return tests
     else:
         return []
 
@@ -66,14 +67,15 @@ def pytest_collection_modifyitems(config, items):
     skip_passed = pytest.mark.skip(reason="Test passed in previous runs")
 
     for item in items:
-        if item.nodeid in passed_tests:
-            item.add_marker(skip_passed)
-        elif slow_option:
+        if slow_option:
             if "slow" not in item.keywords:
                 item.add_marker(skip_fast)
         else:
             if "slow" in item.keywords:
                 item.add_marker(skip_slow)
+
+        if item.nodeid in passed_tests:
+            item.add_marker(skip_passed)
 
 
 @pytest.fixture(autouse=True)

@@ -56,7 +56,6 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.providers.kite.widgets import KiteCallToAction
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            TextDocumentSyncKind,
                                            DiagnosticSeverity)
@@ -74,7 +73,7 @@ from spyder.plugins.editor.panels.utils import (
     merge_folding, collect_folding_regions)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
-from spyder.plugins.editor.widgets.codeeditor_widgets import GoToLineDialog
+from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
@@ -459,7 +458,7 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer = QTimer(self)
         self.occurrence_timer.setSingleShot(True)
         self.occurrence_timer.setInterval(1500)
-        self.occurrence_timer.timeout.connect(self.__mark_occurrences)
+        self.occurrence_timer.timeout.connect(self.mark_occurrences)
         self.occurrences = []
 
         # Update decorations
@@ -599,7 +598,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # re-use parent of completion_widget (usually the main window)
         completion_parent = self.completion_widget.parent()
-        self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
         # Some events should not be triggered during undo/redo
         # such as line stripping
@@ -1323,7 +1321,6 @@ class CodeEditor(TextEditBaseWidget):
             # after some time.
             self.clear_extra_selections('code_analysis_underline')
             self._process_code_analysis(underline=True)
-            self.update_extra_selections()
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1405,9 +1402,6 @@ class CodeEditor(TextEditBaseWidget):
                     data.selection_start = start
                     data.selection_end = end
 
-                    # Don't call highlight_selection with `update=True` so that
-                    # all underline selections are updated in bulk in
-                    # underline_errors.
                     self.highlight_selection('code_analysis_underline',
                                              data._selection(),
                                              underline_color=block.color)
@@ -1526,12 +1520,9 @@ class CodeEditor(TextEditBaseWidget):
 
             self.completion_widget.show_list(
                 completion_list, position, automatic)
-
-            self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
-            self.kite_call_to_action.hide_coverage_cta()
             return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
@@ -2039,7 +2030,7 @@ class CodeEditor(TextEditBaseWidget):
                 # before sending that request here.
                 self._timer_sync_symbols_and_folding.timeout.disconnect(
                     self.sync_symbols_and_folding)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 pass
 
             params = {
@@ -2165,7 +2156,7 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable occurrence highlighting"""
         self.occurrence_highlighting = enable
         if not enable:
-            self.__clear_occurrences()
+            self.clear_occurrences()
 
     def set_occurrence_timeout(self, timeout):
         """Set occurrence highlighting timeout (ms)"""
@@ -2507,7 +2498,7 @@ class CodeEditor(TextEditBaseWidget):
         # Strip if needed
         self.strip_trailing_spaces()
 
-    def __clear_occurrences(self):
+    def clear_occurrences(self):
         """Clear occurrence markers"""
         self.occurrences = []
         self.clear_extra_selections('occurrences')
@@ -2538,8 +2529,7 @@ class CodeEditor(TextEditBaseWidget):
     def highlight_selection(self, key, cursor, foreground_color=None,
                             background_color=None, underline_color=None,
                             outline_color=None,
-                            underline_style=QTextCharFormat.SingleUnderline,
-                            update=False):
+                            underline_style=QTextCharFormat.SingleUnderline):
 
         selection = self.get_selection(
             cursor, foreground_color, background_color, underline_color,
@@ -2549,12 +2539,10 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections = self.get_extra_selections(key)
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
-        if update:
-            self.update_extra_selections()
 
-    def __mark_occurrences(self):
+    def mark_occurrences(self):
         """Marking occurrences of the currently selected word"""
-        self.__clear_occurrences()
+        self.clear_occurrences()
 
         if not self.supported_language:
             return
@@ -2579,7 +2567,12 @@ class CodeEditor(TextEditBaseWidget):
         extra_selections = self.get_extra_selections('occurrences')
         first_occurrence = None
         while cursor:
-            self.occurrences.append(cursor.block())
+            block = cursor.block()
+            if not block.userData():
+                # Add user data to check block validity
+                block.setUserData(BlockUserData(self))
+            self.occurrences.append(block)
+
             selection = self.get_selection(cursor)
             if len(selection.cursor.selectedText()) > 0:
                 extra_selections.append(selection)
@@ -2591,7 +2584,6 @@ class CodeEditor(TextEditBaseWidget):
                         self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.set_extra_selections('occurrences', extra_selections)
-        self.update_extra_selections()
 
         if len(self.occurrences) > 1 and self.occurrences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
@@ -2618,16 +2610,25 @@ class CodeEditor(TextEditBaseWidget):
             return
         extra_selections = []
         self.found_results = []
+        has_unicode = len(text) != qstring_length(text)
         for match in regobj.finditer(text):
-            pos1, pos2 = sh.get_span(match)
+            if has_unicode:
+                pos1, pos2 = sh.get_span(match)
+            else:
+                pos1, pos2 = match.span()
             selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
             selection.cursor.setPosition(pos1)
-            self.found_results.append(selection.cursor.block())
+
+            block = selection.cursor.block()
+            if not block.userData():
+                # Add user data to check block validity
+                block.setUserData(BlockUserData(self))
+            self.found_results.append(block)
+
             selection.cursor.setPosition(pos2, QTextCursor.KeepAnchor)
             extra_selections.append(selection)
         self.set_extra_selections('find', extra_selections)
-        self.update_extra_selections()
 
     def clear_found_results(self):
         """Clear found results highlighting"""
@@ -3225,8 +3226,7 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('code_analysis_highlight')
         self.highlight_selection('code_analysis_highlight',
                                  block_data._selection(),
-                                 background_color=block_data.color,
-                                 update=True)
+                                 background_color=block_data.color)
         self.linenumberarea.update()
 
     def get_current_warnings(self):
@@ -4606,8 +4606,6 @@ class CodeEditor(TextEditBaseWidget):
         event.ignore()
         self.sig_key_pressed.emit(event)
 
-        self.kite_call_to_action.handle_key_press(event)
-
         key = event.key()
         text = to_text_string(event.text())
         has_selection = self.has_selected_text()
@@ -4615,7 +4613,7 @@ class CodeEditor(TextEditBaseWidget):
         shift = event.modifiers() & Qt.ShiftModifier
 
         if text:
-            self.__clear_occurrences()
+            self.clear_occurrences()
 
             # Only ask for completions if there's some text generated
             # as part of the event. Events such as pressing Crtl,
@@ -4980,7 +4978,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             self.clear_extra_selections('ctrl_click')
             self.highlight_selection(
-                'ctrl_click', cursor, update=True,
+                'ctrl_click', cursor,
                 foreground_color=self.ctrl_click_color,
                 underline_color=self.ctrl_click_color,
                 underline_style=QTextCharFormat.SingleUnderline)
@@ -5004,7 +5002,7 @@ class CodeEditor(TextEditBaseWidget):
 
             self.clear_extra_selections('ctrl_click')
             self.highlight_selection(
-                'ctrl_click', cursor, update=True,
+                'ctrl_click', cursor,
                 foreground_color=color,
                 underline_color=color,
                 underline_style=QTextCharFormat.SingleUnderline)
@@ -5298,7 +5296,6 @@ class CodeEditor(TextEditBaseWidget):
     def mousePressEvent(self, event):
         """Override Qt method."""
         self.hide_tooltip()
-        self.kite_call_to_action.handle_mouse_press(event)
 
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier

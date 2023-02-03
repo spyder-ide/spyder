@@ -877,7 +877,6 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.MoveAnchor)
 
-
     #------Selection
     def extend_selection_to_next(self, what='word', direction='left'):
         """
@@ -886,9 +885,10 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
 
-
     #------Text: get, set, ...
-    def __select_text(self, position_from, position_to):
+
+    def _select_text(self, position_from, position_to):
+        """Select text and return cursor."""
         position_from = self.get_position(position_from)
         position_to = self.get_position(position_to)
         cursor = self.textCursor()
@@ -931,7 +931,7 @@ class BaseEditMixin(object):
         TODO: Evaluate if this is still a problem and if the workaround can
               be moved closer to where the problem occurs.
         """
-        cursor = self.__select_text(position_from, position_to)
+        cursor = self._select_text(position_from, position_to)
         text = to_text_string(cursor.selectedText())
         if remove_newlines:
             remove_newlines = position_from != 'sof' or position_to != 'eof'
@@ -963,7 +963,7 @@ class BaseEditMixin(object):
                 self.sig_text_was_inserted.emit()
 
     def replace_text(self, position_from, position_to, text):
-        cursor = self.__select_text(position_from, position_to)
+        cursor = self._select_text(position_from, position_to)
         if self.sig_will_remove_selection is not None:
             start, end = self.get_selection_start_end(cursor)
             self.sig_will_remove_selection.emit(start, end)
@@ -975,7 +975,7 @@ class BaseEditMixin(object):
             self.sig_text_was_inserted.emit()
 
     def remove_text(self, position_from, position_to):
-        cursor = self.__select_text(position_from, position_to)
+        cursor = self._select_text(position_from, position_to)
         if self.sig_will_remove_selection is not None:
             start, end = self.get_selection_start_end(cursor)
             self.sig_will_remove_selection.emit(start, end)

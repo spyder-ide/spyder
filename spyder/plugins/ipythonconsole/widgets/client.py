@@ -81,6 +81,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     sig_append_to_history_requested = Signal(str, str)
     sig_execution_state_changed = Signal()
+    sig_time_label = Signal(str)
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -98,7 +99,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  given_name=None,
                  give_focus=True,
                  options_button=None,
-                 time_label=None,
                  show_elapsed_time=False,
                  reset_warning=True,
                  ask_before_restart=True,
@@ -107,7 +107,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  handlers={},
                  stderr_obj=None,
                  stdout_obj=None,
-                 fault_obj=None):
+                 fault_obj=None,
+                 initial_cwd=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -123,10 +124,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.reset_warning = reset_warning
         self.ask_before_restart = ask_before_restart
         self.ask_before_closing = ask_before_closing
+        self.initial_cwd = initial_cwd
 
         # --- Other attrs
         self.context_menu_actions = context_menu_actions
-        self.time_label = time_label
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
@@ -221,8 +222,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show if special console is valid
         self._check_special_console_error()
 
-        # Set the initial current working directory
-        self._set_initial_cwd()
+        # Set the initial current working directory in the kernel
+        self._set_initial_cwd_in_kernel()
 
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
@@ -352,11 +353,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         page_control.sig_show_find_widget_requested.connect(
             self.container.find_widget.show)
 
-    def _set_initial_cwd(self):
-        """Set initial cwd according to preferences."""
-        logger.debug("Setting initial working directory")
+    def _set_initial_cwd_in_kernel(self):
+        """Set the initial cwd in the kernel."""
+        logger.debug("Setting initial working directory in the kernel")
         cwd_path = get_home_dir()
         project_path = self.container.get_active_project_path()
+        emit_cwd_change = True
 
         # This is for the first client
         if self.id_['int_id'] == '1':
@@ -378,7 +380,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 )
         else:
             # For new clients
-            if self.get_conf(
+            if self.initial_cwd is not None:
+                cwd_path = self.initial_cwd
+            elif self.get_conf(
                 'console/use_project_or_home_directory',
                 section='workingdir'
             ):
@@ -387,6 +391,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     cwd_path = project_path
             elif self.get_conf('console/use_cwd', section='workingdir'):
                 cwd_path = self.container.get_working_directory()
+                emit_cwd_change = False
             elif self.get_conf(
                 'console/use_fixed_directory',
                 section='workingdir'
@@ -398,7 +403,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 )
 
         if osp.isdir(cwd_path):
-            self.shellwidget.set_cwd(cwd_path)
+            self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 
     # ----- Public API --------------------------------------------------------
     @property
@@ -412,7 +417,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Remove stderr_file associated with the client."""
         try:
             self.shellwidget.executed.disconnect(self.poll_std_file_change)
-        except TypeError:
+        except (TypeError, ValueError):
             pass
         if self.std_poll_timer is not None:
             self.std_poll_timer.stop()
@@ -460,9 +465,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Configure shellwidget after kernel is connected."""
         self.give_focus = give_focus
 
-        # Make sure the kernel sends the comm config over
-        self.shellwidget.call_kernel()._send_comm_config()
-
         # Set exit callback
         self.shellwidget.set_exit_callback()
 
@@ -476,10 +478,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To update history after execution
         self.shellwidget.executed.connect(self.update_history)
 
-        # To update the Variable Explorer after execution
-        self.shellwidget.executed.connect(
-            self.shellwidget.refresh_namespacebrowser)
-
         # To enable the stop button when executing a process
         self.shellwidget.executing.connect(
             self.sig_execution_state_changed)
@@ -491,7 +489,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted_message.connect(
             self.kernel_restarted_message)
-        self.shellwidget.sig_kernel_restarted.connect(
+        self.shellwidget.sig_kernel_died_restarted.connect(
             self._finalise_restart)
 
         # To correctly change Matplotlib backend interactively
@@ -505,13 +503,33 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.update_cwd)
 
+        self.send_kernel_configuration()
+
+    def send_kernel_configuration(self):
+        """Send kernel configuration to kernel."""
+
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
+        # send pdb config
+        self.shellwidget.call_kernel().set_pdb_configuration({
+            'breakpoints': self.get_conf(
+                'breakpoints', default={}, section='run'),
+            'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
+            'pdb_execute_events': self.get_conf('pdb_execute_events'),
+            'pdb_use_exclamation_mark': self.get_conf(
+                'pdb_use_exclamation_mark'),
+            'pdb_stop_first_line': self.get_conf('pdb_stop_first_line')
+        })
+
+        # Enable faulthandler
         if self.fault_obj is not None:
             # To display faulthandler
             self.shellwidget.call_kernel().enable_faulthandler(
                 self.fault_obj.filename)
+
+        # Give a chance to plugins to configure the kernel
+        self.shellwidget.sig_config_kernel_requested.emit()
 
     def add_to_history(self, command):
         """Add command to history"""
@@ -588,7 +606,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # disable secure writes.
             "WARNING: Insecure writes have been enabled via environment",
             # Old error
-            "No such comm"
+            "No such comm",
+            # PYDEVD debug warning message. See spyder-ide/spyder#18908
+            "Note: Debugging will proceed. "
+            "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation."
         ]
 
         return any([err in error for err in benign_errors])
@@ -643,6 +664,25 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.set_color_scheme(color_scheme, reset)
         except AttributeError:
             pass
+
+    def close_client(self, is_last_client):
+        """Close the client."""
+        # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
+        try:
+            # Close client
+            self.stop_button_click_handler()
+        except RuntimeError:
+            pass
+
+        # Disconnect timer needed to update elapsed time
+        try:
+            self.timer.timeout.disconnect(self.show_time)
+        except (RuntimeError, TypeError):
+            pass
+
+        self.shutdown(is_last_client)
+        self.close()
+        self.setParent(None)
 
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
@@ -760,7 +800,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                         '\n' + fault, before_prompt=True)
 
             # Reset Pdb state and reopen comm
-            sw._pdb_in_loop = False
+            sw._pdb_recursion_level = 0
             sw.spyder_kernel_comm.remove()
             try:
                 sw.spyder_kernel_comm.open_comm(sw.kernel_client)
@@ -780,9 +820,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw._append_html(_("<br>Restarting kernel...<br>"),
                             before_prompt=True)
             sw.insert_horizontal_ruler()
-            if self.fault_obj is not None:
-                self.shellwidget.call_kernel().enable_faulthandler(
-                    self.fault_obj.filename)
+
+            self.send_kernel_configuration()
 
         self._hide_loading_page()
         self.restart_thread = None
@@ -899,8 +938,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def show_time(self, end=False):
         """Text to show in time_label."""
-        if self.time_label is None:
-            return
 
         elapsed_time = time.monotonic() - self.t0
         # System time changed to past date, so reset start.
@@ -919,9 +956,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                "</b></span>" % (color,
                                 time.strftime(fmt, time.gmtime(elapsed_time)))
         if self.show_elapsed_time:
-            self.time_label.setText(text)
+            self.sig_time_label.emit(text)
         else:
-            self.time_label.setText("")
+            self.sig_time_label.emit("")
 
     @Slot(bool)
     def set_show_elapsed_time(self, state):

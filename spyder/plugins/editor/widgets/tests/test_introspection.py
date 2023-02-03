@@ -21,7 +21,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.config.base import running_in_ci
+from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
@@ -1166,7 +1166,7 @@ def spam():
 @pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(not is_anaconda(), reason='Requires conda to be installed')
-@pytest.mark.skipif(not running_in_ci(), reason='Run tests only on CI.')
+@pytest.mark.skipif(not running_in_ci_with_conda(), reason='Run tests only on CI with conda.')
 @pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
                     reason="Quite flaky with Linux on CI")
 @pytest.mark.skipif(running_in_ci() and sys.platform == 'darwin',
@@ -1209,9 +1209,11 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     qtbot.wait(2000)
 
     code_editor.set_text('')
+    qtbot.wait(2000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'import flas')
+        qtbot.wait(2000)
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     qtbot.keyPress(completion, Qt.Key_Tab)

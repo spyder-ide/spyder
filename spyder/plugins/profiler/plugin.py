@@ -9,7 +9,6 @@ Profiler Plugin.
 """
 
 # Standard library imports
-import os.path as osp
 from typing import List
 
 # Third party imports
@@ -51,7 +50,7 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     NAME = 'profiler'
     REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
     OPTIONAL = []
-    TABIFY = Plugins.Help
+    TABIFY = [Plugins.Help]
     WIDGET_CLASS = ProfilerWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = ProfilerConfigPage

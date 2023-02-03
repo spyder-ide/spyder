@@ -12,7 +12,7 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _, is_pynsist, running_in_ci
+from spyder.config.base import _, is_pynsist, running_in_ci, running_in_mac_app
 from spyder.utils import programs
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -52,7 +52,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=2.5.0;<3.0'
-PYLSP_REQVER = '>=1.4.1;<1.5.0'
+PYLSP_REQVER = '>=1.5.0;<1.6.0'
 PYLSP_BLACK_REQVER = '>=1.2.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
@@ -60,12 +60,12 @@ PYZMQ_REQVER = '>=22.1.0'
 QDARKSTYLE_REQVER = '>=3.0.2;<3.1.0'
 QSTYLIZER_REQVER = '>=0.1.10'
 QTAWESOME_REQVER = '>=1.0.2'
-QTCONSOLE_REQVER = '>=5.3.0;<5.4.0'
+QTCONSOLE_REQVER = '>=5.3.2;<5.4.0'
 QTPY_REQVER = '>=2.1.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.3.1;<2.4.0'
+SPYDER_KERNELS_REQVER = '>=2.3.3;<2.4.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
@@ -94,7 +94,7 @@ DESCRIPTIONS = [
      'package_name': "applaunchservices",
      'features': _("Notify macOS that Spyder can open Python files"),
      'required_version': APPLAUNCHSERVICES_REQVER,
-     'display': sys.platform == "darwin"},
+     'display': sys.platform == "darwin" and not running_in_mac_app()},
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),

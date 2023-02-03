@@ -10,7 +10,7 @@ def describe_array(prop: dict) -> str:
         if "uniqueItems" in prop:
             unique_qualifier = "unique" if prop["uniqueItems"] else "non-unique"
         item_type = describe_type(prop["items"])
-        extra += f" of {unique_qualifier} {item_type} items"
+        extra = " ".join(filter(bool, ["of", unique_qualifier, item_type, "items"]))
     return extra
 
 
@@ -31,13 +31,19 @@ EXTRA_DESCRIPTORS = {
 
 def describe_type(prop: dict) -> str:
     prop_type = prop["type"]
-    label = f"`{prop_type}`"
-    if prop_type in EXTRA_DESCRIPTORS:
-        label += " " + EXTRA_DESCRIPTORS[prop_type](prop)
-        if "enum" in prop:
-            allowed_values = [f"`{value}`" for value in prop["enum"]]
-            label += "one of: " + ", ".join(allowed_values)
-    return label
+    types = prop_type if isinstance(prop_type, list) else [prop_type]
+    if "null" in types:
+        types.remove("null")
+    if len(types) == 1:
+        prop_type = types[0]
+    parts = [f"`{prop_type}`"]
+    for option in types:
+        if  option in EXTRA_DESCRIPTORS:
+            parts.append(EXTRA_DESCRIPTORS[option](prop))
+    if "enum" in prop:
+        allowed_values = [f"`{value}`" for value in prop["enum"]]
+        parts.append("(one of: " + ", ".join(allowed_values) + ")")
+    return " ".join(parts)
 
 
 def convert_schema(schema: dict, source: str = None) -> str:

@@ -21,7 +21,7 @@ name: Create macOS App Bundle and DMG
 jobs:
   matrix_prep:
     name: Determine Build Matrix
-    runs-on: macos-10.15
+    runs-on: macos-11
     outputs:
       build_type: ${{ steps.set-matrix.outputs.build_type }}
     steps:
@@ -35,7 +35,7 @@ jobs:
         echo "::set-output name=build_type::{'build_type':$(echo $build_type)}"
   build:
     name: macOS App Bundle
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: matrix_prep
     strategy:
       matrix: ${{fromJson(needs.matrix_prep.outputs.build_type)}}
@@ -47,15 +47,17 @@ jobs:
       LITE_FLAG: ${{ matrix.build_type == 'Lite' && '--lite' || '' }}
       DMGNAME: ${{ matrix.build_type == 'Lite' && 'Spyder-Lite.dmg' || 'Spyder.dmg' }}
       DISTDIR: ${{ github.workspace }}/dist
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          # This is the last version working with py2app and modulegraph
           python-version: '3.9.5'
           architecture: 'x64'
       - name: Install Dependencies
@@ -77,13 +79,29 @@ jobs:
         working-directory: ${{ github.workspace }}/spyder
         run: |
           curl -Ls https://micro.mamba.pm/api/micromamba/osx-64/latest | tar -xvj bin/micromamba
+          install_name_tool -change @rpath/libc++.1.dylib /usr/lib/libc++.1.dylib bin/micromamba
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
+      - name: Create Keychain
+        if: ${{github.event_name == 'release'}}
+        run: ./certkeychain.sh "${MACOS_CERTIFICATE}" "${MACOS_CERTIFICATE_PWD}"
+      - name: Code Sign Application
+        if: ${{github.event_name == 'release'}}
+        run: |
+          pil=$(${pythonLocation} -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
+          rm -v ${DISTDIR}/Spyder.app/Contents/Frameworks/liblzma.5.dylib
+          cp -v ${pil}/.dylibs/liblzma.5.dylib ${DISTDIR}/Spyder.app/Contents/Frameworks/
+          ./codesign.sh "${DISTDIR}/Spyder.app"
       - name: Test Application Bundle
-        if: ${{github.event_name == 'pull_request'}}
         run: ./test_app.sh -t 60 -d 10 ${DISTDIR}
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
+      - name: Sign Disk Image
+        if: ${{github.event_name == 'release'}}
+        run: ./codesign.sh "${DISTDIR}/${DMGNAME}"
+      - name: Notarize Disk Image
+        if: ${{github.event_name == 'release'}}
+        run: ./notarize.sh -i 30 -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:

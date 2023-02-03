@@ -347,14 +347,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @on_conf_change(option='show_all_files')
     def toggle_show_all_files(self, state):
         self.show_all_files = state
-        if self.current_editor is not None:
-            editor_id = self.editor_ids[self.current_editor]
+        current_editor = self.current_editor
+        if current_editor is not None:
+            editor_id = self.editor_ids[current_editor]
             item = self.editor_items[editor_id].node
             self.__hide_or_show_root_items(item)
             self.__sort_toplevel_items()
             if self.show_all_files is False:
                 self.root_item_selected(
-                    self.editor_items[self.editor_ids[self.current_editor]])
+                    self.editor_items[self.editor_ids[current_editor]])
             self.do_follow_cursor()
 
     @on_conf_change(option='show_comments')

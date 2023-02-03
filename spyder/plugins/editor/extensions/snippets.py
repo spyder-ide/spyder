@@ -779,7 +779,6 @@ class SnippetsExtension(EditorExtension):
                     self.editor.highlight_selection('code_snippets',
                                                     QTextCursor(cursor),
                                                     outline_color=color)
-                    self.editor.update_extra_selections()
 
     def select_snippet(self, snippet_number):
         cursor = self.editor.textCursor()

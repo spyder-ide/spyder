@@ -53,7 +53,6 @@ class Preferences(SpyderPluginV2):
 
     NAME = 'preferences'
     CONF_SECTION = 'preferences'
-    REQUIRES = [Plugins.Application]
     OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
@@ -274,6 +273,7 @@ class Preferences(SpyderPluginV2):
 
         container.sig_show_preferences_requested.connect(
             lambda: self.open_dialog(main.prefs_dialog_size))
+        container.sig_reset_preferences_requested.connect(self.reset)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -302,12 +302,6 @@ class Preferences(SpyderPluginV2):
             section=MainToolbarSections.ApplicationSection
         )
 
-    @on_plugin_available(plugin=Plugins.Application)
-    def on_application_available(self):
-        container = self.get_container()
-        container.sig_reset_preferences_requested.connect(self.reset)
-
-
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
@@ -330,11 +324,6 @@ class Preferences(SpyderPluginV2):
             toolbar_id=ApplicationToolbars.Main
         )
 
-    @on_plugin_teardown(plugin=Plugins.Application)
-    def on_application_teardown(self):
-        container = self.get_container()
-        container.sig_reset_preferences_requested.disconnect(self.reset)
-
     @Slot()
     def reset(self):
         answer = QMessageBox.warning(self.main, _("Warning"),
@@ -343,8 +332,7 @@ class Preferences(SpyderPluginV2):
              QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             os.environ['SPYDER_RESET'] = 'True'
-            application = self.get_plugin(Plugins.Application)
-            application.sig_restart_requested.emit()
+            self.sig_restart_requested.emit()
 
     def on_close(self, cancelable=False):
         container = self.get_container()

@@ -17,6 +17,7 @@ class Plugins:
     Breakpoints = 'breakpoints'
     Completions = 'completions'
     Console = 'internal_console'
+    Debugger = 'debugger'
     Editor = 'editor'
     Explorer = 'explorer'
     ExternalConsole = 'external_console'
@@ -40,5 +41,23 @@ class Plugins:
     Toolbar = "toolbar"
     Tours = 'tours'
     VariableExplorer = 'variable_explorer'
-    FramesExplorer = 'frames_explorer'
     WorkingDirectory = 'workingdir'
+
+
+class DockablePlugins:
+    Breakpoints = 'breakpoints'
+    Console = 'internal_console'
+    Debugger = 'debugger'
+    Editor = 'editor'
+    Explorer = 'explorer'
+    Find = 'find_in_files'
+    Help = 'help'
+    History = 'historylog'
+    IPythonConsole = 'ipython_console'
+    OnlineHelp = 'onlinehelp'
+    OutlineExplorer = 'outline_explorer'
+    Plots = 'plots'
+    Profiler = 'profiler'
+    Projects = 'project_explorer'
+    Pylint = 'pylint'
+    VariableExplorer = 'variable_explorer'

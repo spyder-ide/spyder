@@ -9,7 +9,7 @@ Variable Explorer Main Plugin Widget.
 """
 
 # Third party imports
-from qtpy.QtCore import QTimer, Signal, Slot
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtWidgets import QAction
 
 # Local imports
@@ -96,9 +96,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     # Other class constants
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
     SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
-
-    # Signals
-    sig_free_memory_requested = Signal()
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -426,6 +423,15 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.set_shellwidget(shellwidget)
         nsb.setup()
         self._set_actions_and_menus(nsb)
+
+        # To update the Variable Explorer after execution
+        shellwidget.executed.connect(
+            nsb.refresh_namespacebrowser)
+        shellwidget.sig_kernel_started.connect(
+            nsb.on_kernel_started)
+        shellwidget.sig_kernel_reset.connect(
+            nsb.on_kernel_started)
+
         return nsb
 
     def close_widget(self, nsb):
@@ -438,7 +444,14 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             self.start_spinner)
         nsb.sig_stop_spinner_requested.disconnect(
             self.stop_spinner)
+        nsb.shellwidget.executed.disconnect(
+            nsb.refresh_namespacebrowser)
+        nsb.shellwidget.sig_kernel_started.disconnect(
+            nsb.on_kernel_started)
+        nsb.shellwidget.sig_kernel_reset.disconnect(
+            nsb.on_kernel_started)
         nsb.close()
+        nsb.setParent(None)
 
     def import_data(self, filenames=None):
         """

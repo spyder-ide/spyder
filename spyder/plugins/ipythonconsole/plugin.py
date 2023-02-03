@@ -251,7 +251,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_help_requested.connect(self.sig_help_requested)
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
-        widget.sig_exception_occurred.connect(self.sig_exception_occurred)
 
         # Update kernels if python path is changed
         self.main.sig_pythonpath_changed.connect(self.update_path)
@@ -395,7 +394,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         # Connect Editor debug action with Console
         self.sig_pdb_state_changed.connect(editor.update_pdb_state)
-        editor.exec_in_extconsole.connect(self.execute_code_and_focus_editor)
+        editor.exec_in_extconsole.connect(self.run_selection)
         editor.sig_file_debug_message_requested.connect(
             self.print_debug_file_msg)
 
@@ -419,7 +418,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_working_directory_available(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.connect(
-            self._set_working_directory)
+            self.save_working_directory)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -452,8 +451,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         # Connect Editor debug action with Console
         self.sig_pdb_state_changed.disconnect(editor.update_pdb_state)
-        editor.exec_in_extconsole.disconnect(
-            self.execute_code_and_focus_editor)
+        editor.exec_in_extconsole.disconnect(self.run_selection)
         editor.sig_file_debug_message_requested.disconnect(
             self.print_debug_file_msg)
 
@@ -478,7 +476,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_working_directory_teardown(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.disconnect(
-            self._set_working_directory)
+            self.save_working_directory)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -489,25 +487,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_close(self, cancelable=False):
         """Perform actions when plugin is closed"""
         self.get_widget().mainwindow_close = True
-        return self.get_widget().close_clients()
+        return self.get_widget().close_all_clients()
 
     def on_mainwindow_visible(self):
         self.create_new_client(give_focus=False)
-
-        # Raise plugin the first time Spyder starts
-        if self.get_conf('show_first_time', default=True):
-            self.dockwidget.raise_()
-            self.set_conf('show_first_time', False)
 
     # ---- Private methods
     # -------------------------------------------------------------------------
     def _load_file_in_editor(self, fname, lineno, word, processevents):
         editor = self.get_plugin(Plugins.Editor)
         editor.load(fname, lineno, word, processevents=processevents)
-
-    def _switch_to_editor(self):
-        editor = self.get_plugin(Plugins.Editor)
-        editor.switch_to_plugin()
 
     def _on_project_loaded(self):
         projects = self.get_plugin(Plugins.Projects)
@@ -533,11 +522,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
-
-    @Slot(str)
-    def _set_working_directory(self, new_dir):
-        """Set current working directory on the main widget."""
-        self.get_widget().set_working_directory(new_dir)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -776,8 +760,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         copy = run_input['copy']
         self.run_cell(cell_text, cell_name, filename, copy, True)
 
-    def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables, console_namespace):
+    # ---- For execution and debugging
+    def run_script(self, filename, wdir, args='', debug=False,
+                   post_mortem=False, current_client=True,
+                   clear_variables=False, console_namespace=False,
+                   focus_to_editor=True):
         """
         Run script in current or dedicated client.
 
@@ -787,27 +774,30 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             Path to file that will be run.
         wdir : str
             Working directory from where the file should be run.
-        args : str
+        args : str, optional
             Arguments defined to run the file.
-        debug : bool
+        debug : bool, optional
             True if the run if for debugging the file,
             False for just running it.
-        post_mortem : bool
+        post_mortem : bool, optional
             True if in case of error the execution should enter in
             post-mortem mode, False otherwise.
-        current_client : bool
+        current_client : bool, optional
             True if the execution should be done in the current client,
             False if the execution needs to be done in a dedicated client.
-        clear_variables : bool
+        clear_variables : bool, optional
             True if all the variables should be removed before execution,
             False otherwise.
-        console_namespace : bool
+        console_namespace : bool, optional
             True if the console namespace should be used, False otherwise.
+        focus_to_editor: bool, optional
+            Leave focus in the editor after execution.
 
         Returns
         -------
         None.
         """
+        self.sig_unmaximize_plugin_requested.emit()
         self.get_widget().run_script(
             filename,
             wdir,
@@ -816,7 +806,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             post_mortem,
             current_client,
             clear_variables,
-            console_namespace)
+            console_namespace,
+            focus_to_editor)
 
     def run_cell(self, code, cell_name, filename, run_cell_copy,
                  focus_to_editor, function='runcell'):
@@ -847,6 +838,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         -------
         None.
         """
+        self.sig_unmaximize_plugin_requested.emit()
         self.get_widget().run_cell(
             code, cell_name, filename, run_cell_copy, focus_to_editor,
             function=function)
@@ -876,6 +868,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         -------
         None.
         """
+        self.sig_unmaximize_plugin_requested.emit()
         self.get_widget().debug_cell(code, cell_name, filename, run_cell_copy,
                                      focus_to_editor)
 
@@ -903,20 +896,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             current_client=current_client,
             clear_variables=clear_variables)
 
-    def execute_code_and_focus_editor(self, lines, focus_to_editor=True):
-        """
-        Execute lines in IPython console and eventually set focus
-        to the Editor.
-        """
-        self.execute_code(lines)
-        if focus_to_editor and self.get_plugin(Plugins.Editor):
-            self._switch_to_editor()
-        else:
-            self.switch_to_plugin()
-
-    def stop_debugging(self):
-        """Stop debugging in the current console."""
-        self.get_widget().stop_debugging()
+    def run_selection(self, lines, focus_to_editor=True):
+        """Execute selected lines in the current console."""
+        self.sig_unmaximize_plugin_requested.emit()
+        self.get_widget().execute_code(lines, set_focus=not focus_to_editor)
 
     def get_pdb_state(self):
         """Get debugging state of the current console."""
@@ -925,21 +908,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def get_pdb_last_step(self):
         """Get last pdb step of the current console."""
         return self.get_widget().get_pdb_last_step()
-
-    def pdb_execute_command(self, command):
-        """
-        Send command to the pdb kernel if possible.
-
-        Parameters
-        ----------
-        command : str
-            Command to execute by the pdb kernel.
-
-        Returns
-        -------
-        None.
-        """
-        self.get_widget().pdb_execute_command(command)
 
     def print_debug_file_msg(self):
         """
@@ -969,7 +937,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def set_working_directory(self, dirname):
         """
-        Set current working directory for the `workingdirectory` and `explorer`
+        Set current working directory in the Working Directory and Files
         plugins.
 
         Parameters
@@ -982,6 +950,18 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         None.
         """
         self.get_widget().set_working_directory(dirname)
+
+    @Slot(str)
+    def save_working_directory(self, dirname):
+        """
+        Save current working directory on the main widget to start new clients.
+
+        Parameters
+        ----------
+        new_dir: str
+            Path to the new current working directory.
+        """
+        self.get_widget().save_working_directory(dirname)
 
     def update_working_directory(self):
         """Update working directory to console current working directory."""

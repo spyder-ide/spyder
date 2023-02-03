@@ -13,10 +13,11 @@ import copy
 
 # Third party imports
 from qtpy.QtCore import QRectF, Qt
-from qtpy.QtWidgets import (QGridLayout, QPlainTextEdit, QWidget)
+from qtpy.QtWidgets import QGridLayout, QPlainTextEdit, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.translations import get_translation
 
 
@@ -41,7 +42,6 @@ class BaseGridLayoutType:
 
     def __init__(self, parent_plugin):
         self.plugin = parent_plugin
-        self._plugin = parent_plugin
         self._areas = []
         self._area_rects = []
         self._column_stretchs = {}
@@ -348,14 +348,24 @@ class BaseGridLayoutType:
         First validate the current layout definition, then clear the mainwindow
         current layout and finally calculate and set the new layout.
         """
-
         # Define plugins assigned to areas, all the available plugins and
         # initial docks for each area
         all_plugin_ids = []
 
+        # External dockable plugins to show after the layout is applied
+        external_plugins_to_show = []
+
         # Before applying a new layout all plugins need to be hidden
         for plugin in dockable_plugins:
             all_plugin_ids.append(plugin.NAME)
+
+            # Save currently displayed external plugins
+            if (
+                plugin.NAME in PLUGIN_REGISTRY.external_plugins
+                and plugin.dockwidget.isVisible()
+            ):
+                external_plugins_to_show.append(plugin.NAME)
+
             plugin.toggle_view(False)
 
         # Add plugins without an area assigned to the default area and made
@@ -451,7 +461,7 @@ class BaseGridLayoutType:
                             plugins_to_tabify.append(
                                 (current_plugin, base_plugin))
                         else:
-                            main_window.tabify_plugins(
+                            self.plugin.tabify_plugins(
                                 base_plugin, current_plugin)
                             if plugin_id not in hidden_plugin_ids:
                                 current_plugin.toggle_view(area_visible)
@@ -466,8 +476,8 @@ class BaseGridLayoutType:
         # try to use the TABIFY attribute to add the plugin to the layout.
         # Otherwise use the default area base plugin
         for plugin, base_plugin in plugins_to_tabify:
-            if not main_window.tabify_plugin(plugin):
-                main_window.tabify_plugins(base_plugin, plugin)
+            if not self.plugin.tabify_plugin(plugin):
+                self.plugin.tabify_plugins(base_plugin, plugin)
             current_plugin.toggle_view(False)
 
         column_docks = []
@@ -489,3 +499,19 @@ class BaseGridLayoutType:
         main_window.showMaximized()
         main_window.resizeDocks(column_docks, column_stretches, Qt.Horizontal)
         main_window.resizeDocks(row_docks, row_stretches, Qt.Vertical)
+
+        # Restore displayed external plugins
+        for plugin_id in external_plugins_to_show:
+            plugin = main_window.get_plugin(plugin_id, error=False)
+            if plugin:
+                # Show plugin
+                plugin.blockSignals(True)
+                plugin.dockwidget.show()
+                plugin.toggle_view_action.setChecked(True)
+                plugin.blockSignals(False)
+
+                # Make visible the first plugin in the dockwidget's tab bar
+                # because it should be an internal one.
+                dock_tabbar = plugin.dockwidget.dock_tabbar
+                if dock_tabbar:
+                    dock_tabbar.setCurrentIndex(0)

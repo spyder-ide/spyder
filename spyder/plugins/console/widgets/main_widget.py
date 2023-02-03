@@ -95,9 +95,6 @@ class ConsoleWidget(PluginMainWidget):
     # Request to show a status message on the main window
     sig_show_status_requested = Signal(str)
 
-    # Request the main application to quit.
-    sig_quit_requested = Signal()
-
     sig_help_requested = Signal(dict)
     """
     This signal is emitted to request help on a given object `name`.
@@ -429,7 +426,6 @@ class ConsoleWidget(PluginMainWidget):
                 self.error_dlg = SpyderErrorDialog(self)
                 self.error_dlg.set_color_scheme(
                     self.get_conf('selected', section='appearance'))
-                self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.sig_go_to_error_requested.connect(
                     self.go_to_error)
@@ -458,15 +454,16 @@ class ConsoleWidget(PluginMainWidget):
         """
         Close error dialog.
         """
-        if self.error_dlg.dismiss_box.isChecked():
-            self.dismiss_error = True
-
-        self.error_dlg.reject()
+        if self.error_dlg:
+            self.error_dlg.reject()
 
     def remove_error_dlg(self):
         """
         Remove error dialog.
         """
+        if self.error_dlg.dismiss_box.isChecked():
+            self.dismiss_error = True
+
         self.error_dlg.disconnect()
         self.error_dlg = None
 

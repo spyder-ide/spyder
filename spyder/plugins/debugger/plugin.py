@@ -4,37 +4,37 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Frames Explorer Plugin."""
+"""Debugger Plugin."""
 
 # Local imports
 from spyder.config.base import _
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.plugins.framesexplorer.confpage import FramesExplorerConfigPage
-from spyder.plugins.framesexplorer.widgets.main_widget import (
-    FramesExplorerWidget)
+from spyder.plugins.debugger.confpage import DebuggerConfigPage
+from spyder.plugins.debugger.widgets.main_widget import (
+    DebuggerWidget)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 
 
-class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
-    """Frames Explorer plugin."""
+class Debugger(SpyderDockablePlugin, ShellConnectMixin):
+    """Debugger plugin."""
 
-    NAME = 'frames_explorer'
+    NAME = 'debugger'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor]
+    OPTIONAL = [Plugins.Editor, Plugins.VariableExplorer]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
-    WIDGET_CLASS = FramesExplorerWidget
+    WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME
     CONF_FILE = False
-    CONF_WIDGET_CLASS = FramesExplorerConfigPage
+    CONF_WIDGET_CLASS = DebuggerConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Frames explorer')
+        return _('Debugger')
 
     def get_description(self):
         return _('Display and explore frames while debugging.')
@@ -64,3 +64,27 @@ class FramesExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         self.get_widget().edit_goto.disconnect(editor.load)
+
+    @on_plugin_available(plugin=Plugins.VariableExplorer)
+    def on_variable_explorer_available(self):
+        self.get_widget().sig_show_namespace.connect(
+            self.show_namespace_in_variable_explorer)
+
+    @on_plugin_teardown(plugin=Plugins.VariableExplorer)
+    def on_variable_explorer_teardown(self):
+        self.get_widget().sig_show_namespace.disconnect(
+            self.show_namespace_in_variable_explorer)
+
+    # ---- Public API
+    # ------------------------------------------------------------------------
+    def show_namespace_in_variable_explorer(self, namespace, shellwidget):
+        """
+        Find the right variable explorer widget and show the namespace.
+
+        This should only be called when there is a Variable explorer
+        """
+        variable_explorer = self.get_plugin(Plugins.VariableExplorer)
+        if variable_explorer is None:
+            return
+        nsb = variable_explorer.get_widget_for_shellwidget(shellwidget)
+        nsb.process_remote_view(namespace)

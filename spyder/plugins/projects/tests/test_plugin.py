@@ -11,11 +11,12 @@ Tests for the Projects plugin.
 """
 
 # Standard library imports
+import configparser
 import os
-import shutil
 import os.path as osp
+import shutil
 import sys
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock
 
 # Third party imports
 import pytest
@@ -26,6 +27,7 @@ from spyder.app.cli_options import get_options
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 import spyder.plugins.base
+from spyder.plugins.projects.api import BaseProjectType
 from spyder.plugins.projects.plugin import Projects, QMessageBox
 from spyder.plugins.preferences.tests.conftest import MainWindowMock
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
@@ -298,8 +300,6 @@ def test_recent_projects_menu_action(projects, tmpdir):
 
     Regression test for spyder-ide/spyder#8450.
     """
-    recent_projects_len = len(projects.recent_projects)
-
     # Create the directories.
     path0 = to_text_string(tmpdir.mkdir('project0'))
     path1 = to_text_string(tmpdir.mkdir('project1'))
@@ -513,6 +513,51 @@ def test_reopen_project(projects, tmpdir):
 
     # Close project
     projects.close_project()
+
+
+def test_recreate_project_config(projects, tmpdir):
+    """
+    Test that the project's config files are recreated when there are errors
+    reading them.
+
+    Regression test for spyder-ide/spyder#17907.
+    """
+    # Create a new directory
+    path = str(tmpdir.mkdir('error_reading_config'))
+
+    # Open project in path to generate its config
+    projects.open_project(path=path)
+
+    # Get project's config path
+    config_path = projects.current_active_project.config._path
+
+    # Close project
+    projects.close_project()
+
+    # Append the contents of a config file to it in order to give an error
+    # while reading it
+    config_file = osp.join(config_path, 'workspace.ini')
+
+    with open(config_file, 'r') as f:
+        file_contents = f.readlines()
+
+    with open(config_file, 'a') as f:
+        for line in file_contents:
+            f.write(line)
+
+    # Try to read config and check we get an error
+    with pytest.raises(configparser.Error):
+        BaseProjectType.create_config(config_path)
+
+    # Reopen the project again and check we recreated the config file we
+    # changed
+    projects.open_project(path=path)
+    projects.close_project()
+
+    with open(config_file, 'r') as f:
+        new_file_contents = f.readlines()
+
+    assert file_contents == new_file_contents
 
 
 if __name__ == "__main__":

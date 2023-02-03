@@ -113,7 +113,12 @@ jobs:
       - name: Run tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
-        run: python runtests.py || python runtests.py || python runtests.py || python runtests.py || python runtests.py
+        run: |
+          rm -f pytest_log.txt  # Must remove any log file from a previous run
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh || \
+          bash -l .github/scripts/run_tests.sh
       - name: Coverage
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}

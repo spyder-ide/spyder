@@ -226,7 +226,9 @@ class WriteWrapper(object):
 
                 # Don't print handler name for `show_mpl_backend_errors`
                 # because we have a specific message for it.
-                if repr(self._name) != "'show_mpl_backend_errors'":
+                # request_pdb_stop is expected to print messages.
+                if self._name not in [
+                        'show_mpl_backend_errors', 'request_pdb_stop']:
                     self._write(
                         "\nOutput from spyder call " + repr(self._name) + ":\n"
                     )

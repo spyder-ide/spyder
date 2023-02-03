@@ -46,6 +46,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
     CONF_WIDGET_CLASS = PylintConfigPage
     REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
     OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
+    TABIFY = [Plugins.Help]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
@@ -80,8 +81,6 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_redirect_stdio_requested.connect(
-            self.sig_redirect_stdio_requested)
         widget.sig_start_analysis_requested.connect(
             lambda: self.start_code_analysis())
 
@@ -117,8 +116,6 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
-        widget = self.get_widget()
-
         # Connect to projects
         projects = self.get_plugin(Plugins.Projects)
 
