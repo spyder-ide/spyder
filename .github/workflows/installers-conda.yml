@@ -244,19 +244,35 @@ jobs:
           echo "PKG_GLOB=$PKG_GLOB" >> $GITHUB_ENV
           echo "PKG_BASE_NAME=$PKG_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Test Application Bundle
-        if: runner.os == 'macOS'
+      - name: Test Installer Application
         run: |
-          installer -dumplog -pkg $PKG_PATH -target CurrentUserHomeDirectory 2>&1
-          app_path=$HOME/Applications/Spyder.app
-          if [[ -e "$app_path" ]]; then
-              ls -al $app_path/Contents/MacOS
-              cat $app_path/Contents/Info.plist
-              echo ""
-              cat $app_path/Contents/MacOS/spyder-script
-              echo ""
+          if [[ $RUNNER_OS == "macOS" ]]; then
+              installer -dumplog -pkg $PKG_PATH -target CurrentUserHomeDirectory 2>&1
+              app_path=$HOME/Applications/Spyder.app
+              if [[ -e "$app_path" ]]; then
+                  ls -al $app_path/Contents/MacOS
+                  cat $app_path/Contents/Info.plist
+                  echo ""
+                  cat $app_path/Contents/MacOS/spyder-script
+                  echo ""
+              else
+                  echo "$app_path does not exist"
+              fi
+          elif [[ $RUNNER_OS == "Linux" ]]; then
+              $PKG_PATH -b
+              shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
+              if [[ -e $shortcut_path ]]; then
+                  echo "Contents of" $HOME/.local/Spyder-* :
+                  ls -al $HOME/.local/Spyder-*
+                  echo ""
+                  echo "Contents of $shortcut_path :"
+                  cat $shortcut_path
+                  echo ""
+              else
+                  echo "$shortcut_path does not exist"
+              fi
           else
-              echo "$app_path does not exist"
+              echo "TEST WINDOWS INSTALLER HERE"
           fi
 
       - name: Notarize or Compute Checksum
