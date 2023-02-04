@@ -1,3 +1,5 @@
 # For building standalone Mac app
 dmgbuild>=1.4.2
 py2app>=0.28
+sphinx==5.1.1  # See spyder-ide/spyder#19618 for details.
+black==22.8.0  # See spyder-ide/spyder#19743 for details.

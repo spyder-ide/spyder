@@ -65,8 +65,10 @@ class RunMenuSections:
     RunInExecutors = 'executors_section'
 
 class DebugMenuSections:
-    Run = 'debug_section'
-    Options = 'options_section'
+    StartDebug = 'start_debug_section'
+    ControlDebug = 'control_debug_section'
+    EditBreakpoints = 'edit_breakpoints_section'
+    ListBreakpoints = 'list_breakpoints_section'
 
 
 class ConsolesMenuSections:

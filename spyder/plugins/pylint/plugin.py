@@ -81,8 +81,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_start_analysis_requested.connect(
-            lambda: self.start_code_analysis())
+        widget.sig_start_analysis_requested.connect(self.start_code_analysis)
 
         # Add action to application menus
         self.run_action = None
@@ -246,6 +245,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         filename = run_input['path']
         self.start_code_analysis(filename)
 
+    @Slot()
     def start_code_analysis(self, filename=None):
         """
         Perform code analysis for given `filename`.

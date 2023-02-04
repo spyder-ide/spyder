@@ -34,7 +34,6 @@ import psutil
 from spyder.api.translations import get_translation
 from spyder.config.base import (running_under_pytest, get_home_dir,
                                 running_in_mac_app)
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
@@ -143,7 +142,7 @@ def find_program(basename):
         # Windows platforms
         extensions = ('.exe', '.bat', '.cmd')
         if not basename.endswith(extensions):
-            names = [basename+ext for ext in extensions]+[basename]
+            names = [basename + ext for ext in extensions] + [basename]
     for name in names:
         path = is_program_installed(name)
         if path:
@@ -226,9 +225,8 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
     :subprocess_kwargs: These will be passed to subprocess.Popen.
     """
     if 'shell' in subprocess_kwargs and not subprocess_kwargs['shell']:
-        raise ProgramError(
-                'The "shell" kwarg may be omitted, but if '
-                'provided it must be True.')
+        raise ProgramError('The "shell" kwarg may be omitted, but if '
+                           'provided it must be True.')
     else:
         subprocess_kwargs['shell'] = True
 
@@ -242,7 +240,7 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
-            **subprocess_kwargs)
+        **subprocess_kwargs)
     return subprocess.Popen(cmdstr, **subprocess_kwargs)
 
 
@@ -269,9 +267,8 @@ def run_program(program, args=None, **subprocess_kwargs):
     :subprocess_kwargs: These will be passed to subprocess.Popen.
     """
     if 'shell' in subprocess_kwargs and subprocess_kwargs['shell']:
-        raise ProgramError(
-                "This function is only for non-shell programs, "
-                "use run_shell_command() instead.")
+        raise ProgramError("This function is only for non-shell programs, "
+                           "use run_shell_command() instead.")
     fullcmd = find_program(program)
     if not fullcmd:
         raise ProgramError("Program %s was not found" % program)
@@ -280,7 +277,7 @@ def run_program(program, args=None, **subprocess_kwargs):
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
-            **subprocess_kwargs)
+        **subprocess_kwargs)
     return subprocess.Popen(fullcmd, **subprocess_kwargs)
 
 
@@ -662,7 +659,7 @@ def python_script_exists(package=None, module=None):
     else:
         spec = importlib.util.find_spec(package)
         if spec:
-            path = osp.join(spec.origin, module)+'.py'
+            path = osp.join(spec.origin, module) + '.py'
         else:
             path = None
     if path:
@@ -692,7 +689,7 @@ def shell_split(text):
     function (see standard library `shlex`) except that it is supporting
     unicode strings (shlex does not support unicode until Python 2.7.3).
     """
-    assert is_text_string(text)  # in case a QString is passed...
+    assert isinstance(text, str)  # in case a QString is passed...
     pattern = r'(\s+|(?<!\\)".*?(?<!\\)"|(?<!\\)\'.*?(?<!\\)\')'
     out = []
     for token in re.split(pattern, text):
@@ -1073,7 +1070,7 @@ def is_python_interpreter(filename):
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
 
     if (not osp.isfile(real_filename) or
-        not is_python_interpreter_valid_name(real_filename)):
+            not is_python_interpreter_valid_name(real_filename)):
         return False
 
     # File exists and has valid name
@@ -1119,7 +1116,7 @@ def check_python_help(filename):
     try:
         proc = run_program(filename, ['-c', 'import this'], env={})
         stdout, _ = proc.communicate()
-        stdout = to_text_string(stdout)
+        stdout = str(stdout)
         valid_lines = [
             'Beautiful is better than ugly.',
             'Explicit is better than implicit.',

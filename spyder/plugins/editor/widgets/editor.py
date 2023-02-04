@@ -179,8 +179,7 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
-    run_cell_in_ipyclient = Signal(str, object, str, bool, bool)
-    debug_cell_in_ipyclient = Signal(str, object, str, bool, bool)
+    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -193,10 +192,9 @@ class EditorStack(QWidget):
     opened_files_list_changed = Signal()
     active_languages_stats = Signal(set)
     todo_results_changed = Signal()
-    update_code_analysis_actions = Signal()
+    sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
-    sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
@@ -216,6 +214,36 @@ class EditorStack(QWidget):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
+
+    sig_codeeditor_created = Signal(object)
+    """
+    This signal is emitted when a codeeditor is created.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
+
+    sig_codeeditor_deleted = Signal(object)
+    """
+    This signal is emitted when a codeeditor is closed.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
+
+    sig_codeeditor_changed = Signal(object)
+    """
+    This signal is emitted when the current codeeditor changes.
+
+    Parameters
+    ----------
+    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+        The codeeditor.
+    """
 
     sig_help_requested = Signal(dict)
     """
@@ -431,18 +459,6 @@ class EditorStack(QWidget):
             name='Inspect current object',
             parent=self)
 
-        set_breakpoint = CONF.config_shortcut(
-            self.set_or_clear_breakpoint,
-            context='Editor',
-            name='Breakpoint',
-            parent=self)
-
-        set_cond_breakpoint = CONF.config_shortcut(
-            self.set_or_edit_conditional_breakpoint,
-            context='Editor',
-            name='Conditional breakpoint',
-            parent=self)
-
         gotoline = CONF.config_shortcut(
             self.go_to_line,
             context='Editor',
@@ -474,13 +490,13 @@ class EditorStack(QWidget):
             parent=self)
 
         new_file = CONF.config_shortcut(
-            lambda: self.sig_new_file[()].emit(),
+            self.sig_new_file[()],
             context='Editor',
             name='New file',
             parent=self)
 
         open_file = CONF.config_shortcut(
-            lambda: self.plugin_load[()].emit(),
+            self.plugin_load[()],
             context='Editor',
             name='Open file',
             parent=self)
@@ -498,7 +514,7 @@ class EditorStack(QWidget):
             parent=self)
 
         save_as = CONF.config_shortcut(
-            lambda: self.sig_save_as.emit(),
+            self.sig_save_as,
             context='Editor',
             name='Save As',
             parent=self)
@@ -510,43 +526,43 @@ class EditorStack(QWidget):
             parent=self)
 
         prev_edit_pos = CONF.config_shortcut(
-            lambda: self.sig_prev_edit_pos.emit(),
+            self.sig_prev_edit_pos,
             context="Editor",
             name="Last edit location",
             parent=self)
 
         prev_cursor = CONF.config_shortcut(
-            lambda: self.sig_prev_cursor.emit(),
+            self.sig_prev_cursor,
             context="Editor",
             name="Previous cursor position",
             parent=self)
 
         next_cursor = CONF.config_shortcut(
-            lambda: self.sig_next_cursor.emit(),
+            self.sig_next_cursor,
             context="Editor",
             name="Next cursor position",
             parent=self)
 
         zoom_in_1 = CONF.config_shortcut(
-            lambda: self.zoom_in.emit(),
+            self.zoom_in,
             context="Editor",
             name="zoom in 1",
             parent=self)
 
         zoom_in_2 = CONF.config_shortcut(
-            lambda: self.zoom_in.emit(),
+            self.zoom_in,
             context="Editor",
             name="zoom in 2",
             parent=self)
 
         zoom_out = CONF.config_shortcut(
-            lambda: self.zoom_out.emit(),
+            self.zoom_out,
             context="Editor",
             name="zoom out",
             parent=self)
 
         zoom_reset = CONF.config_shortcut(
-            lambda: self.zoom_reset.emit(),
+            self.zoom_reset,
             context="Editor",
             name="zoom reset",
             parent=self)
@@ -563,12 +579,6 @@ class EditorStack(QWidget):
             name="close file 2",
             parent=self)
 
-        debug_cell = CONF.config_shortcut(
-            self.debug_cell,
-            context="Editor",
-            name="debug cell",
-            parent=self)
-
         go_to_next_cell = CONF.config_shortcut(
             self.advance_cell,
             context="Editor",
@@ -582,25 +592,25 @@ class EditorStack(QWidget):
             parent=self)
 
         prev_warning = CONF.config_shortcut(
-            lambda: self.sig_prev_warning.emit(),
+            self.sig_prev_warning,
             context="Editor",
             name="Previous warning",
             parent=self)
 
         next_warning = CONF.config_shortcut(
-            lambda: self.sig_next_warning.emit(),
+            self.sig_next_warning,
             context="Editor",
             name="Next warning",
             parent=self)
 
         split_vertically = CONF.config_shortcut(
-            lambda: self.sig_split_vertically.emit(),
+            self.sig_split_vertically,
             context="Editor",
             name="split vertically",
             parent=self)
 
         split_horizontally = CONF.config_shortcut(
-            lambda: self.sig_split_horizontally.emit(),
+            self.sig_split_horizontally,
             context="Editor",
             name="split horizontally",
             parent=self)
@@ -618,12 +628,11 @@ class EditorStack(QWidget):
             parent=self)
 
         # Return configurable ones
-        return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
+        return [inspect, gotoline, tab,
                 tabshift, new_file,
                 open_file, save_file, save_all, save_as, close_all,
                 prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
                 zoom_out, zoom_reset, close_file_1, close_file_2,
-                debug_cell,
                 go_to_next_cell, go_to_previous_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
@@ -784,7 +793,7 @@ class EditorStack(QWidget):
             self.switcher_manager = EditorSwitcherManager(
                 self.get_plugin(),
                 self.switcher_dlg,
-                lambda: self.get_current_editor(),
+                self.get_current_editor,
                 lambda: self,
                 section=self.get_plugin_title())
 
@@ -825,31 +834,21 @@ class EditorStack(QWidget):
             if self.data:
                 self.get_current_editor().exec_gotolinedialog()
 
-    def set_or_clear_breakpoint(self):
-        """Set/clear breakpoint"""
-        if self.data:
-            editor = self.get_current_editor()
-            editor.debugger.toogle_breakpoint()
-
-    def set_or_edit_conditional_breakpoint(self):
-        """Set conditional breakpoint"""
-        if self.data:
-            editor = self.get_current_editor()
-            editor.debugger.toogle_breakpoint(edit_condition=True)
-
     def set_bookmark(self, slot_num):
         """Bookmark current position to given slot."""
         if self.data:
             editor = self.get_current_editor()
             editor.add_bookmark(slot_num)
 
-    def inspect_current_object(self, pos=None):
+    @Slot()
+    @Slot(bool)
+    def inspect_current_object(self, clicked=False):
         """Inspect current object in the Help plugin"""
         editor = self.get_current_editor()
         editor.sig_display_object_info.connect(self.display_help)
         cursor = None
         offset = editor.get_position('cursor')
-        if pos:
+        if clicked:
             cursor = editor.get_last_hover_cursor()
             if cursor:
                 offset = cursor.position()
@@ -858,7 +857,7 @@ class EditorStack(QWidget):
 
         line, col = editor.get_cursor_line_column(cursor)
         editor.request_hover(line, col, offset,
-                             show_hint=False, clicked=bool(pos))
+                             show_hint=False, clicked=clicked)
 
     @Slot(str, bool)
     def display_help(self, help_text, clicked):
@@ -1329,8 +1328,6 @@ class EditorStack(QWidget):
             self.sig_open_file.emit(options)
 
             # Update panels
-            finfo.editor.set_debug_panel(
-                show_debug_panel=True, language=language)
             finfo.editor.cleanup_code_analysis()
             finfo.editor.cleanup_folding()
         else:
@@ -1403,7 +1400,7 @@ class EditorStack(QWidget):
             _("Split vertically"),
             icon=ima.icon('versplit'),
             tip=_("Split vertically this editor window"),
-            triggered=lambda: self.sig_split_vertically.emit(),
+            triggered=self.sig_split_vertically,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split vertically'),
             context=Qt.WidgetShortcut)
@@ -1413,7 +1410,7 @@ class EditorStack(QWidget):
             _("Split horizontally"),
             icon=ima.icon('horsplit'),
             tip=_("Split horizontally this editor window"),
-            triggered=lambda: self.sig_split_horizontally.emit(),
+            triggered=self.sig_split_horizontally,
             shortcut=CONF.get_shortcut(context='Editor',
                                        name='split horizontally'),
             context=Qt.WidgetShortcut)
@@ -1626,9 +1623,10 @@ class EditorStack(QWidget):
             # by long all the time is not working on some 32bit platforms.
             # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
             self.sig_close_file.emit(str(id(self)), filename)
+            self.sig_codeeditor_deleted.emit(editor)
 
             self.opened_files_list_changed.emit()
-            self.update_code_analysis_actions.emit()
+            self.sig_update_code_analysis_actions.emit()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
 
@@ -1883,8 +1881,15 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
 
         try:
-            if self.format_on_save and finfo.editor.formatting_enabled:
-                # Wait for document autoformat and then save
+            if (
+                self.format_on_save
+                and finfo.editor.formatting_enabled
+                and finfo.editor.is_python()
+            ):
+                # Wait for document autoformat in case it is a Python file
+                # and then save.
+                # Just trigger the autoformat for Python files.
+                # See spyder-ide/spyder#19344
 
                 # Waiting for the autoformat to complete is needed
                 # when the file is going to be closed after saving.
@@ -2161,6 +2166,7 @@ class EditorStack(QWidget):
 
         self.stack_history.refresh()
         self.stack_history.remove_and_append(index)
+        self.sig_codeeditor_changed.emit(editor)
 
         # Needed to avoid an error generated after moving/renaming
         # files outside Spyder while in debug mode.
@@ -2364,7 +2370,7 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_outlineexplorer(index, update=False)
-            self.update_code_analysis_actions.emit()
+            self.sig_update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
@@ -2469,18 +2475,16 @@ class EditorStack(QWidget):
         self.add_to_data(finfo, set_current, add_where)
         finfo.sig_send_to_help.connect(self.send_to_help)
         finfo.sig_show_object_info.connect(self.inspect_current_object)
-        finfo.todo_results_changed.connect(
-            lambda: self.todo_results_changed.emit())
+        finfo.todo_results_changed.connect(self.todo_results_changed)
         finfo.edit_goto.connect(lambda fname, lineno, name:
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
-        editor.sig_debug_cell.connect(self.debug_cell)
         editor.sig_new_file.connect(self.sig_new_file)
-        editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
-            lambda: self.update_code_analysis_actions.emit())
+            self.sig_update_code_analysis_actions)
         editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
+        editor.sig_save_requested.connect(self.save)
         language = get_file_language(fname, txt)
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,
@@ -2550,9 +2554,9 @@ class EditorStack(QWidget):
             lambda state: self.modification_changed(
                 state, editor_id=id(editor)))
         editor.focus_in.connect(self.focus_changed)
-        editor.zoom_in.connect(lambda: self.zoom_in.emit())
-        editor.zoom_out.connect(lambda: self.zoom_out.emit())
-        editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
+        editor.zoom_in.connect(self.zoom_in)
+        editor.zoom_out.connect(self.zoom_out)
+        editor.zoom_reset.connect(self.zoom_reset)
         editor.sig_eol_chars_changed.connect(
             lambda eol_chars: self.refresh_eol_chars(eol_chars))
         editor.sig_next_cursor.connect(self.sig_next_cursor)
@@ -2577,6 +2581,7 @@ class EditorStack(QWidget):
             'codeeditor': editor
         }
         self.sig_open_file.emit(options)
+        self.sig_codeeditor_created.emit(editor)
         if self.get_stack_index() == 0:
             self.current_changed(0)
 
@@ -2771,7 +2776,7 @@ class EditorStack(QWidget):
         """
         return self._run_lines_cursor(direction='down')
 
-    def run_selection(self):
+    def run_selection(self, prefix=None):
         """
         Run selected text or current line in console.
 
@@ -2790,11 +2795,13 @@ class EditorStack(QWidget):
             text, off_pos, line_col_pos = ret
             # self.exec_in_extconsole.emit(text.rstrip(), self.focus_to_editor)
             return text, off_pos, line_col_pos, enc
+
         editor = self.get_current_editor()
         line_col_from, line_col_to = editor.get_current_line_bounds()
         line_off_from, line_off_to = editor.get_current_line_offsets()
         line = editor.get_current_line()
         text = line.lstrip()
+
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
         if self.focus_to_editor:
@@ -2812,7 +2819,7 @@ class EditorStack(QWidget):
         enc = finfo.encoding
         return text, off_pos, line_col_pos, name, enc
 
-    def run_cell(self, debug=False):
+    def run_cell(self, method=None):
         """Run current cell."""
         text, block, *__ = (
             self.get_current_editor().get_cell_as_executable_code())
@@ -2821,15 +2828,11 @@ class EditorStack(QWidget):
         name = cell_name(block)
         filename = finfo.filename
 
-        self._run_cell_text(text, editor, (filename, name), debug)
+        self._run_cell_text(text, editor, (filename, name), method)
 
-    def debug_cell(self):
-        """Debug current cell."""
-        self.run_cell(debug=True)
-
-    def run_cell_and_advance(self):
+    def run_cell_and_advance(self, method=None):
         """Run current cell and advance to the next one"""
-        self.run_cell()
+        self.run_cell(method)
         self.advance_cell()
 
     def advance_cell(self, reverse=False):
@@ -2864,7 +2867,7 @@ class EditorStack(QWidget):
 
         return text, off_pos, col_pos, cell_name, enc
 
-    def _run_cell_text(self, text, editor, cell_id, debug=False):
+    def _run_cell_text(self, text, editor, cell_id, method=None):
         """Run cell code in the console.
 
         Cell code is run in the console by copying it to the console if
@@ -2880,12 +2883,15 @@ class EditorStack(QWidget):
         """
         (filename, cell_name) = cell_id
         if editor.is_python_or_ipython():
-            args = (text, cell_name, filename, self.run_cell_copy,
-                    self.focus_to_editor)
-            if debug:
-                self.debug_cell_in_ipyclient.emit(*args)
-            else:
-                self.run_cell_in_ipyclient.emit(*args)
+            if method is None:
+                method = "runcell"
+            # self.run_cell_copy only works for runcell
+            run_cell_copy = self.run_cell_copy
+            if method != "runcell":
+                run_cell_copy = False
+            self.sig_run_cell_in_ipyclient.emit(
+                text, cell_name, filename, run_cell_copy, method,
+                self.focus_to_editor)
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):
@@ -3010,7 +3016,7 @@ class EditorSplitter(QSplitter):
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
-        self.editorstack.destroyed.connect(lambda: self.editorstack_closed())
+        self.editorstack.destroyed.connect(self.editorstack_closed)
         self.editorstack.sig_split_vertically.connect(
                      lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(
@@ -3035,6 +3041,7 @@ class EditorSplitter(QSplitter):
         if focus_widget is not None:
             focus_widget.setFocus()
 
+    @Slot()
     def editorstack_closed(self):
         try:
             logger.debug("method 'editorstack_closed':")

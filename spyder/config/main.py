@@ -161,11 +161,6 @@ DEFAULTS = [
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.
               'hide_cmd_windows': True,
-              'pdb_prevent_closing': True,
-              'pdb_ignore_lib': False,
-              'pdb_execute_events': True,
-              'pdb_use_exclamation_mark': True,
-              'pdb_stop_first_line': True
               }),
             ('variable_explorer',
              {
@@ -188,6 +183,12 @@ DEFAULTS = [
               'exclude_internal': True,
               'capture_locals': False,
               'show_locals_on_click': False,
+              'pdb_prevent_closing': True,
+              'pdb_ignore_lib': False,
+              'pdb_execute_events': True,
+              'pdb_use_exclamation_mark': True,
+              'pdb_stop_first_line': True,
+              'breakpoints_panel': True,
              }),
             ('plots',
              {
@@ -386,12 +387,6 @@ DEFAULTS = [
               # -- In plugins/editor
               '_/file switcher': 'Ctrl+P',
               '_/symbol finder': 'Ctrl+Alt+P',
-              '_/debug': "Ctrl+F5",
-              '_/debug step over': "Ctrl+F10",
-              '_/debug continue': "Ctrl+F12",
-              '_/debug step into': "Ctrl+F11",
-              '_/debug step return': "Ctrl+Shift+F11",
-              '_/debug exit': "Ctrl+Shift+F12",
               '_/run': "F5",
               '_/run selection': "F9",
               '_/configure': "Ctrl+F6",
@@ -407,13 +402,14 @@ DEFAULTS = [
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
-              '_/switch to plots': "Ctrl+Shift+G",
+              '_/switch to plots': "Ctrl+Shift+J" if MAC else "Ctrl+Shift+G",
               '_/switch to pylint': "Ctrl+Shift+C",
               '_/switch to profiler': "Ctrl+Shift+R",
               # -- In widgets/findreplace.py
               'find_replace/find text': "Ctrl+F",
-              'find_replace/find next': "F3",
-              'find_replace/find previous': "Shift+F3",
+              'find_replace/find next': "Ctrl+G" if MAC else "F3",
+              'find_replace/find previous': (
+                  "Ctrl+Shift+G" if MAC else "Shift+F3"),
               'find_replace/replace text': "Ctrl+R",
               'find_replace/hide find and replace': "Escape",
               # ---- Editor ----
@@ -431,7 +427,7 @@ DEFAULTS = [
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to new line': "Ctrl+Shift+Return",
-              'editor/go to definition': "Ctrl+G",
+              'editor/go to definition': "F3" if MAC else "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
               'editor/blockcomment': "Ctrl+4",
               'editor/unblockcomment': "Ctrl+5",
@@ -460,8 +456,6 @@ DEFAULTS = [
               'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
-              'editor/breakpoint': 'F12',
-              'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection up to line': 'Shift+F9',
               'editor/run selection from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
@@ -489,7 +483,6 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
-              'editor/debug cell': 'Alt+Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run cell': 'Alt+Return',
@@ -529,6 +522,16 @@ DEFAULTS = [
               # ---- In widgets/debugger/framesbrowser.py ----
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
+              'debugger/debug file': "Ctrl+F5",
+              'debugger/debug cell': 'Alt+Shift+Return',
+              'debugger/debug selection': '',
+              'debugger/next': "Ctrl+F10",
+              'debugger/continue': "Ctrl+F12",
+              'debugger/step': "Ctrl+F11",
+              'debugger/return': "Ctrl+Shift+F11",
+              'debugger/stop': "Ctrl+Shift+F12",
+              'debugger/toggle breakpoint': 'F12',
+              'debugger/toggle conditional breakpoint': 'Shift+F12',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -651,4 +654,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '71.0.0'
+CONF_VERSION = '73.1.0'

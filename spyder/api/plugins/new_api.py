@@ -1053,6 +1053,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         self.get_widget().update_margins(margin)
 
+    @Slot()
     def switch_to_plugin(self, force_focus=False):
         """
         Switch to plugin and define if focus should be given or not.

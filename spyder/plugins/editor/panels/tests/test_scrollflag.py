@@ -16,7 +16,7 @@ from qtpy.QtGui import QFont
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-
+from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -94,6 +94,8 @@ def test_flag_painting(editor_bot, qtbot):
     visible. There is seven different flags: breakpoints, todos, warnings,
     errors, found_results, and occurences"""
     editor = editor_bot
+    editor.filename = "file.py"
+    editor.breakpoints_manager = BreakpointsManager(editor)
     sfa = editor.scrollflagarea
 
     editor.resize(450, 300)
@@ -104,7 +106,7 @@ def test_flag_painting(editor_bot, qtbot):
     qtbot.waitUntil(lambda: not sfa.slider)
 
     # Trigger the painting of all flag types.
-    editor.debugger.toogle_breakpoint(line_number=2)
+    editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},
@@ -127,7 +129,7 @@ def test_flag_painting(editor_bot, qtbot):
     editor.set_text(long_code)
 
     # Trigger the painting of all flag types.
-    editor.debugger.toogle_breakpoint(line_number=2)
+    editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},
@@ -236,7 +238,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its middle range position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, h//2), modifier=Qt.AltModifier)
+                         Qt.AltModifier, QPoint(w//2, h//2))
     assert vsb.value() == (vsb.minimum()+vsb.maximum())//2
 
     # While the alt key is pressed, click with the mouse at the top of the
@@ -244,7 +246,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its minimum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, 1), modifier=Qt.AltModifier)
+                         Qt.AltModifier, QPoint(w//2, 1))
     assert vsb.value() == vsb.minimum()
 
     # While the alt key is pressed, click with the mouse at the bottom of the
@@ -252,7 +254,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its maximum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, h-1), modifier=Qt.AltModifier)
+                         Qt.AltModifier, QPoint(w//2, h-1))
     assert vsb.value() == vsb.maximum()
 
     # Release the alt key and assert that the slider range indicator is

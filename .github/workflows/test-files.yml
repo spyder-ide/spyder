@@ -14,7 +14,7 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers/**'
+      - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
   pull_request:
@@ -30,7 +30,7 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers/**'
+      - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.7', '3.9']
+        PYTHON_VERSION: ['3.9']
     timeout-minutes: 30
     steps:
       - name: Checkout Pull Requests

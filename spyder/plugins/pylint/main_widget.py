@@ -31,11 +31,13 @@ from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import get_conf_path, running_in_mac_app
+from spyder.config.base import get_conf_path, is_pynsist, running_in_mac_app
+from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home, get_home_dir
+from spyder.utils.misc import get_python_executable
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
@@ -365,12 +367,16 @@ class PylintWidget(PluginMainWidget):
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
 
-        # Needed due to changes in Pylint 2.14.0
-        # See spyder-ide/spyder#18175
         if os.name == 'nt':
+            # Needed due to changes in Pylint 2.14.0
+            # See spyder-ide/spyder#18175
             home_dir = get_home_dir()
             user_profile = os.environ.get("USERPROFILE", home_dir)
             processEnvironment.insert("USERPROFILE", user_profile)
+            # Needed for Windows installations using standalone Python and pip.
+            # See spyder-ide/spyder#19385
+            if not is_pynsist() and not is_anaconda():
+                processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
 
         # resolve spyder-ide/spyder#14262
         if running_in_mac_app():
@@ -500,7 +506,7 @@ class PylintWidget(PluginMainWidget):
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
-            triggered=lambda: self.sig_start_analysis_requested.emit(),
+            triggered=self.sig_start_analysis_requested,
         )
         self.browse_action = self.create_action(
             PylintWidgetActions.BrowseFile,
@@ -870,6 +876,38 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(filename)
             self.start_code_analysis()
 
+    def test_for_custom_interpreter(self):
+        """
+        Check if custom interpreter is active and if so, return path for the
+        environment that contains it.
+        """
+        custom_interpreter = osp.normpath(
+            self.get_conf('executable', section='main_interpreter')
+        )
+
+        if (
+            self.get_conf('default', section='main_interpreter')
+            or get_python_executable() == custom_interpreter
+        ):
+            path_of_custom_interpreter = None
+        else:
+            # Check if custom interpreter is still present
+            if osp.isfile(custom_interpreter):
+                # Pylint-venv requires the root path to a virtualenv, but what
+                # we save in Preferences is the path to its Python interpreter.
+                # So, we need to make the following adjustments here to get the
+                # right path to pass to it.
+                if os.name == 'nt':
+                    path_of_custom_interpreter = osp.dirname(
+                        custom_interpreter)
+                else:
+                    path_of_custom_interpreter = osp.dirname(osp.dirname(
+                        custom_interpreter))
+            else:
+                path_of_custom_interpreter = None
+
+        return path_of_custom_interpreter
+
     def get_command(self, filename):
         """
         Return command to use to run code analysis on given filename
@@ -882,6 +920,16 @@ class PylintWidget(PluginMainWidget):
                 "--output-format=text",
                 "--msg-template="
                 '{msg_id}:{symbol}:{line:3d},{column}: {msg}"',
+            ]
+
+        path_of_custom_interpreter = self.test_for_custom_interpreter()
+        if path_of_custom_interpreter is not None:
+            command_args += [
+                "--init-hook="
+                'import pylint_venv; \
+                    pylint_venv.inithook(\'{}\',\
+                    force_venv_activation=True)'.format(
+                        path_of_custom_interpreter.replace("\\", "\\\\")),
             ]
 
         pylintrc_path = self.get_pylintrc_path(filename=filename)

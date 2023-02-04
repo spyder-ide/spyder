@@ -631,6 +631,8 @@ class SpyderPdb(ipyPdb):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
 
         # Send the input request.
         self._cmd_input_line = None
@@ -644,7 +646,13 @@ class SpyderPdb(ipyPdb):
         if is_main_thread and kernel.eventloop:
             while self._cmd_input_line is None:
                 eventloop = kernel.eventloop
-                if eventloop:
+                # Check if the current backend is Tk on Windows
+                # to let GUI update.
+                # See spyder-ide/spyder#17523
+                if (eventloop and hasattr(kernel, "app_wrapper") and
+                        os.name == "nt"):
+                    kernel.app_wrapper.app.update()
+                elif eventloop:
                     eventloop(kernel)
                 else:
                     break
@@ -672,6 +680,13 @@ class SpyderPdb(ipyPdb):
         else:
             line = '!' + line
         return line
+
+    def postcmd(self, stop, line):
+        """Hook method executed just after a command dispatch is finished."""
+        # Flush in case the command produced output on underlying outputs
+        sys.__stderr__.flush()
+        sys.__stdout__.flush()
+        return stop
 
     # --- Methods defined by us for Spyder integration
     def set_spyder_breakpoints(self, breakpoints):

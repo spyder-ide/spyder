@@ -9,16 +9,18 @@ Widget that handle communications between the IPython Console and
 the Variable Explorer
 """
 
+# Standard library imports
 import logging
-
 from pickle import PicklingError, UnpicklingError
 
+# Third-party imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-
-from spyder.config.base import _
 from spyder_kernels.comms.commbase import CommError
 
+# Local imports
+from spyder.config.base import _
 
+# For logging
 logger = logging.getLogger(__name__)
 
 # Max time before giving up when making a blocking call to the kernel
@@ -36,10 +38,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _("The variable is not picklable")
         reason_dead = _("The kernel is dead")
-        reason_other = _("An error occured, see the console.")
-        reason_comm = _("The comm channel is not working.")
-        msg = _("%s.<br><br>"
-                "Note: Please don't report this problem on Github, "
+        reason_other = _("An unkown error occurred. Check the console because "
+                         "its contents could have been printed there")
+        reason_comm = _("The comm channel is not working")
+        msg = _("<br><i>%s.</i><br><br><br>"
+                "<b>Note</b>: Please don't report this problem on Github, "
                 "there's nothing to do about it.")
         try:
             return self.call_kernel(

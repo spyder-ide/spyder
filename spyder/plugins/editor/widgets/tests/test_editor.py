@@ -68,7 +68,7 @@ def editor_find_replace_bot(base_editor_bot, qtbot):
             'spam sausage\n'
             'spam egg')
     finfo = editor_stack.new('spam.py', 'utf-8', text)
-    find_replace = FindReplace(None, enable_replace=True)
+    find_replace = FindReplace(editor_stack, enable_replace=True)
     editor_stack.set_find_widget(find_replace)
     find_replace.set_editor(finfo.editor)
     qtbot.addWidget(editor_stack)
@@ -89,7 +89,7 @@ def editor_cells_bot(base_editor_bot, qtbot):
             '# 3 cell\n'
             '# print(3)\n')
     finfo = editor_stack.new('cells.py', 'utf-8', text)
-    find_replace = FindReplace(None, enable_replace=True)
+    find_replace = FindReplace(editor_stack, enable_replace=True)
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor
 
@@ -111,7 +111,7 @@ def editor_folding_bot(base_editor_bot, qtbot):
             )
     finfo = editor_stack.new('foo.py', 'utf-8', text)
 
-    find_replace = FindReplace(None, enable_replace=True)
+    find_replace = FindReplace(editor_stack, enable_replace=True)
     editor_stack.set_find_widget(find_replace)
     find_replace.set_editor(finfo.editor)
     qtbot.addWidget(editor_stack)
@@ -621,7 +621,7 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
     editor_stack, editor, finder = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
     editor.set_text(text)
-    finder.show()
+    editor_stack.show()
     finder.show_replace()
 
     qtbot.wait(100)

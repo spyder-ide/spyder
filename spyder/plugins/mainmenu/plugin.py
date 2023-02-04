@@ -19,7 +19,7 @@ from qtpy.QtGui import QKeySequence
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin
+from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
 from spyder.api.translations import get_translation
 from spyder.api.widgets.menus import MENU_SEPARATOR, SpyderMenu
 from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
@@ -70,7 +70,8 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
         create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
         create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
-        create_app_menu(ApplicationMenus.Projects, _("&Projects"))
+        if self.is_plugin_enabled(Plugins.Projects):
+            create_app_menu(ApplicationMenus.Projects, _("&Projects"))
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.View, _("&View"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
@@ -248,7 +249,6 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Edit: self._main.edit_menu_actions,
             ApplicationMenus.Search: self._main.search_menu_actions,
             ApplicationMenus.Source: self._main.source_menu_actions,
-            ApplicationMenus.Debug: self._main.debug_menu_actions,
         }
 
         if menu_id in app_menu_actions:
@@ -305,8 +305,6 @@ class MainMenu(SpyderPluginV2):
                 self._main.source_menu_actions, self._main.source_menu),
             ApplicationMenus.Run: (
                 self._main.run_menu_actions, self._main.run_menu),
-            ApplicationMenus.Debug: (
-                self._main.debug_menu_actions, self._main.debug_menu),
         }
 
         app_menus = {
@@ -314,7 +312,6 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Search: self._main.search_menu,
             ApplicationMenus.Source: self._main.source_menu,
             ApplicationMenus.Run: self._main.run_menu,
-            ApplicationMenus.Debug: self._main.debug_menu
         }
 
         menu = self.get_application_menu(menu_id)

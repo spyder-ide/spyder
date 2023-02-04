@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (
     QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import get_translation
@@ -45,10 +46,49 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     CONF_SECTION = 'debugger'
 
     # Signals
-    edit_goto = Signal((str, int, str), (str, int, str, bool))
-    sig_show_namespace = Signal(dict)
+    sig_edit_goto = Signal(str, int, str)
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
+
+    sig_show_namespace = Signal(dict, object)
+    """
+    Show the namespace
+
+    Parameters
+    ----------
+    namespace: dict
+        A namespace view created by spyder_kernels
+    shellwidget: ShellWidget
+        The shellwidget the request originated from
+    """
     sig_update_actions_requested = Signal()
+    """Update the widget actions."""
+
     sig_hide_finder_requested = Signal()
+    """Hide the finder widget."""
+
+    sig_load_pdb_file = Signal(str, int)
+    """
+    This signal is emitted when Pdb reaches a new line.
+
+    Parameters
+    ----------
+    filename: str
+        The filename the debugger stepped in
+    line_number: int
+        The line number the debugger stepped in
+    """
 
     def __init__(self, parent, shellwidget, color_scheme):
         QWidget.__init__(self, parent)
@@ -61,6 +101,17 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.finder = None
         self.pdb_curindex = None
         self._pdb_state = []
+
+    def pdb_has_stopped(self, fname, lineno):
+        """Handle pdb has stopped"""
+        # this will set the focus to the editor
+        self.sig_load_pdb_file.emit(fname, lineno)
+        if self.shellwidget._pdb_focus_to_editor:
+            # Focus to editor will be requested each time
+            self.shellwidget._pdb_focus_to_editor = False
+        else:
+            # take back focus
+            self.shellwidget._control.setFocus()
 
     def set_context_menu(self, context_menu, empty_context_menu):
         """Set the context menus."""
@@ -92,9 +143,9 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             return
 
         self.results_browser = ResultsBrowser(self, self.color_scheme)
-        self.results_browser.sig_edit_goto.connect(self.edit_goto)
+        self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
         self.results_browser.sig_show_namespace.connect(
-            self.sig_show_namespace)
+            self._show_namespace)
 
         self.finder = FinderWidget(self)
         self.finder.sig_find_text.connect(self.do_find)
@@ -108,6 +159,12 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         layout.addSpacing(1)
         layout.addWidget(self.finder)
         self.setLayout(layout)
+
+    def _show_namespace(self, namespace):
+        """
+        Request for the given namespace to be shown in the Variable Explorer.
+        """
+        self.sig_show_namespace.emit(namespace, self.shellwidget)
 
     def _show_frames(self, frames, title, state):
         """Set current frames"""
@@ -208,15 +265,58 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         if self.results_browser is not None:
             self.results_browser.set_current_item(top_idx, sub_index)
 
-    def enable_pdb_stack(self):
-        """Ask shellwidget to send stack."""
-        self.shellwidget.call_kernel().set_pdb_configuration(
-            {'pdb_publish_stack': True})
+    def on_config_kernel(self):
+        """Ask shellwidget to send Pdb configuration to kernel."""
+        self.shellwidget.call_kernel().set_pdb_configuration({
+            'breakpoints': self.get_conf("breakpoints", default={}),
+            'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
+            'pdb_execute_events': self.get_conf('pdb_execute_events'),
+            'pdb_use_exclamation_mark': self.get_conf(
+                'pdb_use_exclamation_mark'),
+            'pdb_stop_first_line': self.get_conf('pdb_stop_first_line'),
+            'pdb_publish_stack': True,
+        })
 
-    def disable_pdb_stack(self):
+    def on_unconfig_kernel(self):
         """Ask shellwidget to stop sending stack."""
         self.shellwidget.call_kernel().set_pdb_configuration(
             {'pdb_publish_stack': False})
+
+    def set_pdb_configuration(self, configuration):
+        """Set configuration into a debugging session."""
+        self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
+            configuration)
+
+    @on_conf_change(option='pdb_ignore_lib')
+    def change_pdb_ignore_lib(self, value):
+        self.set_pdb_configuration({
+            'pdb_ignore_lib': value
+        })
+
+    @on_conf_change(option='pdb_execute_events')
+    def change_pdb_execute_events(self, value):
+        self.set_pdb_configuration({
+            'pdb_execute_events': value
+        })
+
+    @on_conf_change(option='pdb_use_exclamation_mark')
+    def change_pdb_use_exclamation_mark(self, value):
+        self.set_pdb_configuration({
+            'pdb_use_exclamation_mark': value
+        })
+
+    @on_conf_change(option='pdb_stop_first_line')
+    def change_pdb_stop_first_line(self, value):
+        self.set_pdb_configuration({
+            'pdb_stop_first_line': value
+        })
+
+    def set_breakpoints(self):
+        """Set current breakpoints."""
+        self.set_pdb_configuration({
+            'breakpoints': self.get_conf(
+                "breakpoints", default={}, section='debugger')
+        })
 
 
 class LineFrameItem(QTreeWidgetItem):

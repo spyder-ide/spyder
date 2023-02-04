@@ -5,6 +5,16 @@ from numpy import (
 from subdir.a import (
     bar)
 
+# We shouldn't show symbols for relative imports in the Outline.
+# This is a regression test for issue spyder-ide/spyder#16352.
+from ..a import (
+    MyOtherClass)
+
+from ...file2 import (
+    MyClass,
+    foo
+)
+
 def baz(x):
     return x
 
