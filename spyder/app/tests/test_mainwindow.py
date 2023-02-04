@@ -2049,6 +2049,77 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     assert compare_images(ipython_figname, plots_figname, 0.1) is None
 
 
+def test_plots_scroll(main_window, qtbot):
+    """Test plots plugin scrolling"""
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    figbrowser = main_window.plots.current_widget()
+
+    # Wait until the window is fully up.
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Generate a plot inline.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig = plt.plot([1, 2, 3, 4], '.')\n"))
+
+    # Make sure the plot is selected
+    sb = figbrowser.thumbnails_sb
+    assert len(sb._thumbnails) == 1
+    assert sb._thumbnails[-1] == sb.current_thumbnail
+
+    # plot 4 more plots
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "for i in range(4):\n"
+            "    plt.figure()\n"
+            "    plt.plot([1, 2, 3, 4], '.')")
+
+    # we now have 5 plots and the last one is selected
+    assert len(sb._thumbnails) == 5
+    assert sb._thumbnails[-1] == sb.current_thumbnail
+
+    # plot 20 plots
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "for i in range(20):\n"
+            "    plt.figure()\n"
+            "    plt.plot([1, 2, 3, 4], '.')")
+
+    # Make sure we scrolled down
+    scrollbar = sb.scrollarea.verticalScrollBar()
+    assert len(sb._thumbnails) == 25
+    assert sb._thumbnails[-1] == sb.current_thumbnail
+    assert scrollbar.value() == scrollbar.maximum()
+
+    # plot 20 plots and select a plot in the middle
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "import time\n"
+            "for i in range(20):\n"
+            "    plt.figure()\n"
+            "    plt.plot([1, 2, 3, 4], '.')\n"
+            "    plt.show()\n"
+            "    time.sleep(.1)")
+        qtbot.wait(500)
+        sb.set_current_index(5)
+        scrollbar.setValue(scrollbar.minimum())
+
+    # make sure we didn't scroll to the end and a new thumnail was not selected
+    assert len(sb._thumbnails) == 45
+    assert sb._thumbnails[-1] != sb.current_thumbnail
+    assert scrollbar.value() != scrollbar.maximum()
+
+    # One more plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("fig = plt.plot([1, 2, 3, 4], '.')\n"))
+
+    # Make sure everything scrolled at the end
+    assert len(sb._thumbnails) == 46
+    assert sb._thumbnails[-1] == sb.current_thumbnail
+    assert scrollbar.value() == scrollbar.maximum()
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     (parse_version(ipy_release.version) >= parse_version('7.23.0') and
