@@ -775,7 +775,7 @@ class ThumbnailScrollBar(QFrame):
         Add a new thumbnail to that thumbnail scrollbar.
         """
         # Always stick at end for the first thumbnail
-        if_first = not self._first_thumbnail_shown
+        is_first = not self._first_thumbnail_shown
 
         # Stick at end if we are already at the end
         stick_at_end = False
@@ -802,7 +802,7 @@ class ThumbnailScrollBar(QFrame):
         select_last = (
             len(self._thumbnails) < 2 or
             self.current_thumbnail == self._thumbnails[-2] or
-            if_first
+            is_first
         )
         if select_last:
             self.set_current_thumbnail(thumbnail)
@@ -810,7 +810,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
 
-        if not if_first and not stick_at_end:
+        if not is_first and not stick_at_end:
             self._scroll_to_last_thumbnail = False
 
     def remove_current_thumbnail(self):
