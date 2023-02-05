@@ -30,6 +30,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.debugger.api import DebuggerToolbarActions
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.run.api import StoredRunConfigurationExecutor
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
 from spyder.utils.environ import (get_user_env, set_user_env,
@@ -240,6 +241,22 @@ def preferences_dialog_helper(qtbot, main_window, section):
     page = dlg.get_page(index)
     dlg.set_current_index(index)
     return dlg, index, page
+
+
+def generate_run_parameters(mainwindow, filename, selected=None,
+                            executor=None):
+    """Generate run configuration parameters for a given filename."""
+    file_uuid = mainwindow.editor.id_per_file[filename]
+    if executor is None:
+        executor = mainwindow.ipyconsole.NAME
+
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=executor,
+        selected=selected,
+        display_dialog=False,
+        first_execution=False)
+
+    return {file_uuid: file_run_params}
 
 
 # =============================================================================

@@ -48,9 +48,9 @@ from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
-    find_desired_tab_in_window, LOCATION, open_file_in_editor,
-    preferences_dialog_helper, PY37, read_asset_file, reset_run_code,
-    SHELL_TIMEOUT, start_new_kernel)
+    generate_run_parameters, find_desired_tab_in_window, LOCATION,
+    open_file_in_editor, preferences_dialog_helper, PY37, read_asset_file,
+    reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
@@ -65,9 +65,8 @@ from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
-    RunExecutionParameters, StoredRunConfigurationExecutor,
-    ExtendedRunExecutionParameters, WorkingDirOpts, WorkingDirSource,
-    RunContext)
+    RunExecutionParameters, ExtendedRunExecutionParameters, WorkingDirOpts,
+    WorkingDirSource, RunContext)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
 from spyder.utils.misc import remove_backslashes
@@ -429,14 +428,8 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
 
-    file_uuid = main_window.editor.id_per_file[test_file]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, test_file)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Run test file
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -480,14 +473,8 @@ def test_get_help_ipython_console_special_characters(
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
 
-    file_uuid = main_window.editor.id_per_file[test_file]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, test_file)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Run test file
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -736,14 +723,8 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     CONF.set('run', 'parameters', ipy_dict)
 
     # --- Set run options for this file ---
-    file_uuid = main_window.editor.id_per_file[test_file]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=ipyconsole.NAME,
-        selected=exec_uuid,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, test_file, exec_uuid)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # --- Run test file ---
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -825,14 +806,8 @@ def test_dedicated_consoles(main_window, qtbot):
     CONF.set('run', 'parameters', ipy_dict)
 
     # --- Set run options for this file ---
-    file_uuid = main_window.editor.id_per_file[test_file]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=ipyconsole.NAME,
-        selected=exec_uuid,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, test_file, exec_uuid)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # --- Run test file and assert that we get a dedicated console ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -939,14 +914,9 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     CONF.set('run', 'parameters', ipy_dict)
 
     # --- Set run options for this file ---
-    file_uuid = main_window.editor.id_per_file[test_file]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=external_console.NAME,
-        selected=exec_uuid,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(
+        main_window, test_file, exec_uuid, external_console.NAME)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # --- Run test file and assert that the script gets executed ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1016,14 +986,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
     )
 
     file_path = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[file_path]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, file_path)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Start running
     with qtbot.waitSignal(shell.executed):
@@ -1188,14 +1152,8 @@ def test_run_cython_code(main_window, qtbot):
     main_window.editor.load(file_path)
 
     # --- Set run options for this file ---
-    file_uuid = main_window.editor.id_per_file[file_path]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, file_path)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1220,14 +1178,9 @@ def test_run_cython_code(main_window, qtbot):
     file_path = osp.join(LOCATION, 'pyx_lib_import.py')
     main_window.editor.load(file_path)
 
-    file_uuid = main_window.editor.id_per_file[file_path]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    # --- Set run options for this file --
+    run_parameters = generate_run_parameters(main_window, file_path)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1478,14 +1431,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     if sys.platform == 'darwin':
         modifier = Qt.MetaModifier
 
-    file_uuid = main_window.editor.id_per_file[filepath]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, filepath)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # ---- Run file ----
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -1711,7 +1658,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
         qtbot.wait(500)
 
-    # # Check for errors and the copied code
+    # Check for errors and the copied code
     assert 'runcell' not in shell._control.toPlainText()
     assert 'a = 10' in shell._control.toPlainText()
     assert 'Error:' not in shell._control.toPlainText()
@@ -3066,14 +3013,8 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     code_editor.set_text(u'print(0)\n#%%\nprint(ññ)')
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
@@ -3378,14 +3319,8 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     nsb = main_window.variableexplorer.current_widget()
 
     # --- Set run options for this file ---
-    file_uuid = main_window.editor.id_per_file[filepath]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, filepath)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # ---- Run file ----
     run_action = main_window.run.get_action('run')
@@ -3458,14 +3393,8 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
     nsb = main_window.variableexplorer.current_widget()
 
     # --- Set run options for this file ---
-    file_uuid = main_window.editor.id_per_file[filepath]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, filepath)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     run_action = main_window.run.get_action('run')
     run_button = main_window.run_toolbar.widgetForAction(run_action)
@@ -3552,14 +3481,8 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     code_editor = main_window.editor.get_focus_widget()
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # call runcell
     with qtbot.waitSignal(shell.executed):
@@ -3608,14 +3531,8 @@ def test_runcell_pdb(main_window, qtbot):
     code_editor.set_text(code)
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Start debugging
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
@@ -3663,14 +3580,8 @@ def test_runcell_cache(main_window, qtbot, debug):
     code_editor.set_text(code)
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     if debug:
         # Start debugging
@@ -3917,14 +3828,8 @@ def test_runcell_after_restart(main_window, qtbot):
     code_editor.set_text(code)
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Restart Kernel
     widget = main_window.ipyconsole.get_widget()
@@ -4235,14 +4140,8 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     # This code should run even on windows
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Start running
     qtbot.mouseClick(run_button, Qt.LeftButton)
@@ -5224,14 +5123,8 @@ if __name__ == "__main__":
     control = main_window.ipyconsole.get_widget().get_focus_widget()
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     main_window.editor.update_run_focus_file()
     qtbot.wait(2000)
@@ -5271,14 +5164,8 @@ crash_func()
     control = main_window.ipyconsole.get_widget().get_focus_widget()
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     main_window.editor.update_run_focus_file()
     qtbot.wait(2000)
@@ -5433,14 +5320,8 @@ def test_debug_unsaved_function(main_window, qtbot):
     code_editor.set_text('def foo():\n    print(1)')
 
     fname = main_window.editor.get_current_filename()
-    file_uuid = main_window.editor.id_per_file[fname]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, fname)
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     main_window.editor.update_run_focus_file()
     qtbot.wait(2000)
@@ -5489,14 +5370,8 @@ def test_out_runfile_runcell(main_window, qtbot):
         code_editor.set_text(code)
 
         fname = main_window.editor.get_current_filename()
-        file_uuid = main_window.editor.id_per_file[fname]
-        file_run_params = StoredRunConfigurationExecutor(
-            executor=main_window.ipyconsole.NAME,
-            selected=None,
-            display_dialog=False,
-            first_execution=False)
-
-        CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+        run_parameters = generate_run_parameters(main_window, fname)
+        CONF.set('run', 'last_used_parameters', run_parameters)
 
         with qtbot.waitSignal(shell.executed):
             main_window.editor.run_cell()
@@ -5546,14 +5421,8 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     frames_browser = debugger.current_widget().results_browser
 
     # --- Set run options for this file ---
-    file_uuid = main_window.editor.id_per_file[str(p)]
-    file_run_params = StoredRunConfigurationExecutor(
-        executor=main_window.ipyconsole.NAME,
-        selected=None,
-        display_dialog=False,
-        first_execution=False)
-
-    CONF.set('run', 'last_used_parameters', {file_uuid: file_run_params})
+    run_parameters = generate_run_parameters(main_window, str(p))
+    CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Click the run button
     run_action = main_window.run.get_action('run')
