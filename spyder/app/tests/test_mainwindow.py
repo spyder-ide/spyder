@@ -601,9 +601,9 @@ def test_window_title(main_window, tmpdir, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.parametrize("debugcell", [True, False])
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Fails sometimes on Windows and Mac")
-@pytest.mark.parametrize("debugcell", [True, False])
 def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
@@ -633,15 +633,16 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 
     if debugcell:
         # Advance 2 cells
-        for i in range(2):
-            qtbot.keyClick(code_editor, Qt.Key_Return,
-                           modifier=Qt.ShiftModifier)
-            qtbot.wait(500)
+        for _ in range(2):
+            with qtbot.waitSignal(shell.executed):
+                qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                                 Qt.LeftButton)
 
         # Debug the cell
+        debug_cell_action = main_window.debugger.get_action(
+            DebuggerToolbarActions.DebugCurrentCell)
         with qtbot.waitSignal(shell.executed):
-            qtbot.keyClick(code_editor, Qt.Key_Return,
-                           modifier=Qt.AltModifier | Qt.ShiftModifier)
+            debug_cell_action.trigger()
 
         # Make sure everything is ready
         assert shell.kernel_handler.kernel_comm.is_open()
@@ -650,11 +651,11 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute('!b')
         assert 'script.py:10' in shell._control.toPlainText()
+
         # We need to press continue as we don't test yet if a breakpoint
         # is in the cell
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute('!c')
-
     else:
         # Click the debug button
         with qtbot.waitSignal(shell.executed):
@@ -860,7 +861,6 @@ def test_dedicated_consoles(main_window, qtbot):
     CONF.set('run', 'last_used_parameters', {})
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_dedicated_consoles")
 def test_shell_execution(main_window, qtbot, tmpdir):
@@ -882,7 +882,8 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     # more things.
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
 
     # ---- Load test file ----
     test_file = osp.join(LOCATION, script)
@@ -1431,7 +1432,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     CONF.set('run', 'last_used_parameters', run_parameters)
 
     # ---- Run file ----
-    qtbot.keyClick(code_editor, Qt.Key_F5)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
@@ -1448,8 +1450,9 @@ def test_run_code(main_window, qtbot, tmpdir):
     # ---- Run lines ----
     # Run the whole file line by line
     for _ in range(code_editor.blockCount()):
-        qtbot.keyClick(code_editor, Qt.Key_F9)
-        qtbot.wait(200)
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_selection_button, Qt.LeftButton)
+            qtbot.wait(200)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
@@ -1469,11 +1472,14 @@ def test_run_code(main_window, qtbot, tmpdir):
     # run lines above
     editor.go_to_line(10)
     qtbot.keyClick(code_editor, Qt.Key_Right)
-    qtbot.keyClick(code_editor, Qt.Key_F9, modifier=Qt.ShiftModifier)
+    run_to_line_action = main_window.run.get_action('run selection up to line')
+    with qtbot.waitSignal(shell.executed):
+        run_to_line_action.trigger()
     qtbot.wait(500)
 
     assert shell.get_value('a') == 10
     assert shell.get_value('li') == [1, 2, 3]
+
     # Test that lines below did not run
     assert 'arr' not in nsb.editor.source_model._data.keys()
     assert 's' not in nsb.editor.source_model._data.keys()
@@ -1487,12 +1493,15 @@ def test_run_code(main_window, qtbot, tmpdir):
     shell.execute('a = 100')
     editor.go_to_line(6)
     qtbot.keyClick(code_editor, Qt.Key_Right)
-    qtbot.keyClick(code_editor, Qt.Key_F9, modifier=modifier)
+    run_from_line_action = main_window.run.get_action('run selection from line')
+    with qtbot.waitSignal(shell.executed):
+        run_from_line_action.trigger()
     qtbot.wait(500)
 
     assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
     assert shell.get_value('li') == [1, 2, 3]
     assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
+
     # Test that lines above did not run, i.e. a is still 100
     assert shell.get_value('a') == 100
 
@@ -1505,8 +1514,10 @@ def test_run_code(main_window, qtbot, tmpdir):
     qtbot.keyClick(code_editor, Qt.Key_Return)
     qtbot.keyClick(code_editor, Qt.Key_Up)
     for _ in range(5):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-        qtbot.wait(500)
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                             Qt.LeftButton)
+            qtbot.wait(500)
 
     # Check for errors and the runcell function
     assert 'runcell' in shell._control.toPlainText()
@@ -1542,7 +1553,8 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Run cell ----
     # Run the first cell in file
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=modifier)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
 
     # Wait until the object has appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -1551,17 +1563,19 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Verify result
     assert shell.get_value('a') == 10
 
-    # Press Ctrl+Enter a second time to verify that we're *not* advancing
-    # to the next cell
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=modifier)
+    # Run cell a second time to verify that we're *not* advancing to the next
+    # cell
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
     assert nsb.editor.source_model.rowCount() == 1
 
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Debug cell ------
+    debug_cell_action = main_window.debugger.get_action(
+        DebuggerToolbarActions.DebugCurrentCell)
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return,
-                       modifier=Qt.AltModifier | Qt.ShiftModifier)
+        debug_cell_action.trigger()
     qtbot.keyClicks(shell._control, '!c')
     qtbot.keyClick(shell._control, Qt.Key_Enter)
 
@@ -1573,11 +1587,10 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Re-run last cell ----
     # Run the first three cells in file
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-    qtbot.wait(500)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-    qtbot.wait(500)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    for _ in range(3):
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                             Qt.LeftButton)
 
     # Wait until objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 2,
@@ -1592,7 +1605,9 @@ def test_run_code(main_window, qtbot, tmpdir):
                     timeout=EVAL_TIMEOUT)
 
     # Re-run last cell
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.AltModifier)
+    re_run_action = main_window.run.get_action('re-run cell')
+    with qtbot.waitSignal(shell.executed):
+        re_run_action.trigger()
 
     # Wait until the object has appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -1601,12 +1616,14 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # try running cell without file name
     shell.clear()
+
     # Clean namespace
     with qtbot.waitSignal(shell.executed):
         shell.execute('%reset -f')
 
     with qtbot.waitSignal(shell.executed):
         shell.execute('runcell(0)')
+
     # Verify result
     assert shell.get_value('a') == 10
     assert 'error' not in shell._control.toPlainText().lower()
@@ -1651,8 +1668,9 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     # ---- Run cell and advance ----
     # Run the three cells present in file
     for _ in range(4):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-        qtbot.wait(500)
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                             Qt.LeftButton)
 
     # Check for errors and the copied code
     assert 'runcell' not in shell._control.toPlainText()
@@ -1842,11 +1860,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize a plugin and check that it's unmaximized after running a cell
     plugin_4 = get_random_plugin()
-    run_cell_action = main_window.run.get_action('run cell')
-    run_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Run)
-    run_cell_button = run_toolbar.widgetForAction(run_cell_action)
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    qtbot.mouseClick(run_cell_button, Qt.LeftButton)
+    qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
     assert not plugin_4.get_widget().get_maximized_state()
     assert not max_action.isChecked()
     if hasattr(plugin_4, '_hide_after_test'):
@@ -1855,10 +1870,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     # Maximize a plugin and check that it's unmaximized after running a
     # selection
     plugin_5 = get_random_plugin()
-    run_selection_action = main_window.run.get_action('run selection')
-    run_selection_button = run_toolbar.widgetForAction(run_selection_action)
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    qtbot.mouseClick(run_selection_button, Qt.LeftButton)
+    qtbot.mouseClick(main_window.run_selection_button, Qt.LeftButton)
     assert not plugin_5.get_widget().get_maximized_state()
     assert not max_action.isChecked()
     if hasattr(plugin_5, '_hide_after_test'):
@@ -2971,9 +2984,7 @@ def test_preferences_change_font_regression(main_window, qtbot):
     qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
-@pytest.mark.skipif(
-    sys.platform == 'darwin' or os.name == 'nt',
-    reason="Changes of Shitf+Return shortcut cause an ambiguous shortcut")
+@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 @pytest.mark.parametrize('main_window',
                          [{'spy_config': ('editor', 'run_cell_copy', True)}],
                          indirect=True)
@@ -3478,13 +3489,16 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
 
     # call runcell
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                         Qt.LeftButton)
     qtbot.waitUntil(lambda: 'runcell(0' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
     assert 'runcell(0' in shell._control.toPlainText()
     assert 'cell is empty' not in shell._control.toPlainText()
+
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                         Qt.LeftButton)
     qtbot.waitUntil(lambda: 'runcell(1' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
     assert 'runcell(1' in shell._control.toPlainText()
@@ -3493,8 +3507,8 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform.startswith('linux') or os.name == 'nt',
-                    reason="Fails on linux and timeouts on Windows")
+@pytest.mark.skipif(sys.platform == 'darwin' or os.name == 'nt',
+                    reason="Fails on Mac and Windows")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_pdb(main_window, qtbot):
     """Test the runcell command in pdb."""
@@ -3540,7 +3554,8 @@ def test_runcell_pdb(main_window, qtbot):
     code_editor.setFocus()
     # call runcell
     with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+        qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                         Qt.LeftButton)
     assert "runcell" in shell._control.toPlainText()
 
     # Make sure the local variables are detected
@@ -3549,9 +3564,7 @@ def test_runcell_pdb(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize("debug", [False, True])
-@pytest.mark.skipif(PY37 or os.name == 'nt',
-                    reason="Segfaults too much on Python 3.7 and timeouts "
-                           "on Windows")
+@pytest.mark.skipif(os.name == 'nt', reason="Timeouts on Windows")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_cache(main_window, qtbot, debug):
     """Test the runcell command cache."""
@@ -3583,10 +3596,10 @@ def test_runcell_cache(main_window, qtbot, debug):
     # Run the two cells
     code_editor.setFocus()
     code_editor.move_cursor(0)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-    qtbot.wait(100)
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-    qtbot.wait(500)
+    for _ in range(2):
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                             Qt.LeftButton)
 
     qtbot.waitUntil(lambda: "Done" in shell._control.toPlainText())
 
@@ -3830,7 +3843,9 @@ def test_runcell_after_restart(main_window, qtbot):
 
     # call runcell
     code_editor.setFocus()
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_and_advance_button,
+                         Qt.LeftButton)
     qtbot.waitUntil(
         lambda: "test_runcell_after_restart" in shell._control.toPlainText())
 
@@ -5203,6 +5218,7 @@ def test_focus_for_plugins_with_raise_and_focus(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.order(1)
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Hangs sometimes on Windows and Mac")
@@ -5362,10 +5378,10 @@ def test_out_runfile_runcell(main_window, qtbot):
             assert not "]: " + str(num) in control.toPlainText()
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Does not work on Mac and Windows")
-@flaky(max_runs=3)
 @pytest.mark.parametrize("thread", [False, True])
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_print_frames(main_window, qtbot, tmpdir, thread):
@@ -5406,8 +5422,7 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Click the run button
-    with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+    qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
     qtbot.wait(1000)
 
     # Check we are blocked

@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class MockedMainWindow(QWidget, MagicMock):
-    def get_plugin(self, name):
+    def get_plugin(self, name, error=True):
         return MagicMock()
 
 

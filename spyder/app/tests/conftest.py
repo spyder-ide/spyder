@@ -399,12 +399,25 @@ def main_window(request, tmpdir, qtbot):
     debug_button = debug_toolbar.widgetForAction(debug_action)
     window.debug_button = debug_button
 
-    # Add a handle to the "Run file" button to access it quickly because
-    # it's used a lot.
+    # Add a handle to the run buttons to access it quickly because they are
+    # used a lot.
     run_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Run)
     run_action = window.run.get_action(RunActions.Run)
     run_button = run_toolbar.widgetForAction(run_action)
     window.run_button = run_button
+
+    run_cell_action = window.run.get_action('run cell')
+    run_cell_button = run_toolbar.widgetForAction(run_cell_action)
+    window.run_cell_button = run_cell_button
+
+    run_cell_and_advance_action = window.run.get_action('run cell and advance')
+    run_cell_and_advance_button = run_toolbar.widgetForAction(
+        run_cell_and_advance_action)
+    window.run_cell_and_advance_button = run_cell_and_advance_button
+
+    run_selection_action = window.run.get_action('run selection')
+    run_selection_button = run_toolbar.widgetForAction(run_selection_action)
+    window.run_selection_button = run_selection_button
 
     QApplication.processEvents()
 
