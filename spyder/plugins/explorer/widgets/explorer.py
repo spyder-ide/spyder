@@ -11,8 +11,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import with_statement
-
 # Standard library imports
 import os
 import os.path as osp

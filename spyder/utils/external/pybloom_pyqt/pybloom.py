@@ -4,7 +4,6 @@ without increasing the false positive error_rate.
 
 Requires the bitarray library: http://pypi.python.org/pypi/bitarray/
 """
-from __future__ import absolute_import
 import math
 import hashlib
 from .utils import range_fn, is_string_io, running_python_3

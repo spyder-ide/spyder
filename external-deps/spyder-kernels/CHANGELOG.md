@@ -1,5 +1,24 @@
 # History of changes
 
+## Version 2.4.2 (2023-01-17)
+
+### Issues Closed
+
+* [Issue 307](https://github.com/spyder-ide/spyder-kernels/issues/307) - formatargspec is deprecated since Python 3.5 ([PR 435](https://github.com/spyder-ide/spyder-kernels/pull/435) by [@juliangilbey](https://github.com/juliangilbey))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 438](https://github.com/spyder-ide/spyder-kernels/pull/438) - PR: Increase minimal required Jupyter-client version to 7.4.9, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 435](https://github.com/spyder-ide/spyder-kernels/pull/435) - PR: Replace deprecated `inspect.formatargspec` call, by [@juliangilbey](https://github.com/juliangilbey) ([307](https://github.com/spyder-ide/spyder-kernels/issues/307))
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
 ## Version 2.4.1 (2022-12-29)
 
 ### Issues Closed

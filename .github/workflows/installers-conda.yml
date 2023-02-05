@@ -17,20 +17,51 @@ on:
     types:
       - created
 
+  workflow_dispatch:
+    inputs:
+      pre:
+        description: 'Build as release candidate'
+        required: false
+        default: true
+        type: boolean
+      mac:
+        description: 'Build macOS installer'
+        required: false
+        default: true
+        type: boolean
+      linux:
+        description: 'Build Linux installer'
+        required: false
+        default: true
+        type: boolean
+      win:
+        description: 'Build Windows installer'
+        required: false
+        default: true
+        type: boolean
+
 concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
 name: Create conda-based installers for Windows, macOS, and Linux
 
+env:
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
+  IS_RELEASE: ${{ github.event_name == 'release' }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
+  BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
+  BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
+  BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
+
 jobs:
   build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
-    if: github.event_name != 'release'
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     strategy:
       matrix:
-        pkg: ["python-lsp-server", "qdarkstyle", "qtconsole"]
+        pkg: ["python-lsp-server", "qtconsole"]
         python-version: ["3.9"]
     defaults:
       run:
@@ -72,20 +103,27 @@ jobs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
       include: ${{ steps.build-matrix.outputs.include }}
       python_version: ${{ steps.build-matrix.outputs.python_version }}
-    steps:
-    - id: build-matrix
-      run: |
-        target_platform="'osx-64', 'linux-64'"
-        include="\
-        {'os': 'macos-11', 'target-platform': 'osx-64'},\
-        {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
-        "
-        python_version="'3.9'"
 
-        if [[ ${GITHUB_EVENT_NAME} != 'release' ]]; then
-            target_platform=$target_platform", 'win-64'"
-            include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
+    steps:
+    - name: Determine Build Matrix
+      id: build-matrix
+      run: |
+        [[ $IS_RELEASE == "true" ]] && BUILD_WIN="false"
+
+        if [[ $BUILD_MAC == "true" ]]; then
+            target_platform="'osx-64'"
+            include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
         fi
+        if [[ $BUILD_LNX == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
+            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64'}"
+        fi
+        if [[ $BUILD_WIN == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'win-64'"
+            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        fi
+
+        python_version="'3.9'"
 
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
@@ -97,7 +135,7 @@ jobs:
     needs:
       - build-matrix
       - build-noarch-pkgs
-    if: contains(fromJson('["success", "skipped"]'), needs.build-noarch-pkgs.result) && needs.build-matrix.result == 'success'
+    if: ${{ ! failure() && ! cancelled() }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -114,12 +152,23 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
-      STATUS: ${{ needs.build-noarch-pkgs.result }}
+      BNP_STATUS: ${{ needs.build-noarch-pkgs.result }}
+      MAT_STATUS: ${{ needs.build-matrix.result }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Install pcregrep
+        if: runner.os == 'macOS'
+        run: |
+          if [[ -z "$(which pcregrep)" ]]; then
+              brew install pcre
+          else
+              echo "$(which pcregrep) already installed."
+          fi
 
       - name: Setup Build Environment
         uses: mamba-org/provision-with-micromamba@main
@@ -141,7 +190,7 @@ jobs:
           env
 
       - name: Download Local Conda Packages
-        if: github.event_name != 'release'
+        if: needs.build-noarch-pkgs.result == 'success'
         uses: actions/download-artifact@v3
         with:
           path: ${{ env.ARTIFACTS_PATH }}
@@ -164,13 +213,13 @@ jobs:
       - name: Build ${{ matrix.target-platform }} conda packages
         run: |
           pkgs=("spyder")
-          if [[ $GITHUB_EVENT_NAME != "release" ]]; then
+          if [[ $IS_STANDARD_PR == "true" ]]; then
               pkgs+=("spyder-kernels")
           fi
           python build_conda_pkgs.py --build ${pkgs[@]}
 
       - name: Create Keychain
-        if: github.event_name == 'release' && runner.os == 'macOS'
+        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
         run: |
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
           CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
@@ -208,7 +257,7 @@ jobs:
           fi
 
       - name: Notarize package installer
-        if: github.event_name == 'release' && runner.os == 'macOS'
+        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
         run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
 
       - name: Upload Artifact
@@ -218,14 +267,14 @@ jobs:
           name: ${{ env.PKG_NAME }}
 
       - name: Get Release
-        if: github.event_name == 'release'
+        if: env.IS_RELEASE == 'true'
         id: get_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         uses: bruceadams/get-release@v1.2.0
 
       - name: Upload Release Asset
-        if: github.event_name == 'release'
+        if: env.IS_RELEASE == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}

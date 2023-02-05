@@ -401,7 +401,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Check if there is a kernel that can be interrupted before trying
             # to do it.
             # Fixes spyder-ide/spyder#20212
-            if self.kernel_manager.has_kernel:
+            if self.kernel_manager and self.kernel_manager.has_kernel:
                 self.call_kernel(interrupt=True).raise_interrupt_signal()
             else:
                 self._append_html(
@@ -646,7 +646,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if sympy_o:
             lines = """
 These commands were executed:
->>> from __future__ import division
 >>> from sympy import *
 >>> x, y, z, t = symbols('x y z t')
 >>> k, m, n = symbols('k m n', integer=True)
@@ -763,7 +762,6 @@ the sympy module (e.g. plot)
                     self.silent_execute("from pylab import *")
                 if kernel_env.get('SPY_SYMPY_O') == 'True':
                     sympy_init = """
-                        from __future__ import division
                         from sympy import *
                         x, y, z, t = symbols('x y z t')
                         k, m, n = symbols('k m n', integer=True)

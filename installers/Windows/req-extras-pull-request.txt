@@ -22,6 +22,8 @@ sympy
 # Spyder external plugins
 spyder-terminal>=1.2.2
 
-# Spyder external dependencies (spyder-kernels and qdarkstyle)
+# Spyder external dependencies (spyder-kernels)
 ./external-deps/spyder-kernels
-./external-deps/qdarkstyle
+
+# Constraint PyZMQ to be <25
+pyzmq<25
