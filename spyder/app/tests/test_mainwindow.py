@@ -974,10 +974,6 @@ def test_connection_to_external_kernel(main_window, qtbot):
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1)
     assert nsb.editor.source_model.rowCount() == 1
 
-    # Test runfile in external_kernel
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
-
     # create new file
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
@@ -991,7 +987,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
 
     # Start running
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     assert "runfile" in shell._control.toPlainText()
     assert "3" in shell._control.toPlainText()
@@ -1789,8 +1785,6 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     assert main_window.editor._ismaximized
     ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
     ipyconsole.create_window()
-    run_action = main_window.run_toolbar_actions[0]
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
     assert main_window.editor._ismaximized
 
     # Unmaximize when docking back the IPython console
@@ -1836,7 +1830,11 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     # Maximize a plugin and check that it's unmaximized after running a file
     plugin_3 = get_random_plugin()
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    qtbot.mouseClick(run_button, Qt.LeftButton)
+
+    run_parameters = generate_run_parameters(main_window, test_file)
+    CONF.set('run', 'last_used_parameters', run_parameters)
+    qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
     assert not plugin_3.get_widget().get_maximized_state()
     assert not max_action.isChecked()
     if hasattr(plugin_3, '_hide_after_test'):
@@ -1844,8 +1842,9 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize a plugin and check that it's unmaximized after running a cell
     plugin_4 = get_random_plugin()
-    run_cell_action = main_window.run_toolbar_actions[1]
-    run_cell_button = main_window.run_toolbar.widgetForAction(run_cell_action)
+    run_cell_action = main_window.run.get_action('run cell')
+    run_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Run)
+    run_cell_button = run_toolbar.widgetForAction(run_cell_action)
     qtbot.mouseClick(max_button, Qt.LeftButton)
     qtbot.mouseClick(run_cell_button, Qt.LeftButton)
     assert not plugin_4.get_widget().get_maximized_state()
@@ -1856,9 +1855,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     # Maximize a plugin and check that it's unmaximized after running a
     # selection
     plugin_5 = get_random_plugin()
-    run_selection_action = main_window.run_toolbar_actions[3]
-    run_selection_button = main_window.run_toolbar.widgetForAction(
-        run_selection_action)
+    run_selection_action = main_window.run.get_action('run selection')
+    run_selection_button = run_toolbar.widgetForAction(run_selection_action)
     qtbot.mouseClick(max_button, Qt.LeftButton)
     qtbot.mouseClick(run_selection_button, Qt.LeftButton)
     assert not plugin_5.get_widget().get_maximized_state()
@@ -3323,11 +3321,8 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     CONF.set('run', 'last_used_parameters', run_parameters)
 
     # ---- Run file ----
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
-
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
@@ -3350,7 +3345,7 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
 
     # ---- Run file again ----
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
@@ -3396,12 +3391,9 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
     run_parameters = generate_run_parameters(main_window, filepath)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
-
     # ---- Run file ----
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
@@ -4111,10 +4103,6 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
-    # Main variables
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
-
     # create new file
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
@@ -4144,7 +4132,7 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Start running
-    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Because multiprocessing is behaving strangly on windows, only some
     # situations will work. This is one of these situations so it shouldn't
@@ -5130,10 +5118,8 @@ if __name__ == "__main__":
     qtbot.wait(2000)
 
     # Click the run button
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
     qtbot.wait(1000)
 
     assert 'Test stdout' in control.toPlainText()
@@ -5171,9 +5157,7 @@ crash_func()
     qtbot.wait(2000)
 
     # Click the run button
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
-    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     qtbot.waitUntil(lambda: 'Segmentation fault' in control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
@@ -5307,9 +5291,6 @@ def test_debug_unsaved_function(main_window, qtbot):
     # Main variables
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(
-        run_action)
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -5331,7 +5312,7 @@ def test_debug_unsaved_function(main_window, qtbot):
 
     # run file
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # debug foo
     with qtbot.waitSignal(shell.executed):
@@ -5425,10 +5406,8 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     CONF.set('run', 'last_used_parameters', run_parameters)
 
     # Click the run button
-    run_action = main_window.run.get_action('run')
-    run_button = main_window.run_toolbar.widgetForAction(run_action)
     with qtbot.waitSignal(shell.executed):
-        qtbot.mouseClick(run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
     qtbot.wait(1000)
 
     # Check we are blocked

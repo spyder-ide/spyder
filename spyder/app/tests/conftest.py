@@ -30,7 +30,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.debugger.api import DebuggerToolbarActions
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
-from spyder.plugins.run.api import StoredRunConfigurationExecutor
+from spyder.plugins.run.api import RunActions, StoredRunConfigurationExecutor
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
 from spyder.utils.environ import (get_user_env, set_user_env,
@@ -398,6 +398,13 @@ def main_window(request, tmpdir, qtbot):
         DebuggerToolbarActions.DebugCurrentFile)
     debug_button = debug_toolbar.widgetForAction(debug_action)
     window.debug_button = debug_button
+
+    # Add a handle to the "Run file" button to access it quickly because
+    # it's used a lot.
+    run_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Run)
+    run_action = window.run.get_action(RunActions.Run)
+    run_button = run_toolbar.widgetForAction(run_action)
+    window.run_button = run_button
 
     QApplication.processEvents()
 

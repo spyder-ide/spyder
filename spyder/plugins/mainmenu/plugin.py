@@ -304,15 +304,12 @@ class MainMenu(SpyderPluginV2):
                 self._main.search_menu_actions, self._main.search_menu),
             ApplicationMenus.Source: (
                 self._main.source_menu_actions, self._main.source_menu),
-            ApplicationMenus.Run: (
-                self._main.run_menu_actions, self._main.run_menu),
         }
 
         app_menus = {
             ApplicationMenus.Edit: self._main.edit_menu,
             ApplicationMenus.Search: self._main.search_menu,
             ApplicationMenus.Source: self._main.source_menu,
-            ApplicationMenus.Run: self._main.run_menu,
         }
 
         menu = self.get_application_menu(menu_id)

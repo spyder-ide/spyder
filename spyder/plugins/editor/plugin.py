@@ -62,10 +62,11 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -358,7 +359,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.completion_capabilities = {}
 
         # Setup new windows:
-        self.main.all_actions_defined.connect(self.setup_other_windows)
+        self.main.sig_setup_finished.connect(self.setup_other_windows)
 
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -1127,13 +1128,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.main.search_menu_actions = (
             search_menu_actions + self.main.search_menu_actions)
 
-        # ---- Run menu/toolbar construction ----
-        run_menu_actions = []
-        self.main.run_menu_actions = (
-            run_menu_actions + self.main.run_menu_actions)
-        run_toolbar_actions = []
-        self.main.run_toolbar_actions += run_toolbar_actions
-
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [
             showblanks_action,
@@ -1165,8 +1159,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
             file_toolbar_actions +
-            [MENU_SEPARATOR] +
-            run_toolbar_actions +
             [MENU_SEPARATOR]
         )
         self.pythonfile_dependent_actions = [
@@ -1638,19 +1630,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             ApplicationMenus.Tools).get_actions()
         help_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
+        run_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Run).get_actions()
 
-        # TODO: Rewrite when the editor is moved to the new API
-        from spyder.plugins.debugger.api import DebuggerToolbarActions
-        debug_toolbar_actions = []
-        for action_name in [DebuggerToolbarActions.DebugCurrentFile,
-                            DebuggerToolbarActions.DebugCurrentCell]:
-            action = self.main.debugger.get_action(action_name)
-            debug_toolbar_actions.append(action)
+        # --- TODO: Rewrite when the editor is moved to the new API
+        debug_toolbar_actions = self.main.toolbar.get_application_toolbar(
+            ApplicationToolbars.Debug).actions()
+        run_toolbar_actions = self.main.toolbar.get_application_toolbar(
+            ApplicationToolbars.Run).actions()
 
         self.toolbar_list = ((_("File toolbar"), "file_toolbar",
                               self.main.file_toolbar_actions),
                              (_("Run toolbar"), "run_toolbar",
-                              self.main.run_toolbar_actions),
+                              run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
                               debug_toolbar_actions))
 
@@ -1658,7 +1650,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
                           (_("Sour&ce"), self.main.source_menu_actions),
-                          (_("&Run"), self.main.run_menu_actions),
+                          (_("&Run"), run_menu_actions),
                           (_("&Tools"), tools_menu_actions),
                           (_("&View"), []),
                           (_("&Help"), help_menu_actions))
