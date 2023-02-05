@@ -18,6 +18,10 @@ on:
     types:
       - created
 
+concurrency:
+  group: installer-macos-${{ github.ref }}
+  cancel-in-progress: true
+
 name: Create macOS App Bundle and DMG
 
 jobs:

@@ -38,6 +38,8 @@ from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import add_actions, DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
+from spyder.plugins.ipythonconsole.utils.kernel_handler import (
+    KernelConnectionState)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -118,7 +120,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.history = []
         self.allow_rename = True
         self.error_text = None
-        self.restart_thread = None
         self.give_focus = give_focus
 
         css_path = self.get_conf('css_path', section='appearance')
@@ -161,49 +162,30 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-        # --- Standard files handling
-        self.start_successful = False
-
-    def __del__(self):
-        """Close threads to avoid segfault."""
-        if (self.restart_thread is not None
-                and self.restart_thread.isRunning()):
-            self.restart_thread.quit()
-            self.restart_thread.wait()
-
     # ----- Private methods ---------------------------------------------------
-    def _before_prompt_is_ready(self):
-        """Configuration before kernel is connected."""
-        self._show_loading_page()
-        self.shellwidget.sig_prompt_ready.connect(
-            self._when_prompt_is_ready)
-        # If remote execution, the loading page should be hidden as well
-        self.shellwidget.sig_remote_execute.connect(
-            self._when_prompt_is_ready)
+    def _when_kernel_is_ready(self):
+        """
+        Configuration after the prompt is shown.
 
-    def _when_prompt_is_ready(self):
-        """Configuration after the prompt is shown."""
-        if self.error_text:
-            # an error occured during startup, but after the prompt was sent
+        Notes
+        -----
+        This is not called on restart. For kernel setup you need to use
+        ShellWidget.handle_kernel_is_ready.
+        """
+        if self.kernel_handler.connection_state not in [
+                KernelConnectionState.SpyderKernelReady,
+                KernelConnectionState.IpykernelReady]:
+            # The kernel is not ready
             return
-        self.start_successful = True
+
+        self.kernel_handler.sig_kernel_is_ready.disconnect(
+            self._when_kernel_is_ready)
 
         # To hide the loading page
         self._hide_loading_page()
 
-        # Show possible errors when setting Matplotlib backend
-        self._show_mpl_backend_errors()
-
-        # To show if special console is valid
-        self._check_special_console_error()
-
         # Set the initial current working directory in the kernel
         self._set_initial_cwd_in_kernel()
-
-        self.shellwidget.sig_prompt_ready.disconnect(
-            self._when_prompt_is_ready)
-        self.shellwidget.sig_remote_execute.disconnect(
-            self._when_prompt_is_ready)
 
         # It's necessary to do this at this point to avoid giving
         # focus to _control at startup.
@@ -246,19 +228,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.set_info_page()
         self.shellwidget.show()
 
-    def _show_mpl_backend_errors(self):
-        """
-        Show possible errors when setting the selected Matplotlib backend.
-        """
-        if self.shellwidget.is_spyder_kernel:
-            self.shellwidget.call_kernel().show_mpl_backend_errors()
-
-    def _check_special_console_error(self):
-        """Check if the dependecies for special consoles are available."""
-        self.shellwidget.call_kernel(
-            callback=self._show_special_console_error
-            ).is_special_kernel_valid()
-
     def _show_special_console_error(self, missing_dependency):
         if missing_dependency is not None:
             error_message = _(
@@ -270,23 +239,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             ).format(missing_dependency=missing_dependency)
 
             self.show_kernel_error(error_message)
-
-    def _abort_kernel_restart(self):
-        """
-        Abort kernel restart if there are errors while starting it.
-
-        We also ignore errors about comms, which are irrelevant.
-        """
-        if self.start_successful:
-            return False
-        stderr = self.stderr_obj.get_contents()
-        if not stderr:
-            return False
-        # There is an error. If it is benign, ignore.
-        for line in stderr.splitlines():
-            if line and not self.is_benign_error(line):
-                return True
-        return False
 
     def _connect_control_signals(self):
         """Connect signals of control widgets."""
@@ -363,74 +315,71 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return None
         return self.kernel_handler.connection_file
 
-    @property
-    def stderr_obj(self):
-        if self.kernel_handler is None:
-            return None
-        return self.kernel_handler.stderr_obj
-
-    @property
-    def stdout_obj(self):
-        if self.kernel_handler is None:
-            return None
-        return self.kernel_handler.stdout_obj
-
-    def start_std_poll(self):
-        """Start polling std files"""
-        self.shellwidget.executed.connect(self.poll_std_file_change)
-
-    def connect_kernel(self, kernel_handler):
+    def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect kernel to client using our handler."""
-        self._before_prompt_is_ready()
         self.kernel_handler = kernel_handler
-        if (
-            kernel_handler.stderr_obj is not None
-            or kernel_handler.stdout_obj is not None
-        ):
-            self.start_std_poll()
-        
+
+        # Connect standard streams.
+        kernel_handler.sig_stderr.connect(self.print_stderr)
+        kernel_handler.sig_stdout.connect(self.print_stdout)
+        kernel_handler.sig_fault.connect(self.print_fault)
+        kernel_handler.sig_kernel_is_ready.connect(
+            self._when_kernel_is_ready)
+        self._show_loading_page()
+
         # Actually do the connection
-        self.shellwidget.connect_kernel(kernel_handler)
+        self.shellwidget.connect_kernel(kernel_handler, first_connect)
 
-    def remove_std_files(self, is_last_client=True):
-        """Remove stderr_file associated with the client."""
-        try:
-            self.shellwidget.executed.disconnect(self.poll_std_file_change)
-        except (TypeError, RuntimeError):
-            pass
-        if is_last_client and self.kernel_handler is not None:
-            self.kernel_handler.remove_files()
+    def disconnect_kernel(self, shutdown_kernel):
+        """Disconnect from current kernel."""
+        kernel_handler = self.kernel_handler
+        if not kernel_handler:
+            return
 
-    @Slot()
-    def poll_std_file_change(self):
-        """Check if the stderr or stdout file just changed."""
-        starting = self.shellwidget._starting
-        if self.stderr_obj is not None:
-            stderr = self.stderr_obj.poll_file_change()
-            if stderr:
-                if self.is_benign_error(stderr):
-                    return
-                if self.shellwidget.isHidden():
-                    # Avoid printing the same thing again
-                    if self.error_text != '<tt>%s</tt>' % stderr:
-                        full_stderr = self.stderr_obj.get_contents()
-                        self.show_kernel_error('<tt>%s</tt>' % full_stderr)
-                if starting:
-                    self.shellwidget.banner = (
-                        stderr + '\n' + self.shellwidget.banner)
-                else:
-                    self.shellwidget._append_plain_text(
-                        '\n' + stderr, before_prompt=True)
+        kernel_handler.sig_stderr.disconnect(self.print_stderr)
+        kernel_handler.sig_stdout.disconnect(self.print_stdout)
+        kernel_handler.sig_fault.disconnect(self.print_fault)
 
-        if self.stdout_obj is not None:
-            stdout = self.stdout_obj.poll_file_change()
-            if stdout:
-                if starting:
-                    self.shellwidget.banner = (
-                        stdout + '\n' + self.shellwidget.banner)
-                else:
-                    self.shellwidget._append_plain_text(
-                        '\n' + stdout, before_prompt=True)
+        self.shellwidget.disconnect_kernel(shutdown_kernel)
+        self.kernel_handler = None
+
+    @Slot(str)
+    def print_stderr(self, stderr):
+        """Print stderr written in PIPE."""
+        if not stderr:
+            return
+
+        if self.is_benign_error(stderr):
+            return
+
+        if self.shellwidget.isHidden():
+            error_text = '<tt>%s</tt>' % stderr
+            # Avoid printing the same thing again
+            if self.error_text != error_text:
+                if self.error_text:
+                    # Append to error text
+                    error_text = self.error_text + error_text
+                self.show_kernel_error(error_text)
+
+        if self.shellwidget._starting:
+            self.shellwidget.banner = (
+                stderr + '\n' + self.shellwidget.banner)
+        else:
+            self.shellwidget._append_plain_text(
+                stderr, before_prompt=True)
+
+    @Slot(str)
+    def print_stdout(self, stdout):
+        """Print stdout written in PIPE."""
+        if not stdout:
+            return
+
+        if self.shellwidget._starting:
+            self.shellwidget.banner = (
+                stdout + '\n' + self.shellwidget.banner)
+        else:
+            self.shellwidget._append_plain_text(
+                stdout, before_prompt=True)
 
     def connect_shellwidget_signals(self):
         """Configure shellwidget after kernel is connected."""
@@ -458,8 +407,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted_message.connect(
             self.kernel_restarted_message)
-        self.shellwidget.sig_kernel_died_restarted.connect(
-            self._finalise_restart)
 
         # To correctly change Matplotlib backend interactively
         self.shellwidget.executing.connect(
@@ -531,7 +478,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
         # Stop shellwidget
         self.shellwidget.shutdown()
-        self.remove_std_files(is_last_client=False)
 
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
@@ -629,17 +575,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
-        if (self.restart_thread is not None
-                and self.restart_thread.isRunning()):
-            self.restart_thread.finished.disconnect()
-            self.restart_thread.quit()
-            self.restart_thread.wait()
         shutdown_kernel = (
             is_last_client and not self.shellwidget.is_external_kernel
             and not self.error_text
         )
         self.shellwidget.shutdown(shutdown_kernel)
-        self.remove_std_files(shutdown_kernel)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
@@ -650,126 +590,29 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    @Slot()
-    def restart_kernel(self):
+    def replace_kernel(self, kernel_handler, shutdown_kernel):
         """
-        Restart the associated kernel.
-
-        Took this code from the qtconsole project
-        Licensed under the BSD license
+        Replace kernel by disconnecting from the current one and connecting to
+        another kernel, which is equivalent to a restart.
         """
-        sw = self.shellwidget
-        if sw.is_external_kernel:
-            sw._append_plain_text(
-                _('Cannot restart a kernel not started by Spyder\n'),
-                before_prompt=True
-            )
-            return
+        # Connect kernel to client
+        self.disconnect_kernel(shutdown_kernel)
+        self.connect_kernel(kernel_handler, first_connect=False)
 
-        if self.infowidget is not None:
-            if self.infowidget.isVisible():
-                self.infowidget.hide()
+        # Reset shellwidget and print restart message
+        self.shellwidget.reset(clear=True)
+        self.shellwidget.print_restart_message()
 
-        # Close comm
-        sw.spyder_kernel_comm.close()
-
-        if self._abort_kernel_restart():
-            return
-
-        # Stop autorestart mechanism
-        sw.kernel_manager.stop_restarter()
-        sw.kernel_manager.autorestart = False
-
-        # Reconfigure client before the new kernel is connected again.
-        self._before_prompt_is_ready()
-
-        # Replace std files to avoid catching old kernel errors
-        self.kernel_handler.replace_std_files()
-
-        # Create and run restarting thread
-        if (
-            self.restart_thread is not None
-            and self.restart_thread.isRunning()
-        ):
-            self.restart_thread.finished.disconnect()
-            self.restart_thread.quit()
-            self.restart_thread.wait()
-        self.restart_thread = QThread(None)
-        self.restart_thread.run = self._restart_thread_main
-        self.restart_thread.error = None
-        self.restart_thread.finished.connect(
-            lambda: self._finalise_restart(True))
-        self.restart_thread.start()
-
-    def _restart_thread_main(self):
-        """Restart the kernel in a thread."""
-        try:
-            self.shellwidget.kernel_manager.restart_kernel(
-                stderr=self.stderr_obj.handle,
-                stdout=self.stdout_obj.handle)
-        except RuntimeError as e:
-            self.restart_thread.error = e
-
-    def _finalise_restart(self, reset=False):
-        """Finishes the restarting of the kernel."""
-        sw = self.shellwidget
-
-        if self._abort_kernel_restart():
-            sw.spyder_kernel_comm.remove()
-            return
-
-        if self.restart_thread and self.restart_thread.error is not None:
-            sw._append_plain_text(
-                _('Error restarting kernel: %s\n') % self.restart_thread.error,
-                before_prompt=True
-            )
-        else:
-            fault = self.kernel_handler.get_fault_text()
-            if fault:
-                self.shellwidget._append_plain_text(
-                    '\n' + fault, before_prompt=True)
-
-            # Reset Pdb state and reopen comm
-            sw.reset_kernel_state()
-
-            # Reopen comm
-            sw.spyder_kernel_comm.remove()
-            try:
-                sw.spyder_kernel_comm.open_comm(sw.kernel_client)
-            except AttributeError:
-                # An error occurred while opening our comm channel.
-                # Aborting!
-                return
-
-            # Start autorestart mechanism
-            sw.kernel_manager.autorestart = True
-            sw.kernel_manager.start_restarter()
-
-            if reset:
-                sw.reset(clear=True)
-            sw._append_html(_("<br>Restarting kernel...<br>"),
-                            before_prompt=True)
-            sw.insert_horizontal_ruler()
-
-            sw.send_spyder_kernel_configuration()
-
-        self.restart_thread = None
-        self.sig_execution_state_changed.emit()
+    def print_fault(self, fault):
+        """Print fault text."""
+        self.shellwidget._append_plain_text(
+            '\n' + fault, before_prompt=True)
 
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        if self.stderr_obj is not None:
-            # If there are kernel creation errors, jupyter_client will
-            # try to restart the kernel and qtconsole prints a
-            # message about it.
-            # So we read the kernel's stderr_file and display its
-            # contents in the client instead of the usual message shown
-            # by qtconsole.
-            self.poll_std_file_change()
-        else:
-            self.shellwidget._append_html("<br>%s<hr><br>" % msg,
-                                          before_prompt=False)
+        self.shellwidget._append_html("<br>%s<hr><br>" % msg,
+                                      before_prompt=False)
 
     @Slot()
     def enter_array_inline(self):
@@ -857,3 +700,4 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 self.info_page,
                 QUrl.fromLocalFile(self.css_path)
             )
+            self.sig_execution_state_changed.emit()

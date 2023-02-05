@@ -23,10 +23,6 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.utils import is_anaconda
-from spyder.plugins.completion.api import (
-    CompletionRequestTypes, CompletionItemKind)
-from spyder.plugins.completion.providers.kite.providers.document import (
-    KITE_COMPLETION)
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
 from spyder.py3compat import PY2
@@ -219,11 +215,12 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.order(1)
-@flaky(max_runs=5)
+@flaky(max_runs=10)
 def test_automatic_completions(completions_codeeditor, qtbot):
     """Test on-the-fly completions."""
     code_editor, _ = completions_codeeditor
     completion = code_editor.completion_widget
+    delay = 50
     code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
@@ -231,8 +228,8 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     # Complete f -> from
     with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'f')
+                          timeout=3000) as sig:
+        qtbot.keyClicks(code_editor, 'f', delay=delay)
 
     assert "from" in [x['label'] for x in sig.args[0]]
     # qtbot.keyPress(code_editor, Qt.Key_Tab)
@@ -252,19 +249,19 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' n')
+        qtbot.keyClicks(code_editor, ' n', delay=delay)
 
     assert "ntpath" in [x['label'] for x in sig.args[0]]
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'ump')
+        qtbot.keyClicks(code_editor, 'ump', delay=delay)
 
     assert "numpy" in [x['label'] for x in sig.args[0]]
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'y')
+        qtbot.keyClicks(code_editor, 'y', delay=delay)
 
     # Due to automatic completion, the completion widget may appear before
     stop = False
@@ -279,7 +276,7 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' imp')
+        qtbot.keyClicks(code_editor, ' imp', delay=delay)
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
@@ -302,7 +299,7 @@ def test_automatic_completions(completions_codeeditor, qtbot):
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, ' r')
+        qtbot.keyClicks(code_editor, ' r', delay=delay)
 
     assert "random" in [x['label'] for x in sig.args[0]]
     code_editor.toggle_code_snippets(True)
@@ -366,7 +363,7 @@ def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
     Test on-the-fly completions.
@@ -378,11 +375,13 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
     code_editor, _ = completions_codeeditor
     completion = code_editor.completion_widget
+    delay = 50
     code_editor.toggle_code_snippets(False)
 
     # Parens:
     # Set cursor to start
     code_editor.set_text('my_list = [1, 2, 3]\nlist_copy = list((my))')
+    qtbot.wait(500)
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
@@ -394,13 +393,15 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Complete my_ -> my_list
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
-        qtbot.keyClicks(code_editor, '_')
+        qtbot.keyClicks(code_editor, '_', delay=delay)
 
     assert "my_list" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter)
 
     # Square braces:
     # Set cursor to start
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = my_dic[on]')
+    qtbot.wait(500)
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
@@ -411,13 +412,15 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Complete one -> onesee
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
-        qtbot.keyClicks(code_editor, 'e')
+        qtbot.keyClicks(code_editor, 'e', delay=delay)
 
     assert "onesee" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter)
 
     # Curly braces:
     # Set cursor to start
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = {on}')
+    qtbot.wait(500)
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
@@ -428,9 +431,10 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     # Complete one -> onesee
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
-        qtbot.keyClicks(code_editor, 'e')
+        qtbot.keyClicks(code_editor, 'e', delay=delay)
 
     assert "onesee" in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(completion, Qt.Key_Enter)
 
 
 @pytest.mark.slow
@@ -1063,55 +1067,6 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
-def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
-    """Test textEdit completions such as those returned by the Kite provider.
-
-    This mocks out the completions response, and does not test the Kite
-    provider directly.
-    """
-    code_editor, mock_response = mock_completions_codeeditor
-    completion = code_editor.completion_widget
-
-    code_editor.toggle_automatic_completions(False)
-    code_editor.toggle_code_snippets(False)
-
-    # Set cursor to start
-    code_editor.go_to_line(1)
-
-    qtbot.keyClicks(code_editor, 'my_dict.')
-
-    # Complete my_dict. -> my_dict["dict-key"]
-    mock_response.side_effect = lambda lang, method, params: {'params': [{
-        'kind': CompletionItemKind.TEXT,
-        'label': '["dict-key"]',
-        'textEdit': {
-            'newText': '["dict-key"]',
-            'range': {
-                'start': 7,
-                'end': 8,
-            },
-        },
-        'filterText': '',
-        'sortText': '',
-        'documentation': '',
-        'provider': KITE_COMPLETION,
-    }]} if method == CompletionRequestTypes.DOCUMENT_COMPLETION else None
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
-    mock_response.side_effect = None
-
-    assert '["dict-key"]' in [x['label'] for x in sig.args[0]]
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
-    assert code_editor.toPlainText() == 'my_dict["dict-key"]\n'
-
-    code_editor.toggle_automatic_completions(True)
-    code_editor.toggle_code_snippets(True)
-
-
-@pytest.mark.slow
-@pytest.mark.order(1)
-@flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason='Hangs on Windows')
 def test_completions_extra_paths(completions_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""
@@ -1125,7 +1080,7 @@ def test_completions_extra_paths(completions_codeeditor, qtbot, tmpdir):
 def spam():
     pass
 '''
-    CONF.set('main', 'spyder_pythonpath', [])
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', [])
     completion_plugin.after_configuration_update([])
     qtbot.wait(500)
     qtbot.keyClicks(code_editor, 'import foo')
@@ -1143,7 +1098,7 @@ def spam():
 
     # Set extra paths
     print(extra_paths)
-    CONF.set('main', 'spyder_pythonpath', extra_paths)
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', extra_paths)
     completion_plugin.after_configuration_update([])
     code_editor.document_did_change()
     qtbot.wait(500)
@@ -1158,7 +1113,7 @@ def spam():
     assert code_editor.toPlainText() == 'import foo\nfoo.spam'
 
     # Reset extra paths
-    CONF.set('main', 'spyder_pythonpath', [])
+    CONF.set('pythonpath_manager', 'spyder_pythonpath', [])
     completion_plugin.after_configuration_update([])
     qtbot.wait(500)
 
@@ -1171,7 +1126,7 @@ def spam():
                     reason="Quite flaky with Linux on CI")
 @pytest.mark.skipif(running_in_ci() and sys.platform == 'darwin',
                     reason="Quite flaky with MacOS on CI")
-@flaky(max_runs=5)
+@flaky(max_runs=20)
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""
     code_editor, completion_plugin = completions_codeeditor

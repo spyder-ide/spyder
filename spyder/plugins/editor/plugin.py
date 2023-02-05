@@ -54,7 +54,7 @@ from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
-                                                  EditorStack,)
+                                                  EditorStack)
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
@@ -360,9 +360,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
 
-        # Change module completions when PYTHONPATH changes
-        self.main.sig_pythonpath_changed.connect(self.set_path)
-
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
@@ -384,6 +381,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
+        editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
         self.editorsplitter = EditorSplitter(self, self,
@@ -426,7 +424,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             cursor = current_editor.textCursor()
             self.add_cursor_to_history(filename, cursor)
         self.update_cursorpos_actions()
-        self.set_path()
 
     def set_projects(self, projects):
         self.projects = projects
@@ -1397,6 +1394,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
+        logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
 
@@ -1454,8 +1452,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             ('set_automatic_completions_enabled',   'automatic_completions'),
             ('set_automatic_completions_after_chars',
              'automatic_completions_after_chars'),
-            ('set_automatic_completions_after_ms',
-             'automatic_completions_after_ms'),
             ('set_completions_hint_enabled',        'completions_hint'),
             ('set_completions_hint_after_ms',
              'completions_hint_after_ms'),
@@ -1577,10 +1573,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
+        logger.debug("Unregistering EditorStack")
         self.remove_last_focused_editorstack(editorstack)
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
+            self.find_widget.set_editor(self.get_current_editor())
             return True
         else:
             # editorstack was not removed!
@@ -1678,8 +1676,15 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             super(Editor, self).switch_to_plugin()
 
     def create_new_window(self):
+        """Create a new editor window."""
         window = EditorMainWindow(
-            self, self.stack_menu_actions, self.toolbar_list, self.menu_list)
+            self,
+            self.stack_menu_actions,
+            self.toolbar_list,
+            self.menu_list,
+            outline_plugin=self.outlineexplorer
+        )
+
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -1690,10 +1695,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return window
 
     def register_editorwindow(self, window):
+        """Register a new editor window."""
+        logger.debug("Registering new window")
         self.editorwindows.append(window)
 
     def unregister_editorwindow(self, window):
-        self.editorwindows.pop(self.editorwindows.index(window))
+        """Unregister editor window."""
+        logger.debug("Unregistering window")
+        idx = self.editorwindows.index(window)
+        self.editorwindows[idx] = None
+        self.editorwindows.pop(idx)
 
 
     #------ Accessors
@@ -1746,10 +1757,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         editorstack = self.get_current_editorstack(editorwindow)
         return editorstack.set_current_filename(filename, focus)
-
-    def set_path(self):
-        for finfo in self.editorstacks[0].data:
-            finfo.path = self.main.get_spyder_pythonpath()
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -2035,7 +2042,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # See: spyder-ide/spyder#12596
         finfo = self.editorstacks[0].new(fname, enc, text, default_content,
                                          empty=True)
-        finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts(current_editor)
@@ -2102,10 +2108,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         cursor_history_state = self.__ignore_cursor_history
         self.__ignore_cursor_history = True
-        # Switch to editor before trying to load a file
+
+        # Switch to editor before trying to load a file.
+        # Here we catch RuntimeError to avoid an issue when loading files.
+        # Fixes spyder-ide/spyder#20055
         try:
             self.switch_to_plugin()
-        except AttributeError:
+        except (AttributeError, RuntimeError):
             pass
 
         editor0 = self.get_current_editor()
@@ -2227,7 +2236,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 finfo = self.editorstacks[0].load(
                     filename, set_current=False, add_where=add_where,
                     processevents=processevents)
-                finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
@@ -3284,13 +3292,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             logger.debug(f"Set chars for automatic completions to {value}")
             for editorstack in self.editorstacks:
                 editorstack.set_automatic_completions_after_chars(value)
-
-    @on_conf_change(option='automatic_completions_after_ms')
-    def set_automatic_completions_after_ms(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set automatic completions after {value} ms")
-            for editorstack in self.editorstacks:
-                editorstack.set_automatic_completions_after_ms(value)
 
     @on_conf_change(option='completions_hint')
     def set_completions_hint_enabled(self, value):

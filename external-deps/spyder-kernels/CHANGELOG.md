@@ -1,5 +1,23 @@
 # History of changes
 
+## Version 2.4.1 (2022-12-29)
+
+### Issues Closed
+
+* [Issue 427](https://github.com/spyder-ide/spyder-kernels/issues/427) - Make spyder-kernels compatible with IPython 8 ([PR 419](https://github.com/spyder-ide/spyder-kernels/pull/419) by [@eendebakpt](https://github.com/eendebakpt))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 419](https://github.com/spyder-ide/spyder-kernels/pull/419) - PR: Update IPython requirement to support version 8, by [@eendebakpt](https://github.com/eendebakpt) ([427](https://github.com/spyder-ide/spyder-kernels/issues/427))
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 2.4.0 (2022-11-02)
 
 ### New features

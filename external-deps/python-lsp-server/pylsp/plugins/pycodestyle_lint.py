@@ -2,8 +2,11 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
+
 import pycodestyle
+
 from pylsp import hookimpl, lsp
+from pylsp._utils import get_eol_chars
 
 try:
     from autopep8 import continued_indentation as autopep8_c_i
@@ -22,30 +25,41 @@ log = logging.getLogger(__name__)
 
 @hookimpl
 def pylsp_lint(workspace, document):
-    config = workspace._config
-    settings = config.plugin_settings('pycodestyle', document_path=document.path)
-    log.debug("Got pycodestyle settings: %s", settings)
+    with workspace.report_progress("lint: pycodestyle"):
+        config = workspace._config
+        settings = config.plugin_settings('pycodestyle', document_path=document.path)
+        log.debug("Got pycodestyle settings: %s", settings)
 
-    opts = {
-        'exclude': settings.get('exclude'),
-        'filename': settings.get('filename'),
-        'hang_closing': settings.get('hangClosing'),
-        'ignore': settings.get('ignore'),
-        'max_line_length': settings.get('maxLineLength'),
-        'indent_size': settings.get('indentSize'),
-        'select': settings.get('select'),
-    }
-    kwargs = {k: v for k, v in opts.items() if v}
-    styleguide = pycodestyle.StyleGuide(kwargs)
+        opts = {
+            'exclude': settings.get('exclude'),
+            'filename': settings.get('filename'),
+            'hang_closing': settings.get('hangClosing'),
+            'ignore': settings.get('ignore'),
+            'max_line_length': settings.get('maxLineLength'),
+            'indent_size': settings.get('indentSize'),
+            'select': settings.get('select'),
+        }
+        kwargs = {k: v for k, v in opts.items() if v}
+        styleguide = pycodestyle.StyleGuide(kwargs)
 
-    c = pycodestyle.Checker(
-        filename=document.uri, lines=document.lines, options=styleguide.options,
-        report=PyCodeStyleDiagnosticReport(styleguide.options)
-    )
-    c.check_all()
-    diagnostics = c.report.diagnostics
+        # Use LF to lint file because other line endings can give false positives.
+        # See spyder-ide/spyder#19565 for context.
+        source = document.source
+        eol_chars = get_eol_chars(source)
+        if eol_chars in ['\r', '\r\n']:
+            source = source.replace(eol_chars, '\n')
+            lines = source.splitlines(keepends=True)
+        else:
+            lines = document.lines
 
-    return diagnostics
+        c = pycodestyle.Checker(
+            filename=document.path, lines=lines, options=styleguide.options,
+            report=PyCodeStyleDiagnosticReport(styleguide.options)
+        )
+        c.check_all()
+        diagnostics = c.report.diagnostics
+
+        return diagnostics
 
 
 class PyCodeStyleDiagnosticReport(pycodestyle.BaseReport):

@@ -22,5 +22,5 @@ The API version should be modified according to the following rules:
    updated.
 """
 
-VERSION_INFO = (0, 8, 1)
+VERSION_INFO = (0, 9, 1)
 __version__ = '.'.join(map(str, VERSION_INFO))

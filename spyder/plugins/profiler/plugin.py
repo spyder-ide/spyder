@@ -178,12 +178,8 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
         wdir = cwd_opts['path']
         args = params['args']
 
-        # TODO: how to get access to this in a better way?
-        pythonpath = self.main.get_spyder_pythonpath()
-
         self.get_widget().analyze(
             filename,
             wdir=wdir,
-            args=args,
-            pythonpath=pythonpath
+            args=args
         )

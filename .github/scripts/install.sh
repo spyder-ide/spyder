@@ -32,12 +32,8 @@ if [ "$USE_CONDA" = "true" ]; then
     # To check our manifest and coverage
     mamba install check-manifest codecov -c conda-forge -q -y
 
-    # Numpy 1.23 is not giving completions on the editor and the console
-    if [ "$OS" = "win" ]; then
-        mamba install numpy=1.22
-    else
-        mamba install 'numpy<1.23'
-    fi
+    # Install IPython 8
+    mamba install -c conda-forge ipython=8
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -54,14 +50,14 @@ else
     # To check our manifest and coverage
     pip install -q check-manifest codecov
 
-    # Numpy 1.23 is not giving completions on the editor and the console
-    pip install 'numpy<1.23'
-
     # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
+
+    # Install IPython 8
+    pip install ipython==8.7.0
 fi
 
 # Install subrepos from source
@@ -77,11 +73,12 @@ python -bb -X dev -W error -m build
 python -bb -X dev -W error -m pip install --no-deps dist/spyder*.whl
 
 # Create environment for Jedi environments tests
-mamba create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
+mamba create -n jedi-test-env -q -y python=3.9 flask spyder-kernels
 mamba list -n jedi-test-env
 
 # Create environment to test conda activation before launching a spyder kernel
-mamba create -n spytest-ž -q -y python=3.6 spyder-kernels
+mamba create -n spytest-ž -q -y python=3.9
+mamba run -n spytest-ž python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
 mamba list -n spytest-ž
 
 # Install pyenv in Posix systems

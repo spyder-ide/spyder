@@ -174,9 +174,9 @@ class OutlineExplorerWidget(PluginMainWidget):
             # need to set the treewidget visibility to True for it to be
             # updated after writing new content in the editor.
             # Fixes spyder-ide/spyder#16634
-            self.treewidget.change_visibility(True)
+            self.change_tree_visibility(True)
         else:
-            self.treewidget.change_visibility(self.is_visible)
+            self.change_tree_visibility(self.is_visible)
 
     def create_window(self):
         """
@@ -216,9 +216,17 @@ class OutlineExplorerWidget(PluginMainWidget):
         """Update all editors with an associated LSP server."""
         self.treewidget.update_all_editors()
 
+    def get_supported_languages(self):
+        """List of languages with symbols support."""
+        return self.treewidget._languages
+
+    def change_tree_visibility(self, is_visible):
+        "Change treewidget's visibility."
+        self.treewidget.change_visibility(is_visible)
+
     # ---- Private API
     # -------------------------------------------------------------------------
-    @Slot(Qt.WindowStates)
+    @Slot(object)
     def _handle_undocked_window_state(self, window_state):
         """
         Change treewidget visibility when the plugin is undocked and its
@@ -227,6 +235,6 @@ class OutlineExplorerWidget(PluginMainWidget):
         if window_state == Qt.WindowMinimized:
             # There's no need to update the treewidget when the plugin is
             # minimized.
-            self.treewidget.change_visibility(False)
+            self.change_tree_visibility(False)
         else:
-            self.treewidget.change_visibility(True)
+            self.change_tree_visibility(True)

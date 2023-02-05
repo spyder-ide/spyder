@@ -1349,7 +1349,10 @@ class CollectionsEditorTableView(BaseTableView):
     def get_len(self, key):
         """Return sequence length"""
         data = self.source_model.get_data()
-        return len(data[key])
+        if self.is_array(key):
+            return self.get_array_ndim(key)
+        else:
+            return len(data[key])
 
     def is_array(self, key):
         """Return True if variable is a numpy array"""
@@ -1871,7 +1874,6 @@ def get_test_data():
             'float16_scalar': np.float16(16),
             'float32_scalar': np.float32(32),
             'float64_scalar': np.float64(64),
-            'bool_scalar': np.bool(8),
             'bool__scalar': np.bool_(8),
             'timestamp': test_timestamp,
             'timedelta_pd': test_pd_td,

@@ -100,7 +100,8 @@ def pylsp_completions(config, document, position):
             if c.type == 'function':
                 completion_dict = _format_completion(
                     c,
-                    False,
+                    markup_kind=preferred_markup_kind,
+                    include_params=False,
                     resolve=resolve_eagerly,
                     resolve_label_or_snippet=(i < max_to_resolve)
                 )

@@ -35,16 +35,31 @@ def test_definitions(config, workspace):
     }
 
     doc = Document(DOC_URI, workspace, DOC)
-    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, doc, cursor_pos)
+    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, workspace, doc, cursor_pos)
 
 
 def test_builtin_definition(config, workspace):
     # Over 'i' in dict
     cursor_pos = {'line': 8, 'character': 24}
 
-    # No go-to def for builtins
     doc = Document(DOC_URI, workspace, DOC)
-    assert not pylsp_definitions(config, doc, cursor_pos)
+    orig_settings = config.settings()
+
+    # Check definition for `dict` goes to `builtins.pyi::dict`
+    follow_defns_setting = {'follow_builtin_definitions': True}
+    settings = {'plugins': {'jedi_definition': follow_defns_setting}}
+    config.update(settings)
+    defns = pylsp_definitions(config, workspace, doc, cursor_pos)
+    assert len(defns) == 1
+    assert defns[0]["uri"].endswith("builtins.pyi")
+
+    # Check no definitions for `dict`
+    follow_defns_setting['follow_builtin_definitions'] = False
+    config.update(settings)
+    defns = pylsp_definitions(config, workspace, doc, cursor_pos)
+    assert not defns
+
+    config.update(orig_settings)
 
 
 def test_assignment(config, workspace):
@@ -58,7 +73,7 @@ def test_assignment(config, workspace):
     }
 
     doc = Document(DOC_URI, workspace, DOC)
-    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, doc, cursor_pos)
+    assert [{'uri': DOC_URI, 'range': def_range}] == pylsp_definitions(config, workspace, doc, cursor_pos)
 
 
 def test_document_path_definitions(config, workspace_other_root_path, tmpdir):
@@ -91,4 +106,6 @@ def foo():
     module_path = str(p)
     module_uri = uris.from_fs_path(module_path)
 
-    assert [{'uri': module_uri, 'range': def_range}] == pylsp_definitions(config, doc, cursor_pos)
+    assert [{"uri": module_uri, "range": def_range}] == pylsp_definitions(
+        config, workspace_other_root_path, doc, cursor_pos
+    )

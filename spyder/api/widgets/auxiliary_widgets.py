@@ -9,7 +9,7 @@ Spyder API auxiliary widgets.
 """
 
 # Third party imports
-from qtpy.QtCore import QEvent, Qt, QSize, Signal
+from qtpy.QtCore import QEvent, QSize, Signal
 from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
 
 # Local imports
@@ -25,7 +25,7 @@ class SpyderWindowWidget(QMainWindow):
     sig_closed = Signal()
     """This signal is emitted when the close event is fired."""
 
-    sig_window_state_changed = Signal(Qt.WindowStates)
+    sig_window_state_changed = Signal(object)
     """
     This signal is emitted when the window state has changed (for instance,
     between maximized and minimized states).

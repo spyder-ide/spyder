@@ -35,6 +35,7 @@ class Plugins:
     Profiler = 'profiler'
     Projects = 'project_explorer'
     Pylint = 'pylint'
+    PythonpathManager = 'pythonpath_manager'
     Run = 'run'
     Shortcuts = 'shortcuts'
     StatusBar = 'statusbar'

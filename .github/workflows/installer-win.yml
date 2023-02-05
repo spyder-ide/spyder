@@ -19,6 +19,10 @@ on:
     types:
       - created
 
+concurrency:
+  group: installer-win-${{ github.ref }}
+  cancel-in-progress: true
+
 name: Create Windows Installer
 
 jobs:
@@ -29,9 +33,9 @@ jobs:
       matrix:
         build_type: ['Lite', 'Full']
     env:
-      UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree QDarkStyle PyNaCl' || 'pip python-slugify Rtree PyNaCl' }}
+      UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels python-slugify Rtree QDarkStyle PyNaCl psutil' || 'pip python-slugify Rtree PyNaCl psutil' }}
       SKIP_PACKAGES: 'bcrypt slugify'
-      ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle nacl' || 'blib2to3 _black_version blackd rtree nacl' }}
+      ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'spyder_kernels blib2to3 _black_version blackd rtree qdarkstyle nacl psutil' || 'blib2to3 _black_version blackd rtree nacl psutil' }}
       PYNSIST_REQ: pynsist==2.7
       EXTRA_FLAG: ${{ matrix.build_type == 'Full' && github.event_name == 'pull_request' && '-ep installers/Windows/req-extras-pull-request.txt' || matrix.build_type == 'Lite' && github.event_name == 'pull_request' && '-ep installers/Windows/req-pull-request.txt' || matrix.build_type == 'Full' && '-ep installers/Windows/req-extras-release.txt' || '-ep installers/Windows/req-release.txt' }}
       SUFFIX_FLAG: ${{ matrix.build_type == 'Lite' && '-s lite' || '-s full' }}

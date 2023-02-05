@@ -23,6 +23,8 @@ from qtpy.QtCore import Qt
 from spyder.config.base import running_in_ci
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.widgets import editor
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
+    path_as_uri)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
@@ -438,36 +440,6 @@ def test_save_all(editor_bot, mocker):
 
 
 @pytest.mark.show_save_dialog
-def test_save_as_lsp_calls(editor_bot, mocker, tmpdir):
-    """
-    Test that EditorStack.save_as() sends the expected LSP requests.
-
-    Regression test for spyder-ide/spyder#13085.
-    """
-    editorstack, qtbot = editor_bot
-
-    # Set and assert the initial state.
-    editorstack.tabs.setCurrentIndex(1)
-    assert editorstack.get_current_filename() == 'secondtab.py'
-    editor = editorstack.get_current_editor()
-    mocker.patch.object(editor, 'notify_close')
-    mocker.patch.object(editor, 'document_did_open')
-
-    # Save file with a different name.
-    new_filename = osp.join(tmpdir.strpath, 'foo.py')
-    mocker.patch.object(editorstack, 'select_savename',
-                        return_value=new_filename)
-    assert not osp.exists(new_filename)
-    assert editorstack.save_as() is True
-    assert editorstack.get_filenames() == ['foo.py', new_filename, __file__]
-    assert osp.exists(new_filename)
-
-    # Assert we sent notify_close and document_did_open
-    assert editor.notify_close.call_count == 1
-    assert editor.document_did_open.call_count == 1
-
-
-@pytest.mark.show_save_dialog
 def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     """
     Test EditorStack.save_as() when changing the file type.
@@ -547,6 +519,154 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     assert saved_text == 'some = 0\nsomething = 1\nsome'
 
     code_editor.toggle_code_snippets(True)
+
+
+@pytest.mark.show_save_dialog
+def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
+    """
+    Test that EditorStack.save_as() sends the expected LSP requests.
+
+    Regression test for spyder-ide/spyder#13085 and spyder-ide/spyder#20047
+    """
+    file_path, editorstack, code_editor, completion_plugin = completions_editor
+
+    mocker.patch.object(code_editor, 'emit_request',
+                        wraps=code_editor.emit_request)
+    mocker.patch.object(code_editor, 'request_folding',
+                        wraps=code_editor.request_folding)
+    mocker.patch.object(code_editor, 'request_symbols',
+                        wraps=code_editor.request_symbols)
+    mocker.patch.object(code_editor, 'handle_folding_range',
+                        wraps=code_editor.handle_folding_range)
+    mocker.patch.object(code_editor, 'process_symbols',
+                        wraps=code_editor.process_symbols)
+
+    def symbols_and_folding_requested():
+        return (
+            code_editor.request_symbols.call_count == 1
+            and code_editor.request_folding.call_count == 1
+        )
+
+    def symbols_and_folding_processed():
+        return (
+            code_editor.process_symbols.call_count == 1
+            and code_editor.handle_folding_range.call_count == 1
+        )
+
+    # === Set and assert initial state
+    assert editorstack.get_current_filename().endswith('test.py')
+    assert editorstack.get_current_editor() is code_editor
+
+    code_editor.set_text(dedent("""
+        def foo(x):
+            a = 0
+            b = 1
+    """))
+
+    # Folding and symbols are requested some time after text is changed (see
+    # usage of textChanged signal and _timer_sync_symbols_and_folding in
+    # CodeEditor).
+    qtbot.waitUntil(symbols_and_folding_requested, timeout=5000)
+    qtbot.waitUntil(symbols_and_folding_processed, timeout=5000)
+
+    # Check response by LSP
+    assert code_editor.handle_folding_range.call_args == \
+           mocker.call({'params': [(1, 3)]})
+
+    symbols = [
+        {
+            'name': 'foo',
+            'containerName': None,
+            'location': {
+                'uri': path_as_uri(str(file_path)),
+                'range': {
+                    'start': {'line': 1, 'character': 0},
+                    'end': {'line': 4, 'character': 0}
+                }
+            },
+            'kind': 12
+        },
+        {
+            'name': 'a',
+            'containerName': 'foo',
+            'location': {
+                'uri': path_as_uri(str(file_path)),
+                'range': {
+                    'start': {'line': 2, 'character': 4},
+                    'end': {'line': 2, 'character': 9}
+                }
+            },
+            'kind': 13
+        },
+        {
+            'name': 'b',
+            'containerName': 'foo',
+            'location': {
+                'uri': path_as_uri(str(file_path)),
+                'range': {
+                    'start': {'line': 3, 'character': 4},
+                    'end': {'line': 3, 'character': 9}
+                }
+            },
+            'kind': 13
+        }
+    ]
+
+    assert code_editor.process_symbols.call_args == \
+           mocker.call({'params': symbols})
+
+    # === Reset mocks
+    code_editor.emit_request.reset_mock()
+    code_editor.request_folding.reset_mock()
+    code_editor.request_symbols.reset_mock()
+    code_editor.handle_folding_range.reset_mock()
+    code_editor.process_symbols.reset_mock()
+
+    # === Use Save as
+    new_filename = osp.join(tmpdir.strpath, 'new_filename.py')
+    mocker.patch.object(editorstack, 'select_savename',
+                        return_value=new_filename)
+    assert not osp.exists(new_filename)
+    assert editorstack.save_as() is True
+    assert editorstack.get_filenames() == [new_filename]
+    assert osp.exists(new_filename)
+
+    # === Check that expected LSP calls have been made
+    assert code_editor.emit_request.call_count == 2
+
+    # First call: notify_close() must have been called
+    call = code_editor.emit_request.call_args_list[0]
+    assert call.args[0] == 'textDocument/didClose'
+    assert call.args[1]['file'].endswith('test.py')
+
+    # Second call: document_did_open() must have been called
+    call = code_editor.emit_request.call_args_list[1]
+    assert call.args[0] == 'textDocument/didOpen'
+    assert call.args[1]['file'].endswith('new_filename.py')
+
+    # === Append new text
+    code_editor.append(dedent("""
+            c = 2
+
+        def bar():
+            x = 0
+            y = -1
+    """))
+
+    # === Check that expected (LSP) calls have been made
+    qtbot.waitUntil(symbols_and_folding_requested, timeout=5000)
+    qtbot.waitUntil(symbols_and_folding_processed, timeout=5000)
+
+    # We could check that emit_request() has been called as expected, however,
+    # this is checked impliclity by the asserts below (which check that the LSP
+    # responded to the requests).
+
+    # Check that LSP responded with updated folding and symbols information
+    assert code_editor.handle_folding_range.call_args == \
+           mocker.call({'params': [(1, 5), (7, 9)]})
+
+    # There must be 7 symbols (2 functions and 5 variables)
+    assert len(code_editor.process_symbols.call_args.args[0]['params']) == 7
 
 
 if __name__ == "__main__":

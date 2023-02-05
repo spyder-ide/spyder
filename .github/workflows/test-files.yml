@@ -33,6 +33,10 @@ on:
       - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
+concurrency:
+  group: test-files-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Linux - Py${{ matrix.PYTHON_VERSION }}
@@ -45,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.9']
+        PYTHON_VERSION: ['3.8', '3.10']
     timeout-minutes: 30
     steps:
       - name: Checkout Pull Requests
@@ -76,11 +80,11 @@ jobs:
       - name: Cache conda
         uses: actions/cache@v2
         env:
-          # Increase this value to reset cache if requirements/*.txt has not changed
+          # Increase this value to reset cache if requirements/*.yml has not changed
           CACHE_NUMBER: 0
         with:
           path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-cacheconda-installconda-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
+          key: ${{ runner.os }}-cacheconda-installconda-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
         if: env.RUN_BUILD == 'true'
         uses: actions/cache@v2
@@ -95,7 +99,6 @@ jobs:
            auto-update-conda: false
            auto-activate-base: false
            python-version: ${{ matrix.PYTHON_VERSION }}
-           use-only-tar-bz2: true
            channels: conda-forge,defaults
            channel-priority: strict
            miniforge-variant: Mambaforge
@@ -103,14 +106,6 @@ jobs:
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
-      - name: Use QtAwesome 1.0.1
-        if: env.RUN_BUILD == 'true'
-        shell: bash -l {0}
-        run: pip install --no-deps qtawesome==1.0.1
-      - name: Install QDarkStyle from master
-        if: env.RUN_BUILD == 'true'
-        shell: bash -l {0}
-        run: pip install --no-deps git+https://github.com/ColinDuquesnoy/QDarkStyleSheet.git@develop
       - name: Show test environment
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}

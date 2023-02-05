@@ -33,10 +33,14 @@ on:
       - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
+concurrency:
+  group: test-linux-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       CI: 'true'
       QTCONSOLE_TESTING: 'true'
@@ -50,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.9']
+        PYTHON_VERSION: ['3.8', '3.10']
         TEST_TYPE: ['fast', 'slow']
     timeout-minutes: 120
     steps:
@@ -85,7 +89,7 @@ jobs:
           CACHE_NUMBER: 0
         with:
           path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
+          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
         if: env.RUN_BUILD == 'true'
         uses: actions/cache@v2
@@ -100,7 +104,6 @@ jobs:
           auto-update-conda: false
           auto-activate-base: false
           python-version: ${{ matrix.PYTHON_VERSION }}
-          use-only-tar-bz2: true
           channels: conda-forge,defaults
           channel-priority: strict
           miniforge-variant: Mambaforge

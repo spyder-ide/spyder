@@ -648,7 +648,7 @@ def test_dataframemodel_set_data_bool(monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    test_params = [numpy.bool_, numpy.bool, bool]
+    test_params = [numpy.bool_, bool]
     test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
     expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
 
@@ -676,7 +676,7 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    test_params = [numpy.bool_, numpy.bool, bool]
+    test_params = [numpy.bool_, bool]
     test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
     expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
 

@@ -3,8 +3,9 @@
 
 import os
 from io import StringIO
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 import pytest
+from pylsp_jsonrpc.endpoint import Endpoint
 
 from pylsp import uris
 from pylsp.config.config import Config
@@ -62,19 +63,30 @@ def pylsp_w_workspace_folders(tmpdir):
     return (ls, workspace_folders)
 
 
+@pytest.fixture()
+def consumer():
+    return MagicMock()
+
+
+@pytest.fixture()
+def endpoint(consumer):  # pylint: disable=redefined-outer-name
+    return Endpoint({}, consumer, id_generator=lambda: "id")
+
+
 @pytest.fixture
-def workspace(tmpdir):
+def workspace(tmpdir, endpoint):  # pylint: disable=redefined-outer-name
     """Return a workspace."""
-    ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
+    ws = Workspace(uris.from_fs_path(str(tmpdir)), endpoint)
     ws._config = Config(ws.root_uri, {}, 0, {})
-    return ws
+    yield ws
+    ws.close()
 
 
 @pytest.fixture
-def workspace_other_root_path(tmpdir):
+def workspace_other_root_path(tmpdir, endpoint):  # pylint: disable=redefined-outer-name
     """Return a workspace with a root_path other than tmpdir."""
     ws_path = str(tmpdir.mkdir('test123').mkdir('test456'))
-    ws = Workspace(uris.from_fs_path(ws_path), Mock())
+    ws = Workspace(uris.from_fs_path(ws_path), endpoint)
     ws._config = Config(ws.root_uri, {}, 0, {})
     return ws
 

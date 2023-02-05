@@ -850,6 +850,15 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         if wdir is not None:
             # wdir can come with / as os.sep, so we need to take care of it.
             wdir = wdir.replace('/', '\\')
+        
+        if osp.splitdrive(wdir)[0].startswith("\\\\"): #UNC paths start with \\
+            from qtpy.QtWidgets import QMessageBox
+            from spyder.config.base import _
+            QMessageBox.critical(None, _('Run'),
+                                 _("External terminal does not support a UNC "
+                                   "file path as the working directory."),
+                                 QMessageBox.Ok)
+            return
 
         # python_exe must be quoted in case it has spaces
         cmd = f'start cmd.exe /K ""{executable}" '
