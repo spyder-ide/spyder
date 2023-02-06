@@ -107,7 +107,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         self.is_sympy = is_sympy
         self.is_environment = is_environment
         self.path_to_environment = path_to_environment
-
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
         self.resource_dir = ''
@@ -117,11 +116,18 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         """Command to start kernels"""
         # Python interpreter used to start kernels
         if self.is_environment:
-            pyexec = self.path_to_environment
+            self.set_conf(
+                'executable', self.path_to_environment,
+                section='main_interpreter')
+            self.set_conf('default', False, section='main_interpreter')
+            self.set_conf('custom', True, section='main_interpreter')
         if self.get_conf('default', section='main_interpreter'):
             pyexec = get_python_executable()
         else:
             pyexec = self.get_conf('executable', section='main_interpreter')
+            if self.is_environment:
+                pyexec = self.path_to_environment
+            print('================================Pyexec_ :' + str(pyexec))
             if not has_spyder_kernels(pyexec):
                 raise SpyderKernelError(
                     ERROR_SPYDER_KERNEL_INSTALLED.format(
@@ -192,7 +198,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
-            'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
+            'SPY_EXTERNAL_INTERPRETER': True,
             'SPY_UMR_ENABLED': self.get_conf(
                 'umr/enabled', section='main_interpreter'),
             'SPY_UMR_VERBOSE': self.get_conf(
