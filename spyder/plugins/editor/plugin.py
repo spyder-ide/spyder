@@ -2993,10 +2993,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             editorstack.set_current_filename(fname)
 
     @Slot()
-    def run_selection(self, prefix=None):
+    def run_selection(self):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
-        editorstack.run_selection(prefix)
+        editorstack.run_selection()
 
     @Slot()
     def run_to_line(self):

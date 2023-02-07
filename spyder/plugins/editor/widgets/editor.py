@@ -2833,7 +2833,7 @@ class EditorStack(QWidget):
         """
         return self._run_lines_cursor(direction='down')
 
-    def run_selection(self, prefix=None):
+    def run_selection(self):
         """
         Run selected text or current line in console.
 
@@ -2850,7 +2850,6 @@ class EditorStack(QWidget):
         ret = self.get_current_editor().get_selection_as_executable_code()
         if ret:
             text, off_pos, line_col_pos = ret
-            # self.exec_in_extconsole.emit(text.rstrip(), self.focus_to_editor)
             return text, off_pos, line_col_pos, enc
 
         editor = self.get_current_editor()

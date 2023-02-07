@@ -410,9 +410,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         run_conf = editor.get_run_configuration(fname_uuid)
         fname_params = self.main.run.get_last_used_executor_parameters(
             fname_uuid)
+
         selected = None
         if fname_params['executor'] == self.main.ipyconsole.NAME:
             selected = fname_params['selected']
+
         if selected is None:
             ipy_params = IPythonConsolePyConfiguration(
                 current=True, post_mortem=False,
@@ -445,6 +447,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         It should only be called when an editor is available.
         """
+        # TODO: This is a temporary measure to debug selections whilst the
+        # debug API is defined.
         editor = self.get_plugin(Plugins.Editor, error=False)
         if editor:
             editor.run_cell(method="debugcell")
@@ -456,10 +460,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         It should only be called when an editor is available.
         """
-        # FIXME: This is broken!
+        # TODO: This is a temporary measure to debug selections whilst the
+        # debug API is defined.
         editor = self.get_plugin(Plugins.Editor, error=False)
         if editor:
-            editor.run_selection(prefix="%%debug\n")
+            editorstack = editor.get_current_editorstack()
+            text = "%%debug\n" + editorstack.run_selection()[0]
+            self.main.ipyconsole.run_selection(text)
 
     @Slot()
     def clear_all_breakpoints(self):
