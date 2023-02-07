@@ -87,8 +87,8 @@ def is_program_installed(basename):
             return basename
 
         pyenv = [
+            osp.join(home, '.pyenv', 'bin'),
             osp.join('/usr', 'local', 'bin'),
-            osp.join(home, '.pyenv', 'bin')
         ]
 
         # Prioritize Anaconda before Miniconda; local before global.
@@ -100,8 +100,8 @@ def is_program_installed(basename):
 
     elif sys.platform.startswith('linux'):
         pyenv = [
+            osp.join(home, '.pyenv', 'bin'),
             osp.join('/usr', 'local', 'bin'),
-            osp.join(home, '.pyenv', 'bin')
         ]
 
         a = [home, '/opt']
