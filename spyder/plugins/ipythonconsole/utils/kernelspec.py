@@ -127,7 +127,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             pyexec = self.get_conf('executable', section='main_interpreter')
             if self.is_environment:
                 pyexec = self.path_to_environment
-            print('================================Pyexec_ :' + str(pyexec))
             if not has_spyder_kernels(pyexec):
                 raise SpyderKernelError(
                     ERROR_SPYDER_KERNEL_INSTALLED.format(

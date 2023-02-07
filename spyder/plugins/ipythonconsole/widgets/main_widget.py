@@ -733,11 +733,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def update_environment_menu(self):
         """Update context menu information."""
-        #self.console_environment_menu.clear()
         self.get_envs()
         environment_consoles_names = self.envs
         environment_consoles = []
-        #self.console_environment_menu.clear_actions()
+        self.console_environment_menu.clear_actions()
         for item in environment_consoles_names:
             path_to_environment = str(environment_consoles_names[item][0])
             name = str(item)
@@ -756,6 +755,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 item,
                 menu=self.console_environment_menu
             )
+        self.console_environment_menu._render()
         
         
  
@@ -1491,7 +1491,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             give_focus=give_focus)
         # Create new kernel
 
-        print(path_to_environment)
         kernel_spec = SpyderKernelSpec(
             is_cython=is_cython,
             is_pylab=is_pylab,
