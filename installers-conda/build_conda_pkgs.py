@@ -48,6 +48,7 @@ SPYPATCHFILE = DIST / "installers-conda.patch"
 class BuildCondaPkg:
     """Base class for building a conda package for conda-based installer"""
     name = None
+    norm = True
     source = None
     feedstock = None
     shallow_ver = None
@@ -115,7 +116,8 @@ class BuildCondaPkg:
 
     def _get_version(self):
         """Get source version using setuptools_scm"""
-        self.version = get_version(self._bld_src).split('+')[0]
+        v = get_version(self._bld_src, normalize=self.norm)
+        self.version = v.lstrip('v').split('+')[0]
 
     def _patch_source(self):
         pass
@@ -193,6 +195,7 @@ class BuildCondaPkg:
 
 class SpyderCondaPkg(BuildCondaPkg):
     name = "spyder"
+    norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     shallow_ver = "v5.3.2"
@@ -318,13 +321,6 @@ class PylspCondaPkg(BuildCondaPkg):
     shallow_ver = "v1.4.1"
 
 
-class QdarkstyleCondaPkg(BuildCondaPkg):
-    name = "qdarkstyle"
-    source = os.environ.get('QDARKSTYLE_SOURCE')
-    feedstock = "https://github.com/conda-forge/qdarkstyle-feedstock"
-    shallow_ver = "v3.0.2"
-
-
 class QtconsoleCondaPkg(BuildCondaPkg):
     name = "qtconsole"
     source = os.environ.get('QTCONSOLE_SOURCE')
@@ -342,7 +338,6 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
 PKGS = {
     SpyderCondaPkg.name: SpyderCondaPkg,
     PylspCondaPkg.name: PylspCondaPkg,
-    QdarkstyleCondaPkg.name: QdarkstyleCondaPkg,
     QtconsoleCondaPkg.name: QtconsoleCondaPkg,
     SpyderKernelsCondaPkg.name: SpyderKernelsCondaPkg
 }
@@ -363,9 +358,9 @@ if __name__ == "__main__":
                 SpyderKernelsCondaPkg
 
             Spyder will be packaged from this repository (in its checked-out
-            state). qdarkstyle, qtconsole, spyder-kernels, and
-            python-lsp-server will be packaged from the remote and commit
-            specified in their respective .gitrepo files in external-deps.
+            state). qtconsole, spyder-kernels, and python-lsp-server will be
+            packaged from the remote and commit specified in their respective
+            .gitrepo files in external-deps.
 
             Alternatively, any external-deps may be packaged from an arbitrary
             git repository (in its checked out state) by setting the

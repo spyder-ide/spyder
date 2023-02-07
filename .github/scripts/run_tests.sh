@@ -1,8 +1,10 @@
 #!/bin/bash -ex
 
-# Adjust PATH in macOS
-if [ "$OS" = "macos" ]; then
-    PATH=/Users/runner/miniconda3/envs/test/bin:/Users/runner/miniconda3/condabin:$PATH
+# Add CONDA_EXE to the environment for our conda tests
+if [ "$OS" = "win" ]; then
+    export CONDA_EXE=$CONDA\\Scripts\\conda
+else
+    export CONDA_EXE=$CONDA/bin/conda
 fi
 
 # Run tests

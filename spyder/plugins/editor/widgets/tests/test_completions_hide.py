@@ -12,7 +12,6 @@ import pytest
 from qtpy.QtCore import Qt
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=10)
 def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
@@ -87,7 +86,6 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_widget_visible(completions_codeeditor, qtbot):

@@ -18,6 +18,7 @@ import sys
 from textwrap import dedent
 
 # Third party imports
+from ipykernel._version import __version__ as ipykernel_version
 import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
@@ -42,7 +43,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
-from spyder.utils.conda import get_conda_root_prefix
+from spyder.utils.conda import get_list_conda_envs
 
 
 @flaky(max_runs=3)
@@ -139,6 +140,9 @@ def test_auto_backend(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.tk_backend
+@pytest.mark.skipif(
+    os.name == 'nt' and (parse(ipykernel_version) == parse('6.21.0')),
+    reason="Fails on Windows with IPykernel 6.21.0")
 def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
@@ -1250,6 +1254,7 @@ def test_calltip(ipyconsole, qtbot):
 @pytest.mark.test_environment_interpreter
 @pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
+@pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_conda_env_activation(ipyconsole, qtbot):
     """
     Test that the conda environment associated with an external interpreter
@@ -2045,10 +2050,7 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
 
     # Point to an interpreter without Spyder-kernels
     ipyconsole.set_conf('default', False, section='main_interpreter')
-    if os.name == 'nt':
-        pyexec = osp.join(get_conda_root_prefix(), 'python.exe')
-    else:
-        pyexec = osp.join(get_conda_root_prefix(), 'bin', 'python')
+    pyexec = get_list_conda_envs()['conda: base'][0]
     ipyconsole.set_conf('executable', pyexec, section='main_interpreter')
 
     # Restart kernel

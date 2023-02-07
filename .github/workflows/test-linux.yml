@@ -33,6 +33,8 @@ on:
       - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
+  workflow_dispatch:
+
 concurrency:
   group: test-linux-${{ github.ref }}
   cancel-in-progress: true
@@ -60,30 +62,21 @@ jobs:
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Checkout Push
         if: github.event_name != 'pull_request'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Fetch branches
         run: git fetch --prune --unshallow
-      - name: Check build skips
-        if: github.event_name == 'pull_request'
-        shell: bash -l {0}
-        run: source .github/scripts/check_skip.sh
-      - name: Check build runs
-        if: github.event_name != 'pull_request'
-        shell: bash -l {0}
-        run: echo "RUN_BUILD=true" >> $GITHUB_ENV
       - name: Install dependencies
-        if: env.RUN_BUILD == 'true'
         shell: bash
         run: |
           sudo apt-get update --fix-missing
           sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache conda
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           # Increase this value to reset cache if requirements/*.txt has not changed
           CACHE_NUMBER: 0
@@ -91,38 +84,50 @@ jobs:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
-        if: env.RUN_BUILD == 'true'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
-      - name: Install Conda
-        if: env.RUN_BUILD == 'true'
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Create conda test environment
+        if: env.USE_CONDA == 'true'
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          activate-environment: test
-          auto-update-conda: false
-          auto-activate-base: false
-          python-version: ${{ matrix.PYTHON_VERSION }}
-          channels: conda-forge,defaults
-          channel-priority: strict
-          miniforge-variant: Mambaforge
-      - name: Create test environment
-        if: env.RUN_BUILD == 'true'
+          environment-file: requirements/main.yml
+          environment-name: test
+          cache-downloads: true
+          extra-specs: |
+            python=${{ matrix.PYTHON_VERSION }}
+      - name: Create pip test environment
+        if: env.USE_CONDA != 'true'
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: false
+          environment-name: test
+          cache-downloads: true
+          channels: conda-forge
+          extra-specs: |
+            python=${{ matrix.PYTHON_VERSION }}
+      - name: Install additional dependencies
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
-      - name: Show test environment
-        if: env.RUN_BUILD == 'true'
+      - name: Show conda test environment
+        if: env.USE_CONDA == 'true'
         shell: bash -l {0}
         run: |
-          conda info
-          conda list
+          micromamba info
+          micromamba list
+      - name: Show pip test environment
+        if: env.USE_CONDA != 'true'
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+          pip list
       #- name: Setup tmate session
-      #  if: env.RUN_BUILD == 'true'
+      #  if: env.USE_CONDA == 'true'
       #  uses: mxschmitt/action-tmate@v3
-      #  timeout-minutes: 30
+      #  timeout-minutes: 45
       - name: Run manifest checks
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: check-manifest
       - name: Run tests with gdb
@@ -130,7 +135,6 @@ jobs:
         shell: bash -l {0}
         run: xvfb-run --auto-servernum gdb -return-child-result -batch -ex r -ex py-bt --args python runtests.py -s
       - name: Run tests
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
@@ -139,10 +143,5 @@ jobs:
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh
       - name: Coverage
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: codecov
-      # Enable this if SSH debugging is required
-      # - name: Setup tmate session
-      #   uses: andfoy/action-tmate@69bac54a5cc0abe008e87d7470fbf65733745aea
-      #   if: ${{ failure() }}
