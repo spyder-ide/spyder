@@ -109,7 +109,7 @@ def qapplication(translate=True, test_time=3):
     if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
-        app = SpyderApplication(['Spyder'])
+        app = SpyderApplication(['Spyder', '--no-sandbox'])
 
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
