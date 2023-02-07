@@ -93,7 +93,8 @@ def is_program_installed(basename):
 
         # Prioritize Anaconda before Miniconda; local before global.
         a = [osp.join(home, 'opt'), '/opt']
-        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
+        b = ['mambaforge', 'miniforge',
+             'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
@@ -105,7 +106,8 @@ def is_program_installed(basename):
         ]
 
         a = [home, '/opt']
-        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
+        b = ['mambaforge', 'miniforge',
+             'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
@@ -114,7 +116,8 @@ def is_program_installed(basename):
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
         a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
-        b = ['Anaconda', 'Miniconda', 'Anaconda3', 'Miniconda3']
+        b = ['Mambaforge', 'Miniforge',
+             'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
         conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
         req_paths.extend(pyenv + conda)
