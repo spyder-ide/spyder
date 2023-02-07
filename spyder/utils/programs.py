@@ -82,24 +82,11 @@ def is_program_installed(basename):
     """
     home = get_home_dir()
     req_paths = []
-    if sys.platform == 'darwin':
-        if basename.endswith('.app') and osp.exists(basename):
-            return basename
+    if (sys.platform == 'darwin' and basename.endswith('.app')
+            and osp.exists(basename)):
+        return basename
 
-        pyenv = [
-            osp.join(home, '.pyenv', 'bin'),
-            osp.join('/usr', 'local', 'bin'),
-        ]
-
-        # Prioritize Anaconda before Miniconda; local before global.
-        a = [osp.join(home, 'opt'), '/opt']
-        b = ['mambaforge', 'miniforge',
-             'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-
-        req_paths.extend(pyenv + conda)
-
-    elif sys.platform.startswith('linux'):
+    if os.name == 'posix':
         pyenv = [
             osp.join(home, '.pyenv', 'bin'),
             osp.join('/usr', 'local', 'bin'),
@@ -108,19 +95,15 @@ def is_program_installed(basename):
         a = [home, '/opt']
         b = ['mambaforge', 'miniforge',
              'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-
-        req_paths.extend(pyenv + conda)
-
-    elif os.name == 'nt':
+    else:
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
         a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
         b = ['Mambaforge', 'Miniforge',
              'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
-        req_paths.extend(pyenv + conda)
+    conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+    req_paths.extend(pyenv + conda)
 
     for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
