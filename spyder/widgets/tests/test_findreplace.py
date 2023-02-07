@@ -100,6 +100,34 @@ def test_replace_selection(findreplace_editor, qtbot):
     assert len(editor.get_selected_text()) == len(expected)
 
 
+def test_replace_all(findreplace_editor, qtbot):
+    """Test find replace final selection in the editor.
+    Regression test for spyder-ide/spyder#20403
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+    findreplace.show_replace()
+    findreplace.search_text.setCurrentText('a')
+    findreplace.replace_text.setCurrentText('x')
+
+    editor.set_text('a\naa')
+    expected = 'x\u2029xx'  # Note: \n is replaced with \u2029
+    qtbot.wait(500)
+    findreplace.replace_find_all()
+    qtbot.wait(500)
+    assert editor.get_text('sof', 'eof') == expected
+    assert len(editor.get_text('sof', 'eof')) == len(expected)
+
+    editor.set_text('a\naa')
+    expected = 'x\u2029aa'  # Note: \n is replaced with \u2029
+    qtbot.wait(500)
+    qtbot.mouseClick(findreplace.words_button, Qt.LeftButton)
+    findreplace.replace_find_all()
+    qtbot.wait(500)
+    assert editor.get_text('sof', 'eof') == expected
+    assert len(editor.get_text('sof', 'eof')) == len(expected)
+
+
 def test_messages_action(findreplace_editor, qtbot):
     """
     Test that we set the right icons and tooltips on messages_action.
