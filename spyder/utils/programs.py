@@ -82,8 +82,11 @@ def is_program_installed(basename):
     """
     home = get_home_dir()
     req_paths = []
-    if (sys.platform == 'darwin' and basename.endswith('.app')
-            and osp.exists(basename)):
+    if (
+        sys.platform == 'darwin'
+        and basename.endswith('.app')
+        and osp.exists(basename)
+    ):
         return basename
 
     if os.name == 'posix':
@@ -93,13 +96,14 @@ def is_program_installed(basename):
         ]
 
         a = [home, '/opt']
-        b = ['mambaforge', 'miniforge',
+        b = ['mambaforge', 'miniforge3', 'miniforge',
              'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
     else:
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
-        a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
-        b = ['Mambaforge', 'Miniforge',
+        a = [home, osp.join(home, 'AppData/Local'),
+             'C:/', osp.join('C:/', 'ProgramData')]
+        b = ['Mambaforge', 'Miniforge3', 'Miniforge',
              'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
 
     conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
