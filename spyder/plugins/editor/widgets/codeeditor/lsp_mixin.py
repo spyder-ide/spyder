@@ -1257,7 +1257,9 @@ class LSPMixin:
         try:
             lines = self.toPlainText().splitlines()
             extended_ranges = []
-            for start, end in ranges:
+            for folding_range in ranges:
+                start = folding_range['startLine']
+                end = folding_range['endLine']
                 text_region = self.get_text_region(start, end, lines)
                 extended_ranges.append((start, end, text_region))
 
