@@ -2093,7 +2093,7 @@ def test_plots_scroll(main_window, qtbot):
     assert scrollbar.value() == scrollbar.maximum()
 
     # plot 20 plots and select a plot in the middle
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(
             "import time\n"
             "for i in range(20):\n"
