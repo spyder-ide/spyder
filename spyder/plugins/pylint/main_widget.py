@@ -496,7 +496,7 @@ class PylintWidget(PluginMainWidget):
     def setup(self):
         change_history_depth_action = self.create_action(
             PylintWidgetActions.ChangeHistory,
-            text=_("History..."),
+            text=_("History results"),
             tip=_("Set history maximum entries"),
             icon=self.create_icon("history"),
             triggered=self.change_history_depth,
