@@ -37,7 +37,7 @@ from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
@@ -193,7 +193,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if os.name == "nt":
                 shebang = []
             else:
-                shebang = ['#!/usr/bin/env python' + ('2' if PY2 else '3')]
+                shebang = ['#!/usr/bin/env python3']
             header = shebang + [
                 '# -*- coding: utf-8 -*-',
                 '"""', 'Created on %(date)s', '',
@@ -644,12 +644,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         re_run_action = create_action(self, _("Re-run &last script"),
                                       icon=ima.icon('run_again'),
-                            tip=_("Run again last file"),
-                            triggered=self.re_run_file)
+                                      tip=_("Run again last file"),
+                                      triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="_",
                                name="Re-run last script",
                                add_shortcut_to_tip=True)
-
+        
         run_selected_action = create_action(self, _("Run &selection or "
                                                     "current line"),
                                             icon=ima.icon('run_selection'),
@@ -774,6 +774,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                add_shortcut_to_tip=True)
 
         # --- Edit Toolbar ---
+        create_new_cell = create_action(self, _("Create new Cell at "
+                                                "current line"),
+                                        icon=ima.icon('run_selection'),
+                                        tip=_("Create new Cell"),
+                                        triggered=self.create_cell,
+                                        context=Qt.WidgetShortcut)
+        self.register_shortcut(create_new_cell, context="Editor",
+                               name="create_new_cell")
         self.toggle_comment_action = create_action(self,
                 _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
                 tip=_("Comment current line or selection"),
@@ -1074,7 +1082,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
         run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, run_selected_action]
+                               run_cell_advance_action, run_selected_action,
+                               create_new_cell]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Source menu/toolbar construction ----
@@ -2894,6 +2903,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection(prefix)
+
+    @Slot()
+    def create_cell(self, prefix=None):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.create_new_cell()
 
     @Slot()
     def run_to_line(self):

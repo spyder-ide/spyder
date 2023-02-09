@@ -34,6 +34,8 @@ from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.api.panel import Panel
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
+from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
+                                                is_cell_header)
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 
@@ -239,6 +241,14 @@ class FoldingPanel(Panel):
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
         painter = QPainter(self)
+        cell_line_color = QColor(Qt.darkGray)
+        pen = painter.pen()
+        pen.setStyle(Qt.SolidLine)
+        pen.setBrush(cell_line_color)
+        painter.setPen(pen)
+        for top_position, line_number, block in self.editor.visible_blocks:
+            if is_cell_header(block):
+                painter.drawLine(0, top_position, self.width(), top_position)
 
         if not self._display_folding and not self._key_pressed:
             if any(self.folding_status.values()):
@@ -247,13 +257,20 @@ class FoldingPanel(Panel):
                     self._draw_collapsed_indicator(
                         line_number, top_position, block,
                         painter, mouse_hover=True)
+                    if is_cell_header(block):
+                        painter.drawLine(0, top_position, self.width(),
+                                         top_position)
             return
+
         # Draw background over the selected non collapsed fold region
         if self._mouse_over_line is not None:
             block = self.editor.document().findBlockByNumber(
                 self._mouse_over_line)
             try:
                 self._draw_fold_region_background(block, painter)
+                if is_cell_header(block):
+                    painter.drawLine(0, top_position, self.width(),
+                                     top_position)
             except (ValueError, KeyError):
                 # Catching the KeyError above is necessary to avoid
                 # issue spyder-ide/spyder#10918.
@@ -263,6 +280,8 @@ class FoldingPanel(Panel):
                 pass
         # Draw fold triggers
         for top_position, line_number, block in self.editor.visible_blocks:
+            if is_cell_header(block):
+                painter.drawLine(0, top_position, self.width(), top_position)
             self._draw_collapsed_indicator(
                 line_number, top_position, block, painter, mouse_hover=False)
 
