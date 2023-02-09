@@ -95,14 +95,14 @@ def is_program_installed(basename):
             osp.join('/usr', 'local', 'bin'),
         ]
 
-        a = [home, '/opt']
+        a = [home, osp.join(home, 'opt'), '/opt']
         b = ['mambaforge', 'miniforge3', 'miniforge',
              'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
     else:
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
-        a = [home, osp.join(home, 'AppData/Local'),
-             'C:/', osp.join('C:/', 'ProgramData')]
+        a = [home, osp.join(home, 'AppData', 'Local'),
+             'C:\\', osp.join('C:\\', 'ProgramData')]
         b = ['Mambaforge', 'Miniforge3', 'Miniforge',
              'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
 
