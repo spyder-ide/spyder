@@ -180,6 +180,7 @@ class CollectionsDelegate(QItemDelegate):
             from .arrayeditor import ArrayEditor
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
+                self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
@@ -196,6 +197,7 @@ class CollectionsDelegate(QItemDelegate):
             arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
+                self.sig_editor_shown.emit()
                 return
             conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,

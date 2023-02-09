@@ -129,7 +129,7 @@ yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
-SPYVER = get_version(SPYREPO).strip().split("+")[0]
+SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
 
 specs = {
     "spyder": "=" + SPYVER,
@@ -239,9 +239,6 @@ def _definitions():
                 "specs": [k + v for k, v in specs.items()],
             },
         },
-        "menu_packages": [
-            "spyder",
-        ],
         "extra_files": [
             {str(RESOURCES / "bundle_readme.md"): "README.txt"},
             {condarc: ".condarc"},
@@ -252,11 +249,16 @@ def _definitions():
         definitions["channels"].insert(0, "local")
 
     if LINUX:
-        definitions["default_prefix"] = os.path.join(
-            "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
+        definitions.update(
+            {
+                "default_prefix": os.path.join(
+                    "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
+                ),
+                "license_file": str(SPYREPO / "LICENSE.txt"),
+                "installer_type": "sh",
+                "post_install": str(RESOURCES / "post-install.sh"),
+            }
         )
-        definitions["license_file"] = str(SPYREPO / "LICENSE.txt")
-        definitions["installer_type"] = "sh"
 
     if MACOS:
         welcome_text_tmpl = \
@@ -276,7 +278,6 @@ def _definitions():
                 "welcome_file": str(welcome_file),
                 "conclusion_text": "",
                 "readme_text": "",
-                "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
 

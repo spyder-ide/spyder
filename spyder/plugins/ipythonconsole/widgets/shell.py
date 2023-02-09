@@ -646,7 +646,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if sympy_o:
             lines = """
 These commands were executed:
->>> from __future__ import division
 >>> from sympy import *
 >>> x, y, z, t = symbols('x y z t')
 >>> k, m, n = symbols('k m n', integer=True)
@@ -763,7 +762,6 @@ the sympy module (e.g. plot)
                     self.silent_execute("from pylab import *")
                 if kernel_env.get('SPY_SYMPY_O') == 'True':
                     sympy_init = """
-                        from __future__ import division
                         from sympy import *
                         x, y, z, t = symbols('x y z t')
                         k, m, n = symbols('k m n', integer=True)
