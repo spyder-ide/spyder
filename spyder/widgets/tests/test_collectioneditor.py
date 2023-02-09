@@ -33,7 +33,7 @@ from spyder.widgets.collectionseditor import (
     CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 from spyder_kernels.utils.nsview import get_size
 
 
@@ -273,7 +273,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot):
     editor.delegate.createEditor(None, None, editor.model.index(0, 3))
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
-    dataframe_editor.dataModel._format == '%10d'
+    dataframe_editor.dataModel._format_spec == '10d'
 
 
 def test_collectionsmodel_with_two_ints():
@@ -379,7 +379,6 @@ def test_sort_float_collectionsmodel():
                                       '0.1', '1.0', '10.0', '1e+16']]
 
 
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win and py2')
 def test_sort_collectionsmodel():
     var_list1 = [0, 1, 2]
     var_list2 = [3, 4, 5, 6]

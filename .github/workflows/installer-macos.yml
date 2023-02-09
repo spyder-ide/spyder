@@ -18,9 +18,7 @@ on:
     types:
       - created
 
-  push:
-    tags:
-      - v*pre*
+  workflow_dispatch:
 
 concurrency:
   group: installer-macos-${{ github.ref }}
@@ -29,7 +27,8 @@ concurrency:
 name: Create macOS App Bundle and DMG
 
 env:
-  IS_PRE: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' }}
+  IS_RELEASE: ${{ github.event_name == 'release' }}
 
 jobs:
   matrix_prep:
@@ -65,7 +64,7 @@ jobs:
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Setup Python
@@ -103,10 +102,10 @@ jobs:
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
       - name: Create Keychain
-        if: ${{github.event_name == 'release' || env.IS_PRE == 'true'}}
+        if: ${{env.IS_RELEASE == 'true' || env.IS_PRE == 'true'}}
         run: ./certkeychain.sh "${MACOS_CERTIFICATE}" "${MACOS_CERTIFICATE_PWD}"
       - name: Code Sign Application
-        if: ${{github.event_name == 'release' || env.IS_PRE == 'true'}}
+        if: ${{env.IS_RELEASE == 'true' || env.IS_PRE == 'true'}}
         run: |
           pil=$(${pythonLocation}/bin/python -c "import PIL, os; print(os.path.dirname(PIL.__file__))")
           rm -v ${DISTDIR}/Spyder.app/Contents/Frameworks/liblzma.5.dylib
@@ -117,10 +116,10 @@ jobs:
       - name: Build Disk Image
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
       - name: Sign Disk Image
-        if: ${{github.event_name == 'release' || env.IS_PRE == 'true'}}
+        if: ${{env.IS_RELEASE == 'true' || env.IS_PRE == 'true'}}
         run: ./codesign.sh "${DISTDIR}/${DMGNAME}"
       - name: Notarize Disk Image
-        if: ${{github.event_name == 'release' || env.IS_PRE == 'true'}}
+        if: ${{env.IS_RELEASE == 'true' || env.IS_PRE == 'true'}}
         run: ./notarize.sh -i 30 -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -128,13 +127,13 @@ jobs:
           path: ${{ env.DISTDIR }}/${{ env.DMGNAME }}
           name: ${{ env.DMGNAME }}
       - name: Get Release
-        if: ${{github.event_name == 'release'}}
+        if: ${{env.IS_RELEASE == 'true'}}
         id: get_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         uses: bruceadams/get-release@v1.2.0
       - name: Upload Release Asset
-        if: ${{github.event_name == 'release'}}
+        if: ${{env.IS_RELEASE == 'true'}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}

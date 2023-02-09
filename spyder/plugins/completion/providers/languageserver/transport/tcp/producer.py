@@ -25,7 +25,6 @@ from spyder.plugins.completion.providers.languageserver.transport.tcp.consumer i
     TCPIncomingMessageThread)
 from spyder.plugins.completion.providers.languageserver.transport.common.producer import (
     LanguageServerClient)
-from spyder.py3compat import ConnectionError, BrokenPipeError
 
 
 logger = logging.getLogger(__name__)

@@ -19,9 +19,7 @@ on:
     types:
       - created
 
-  push:
-    tags:
-      - v*pre*
+  workflow_dispatch:
 
 concurrency:
   group: installer-win-${{ github.ref }}
@@ -30,7 +28,8 @@ concurrency:
 name: Create Windows Installer
 
 env:
-  IS_PRE: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' }}
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -50,11 +49,11 @@ jobs:
       EXE_NAME: ${{ matrix.build_type == 'Lite' && github.event_name == 'pull_request' && 'Spyder_64bit_lite.exe' || matrix.build_type == 'Lite' && 'Spyder_64bit_lite.exe' || 'Spyder_64bit_full.exe' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8.10
       - name: Install yarg
