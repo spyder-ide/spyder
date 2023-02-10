@@ -113,37 +113,34 @@ def test_replace_all(findreplace_editor, qtbot):
 
     # Replace all
     editor.set_text('a\naa')
-    expected = 'x\u2029xx'  # Note: \n is replaced with \u2029
+    expected = 'x\nxx'
     qtbot.wait(500)
     findreplace.replace_find_all()
     qtbot.wait(500)
-    assert editor.get_text('sof', 'eof') == expected
-    assert len(editor.get_text('sof', 'eof')) == len(expected)
+    assert editor.toPlainText() == expected
 
     # Replace all with whole word matching
     editor.set_text('a\naa')
-    expected = 'x\u2029aa'  # Note: \n is replaced with \u2029
+    expected = 'x\naa'
     qtbot.wait(500)
     qtbot.mouseClick(findreplace.words_button, Qt.LeftButton)
     findreplace.replace_find_all()
     qtbot.wait(500)
     qtbot.mouseClick(findreplace.words_button, Qt.LeftButton)
-    assert editor.get_text('sof', 'eof') == expected
-    assert len(editor.get_text('sof', 'eof')) == len(expected)
+    assert editor.toPlainText() == expected
 
     findreplace.search_text.setCurrentText(r'a(\d+)a')
     findreplace.replace_text.setCurrentText(r'b\1b')
 
     # Replace all with regex
     editor.set_text('a123a\nabca')
-    expected = 'b123b\u2029abca'  # Note: \n is replaced with \u2029
+    expected = 'b123b\nabca'
     qtbot.wait(500)
     qtbot.mouseClick(findreplace.re_button, Qt.LeftButton)
     findreplace.replace_find_all()
     qtbot.wait(500)
     qtbot.mouseClick(findreplace.re_button, Qt.LeftButton)
-    assert editor.get_text('sof', 'eof') == expected
-    assert len(editor.get_text('sof', 'eof')) == len(expected)
+    assert editor.toPlainText() == expected
 
 
 def test_messages_action(findreplace_editor, qtbot):
