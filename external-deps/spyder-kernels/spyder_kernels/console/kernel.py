@@ -36,7 +36,7 @@ from spyder_kernels.utils.mpl import (
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
 from spyder_kernels.console.shell import SpyderShell
-from spyder_kernels.utils.iofuncs import WriteContext
+from spyder_kernels.comms.utils import WriteContext
 
 
 

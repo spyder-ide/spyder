@@ -18,7 +18,7 @@ from IPython.core.getipython import get_ipython
 import zmq
 
 from spyder_kernels.comms.commbase import CommBase, CommError
-from spyder_kernels.utils.iofuncs import WriteContext
+from spyder_kernels.comms.utils import WriteContext
 
 
 def frontend_request(blocking, timeout=None):
