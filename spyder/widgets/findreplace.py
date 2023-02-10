@@ -672,7 +672,6 @@ class FindReplace(QWidget):
         word = self.words_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
 
-        re_pattern = None
         if self.re_button.isChecked():
             pattern = search_text
         else:
@@ -682,8 +681,10 @@ class FindReplace(QWidget):
             pattern = r'\b{pattern}\b'.format(pattern=pattern)
 
         # Check regexp before proceeding
+        re_pattern = None
         try:
             re_pattern = re.compile(pattern, flags=re_flags)
+
             # Check if replace_text can be substituted in re_pattern
             # Fixes spyder-ide/spyder#7177.
             re_pattern.sub(replace_text, '')

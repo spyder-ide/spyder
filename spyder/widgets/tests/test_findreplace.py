@@ -101,7 +101,9 @@ def test_replace_selection(findreplace_editor, qtbot):
 
 
 def test_replace_all(findreplace_editor, qtbot):
-    """Test find replace final selection in the editor.
+    """
+    Test find replace final selection in the editor.
+
     Regression test for spyder-ide/spyder#20403
     """
     editor = findreplace_editor.editor
