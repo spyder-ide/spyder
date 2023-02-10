@@ -544,16 +544,16 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 #==============================================================================
 def running_in_mac_app(pyexec=sys.executable):
     """
-    Check if Spyder is running as a macOS bundle app.
-    Checks for SPYDER_APP environment variable to determine this.
+    Check if Spyder is running as a macOS bundle app by looking for the
+    `SPYDER_APP` environment variable.
 
-    If python executable is provided, checks if it is the same as the macOS
+    If a python executable is provided, checks if it is the same as the macOS
     bundle app environment executable.
     """
     # Spyder is macOS app
     mac_app = os.environ.get('SPYDER_APP') is not None
 
-    if mac_app and pyexec == sys.executable:
+    if sys.platform == 'darwin' and mac_app and pyexec == sys.executable:
         # executable is macOS app
         return True
     else:
