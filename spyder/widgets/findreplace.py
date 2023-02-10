@@ -677,7 +677,9 @@ class FindReplace(QWidget):
         else:
             pattern = re.escape(search_text)
             replace_text = replace_text.replace('\\', r'\\')
-        if word:  # match whole words only
+
+        # Match whole words only
+        if word:
             pattern = r'\b{pattern}\b'.format(pattern=pattern)
 
         # Check regexp before proceeding
