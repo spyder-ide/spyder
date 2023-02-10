@@ -126,8 +126,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # To request restart
     sig_restart_kernel = Signal()
 
-    sig_kernel_state = Signal(dict)
-    """The kernel sent a new state to process"""
+    sig_kernel_state_arrived = Signal(dict)
+    """
+    A new kernel state, which needs to be processed.
+    
+    Parameters
+    ----------
+    state: dict
+        Kernel state. The structure of this dictionary is defined in the
+        `SpyderKernel.get_state` method of Spyder-kernels.
+    """
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  handlers, *args, **kw):
@@ -162,7 +170,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
             'update_state': self.update_state,
-
         })
         self.kernel_comm_handlers = handlers
 
@@ -477,13 +484,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def update_state(self, state):
         """
-        New state recieved from kernel.
+        New state received from kernel.
         """
         cwd = state.pop("cwd", None)
         if cwd and self._cwd and cwd != self._cwd:
-            # Only set it self._cwd is already set
+            # Only set it if self._cwd is already set
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
+
         if state:
             self.sig_kernel_state.emit(state)
 

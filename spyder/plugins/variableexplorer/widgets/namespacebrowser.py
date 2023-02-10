@@ -164,11 +164,19 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             pass
 
     @Slot(dict)
-    def from_state(self, state):
-        """Get from state."""
-        if "namespace_view" in state:
+    def update_view(self, kernel_state):
+        """
+        Update namespace view and other properties from a new kernel state.
+        
+        Parameters
+        ----------
+        kernel_state: dict
+            A new kernel state. The structure of this dictionary is defined in
+            the `SpyderKernel.get_state` method of Spyder-kernels.
+        """
+        if "namespace_view" in kernel_state:
             self.process_remote_view(state.pop("namespace_view"))
-        if "var_properties" in state:
+        if "var_properties" in kernel_state:
             self.set_var_properties(state.pop("var_properties"))
 
     def refresh_namespacebrowser(self, *, interrupt=True):
