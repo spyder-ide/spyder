@@ -12,9 +12,6 @@ Input/Output Utilities
 Note: 'load' functions has to return a dictionary from which a globals()
       namespace may be updated
 """
-
-from __future__ import print_function
-
 # Standard library imports
 import sys
 import os

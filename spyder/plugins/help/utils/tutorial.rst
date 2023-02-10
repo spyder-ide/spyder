@@ -323,7 +323,6 @@ You'll need to have SymPy installed for it to work, and a LaTeX distribution on 
 .. code-block:: python
 
     These commands were executed:
-    >>> from __future__ import division
     >>> from sympy import *
     >>> x, y, z, t = symbols('x y z t')
     >>> k, m, n = symbols('k m n', integer=True)

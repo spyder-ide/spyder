@@ -149,6 +149,7 @@ class ConsoleWidget(PluginMainWidget):
 
         # Layout
         layout = QVBoxLayout()
+        layout.setSpacing(0)
         layout.addWidget(self.shell)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)

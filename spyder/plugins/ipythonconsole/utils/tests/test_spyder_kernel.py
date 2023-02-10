@@ -43,6 +43,7 @@ def test_kernel_pypath(tmpdir, default_interpreter):
     # Restore default values
     CONF.set('main_interpreter', 'default', True)
     CONF.set('pythonpath_manager', 'spyder_pythonpath', [])
+    del os.environ['PYTHONPATH']
 
 
 def test_python_interpreter(tmpdir):

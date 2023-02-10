@@ -11,337 +11,41 @@ Tests for the IPython console plugin.
 """
 
 # Standard library imports
-import glob
 import os
 import os.path as osp
-import psutil
 import shutil
 import sys
-import tempfile
 from textwrap import dedent
-import threading
-import traceback
-from unittest.mock import Mock
 
 # Third party imports
+from ipykernel._version import __version__ as ipykernel_version
 import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
-from pkg_resources import parse_version
-from pygments.token import Name
+from packaging.version import parse
 import pytest
-from qtpy import PYQT5
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import QMainWindow
+from spyder_kernels import __version__ as spyder_kernels_version
 import sympy
 
 # Local imports
-from spyder.api.plugins import Plugins
-from spyder.app.cli_options import get_options
 from spyder.config.base import (
     running_in_ci, running_in_ci_with_conda)
 from spyder.config.gui import get_color_scheme
-from spyder.config.manager import CONF
-from spyder.py3compat import PY2, to_text_string
-from spyder.plugins.debugger.plugin import Debugger
+from spyder.config.utils import is_anaconda
+from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
-from spyder.plugins.help.utils.sphinxify import CSS_PATH
-from spyder.plugins.ipythonconsole.plugin import IPythonConsole
+from spyder.plugins.ipythonconsole.tests.conftest import (
+    get_conda_test_env, get_console_background_color, get_console_font_color,
+    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
-from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
-from spyder.utils.programs import get_temp_dir
-from spyder.utils.conda import is_conda_env
+from spyder.utils.conda import get_list_conda_envs
 
 
-# =============================================================================
-# Constants
-# =============================================================================
-SHELL_TIMEOUT = 20000
-TEMP_DIRECTORY = tempfile.gettempdir()
-NEW_DIR = 'new_workingdir'
-
-
-# =============================================================================
-# Utillity Functions
-# =============================================================================
-def get_console_font_color(syntax_style):
-    styles = create_style_class(syntax_style).styles
-    font_color = styles[Name]
-    return font_color
-
-
-def get_console_background_color(style_sheet):
-    background_color = style_sheet.split('background-color:')[1]
-    background_color = background_color.split(';')[0]
-    return background_color
-
-
-def get_conda_test_env(test_env_name=u'spytest-ž'):
-    """Return the full prefix path of the given `test_env_name`."""
-    if 'envs' in sys.prefix:
-        root_prefix = os.path.dirname(os.path.dirname(sys.prefix))
-    else:
-        root_prefix = sys.prefix
-
-    test_env_prefix = os.path.join(root_prefix, 'envs', test_env_name)
-
-    if os.name == 'nt':
-        test_env_executable = os.path.join(test_env_prefix, 'python.exe')
-    else:
-        test_env_executable = os.path.join(test_env_prefix, 'bin', 'python')
-
-    return test_env_executable
-
-
-# =============================================================================
-# Qt Test Fixtures
-# =============================================================================
-@pytest.fixture
-def ipyconsole(qtbot, request, tmpdir):
-    """IPython console fixture."""
-    configuration = CONF
-    no_web_widgets = request.node.get_closest_marker('no_web_widgets')
-
-    class MainWindowMock(QMainWindow):
-
-        def __init__(self):
-            # This avoids using the cli options passed to pytest
-            sys_argv = [sys.argv[0]]
-            self._cli_options = get_options(sys_argv)[0]
-            if no_web_widgets:
-                self._cli_options.no_web_widgets = True
-            super().__init__()
-
-        def __getattr__(self, attr):
-            if attr == 'consoles_menu_actions':
-                return []
-            elif attr == 'editor':
-                return None
-            else:
-                return Mock()
-
-    # Tests assume inline backend
-    configuration.set('ipython_console', 'pylab/backend', 0)
-
-    # Start the console in a fixed working directory
-    use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
-    if use_startup_wdir:
-        new_wdir = str(tmpdir.mkdir(NEW_DIR))
-        configuration.set(
-            'workingdir',
-            'startup/use_project_or_home_directory',
-            False
-        )
-        configuration.set('workingdir', 'startup/use_fixed_directory', True)
-        configuration.set('workingdir', 'startup/fixed_directory', new_wdir)
-    else:
-        configuration.set(
-            'workingdir',
-            'startup/use_project_or_home_directory',
-            True
-        )
-        configuration.set('workingdir', 'startup/use_fixed_directory', False)
-
-    # Use the automatic backend if requested
-    auto_backend = request.node.get_closest_marker('auto_backend')
-    if auto_backend:
-        configuration.set('ipython_console', 'pylab/backend', 1)
-
-    # Use the Tkinter backend if requested
-    tk_backend = request.node.get_closest_marker('tk_backend')
-    if tk_backend:
-        configuration.set('ipython_console', 'pylab/backend', 3)
-
-    # Start a Pylab client if requested
-    pylab_client = request.node.get_closest_marker('pylab_client')
-    is_pylab = True if pylab_client else False
-
-    # Start a Sympy client if requested
-    sympy_client = request.node.get_closest_marker('sympy_client')
-    is_sympy = True if sympy_client else False
-
-    # Start a Cython client if requested
-    cython_client = request.node.get_closest_marker('cython_client')
-    is_cython = True if cython_client else False
-
-    # Use an external interpreter if requested
-    external_interpreter = request.node.get_closest_marker(
-        'external_interpreter')
-    if external_interpreter:
-        configuration.set('main_interpreter', 'default', False)
-        configuration.set('main_interpreter', 'executable', sys.executable)
-    else:
-        configuration.set('main_interpreter', 'default', True)
-        configuration.set('main_interpreter', 'executable', '')
-
-    # Use the test environment interpreter if requested
-    test_environment_interpreter = request.node.get_closest_marker(
-        'test_environment_interpreter')
-    if test_environment_interpreter:
-        configuration.set('main_interpreter', 'default', False)
-        configuration.set(
-            'main_interpreter', 'executable', get_conda_test_env())
-    else:
-        configuration.set('main_interpreter', 'default', True)
-        configuration.set('main_interpreter', 'executable', '')
-
-    # Conf css_path in the Appeareance plugin
-    configuration.set('appearance', 'css_path', CSS_PATH)
-
-    # Create the console and a new client and set environment
-    os.environ['IPYCONSOLE_TESTING'] = 'True'
-    window = MainWindowMock()
-    console = IPythonConsole(parent=window, configuration=configuration)
-
-    # connect to a debugger plugin
-    debugger = Debugger(parent=window, configuration=configuration)
-
-    def get_plugin(name):
-        if name == Plugins.IPythonConsole:
-            return console
-        return None
-
-    debugger.get_plugin = get_plugin
-    debugger.on_ipython_console_available()
-    console.on_initialize()
-    console._register()
-    console.create_new_client(is_pylab=is_pylab,
-                              is_sympy=is_sympy,
-                              is_cython=is_cython)
-    window.setCentralWidget(console.get_widget())
-
-    # Set exclamation mark to True
-    configuration.set('debugger', 'pdb_use_exclamation_mark', True)
-
-    if os.name == 'nt':
-        qtbot.addWidget(window)
-
-    with qtbot.waitExposed(window):
-        window.resize(640, 480)
-        window.show()
-
-    # Wait until the window is fully up
-    qtbot.waitUntil(lambda: console.get_current_shellwidget() is not None)
-    shell = console.get_current_shellwidget()
-    try:
-        if test_environment_interpreter:
-            # conda version is not always up to date, so a version warning
-            # might be displayed, so shell.spyder_kernel_ready will not be True
-            qtbot.waitUntil(
-                lambda: shell._prompt_html is not None,
-                timeout=SHELL_TIMEOUT)
-        else:
-            qtbot.waitUntil(
-                lambda: (
-                    shell.spyder_kernel_ready
-                    and shell._prompt_html is not None
-                ),
-                timeout=SHELL_TIMEOUT)
-    except Exception:
-        # Print content of shellwidget and close window
-        print(console.get_current_shellwidget(
-            )._control.toPlainText())
-        client = console.get_current_client()
-        if client.info_page != client.blank_page:
-            print('info_page')
-            print(client.info_page)
-        raise
-
-    # Check for thread or open file leaks
-    known_leak = request.node.get_closest_marker('known_leak')
-
-    if os.name != 'nt' and not known_leak:
-        # _DummyThread are created if current_thread() is called from them.
-        # They will always leak (From python doc) so we ignore them.
-        init_threads = [
-            repr(thread) for thread in threading.enumerate()
-            if not isinstance(thread, threading._DummyThread)]
-        proc = psutil.Process()
-        init_files = [repr(f) for f in proc.open_files()]
-        init_subprocesses = [repr(f) for f in proc.children()]
-
-    yield console
-
-    # Print shell content if failed
-    if request.node.rep_setup.passed:
-        if request.node.rep_call.failed:
-            # Print content of shellwidget and close window
-            print(console.get_current_shellwidget(
-                )._control.toPlainText())
-            client = console.get_current_client()
-            if client.info_page != client.blank_page:
-                print('info_page')
-                print(client.info_page)
-
-    # Close
-    console.on_close()
-    os.environ.pop('IPYCONSOLE_TESTING')
-
-    if os.name == 'nt' or known_leak:
-        # Do not test for leaks
-        return
-
-    def show_diff(init_list, now_list, name):
-        sys.stderr.write(f"Extra {name} before test:\n")
-        for item in init_list:
-            if item in now_list:
-                now_list.remove(item)
-            else:
-                sys.stderr.write(item + "\n")
-        sys.stderr.write(f"Extra {name} after test:\n")
-        for item in now_list:
-            sys.stderr.write(item + "\n")
-
-    # The test is not allowed to open new files or threads.
-    try:
-        def threads_condition():
-            threads = [
-                thread for thread in threading.enumerate()
-                if not isinstance(thread, threading._DummyThread)]
-            return (len(init_threads) >= len(threads))
-
-        qtbot.waitUntil(threads_condition, timeout=SHELL_TIMEOUT)
-    except Exception:
-        now_threads = [
-            thread for thread in threading.enumerate()
-            if not isinstance(thread, threading._DummyThread)]
-        threads = [repr(t) for t in now_threads]
-        show_diff(init_threads, threads, "thread")
-        sys.stderr.write("Running Threads stacks:\n")
-        now_thread_ids = [t.ident for t in now_threads]
-        for thread_id, frame in sys._current_frames().items():
-            if thread_id in now_thread_ids:
-                sys.stderr.write("\nThread " + str(threads) + ":\n")
-                traceback.print_stack(frame)
-        raise
-
-    try:
-        # -1 from closed client
-        qtbot.waitUntil(lambda: (
-            len(init_subprocesses) - 1 >= len(proc.children())),
-            timeout=SHELL_TIMEOUT)
-    except Exception:
-        subprocesses = [repr(f) for f in proc.children()]
-        show_diff(init_subprocesses, subprocesses, "processes")
-        raise
-
-    try:
-        qtbot.waitUntil(
-            lambda: (len(init_files) >= len(proc.open_files())),
-            timeout=SHELL_TIMEOUT)
-    except Exception:
-        files = [repr(f) for f in proc.open_files()]
-        show_diff(init_files, files, "files")
-        raise
-
-
-# =============================================================================
-# Tests
-# =============================================================================
 @flaky(max_runs=3)
 @pytest.mark.external_interpreter
 def test_banners(ipyconsole, qtbot):
@@ -374,7 +78,7 @@ def test_banners(ipyconsole, qtbot):
     [("arange",
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "<br>Python built-in `range` function, but returns an ndarray ..."]),
+       "open interval ..."]),
      ("vectorize",
       ["pyfunc", "otype", "signature"],
       ["Generalized function class.<br>",
@@ -417,37 +121,35 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(
-    running_in_ci() and not os.name == 'nt',
-    reason="Times out on Linux and macOS")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
+        shell.execute("get_ipython().kernel.eventloop")
 
     # Assert there are no errors in the console and we set the right
     # backend.
     control = ipyconsole.get_widget().get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
-    assert 'loop_qt5' in control.toPlainText()
+    assert ('loop_qt5' in control.toPlainText() or
+            'loop_qt' in control.toPlainText())
 
 
 @flaky(max_runs=3)
 @pytest.mark.tk_backend
 @pytest.mark.skipif(
-    running_in_ci() and not os.name == 'nt',
-    reason="Times out on Linux and macOS")
+    os.name == 'nt' and (parse(ipykernel_version) == parse('6.21.0')),
+    reason="Fails on Windows with IPykernel 6.21.0")
 def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("ip = get_ipython(); ip.kernel.eventloop")
+        shell.execute("get_ipython().kernel.eventloop")
 
     # Assert we set the right backend in the kernel.
     control = ipyconsole.get_widget().get_focus_widget()
@@ -484,8 +186,7 @@ def test_pylab_client(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.sympy_client
-@pytest.mark.xfail(parse_version('1.0') < parse_version(sympy.__version__) <
-                   parse_version('1.2'),
+@pytest.mark.xfail(parse('1.0') < parse(sympy.__version__) < parse('1.2'),
                    reason="A bug with sympy 1.1.1 and IPython-Qtconsole")
 def test_sympy_client(ipyconsole, qtbot):
     """Test that the SymPy console is working correctly."""
@@ -517,7 +218,7 @@ def test_sympy_client(ipyconsole, qtbot):
 @pytest.mark.cython_client
 @pytest.mark.skipif(
     (not sys.platform.startswith('linux') or
-     parse_version(ipy_release.version) == parse_version('7.11.0')),
+     parse(ipy_release.version) == parse('7.11.0')),
     reason="It only works reliably on Linux and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
@@ -613,8 +314,6 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2 and sys.platform == 'darwin',
-                    reason="It hangs frequently on Python 2.7 and macOS")
 def test_console_import_namespace(ipyconsole, qtbot):
     """Test an import of the form 'from foo import *'."""
     # Wait until the window is fully up
@@ -860,8 +559,8 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2 or IPython.version_info < (7, 17),
-                    reason="insert is not the same in py2")
+@pytest.mark.skipif(IPython.version_info < (7, 17),
+                    reason="insert is not the same in pre 7.17 ipython")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -890,7 +589,6 @@ def test_dbg_input(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="It doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):
     """
     Test that the Variable Explorer Works with unicode variables.
@@ -1055,8 +753,7 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
-                    reason="It times out frequently")
+@pytest.mark.skipif(os.name == 'nt', reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
     Test that Matplotlib backend is changed correctly when
@@ -1274,11 +971,11 @@ def test_kernel_crash(ipyconsole, qtbot):
     """Test that we show an error message when a kernel crash occurs."""
     # Create an IPython kernel config file with a bad config
     ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
-                              'ipython_kernel_config.py')
+                              'ipython_config.py')
     try:
         with open(ipy_kernel_cfg, 'w') as f:
             # This option must be a string, not an int
-            f.write("c.InteractiveShellApp.extra_extension = 1")
+            f.write("c.InteractiveShellApp.extra_extensions = 1")
 
         ipyconsole.get_widget().close_cached_kernel()
         ipyconsole.create_new_client()
@@ -1331,8 +1028,8 @@ def test_startup_working_directory(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
-                    reason="It only works on Linux with python 3.")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux.")
 def test_console_complete(ipyconsole, qtbot, tmpdir):
     """Test code completions in the console."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1551,6 +1248,9 @@ def test_calltip(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.test_environment_interpreter
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
+@pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_conda_env_activation(ipyconsole, qtbot):
     """
     Test that the conda environment associated with an external interpreter
@@ -1562,12 +1262,12 @@ def test_conda_env_activation(ipyconsole, qtbot):
     # Get conda activation environment variable
     with qtbot.waitSignal(shell.executed):
         shell.execute(
-            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')"
+        )
 
-    expected_output = get_conda_test_env().replace('\\', '/')
-    if is_conda_env(expected_output):
-        output = shell.get_value('conda_prefix').replace('\\', '/')
-        assert expected_output == output
+    expected_output = get_conda_test_env()[0].replace('\\', '/')
+    output = shell.get_value('conda_prefix').replace('\\', '/')
+    assert expected_output == output
 
 
 @flaky(max_runs=3)
@@ -1903,7 +1603,6 @@ def test_code_cache(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="Doesn't work on Python 2.7")
 def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
     """Check commands and code are separted."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1998,6 +1697,9 @@ def test_pdb_out(ipyconsole, qtbot):
 @pytest.mark.skipif(
     running_in_ci() and not os.name == 'nt',
     reason="Times out on Linux and macOS")
+@pytest.mark.skipif(
+    parse(spyder_kernels_version) < parse("3.0.0.dev0"),
+    reason="Not reliable with Spyder-kernels 2")
 def test_shutdown_kernel(ipyconsole, qtbot):
     """
     Check that the kernel is shutdown after creating plots with the
@@ -2089,9 +1791,6 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(
-    running_in_ci() and not os.name == 'nt',
-    reason="Times out on Linux and macOS")
 def test_restart_intertactive_backend(ipyconsole):
     """
     Test that we ask for a restart after switching to a different interactive
@@ -2337,8 +2036,7 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
-    reason="Only runs on Linux")
+    not is_anaconda(), reason="Only works with Anaconda")
 def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     """Test that we show Spyder-kernels error message on restarts."""
     # Wait until the window is fully up
@@ -2348,11 +2046,10 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
 
     # Point to an interpreter without Spyder-kernels
     ipyconsole.set_conf('default', False, section='main_interpreter')
-    ipyconsole.set_conf('executable', '/usr/bin/python3',
-                        section='main_interpreter')
+    pyexec = get_list_conda_envs()['conda: base'][0]
+    ipyconsole.set_conf('executable', pyexec, section='main_interpreter')
 
     # Restart kernel
-    os.environ['SPY_TEST_SHOW_RESTART_MESSAGE'] = 'true'
     ipyconsole.restart_kernel()
 
     # Assert we show a kernel error
@@ -2366,7 +2063,7 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
         timeout=6000
     )
 
-    # To check kernel error visually
+    # To check the kernel error visually
     qtbot.wait(500)
 
     # Check kernel related actions are disabled

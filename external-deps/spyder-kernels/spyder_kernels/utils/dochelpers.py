@@ -7,9 +7,6 @@
 # -----------------------------------------------------------------------------
 
 """Utilities and wrappers around inspect module"""
-
-from __future__ import print_function
-
 import builtins
 import inspect
 import re
@@ -110,11 +107,8 @@ def getdoc(obj):
             doc['note'] = 'Function'
         doc['name'] = obj.__name__
         if inspect.isfunction(obj):
-            (args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
-             annotations) = inspect.getfullargspec(obj)
-            doc['argspec'] = inspect.formatargspec(
-                args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
-                annotations, formatvalue=lambda o: '='+repr(o))
+            sig = inspect.signature(obj)
+            doc['argspec'] = str(sig)
             if name == '<lambda>':
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses

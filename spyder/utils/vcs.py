@@ -6,8 +6,6 @@
 
 """Utilities for version control systems"""
 
-from __future__ import print_function
-
 import os
 import os.path as osp
 import subprocess
@@ -17,7 +15,6 @@ import sys
 from spyder.config.base import running_under_pytest
 from spyder.utils import programs
 from spyder.utils.misc import abspardir
-from spyder.py3compat import PY3
 
 
 SUPPORTED = [
@@ -129,15 +126,13 @@ def get_git_revision(repopath):
         commit = programs.run_program(git, ['rev-parse', '--short', 'HEAD'],
                                       cwd=repopath).communicate()
         commit = commit[0].strip()
-        if PY3:
-            commit = commit.decode(sys.getdefaultencoding())
+        commit = commit.decode(sys.getdefaultencoding())
 
         # Branch
         branches = programs.run_program(git, ['branch'],
                                         cwd=repopath).communicate()
         branches = branches[0]
-        if PY3:
-            branches = branches.decode(sys.getdefaultencoding())
+        branches = branches.decode(sys.getdefaultencoding())
         branches = branches.split('\n')
         active_branch = [b for b in branches if b.startswith('*')]
         if len(active_branch) != 1:
@@ -173,8 +168,7 @@ def get_git_refs(repopath):
                 cwd=repopath,
             ).communicate()
 
-            if PY3:
-                out = out.decode(sys.getdefaultencoding())
+            out = out.decode(sys.getdefaultencoding())
             files_modifed = [line.strip() for line in out.split('\n') if line]
 
             # Tags
@@ -183,8 +177,7 @@ def get_git_refs(repopath):
                 cwd=repopath,
             ).communicate()
 
-            if PY3:
-                out = out.decode(sys.getdefaultencoding())
+            out = out.decode(sys.getdefaultencoding())
             tags = [line.strip() for line in out.split('\n') if line]
 
             # Branches
@@ -193,8 +186,7 @@ def get_git_refs(repopath):
                 cwd=repopath,
             ).communicate()
 
-            if PY3:
-                out = out.decode(sys.getdefaultencoding())
+            out = out.decode(sys.getdefaultencoding())
 
             lines = [line.strip() for line in out.split('\n') if line]
             for line in lines:
@@ -219,8 +211,7 @@ def get_git_remotes(fpath):
         cwd=osp.dirname(fpath),
     ).communicate()
 
-    if PY3:
-        data = data.decode(sys.getdefaultencoding())
+    data = data.decode(sys.getdefaultencoding())
 
     lines = [line.strip() for line in data.split('\n') if line]
     for line in lines:

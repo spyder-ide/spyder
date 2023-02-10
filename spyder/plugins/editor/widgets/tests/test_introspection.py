@@ -21,42 +21,37 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.config.base import running_in_ci, running_in_ci_with_conda
+from spyder.config.base import running_in_ci
+from spyder.config.manager import CONF
 from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
-from spyder.plugins.completion.providers.kite.providers.document import (
-    KITE_COMPLETION)
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
+    path_as_uri)
 from spyder.plugins.completion.providers.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
-from spyder.py3compat import PY2
-from spyder.config.manager import CONF
+from spyder.utils.conda import get_list_conda_envs
 
 
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 
-def set_executable_config_helper(executable=None):
+def set_executable_config_helper(completion_plugin, executable=None):
     if executable is None:
-        CONF.set('main_interpreter', 'default', True)
-        CONF.set('main_interpreter', 'custom', False)
-        CONF.set('main_interpreter', 'custom_interpreter', sys.executable)
-        CONF.set('main_interpreter', 'custom_interpreters_list',
-                 [sys.executable])
-        CONF.set('main_interpreter', 'executable', sys.executable)
+        completion_plugin.set_conf('executable', sys.executable,
+                                   'main_interpreter')
+        completion_plugin.set_conf('default', True, 'main_interpreter')
+        completion_plugin.set_conf('custom', False, 'main_interpreter')
     else:
-        CONF.set('main_interpreter', 'default', False)
-        CONF.set('main_interpreter', 'custom', True)
-        CONF.set('main_interpreter', 'custom_interpreter', executable)
-        CONF.set('main_interpreter', 'custom_interpreters_list', [executable])
-        CONF.set('main_interpreter', 'executable', executable)
+        completion_plugin.set_conf('executable', executable,
+                                   'main_interpreter')
+        completion_plugin.set_conf('default', False, 'main_interpreter')
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
-                    reason='Only works on Linux and Python 3')
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason='Only works on Linux')
 @flaky(max_runs=5)
 def test_fallback_completions(completions_codeeditor, qtbot):
     code_editor, completion_plugin = completions_codeeditor
@@ -133,7 +128,6 @@ def test_fallback_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 def test_space_completion(completions_codeeditor, qtbot):
     """Validate completion's space character handling."""
@@ -169,7 +163,6 @@ def test_space_completion(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(running_in_ci(), reason='Fails on CI!')
@@ -217,7 +210,6 @@ def test_hide_widget_completion(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=10)
 def test_automatic_completions(completions_codeeditor, qtbot):
@@ -309,7 +301,6 @@ def test_automatic_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
@@ -344,7 +335,6 @@ def test_automatic_completions_tab_bug(completions_codeeditor, qtbot):
         pass
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
@@ -366,7 +356,6 @@ def test_automatic_completions_space_bug(completions_codeeditor, qtbot):
         pass
 
 
-@pytest.mark.slow
 @flaky(max_runs=10)
 def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     """
@@ -441,7 +430,6 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     qtbot.keyPress(completion, Qt.Key_Enter)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completions(completions_codeeditor, qtbot):
@@ -516,12 +504,9 @@ def test_completions(completions_codeeditor, qtbot):
 
     qtbot.keyPress(completion, Qt.Key_Tab)
 
-    if PY2:
-        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
-    else:
-        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
-                                                        "hypot(*coordinates)",
-                                                        'hypot(coordinates)']
+    assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                    "hypot(*coordinates)",
+                                                    'hypot(coordinates)']
 
     print([(x['label'], x['provider']) for x in sig.args[0]])
 
@@ -553,12 +538,9 @@ def test_completions(completions_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    if PY2:
-        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
-    else:
-        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
-                                                        "hypot(*coordinates)",
-                                                        'hypot(coordinates)']
+    assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                    "hypot(*coordinates)",
+                                                    'hypot(coordinates)']
 
     # right for () + enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
@@ -688,7 +670,6 @@ def test_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt', reason='Fails on Windows')
 def test_code_snippets(completions_codeeditor, qtbot):
@@ -916,7 +897,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.skipif((not check_if_kite_installed()
                      or not check_if_kite_running()),
                     reason="It's not meant to be run without kite installed "
@@ -999,7 +979,6 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_completion_order(completions_codeeditor, qtbot):
@@ -1041,7 +1020,6 @@ def test_completion_order(completions_codeeditor, qtbot):
     assert first_completion['insertText'] == 'ImportError'
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 def test_text_snippet_completions(completions_codeeditor, qtbot):
@@ -1068,56 +1046,6 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
-@pytest.mark.slow
-@pytest.mark.order(1)
-@flaky(max_runs=5)
-def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
-    """Test textEdit completions such as those returned by the Kite provider.
-
-    This mocks out the completions response, and does not test the Kite
-    provider directly.
-    """
-    code_editor, mock_response = mock_completions_codeeditor
-    completion = code_editor.completion_widget
-
-    code_editor.toggle_automatic_completions(False)
-    code_editor.toggle_code_snippets(False)
-
-    # Set cursor to start
-    code_editor.go_to_line(1)
-
-    qtbot.keyClicks(code_editor, 'my_dict.')
-
-    # Complete my_dict. -> my_dict["dict-key"]
-    mock_response.side_effect = lambda lang, method, params: {'params': [{
-        'kind': CompletionItemKind.TEXT,
-        'label': '["dict-key"]',
-        'textEdit': {
-            'newText': '["dict-key"]',
-            'range': {
-                'start': 7,
-                'end': 8,
-            },
-        },
-        'filterText': '',
-        'sortText': '',
-        'documentation': '',
-        'provider': KITE_COMPLETION,
-    }]} if method == CompletionRequestTypes.DOCUMENT_COMPLETION else None
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
-    mock_response.side_effect = None
-
-    assert '["dict-key"]' in [x['label'] for x in sig.args[0]]
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
-    assert code_editor.toPlainText() == 'my_dict["dict-key"]\n'
-
-    code_editor.toggle_automatic_completions(True)
-    code_editor.toggle_code_snippets(True)
-
-
-@pytest.mark.slow
 @pytest.mark.order(1)
 @flaky(max_runs=5)
 @pytest.mark.skipif(os.name == 'nt', reason='Hangs on Windows')
@@ -1171,66 +1099,222 @@ def spam():
     qtbot.wait(500)
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
-@pytest.mark.skipif(not is_anaconda(), reason='Requires conda to be installed')
-@pytest.mark.skipif(not running_in_ci_with_conda(), reason='Run tests only on CI with conda.')
-@pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
-                    reason="Quite flaky with Linux on CI")
-@pytest.mark.skipif(running_in_ci() and sys.platform == 'darwin',
-                    reason="Quite flaky with MacOS on CI")
 @flaky(max_runs=20)
+@pytest.mark.skipif(not is_anaconda(), reason='Requires conda to work')
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Works reliably on Linux")
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
-    """Exercise code completion when adding extra paths."""
+    """
+    Exercise code completions when using another Jedi environment, i.e. a
+    different Python interpreter.
+    """
     code_editor, completion_plugin = completions_codeeditor
     completion = code_editor.completion_widget
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
 
     # Get jedi test env
-    conda_envs_path = os.path.dirname(sys.prefix)
-    conda_jedi_env = os.path.join(conda_envs_path, 'jedi-test-env')
-
-    if os.name == 'nt':
-        py_exe = os.path.join(conda_jedi_env, 'python.exe')
-    else:
-        py_exe = os.path.join(conda_jedi_env, 'bin', 'python')
-
-    print(sys.executable)
-    print(py_exe)
-
+    py_exe = get_list_conda_envs()['conda: jedi-test-env'][0]
     assert os.path.isfile(py_exe)
 
-    # Set environment
-    set_executable_config_helper()
-    completion_plugin.after_configuration_update([])
-    qtbot.wait(2000)
-
-    qtbot.keyClicks(code_editor, 'import flas')
+    # Check that we can't code complete Flask in the default interpreter
+    # because it doesn't have it.
+    qtbot.keyClicks(code_editor, 'import flas', delay=40)
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.wait(2000)
     assert code_editor.toPlainText() == 'import flas'
 
-    # Reset extra paths
-    set_executable_config_helper(py_exe)
-    completion_plugin.after_configuration_update([])
-    qtbot.wait(2000)
-
+    # Set interpreter that has Flask and check we can provide completions for
+    # it
     code_editor.set_text('')
+    set_executable_config_helper(completion_plugin, py_exe)
+    completion_plugin.after_configuration_update([])
+    qtbot.wait(5000)
+
+    qtbot.keyClicks(code_editor, 'import flas', delay=40)
     qtbot.wait(2000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'import flas')
         qtbot.wait(2000)
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-
-    qtbot.keyPress(completion, Qt.Key_Tab)
 
     assert "flask" in [x['label'] for x in sig.args[0]]
     assert code_editor.toPlainText() == 'import flask'
 
-    set_executable_config_helper()
+    set_executable_config_helper(completion_plugin)
     completion_plugin.after_configuration_update([])
+    qtbot.wait(5000)
+
+
+@pytest.mark.order(1)
+@flaky(max_runs=5)
+def test_dot_completions(completions_codeeditor, qtbot):
+    """
+    Test that completions after a dot are working as expected.
+
+    This is a regression test for issue spyder-ide/spyder#20285
+    """
+    code_editor, _ = completions_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
+
+    # Import module and check completions are shown for it after writing a dot
+    # after it
+    qtbot.keyClicks(code_editor, "import math")
+    qtbot.keyPress(code_editor, Qt.Key_Enter)
+
+    qtbot.wait(500)
+    assert not completion.isVisible()
+
+    with qtbot.waitSignal(completion.sig_show_completions, timeout=10000):
+        qtbot.keyClicks(code_editor, "math.")
+
+    qtbot.wait(500)
+    assert completion.isVisible()
+
+    # Select a random entry in the completion widget
+    entry_index = random.randint(0, 30)
+    inserted_entry = completion.completion_list[entry_index]['insertText']
+    for _ in range(entry_index):
+        qtbot.keyPress(completion, Qt.Key_Down, delay=50)
+
+    # Insert completion and check that the inserted text is the expected one
+    qtbot.keyPress(completion, Qt.Key_Enter)
+    qtbot.wait(500)
+    assert code_editor.toPlainText() == f'import math\nmath.{inserted_entry}'
+
+
+@pytest.mark.order(1)
+@pytest.mark.parametrize(
+    "filename", ['000_test.txt', '.hidden', 'any_file.txt', 'abc.py',
+                 'part.0.parquet'])
+def test_file_completions(filename, mock_completions_codeeditor, qtbot):
+    """
+    Test that completions for files are handled as expected.
+
+    This includes a regression test for issue spyder-ide/spyder#20156
+    """
+    code_editor, mock_response = mock_completions_codeeditor
+    completion = code_editor.completion_widget
+
+    # Set text to complete and move cursor to the position we want to ask for
+    # completions.
+    if filename == 'any_file.txt':
+        # This checks if we're able to introduce file completions as expected
+        # for any file when requesting them inside a string.
+        qtbot.keyClicks(code_editor, "''")
+    elif filename == 'abc.py':
+        # This checks that we can insert file completions correctly after a
+        # dot
+        qtbot.keyClicks(code_editor, "'abc.'")
+    elif filename == 'part.0.parquet':
+        # This checks that we can insert file completions next to a dot when a
+        # filename has several dots.
+        qtbot.keyClicks(code_editor, "'part.0.'")
+    else:
+        qtbot.keyClicks(code_editor, f"'{filename[0]}'")
+    code_editor.moveCursor(QTextCursor.PreviousCharacter)
+    qtbot.wait(500)
+
+    mock_response.side_effect = lambda lang, method, params: {'params': [{
+        'label': f'{filename}',
+        'kind': CompletionItemKind.FILE,
+        'sortText': (0, f'a{filename}'),
+        'insertText': f'{filename}',
+        'data': {'doc_uri': path_as_uri(__file__)},
+        'detail': '',
+        'documentation': '',
+        'filterText': f'{filename}',
+        'insertTextFormat': 1,
+        'provider': 'LSP',
+        'resolve': True
+    }]} if method == CompletionRequestTypes.DOCUMENT_COMPLETION else None
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000):
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+
+    qtbot.wait(500)
+    assert code_editor.get_text_with_eol() == f"'{filename}'"
+
+
+@pytest.mark.order(1)
+@pytest.mark.parametrize(
+    "directory",
+    [
+         pytest.param(
+             '/home',
+             marks=pytest.mark.skipif(
+                 not sys.platform.startswith('linux'),
+                 reason='Only works on Linux'
+             )
+        ),
+        pytest.param(
+            'C:\\Users',
+            marks=pytest.mark.skipif(
+                not os.name == 'nt',
+                reason='Only works on Windows'
+            )
+        ),
+        pytest.param(
+            'C:\\Windows\\System32',
+            marks=pytest.mark.skipif(
+                not os.name == 'nt',
+                reason='Only works on Windows'
+            )
+        ),
+        pytest.param(
+            '/Library/Frameworks',
+            marks=pytest.mark.skipif(
+                not sys.platform == 'darwin',
+                reason='Only works on macOS'
+            )
+        )
+    ]
+)
+def test_directory_completions(directory, completions_codeeditor, qtbot):
+    """
+    Test that directory completions work as expected.
+    """
+    code_editor, _ = completions_codeeditor
+    completion = code_editor.completion_widget
+
+    qtbot.wait(500)
+    assert not completion.isVisible()
+
+    if directory == '/home':
+        qtbot.keyClicks(code_editor, "'/'")
+    elif directory == 'C:\\Users':
+        qtbot.keyClicks(code_editor, r"'C:\\'")
+    elif directory == 'C:\\Windows\\System32':
+        qtbot.keyClicks(code_editor, r"'C:\\Windows\\'")
+    else:
+        qtbot.keyClicks(code_editor, "'/Library/'")
+
+    code_editor.moveCursor(QTextCursor.PreviousCharacter)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000):
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+
+    qtbot.wait(500)
+    assert completion.isVisible()
+
+    # Select the corresponding entry in the completion widget
+    selected_entry = False
+    while not selected_entry:
+        item = completion.currentItem()
+        label = item.data(Qt.AccessibleTextRole).split()[0]
+        if directory.split(os.sep)[-1] in label:
+            selected_entry = True
+        else:
+            qtbot.keyPress(completion, Qt.Key_Down, delay=50)
+
+    # Insert completion and check that the inserted text is the expected one
+    qtbot.keyPress(completion, Qt.Key_Enter)
+    qtbot.wait(500)
+    assert osp.normpath(code_editor.toPlainText()) == f"'{directory}{os.sep}'"
 
 
 if __name__ == '__main__':

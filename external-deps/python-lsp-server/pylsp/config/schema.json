@@ -176,6 +176,11 @@
       "default": true,
       "description": "If follow_imports is True will decide if it follow builtin imports."
     },
+    "pylsp.plugins.jedi_definition.follow_builtin_definitions": {
+      "type": "boolean",
+      "default": true,
+      "description": "Follow builtin and extension definitions to stubs."
+    },
     "pylsp.plugins.jedi_hover.enabled": {
       "type": "boolean",
       "default": true,

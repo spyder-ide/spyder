@@ -33,6 +33,12 @@ on:
       - '!installers*/**'
       - '!.github/workflows/installer*.yml'
 
+  workflow_dispatch:
+
+concurrency:
+  group: test-win-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Windows - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
@@ -55,64 +61,75 @@ jobs:
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Checkout Push
         if: github.event_name != 'pull_request'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Fetch branches
         run: git fetch --prune --unshallow
-      - name: Check build skips
-        if: github.event_name == 'pull_request'
-        shell: bash -l {0}
-        run: source .github/scripts/check_skip.sh
-      - name: Check build runs
-        if: github.event_name != 'pull_request'
-        shell: bash -l {0}
-        run: echo "RUN_BUILD=true" >> $GITHUB_ENV
       - name: Cache conda
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           # Increase this value to reset cache if requirements/*.txt has not changed
           CACHE_NUMBER: 0
         with:
           path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
+          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
-        if: env.RUN_BUILD == 'true'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
-      - name: Install Conda
-        if: env.RUN_BUILD == 'true'
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Create conda test environment
+        if: env.USE_CONDA == 'true'
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          activate-environment: test
-          auto-update-conda: false
-          auto-activate-base: false
-          python-version: ${{ matrix.PYTHON_VERSION }}
-          use-only-tar-bz2: true
-          channels: conda-forge,defaults
-          channel-priority: strict
-          miniforge-variant: Mambaforge
-      - name: Create test environment
-        if: env.RUN_BUILD == 'true'
+          environment-file: requirements/main.yml
+          environment-name: test
+          cache-downloads: true
+          extra-specs: |
+            python=${{ matrix.PYTHON_VERSION }}
+      - name: Create pip test environment
+        if: env.USE_CONDA != 'true'
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: false
+          environment-name: test
+          cache-downloads: true
+          channels: conda-forge
+          extra-specs: |
+            python=${{ matrix.PYTHON_VERSION }}
+      - name: Install additional dependencies
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
-      - name: Show test environment
-        if: env.RUN_BUILD == 'true'
+      - name: Show conda test environment
+        if: env.USE_CONDA == 'true'
         shell: bash -l {0}
         run: |
-          conda info
-          conda list
+          micromamba info
+          micromamba list
+      - name: Show pip test environment
+        if: env.USE_CONDA != 'true'
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+          pip list
+      # Notes:
+      # 1. This only works for conda, probably because it has the necessary
+      #    MSYS2 packages to create the connection.
+      # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
+      #    usage.
+      #- name: Setup remote ssh connection
+      #  if: env.USE_CONDA == 'true'
+      #  uses: mxschmitt/action-tmate@v3
+      #  timeout-minutes: 45
       - name: Run manifest checks
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: check-manifest
       - name: Run tests
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
@@ -121,6 +138,5 @@ jobs:
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh
       - name: Coverage
-        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: codecov

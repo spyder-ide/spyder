@@ -80,6 +80,16 @@ def test_symbols_all_scopes(config, workspace):
     helper_check_symbols_all_scope(symbols)
 
 
+def test_symbols_non_existing_file(config, workspace, tmpdir):
+    path = tmpdir.join("foo.py")
+    # Check pre-condition: file must not exist
+    assert not path.check(exists=1)
+
+    doc = Document(uris.from_fs_path(str(path)), workspace, DOC)
+    symbols = pylsp_document_symbols(config, doc)
+    helper_check_symbols_all_scope(symbols)
+
+
 @pytest.mark.skipif(PY2 or not LINUX or not CI, reason="tested on linux and python 3 only")
 def test_symbols_all_scopes_with_jedi_environment(workspace):
     doc = Document(DOC_URI, workspace, DOC)

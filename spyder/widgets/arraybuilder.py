@@ -14,7 +14,6 @@
 # - Generalize API for registering new array builders
 
 # Standard library imports
-from __future__ import division
 import re
 
 # Third party imports

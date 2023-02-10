@@ -10,6 +10,9 @@ Environment variable utilities.
 
 # Standard library imports
 import os
+from pathlib import Path
+import re
+import sys
 try:
     import winreg
 except Exception:
@@ -19,7 +22,7 @@ except Exception:
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_in_ci
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
@@ -51,17 +54,24 @@ def get_user_environment_variables():
     env_var : dict
         Key-value pairs of environment variables.
     """
-    if os.name == 'nt':
-        cmd = "set"
-    else:
-        cmd = "printenv"
-    proc = run_shell_command(cmd)
-    stdout, stderr = proc.communicate()
-    res = stdout.decode().strip().split(os.linesep)
-    env_var = {}
-    for kv in res:
-        k, v = kv.split('=', 1)
-        env_var[k] = v
+    try:
+        if os.name == 'nt':
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+            num_values = winreg.QueryInfoKey(key)[1]
+            env_var = dict(
+                [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
+            )
+        else:
+            shell = os.environ.get("SHELL", "/bin/bash")
+            cmd = (
+                f"{shell} -l -c"
+                f""" "{sys.executable} -c 'import os; print(dict(os.environ))'" """
+            )
+            proc = run_shell_command(cmd, env={}, text=True)
+            stdout, stderr = proc.communicate()
+            env_var = eval(stdout, None)
+    except Exception:
+        return {}
 
     return env_var
 
@@ -73,35 +83,80 @@ def get_user_env():
 
 
 def set_user_env(env, parent=None):
-    """Set HKCU (current user) environment variables"""
-    if os.name != 'nt':
-        raise NotImplementedError("Not implemented for %s platforms", os.name)
+    """
+    Set user environment variables via HKCU (Windows) or shell startup file
+    (Unix).
+    """
+    env_dict = listdict2envdict(env)
 
-    reg = listdict2envdict(env)
-    types = dict()
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
-    for name in reg:
+    if os.name == 'nt':
+        types = dict()
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+        for name in env_dict:
+            try:
+                _x, types[name] = winreg.QueryValueEx(key, name)
+            except WindowsError:
+                types[name] = winreg.REG_EXPAND_SZ
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
+                             winreg.KEY_SET_VALUE)
+        for name in env_dict:
+            winreg.SetValueEx(key, name, 0, types[name], env_dict[name])
         try:
-            _x, types[name] = winreg.QueryValueEx(key, name)
-        except WindowsError:
-            types[name] = winreg.REG_EXPAND_SZ
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
-                         winreg.KEY_SET_VALUE)
-    for name in reg:
-        winreg.SetValueEx(key, name, 0, types[name], reg[name])
-    try:
-        from win32gui import SendMessageTimeout
-        from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
-                              SMTO_ABORTIFHUNG)
-        SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
-                           "Environment", SMTO_ABORTIFHUNG, 5000)
-    except Exception:
-        QMessageBox.warning(
-            parent, _("Warning"),
-            _("Module <b>pywin32 was not found</b>.<br>"
-              "Please restart this Windows <i>session</i> "
-              "(not the computer) for changes to take effect.")
-        )
+            from win32gui import SendMessageTimeout
+            from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
+                                  SMTO_ABORTIFHUNG)
+            SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
+                               "Environment", SMTO_ABORTIFHUNG, 5000)
+        except Exception:
+            QMessageBox.warning(
+                parent, _("Warning"),
+                _("Module <b>pywin32 was not found</b>.<br>"
+                  "Please restart this Windows <i>session</i> "
+                  "(not the computer) for changes to take effect.")
+            )
+    elif os.name == 'posix' and running_in_ci():
+        text = "\n".join([f"export {k}={v}" for k, v in env_dict.items()])
+        amend_user_shell_init(text)
+    else:
+        raise NotImplementedError("Not implemented for platform %s", os.name)
+
+
+def amend_user_shell_init(text="", restore=False):
+    """Set user environment variable for pytests on Unix platforms"""
+    if os.name == "nt":
+        return
+
+    HOME = Path(os.environ["HOME"])
+    SHELL = os.environ.get("SHELL", "/bin/bash")
+    if "bash" in SHELL:
+        init_files = [".bash_profile", ".bash_login", ".profile"]
+    elif "zsh" in SHELL:
+        init_files = [".zprofile", ".zshrc"]
+    else:
+        raise Exception(f"{SHELL} not supported.")
+
+    for file in init_files:
+        init_file = HOME / file
+        if init_file.exists():
+            break
+
+    script = init_file.read_text() if init_file.exists() else ""
+    m1 = "# <<<< Spyder Environment <<<<"
+    m2 = "# >>>> Spyder Environment >>>>"
+    if restore:
+        if init_file.exists() and (m1 in script and m2 in script):
+            new_text = ""
+        else:
+            return
+    else:
+        new_text = f"{m1}\n" + text + f"\n{m2}"
+
+    if m1 in script and m2 in script:
+        _script = re.sub(f"{m1}(.*){m2}", new_text, script, flags=re.DOTALL)
+    else:
+        _script = script.rstrip() + "\n\n" + new_text
+
+    init_file.write_text(_script.rstrip() + "\n")
 
 
 def clean_env(env_vars):

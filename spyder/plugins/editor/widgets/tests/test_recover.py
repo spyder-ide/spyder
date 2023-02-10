@@ -15,7 +15,6 @@ import shutil
 from qtpy.QtWidgets import QDialogButtonBox, QPushButton, QTableWidget
 
 # Local imports
-from spyder.py3compat import PY2
 from spyder.plugins.editor.widgets.recover import (make_temporary_files,
                                                    RecoveryDialog)
 
@@ -180,9 +179,8 @@ def test_recoverydialog_restore_fallback(qtbot, recovery_env, mocker):
     Regression test for spyder-ide/spyder#8631.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    if not PY2:
-        mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
-                     side_effect=OSError)
+    mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
+                 side_effect=OSError)
     dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
@@ -203,9 +201,8 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
     in the grid is not deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    if not PY2:
-        mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
-                     side_effect=OSError)
+    mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
+                 side_effect=OSError)
     mocker.patch('spyder.plugins.editor.widgets.recover.shutil.copy2',
                  side_effect=IOError)
     mock_QMessageBox = mocker.patch(

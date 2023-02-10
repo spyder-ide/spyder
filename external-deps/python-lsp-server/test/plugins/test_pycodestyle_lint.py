@@ -2,6 +2,9 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import os
+
+import pytest
+
 from pylsp import lsp, uris
 from pylsp.workspace import Document
 from pylsp.plugins import pycodestyle_lint
@@ -110,3 +113,22 @@ def test_pycodestyle_config(workspace):
     assert not [d for d in diags if d['code'] == 'W191']
     assert not [d for d in diags if d['code'] == 'E201']
     assert [d for d in diags if d['code'] == 'W391']
+
+
+@pytest.mark.parametrize('newline', ['\r\n', '\r'])
+def test_line_endings(workspace, newline):
+    """
+    Check that Pycodestyle doesn't generate false positives with line endings
+    other than LF.
+    """
+    # Create simple source that should give false positives
+    source = f"try:{newline}    1/0{newline}except Exception:{newline}    pass{newline}"
+
+    # Create document
+    doc = Document(DOC_URI, workspace, source)
+
+    # Get diagnostics
+    diags = pycodestyle_lint.pylsp_lint(workspace, doc)
+
+    # Assert no diagnostics were given
+    assert len(diags) == 0

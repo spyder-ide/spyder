@@ -37,7 +37,7 @@ from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
@@ -49,7 +49,7 @@ from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
-                                                  EditorStack,)
+                                                  EditorStack)
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
@@ -193,7 +193,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if os.name == "nt":
                 shebang = []
             else:
-                shebang = ['#!/usr/bin/env python' + ('2' if PY2 else '3')]
+                shebang = ['#!/usr/bin/env python3']
             header = shebang + [
                 '# -*- coding: utf-8 -*-',
                 '"""', 'Created on %(date)s', '',
@@ -282,6 +282,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
+        editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
         self.editorsplitter = EditorSplitter(self, self,
@@ -1342,6 +1343,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
+        logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
 
@@ -1519,10 +1521,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
+        logger.debug("Unregistering EditorStack")
         self.remove_last_focused_editorstack(editorstack)
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
+            self.find_widget.set_editor(self.get_current_editor())
             return True
         else:
             # editorstack was not removed!
@@ -1608,8 +1612,15 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             super(Editor, self).switch_to_plugin()
 
     def create_new_window(self):
+        """Create a new editor window."""
         window = EditorMainWindow(
-            self, self.stack_menu_actions, self.toolbar_list, self.menu_list)
+            self,
+            self.stack_menu_actions,
+            self.toolbar_list,
+            self.menu_list,
+            outline_plugin=self.outlineexplorer
+        )
+
         window.add_toolbars_to_menu("&View", window.get_toolbars())
         window.load_toolbars()
         window.resize(self.size())
@@ -1620,10 +1631,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return window
 
     def register_editorwindow(self, window):
+        """Register a new editor window."""
+        logger.debug("Registering new window")
         self.editorwindows.append(window)
 
     def unregister_editorwindow(self, window):
-        self.editorwindows.pop(self.editorwindows.index(window))
+        """Unregister editor window."""
+        logger.debug("Unregistering window")
+        idx = self.editorwindows.index(window)
+        self.editorwindows[idx] = None
+        self.editorwindows.pop(idx)
 
 
     #------ Accessors
