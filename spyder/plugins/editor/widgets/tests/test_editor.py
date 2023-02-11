@@ -290,8 +290,8 @@ def test_run_top_line(editor_bot, qtbot):
     editor.go_to_line(1) # line number is one based
     editor.move_cursor(3)
     text, _, _, _ = editor_stack.run_selection()
-    # assert blocker.signal_triggered
     assert text == 'a = 1'
+
     # check cursor moves to start of next line; note line number is zero based
     assert editor.get_cursor_line_column() == (1, 0)
 

@@ -20,28 +20,21 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
 from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.profiler.api import ProfilerPyConfiguration
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
-from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
-                                                         is_profiler_installed)
+from spyder.plugins.profiler.widgets.main_widget import (
+    ProfilerWidget, is_profiler_installed)
 from spyder.plugins.profiler.widgets.run_conf import (
     ProfilerPyConfigurationGroup)
-from spyder.plugins.profiler.api import ProfilerPyConfiguration
 from spyder.plugins.run.api import (
     RunExecutor, run_execute, RunContext, RunConfiguration,
     ExtendedRunExecutionParameters, PossibleRunResult)
+
 
 # Localization
 _ = get_translation('spyder')
 
 
-# --- Constants
-# ----------------------------------------------------------------------------
-class ProfilerActions:
-    ProfileCurrentFile = 'profile_current_filename_action'
-
-
-# --- Plugin
-# ----------------------------------------------------------------------------
 class Profiler(SpyderDockablePlugin, RunExecutor):
     """
     Profiler (after python's profile and pstats).
@@ -56,16 +49,16 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     CONF_WIDGET_CLASS = ProfilerConfigPage
     CONF_FILE = False
 
-    # --- Signals
-    # ------------------------------------------------------------------------
+    # ---- Signals
+    # -------------------------------------------------------------------------
     sig_started = Signal()
     """This signal is emitted to inform the profiling process has started."""
 
     sig_finished = Signal()
     """This signal is emitted to inform the profile profiling has finished."""
 
-    # --- SpyderDockablePlugin API
-    # ------------------------------------------------------------------------
+    # ---- SpyderDockablePlugin API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Profiler")
@@ -141,8 +134,8 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
         run.destroy_run_in_executor_button(
             RunContext.File, self.NAME)
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def run_profiler(self):
         """
         Run profiler.
@@ -164,8 +157,10 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
 
     @run_execute(context=RunContext.File)
     def run_file(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[PossibleRunResult]:
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[PossibleRunResult]:
         self.switch_to_plugin()
 
         exec_params = conf['params']

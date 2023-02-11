@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 #
 # Copyright © Spyder Project Contributors
@@ -13,20 +12,19 @@ import os.path as osp
 # Third-party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtWidgets import (
-    QWidget, QRadioButton, QGroupBox, QVBoxLayout, QGridLayout,
-    QCheckBox, QLineEdit, QHBoxLayout)
+    QRadioButton, QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit)
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
-from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import create_toolbutton
+
 
 # Localization
 _ = get_translation("spyder")
 
+# Main constants
 RUN_DEFAULT_CONFIG = _("Run file with default configuration")
 RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
 CURRENT_INTERPRETER = _("Execute in current console")

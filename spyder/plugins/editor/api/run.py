@@ -9,19 +9,7 @@
 # Standard library imports
 from __future__ import annotations
 
-import sys
-from enum import IntEnum
-from datetime import datetime
-from typing import Tuple, List
-
-# PEP 589 and 544 are available from Python 3.8 onwards
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-# Support PEP 655 (available from Python 3.11 onwards)
-from typing_extensions import NotRequired
+from typing import Tuple, List, TypedDict
 
 # Local imports
 from spyder.plugins.run.api import Context

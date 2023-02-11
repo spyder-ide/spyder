@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.externalconsole
-=============================
+==============================
 
 External console spawning and interaction.
 """

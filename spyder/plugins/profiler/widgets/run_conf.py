@@ -20,6 +20,8 @@ from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
 from spyder.utils.misc import getcwd_or_home
 
+
+# Translations
 _ = get_translation('spyder')
 
 

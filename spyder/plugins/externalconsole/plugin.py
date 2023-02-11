@@ -12,26 +12,27 @@ import sys
 import tempfile
 import platform
 from typing import List
-from distutils.version import LooseVersion
 
 # Third-party imports
+from packaging.version import parse
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.utils import programs
-from spyder.utils.misc import get_python_executable
-from spyder.plugins.run.api import (
-    RunContext, run_execute, RunConfiguration, ExtendedRunExecutionParameters,
-    RunResult, RunExecutor)
-from spyder.api.translations import get_translation
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.translations import get_translation
 from spyder.plugins.editor.api.run import FileRun, SelectionRun
 from spyder.plugins.externalconsole.api import (
     ExtConsolePyConfiguration, ExtConsoleShConfiguration)
 from spyder.plugins.externalconsole.widgets.run_conf import (
     ExternalConsolePyConfiguration, ExternalConsoleShConfiguration)
+from spyder.plugins.run.api import (
+    RunContext, run_execute, RunConfiguration, ExtendedRunExecutionParameters,
+    RunResult, RunExecutor)
+from spyder.utils import programs
+from spyder.utils.misc import get_python_executable
+
 
 # Localization
 _ = get_translation('spyder')
@@ -46,7 +47,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
     CONF_SECTION = NAME
     CONF_FILE = False
 
-    # --- SpyderPluginV2 API
+    # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
@@ -162,8 +163,8 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         if sys.platform in {'linux', 'darwin'}:
             default_shell = 'bash'
             if sys.platform == 'darwin':
-                mac_ver = LooseVersion(platform.mac_ver()[0])
-                if mac_ver >= LooseVersion('10.15.0'):
+                mac_ver = parse(platform.mac_ver()[0])
+                if mac_ver >= parse('10.15.0'):
                     # Catalina changed the default shell to zsh
                     default_shell = 'zsh'
 
@@ -227,30 +228,36 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         for conf in self.editor_configurations:
             editor.remove_supported_run_configuration(conf)
 
-    def open_external_python_console(
-            self, fname, wdir, args, interact, debug,
-            python_args):
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def open_external_python_console(self, fname, wdir, args, interact, debug,
+                                     python_args):
         """Open external console"""
         # Running script in an external system terminal
         try:
             if self.get_conf('default', section='main_interpreter'):
                 executable = get_python_executable()
             else:
-                executable = self.get_conf(
-                    'executable', section='main_interpreter')
+                executable = self.get_conf('executable',
+                                           section='main_interpreter')
+
             programs.run_python_script_in_terminal(
-                    fname, wdir, args, interact, debug, python_args,
-                    executable)
+                fname, wdir, args, interact, debug, python_args, executable
+            )
         except NotImplementedError:
-            QMessageBox.critical(self, _("Run"),
-                                 _("Running an external system terminal "
-                                 "is not supported on platform %s."
-                                 ) % os.name)
+            QMessageBox.critical(
+                self,
+                _("Run"),
+                _("Running an external system terminal is not supported on "
+                  "platform %s.") % os.name
+            )
 
     @run_execute(extension='py')
     def run_python_files(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
         exec_params = conf['params']
         cwd_opts = exec_params['working_dir']
         params: ExtConsolePyConfiguration = exec_params['executor_params']
@@ -268,8 +275,10 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
 
     @run_execute(extension=['sh', 'bat', 'ps1'])
     def run_shell_files(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
         exec_params = conf['params']
         cwd_opts = exec_params['working_dir']
         params: ExtConsoleShConfiguration = exec_params['executor_params']
@@ -301,8 +310,10 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
 
     @run_execute(extension=['sh', 'bat', 'ps1'], context=RunContext.Selection)
     def run_shell_selection(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
         exec_params = conf['params']
         cwd_opts = exec_params['working_dir']
         params: ExtConsoleShConfiguration = exec_params['executor_params']

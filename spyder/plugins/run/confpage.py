@@ -17,17 +17,18 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout, QComboBox,
                             QTableView, QAbstractItemView, QPushButton,
                             QGridLayout, QHeaderView)
-from spyder.plugins.run.api import (ExtendedRunExecutionParameters,
-                                    SupportedExecutionRunConfiguration)
 
 # Local imports
-from spyder.plugins.run.container import RunContainer
-from spyder.plugins.run.widgets import (
-    ExecutionParametersDialog, RunDialogStatus)
-from spyder.plugins.run.models import (
-    RunExecutorNamesListModel, ExecutorRunParametersTableModel)
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import get_translation
+from spyder.plugins.run.api import (
+    ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration)
+from spyder.plugins.run.container import RunContainer
+from spyder.plugins.run.models import (
+    RunExecutorNamesListModel, ExecutorRunParametersTableModel)
+from spyder.plugins.run.widgets import (
+    ExecutionParametersDialog, RunDialogStatus)
+
 
 # Localization
 _ = get_translation("spyder")
@@ -165,11 +166,11 @@ class RunConfigPage(PluginConfigPage):
             str, Dict[Tuple[str, str, str],
             ExtendedRunExecutionParameters]] = {}
 
-        about_label = QLabel(_("The following are the per-executor "
-                               "configuration settings used for "
-                               "running. These options may be overriden "
-                               "using the <b>Configuration per file</b> entry "
-                               "of the <b>Run</b> menu."))
+        about_label = QLabel(
+            _("The following are the per-executor configuration settings used "
+              "for running. These options may be overriden using the "
+              "<b>Configuration per file</b> entry of the <b>Run</b> menu.")
+        )
         about_label.setWordWrap(True)
 
         self.executor_combo = QComboBox(self)
@@ -209,10 +210,12 @@ class RunConfigPage(PluginConfigPage):
         self.reset_configuration_btn.clicked.connect(self.reset_to_default)
 
         # Buttons layout
-        btns = [self.new_configuration_btn,
-                self.clone_configuration_btn,
-                self.delete_configuration_btn,
-                self.reset_configuration_btn]
+        btns = [
+            self.new_configuration_btn,
+            self.clone_configuration_btn,
+            self.delete_configuration_btn,
+            self.reset_configuration_btn
+        ]
         sn_buttons_layout = QGridLayout()
         for i, btn in enumerate(btns):
             sn_buttons_layout.addWidget(btn, i, 1)
@@ -234,6 +237,7 @@ class RunConfigPage(PluginConfigPage):
         previous_executor_name, _ = self.executor_model.selected_executor(
             self.previous_executor_index)
         self.all_executor_model[previous_executor_name] = prev_executor_info
+
         # Handle current executor configuration
         executor, available_inputs = self.executor_model.selected_executor(
             index)

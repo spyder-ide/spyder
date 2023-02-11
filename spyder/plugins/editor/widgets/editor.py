@@ -631,10 +631,9 @@ class EditorStack(QWidget):
             parent=self)
 
         # Return configurable ones
-        return [inspect, gotoline, tab,
-                tabshift, new_file,
-                open_file, save_file, save_all, save_as, close_all,
-                prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
+        return [inspect, gotoline, tab, tabshift, new_file, open_file,
+                save_file, save_all, save_as, close_all, prev_edit_pos,
+                prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
                 zoom_out, zoom_reset, close_file_1, close_file_2,
                 go_to_next_cell, go_to_previous_cell,
                 prev_warning, next_warning, split_vertically,
@@ -2813,10 +2812,9 @@ class EditorStack(QWidget):
         elif direction == 'down':
             cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
 
-        ret = (
-            editor.get_selection_as_executable_code(cursor))
-        if ret:
-            code_text, off_pos, line_col_pos = ret
+        selection = editor.get_selection_as_executable_code(cursor)
+        if selection:
+            code_text, off_pos, line_col_pos = selection
             return code_text.rstrip(), off_pos, line_col_pos, enc
 
     def run_to_line(self):
@@ -2845,14 +2843,13 @@ class EditorStack(QWidget):
         cursor there. If cursor is on last line and that line is empty, then do
         not move cursor.
         """
-        finfo = self.get_current_finfo()
-        enc = finfo.encoding
-        ret = self.get_current_editor().get_selection_as_executable_code()
-        if ret:
-            text, off_pos, line_col_pos = ret
-            return text, off_pos, line_col_pos, enc
-
         editor = self.get_current_editor()
+        encoding = self.get_current_finfo().encoding
+        selection = editor.get_selection_as_executable_code()
+        if selection:
+            text, off_pos, line_col_pos = selection
+            return text, off_pos, line_col_pos, encoding
+
         line_col_from, line_col_to = editor.get_current_line_bounds()
         line_off_from, line_off_to = editor.get_current_line_offsets()
         line = editor.get_current_line()
@@ -2862,18 +2859,20 @@ class EditorStack(QWidget):
             editor.append(editor.get_line_separator())
         if self.focus_to_editor:
             editor.move_cursor_to_next('line', 'down')
-        return (text, (line_off_from, line_off_to),
-                (line_col_from, line_col_to), enc)
+
+        return (
+            text, (line_off_from, line_off_to),
+            (line_col_from, line_col_to),
+            encoding
+        )
 
     def get_cell(self):
+        """Get current cell attributes."""
         text, block, off_pos, line_col_pos = (
             self.get_current_editor().get_cell_as_executable_code())
-        finfo = self.get_current_finfo()
-        editor = self.get_current_editor()
+        encoding = self.get_current_finfo().encoding
         name = cell_name(block)
-        filename = finfo.filename
-        enc = finfo.encoding
-        return text, off_pos, line_col_pos, name, enc
+        return text, off_pos, line_col_pos, name, encoding
 
     def run_cell(self, method=None):
         """Run current cell."""
@@ -2916,12 +2915,11 @@ class EditorStack(QWidget):
         try:
             text, off_pos, col_pos = editor.get_cell_code_and_position(
                 cell_name)
-            finfo = self.get_current_finfo()
-            enc = finfo.encoding
+            encoding = self.get_current_finfo().encoding
         except RuntimeError:
             return
 
-        return text, off_pos, col_pos, cell_name, enc
+        return text, off_pos, col_pos, cell_name, encoding
 
     def _run_cell_text(self, text, editor, cell_id, method=None):
         """Run cell code in the console.

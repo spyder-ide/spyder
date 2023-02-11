@@ -20,7 +20,7 @@ from typing import Optional
 # Third party imports
 from qtpy import PYQT5
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QIcon, QFocusEvent
+from qtpy.QtGui import QFocusEvent, QIcon
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
                             QToolButton, QVBoxLayout, QWidget)
 
@@ -489,15 +489,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.on_close()
         super().closeEvent(event)
 
-    def focusInEvent(self, ev: QFocusEvent) -> None:
+    def focusInEvent(self, event: QFocusEvent) -> None:
         self.sig_focus_status_changed.emit(True)
         self.on_focus_in()
-        return super().focusInEvent(ev)
+        return super().focusInEvent(event)
 
-    def focusOutEvent(self, ev: QFocusEvent) -> None:
+    def focusOutEvent(self, event: QFocusEvent) -> None:
         self.sig_focus_status_changed.emit(False)
         self.on_focus_out()
-        return super().focusOutEvent(ev)
+        return super().focusOutEvent(event)
 
     # ---- Public methods to use
     # -------------------------------------------------------------------------
@@ -1019,11 +1019,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         pass
 
     def on_focus_in(self):
-        """Perform actions when the widget is focused."""
+        """Perform actions when the widget receives focus."""
         pass
 
     def on_focus_out(self):
-        """Perform actions when the widget is no longer focused."""
+        """Perform actions when the widget loses focus."""
         pass
 
 

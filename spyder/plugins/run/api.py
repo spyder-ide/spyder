@@ -9,25 +9,16 @@
 # Standard library imports
 from __future__ import annotations
 
-import sys
 import functools
 from enum import IntEnum
 from datetime import datetime
 import logging
-from typing import Any, Callable, Set, List, Union, Optional, Dict
+from typing import Any, Callable, Set, List, Union, Optional, Dict, TypedDict
 
-# PEP 589 and 544 are available from Python 3.8 onwards
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-# Support PEP 655 (available from Python 3.11 onwards)
-from typing_extensions import NotRequired
-
-# Qt imports
+# Third-party imports
 from qtpy.QtCore import QObject
 from qtpy.QtWidgets import QWidget
+from typing_extensions import NotRequired # Available from Python 3.11+
 
 logger = logging.getLogger(__name__)
 
@@ -65,24 +56,32 @@ RunResultFormat.NoDisplay = 'no_display'
 
 class RunConfigurationMetadata(TypedDict):
     """Run input metadata schema."""
+
     # Human-readable name for the run input.
     name: str
+
     # Name of the RunConfigurationProvider that produced the run configuration.
     source: str
+
     # File path to the source used for the run configuration.
     path: str
+
     # Timestamp of the run input information.
     timestamp: datetime
+
     # Extra metadata information.
     extra: NotRequired[dict]
+
     # Unique identifier for this run configuration. This should be generated
     # and managed by the RunConfigurationProvider
     uuid: str
-    # The context of the input provided. e.g., file, selection, cell, others.
+
+    # The context of the input provided. e.g. file, selection, cell or others.
     # This attribute can be customized by the `RunConfigurationProvider` when
     # registering with the run plugin. The context can be compared against the
-    # values of `RunContext`. e.g., `info['context'] == RunContext.File`
+    # values of `RunContext`. e.g. `info['context'] == RunContext.File`.
     context: Context
+
     # File extension or identifier of the input context.
     input_extension: str
 
@@ -110,18 +109,22 @@ class RunExecutionMetadata(TypedDict):
 
     # Human readable identifier for the run executor.
     executor: str
+
     # Start timestamp of the run execution.
     start_timestamp: datetime
+
     # End timestamp of the run execution.
     end_timestamp: datetime
-    # Extra execution metadata. This field can be used to store
-    # resource consumption, statistics and other fields that might be relevant.
+
+    # Extra execution metadata. This field can be used to store resource
+    # consumption, statistics and other fields that might be relevant.
     extra: NotRequired[dict]
 
 
 class RunResultError(TypedDict):
     # Error code for the current error.
     code: Optional[int]
+
     # Human-readable message that describes the error.
     message: Optional[str]
 
@@ -157,26 +160,32 @@ PossibleRunResult = Union[RunResult, RunResultError]
 
 class Context(TypedDict):
     """Run context name schema."""
+
     # CamelCase name of the context.
     name: str
-    # String identifier for the run context. If non-existent or None, then
-    # a snake_case version of the name is used.
+
+    # String identifier for the run context. If non-existent or None, then a
+    # snake_case version of the name is used.
     identifier: NotRequired[Optional[str]]
 
 
 class OutputFormat(TypedDict):
     """Output format information schema."""
+
     # Human-readable name for the output format. It must be CamelCase
     name: str
-    # String identifier for the output format. If non-existent or None, then
-    # a snake_case version of the name is used.
+
+    # String identifier for the output format. If non-existent or None, then a
+    # snake_case version of the name is used.
     identifier: NotRequired[Optional[str]]
 
 
 class ExtendedContext(TypedDict):
     """Extended context information schema."""
+
     # The specified context information.
     context: Context
+
     # True if entities identified with the given context can be registered as
     # run configurations via `register_run_configuration_metadata`. False if
     # the specified context is a subordinate of another one.
@@ -189,8 +198,8 @@ class SupportedExtensionContexts(TypedDict):
     # File extension or identifier of the input context.
     input_extension: str
 
-    # The supported contexts for the given input extension.
-    # e.g., file, selection, cell, others.
+    # The supported contexts for the given input extension, e.g. file,
+    # selection, cell or others.
     # The context can be compared against the values of `RunContext`. e.g.,
     # `info['context'] == RunContext.File`
     contexts: List[ExtendedContext]
@@ -228,8 +237,10 @@ class ExtendedRunExecutionParameters(TypedDict):
 
     # The unique identifier for the execution parameter set.
     uuid: str
+
     # The name of the run execution parameter set.
     name: str
+
     # The run execution parameters.
     params: RunExecutionParameters
 
@@ -266,8 +277,8 @@ class RunConfigurationProvider(QObject):
     Interface used to retrieve inputs to run on a code executor.
 
     This API needs to be implemented by any plugin that wants to provide
-    an input/file to a code runner. e.g., Editor files/ to be executed into
-    the IPythonConsole. This interface needs to be covariant with respect to
+    an input/file to a code runner, e.g. editor files to be executed in
+    the IPythonConsole. It also needs to be covariant with respect to
     :class:`spyder.api.plugins.SpyderDockablePlugin`.
     """
 
@@ -277,8 +288,8 @@ class RunConfigurationProvider(QObject):
 
         Arguments
         ---------
-        context: str
-            The unique identifier for the run configuration requested, such
+        uuid: str
+            The unique identifier for the requested run configuration. Such
             id should have been registered previously via
             `register_run_configuration_metadata` on the Run plugin.
 
@@ -292,9 +303,11 @@ class RunConfigurationProvider(QObject):
                                   'get_run_configuration')
 
     def get_run_configuration_per_context(
-            self, context: str,
+            self,
+            context: str,
             action_name: Optional[str] = None,
-            re_run: bool = False) -> Optional[RunConfiguration]:
+            re_run: bool = False
+        ) -> Optional[RunConfiguration]:
         """
         Return the run information for the given context.
 
@@ -331,9 +344,9 @@ class RunConfigurationProvider(QObject):
 
         Arguments
         ---------
-        context: str
+        uuid: str
             The unique identifier for the run configuration that should be
-            focused on, such id should have been registered previously via
+            focused on. Such id should have been registered previously via
             `register_run_configuration_metadata` on the Run plugin.
         """
         raise NotImplementedError(f'{type(self)} must implement '
@@ -348,9 +361,10 @@ RunExecuteFunc = Callable[
 def run_execute(
         func: RunExecuteFunc = None,
         extension: Optional[Union[str, List[str]]] = None,
-        context: Optional[Union[str, List[str]]] = None) -> RunExecuteFunc:
+        context: Optional[Union[str, List[str]]] = None
+    ) -> RunExecuteFunc:
     """
-    Method decorator used to mark a method as a executor for a given file
+    Method decorator used to mark a method as an executor for a given file
     extension and context.
 
     The methods that use this decorator must have the following signature:
@@ -413,7 +427,7 @@ class RunExecutor(QObject):
 
     This API needs to be implemented by any plugin that wants to execute
     an input produced by a :class:`RunConfigurationProvider` to produce an
-    output compatible by a :class:`RunResultViewer`. This interface needs to be
+    output compatible by a :class:`RunResultViewer`. It also needs to be
     covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
@@ -437,8 +451,10 @@ class RunExecutor(QObject):
                         self._exec_methods[(extension, context)] = method
 
     def exec_run_configuration(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[PossibleRunResult]:
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[PossibleRunResult]:
         """
         Execute a run configuration.
 
@@ -453,7 +469,7 @@ class RunExecutor(QObject):
 
         Returns
         -------
-        results: List[RunResult]
+        results: List[PossibleRunResult]
             A list of `RunResult` dictionary entries, one per each `run_output`
             format requested by the input. Each entry must comply with the
             format requested.
@@ -478,7 +494,7 @@ class RunExecutor(QObject):
             method = self._exec_methods[all_query]
         else:
             raise NotImplementedError(
-                'There is no method available to '
+                f'There is no method available to '
                 f'execute the requested context ({context}) and file '
                 f'extension ({extension}) in {type(self)}')
 
@@ -490,8 +506,8 @@ class RunResultViewer:
     Interface used to display run execution results.
 
     This API needs to be implemented by any plugin that wants to display
-    an output produced by a :class:`RunResultViewer`. This interface needs
-    to be covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
+    an output produced by a :class:`RunResultViewer`. It also needs to be
+    covariant with respect to :class:`spyder.api.plugins.SpyderPluginV2`
     """
 
     def display_run_result(self, result: RunResult):
@@ -512,7 +528,7 @@ class RunResultViewer:
 
 class RunExecutorConfigurationGroup(QWidget):
     """
-    QWidget subclass used to declare a RunExecutor configuration options.
+    QWidget subclass used to declare configuration options for a RunExecutor.
 
     Every executor that wants to add a configuration group to the Run
     dialog for a given context and input extension must subclass this
@@ -534,12 +550,17 @@ class RunExecutorConfigurationGroup(QWidget):
 
     Notes
     -----
-    The aforementioned parameters will be always be passed by the Run
+    The aforementioned parameters will always be passed by the Run
     dialog instance, and no subclass should modify them.
     """
 
-    def __init__(self, parent: QWidget, context: Context, input_extension: str,
-                 input_metadata: RunConfigurationMetadata):
+    def __init__(
+        self,
+        parent: QWidget,
+        context: Context,
+        input_extension: str,
+        input_metadata: RunConfigurationMetadata
+    ):
         """Create a run executor configuration widget."""
         super().__init__(parent)
         self.context = context
@@ -584,8 +605,8 @@ class SupportedExecutionRunConfiguration(TypedDict):
     # File extension or identifier of the input context.
     input_extension: str
 
-    # The context for the given input extension.
-    # e.g., file, selection, cell, others.
+    # The context for the given input extension, e.g. file, selection, cell or
+    # others.
     # The context can be compared against the values of `RunContext`. e.g.,
     # `info['context'] == RunContext.File`
     context: Context

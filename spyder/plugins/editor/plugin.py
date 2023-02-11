@@ -12,15 +12,15 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from datetime import datetime
 import logging
 import os
 import os.path as osp
 import re
 import sys
 import time
-import uuid
-from datetime import datetime
 from typing import Dict, Optional
+import uuid
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
@@ -286,64 +286,73 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             run.register_run_configuration_provider(
                 self.NAME, self.supported_run_extensions)
 
-            run.create_run_button(RunContext.Cell,
-                                  _("Run cell"),
-                                  icon=ima.icon('run_cell'),
-                                  tip=_("Run current cell \n"
-                                        "[Use #%% to create cells]"),
-                                  shortcut_context="editor",
-                                  register_shortcut=True,
-                                  add_to_toolbar=True,
-                                  add_to_menu=True)
+            run.create_run_button(
+                RunContext.Cell,
+                _("Run cell"),
+                icon=ima.icon('run_cell'),
+                tip=_("Run current cell\n[Use #%% to create cells]"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=True,
+                add_to_menu=True
+            )
 
-            run.create_run_button(RunContext.Cell,
-                                  _("Run cell and advance"),
-                                  icon=ima.icon('run_cell_advance'),
-                                  tip=_("Run current cell and go to "
-                                        "the next one "),
-                                  shortcut_context="editor",
-                                  register_shortcut=True,
-                                  add_to_toolbar=True,
-                                  add_to_menu=True,
-                                  extra_action_name='advance')
+            run.create_run_button(
+                RunContext.Cell,
+                _("Run cell and advance"),
+                icon=ima.icon('run_cell_advance'),
+                tip=_("Run current cell and go to the next one"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=True,
+                add_to_menu=True,
+                extra_action_name='advance'
+            )
 
-            run.create_run_button(RunContext.Cell,
-                                  _("Re-run last cell"),
-                                  tip=_("Re run last cell "),
-                                  shortcut_context="editor",
-                                  register_shortcut=True,
-                                  add_to_menu=True,
-                                  re_run=True)
+            run.create_run_button(
+                RunContext.Cell,
+                _("Re-run last cell"),
+                tip=_("Re run last cell "),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_menu=True,
+                re_run=True
+            )
 
-            run.create_run_button(RunContext.Selection,
-                                  _("Run &selection or current line"),
-                                  icon=ima.icon('run_selection'),
-                                  tip=_("Run selection or current line"),
-                                  shortcut_context="_",
-                                  register_shortcut=True,
-                                  add_to_toolbar=True,
-                                  add_to_menu=True)
+            run.create_run_button(
+                RunContext.Selection,
+                _("Run &selection or current line"),
+                icon=ima.icon('run_selection'),
+                tip=_("Run selection or current line"),
+                shortcut_context="_",
+                register_shortcut=True,
+                add_to_toolbar=True,
+                add_to_menu=True
+            )
 
-            run.create_run_button(RunContext.Selection,
-                                  _("Run &to line"),
-                                  tip=_(
-                                    "Run selection up to the current line"),
-                                  shortcut_context="editor",
-                                  register_shortcut=True,
-                                  add_to_toolbar=False,
-                                  add_to_menu=True,
-                                  extra_action_name="to line",
-                                  conjunction_or_preposition="up")
+            run.create_run_button(
+                RunContext.Selection,
+                _("Run &to line"),
+                tip=_("Run selection up to the current line"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=False,
+                add_to_menu=True,
+                extra_action_name="to line",
+                conjunction_or_preposition="up"
+            )
 
-            run.create_run_button(RunContext.Selection,
-                                  _("Run &from line"),
-                                  tip=_("Run selection from the current line"),
-                                  shortcut_context="editor",
-                                  register_shortcut=True,
-                                  add_to_toolbar=False,
-                                  add_to_menu=True,
-                                  extra_action_name="line",
-                                  conjunction_or_preposition="from")
+            run.create_run_button(
+                RunContext.Selection,
+                _("Run &from line"),
+                tip=_("Run selection from the current line"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=False,
+                add_to_menu=True,
+                extra_action_name="line",
+                conjunction_or_preposition="from"
+            )
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -464,12 +473,15 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             pass
 
     def update_run_focus_file(self):
+        """
+        Inform other plugins that the current editor with focus has changed.
+        """
         filename = self.get_current_filename()
         file_id = self.id_per_file.get(filename, None)
         self.sig_editor_focus_changed_uuid.emit(file_id)
 
     def register_file_run_metadata(self, filename, filename_ext):
-        # Register opened files with the run plugin
+        """Register opened files with the Run plugin."""
         all_uuids = CONF.get('editor', 'file_uuids', default={})
         file_id = all_uuids.get(filename, str(uuid.uuid4()))
         all_uuids[filename] = file_id
@@ -491,13 +503,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.id_per_file[filename] = file_id
         self.metadata_per_id[file_id] = metadata
 
-        run = self.main.get_plugin(Plugins.Run)
-        run.register_run_configuration_metadata(self, metadata)
-
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            run.register_run_configuration_metadata(self, metadata)
 
     @Slot(dict)
     def report_open_file(self, options):
-        """Report that a file was opened to the completion manager."""
+        """Report that a file was opened to other plugins."""
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
@@ -507,8 +519,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         able_to_run_file = False
         if filename_ext in self.supported_run_configurations:
             ext_contexts = self.supported_run_configurations[filename_ext]
-            if (filename not in self.id_per_file and
-                    RunContext.File in ext_contexts):
+
+            if (
+                filename not in self.id_per_file
+                and RunContext.File in ext_contexts
+            ):
                 self.register_file_run_metadata(filename, filename_ext)
                 able_to_run_file = True
 
@@ -1165,7 +1180,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             blockcomment_action,
             unblockcomment_action,
         ]
-        # self.cythonfile_compatible_actions = [configure_action]
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
@@ -1583,7 +1597,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot(str, str)
     def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
-        run = self.main.get_plugin(Plugins.Run)
+        run = self.main.get_plugin(Plugins.Run, error=False)
         if filename in self.id_per_file:
             file_id = self.id_per_file.pop(filename)
             self.file_per_id.pop(file_id)
@@ -2811,8 +2825,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self._get_editorstack()
-        if save_all and CONF.get(
-                'editor', 'save_all_before_run', default=True):
+        if save_all and self.get_option('save_all_before_run'):
             editorstack.save_all(save_new_files=False)
         editor = self._get_editor(filename)
 
@@ -2838,9 +2851,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             input_extension=extension, contexts=ext_contexts)
         self.supported_run_extensions.append(supported_extension)
 
-        run = self.main.get_plugin(Plugins.Run)
-        run.register_run_configuration_provider(
-            self.NAME, [supported_extension])
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            run.register_run_configuration_provider(
+                self.NAME, [supported_extension])
 
         actual_contexts = set({})
         ext_origins = self.run_configurations_per_origin.get(extension, {})
@@ -2869,7 +2883,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self.pending_run_files -= {(filename, filename_ext)}
 
     def remove_supported_run_configuration(
-            self, config: EditorRunConfiguration):
+        self,
+        config: EditorRunConfiguration
+    ):
         origin = config['origin']
         extension = config['extension']
         contexts = config['contexts']
@@ -2877,9 +2893,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         unsupported_extension = SupportedExtensionContexts(
             input_extension=extension, contexts=contexts)
 
-        run = self.main.get_plugin(Plugins.Run)
-        run.deregister_run_configuration_provider(
-            self.NAME, [unsupported_extension])
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            run.deregister_run_configuration_provider(
+                self.NAME, [unsupported_extension])
 
         to_remove = []
         ext_origins = self.run_configurations_per_origin[extension]
@@ -2915,7 +2932,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
         editorstack = self.get_current_editorstack()
         self.focus_run_configuration(metadata_id)
-        if CONF.get('editor', 'save_all_before_run', default=True):
+        if self.get_option('save_all_before_run'):
             editorstack.save_all(save_new_files=False)
         metadata = self.metadata_per_id[metadata_id]
         context = metadata['context']['name']
@@ -2928,16 +2945,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return run_conf
 
     def get_run_configuration_per_context(
-            self, context, action_name,
-            re_run=False) -> Optional[RunConfiguration]:
+        self, context, action_name,
+        re_run=False
+    ) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
-        if CONF.get('editor', 'save_all_before_run', default=True):
+        if self.get_option('save_all_before_run'):
             editorstack.save_all(save_new_files=False)
+
         fname = self.get_current_filename()
         __, filename_ext = osp.splitext(fname)
         fname_ext = filename_ext[1:]
         run_input = {}
         context_name = None
+
         if context == RunContext.Selection:
             if action_name == 'to line':
                 ret = editorstack.run_to_line()
@@ -2970,19 +2990,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 editorstack.advance_cell()
 
         metadata: RunConfigurationMetadata = {
-                'name': fname,
-                'source': self.NAME,
-                'path': fname,
-                'datetime': datetime.now(),
-                'uuid': None,
-                'context': {
-                    'name': context_name
-                },
-                'input_extension': fname_ext
-            }
-        run_conf = RunConfiguration(output_formats=[],
-                                    run_input=run_input,
+            'name': fname,
+            'source': self.NAME,
+            'path': fname,
+            'datetime': datetime.now(),
+            'uuid': None,
+            'context': {
+                'name': context_name
+            },
+            'input_extension': fname_ext
+        }
+        run_conf = RunConfiguration(output_formats=[], run_input=run_input,
                                     metadata=metadata)
+
         return run_conf
 
     def focus_run_configuration(self, uuid: str):

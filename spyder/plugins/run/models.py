@@ -17,12 +17,11 @@ from qtpy.QtCore import (Qt, Signal, QAbstractListModel, QModelIndex,
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.plugins.run.api import (
-    StoredRunExecutorParameters, RunContext,
-    SupportedExecutionRunConfiguration,
-    RunConfigurationMetadata, RunParameterFlags,
-    StoredRunConfigurationExecutor,
-    ExtendedRunExecutionParameters, RunExecutionParameters,
-    WorkingDirOpts, WorkingDirSource)
+    StoredRunExecutorParameters, RunContext, RunConfigurationMetadata,
+    SupportedExecutionRunConfiguration, RunParameterFlags,
+    StoredRunConfigurationExecutor, ExtendedRunExecutionParameters,
+    RunExecutionParameters, WorkingDirOpts, WorkingDirSource)
+
 
 # Localization
 _ = get_translation('spyder')
@@ -47,8 +46,12 @@ class RunExecutorListModel(QAbstractListModel):
         self.executor_names[executor_id] = executor_name
 
     def add_input_executor_configuration(
-            self, ext: str, context_id: str, executor_id: str,
-            config: SupportedExecutionRunConfiguration):
+        self,
+        ext: str,
+        context_id: str,
+        executor_id: str,
+        config: SupportedExecutionRunConfiguration
+    ):
         executor_conf = self.executor_configurations.get((ext, context_id), {})
         executor_conf[executor_id] = config
         self.executor_configurations[(ext, context_id)] = executor_conf
@@ -73,7 +76,11 @@ class RunExecutorListModel(QAbstractListModel):
         self.executor_priority[(ext, context_id)] = all_exec_prio
 
     def remove_input_executor_configuration(
-            self, ext: str, context_id: str, executor_id: str):
+        self,
+        ext: str,
+        context_id: str,
+        executor_id: str
+    ):
         input_executors = self.executors_per_input[(ext, context_id)]
         pos = input_executors.pop(executor_id)
 
@@ -89,15 +96,19 @@ class RunExecutorListModel(QAbstractListModel):
         else:
             raise ValueError(
                 f'The requested run input combination {run_input} is not '
-                'registered')
+                f'registered'
+            )
 
     def get_selected_run_executor(
-            self,
-            index: int) -> Tuple[str, SupportedExecutionRunConfiguration]:
+        self,
+        index: int
+    ) -> Tuple[str, SupportedExecutionRunConfiguration]:
+
         executor_indices = self.inverted_pos[self.current_input]
         executor_name = executor_indices[index]
         executors = self.executor_configurations[self.current_input]
         executor = executors[executor_name]
+
         return executor_name, executor
 
     def get_run_executor_index(self, executor_name: str) -> int:
@@ -110,17 +121,23 @@ class RunExecutorListModel(QAbstractListModel):
             self.uuid)
         executor_id = last_executor['executor']
         pos = 0
+
         if executor_id is not None:
             executors = self.executors_per_input[self.current_input]
             pos = executors[executor_id]
+
         return pos
 
     def get_default_executor(self, input: Tuple[str, str]) -> str:
         executors = self.inverted_pos[input]
         return executors[0]
 
-    def executor_supports_configuration(self, executor: str,
-                                        exec_input: Tuple[str, str]) -> bool:
+    def executor_supports_configuration(
+        self,
+        executor: str,
+        exec_input: Tuple[str, str]
+    ) -> bool:
+
         input_executors = self.executor_configurations.get(exec_input, {})
         return executor in input_executors
 
@@ -193,20 +210,31 @@ class RunConfigurationListModel(QAbstractListModel):
         return len(self.run_configurations)
 
     def get_run_configuration_parameters(
-            self, uuid: str, executor: str) -> Optional[
-                StoredRunExecutorParameters]:
+        self,
+        uuid: str,
+        executor: str
+    ) -> Optional[StoredRunExecutorParameters]:
+
         context, ext = self.get_metadata_context_extension(uuid)
         context_name = context['name']
         context_id = getattr(RunContext, context_name)
+
         return self.parent.get_executor_configuration_parameters(
             executor, ext, context_id)
 
     def get_last_used_execution_params(
-            self, uuid: str, executor: str) -> Optional[str]:
+        self,
+        uuid: str,
+        executor: str
+    ) -> Optional[str]:
+
         return self.parent.get_last_used_execution_params(uuid, executor)
 
     def get_last_used_executor_parameters(
-            self, uuid: str) -> StoredRunConfigurationExecutor:
+        self,
+        uuid: str
+    ) -> StoredRunConfigurationExecutor:
+
         return self.parent.get_last_used_executor_parameters(uuid)
 
     def pop(self, uuid: str) -> RunConfigurationMetadata:
@@ -254,7 +282,8 @@ class RunExecutorParameters(QAbstractListModel):
                 return _("Default/Transient")
             elif role == Qt.ToolTipRole:
                 return _(
-                    "This configuration will not be saved after execution")
+                    "This configuration will not be saved after execution"
+                )
         else:
             params_id = self.params_index[pos]
             params = self.executor_conf_params[params_id]
@@ -266,8 +295,10 @@ class RunExecutorParameters(QAbstractListModel):
         return len(self.executor_conf_params) + 1
 
     def get_executor_parameters(
-            self, index: int) -> Tuple[
-                RunParameterFlags, RunExecutionParameters]:
+        self,
+        index: int
+    ) -> Tuple[RunParameterFlags, RunExecutionParameters]:
+
         if index == len(self) - 1:
             default_working_dir = WorkingDirOpts(
                 source=WorkingDirSource.ConfigurationDirectory,
@@ -275,15 +306,20 @@ class RunExecutorParameters(QAbstractListModel):
             default_params = RunExecutionParameters(
                 working_dir=default_working_dir,
                 executor_params={})
+
             return RunParameterFlags.SetDefaults, default_params
         else:
             params_id = self.params_index[index]
             params = self.executor_conf_params[params_id]
             actual_params = params['params']
+
             return RunParameterFlags.SwitchValues, actual_params
 
     def get_parameters_uuid_name(
-            self, index: int) -> Tuple[Optional[str], Optional[str]]:
+        self,
+        index: int
+    ) -> Tuple[Optional[str], Optional[str]]:
+
         if index == len(self) - 1:
             return None, None
 
@@ -292,7 +328,9 @@ class RunExecutorParameters(QAbstractListModel):
         return params['uuid'], params['name']
 
     def set_parameters(
-            self, parameters: Dict[str, ExtendedRunExecutionParameters]):
+        self,
+        parameters: Dict[str, ExtendedRunExecutionParameters]
+    ):
         self.beginResetModel()
         self.executor_conf_params = parameters
         self.params_index = dict(enumerate(self.executor_conf_params))
@@ -324,7 +362,8 @@ class RunExecutorNamesListModel(QAbstractListModel):
                 ConfigWidget = exec_input_conf.get(
                     'configuration_widget', None)
                 if ConfigWidget is not None:
-                    input_set = self.executor_configurations.get(executor, set({}))
+                    input_set = self.executor_configurations.get(
+                        executor,set({}))
                     input_set |= {input_conf}
                     self.executor_configurations[executor] = input_set
 
@@ -385,13 +424,18 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         elif role == Qt.ToolTipRole:
             return _("Double-click to view or edit")
 
-    def headerData(self, section: int,
-                   orientation: Qt.Orientation,
-                   role: int = Qt.DisplayRole) -> Union[str, int]:
+    def headerData(
+        self,
+        section: int,
+        orientation: Qt.Orientation,
+        role: int = Qt.DisplayRole
+    ) -> Union[str, int]:
+
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
                 return int(Qt.AlignHCenter | Qt.AlignVCenter)
             return int(Qt.AlignRight | Qt.AlignVCenter)
+
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
                 if section == self.EXTENSION:
@@ -407,16 +451,20 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
     def columnCount(self, parent: QModelIndex = None) -> int:
         return 3
 
-    def set_parameters(self, params: Dict[
-            Tuple[str, str, str], ExtendedRunExecutionParameters]):
+    def set_parameters(
+        self,
+        params: Dict[Tuple[str, str, str], ExtendedRunExecutionParameters]
+    ):
         self.beginResetModel()
         self.executor_conf_params = params
         self.params_index = dict(enumerate(params))
         self.inverse_index = {v: k for k, v in self.params_index.items()}
         self.endResetModel()
 
-    def get_current_view(self) -> Dict[
-            Tuple[str, str, str], ExtendedRunExecutionParameters]:
+    def get_current_view(
+        self
+    ) -> Dict[Tuple[str, str, str], ExtendedRunExecutionParameters]:
+
         return self.executor_conf_params
 
     def get_tuple_index(self, index: int) -> Tuple[str, str, str]:
@@ -433,6 +481,7 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
     def sort(self, column: int, order: Qt.SortOrder = ...) -> None:
         self.beginResetModel()
         reverse = order == Qt.DescendingOrder
+
         if column == self.EXTENSION:
             sorted_keys = sorted(self.executor_conf_params,
                                  key=lambda x: x[0],
@@ -446,14 +495,19 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
                 self.executor_conf_params,
                 key=lambda x: self.executor_conf_params[x]['name'],
                 reverse=reverse)
+
         self.params_index = dict(enumerate(sorted_keys))
         self.inverse_index = {v: k for k, v in self.params_index.items()}
         self.endResetModel()
 
     def apply_changes(
-            self, changes: List[Tuple[str, ExtendedRunExecutionParameters]],
-            extension: str, context: str):
+        self,
+        changes: List[Tuple[str, ExtendedRunExecutionParameters]],
+        extension: str,
+        context: str
+    ):
         self.beginResetModel()
+
         for (operation, params) in changes:
             key = (extension, context, params['uuid'])
             if operation == 'deleted':
@@ -473,8 +527,10 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         return iter(self.executor_conf_params)
 
     def __getitem__(
-            self, index: int) -> Tuple[
-                str, str, ExtendedRunExecutionParameters]:
+        self,
+        index: int
+    ) -> Tuple[str, str, ExtendedRunExecutionParameters]:
+
         tuple_index = self.params_index[index]
         (ext, context, _) = tuple_index
         return (ext, context, self.executor_conf_params[tuple_index])

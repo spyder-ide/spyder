@@ -17,16 +17,18 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.translations import get_translation
+from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata,
     RunExecutorConfigurationGroupFactory)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
-from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 
+# For translations
 _ = get_translation('spyder')
 
+# Main constants
 RUN_DEFAULT_CONFIG = _("Run file with default configuration")
 RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
 CURRENT_INTERPRETER = _("Execute in current console")
@@ -130,12 +132,15 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
         }
 
 
-class GenExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
+class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
     """External console shell run configuration options."""
 
-    def __init__(self, parent,
-                 context: Context, input_extension: str,
-                 input_metadata: RunConfigurationMetadata):
+    def __init__(
+        self,
+        parent,
+        context: Context, input_extension: str,
+        input_metadata: RunConfigurationMetadata
+    ):
         super().__init__(parent, context, input_extension, input_metadata)
 
         # --- Interpreter ---
@@ -220,7 +225,7 @@ class GenExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         }
 
 
-class MetaShConfiguration(type(GenExternalConsoleShConfiguration)):
+class MetaShConfiguration(type(GenericExternalConsoleShConfiguration)):
     def __new__(cls, clsname, bases, attrs):
         interp = attrs.pop('default_shell_meta')
         interp_opts = attrs.pop('shell_args_meta')
@@ -243,11 +248,14 @@ class MetaShConfiguration(type(GenExternalConsoleShConfiguration)):
 
 
 def ExternalConsoleShConfiguration(
-        default_shell: str,
-        shell_args: str = '') -> RunExecutorConfigurationGroup:
+    default_shell: str,
+    shell_args: str = ''
+) -> RunExecutorConfigurationGroup:
 
     class WrappedExternalConsoleShConfiguration(
-            GenExternalConsoleShConfiguration, metaclass=MetaShConfiguration):
+        GenericExternalConsoleShConfiguration,
+        metaclass=MetaShConfiguration
+    ):
         default_shell_meta = default_shell
         shell_args_meta = shell_args
 

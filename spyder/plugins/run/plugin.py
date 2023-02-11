@@ -12,7 +12,7 @@ Run Plugin.
 
 # Standard library imports
 from threading import Lock
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 # Third-party imports
 from qtpy.QtCore import Signal
@@ -24,18 +24,17 @@ from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
-from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.api import (
-    RunContext, RunResultFormat, RunConfigurationProvider,
-    SupportedExtensionContexts, RunExecutor,
-    SupportedExecutionRunConfiguration,
-    RunResultViewer, OutputFormat, RunConfigurationMetadata, RunActions,
-    RunConfiguration, ExtendedRunExecutionParameters,
-    StoredRunConfigurationExecutor, StoredRunExecutorParameters)
+    RunConfigurationProvider, SupportedExtensionContexts, RunExecutor,
+    SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
+    RunConfigurationMetadata, RunActions, RunConfiguration,
+    ExtendedRunExecutionParameters, StoredRunConfigurationExecutor,
+    StoredRunExecutorParameters)
+from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.container import RunContainer
-from spyder.plugins.shortcuts.plugin import Shortcuts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
+
 
 # Localization
 _ = get_translation('spyder')
@@ -49,7 +48,6 @@ class Run(SpyderPluginV2):
     """
 
     NAME = "run"
-    # TODO: Fix requires to reflect the desired order in the preferences
     REQUIRES = [Plugins.Preferences, Plugins.WorkingDirectory]
     OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar, Plugins.Shortcuts]
     CONTAINER_CLASS = RunContainer
@@ -78,7 +76,7 @@ class Run(SpyderPluginV2):
         The run configuration identifier.
     """
 
-    # --- SpyderPluginV2 API
+    # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
@@ -118,21 +116,13 @@ class Run(SpyderPluginV2):
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
 
-        main_menu.add_item_to_application_menu(
-            self.get_action(RunActions.Run),
-            ApplicationMenus.Run, RunMenuSections.Run,
-            before_section=RunMenuSections.RunExtras
-        )
-
-        main_menu.add_item_to_application_menu(
-            self.get_action(RunActions.ReRun),
-            ApplicationMenus.Run, RunMenuSections.Run
-        )
-
-        main_menu.add_item_to_application_menu(
-            self.get_action(RunActions.Configure),
-            ApplicationMenus.Run, RunMenuSections.Run
-        )
+        for action in [RunActions.Run, RunActions.ReRun, RunActions.Configure]:
+            main_menu.add_item_to_application_menu(
+                self.get_action(action),
+                ApplicationMenus.Run,
+                RunMenuSections.Run,
+                before_section=RunMenuSections.RunExtras
+            )
 
         while self.pending_menu_actions != []:
             action = self.pending_menu_actions.pop(0)
@@ -177,17 +167,11 @@ class Run(SpyderPluginV2):
     def on_main_menu_teardown(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
 
-        main_menu.remove_item_from_application_menu(
-            RunActions.Run, ApplicationMenus.Run
-        )
-
-        main_menu.remove_item_from_application_menu(
-            RunActions.ReRun, ApplicationMenus.Run
-        )
-
-        main_menu.remove_item_from_application_menu(
-            RunActions.Configure, ApplicationMenus.Run
-        )
+        for action in [RunActions.Run, RunActions.ReRun, RunActions.Configure]:
+            main_menu.remove_item_from_application_menu(
+                action,
+                ApplicationMenus.Run
+            )
 
         for key in self.menu_actions:
             (_, _, name) = self.all_run_actions[key]
@@ -222,14 +206,16 @@ class Run(SpyderPluginV2):
                 action, shortcut_context, name)
         shortcuts.apply_shortcuts()
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def register_run_configuration_provider(
-            self, provider_name: str,
-            supported_extensions_contexts: List[SupportedExtensionContexts]):
+        self,
+        provider_name: str,
+        supported_extensions_contexts: List[SupportedExtensionContexts]
+    ):
         """
-        Register the extensions and contexts that a
-        `RunConfigurationProvider` supports.
+        Register the extensions and contexts that a `RunConfigurationProvider`
+        supports.
 
         Parameters
         ----------
@@ -243,8 +229,10 @@ class Run(SpyderPluginV2):
             provider_name, supported_extensions_contexts)
 
     def deregister_run_configuration_provider(
-            self, provider_name: str,
-            unsupported_extensions_contexts: List[SupportedExtensionContexts]):
+        self,
+        provider_name: str,
+        unsupported_extensions_contexts: List[SupportedExtensionContexts]
+    ):
         """
         Deregister the extensions and contexts that a
         `RunConfigurationProvider` no longer supports.
@@ -263,8 +251,10 @@ class Run(SpyderPluginV2):
             provider_name, unsupported_extensions_contexts)
 
     def register_run_configuration_metadata(
-            self, provider: RunConfigurationProvider,
-            metadata: RunConfigurationMetadata):
+        self,
+        provider: RunConfigurationProvider,
+        metadata: RunConfigurationMetadata
+    ):
         """
         Register the metadata for a run configuration.
 
@@ -301,8 +291,10 @@ class Run(SpyderPluginV2):
         self.get_container().deregister_run_configuration_metadata(uuid)
 
     def register_executor_configuration(
-            self, provider: RunExecutor,
-            configuration: List[SupportedExecutionRunConfiguration]):
+        self,
+        provider: RunExecutor,
+        configuration: List[SupportedExecutionRunConfiguration]
+    ):
         """
         Register a :class:`RunExecutor` instance to indicate its support
         for a given set of run configurations. This method can be called
@@ -325,8 +317,10 @@ class Run(SpyderPluginV2):
             provider, configuration)
 
     def deregister_executor_configuration(
-            self, provider: RunExecutor,
-            configuration: List[SupportedExecutionRunConfiguration]):
+        self,
+        provider: RunExecutor,
+        configuration: List[SupportedExecutionRunConfiguration]
+    ):
         """
         Deregister a :class:`RunConfigurationProvider` instance from providing
         a set of run configurations that are no longer supported by it.
@@ -343,17 +337,20 @@ class Run(SpyderPluginV2):
             A list of input configurations that the provider is able to
             process. Each configuration specifies the input extension
             identifier, the available execution context and the output formats
-            for that type
+            for that type.
         """
         self.get_container().deregister_executor_configuration(
             provider, configuration)
 
     def register_viewer_configuration(
-            self, viewer: RunResultViewer, formats: List[OutputFormat]):
+        self,
+        viewer: RunResultViewer,
+        formats: List[OutputFormat]
+    ):
         """
         Register a :class:`RunExecutorProvider` instance to indicate its
         support for a given set of output run result formats. This method can
-        be called whenever an viewer can extend its support for a given output
+        be called whenever a viewer can extend its support for a given output
         format.
 
         Parameters
@@ -363,13 +360,15 @@ class Run(SpyderPluginV2):
             :class:`RunResultViewer` interface and will register
             supported output formats.
         formats: List[OutputFormat]
-            A list of output formats that the viewer is able to
-            display.
+            A list of output formats that the viewer is able to display.
         """
         self.get_container().register_viewer_configuration(viewer, formats)
 
     def deregister_viewer_configuration(
-            self, viewer: RunResultViewer, formats: List[OutputFormat]):
+        self,
+        viewer: RunResultViewer,
+        formats: List[OutputFormat]
+    ):
         """
         Deregister a :class:`RunResultViewer` instance from supporting a set of
         output formats that are no longer supported by it. This method
@@ -387,16 +386,20 @@ class Run(SpyderPluginV2):
         """
         self.get_container().deregister_viewer_configuration(viewer, formats)
 
-    def create_run_button(self, context_name: str, text: str,
-                          icon: Optional[QIcon] = None,
-                          tip: Optional[str] = None,
-                          shortcut_context: Optional[str] = None,
-                          register_shortcut: bool = False,
-                          extra_action_name: Optional[str] = None,
-                          conjunction_or_preposition: str = "and",
-                          add_to_toolbar: bool = False,
-                          add_to_menu: bool = False,
-                          re_run: bool = False) -> QAction:
+    def create_run_button(
+        self,
+        context_name: str,
+        text: str,
+        icon: Optional[QIcon] = None,
+        tip: Optional[str] = None,
+        shortcut_context: Optional[str] = None,
+        register_shortcut: bool = False,
+        extra_action_name: Optional[str] = None,
+        conjunction_or_preposition: str = "and",
+        add_to_toolbar: bool = False,
+        add_to_menu: bool = False,
+        re_run: bool = False
+    ) -> QAction:
         """
         Create a run or a "run and do something" (optionally re-run) button
         for a specific run context.
@@ -408,7 +411,7 @@ class Run(SpyderPluginV2):
         text: str
            Localized text for the action
         icon: Optional[QIcon]
-            Icon for the action when applied to menu or toolbutton.
+            Icon for the action when used in menu or toolbar.
         tip: Optional[str]
             Tooltip to define for action on menu or toolbar.
         shortcut_context: Optional[str]
@@ -421,7 +424,7 @@ class Run(SpyderPluginV2):
             after requesting the run input.
         conjunction_or_preposition: str
             The conjunction or preposition used to describe the action that
-            should take place after the context. i.e., run <and> advance,
+            should take place after the context, e.g. run <and> advance,
             run selection <from> the current line, etc. Default: "and".
         add_to_toolbar: bool
             If True, then the action will be added to the Run section of the
@@ -441,8 +444,8 @@ class Run(SpyderPluginV2):
         -----
         1. The context passed as a parameter must be a subordinate of the
         context of the current focused run configuration that was
-        registered via `register_run_configuration_metadata`. e.g., Cell can
-        be used if and only if the file was registered.
+        registered via `register_run_configuration_metadata`. For instance,
+        Cell can be used if and only if the file was registered.
 
         2. The button will be registered as `run <context>` or
         `run <context> and <extra_action_name>` on the action registry.
@@ -452,15 +455,16 @@ class Run(SpyderPluginV2):
 
         4. If the requested button already exists, this method will not do
         anything, which implies that the first registered shortcut will be the
-        one to be used. For the built-in run contexts
-        (file, cell and selection), the editor will register their
-        corresponding icons and shortcuts.
+        one to be used. For the built-in run contexts (file, cell and
+        selection), the editor will register their corresponding icons and
+        shortcuts.
         """
         key = (context_name, extra_action_name, conjunction_or_preposition,
                re_run)
 
         action = self.get_container().create_run_button(
-            context_name, text,
+            context_name,
+            text,
             icon=icon,
             tip=tip,
             shortcut_context=shortcut_context,
@@ -499,12 +503,16 @@ class Run(SpyderPluginV2):
             (_, count, _) = self.all_run_actions.get(key, (None, 0, None))
             count += 1
             self.all_run_actions[key] = (action, count, action.name)
+
         return action
 
-    def destroy_run_button(self, context_name: str,
-                           extra_action_name: Optional[str] = None,
-                           conjunction_or_preposition: str = "and",
-                           re_run: bool = False):
+    def destroy_run_button(
+        self,
+        context_name: str,
+        extra_action_name: Optional[str] = None,
+        conjunction_or_preposition: str = "and",
+        re_run: bool = False
+    ):
         """
         Destroy a run or a "run and do something" (optionally re-run) button
         for a specific run context.
@@ -518,7 +526,7 @@ class Run(SpyderPluginV2):
             after requesting the run input.
         conjunction_or_preposition: str
             The conjunction or preposition used to describe the action that
-            should take place after the context. i.e., run <and> advance,
+            should take place after the context, i.e. run <and> advance,
             run selection <from> the current line, etc. Default: "and".
         re_run: bool
             If True, then the button was registered as a re-run button
@@ -536,6 +544,7 @@ class Run(SpyderPluginV2):
 
         key = (context_name, extra_action_name, conjunction_or_preposition,
                re_run)
+
         with self.action_lock:
             action, count, name = self.all_run_actions[key]
 
@@ -545,9 +554,11 @@ class Run(SpyderPluginV2):
                 if key in self.menu_actions and main_menu:
                     main_menu.remove_item_from_application_menu(
                         name, menu_id=ApplicationMenus.Run)
+
                 if key in self.toolbar_actions and toolbar:
                     toolbar.remove_item_from_application_toolbar(
                         name, toolbar_id=ApplicationToolbars.Run)
+
                 if key in self.shortcut_actions and shortcuts:
                     shortcut_context = self.shortcut_actions[key]
                     shortcuts.unregister_shortcut(
@@ -556,15 +567,18 @@ class Run(SpyderPluginV2):
             else:
                 self.all_run_actions[key] = (action, count, name)
 
-    def create_run_in_executor_button(self, context_name: str,
-                                      executor_name: str,
-                                      text: str,
-                                      icon: Optional[QIcon] = None,
-                                      tip: Optional[str] = None,
-                                      shortcut_context: Optional[str] = None,
-                                      register_shortcut: bool = False,
-                                      add_to_toolbar: bool = False,
-                                      add_to_menu: bool = False) -> QAction:
+    def create_run_in_executor_button(
+        self,
+        context_name: str,
+        executor_name: str,
+        text: str,
+        icon: Optional[QIcon] = None,
+        tip: Optional[str] = None,
+        shortcut_context: Optional[str] = None,
+        register_shortcut: bool = False,
+        add_to_toolbar: bool = False,
+        add_to_menu: bool = False
+    ) -> QAction:
         """
         Create a "run <context> in <provider>" button for a given run context
         and executor.
@@ -578,7 +592,7 @@ class Run(SpyderPluginV2):
         text: str
            Localized text for the action
         icon: Optional[QIcon]
-            Icon for the action when applied to menu or toolbutton.
+            Icon for the action when used in menu or toolbar.
         tip: Optional[str]
             Tooltip to define for action on menu or toolbar.
         shortcut_context: Optional[str]
@@ -596,8 +610,8 @@ class Run(SpyderPluginV2):
         -----
         1. The context passed as a parameter must be a subordinate of the
         context of the current focused run configuration that was
-        registered via `register_run_configuration_metadata`. e.g., Cell can
-        be used if and only if the file was registered.
+        registered via `register_run_configuration_metadata`. For instance,
+        Cell can be used if and only if the file was registered.
 
         2. The button will be registered as `run <context> in <provider>` on
         the action registry.
@@ -649,8 +663,11 @@ class Run(SpyderPluginV2):
         self.all_run_actions[key] = (action, 1, action.name)
         return action
 
-    def destroy_run_in_executor_button(self, context_name: str,
-                                       executor_name: str):
+    def destroy_run_in_executor_button(
+        self,
+        context_name: str,
+        executor_name: str
+    ):
         """
         Destroy a "run <context> in <provider>" button for a given run context
         and executor.
@@ -665,11 +682,13 @@ class Run(SpyderPluginV2):
         self.destroy_run_button(context_name, executor_name, None)
 
     # -------------------------------------------------------------------------
-    # TODO: Temporary APIs, remove once the debug API is defined.
+    # ---- TODO: Temporary APIs, remove once the debug API is defined.
     # -------------------------------------------------------------------------
 
     def get_last_used_executor_parameters(
-            self, uuid: str) -> StoredRunConfigurationExecutor:
+        self,
+        uuid: str
+    ) -> StoredRunConfigurationExecutor:
         """
         Retrieve the last used execution parameters for a given
         run configuration.
@@ -688,8 +707,10 @@ class Run(SpyderPluginV2):
         return self.get_container().get_last_used_executor_parameters(uuid)
 
     def get_executor_configuration_parameters(
-            self, executor_name: str,
-            extension: str, context_id: str) -> StoredRunExecutorParameters:
+        self,
+        executor_name: str,
+        extension: str, context_id: str
+    ) -> StoredRunExecutorParameters:
         """
         Retrieve the stored parameters for a given executor `executor_name`
         using context `context_id` with file extension `extension`.
@@ -712,9 +733,12 @@ class Run(SpyderPluginV2):
         return self.get_container().get_executor_configuration_parameters(
             executor_name, extension, context_id)
 
-    def run_configuration(self, executor_name: str,
-                          config: RunConfiguration,
-                          executor_conf: ExtendedRunExecutionParameters):
+    def run_configuration(
+        self,
+        executor_name: str,
+        config: RunConfiguration,
+        executor_conf: ExtendedRunExecutionParameters
+    ):
         """
         Manually execute a run configuration on a given executor with a set
         of execution parameters.
@@ -741,17 +765,19 @@ class Run(SpyderPluginV2):
     # End of temporary APIs
     # -------------------------------------------------------------------------
 
-    # --- Private API
-    # ------------------------------------------------------------------------
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def switch_focused_run_configuration(self, uuid: str):
         self.get_container().switch_focused_run_configuration(uuid)
 
     def switch_working_dir(self, path: str):
         self.get_container().set_current_working_dir(path)
 
-    def register_action_shortcuts(self, action_name: str,
-                                  register_shortcut: bool,
-                                  shortcut_context: str):
+    def register_action_shortcuts(
+        self, action_name: str,
+        register_shortcut: bool,
+        shortcut_context: str
+    ):
         if register_shortcut:
             action = self.get_action(action_name)
             shortcuts = self.get_plugin(Plugins.Shortcuts)

@@ -1423,11 +1423,6 @@ def test_run_code(main_window, qtbot, tmpdir):
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
 
-    # Set modifier for CTRL or darwin Meta
-    modifier = Qt.ControlModifier
-    if sys.platform == 'darwin':
-        modifier = Qt.MetaModifier
-
     run_parameters = generate_run_parameters(main_window, filepath)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
@@ -3481,7 +3476,6 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    code_editor = main_window.editor.get_focus_widget()
 
     fname = main_window.editor.get_current_filename()
     run_parameters = generate_run_parameters(main_window, fname)

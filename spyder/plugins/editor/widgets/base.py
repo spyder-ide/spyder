@@ -509,8 +509,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         return []
 
     def get_selection_as_executable_code(self, cursor=None):
-        """Return selected text as a processed text,
-        to be executable in a Python/IPython interpreter"""
+        """Get selected text in a way that allows other plugins executed it."""
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
@@ -565,9 +564,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
 
-        return (leading_lines_str + ls.join(lines),
-                (line_from_off, line_to_off),
-                (line_col_from, line_col_to))
+        return (
+            leading_lines_str + ls.join(lines),
+            (line_from_off, line_to_off),
+            (line_col_from, line_col_to)
+        )
 
     def get_cell_as_executable_code(self, cursor=None):
         """Return cell contents as executable code."""

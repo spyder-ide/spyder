@@ -4,26 +4,23 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Spyder Run API tests."""
+"""Run API tests."""
 
 # Standard library imports
 import copy
-from types import MethodType
-from uuid import uuid4
 from datetime import datetime
-import logging
 from itertools import chain, repeat
+import logging
+from types import MethodType
 from typing import Dict, Tuple, Optional, List
-from unittest.mock import Mock, MagicMock
+from uuid import uuid4
+from unittest.mock import MagicMock
 
-# Pytest imports
+# Third-part imports
 import pytest
-
-# Qt imports
-from qtpy.QtCore import QObject, Signal, Qt
+from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import (
-    QAction, QWidget, QCheckBox, QLineEdit, QVBoxLayout, QHBoxLayout,
-    QLabel)
+    QAction, QWidget, QCheckBox, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel)
 
 # Local imports
 from spyder.plugins.run.api import (
@@ -33,6 +30,7 @@ from spyder.plugins.run.api import (
     PossibleRunResult, RunContext, ExtendedContext, RunActions, run_execute,
     WorkingDirSource)
 from spyder.plugins.run.plugin import Run
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,14 +90,16 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
             run.register_run_configuration_metadata(self, metadata)
 
         for context_name in list(self.actions):
-            act = run.create_run_button(getattr(RunContext, context_name),
-                                        f'Run {context_name}',
-                                        icon=None,
-                                        tip=None,
-                                        shortcut_context=None,
-                                        register_shortcut=False,
-                                        add_to_toolbar=False,
-                                        add_to_menu=False)
+            act = run.create_run_button(
+                getattr(RunContext, context_name),
+                f'Run {context_name}',
+                icon=None,
+                tip=None,
+                shortcut_context=None,
+                register_shortcut=False,
+                add_to_toolbar=False,
+                add_to_menu=False
+            )
 
             self.actions[context_name] = act
 
@@ -130,9 +130,12 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
         return RunConfiguration(run_input=run_input, metadata=metadata)
 
     def get_run_configuration_per_context(
-            self, context: str,
-            action_name: Optional[str] = None,
-            re_run: bool = False) -> Optional[RunConfiguration]:
+        self,
+        context: str,
+        action_name: Optional[str] = None,
+        re_run: bool = False
+    ) -> Optional[RunConfiguration]:
+
         metadata = copy.deepcopy(self.run_configurations[self.current_uuid])
         inverse_run_ctx = {RunContext[k]: k for k in RunContext}
         metadata['context'] = Context(name=inverse_run_ctx[context],
@@ -168,6 +171,7 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
 
 
 class GenExampleRunExecutorConf(RunExecutorConfigurationGroup):
+
     def __init__(self, parent: QWidget, context: Context, input_extension: str,
                  input_metadata: RunConfigurationMetadata):
         super().__init__(parent, context, input_extension, input_metadata)
@@ -212,6 +216,7 @@ class GenExampleRunExecutorConf(RunExecutorConfigurationGroup):
 
 
 class MetaExampleRunExecutorConf(type(GenExampleRunExecutorConf)):
+
     def __new__(cls, clsname, bases, attrs):
         default_args = attrs.pop('default_args_meta')
 
@@ -228,6 +233,7 @@ class MetaExampleRunExecutorConf(type(GenExampleRunExecutorConf)):
 
 
 def ExampleRunExecutorConfFactory(default_args_dict: dict):
+
     class WrappedExampleRunExecutorConf(
             GenExampleRunExecutorConf, metaclass=MetaExampleRunExecutorConf):
         default_args_meta = default_args_dict
@@ -236,6 +242,7 @@ def ExampleRunExecutorConfFactory(default_args_dict: dict):
 
 
 def gen_executor_handler(executor_name, handler_name, ext=None, context=None):
+
     @run_execute(extension=ext, context=context)
     def executor_handler(
             self, input: RunConfiguration,
@@ -247,6 +254,7 @@ def gen_executor_handler(executor_name, handler_name, ext=None, context=None):
 
 
 class ExampleRunExecutorWrapper(RunExecutor):
+
     sig_run_invocation = Signal(tuple)
 
     def __init__(self, parent, info, executor_name):
@@ -313,7 +321,9 @@ class ExampleRunExecutorWrapper(RunExecutor):
             run.destroy_run_in_executor_button(context_id, self.NAME)
             self.actions.pop(context_id)
 
+
 class MetaExampleRunExecutor(type(ExampleRunExecutorWrapper)):
+
     def __new__(cls, clsname, bases, attrs):
         executor_name = attrs.pop('executor_name_meta')
 
@@ -330,6 +340,7 @@ class MetaExampleRunExecutor(type(ExampleRunExecutorWrapper)):
 
 
 def ExampleRunExecutorFactory(parent, info, executor_name):
+
     class ExampleRunExecutor(
             ExampleRunExecutorWrapper, metaclass=MetaExampleRunExecutor):
         executor_name_meta = executor_name
@@ -706,7 +717,6 @@ def test_run_plugin(qtbot, run_mock):
     assert working_dir['path'] == ''
 
     # Invoke another executor using one of the dedicated actions
-    executor_act = executor_2.actions[RunContext.SubordinateContext1]
     with qtbot.waitSignal(executor_2.sig_run_invocation) as sig:
         subordinate_act.trigger()
 

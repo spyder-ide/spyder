@@ -192,8 +192,10 @@ class Shortcuts(SpyderPluginV2):
             # Do not register shortcuts for the toggle view action.
             # The shortcut will be displayed only on the menus and handled by
             # about to show/hide signals.
-            if (name.startswith('switch to')
-                    and isinstance(qobject, SpyderAction)):
+            if (
+                name.startswith('switch to')
+                and isinstance(qobject, SpyderAction)
+            ):
                 keyseq = QKeySequence()
 
             try:
@@ -202,8 +204,10 @@ class Shortcuts(SpyderPluginV2):
                     # TODO: we need to change how shortcuts are registered to
                     # remove this patch
                     if qobject.shortcuts() == []:
-                        if (sys.platform == 'darwin'
-                                and qobject._shown_shortcut == 'missing'):
+                        if (
+                            sys.platform == 'darwin'
+                            and qobject._shown_shortcut == 'missing'
+                        ):
                             qobject._shown_shortcut = keyseq
                         else:
                             qobject.setShortcut(keyseq)

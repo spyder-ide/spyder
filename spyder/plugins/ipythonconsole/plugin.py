@@ -9,7 +9,6 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-import os
 import os.path as osp
 from typing import List
 
@@ -32,7 +31,6 @@ from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunConfiguration,
     ExtendedRunExecutionParameters, RunResult, run_execute)
 from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
-from spyder.utils.programs import get_temp_dir
 
 # Localization
 _ = get_translation('spyder')
@@ -224,6 +222,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
 
+        # Run configurations
         self.cython_editor_run_configuration = {
             'origin': self.NAME,
             'extension': 'pyx',
@@ -640,11 +639,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.get_widget().close_client(index=index, client=client,
                                        ask_recursive=ask_recursive)
 
-    # ---- For execution and debugging
+    # ---- For execution
     @run_execute(context=RunContext.File)
     def exec_files(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
 
         exec_params = conf['params']
         cwd_opts = exec_params['working_dir']
@@ -686,22 +687,22 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @run_execute(context=RunContext.Selection)
     def exec_selection(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
 
-        exec_params = conf['params']
-        cwd_opts = exec_params['working_dir']
-        params: IPythonConsolePyConfiguration = exec_params['executor_params']
         run_input: SelectionRun = input['run_input']
         text = run_input['selection']
         self.run_selection(text)
 
     @run_execute(context=RunContext.Cell)
     def exec_cell(
-            self, input: RunConfiguration,
-            conf: ExtendedRunExecutionParameters) -> List[RunResult]:
-        exec_params = conf['params']
-        cwd_opts = exec_params['working_dir']
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
         run_input: CellRun = input['run_input']
         cell_text = run_input['cell']
         cell_name = run_input['cell_name']

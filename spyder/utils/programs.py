@@ -29,10 +29,10 @@ from pkg_resources import parse_version
 import psutil
 
 # Local imports
-from spyder.api.translations import get_translation
-from spyder.config.base import running_under_pytest, get_home_dir
+from spyder.config.base import _, running_under_pytest, get_home_dir
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
+
 
 logger = logging.getLogger(__name__)
 HERE = osp.abspath(osp.dirname(__file__))
@@ -717,10 +717,15 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     return p_args
 
 
-def run_general_file_in_terminal(executable: str, args: str, fname: str,
-                                 script_args: str, wdir: str,
-                                 close_after_exec: bool = False,
-                                 windows_shell: str = "cmd.exe /K"):
+def run_general_file_in_terminal(
+    executable: str,
+    args: str,
+    fname: str,
+    script_args: str,
+    wdir: str,
+    close_after_exec: bool = False,
+    windows_shell: str = "cmd.exe /K"
+):
     """
     Run a file on a given CLI executable.
 
@@ -733,7 +738,7 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
     fname: str
         Path to the file to execute in the shell interpreter/executable.
     script_args: str
-        Arguments
+        File arguments
     wdir: str
         Working directory path from which the file will be executed.
     windows_shell: str
@@ -762,24 +767,29 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
             run_shell_command(cmd, cwd=wdir)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
-            from spyder.config.base import _
-            QMessageBox.critical(None, _('Run'),
-                                 _("It was not possible to run this file in "
-                                   "an external terminal"),
-                                 QMessageBox.Ok)
+            QMessageBox.critical(
+                None,
+                _('Run'),
+                _("It was not possible to run this file in an external "
+                  "terminal"),
+                QMessageBox.Ok
+            )
     elif sys.platform.startswith('linux'):
         programs = [{'cmd': 'gnome-terminal', 'execute-option': '--'},
                     {'cmd': 'konsole', 'execute-option': '-e'},
                     {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
                     {'cmd': 'xterm', 'execute-option': '-e'}]
         for program in programs:
-            _ = get_translation('spyder')
             if is_program_installed(program['cmd']):
                 f = None
                 if not close_after_exec:
                     f = tempfile.NamedTemporaryFile(
-                        'wt', prefix='run_spyder_', suffix='.sh',
-                        dir=get_temp_dir(), delete=False)
+                        'wt',
+                        prefix='run_spyder_',
+                        suffix='.sh',
+                        dir=get_temp_dir(),
+                        delete=False
+                    )
 
                     logger.info('Executing on external console: %s',
                                 ' '.join([executable] + p_args))
@@ -795,10 +805,13 @@ def run_general_file_in_terminal(executable: str, args: str, fname: str,
                     f.close()
                 return
     elif sys.platform == 'darwin':
-        _ = get_translation('spyder')
-        f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
-                                        suffix='.sh', dir=get_temp_dir(),
-                                        delete=False)
+        f = tempfile.NamedTemporaryFile(
+            'wt',
+            prefix='run_spyder_',
+            suffix='.sh',
+            dir=get_temp_dir(),
+            delete=False
+        )
         if wdir:
             f.write('cd "{}"\n'.format(wdir))
         f.write(' '.join([executable] + p_args) + '\n')
@@ -851,7 +864,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
             # UNC paths start with \\
             if osp.splitdrive(wdir)[0].startswith("\\\\"):
                 from qtpy.QtWidgets import QMessageBox
-                from spyder.config.base import _
                 QMessageBox.critical(
                     None,
                     _('Run'),
@@ -868,7 +880,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
             run_shell_command(cmd, cwd=wdir, env=env)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
-            from spyder.config.base import _
             QMessageBox.critical(
                 None,
                 _('Run'),

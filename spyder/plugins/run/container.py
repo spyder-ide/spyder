@@ -9,8 +9,8 @@
 # Standard library imports
 import functools
 import os.path as osp
-from weakref import WeakSet, WeakValueDictionary
 from typing import Callable, List, Dict, Tuple, Set, Optional
+from weakref import WeakSet, WeakValueDictionary
 
 # Third-party imports
 from qtpy.QtGui import QIcon
@@ -21,18 +21,17 @@ from qtpy.QtWidgets import QAction
 from spyder.utils.sourcecode import camel_case_to_snake_case
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.translations import get_translation
-from spyder.plugins.run.widgets import RunDialog, RunDialogStatus
+from spyder.plugins.run.api import (
+    RunActions, StoredRunExecutorParameters, RunContext, RunExecutor,
+    RunResultFormat, RunConfigurationProvider, RunResultViewer, OutputFormat,
+    SupportedExecutionRunConfiguration, RunConfigurationMetadata,
+    StoredRunConfigurationExecutor, ExtendedRunExecutionParameters,
+    RunExecutionParameters, WorkingDirOpts, WorkingDirSource, RunConfiguration,
+    SupportedExtensionContexts)
 from spyder.plugins.run.models import (
     RunExecutorParameters, RunExecutorListModel, RunConfigurationListModel)
-from spyder.plugins.run.api import (
-    RunActions, StoredRunExecutorParameters,
-    RunContext, RunExecutor, RunResultFormat,
-    RunConfigurationProvider,
-    SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
-    RunConfigurationMetadata, StoredRunConfigurationExecutor,
-    ExtendedRunExecutionParameters, RunExecutionParameters,
-    WorkingDirOpts, WorkingDirSource, RunConfiguration,
-    SupportedExtensionContexts, ExtendedContext)
+from spyder.plugins.run.widgets import RunDialog, RunDialogStatus
+
 
 # Localization
 _ = get_translation('spyder')
@@ -43,6 +42,8 @@ class RunContainer(PluginMainContainer):
 
     sig_run_action_created = Signal(str, bool, str)
 
+    # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
     def setup(self):
         self.current_working_dir: Optional[str] = None
 
@@ -63,29 +64,44 @@ class RunContainer(PluginMainContainer):
         self.currently_selected_configuration: Optional[str] = None
 
         self.run_action = self.create_action(
-            RunActions.Run, _('&Run'), self.create_icon('run'),
-            tip=_("Run file"), triggered=functools.partial(
+            RunActions.Run,
+            _('&Run'),
+            self.create_icon('run'),
+            tip=_("Run file"),
+            triggered=functools.partial(
                 self.run_file, selected_uuid=None,
-                selected_executor=None),
-            register_shortcut=True, shortcut_context='_',
-            context=Qt.ApplicationShortcut)
+                selected_executor=None
+            ),
+            register_shortcut=True,
+            shortcut_context='_',
+            context=Qt.ApplicationShortcut
+        )
 
         self.configure_action = self.create_action(
-            RunActions.Configure, _('&Open run settings'),
-            self.create_icon('run_settings'), tip=_('Run settings'),
-            triggered=functools.partial(self.edit_run_configurations,
-                                        display_dialog=True,
-                                        disable_run_btn=True,
-                                        selected_executor=None),
+            RunActions.Configure,
+            _('&Open run settings'),
+            self.create_icon('run_settings'),
+            tip=_('Run settings'),
+            triggered=functools.partial(
+                self.edit_run_configurations,
+                display_dialog=True,
+                disable_run_btn=True,
+                selected_executor=None
+            ),
             register_shortcut=True,
-            shortcut_context='_', context=Qt.ApplicationShortcut
+            shortcut_context='_',
+            context=Qt.ApplicationShortcut
         )
 
         self.re_run_action = self.create_action(
-            RunActions.ReRun, _('Re-run &last file'),
-            self.create_icon('run_again'), tip=_('Run again last file'),
-            triggered=self.re_run_file, register_shortcut=True,
-            shortcut_context='_', context=Qt.ApplicationShortcut
+            RunActions.ReRun,
+            _('Re-run &last file'),
+            self.create_icon('run_again'),
+            tip=_('Run again last file'),
+            triggered=self.re_run_file,
+            register_shortcut=True,
+            shortcut_context='_',
+            context=Qt.ApplicationShortcut
         )
 
         self.re_run_action.setEnabled(False)
@@ -109,14 +125,20 @@ class RunContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
-    def gen_anonymous_execution_run(self, context: str,
-                                    action_name: Optional[str],
-                                    re_run: bool = False,
-                                    last_executor_name: Optional[str] = None
-                                    ) -> Callable:
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def gen_anonymous_execution_run(
+        self,
+        context: str,
+        action_name: Optional[str],
+        re_run: bool = False,
+        last_executor_name: Optional[str] = None
+    ) -> Callable:
+
         def anonymous_execution_run():
             input_provider = self.run_metadata_provider[
                 self.currently_selected_configuration]
+
             if context in self.super_contexts:
                 run_conf = input_provider.get_run_configuration(
                     self.currently_selected_configuration)
@@ -139,6 +161,7 @@ class RunContainer(PluginMainContainer):
             if last_executor is None:
                 last_executor = self.get_last_used_executor_parameters(uuid)
                 last_executor = last_executor['executor']
+
             run_comb = (extension, context)
             if (last_executor is None or
                     not self.executor_model.executor_supports_configuration(
@@ -188,13 +211,15 @@ class RunContainer(PluginMainContainer):
             display_dialog=display_dialog,
             selected_executor=selected_executor)
 
-
-    def edit_run_configurations(self, display_dialog=True,
-                                disable_run_btn=False,
-                                selected_executor=None):
-        self.dialog = RunDialog(self, self.metadata_model, self.executor_model,
-                                self.parameter_model,
-                                disable_run_btn=disable_run_btn)
+    def edit_run_configurations(
+        self,
+        display_dialog=True,
+        disable_run_btn=False,
+        selected_executor=None
+    ):
+        self.dialog = RunDialog(
+            self, self.metadata_model, self.executor_model,
+            self.parameter_model, disable_run_btn=disable_run_btn)
         self.dialog.setup()
         self.dialog.finished.connect(self.process_run_dialog_result)
 
@@ -334,18 +359,21 @@ class RunContainer(PluginMainContainer):
     def set_current_working_dir(self, path: str):
         self.current_working_dir = path
 
-    def create_run_button(self, context_name: str, text: str,
-                          icon: Optional[QIcon] = None,
-                          tip: Optional[str] = None,
-                          shortcut_context: Optional[str] = None,
-                          register_shortcut: bool = False,
-                          extra_action_name: Optional[str] = None,
-                          conjunction_or_preposition: str = "and",
-                          re_run: bool = False
-                          ) -> QAction:
+    def create_run_button(
+        self,
+        context_name: str,
+        text: str,
+        icon: Optional[QIcon] = None,
+        tip: Optional[str] = None,
+        shortcut_context: Optional[str] = None,
+        register_shortcut: bool = False,
+        extra_action_name: Optional[str] = None,
+        conjunction_or_preposition: str = "and",
+        re_run: bool = False
+    ) -> QAction:
         """
-        Create a run or a "run and do something" button
-        for a specific run context.
+        Create a run or a "run and do something" button for a specific run
+        context.
 
         Parameters
         ----------
@@ -354,7 +382,7 @@ class RunContainer(PluginMainContainer):
         text: str
            Localized text for the action
         icon: Optional[QIcon]
-            Icon for the action when applied to menu or toolbutton.
+            Icon for the action when used in menu or toolbar.
         tip: Optional[str]
             Tooltip to define for action on menu or toolbar.
         shortcut_context: Optional[str]
@@ -367,18 +395,23 @@ class RunContainer(PluginMainContainer):
             after requesting the run input.
         conjunction_or_preposition: str
             The conjunction or preposition used to describe the action that
-            should take place after the context. i.e., run <and> advance,
+            should take place after the context, e.g. run <and> advance,
             run selection <from> the current line, etc. Default: and
         re_run: bool
             If True, then the button will act as a re-run button instead of
             a run one.
 
+        Returns
+        -------
+        action: SpyderAction
+            The corresponding action that was created.
+
         Notes
         -----
         1. The context passed as a parameter must be a subordinate of the
         context of the current focused run configuration that was
-        registered via `register_run_configuration_metadata`. e.g., Cell can
-        be used if and only if the file was registered.
+        registered via `register_run_configuration_metadata`. For instance,
+        Cell can be used if and only if the file was registered.
 
         2. The button will be registered as `run <context>` or
         `run <context> and <extra_action_name>` on the action registry.
@@ -388,9 +421,9 @@ class RunContainer(PluginMainContainer):
 
         4. If the requested button already exists, this method will not do
         anything, which implies that the first registered shortcut will be the
-        one to be used. For the built-in run contexts
-        (file, cell and selection), the editor will register their
-        corresponding icons and shortcuts.
+        one to be used. For the built-in run contexts (file, cell and
+        selection), the editor will register their corresponding icons and
+        shortcuts.
         """
         dict_actions = self.re_run_actions if re_run else self.context_actions
         if (context_name, extra_action_name) in dict_actions:
@@ -409,7 +442,10 @@ class RunContainer(PluginMainContainer):
             last_executor_name=None)
 
         action = self.create_action(
-            action_name, text, icon, tip=tip,
+            action_name,
+            text,
+            icon,
+            tip=tip,
             triggered=func,
             register_shortcut=register_shortcut,
             shortcut_context=shortcut_context,
@@ -428,14 +464,16 @@ class RunContainer(PluginMainContainer):
                                          shortcut_context)
         return action
 
-    def create_run_in_executor_button(self, context_name: str,
-                                      executor_name: str,
-                                      text: str,
-                                      icon: Optional[QIcon] = None,
-                                      tip: Optional[str] = None,
-                                      shortcut_context: Optional[str] = None,
-                                      register_shortcut: bool = False,
-                                      ) -> QAction:
+    def create_run_in_executor_button(
+        self,
+        context_name: str,
+        executor_name: str,
+        text: str,
+        icon: Optional[QIcon] = None,
+        tip: Optional[str] = None,
+        shortcut_context: Optional[str] = None,
+        register_shortcut: bool = False,
+    ) -> QAction:
         """
         Create a "run <context> in <provider>" button for a given run context
         and executor.
@@ -449,7 +487,7 @@ class RunContainer(PluginMainContainer):
         text: str
            Localized text for the action
         icon: Optional[QIcon]
-            Icon for the action when applied to menu or toolbutton.
+            Icon for the action when used in a menu or toolbar.
         tip: Optional[str]
             Tooltip to define for action on menu or toolbar.
         shortcut_context: Optional[str]
@@ -467,8 +505,8 @@ class RunContainer(PluginMainContainer):
         -----
         1. The context passed as a parameter must be a subordinate of the
         context of the current focused run configuration that was
-        registered via `register_run_configuration_metadata`. e.g., Cell can
-        be used if and only if the file was registered.
+        registered via `register_run_configuration_metadata`. For instance,
+        Cell can be used if and only if the file was registered.
 
         2. The button will be registered as `run <context> in <provider>` on
         the action registry.
@@ -497,23 +535,28 @@ class RunContainer(PluginMainContainer):
                 last_executor_name=executor_name)
 
         action = self.create_action(
-            action_name, text, icon, tip=tip,
+            action_name,
+            text,
+            icon,
+            tip=tip,
             triggered=func,
             register_shortcut=register_shortcut,
             shortcut_context=shortcut_context,
             context=Qt.ApplicationShortcut
         )
 
-        self.run_executor_actions[
-            (context_name, executor_name)] = (action, func)
+        self.run_executor_actions[(context_name, executor_name)] = (
+            action, func)
 
         self.sig_run_action_created.emit(action_name, register_shortcut,
                                          shortcut_context)
         return action
 
     def register_run_configuration_provider(
-            self, provider_name: str,
-            supported_extensions_contexts: List[SupportedExtensionContexts]):
+        self,
+        provider_name: str,
+        supported_extensions_contexts: List[SupportedExtensionContexts]
+    ):
         """
         Register the supported extensions and contexts that a
         `RunConfigurationProvider` supports.
@@ -551,8 +594,10 @@ class RunContainer(PluginMainContainer):
         self.set_actions_status()
 
     def deregister_run_configuration_provider(
-            self, provider_name: str,
-            unsupported_extensions_contexts: List[SupportedExtensionContexts]):
+        self,
+        provider_name: str,
+        unsupported_extensions_contexts: List[SupportedExtensionContexts]
+    ):
         """
         Deregister the extensions and contexts that a
         `RunConfigurationProvider` no longer supports.
@@ -561,7 +606,7 @@ class RunContainer(PluginMainContainer):
         ----------
         provider_name: str
             The identifier of the :class:`RunConfigurationProvider` instance
-            that is registering the set of formerly supported contexts
+            that is deregistering the set of formerly supported contexts
             per extension.
         unsupported_extensions_contexts: List[SupportedExtensionContexts]
             A list containing the formerly supported contexts per
@@ -585,8 +630,10 @@ class RunContainer(PluginMainContainer):
             self.supported_extension_contexts.pop(provider_name, set({}))
 
     def register_run_configuration_metadata(
-            self, provider: RunConfigurationProvider,
-            metadata: RunConfigurationMetadata):
+        self,
+        provider: RunConfigurationProvider,
+        metadata: RunConfigurationMetadata
+    ):
         """
         Register the metadata for a run configuration.
 
@@ -600,10 +647,10 @@ class RunContainer(PluginMainContainer):
             The metadata for a run configuration that the provider is able to
             produce.
         """
-        ext = metadata['input_extension']
         context = metadata['context']
         context_name = context['name']
         context_identifier = context.get('identifier', None)
+
         if context_identifier is None:
             context_identifier = camel_case_to_snake_case(context_name)
             context['identifier'] = context_identifier
@@ -639,8 +686,10 @@ class RunContainer(PluginMainContainer):
         self.last_executed_per_context -= to_remove
 
     def register_executor_configuration(
-            self, executor: RunExecutor,
-            configuration: List[SupportedExecutionRunConfiguration]):
+        self,
+        executor: RunExecutor,
+        configuration: List[SupportedExecutionRunConfiguration]
+    ):
         """
         Register a :class:`RunExecutorProvider` instance to indicate its
         support for a given set of run configurations.
@@ -661,6 +710,7 @@ class RunContainer(PluginMainContainer):
         executor_name = executor.get_name()
         self.run_executors[executor_id] = executor
         executor_count = self.executor_use_count.get(executor_id, 0)
+
         for config in configuration:
             ext = config['input_extension']
             context = config['context']
@@ -690,8 +740,10 @@ class RunContainer(PluginMainContainer):
         self.set_actions_status()
 
     def deregister_executor_configuration(
-            self, executor: RunExecutor,
-            configuration: List[SupportedExecutionRunConfiguration]):
+        self,
+        executor: RunExecutor,
+        configuration: List[SupportedExecutionRunConfiguration]
+    ):
         """
         Deregister a :class:`RunExecutor` instance from providing a set
         of run configurations that are no longer supported by it.
@@ -709,6 +761,7 @@ class RunContainer(PluginMainContainer):
             type.
         """
         executor_id = executor.NAME
+
         for config in configuration:
             ext = config['input_extension']
             context = config['context']
@@ -724,7 +777,10 @@ class RunContainer(PluginMainContainer):
         self.set_actions_status()
 
     def register_viewer_configuration(
-            self, viewer: RunResultViewer, formats: List[OutputFormat]):
+        self,
+        viewer: RunResultViewer,
+        formats: List[OutputFormat]
+    ):
         """
         Register a :class:`RunResultViewer` instance to indicate its support
         for a given set of output run result formats.
@@ -736,8 +792,7 @@ class RunContainer(PluginMainContainer):
             :class:`RunResultViewer` interface and will register
             supported output formats.
         formats: List[OutputFormat]
-            A list of output formats that the viewer is able to
-            display.
+            A list of output formats that the viewer is able to display.
         """
         for out_format in formats:
             format_name = out_format['name']
@@ -751,7 +806,10 @@ class RunContainer(PluginMainContainer):
             self.viewers[format_id] = viewers_set
 
     def deregister_viewer_configuration(
-            self, viewer: RunResultViewer, formats: List[OutputFormat]):
+        self,
+        viewer: RunResultViewer,
+        formats: List[OutputFormat]
+    ):
         """
         Deregister a :class:`RunResultViewer` instance from supporting a set of
         output formats that are no longer supported by it.
@@ -773,8 +831,11 @@ class RunContainer(PluginMainContainer):
                 viewer_set.discard(viewer)
 
     def get_executor_configuration_parameters(
-            self, executor_name: str,
-            extension: str, context_id: str) -> StoredRunExecutorParameters:
+        self,
+        executor_name: str,
+        extension: str,
+        context_id: str
+    ) -> StoredRunExecutorParameters:
         """
         Retrieve the stored parameters for a given executor `executor_name`
         using context `context_id` with file extension `extension`.
@@ -796,9 +857,10 @@ class RunContainer(PluginMainContainer):
         """
 
         all_executor_params: Dict[
-            str, Dict[Tuple[str, str],
-                      StoredRunExecutorParameters]] = self.get_conf(
-                        'parameters', default={})
+            str,
+            Dict[Tuple[str, str],
+            StoredRunExecutorParameters]
+        ] = self.get_conf('parameters', default={})
 
         executor_params = all_executor_params.get(executor_name, {})
         params = executor_params.get(
@@ -807,8 +869,12 @@ class RunContainer(PluginMainContainer):
         return params
 
     def set_executor_configuration_parameters(
-            self, executor_name: str, extension: str, context_id: str,
-            params: StoredRunExecutorParameters):
+        self,
+        executor_name: str,
+        extension: str,
+        context_id: str,
+        params: StoredRunExecutorParameters
+    ):
         """
         Update and save the list of configuration parameters for a given
         executor on a given pair of context and file extension.
@@ -822,13 +888,14 @@ class RunContainer(PluginMainContainer):
         context_id: str
             The context to register the configuration parameters for.
         params: StoredRunExecutorParameters
-            A dictionary containing the run configuration parameters for
-            the given executor.
+            A dictionary containing the run configuration parameters for the
+            given executor.
         """
         all_executor_params: Dict[
-            str, Dict[Tuple[str, str],
-                      StoredRunExecutorParameters]] = self.get_conf(
-                        'parameters', default={})
+            str,
+            Dict[Tuple[str, str],
+            StoredRunExecutorParameters]
+        ] = self.get_conf('parameters', default={})
 
         executor_params = all_executor_params.get(executor_name, {})
         executor_params[(extension, context_id)] = params
@@ -836,7 +903,9 @@ class RunContainer(PluginMainContainer):
         self.set_conf('parameters', all_executor_params)
 
     def get_last_used_executor_parameters(
-            self, uuid: str) -> StoredRunConfigurationExecutor:
+        self,
+        uuid: str
+    ) -> StoredRunConfigurationExecutor:
         """
         Retrieve the last used execution parameters for a given
         run configuration.
@@ -853,17 +922,26 @@ class RunContainer(PluginMainContainer):
             for the given run configuration.
         """
         mru_executors_uuids: Dict[
-            str, StoredRunConfigurationExecutor] = self.get_conf(
-                'last_used_parameters', default={})
+            str,
+            StoredRunConfigurationExecutor
+        ] = self.get_conf('last_used_parameters', default={})
 
         last_used_params = mru_executors_uuids.get(
-            uuid, StoredRunConfigurationExecutor(
-                executor=None, selected=None, display_dialog=False,
-                first_execution=True))
+            uuid,
+            StoredRunConfigurationExecutor(
+            executor=None,
+            selected=None,
+            display_dialog=False,
+            first_execution=True)
+        )
+
         return last_used_params
 
     def get_last_used_execution_params(
-            self, uuid: str, executor_name: str) -> Optional[str]:
+        self,
+        uuid: str,
+        executor_name: str
+    ) -> Optional[str]:
         """
         Retrieve the last used execution parameters for a given pair of run
         configuration and execution identifiers.
@@ -884,21 +962,29 @@ class RunContainer(PluginMainContainer):
         """
 
         mru_executors_uuids: Dict[
-            str, StoredRunConfigurationExecutor] = self.get_conf(
-                'last_used_parameters', default={})
+            str,
+            StoredRunConfigurationExecutor
+        ] = self.get_conf('last_used_parameters', default={})
 
         default = StoredRunConfigurationExecutor(
-            executor=executor_name, selected=None, display_dialog=False,
-            first_execution=True)
+            executor=executor_name,
+            selected=None,
+            display_dialog=False,
+            first_execution=True
+        )
         params = mru_executors_uuids.get(uuid, default)
 
         last_used_params = None
         if params['executor'] == executor_name:
             last_used_params = params['selected']
+
         return last_used_params
 
     def set_last_used_execution_params(
-            self, uuid: str, params: StoredRunConfigurationExecutor):
+        self,
+        uuid: str,
+        params: StoredRunConfigurationExecutor
+    ):
         """
         Store the last used executor and parameters for a given run
         configuration.
@@ -912,15 +998,19 @@ class RunContainer(PluginMainContainer):
             used.
         """
         mru_executors_uuids: Dict[
-            str, StoredRunConfigurationExecutor] = self.get_conf(
-                'last_used_parameters', default={})
+            str,
+            StoredRunConfigurationExecutor
+        ] = self.get_conf('last_used_parameters', default={})
 
         mru_executors_uuids[uuid] = params
         self.set_conf('last_used_parameters', mru_executors_uuids)
 
-    def run_configuration(self, executor_name: str,
-                          config: RunConfiguration,
-                          executor_conf: ExtendedRunExecutionParameters):
+    def run_configuration(
+        self,
+        executor_name: str,
+        config: RunConfiguration,
+        executor_conf: ExtendedRunExecutionParameters
+    ):
         """
         Manually execute a run configuration on a given executor with a set
         of execution parameters.

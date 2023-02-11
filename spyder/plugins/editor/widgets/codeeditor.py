@@ -35,7 +35,7 @@ from IPython.core.inputtransformer2 import TransformerManager
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QEventLoop, QRegExp, Qt, QTimer, QThread,
-                         QUrl, Signal, Slot, QObject)
+                         QUrl, Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
@@ -75,7 +75,7 @@ from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
-from spyder.py3compat import to_text_string, is_string, is_text_string
+from spyder.py3compat import to_text_string, is_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
@@ -3406,9 +3406,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def get_cell_code_and_position(self, cell):
         """
-        Get cell code for a given cell.
+        Get code and position for a given cell.
 
-        If the cell doesn't exist, raises an exception
+        If the cell doesn't exist, raise an exception.
         """
         selected_block = None
         if is_string(cell):
@@ -4580,9 +4580,9 @@ class CodeEditor(TextEditBaseWidget):
         # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.gotodef_action, self.inspect_current_object_action,
-                     None, self.undo_action,
-                     self.redo_action, None, self.cut_action,
-                     self.copy_action, self.paste_action, selectall_action]
+                     None, self.undo_action, self.redo_action, None,
+                     self.cut_action, self.copy_action,
+                     self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
                      None, toggle_comment_action, self.docstring_action,
                      self.format_action]

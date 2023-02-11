@@ -8,14 +8,7 @@
 
 # Standard library imports
 from __future__ import annotations
-
-import sys
-
-# PEP 589 and 544 are available from Python 3.8 onwards
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
+from typing import TypedDict
 
 
 class ExtConsolePyConfiguration(TypedDict):
@@ -23,13 +16,17 @@ class ExtConsolePyConfiguration(TypedDict):
 
     # True if the external console is using custom arguments. False otherwise
     args_enabled: bool
+
     # Custom arguments to pass to the external console.
     args: str
+
     # True if the console should remain open once the execution finishes.
     # False otherwise.
     interact: bool
+
     # True if the console is using custom Python arguments. False otherwise.
     python_args_enabled: bool
+
     # Custom arguments to pass to the console.
     python_args: str
 
@@ -39,13 +36,18 @@ class ExtConsoleShConfiguration(TypedDict):
 
     # Path/name of the shell interpreter to use.
     interpreter: str
+
     # True if the shell interpreter is using custom arguments, False otherwise.
     interpreter_opts_enabled: bool
+
     # Custom arguments to pass to the shell interpreter.
     interpreter_opts: str
+
     # True if the shell script is using custom arguments, False otherwise.
     script_opts_enabled: bool
+
     # Custom arguments to pass to the shell script.
     script_opts: str
+
     # True if the console will be closed after execution, False otherwise.
     close_after_exec: bool

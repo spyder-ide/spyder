@@ -9,8 +9,8 @@
 # Standard library imports
 from datetime import datetime
 import os.path as osp
-from uuid import uuid4
 from typing import Optional, Tuple, List, Dict
+from uuid import uuid4
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -20,18 +20,20 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.translations import get_translation
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
     RunExecutionParameters, ExtendedRunExecutionParameters,
     RunExecutorConfigurationGroup, SupportedExecutionRunConfiguration)
-from spyder.api.translations import get_translation
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
 
+
 # Localization
 _ = get_translation("spyder")
 
+# Main constants
 RUN_DEFAULT_CONFIG = _("Run file with default configuration")
 RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
 CURRENT_INTERPRETER = _("Execute in current console")
@@ -103,16 +105,18 @@ class BaseRunConfigDialog(QDialog):
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
         self.bbox = QDialogButtonBox(stdbtns)
+
         if not self.disable_run_btn:
             run_btn = self.bbox.addButton(
                 _("Run"), QDialogButtonBox.ActionRole)
             run_btn.clicked.connect(self.run_btn_clicked)
+
         reset_deafults_btn = self.bbox.addButton(
             _('Reset'), QDialogButtonBox.ResetRole)
         reset_deafults_btn.clicked.connect(self.reset_btn_clicked)
         self.bbox.accepted.connect(self.accept)
-        # self.bbox.accepted.connect(self.ok_btn_clicked)
         self.bbox.rejected.connect(self.reject)
+
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
         btnlayout.addWidget(self.bbox)
@@ -146,14 +150,16 @@ class BaseRunConfigDialog(QDialog):
 class ExecutionParametersDialog(BaseRunConfigDialog):
     """Run execution parameters edition dialog."""
 
-    def __init__(self, parent, executor_params: Dict[
-                    Tuple[str, str], SupportedExecutionRunConfiguration],
-                 extensions: Optional[List[str]] = None,
-                 contexts: Optional[Dict[str, List[str]]] = None,
-                 default_params: Optional[
-                    ExtendedRunExecutionParameters] = None,
-                 extension: Optional[str] = None,
-                 context: Optional[str] = None):
+    def __init__(
+        self,
+        parent,
+        executor_params: Dict[Tuple[str, str], SupportedExecutionRunConfiguration],
+        extensions: Optional[List[str]] = None,
+        contexts: Optional[Dict[str, List[str]]] = None,
+        default_params: Optional[ExtendedRunExecutionParameters] = None,
+        extension: Optional[str] = None,
+        context: Optional[str] = None
+    ):
         super().__init__(parent, True)
 
         self.executor_params = executor_params
@@ -402,15 +408,23 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         super().accept()
 
     def get_configuration(
-            self) -> Tuple[str, str, ExtendedRunExecutionParameters]:
+            self
+    ) -> Tuple[str, str, ExtendedRunExecutionParameters]:
+
         return self.saved_conf
 
 
 class RunDialog(BaseRunConfigDialog):
     """Run dialog used to configure run executors."""
 
-    def __init__(self, parent=None, run_conf_model=None, executors_model=None,
-                 parameter_model=None, disable_run_btn=False):
+    def __init__(
+        self,
+        parent=None,
+        run_conf_model=None,
+        executors_model=None,
+        parameter_model=None,
+        disable_run_btn=False
+    ):
         super().__init__(parent, disable_run_btn=disable_run_btn)
         self.run_conf_model = run_conf_model
         self.executors_model = executors_model
@@ -460,7 +474,7 @@ class RunDialog(BaseRunConfigDialog):
             triggered=self.select_directory,
             icon=ima.icon('DirOpenIcon'),
             tip=_("Select directory")
-            )
+        )
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
@@ -682,6 +696,8 @@ class RunDialog(BaseRunConfigDialog):
                            ext_exec_params, open_dialog)
         return super().accept()
 
-    def get_configuration(self) -> Tuple[
-            str, str, ExtendedRunExecutionParameters, bool]:
+    def get_configuration(
+        self
+    ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
+
         return self.saved_conf
