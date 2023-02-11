@@ -9,9 +9,6 @@ on:
       - '**.py'
       - '**.sh'
       - '!**.md'
-      - '!installers/**'
-      - '!.github/workflows/installer-win.yml'
-      - '!.github/workflows/installer-macos.yml'
 
   release:
     types:
