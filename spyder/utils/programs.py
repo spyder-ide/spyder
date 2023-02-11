@@ -28,8 +28,7 @@ from pkg_resources import parse_version
 import psutil
 
 # Local imports
-from spyder.config.base import (running_under_pytest, get_home_dir,
-                                running_in_mac_app)
+from spyder.config.base import running_under_pytest, get_home_dir
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
@@ -788,8 +787,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
                                         delete=False)
         if wdir:
             f.write('cd "{}"\n'.format(wdir))
-        if running_in_mac_app(executable):
-            f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
         if pypath is not None:
             f.write(f'export PYTHONPATH={pypath}\n')
         f.write(' '.join([executable] + p_args))
