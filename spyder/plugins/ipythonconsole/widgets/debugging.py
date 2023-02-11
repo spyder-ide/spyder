@@ -395,12 +395,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
     def is_pdb_using_exclamantion_mark(self):
         return self.get_conf('pdb_use_exclamation_mark', section='debugger')
 
-    def do_where(self):
-        """Where was called, go to the current location."""
-        fname, lineno = self._pdb_frame_loc
-        if fname:
-            self.sig_pdb_step.emit(fname, lineno)
-
     def refresh_from_pdb(self, pdb_state):
         """
         Refresh Variable Explorer and Editor from a Pdb session,
@@ -417,6 +411,11 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
             # Only step if the location changed
             if (fname, lineno) != last_pdb_loc:
+                self.sig_pdb_step.emit(fname, lineno)
+
+        if "do_where" in pdb_state:
+            fname, lineno = self._pdb_frame_loc
+            if fname:
                 self.sig_pdb_step.emit(fname, lineno)
 
         if 'stack' in pdb_state:
