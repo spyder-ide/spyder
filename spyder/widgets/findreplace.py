@@ -649,7 +649,6 @@ class FindReplace(QWidget):
                 cursor.setPosition(found_cursor.selectionEnd(),
                                    QTextCursor.KeepAnchor)
 
-
         if cursor is not None:
             cursor.endEditBlock()
 
@@ -666,24 +665,35 @@ class FindReplace(QWidget):
         """Replace and find all matching occurrences"""
         if self.editor is None:
             return
+
         replace_text = to_text_string(self.replace_text.currentText())
         search_text = to_text_string(self.search_text.currentText())
-        re_pattern = None
         case = self.case_button.isChecked()
+        word = self.words_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
-        re_enabled = self.re_button.isChecked()
-        # Check regexp before proceeding
-        if re_enabled:
-            try:
-                re_pattern = re.compile(search_text, flags=re_flags)
-                # Check if replace_text can be substituted in re_pattern
-                # Fixes spyder-ide/spyder#7177.
-                re_pattern.sub(replace_text, '')
-            except re.error:
-                # Do nothing with an invalid regexp
-                return
+
+        if self.re_button.isChecked():
+            pattern = search_text
         else:
-            re_pattern = re.compile(re.escape(search_text), flags=re_flags)
+            pattern = re.escape(search_text)
+            # re.sub processes backslashes so they must be escaped
+            replace_text = replace_text.replace('\\', r'\\')
+
+        # Match whole words only
+        if word:
+            pattern = r'\b{pattern}\b'.format(pattern=pattern)
+
+        # Check regexp before proceeding
+        re_pattern = None
+        try:
+            re_pattern = re.compile(pattern, flags=re_flags)
+
+            # Check if replace_text can be substituted in re_pattern
+            # Fixes spyder-ide/spyder#7177.
+            re_pattern.sub(replace_text, '')
+        except re.error:
+            # Do nothing with an invalid regexp
+            return
 
         cursor = self.editor._select_text("sof", "eof")
         text = self.editor.toPlainText()
@@ -709,6 +719,7 @@ class FindReplace(QWidget):
                 pattern = search_text
             else:
                 pattern = re.escape(search_text)
+                # re.sub processes backslashes so they must be escaped
                 replace_text = replace_text.replace('\\', r'\\')
             if word:  # match whole words only
                 pattern = r'\b{pattern}\b'.format(pattern=pattern)
