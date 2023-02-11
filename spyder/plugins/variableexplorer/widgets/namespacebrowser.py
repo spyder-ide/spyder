@@ -175,9 +175,9 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             the `SpyderKernel.get_state` method of Spyder-kernels.
         """
         if "namespace_view" in kernel_state:
-            self.process_remote_view(state.pop("namespace_view"))
+            self.process_remote_view(kernel_state.pop("namespace_view"))
         if "var_properties" in kernel_state:
-            self.set_var_properties(state.pop("var_properties"))
+            self.set_var_properties(kernel_state.pop("var_properties"))
 
     def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""

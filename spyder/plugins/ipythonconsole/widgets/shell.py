@@ -508,7 +508,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.sig_working_directory_changed.emit(self._cwd)
 
         if state:
-            self.sig_kernel_state.emit(state)
+            self.sig_kernel_state_arrived.emit(state)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
