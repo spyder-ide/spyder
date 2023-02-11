@@ -23,8 +23,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.utils.installers import InstallerPylspError
-from spyder.config.base import (_, get_conf_path, running_under_pytest,
-                                running_in_mac_app)
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
@@ -821,9 +820,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         else:
             environment = self.get_conf('executable',
                                         section='main_interpreter')
-            # External interpreter cannot have PYTHONHOME
-            if running_in_mac_app():
-                env_vars.pop('PYTHONHOME', None)
 
         jedi = {
             'environment': environment,

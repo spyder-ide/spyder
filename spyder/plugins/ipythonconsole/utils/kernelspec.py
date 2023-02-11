@@ -227,6 +227,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             env_vars['SPY_RUN_CYTHON'] = True
 
         # App considerations
+        # ??? Do we need this?
         if (running_in_mac_app() or is_pynsist()):
             if default_interpreter:
                 # See spyder-ide/spyder#16927
@@ -234,6 +235,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 # See spyder-ide/spyder#17552
                 env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
             else:
+                # ??? Do we need this?
                 env_vars.pop('PYTHONHOME', None)
 
         # Remove this variable because it prevents starting kernels for
