@@ -402,9 +402,10 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
         See publish_pdb_state and notify_spyder in spyder_kernels
         """
-        if 'step' in pdb_state and 'fname' in pdb_state['step']:
-            fname = pdb_state['step']['fname']
-            lineno = pdb_state['step']['lineno']
+        pdb_step = pdb_state.pop('step', None)
+        if pdb_step and 'fname' in pdb_step:
+            fname = pdb_step['fname']
+            lineno = pdb_step['lineno']
 
             last_pdb_loc = self._pdb_frame_loc
             self._pdb_frame_loc = (fname, lineno)
@@ -418,12 +419,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             if fname:
                 self.sig_pdb_step.emit(fname, lineno)
 
-        if 'stack' in pdb_state:
-            pdb_stack, pdb_index = pdb_state['stack']
+        pdb_stack = pdb_state.pop('stack', None)
+        if pdb_stack:
+            pdb_stack, pdb_index = pdb_stack
             self.sig_pdb_stack.emit(pdb_stack, pdb_index)
 
-        if 'request_pdb_input' in pdb_state:
-            self.pdb_execute(pdb_state['request_pdb_input'])
+        request_pdb_input =  pdb_state.pop('request_pdb_input', None)
+        if request_pdb_input:
+            self.pdb_execute(request_pdb_input)
+
+        self.update_state(pdb_state)
 
     def show_pdb_output(self, text):
         """Show Pdb output."""

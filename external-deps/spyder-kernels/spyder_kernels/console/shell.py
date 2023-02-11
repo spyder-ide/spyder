@@ -296,3 +296,4 @@ class SpyderShell(ZMQInteractiveShell):
         # Flush C standard streams.
         sys.__stderr__.flush()
         sys.__stdout__.flush()
+        self.kernel.publish_state()
