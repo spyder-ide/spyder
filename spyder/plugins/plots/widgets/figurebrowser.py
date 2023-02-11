@@ -243,7 +243,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget = shellwidget
         self.shellwidget.set_mute_inline_plotting(self.mute_inline_plotting)
         shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
-        shellwidget.executing.connect(self._handle_executing)
+        shellwidget.executing.connect(self._handle_new_execution)
 
     def _handle_new_figure(self, fig, fmt):
         """
@@ -252,8 +252,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """
         self.thumbnails_sb.add_thumbnail(fig, fmt)
 
-    def _handle_executing(self):
-        """A new execution started"""
+    def _handle_new_execution(self):
+        """Handle a new execution in the console."""
         self.thumbnails_sb._first_thumbnail_shown = False
 
     # ---- Toolbar Handlers
@@ -798,11 +798,12 @@ class ThumbnailScrollBar(QFrame):
         self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
         self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
         self.scene.setRowStretch(self.scene.rowCount(), 100)
-        # Only select the new tumbnail if the last one was selected
+
+        # Only select a new thumbnail if the last one was selected
         select_last = (
-            len(self._thumbnails) < 2 or
-            self.current_thumbnail == self._thumbnails[-2] or
-            is_first
+            len(self._thumbnails) < 2
+            or self.current_thumbnail == self._thumbnails[-2]
+            or is_first
         )
         if select_last:
             self.set_current_thumbnail(thumbnail)

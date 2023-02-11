@@ -2055,8 +2055,9 @@ def test_plots_scroll(main_window, qtbot):
     figbrowser = main_window.plots.current_widget()
 
     # Wait until the window is fully up.
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
 
     # Generate a plot inline.
     with qtbot.waitSignal(shell.executed):
@@ -2068,7 +2069,7 @@ def test_plots_scroll(main_window, qtbot):
     assert len(sb._thumbnails) == 1
     assert sb._thumbnails[-1] == sb.current_thumbnail
 
-    # plot 4 more plots
+    # Generate 4 more plots
     with qtbot.waitSignal(shell.executed):
         shell.execute(
             "for i in range(4):\n"
@@ -2079,7 +2080,7 @@ def test_plots_scroll(main_window, qtbot):
     assert len(sb._thumbnails) == 5
     assert sb._thumbnails[-1] == sb.current_thumbnail
 
-    # plot 20 plots
+    # Generate 20 plots
     with qtbot.waitSignal(shell.executed):
         shell.execute(
             "for i in range(20):\n"
@@ -2092,7 +2093,7 @@ def test_plots_scroll(main_window, qtbot):
     assert sb._thumbnails[-1] == sb.current_thumbnail
     assert scrollbar.value() == scrollbar.maximum()
 
-    # plot 20 plots and select a plot in the middle
+    # Generate 20 plots and select a plot in the middle
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(
             "import time\n"
@@ -2105,7 +2106,7 @@ def test_plots_scroll(main_window, qtbot):
         sb.set_current_index(5)
         scrollbar.setValue(scrollbar.minimum())
 
-    # make sure we didn't scroll to the end and a new thumnail was not selected
+    # make sure we didn't scroll to the end and a new thumbnail was not selected
     assert len(sb._thumbnails) == 45
     assert sb._thumbnails[-1] != sb.current_thumbnail
     assert scrollbar.value() != scrollbar.maximum()
