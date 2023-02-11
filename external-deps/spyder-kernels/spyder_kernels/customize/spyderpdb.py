@@ -636,7 +636,8 @@ class SpyderPdb(ipyPdb):
 
         # Send the input request.
         self._cmd_input_line = None
-        kernel.frontend_call().pdb_input(prompt, state=self.get_pdb_state())
+        kernel.frontend_call(display_error=True).pdb_input(
+            prompt, state=self.get_pdb_state())
 
         # Allow GUI event loop to update
         is_main_thread = (
@@ -751,14 +752,13 @@ class SpyderPdb(ipyPdb):
 
         The state is only sent if it has changed since the last update.
         """
-
-        state = None
+        state = get_ipython().kernel.get_state()
         if self.starting and self.should_do_continue():
             if self.pdb_use_exclamation_mark:
                 cont_cmd = '!continue'
             else:
                 cont_cmd = 'continue'
-            state = {'request_pdb_input': cont_cmd}
+            state['request_pdb_input'] = cont_cmd
 
         frame = self.curframe
         if frame is None:
@@ -782,8 +782,6 @@ class SpyderPdb(ipyPdb):
             step = dict(fname=fname, lineno=lineno)
             self._previous_step = (fname, lineno)
 
-        if state is None:
-            state = {}
         state['step'] = step
 
         if self.pdb_publish_stack:
