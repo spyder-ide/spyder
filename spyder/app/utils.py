@@ -311,6 +311,7 @@ def create_window(WindowClass, app, splash, options, args):
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
+    # ??? Do we need this?
     if running_in_mac_app():
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True

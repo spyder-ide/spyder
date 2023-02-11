@@ -86,6 +86,7 @@ class HistoryWidget(PluginMainWidget):
 
         # Layout
         layout = QVBoxLayout()
+        layout.setSpacing(0)
 
         # TODO: Move this to the tab container directly
         if sys.platform == 'darwin':
@@ -319,6 +320,10 @@ class HistoryWidget(PluginMainWidget):
         css['QTabBar::tab'].setValues(
             marginTop='1.0em',
             padding='4px'
+        )
+
+        css['QTabWidget::pane'].setValues(
+            border='1px',
         )
 
         css['QTabWidget::left-corner'].setValues(

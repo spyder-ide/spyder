@@ -9,6 +9,7 @@ IPython Console main widget based on QtConsole.
 """
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 import sys
@@ -38,7 +39,6 @@ from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
     KernelConnectionDialog, PageControlWidget)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
-from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
@@ -47,8 +47,10 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
-# Localization
+# Localization and logging
 _ = get_translation('spyder')
+logger = logging.getLogger(__name__)
+
 
 # =============================================================================
 # ---- Constants
@@ -94,14 +96,19 @@ class IPythonConsoleWidgetOptionsMenus:
     Documentation = 'documentation_submenu'
 
 
-class IPythonConsoleWidgetConsolesMenusSection:
-    Main = 'main_section'
-
-
 class IPythonConsoleWidgetOptionsMenuSections:
     Consoles = 'consoles_section'
     Edit = 'edit_section'
     View = 'view_section'
+
+
+class IPythonConsoleWidgetMenus:
+    TabsContextMenu = 'tabs_context_menu'
+
+
+class IPythonConsoleWidgetTabsContextMenuSections:
+    Consoles = 'tabs_consoles_section'
+    Edit = 'tabs_edit_section'
 
 
 # --- Widgets
@@ -359,7 +366,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return client.get_control()
 
     def setup(self):
-        # Options menu actions
+        # --- Options menu actions
         self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
             text=_("New console (default settings)"),
@@ -401,7 +408,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=self.tab_name_editor,
         )
 
-        # For the client
+        # --- For the client
         self.env_action = self.create_action(
             IPythonConsoleWidgetActions.ShowEnvironmentVariables,
             text=_("Show environment variables"),
@@ -427,7 +434,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             initial=self.get_conf('show_elapsed_time')
         )
 
-        # Context menu actions
+        # --- Context menu actions
         # TODO: Shortcut registration not working
         self.inspect_action = self.create_action(
             IPythonConsoleWidgetActions.InspectObject,
@@ -454,7 +461,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             icon=self.create_icon('exit'),
             triggered=self.current_client_quit)
 
-        # Other actions with shortcuts
+        # --- Other actions with shortcuts
         self.array_table_action = self.create_action(
             IPythonConsoleWidgetActions.ArrayTable,
             text=_("Enter array table"),
@@ -479,6 +486,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.quit_action
         )
 
+        # --- Setting options menu
         options_menu = self.get_options_menu()
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
@@ -540,11 +548,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 create_cython_action]:
             self.add_item_to_menu(
                 item,
-                menu=self.special_console_menu,
-                section=IPythonConsoleWidgetConsolesMenusSection.Main,
+                menu=self.special_console_menu
             )
 
-        # Widgets for the tab corner
+        # --- Widgets for the tab corner
         self.reset_button = self.create_toolbutton(
             'reset',
             text=_("Remove all variables"),
@@ -561,12 +568,39 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         )
         self.time_label = QLabel("")
 
-        # Add tab corner widgets.
+        # --- Add tab corner widgets.
         self.add_corner_widget('timer', self.time_label)
         self.add_corner_widget('reset', self.reset_button)
         self.add_corner_widget('start_interrupt', self.stop_button)
 
-        # Create IPython documentation menu
+        # --- Tabs context menu
+        tabs_context_menu = self.create_menu(
+            IPythonConsoleWidgetMenus.TabsContextMenu)
+
+        for item in [
+                self.create_client_action,
+                self.special_console_menu,
+                self.connect_to_kernel_action]:
+            self.add_item_to_menu(
+                item,
+                menu=tabs_context_menu,
+                section=IPythonConsoleWidgetTabsContextMenuSections.Consoles,
+            )
+
+        for item in [
+                self.interrupt_action,
+                self.restart_action,
+                self.reset_action,
+                self.rename_tab_action]:
+            self.add_item_to_menu(
+                item,
+                menu=tabs_context_menu,
+                section=IPythonConsoleWidgetTabsContextMenuSections.Edit,
+            )
+
+        self.tabwidget.menu = tabs_context_menu
+
+        # --- Create IPython documentation menu
         self.ipython_menu = self.create_menu(
             menu_id=IPythonConsoleWidgetOptionsMenus.Documentation,
             title=_("IPython documentation"))
@@ -940,7 +974,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         - Do this as early as possible to make it a low priority and
           overrideable.
         """
-        if os.name == 'nt' and PY38_OR_MORE:
+        if os.name == 'nt' and sys.version_info[:2] >= (3, 8):
             # Tests on Linux hang if we don't leave this import here.
             import tornado
             if tornado.version_info >= (6, 1):
@@ -1528,6 +1562,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.sig_shellwidget_deleted)
         shellwidget.sig_shellwidget_created.connect(
             self.sig_shellwidget_created)
+        shellwidget.sig_restart_kernel.connect(self.restart_kernel)
 
     def close_client(self, index=None, client=None, ask_recursive=True):
         """Close client tab from index or widget (or close current tab)"""
@@ -1736,6 +1771,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client is None:
             return
 
+        km = client.kernel_handler.kernel_manager
+        if km is None:
+            client.shellwidget._append_plain_text(
+                _('Cannot restart a kernel not started by Spyder\n'),
+                before_prompt=True
+            )
+            return
+
         self.sig_switch_to_plugin_requested.emit()
 
         ask_before_restart = (
@@ -1752,7 +1795,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if not do_restart:
             return
 
-        client.restart_kernel()
+        # Get new kernel
+        try:
+            kernel_handler = self.get_cached_kernel(km._kernel_spec)
+        except Exception as e:
+            client.show_kernel_error(e)
+            return
+
+        # Replace in all related clients
+        for cl in self.get_related_clients(client):
+            cl.replace_kernel(kernel_handler.copy(), shutdown_kernel=False)
+
+        client.replace_kernel(kernel_handler, shutdown_kernel=True)
 
     def reset_namespace(self):
         """Reset namespace of current client."""
@@ -1979,6 +2033,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def update_path(self, path_dict, new_path_dict):
         """Update path on consoles."""
+        logger.debug("Update sys.path in all console clients")
         for client in self.clients:
             shell = client.shellwidget
             if shell is not None:
@@ -2021,7 +2076,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     sw.sig_prompt_ready.disconnect()
                 except TypeError:
                     pass
-                sw.reset_namespace(warning=False)
+                if clear_variables:
+                    sw.reset_namespace(warning=False)
             elif current_client and clear_variables:
                 sw.reset_namespace(warning=False)
 

@@ -23,8 +23,7 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.utils.installers import InstallerPylspError
-from spyder.config.base import (_, get_conf_path, running_under_pytest,
-                                running_in_mac_app)
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,
@@ -584,12 +583,14 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 return
         self.update_lsp_configuration()
 
-    @on_conf_change(section='main', option='spyder_pythonpath')
+    @on_conf_change(section='pythonpath_manager', option='spyder_pythonpath')
     def on_pythonpath_option_update(self, value):
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                return
-        self.update_lsp_configuration(python_only=True)
+        # This is only useful to run some self-contained tests
+        if (
+            running_under_pytest()
+            and os.environ.get('SPY_TEST_USE_INTROSPECTION')
+        ):
+            self.update_lsp_configuration(python_only=True)
 
     @on_conf_change(section='main_interpreter',
                     option=['default', 'custom_interpreter'])
@@ -819,14 +820,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
         else:
             environment = self.get_conf('executable',
                                         section='main_interpreter')
-            # External interpreter cannot have PYTHONHOME
-            if running_in_mac_app():
-                env_vars.pop('PYTHONHOME', None)
 
         jedi = {
             'environment': environment,
             'extra_paths': self.get_conf('spyder_pythonpath',
-                                         section='main', default=[]),
+                                         section='pythonpath_manager',
+                                         default=[]),
             'env_vars': env_vars,
         }
         jedi_completion = {

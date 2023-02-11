@@ -10,6 +10,10 @@ on:
     - master
     - 2.*
 
+concurrency:
+  group: macos-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   macos:
     name: Py${{ matrix.PYTHON_VERSION }}
@@ -21,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false 
       matrix:
-        PYTHON_VERSION: ['3.7', '3.8', '3.9']
+        PYTHON_VERSION: ['3.8', '3.9', '3.10']
     timeout-minutes: 25
     steps:
       - name: Checkout branch
@@ -52,4 +56,7 @@ jobs:
           conda list
       - name: Run tests
         shell: bash -l {0}
-        run: pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv || pytest spyder_kernels --cov=spyder_kernels -x -vv
+        run: |
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv

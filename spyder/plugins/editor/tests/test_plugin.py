@@ -449,5 +449,42 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
     assert get_eol_chars(text) == os.linesep
 
 
+def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
+    """
+    Check that editor stacks and windows are removed from the list maintained
+    for them in the editor when closing editor windows and split editors.
+
+    This is a regression test for spyder-ide/spyder#20144.
+    """
+    # Create empty file
+    editor_plugin.new()
+
+    # Create editor window
+    editor_window = editor_plugin.create_new_window()
+    qtbot.wait(500)  # To check visually that the window was created
+
+    # This is not done automatically by Qt when running our tests (don't know
+    # why), but it's done in normal usage. So we need to do it manually
+    editor_window.editorwidget.editorstacks[0].deleteLater()
+
+    # Close editor window
+    editor_window.close()
+    qtbot.wait(500)  # Wait for bit so window objects are actually deleted
+
+    # Check the window objects were removed
+    assert len(editor_plugin.editorstacks) == 1
+    assert len(editor_plugin.editorwindows) == 0
+
+    # Split editor and check the focus is given to the cloned editorstack
+    editor_plugin.editorsplitter.split()
+    qtbot.wait(500)  # To check visually that the split was done
+    assert editor_plugin.get_current_editor().is_cloned
+
+    # Close editorstack
+    editor_plugin.get_current_editorstack().close()
+    qtbot.wait(500)  # Wait for bit so the editorstack is actually deleted
+    assert len(editor_plugin.editorstacks) == 1
+
+
 if __name__ == "__main__":
     pytest.main(['-x', osp.basename(__file__), '-vv', '-rw'])

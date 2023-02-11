@@ -28,7 +28,7 @@ from spyder.plugins.completion.tests.conftest import (
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.widgets.findreplace import FindReplace
 
 
@@ -43,7 +43,6 @@ def codeeditor_factory():
                         font=QFont("Monospace", 10),
                         automatic_completions=True,
                         automatic_completions_after_chars=1,
-                        automatic_completions_after_ms=200,
                         folding=False)
     editor.eol_chars = '\n'
     editor.resize(640, 480)
@@ -100,12 +99,11 @@ def completions_editor(
         completion_plugin.send_request)
 
     completion_plugin.register_file('python', str(file_path), editor)
-    editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
     with qtbot_module.waitSignal(
             editor.completions_response_signal, timeout=30000):
-        editor.document_did_open()
+        editor.start_completion_services()
 
     def teardown():
         editor.completion_widget.hide()
@@ -229,12 +227,11 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
     editor.language = 'Python'
 
     completion_plugin.register_file('python', str(file_path), editor)
-    editor.start_completion_services()
     editor.register_completion_capabilities(capabilities)
 
     with qtbot_module.waitSignal(
             editor.completions_response_signal, timeout=30000):
-        editor.document_did_open()
+        editor.start_completion_services()
 
     def teardown():
         editor.completion_widget.hide()
@@ -245,8 +242,6 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
         sys_stream = capsys.readouterr()
         sys_err = sys_stream.err
 
-        if PY2:
-            sys_err = to_text_string(sys_err).encode('utf-8')
         assert sys_err == ''
 
     request.addfinalizer(teardown)

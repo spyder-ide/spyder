@@ -6,8 +6,6 @@
 
 """Running programs utilities."""
 
-from __future__ import print_function
-
 # Standard library imports
 from ast import literal_eval
 from getpass import getuser
@@ -30,8 +28,7 @@ from pkg_resources import parse_version
 import psutil
 
 # Local imports
-from spyder.config.base import (running_under_pytest, get_home_dir,
-                                running_in_mac_app)
+from spyder.config.base import running_under_pytest, get_home_dir
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
@@ -745,6 +742,19 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
             # wdir can come with / as os.sep, so we need to take care of it.
             wdir = wdir.replace('/', '\\')
 
+            # UNC paths start with \\
+            if osp.splitdrive(wdir)[0].startswith("\\\\"):
+                from qtpy.QtWidgets import QMessageBox
+                from spyder.config.base import _
+                QMessageBox.critical(
+                    None,
+                    _('Run'),
+                    _("External terminals does not support a UNC file path as "
+                      "the working directory."),
+                    QMessageBox.Ok
+                )
+                return
+
         # python_exe must be quoted in case it has spaces
         cmd = f'start cmd.exe /K ""{executable}" '
         cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
@@ -753,10 +763,13 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
-            QMessageBox.critical(None, _('Run'),
-                                 _("It was not possible to run this file in "
-                                   "an external terminal"),
-                                 QMessageBox.Ok)
+            QMessageBox.critical(
+                None,
+                _('Run'),
+                _("It was not possible to run this file in an external "
+                  "terminal"),
+                QMessageBox.Ok
+            )
     elif sys.platform.startswith('linux'):
         programs = [{'cmd': 'gnome-terminal', 'execute-option': '-x'},
                     {'cmd': 'konsole', 'execute-option': '-e'},
@@ -774,8 +787,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
                                         delete=False)
         if wdir:
             f.write('cd "{}"\n'.format(wdir))
-        if running_in_mac_app(executable):
-            f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
         if pypath is not None:
             f.write(f'export PYTHONPATH={pypath}\n')
         f.write(' '.join([executable] + p_args))

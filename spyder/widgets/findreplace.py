@@ -15,10 +15,11 @@
 import re
 
 # Third party imports
-from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
+from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
-                            QSizePolicy, QWidget)
+from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
+                            QLineEdit, QToolButton, QSizePolicy, QSpacerItem,
+                            QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -41,18 +42,24 @@ def is_position_inf(pos1, pos2):
     return pos1 < pos2
 
 
+class SearchText(PatternComboBox):
+
+    def __init__(self, parent):
+        self.recommended_width = 400
+        super().__init__(parent, adjust_to_minimum=False)
+
+    def sizeHint(self):
+        """Recommended size."""
+        return QSize(self.recommended_width, 10)
+
+
 class FindReplace(QWidget):
     """Find widget"""
-    STYLE = {False: "background-color:'#F37E12';",
-             True: "",
-             None: "",
-             'regexp_error': "background-color:'#E74C3C';",
-             }
-    TOOLTIP = {False: _("No matches"),
-               True: _("Search string"),
-               None: _("Search string"),
-               'regexp_error': _("Regular expression error")
-               }
+    TOOLTIP = {
+        'regexp_error': _("Regular expression error"),
+        'no_matches': _("No matches")
+    }
+
     visibility_changed = Signal(bool)
     return_shift_pressed = Signal()
     return_pressed = Signal()
@@ -62,38 +69,57 @@ class FindReplace(QWidget):
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None
-        self.setStyleSheet(
-             "QComboBox {"
-             "padding-right: 0px;"
-             "padding-left: 0px;"
-             "}")
 
         glayout = QGridLayout()
-        glayout.setContentsMargins(0, 0, 0, 0)
+        glayout.setContentsMargins(6, 3, 6, 3)
         self.setLayout(glayout)
 
-        self.close_button = create_toolbutton(self, triggered=self.hide,
-                                      icon=ima.icon('DialogCloseButton'))
+        self.close_button = create_toolbutton(
+            self,
+            triggered=self.hide,
+            icon=ima.icon('DialogCloseButton')
+        )
         glayout.addWidget(self.close_button, 0, 0)
 
         # Find layout
-        self.search_text = PatternComboBox(self, tip=_("Search string"),
-                                           adjust_to_minimum=False)
+        self.search_text = SearchText(self)
 
         self.return_shift_pressed.connect(
-                lambda:
-                self.find(changed=False, forward=False, rehighlight=False,
-                          multiline_replace_check = False))
+            lambda:
+            self.find(changed=False, forward=False, rehighlight=False,
+                      multiline_replace_check = False)
+        )
 
         self.return_pressed.connect(
-                     lambda:
-                     self.find(changed=False, forward=True, rehighlight=False,
-                               multiline_replace_check = False))
+            lambda:
+            self.find(changed=False, forward=True, rehighlight=False,
+                      multiline_replace_check = False)
+        )
 
         self.search_text.lineEdit().textEdited.connect(
-                                                     self.text_has_been_edited)
+            self.text_has_been_edited)
+        self.search_text.sig_resized.connect(self._resize_replace_text)
 
         self.number_matches_text = QLabel(self)
+        self.search_text.clear_action.triggered.connect(
+            self.number_matches_text.hide
+        )
+
+        self.no_matches_icon = ima.icon('no_matches')
+        self.error_icon = ima.icon('error')
+        self.messages_action = QAction(self)
+        self.messages_action.setVisible(False)
+        self.search_text.lineEdit().addAction(
+            self.messages_action, QLineEdit.TrailingPosition)
+        self.search_text.clear_action.triggered.connect(
+            lambda: self.messages_action.setVisible(False)
+        )
+
+        # Button corresponding to the messages_action above
+        self.messages_button = (
+            self.search_text.lineEdit().findChildren(QToolButton)[1]
+        )
+
         self.replace_on = False
         self.replace_text_button = create_toolbutton(
             self,
@@ -101,86 +127,125 @@ class FindReplace(QWidget):
             icon=ima.icon('replace'),
             tip=_("Replace text")
         )
-        self.previous_button = create_toolbutton(self,
-                                                 triggered=self.find_previous,
-                                                 icon=ima.icon('findprevious'),
-                                                 tip=_("Find previous"))
-        self.next_button = create_toolbutton(self,
-                                             triggered=self.find_next,
-                                             icon=ima.icon('findnext'),
-                                             tip=_("Find next"))
+        if not self.enable_replace:
+            self.replace_text_button.hide()
+
+        self.previous_button = create_toolbutton(
+            self,
+            triggered=self.find_previous,
+            icon=ima.icon('findprevious'),
+            tip=_("Find previous")
+        )
+
+        self.next_button = create_toolbutton(
+            self,
+            triggered=self.find_next,
+            icon=ima.icon('findnext'),
+            tip=_("Find next")
+        )
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
-        self.re_button = create_toolbutton(self, icon=ima.icon('regex'),
-                                           tip=_("Regular expression"))
+        self.re_button = create_toolbutton(
+            self, icon=ima.icon('regex'),
+            tip=_("Use regular expressions")
+        )
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
 
-        self.case_button = create_toolbutton(self,
-                                             icon=ima.icon(
-                                                 "format_letter_case"),
-                                             tip=_("Case Sensitive"))
+        self.case_button = create_toolbutton(
+            self,
+            icon=ima.icon("format_letter_case"),
+            tip=_("Enable case sensitive searches")
+        )
         self.case_button.setCheckable(True)
         self.case_button.toggled.connect(lambda state: self.find())
 
-        self.words_button = create_toolbutton(self,
-                                              icon=ima.icon("whole_words"),
-                                              tip=_("Whole words"))
+        self.words_button = create_toolbutton(
+            self,
+            icon=ima.icon("format_letter_matches"),
+            tip=_("Only search for whole words")
+        )
         self.words_button.setCheckable(True)
         self.words_button.toggled.connect(lambda state: self.find())
 
-        hlayout = QHBoxLayout()
-        self.widgets = [self.close_button, self.search_text,
-                        self.number_matches_text, self.replace_text_button,
-                        self.previous_button, self.next_button,
-                        self.re_button, self.case_button,
-                        self.words_button]
-        for widget in self.widgets[1:]:
-            hlayout.addWidget(widget)
-        glayout.addLayout(hlayout, 0, 1)
+        self.widgets = [
+            self.close_button,
+            self.search_text,
+            self.previous_button,
+            self.next_button,
+            self.re_button,
+            self.case_button,
+            self.words_button,
+            self.replace_text_button,
+            self.number_matches_text,
+        ]
+
+        # Search layout
+        search_layout = QHBoxLayout()
+        for widget in self.widgets[1:-1]:
+            search_layout.addWidget(widget)
+
+        search_layout.addSpacerItem(QSpacerItem(10, 0))
+        search_layout.addWidget(self.number_matches_text)
+        search_layout.addSpacerItem(
+            QSpacerItem(6, 0, hPolicy=QSizePolicy.Expanding)
+        )
+
+        glayout.addLayout(search_layout, 0, 1)
 
         # Replace layout
-        replace_with = QLabel(_("Replace with:"))
-        self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
-                                            tip=_('Replace string'))
+        self.replace_text = PatternComboBox(
+            self,
+            adjust_to_minimum=False
+        )
         self.replace_text.valid.connect(
-                    lambda _: self.replace_find(focus_replace_text=True))
-        self.replace_button = create_toolbutton(self,
-                                     text=_('Find next'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find,
-                                     text_beside_icon=True)
-        self.replace_sel_button = create_toolbutton(self,
-                                     text=_('In selection'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_selection,
-                                     text_beside_icon=True)
+            lambda _: self.replace_find(focus_replace_text=True))
+        self.replace_text.lineEdit().setPlaceholderText(_("Replace"))
+
+        self.replace_button = create_toolbutton(
+            self,
+            tip=_('Replace next occurrence'),
+            icon=ima.icon('replace_next'),
+            triggered=self.replace_find,
+        )
+
+        self.replace_sel_button = create_toolbutton(
+            self,
+            tip=_('Replace occurrences in selection'),
+            icon=ima.icon('replace_selection'),
+            triggered=self.replace_find_selection,
+        )
         self.replace_sel_button.clicked.connect(self.update_replace_combo)
         self.replace_sel_button.clicked.connect(self.update_search_combo)
 
-        self.replace_all_button = create_toolbutton(self,
-                                     text=_('All'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_all,
-                                     text_beside_icon=True)
+        self.replace_all_button = create_toolbutton(
+            self,
+            tip=_('Replace all occurrences'),
+            icon=ima.icon('replace_all'),
+            triggered=self.replace_find_all,
+        )
         self.replace_all_button.clicked.connect(self.update_replace_combo)
         self.replace_all_button.clicked.connect(self.update_search_combo)
 
-        self.replace_layout = QHBoxLayout()
-        widgets = [replace_with, self.replace_text, self.replace_button,
-                   self.replace_sel_button, self.replace_all_button]
+        replace_layout = QHBoxLayout()
+        widgets = [
+            self.replace_text,
+            self.replace_button,
+            self.replace_sel_button,
+            self.replace_all_button
+        ]
         for widget in widgets:
-            self.replace_layout.addWidget(widget)
-        glayout.addLayout(self.replace_layout, 1, 1)
+            replace_layout.addWidget(widget)
+        replace_layout.addStretch(1)
+        glayout.addLayout(replace_layout, 1, 1)
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
         self.hide_replace()
 
+        # Additional adjustments
         self.search_text.setTabOrder(self.search_text, self.replace_text)
-
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
         self.shortcuts = self.create_shortcuts(parent)
 
         self.highlight_timer = QTimer(self)
@@ -190,11 +255,15 @@ class FindReplace(QWidget):
         self.search_text.installEventFilter(self)
 
     def eventFilter(self, widget, event):
-        """Event filter for search_text widget.
+        """
+        Event filter for search_text widget.
 
-        Emits signals when presing Enter and Shift+Enter.
-        This signals are used for search forward and backward.
-        Also, a crude hack to get tab working in the Find/Replace boxes.
+        Notes
+        -----
+        * Emit signals when Enter and Shift+Enter are pressed. These signals
+          are used for search forward and backward.
+        * Add crude hack to get tab working between the find/replace boxes.
+        * Reduce space between the messages_button and the clear one.
         """
 
         # Type check: Prevent error in PySide where 'event' may be of type
@@ -218,7 +287,13 @@ class FindReplace(QWidget):
                         self.search_text.currentText())
                 self.focusNextChild()
 
-        return super(FindReplace, self).eventFilter(widget, event)
+        if event.type() == QEvent.Paint:
+            self.messages_button.move(
+                self.search_text.lineEdit().width() - 42,
+                self.messages_button.y()
+            )
+
+        return super().eventFilter(widget, event)
 
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
@@ -282,15 +357,21 @@ class FindReplace(QWidget):
     def show(self, hide_replace=True):
         """Overrides Qt Method"""
         QWidget.show(self)
+
+        self._resize_search_text()
         self.visibility_changed.emit(True)
         self.change_number_matches()
+
         if self.editor is not None:
             if hide_replace:
                 if self.replace_widgets[0].isVisible():
                     self.hide_replace()
-            text = self.editor.get_selected_text()
+            else:
+                self.replace_text_button.setChecked(True)
+
             # When selecting several lines, and replace box is activated the
             # text won't be replaced for the selection
+            text = self.editor.get_selected_text()
             if hide_replace or len(text.splitlines()) <= 1:
                 highlighted = True
                 # If no text is highlighted for search, use whatever word is
@@ -314,6 +395,10 @@ class FindReplace(QWidget):
                     self.search_text.lineEdit().selectAll()
             self.search_text.setFocus()
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._resize_search_text()
+
     @Slot()
     def replace_widget(self, replace_on):
         """Show and hide replace widget"""
@@ -333,6 +418,7 @@ class FindReplace(QWidget):
         for widget in self.replace_widgets:
             widget.hide()
         QWidget.hide(self)
+        self.replace_text_button.setChecked(False)
         self.visibility_changed.emit(False)
         if self.editor is not None:
             self.editor.setFocus()
@@ -349,6 +435,7 @@ class FindReplace(QWidget):
         """Hide replace widgets"""
         for widget in self.replace_widgets:
             widget.hide()
+            self.replace_text_button.setChecked(False)
 
     def refresh(self):
         """Refresh widget"""
@@ -363,22 +450,30 @@ class FindReplace(QWidget):
             self.find()
 
     def set_editor(self, editor, refresh=True):
-        """
-        Set associated editor/web page:
-            codeeditor.base.TextEditBaseWidget
-            browser.WebView
-        """
-        self.editor = editor
-        # Note: This is necessary to test widgets/editor.py
-        # in Qt builds that don't have web widgets
+        """Set associated editor."""
+        # Note: This is necessary to test widgets/editor.py in Qt builds that
+        # don't have web widgets
         try:
             from qtpy.QtWebEngineWidgets import QWebEngineView
         except ImportError:
             QWebEngineView = type(None)
+        from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+
         self.words_button.setVisible(not isinstance(editor, QWebEngineView))
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
-        from spyder.plugins.editor.widgets.codeeditor import CodeEditor
         self.is_code_editor = isinstance(editor, CodeEditor)
+
+        # Disconnect previous connection to highlight matches
+        if self.editor is not None and self.is_code_editor:
+            self.editor.textChanged.disconnect(self.update_matches)
+
+        # Set current editor
+        self.editor = editor
+
+        # Keep number of matches updated if editor text has changed
+        if self.is_code_editor:
+            self.editor.textChanged.connect(self.update_matches)
+
         if refresh:
             self.refresh()
         if self.isHidden() and editor is not None:
@@ -404,8 +499,10 @@ class FindReplace(QWidget):
         return state
 
     def text_has_been_edited(self, text):
-        """Find text has been edited (this slot won't be triggered when
-        setting the search pattern combo box text programmatically)"""
+        """
+        Find text has been edited (this slot won't be triggered when setting
+        the search pattern combo box text programmatically).
+        """
         self.find(changed=True, forward=True, start_highlight_timer=True)
 
     def highlight_matches(self):
@@ -435,11 +532,11 @@ class FindReplace(QWidget):
                 return None
         text = self.search_text.currentText()
         if len(text) == 0:
-            self.search_text.lineEdit().setStyleSheet("")
             if not self.is_code_editor:
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
             self.change_number_matches()
+            self.messages_action.setVisible(False)
             self.clear_matches()
             return None
         else:
@@ -449,15 +546,16 @@ class FindReplace(QWidget):
             found = self.editor.find_text(text, changed, forward, case=case,
                                           word=word, regexp=regexp)
 
-            stylesheet = self.STYLE[found]
-            tooltip = self.TOOLTIP[found]
+            error_msg = False
             if not found and regexp:
                 error_msg = regexp_error_msg(text)
-                if error_msg:  # special styling for regexp errors
-                    stylesheet = self.STYLE['regexp_error']
-                    tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
-            self.search_text.lineEdit().setStyleSheet(stylesheet)
-            self.search_text.setToolTip(tooltip)
+                if error_msg:
+                    self.show_error(error_msg)
+
+            # No need to continue after this point if we detected an error in
+            # the passed regexp.
+            if error_msg:
+                return
 
             if self.is_code_editor and found:
                 cursor = QTextCursor(self.editor.textCursor())
@@ -621,7 +719,7 @@ class FindReplace(QWidget):
                 # Check if replace_text can be substituted in re_pattern
                 # Fixes spyder-ide/spyder#7177.
                 re_pattern.sub(replace_text, '')
-            except re.error as e:
+            except re.error:
                 # Do nothing with an invalid regexp
                 return
 
@@ -650,11 +748,77 @@ class FindReplace(QWidget):
     def change_number_matches(self, current_match=0, total_matches=0):
         """Change number of match and total matches."""
         if current_match and total_matches:
+            self.number_matches_text.show()
+            self.messages_action.setVisible(False)
             matches_string = u"{} {} {}".format(current_match, _(u"of"),
-                                               total_matches)
+                                                total_matches)
             self.number_matches_text.setText(matches_string)
         elif total_matches:
+            self.number_matches_text.show()
+            self.messages_action.setVisible(False)
             matches_string = u"{} {}".format(total_matches, _(u"matches"))
             self.number_matches_text.setText(matches_string)
         else:
-            self.number_matches_text.setText(_(u"no matches"))
+            self.number_matches_text.hide()
+            if self.search_text.currentText():
+                self.show_no_matches()
+
+    def update_matches(self):
+        """Update total number of matches if text has changed in the editor."""
+        if self.isVisible():
+            number_matches = self.editor.get_number_matches(
+                self.search_text.lineEdit().text(),
+                case=self.case_button.isChecked(),
+                regexp=self.re_button.isChecked(),
+                word=self.words_button.isChecked()
+            )
+            self.change_number_matches(total_matches=number_matches)
+
+    def show_no_matches(self):
+        """Show a no matches message with an icon."""
+        self._show_icon_message('no_matches')
+
+    def show_error(self, error_msg):
+        """Show a regexp error message with an icon."""
+        self._show_icon_message('error', extra_info=error_msg)
+
+    def _show_icon_message(self, kind, extra_info=None):
+        """
+        Show a message to users with an icon when no matches can be found or
+        there's an error in the passed regexp.
+
+        Parameters
+        ----------
+        kind: str
+            The kind of message. It can be 'no_matches' or 'error'.
+        extra_info:
+            Extra info to add to the icon's tooltip.
+        """
+        if kind == 'no_matches':
+            tooltip = self.TOOLTIP['no_matches']
+            icon = self.no_matches_icon
+        else:
+            tooltip = self.TOOLTIP['regexp_error']
+            icon = self.error_icon
+
+        if extra_info:
+            tooltip = tooltip + ': ' + extra_info
+
+        self.messages_action.setIcon(icon)
+        self.messages_action.setToolTip(tooltip)
+        self.messages_action.setVisible(True)
+
+    def _resize_search_text(self):
+        """Adjust search_text combobox min width according to total one."""
+        total_width = self.size().width()
+        if total_width < (self.search_text.recommended_width + 200):
+            self.search_text.setMinimumWidth(30)
+        else:
+            self.search_text.setMinimumWidth(int(total_width / 2))
+
+    def _resize_replace_text(self, size, old_size):
+        """
+        Resize replace_text combobox to match the width of the search one.
+        """
+        self.replace_text.setMinimumWidth(size.width())
+        self.replace_text.setMaximumWidth(size.width())

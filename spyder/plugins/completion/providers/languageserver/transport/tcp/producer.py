@@ -25,7 +25,6 @@ from spyder.plugins.completion.providers.languageserver.transport.tcp.consumer i
     TCPIncomingMessageThread)
 from spyder.plugins.completion.providers.languageserver.transport.common.producer import (
     LanguageServerClient)
-from spyder.py3compat import ConnectionError, BrokenPipeError
 
 
 logger = logging.getLogger(__name__)
@@ -87,4 +86,9 @@ class TCPLanguageServerClient(LanguageServerClient):
 
             if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
                 break
+
+        if self.socket.getsockname() == self.socket.getpeername():
+            connection_error = Exception("Failed to connect to server: Self-connected socket")
+            connected = False
+
         return connected, connection_error, None

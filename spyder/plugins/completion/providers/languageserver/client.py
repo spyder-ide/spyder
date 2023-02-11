@@ -158,26 +158,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         return location
 
-    def _clean_sys_path(self):
-        """
-        Remove from sys.path entries that come from our config system.
-
-        They will be passed to the server in the extra_paths option
-        and are not needed for the transport layer.
-        """
-        spyder_pythonpath = self.get_conf(
-            'spyder_pythonpath',
-            section='main',
-            default=[]
-        )
-
-        sys_path = sys.path[:]
-        for path in spyder_pythonpath:
-            if path in sys_path:
-                sys_path.remove(path)
-
-        return sys_path
-
     @property
     def server_log_file(self):
         """

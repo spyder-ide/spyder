@@ -31,7 +31,7 @@ from spyder.config.base import get_module_source_path
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  loading, usage, warning)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
-from spyder.py3compat import get_meth_class_inst, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette
@@ -179,6 +179,7 @@ class RichText(QWidget, SpyderWidgetMixin):
 
         # Layout
         layout = QVBoxLayout()
+        layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.webview)
         layout.addWidget(self.find_widget)
@@ -681,7 +682,7 @@ class HelpWidget(PluginMainWidget):
             func = cb[0]
             args = cb[1:]
             func(*args)
-            if get_meth_class_inst(func) is self.rich_text:
+            if func.__self__ is self.rich_text:
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()

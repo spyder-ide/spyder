@@ -17,19 +17,23 @@ from jupyter_client.manager import KernelManager
 from qtpy.QtCore import Qt
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+# This is required to run our tests in VSCode or Spyder-unittest
+from qtpy import QtWebEngineWidgets  # noqa
 import psutil
 import pytest
 
 # Spyder imports
 from spyder.api.plugins import Plugins
 from spyder.app import start
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.api import DebuggerToolbarActions
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
+from spyder.utils.environ import (get_user_env, set_user_env,
+                                  amend_user_shell_init)
 
 
 # =============================================================================
@@ -213,6 +217,29 @@ def create_namespace_project(tmpdir):
             p_file.write(code)
 
     spy_project.set_recent_files(abs_filenames)
+
+
+def preferences_dialog_helper(qtbot, main_window, section):
+    """
+    Open preferences dialog and select page with `section` (CONF_SECTION).
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    main_window.show_preferences()
+    preferences = main_window.preferences
+    container = preferences.get_container()
+
+    qtbot.waitUntil(lambda: container.dialog is not None,
+                    timeout=5000)
+    dlg = container.dialog
+    index = dlg.get_index_by_name(section)
+    page = dlg.get_page(index)
+    dlg.set_current_index(index)
+    return dlg, index, page
 
 
 # =============================================================================
@@ -427,8 +454,10 @@ def main_window(request, tmpdir, qtbot):
 
                     # Restore default Spyder Python Path
                     CONF.set(
-                        'main', 'spyder_pythonpath',
-                        CONF.get_default('main', 'spyder_pythonpath'))
+                        'pythonpath_manager', 'spyder_pythonpath',
+                        CONF.get_default('pythonpath_manager',
+                                         'spyder_pythonpath')
+                    )
 
                     # Restore run configurations
                     CONF.set('run', 'configurations', [])
@@ -522,3 +551,20 @@ def main_window(request, tmpdir, qtbot):
                     window = None
                     CONF.reset_to_defaults(notification=False)
                     raise
+
+
+@pytest.fixture
+def restore_user_env():
+    """Set user environment variables and restore upon test exit"""
+    if not running_in_ci():
+        pytest.skip("Skipped because not in CI.")
+
+    if os.name == "nt":
+        orig_env = get_user_env()
+
+    yield
+
+    if os.name == "nt":
+        set_user_env(orig_env)
+    else:
+        amend_user_shell_init(restore=True)

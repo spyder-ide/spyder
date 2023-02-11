@@ -15,7 +15,6 @@ import pytest
 # Local imports
 from spyder.config.base import get_conf_path
 from spyder.config.user import DefaultsConfig, SpyderUserConfig, UserConfig
-from spyder.py3compat import PY2
 
 
 @pytest.fixture
@@ -37,11 +36,7 @@ def defaultconfig(tmpdir, request):
 @pytest.fixture
 def userconfig(tmpdir, request):
     ini_contents = '[main]\nversion = 1.0.0\n\n'
-    if PY2:
-        # strings are quoted in Python2 but not in Python3
-        ini_contents += "[section]\noption = 'value'\n\n"
-    else:
-        ini_contents += "[section]\noption = value\n\n"
+    ini_contents += "[section]\noption = value\n\n"
 
     name = 'spyder-test'
     path = str(tmpdir)
@@ -72,14 +67,7 @@ def userconfig(tmpdir, request):
 @pytest.fixture
 def spyderconfig(tmpdir, request):
     ini_contents = '[main]\nversion = 1.0.0\n\n'
-    if PY2:
-        # strings are quoted in Python2 but not in Python3
-        ini_contents += """[ipython_console]
-startup/run_lines = 'value1,value2'
-
-"""
-    else:
-        ini_contents += """[ipython_console]
+    ini_contents += """[ipython_console]
 startup/run_lines = value1,value2
 
 """
@@ -114,12 +102,7 @@ startup/run_lines = value1,value2
 @pytest.fixture
 def spyderconfig_patches_42(tmpdir):
     ini_contents = '[main]\nversion = 42.0.0\n\n'
-    if PY2:
-        # Strings are quoted in Python2 but not in Python3
-        ini_contents += ("[ipython_console]\nstartup/run_lines = "
-                         "'value1,value2'")
-    else:
-        ini_contents += '[ipython_console]\nstartup/run_lines = value1,value2'
+    ini_contents += '[ipython_console]\nstartup/run_lines = value1,value2'
 
     name = 'spyder'
     inifile = tmpdir.join('{}.ini'.format(name))
@@ -133,12 +116,7 @@ def spyderconfig_patches_42(tmpdir):
 @pytest.fixture
 def spyderconfig_patches_45(tmpdir):
     ini_contents = '[main]\nversion = 45.0.0\n\n'
-    if PY2:
-        # Strings are quoted in Python2 but not in Python3
-        ini_contents += ("[ipython_console]\nstartup/run_lines = "
-                         "'value1,value2'")
-    else:
-        ini_contents += '[ipython_console]\nstartup/run_lines = value1,value2'
+    ini_contents += '[ipython_console]\nstartup/run_lines = value1,value2'
 
     name = 'spyder'
     inifile = tmpdir.join('{}.ini'.format(name))
@@ -152,11 +130,7 @@ def spyderconfig_patches_45(tmpdir):
 @pytest.fixture
 def spyderconfig_previous(tmpdir, mocker):
     ini_contents = '[main]\nversion = 50.0.0\n\n'
-    if PY2:
-        # Strings are quoted in Python2 but not in Python3
-        ini_contents += "[section]\noption = 'value'"
-    else:
-        ini_contents += "[section]\noption = value"
+    ini_contents += "[section]\noption = value"
 
     name = 'spyder'
     path = str(tmpdir)

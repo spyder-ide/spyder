@@ -102,6 +102,10 @@ DEFAULTS = [
               'clock/enable': False,
               'clock/timeout': 1000,
               }),
+            ('pythonpath_manager',
+             {
+              'spyder_pythonpath': [],
+              }),
             ('quick_layouts',
              {
               'place_holder': '',
@@ -229,8 +233,7 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
-              'automatic_completions_after_chars': 3,
-              'automatic_completions_after_ms': 300,
+              'automatic_completions_after_chars': 1,
               'completions_hint': True,
               'completions_hint_after_ms': 500,
               'underline_errors': False,
@@ -356,7 +359,6 @@ DEFAULTS = [
               }),
             ('workingdir',
              {
-              'working_dir_adjusttocontents': False,
               'working_dir_history': 20,
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
@@ -567,7 +569,6 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
-            'spyder_pythonpath',
             'window/position',
             'window/prefs_dialog_size',
             'window/size',
@@ -620,6 +621,7 @@ NAME_MAP = {
             'scrollbar_position',
           ]
          ),
+        ('pythonpath_manager', []),
         ('quick_layouts', []), # Empty list means use all options
         ('run', [
             'breakpoints',
@@ -651,4 +653,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '73.1.0'
+CONF_VERSION = '75.0.0'

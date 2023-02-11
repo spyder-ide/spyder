@@ -28,28 +28,28 @@ Homepage = "https://github.com/python-lsp/python-lsp-server"
 [project.optional-dependencies]
 all = [
     "autopep8>=1.6.0,<1.7.0",
-    "flake8>=5.0.0,<5.1.0",
+    "flake8>=5.0.0,<7",
     "mccabe>=0.7.0,<0.8.0",
-    "pycodestyle>=2.9.0,<2.10.0",
-    "pydocstyle>=2.0.0",
-    "pyflakes>=2.5.0,<2.6.0",
-    "pylint>=2.5.0",
-    "rope>=0.10.5",
+    "pycodestyle>=2.9.0,<2.11.0",
+    "pydocstyle>=6.2.0,<6.3.0",
+    "pyflakes>=2.5.0,<3.1.0",
+    "pylint>=2.5.0,<3",
+    "rope>1.2.0",
     "yapf",
-    "whatthepatch"
+    "whatthepatch>=1.0.2,<2.0.0"
 ]
 autopep8 = ["autopep8>=1.6.0,<1.7.0"]
-flake8 = ["flake8>=5.0.0,<5.1.0"]
+flake8 = ["flake8>=5.0.0,<7"]
 mccabe = ["mccabe>=0.7.0,<0.8.0"]
-pycodestyle = ["pycodestyle>=2.9.0,<2.10.0"]
-pydocstyle = ["pydocstyle>=2.0.0"]
-pyflakes = ["pyflakes>=2.5.0,<2.6.0"]
-pylint = ["pylint>=2.5.0"]
-rope = ["rope>0.10.5"]
+pycodestyle = ["pycodestyle>=2.9.0,<2.11.0"]
+pydocstyle = ["pydocstyle>=6.2.0,<6.3.0"]
+pyflakes = ["pyflakes>=2.5.0,<3.1.0"]
+pylint = ["pylint>=2.5.0,<3"]
+rope = ["rope>1.2.0"]
 yapf = ["yapf", "whatthepatch>=1.0.2,<2.0.0"]
 websockets = ["websockets>=10.3"]
 test = [
-    "pylint>=2.5.0",
+    "pylint>=2.5.0,<3",
     "pytest",
     "pytest-cov",
     "coverage",
@@ -80,6 +80,7 @@ pyflakes = "pylsp.plugins.pyflakes_lint"
 pylint = "pylsp.plugins.pylint_lint"
 rope_completion = "pylsp.plugins.rope_completion"
 rope_rename = "pylsp.plugins.rope_rename"
+rope_autoimport = "pylsp.plugins.rope_autoimport"
 yapf = "pylsp.plugins.yapf_format"
 
 [project.scripts]
@@ -100,3 +101,7 @@ write_to_template = "__version__ = \"{version}\"\n"  # VERSION_INFO is populated
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = "--cov-report html --cov-report term --junitxml=pytest.xml --cov pylsp --cov test"
+
+[tool.coverage.run]
+concurrency = ["multiprocessing", "thread"]
+
