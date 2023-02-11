@@ -676,6 +676,7 @@ class FindReplace(QWidget):
             pattern = search_text
         else:
             pattern = re.escape(search_text)
+            # re.sub processes backslashes so they must be escaped
             replace_text = replace_text.replace('\\', r'\\')
 
         # Match whole words only
@@ -718,6 +719,7 @@ class FindReplace(QWidget):
                 pattern = search_text
             else:
                 pattern = re.escape(search_text)
+                # re.sub processes backslashes so they must be escaped
                 replace_text = replace_text.replace('\\', r'\\')
             if word:  # match whole words only
                 pattern = r'\b{pattern}\b'.format(pattern=pattern)
