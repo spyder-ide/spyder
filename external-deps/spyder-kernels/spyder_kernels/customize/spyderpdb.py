@@ -636,7 +636,8 @@ class SpyderPdb(ipyPdb):
 
         # Send the input request.
         self._cmd_input_line = None
-        kernel.frontend_call().pdb_input(prompt, state=self.get_pdb_state())
+        kernel.frontend_call(display_error=True).pdb_input(
+            prompt, state=self.get_pdb_state())
 
         # Allow GUI event loop to update
         is_main_thread = (
