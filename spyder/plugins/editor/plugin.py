@@ -2451,7 +2451,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         def _convert(fname):
             fname = encoding.to_unicode_from_fs(fname)
-            fname = str(Path(fname).resolve())
+            try:
+                # This should correctly capitalise the path on windows
+                fname = str(Path(fname).resolve())
+            except OSError:
+                # On windows, "<string>" is not a valid path
+                # But it can be used as filename while debugging
+                fname = osp.abspath(fname)
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
