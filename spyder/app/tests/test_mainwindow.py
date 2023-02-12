@@ -2051,6 +2051,7 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
 
 def test_plots_scroll(main_window, qtbot):
     """Test plots plugin scrolling"""
+    CONF.set('plots', 'mute_inline_plotting', True)
     shell = main_window.ipyconsole.get_current_shellwidget()
     figbrowser = main_window.plots.current_widget()
 
@@ -2060,7 +2061,7 @@ def test_plots_scroll(main_window, qtbot):
         timeout=SHELL_TIMEOUT)
 
     # Generate a plot inline.
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig = plt.plot([1, 2, 3, 4], '.')\n"))
 
@@ -2070,7 +2071,7 @@ def test_plots_scroll(main_window, qtbot):
     assert sb._thumbnails[-1] == sb.current_thumbnail
 
     # Generate 4 more plots
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(
             "for i in range(4):\n"
             "    plt.figure()\n"
@@ -2081,7 +2082,7 @@ def test_plots_scroll(main_window, qtbot):
     assert sb._thumbnails[-1] == sb.current_thumbnail
 
     # Generate 20 plots
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(
             "for i in range(20):\n"
             "    plt.figure()\n"
@@ -2102,7 +2103,7 @@ def test_plots_scroll(main_window, qtbot):
             "    plt.plot([1, 2, 3, 4], '.')\n"
             "    plt.show()\n"
             "    time.sleep(.1)")
-        qtbot.wait(500)
+        qtbot.waitUntil(lambda: sb._first_thumbnail_shown, timeout=SHELL_TIMEOUT)
         sb.set_current_index(5)
         scrollbar.setValue(scrollbar.minimum())
 
@@ -2112,13 +2113,14 @@ def test_plots_scroll(main_window, qtbot):
     assert scrollbar.value() != scrollbar.maximum()
 
     # One more plot
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(("fig = plt.plot([1, 2, 3, 4], '.')\n"))
 
     # Make sure everything scrolled at the end
     assert len(sb._thumbnails) == 46
     assert sb._thumbnails[-1] == sb.current_thumbnail
     assert scrollbar.value() == scrollbar.maximum()
+    CONF.set('plots', 'mute_inline_plotting', False)
 
 
 @flaky(max_runs=3)
