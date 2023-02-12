@@ -163,6 +163,22 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         except TypeError:
             pass
 
+    @Slot(dict)
+    def update_view(self, kernel_state):
+        """
+        Update namespace view and other properties from a new kernel state.
+        
+        Parameters
+        ----------
+        kernel_state: dict
+            A new kernel state. The structure of this dictionary is defined in
+            the `SpyderKernel.get_state` method of Spyder-kernels.
+        """
+        if "namespace_view" in kernel_state:
+            self.process_remote_view(kernel_state.pop("namespace_view"))
+        if "var_properties" in kernel_state:
+            self.set_var_properties(kernel_state.pop("var_properties"))
+
     def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
         if not self.shellwidget.spyder_kernel_ready:

@@ -704,10 +704,6 @@ class IPythonConsole(SpyderDockablePlugin):
         """
         self.get_widget().save_working_directory(dirname)
 
-    def update_working_directory(self):
-        """Update working directory to console current working directory."""
-        self.get_widget().update_working_directory()
-
     def update_path(self, path_dict, new_path_dict):
         """
         Update path on consoles.
