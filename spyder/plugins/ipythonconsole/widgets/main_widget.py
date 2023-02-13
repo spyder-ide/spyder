@@ -732,7 +732,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.path_to_env[path] = env
 
     def update_environment_menu(self):
-        """Update context menu information."""
+        """Update context menu entries to select specific interpreter to launch a console."""
         self.get_envs()
         environment_consoles_names = self.envs
         environment_consoles = []
@@ -757,8 +757,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             )
         self.console_environment_menu._render()
         
-        
- 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
     def change_clients_help_connection(self, value):
@@ -1490,7 +1488,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client, name=client.get_name(), filename=filename,
             give_focus=give_focus)
         # Create new kernel
-
         kernel_spec = SpyderKernelSpec(
             is_cython=is_cython,
             is_pylab=is_pylab,
@@ -1649,7 +1646,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # For help requests
         control.sig_help_requested.connect(self.sig_help_requested)
-        
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
