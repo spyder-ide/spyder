@@ -208,6 +208,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # Used to request saving a file
     sig_save_requested = Signal()
 
+    # Used to signal that a text deletion was triggered
+    sig_delete_requested = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
@@ -1280,13 +1283,40 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
+        self.sig_delete_requested.emit()
+
         if not self.has_selected_text():
             cursor = self.textCursor()
             if not cursor.atEnd():
                 cursor.setPosition(
-                    self.next_cursor_position(), QTextCursor.KeepAnchor)
+                    self.next_cursor_position(), QTextCursor.KeepAnchor
+                )
             self.setTextCursor(cursor)
+
         self.remove_selected_text()
+
+    def delete_line(self):
+        """Delete current line."""
+        cursor = self.textCursor()
+
+        if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.setPosition(start_pos)
+        else:
+            start_pos = end_pos = cursor.position()
+
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        while cursor.position() <= end_pos:
+            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+            if cursor.atEnd():
+                break
+            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+
+        self.setTextCursor(cursor)
+        self.delete()
+        self.ensureCursorVisible()
 
     # ---- Scrolling
     # -------------------------------------------------------------------------
@@ -1811,10 +1841,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Align multiline text based on first line
         cursor = self.textCursor()
         cursor.beginEditBlock()
-        cursor.removeSelectedText()
+
+        # We use delete here instead of cursor.removeSelectedText so that
+        # removing folded regions works as expected.
+        if cursor.hasSelection():
+            self.delete()
+
         cursor.setPosition(cursor.selectionStart())
         cursor.setPosition(cursor.block().position(),
                            QTextCursor.KeepAnchor)
+
         preceding_text = cursor.selectedText()
         first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
         first_line = preceding_text + first_line_selected
@@ -1893,6 +1929,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
+        self.sig_delete_requested.emit()
         TextEditBaseWidget.cut(self)
         self._save_clipboard_indentation()
         self.sig_text_was_inserted.emit()

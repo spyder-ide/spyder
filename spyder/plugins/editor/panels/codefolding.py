@@ -23,19 +23,20 @@ import sys
 # Third party imports
 from intervaltree import IntervalTree
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
-from qtpy.QtWidgets import QApplication, QStyleOptionViewItem, QStyle
 from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
                         QLinearGradient, QPen, QPalette, QResizeEvent,
-                        QCursor)
+                        QCursor, QTextCursor)
+from qtpy.QtWidgets import QApplication, QStyleOptionViewItem, QStyle
 
 # Local imports
-from spyder.plugins.editor.panels.utils import FoldingRegion
-from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
+from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
+from spyder.widgets.mixins import EOL_SYMBOLS
 
 
 class FoldingPanel(Panel):
@@ -441,10 +442,12 @@ class FoldingPanel(Panel):
         super(FoldingPanel, self).mouseMoveEvent(event)
         th = TextHelper(self.editor)
         line = th.line_nbr_from_position(event.pos().y())
+
         if line >= 0:
             block = self.editor.document().findBlockByNumber(line)
             block = self.find_parent_scope(block)
             line_number = block.blockNumber()
+
             if line_number in self.folding_regions:
                 if self._mouse_over_line is None:
                     # mouse enter fold scope
@@ -477,6 +480,7 @@ class FoldingPanel(Panel):
                 self._highlight_runner.cancel_requests()
                 self._mouse_over_line = None
                 QApplication.restoreOverrideCursor()
+
             self.repaint()
 
     def enterEvent(self, event):
@@ -595,59 +599,117 @@ class FoldingPanel(Panel):
         """
         if state:
             self.editor.sig_key_pressed.connect(self._on_key_pressed)
+            self.editor.sig_delete_requested.connect(self._expand_selection)
+
             if self._highlight_caret:
                 self.editor.cursorPositionChanged.connect(
                     self._highlight_caret_scope)
                 self._block_nbr = -1
+
             self.editor.new_text_set.connect(self._clear_block_deco)
         else:
+
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
+            self.editor.sig_delete_requested.disconnect(self._expand_selection)
+
             if self._highlight_caret:
                 self.editor.cursorPositionChanged.disconnect(
                     self._highlight_caret_scope)
                 self._block_nbr = -1
+
             self.editor.new_text_set.disconnect(self._clear_block_deco)
 
     def _on_key_pressed(self, event):
         """
-        Override key press to select the current scope if the user wants
-        to deleted a folded scope (without selecting it).
+        Handle key press events in order to select a whole folded scope if the
+        user wants to remove it.
+
+        Notes
+        -----
+        We don't handle Key_Delete here because it's behind a shortcut in
+        CodeEditor. So, the event associated to that key doesn't go through its
+        keyPressEvent.
+
+        Instead, CodeEditor emits sig_delete_requested in the method that gets
+        called when Key_Delete is pressed, and in several other places, which
+        is handled by _expand_selection below.
         """
-        delete_request = event.key() in {Qt.Key_Delete, Qt.Key_Backspace}
+        delete_request = event.key() == Qt.Key_Backspace
+
+        enter_request = False
         cursor = self.editor.textCursor()
         if cursor.hasSelection():
             if event.key() == Qt.Key_Return:
-                delete_request = True
+                enter_request = True
 
-        if event.text() or delete_request:
-            self._key_pressed = True
-            if cursor.hasSelection():
-                # change selection to encompass the whole scope.
-                positions_to_check = (cursor.selectionStart(),
-                                      cursor.selectionEnd())
+        # A folded scope can also be removed by writing text on top of it.
+        if event.text() or delete_request or enter_request:
+            self._expand_selection()
+
+    def _expand_selection(self):
+        """
+        Expand selection to encompass a whole folded scope in case the
+        current selection starts and/or ends in one, or the cursor is over a
+        block deco.
+        """
+        cursor = self.editor.textCursor()
+        self._key_pressed = True
+
+        # If there's no selected text, select the current line but only if
+        # it corresponds to a block deco. That allows us to remove the folded
+        # region associated to it when typing Delete or Backspace on the line.
+        # Otherwise, the editor ends up in an inconsistent state.
+        if not cursor.hasSelection():
+            current_block = self.editor.document().findBlock(cursor.position())
+
+            if current_block.blockNumber() in self._block_decos:
+                cursor.select(QTextCursor.LineUnderCursor)
             else:
-                positions_to_check = (cursor.position(), )
-            for pos in positions_to_check:
-                block = self.editor.document().findBlock(pos)
-                start_line = block.blockNumber() + 2
-                if (start_line in self.folding_regions and
-                        self.folding_status[start_line]):
-                    end_line = self.folding_regions[start_line]
-                    if delete_request and cursor.hasSelection():
-                        tc = TextHelper(self.editor).select_lines(
-                            start_line, end_line)
-                        if tc.selectionStart() > cursor.selectionStart():
-                            start = cursor.selectionStart()
-                        else:
-                            start = tc.selectionStart()
-                        if tc.selectionEnd() < cursor.selectionEnd():
-                            end = cursor.selectionEnd()
-                        else:
-                            end = tc.selectionEnd()
-                        tc.setPosition(start)
-                        tc.setPosition(end, tc.KeepAnchor)
-                        self.editor.setTextCursor(tc)
-            self._key_pressed = False
+                self._key_pressed = False
+                return
+
+        # Get positions to check if we need to expand the current selection to
+        # cover a folded region too.
+        start_pos = cursor.selectionStart()
+        end_pos = cursor.selectionEnd()
+
+        # A selection can end in an eol when calling CodeEditor.delete_line,
+        # for instance. In that case, we need to remove it for the code below
+        # to work as expected.
+        if cursor.selectedText()[-1] in EOL_SYMBOLS:
+            end_pos -= 1
+
+        positions_to_check = (start_pos, end_pos)
+        for pos in positions_to_check:
+            block = self.editor.document().findBlock(pos)
+            start_line = block.blockNumber() + 1
+
+            if (
+                start_line in self.folding_regions
+                and self.folding_status[start_line]
+            ):
+                end_line = self.folding_regions[start_line] + 1
+
+                if cursor.hasSelection():
+                    tc = TextHelper(self.editor).select_lines(
+                        start_line, end_line)
+
+                    if tc.selectionStart() > cursor.selectionStart():
+                        start = cursor.selectionStart()
+                    else:
+                        start = tc.selectionStart()
+
+                    if tc.selectionEnd() < cursor.selectionEnd():
+                        end = cursor.selectionEnd()
+                    else:
+                        end = tc.selectionEnd()
+
+                    tc.setPosition(start)
+                    tc.setPosition(end, tc.KeepAnchor)
+
+                    self.editor.setTextCursor(tc)
+
+        self._key_pressed = False
 
     def _refresh_editor_and_scrollbars(self):
         """
