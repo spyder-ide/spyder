@@ -1378,10 +1378,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         cfg._merge(spy_cfg)
         return cfg
 
-    def interpreter_versions(self, is_environment=False, env=''):
+    def interpreter_versions(self, path_to_custom_interpreter=None):
         """Python and IPython versions used by clients"""
         if (self.get_conf('default', section='main_interpreter')
-           and not is_environment):
+           and not path_to_custom_interpreter):
             from IPython.core import release
             versions = dict(
                 python_version=sys.version,
@@ -1391,8 +1391,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             import subprocess
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
-            if is_environment:
-                pyexec = env
+            if path_to_custom_interpreter:
+                pyexec = path_to_custom_interpreter
             py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
             ipy_cmd = (
                 u'%s -c "import IPython.core.release as r; print(r.version)"'
