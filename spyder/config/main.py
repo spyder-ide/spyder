@@ -430,6 +430,7 @@ DEFAULTS = [
               'editor/go to new line': "Ctrl+Shift+Return",
               'editor/go to definition': "F3" if MAC else "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
+              'editor/create_new_cell': "Ctrl+2",
               'editor/blockcomment': "Ctrl+4",
               'editor/unblockcomment': "Ctrl+5",
               'editor/start of line': "Meta+A",

@@ -1080,9 +1080,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions = (
             run_menu_actions + self.main.run_menu_actions)
-        run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, run_selected_action,
-                               create_new_cell]
+        run_toolbar_actions = [create_new_cell, run_action, run_cell_action,
+                               run_cell_advance_action, run_selected_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Source menu/toolbar construction ----

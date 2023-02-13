@@ -20,8 +20,7 @@ from qtpy.QtGui import QPainter, QColor, QStaticText, QFontMetricsF
 from spyder.utils.icon_manager import ima
 from spyder.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
-from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
-                                                is_cell_header)
+from spyder.plugins.outlineexplorer.api import is_cell_header
 
 
 class LineNumberArea(Panel):

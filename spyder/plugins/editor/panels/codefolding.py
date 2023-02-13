@@ -34,8 +34,7 @@ from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.api.panel import Panel
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
-from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
-                                                is_cell_header)
+from spyder.plugins.outlineexplorer.api import is_cell_header
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 
