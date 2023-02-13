@@ -71,7 +71,7 @@ class LineNumberArea(Panel):
 
         Painting line number area
         """
-        painter = QPainter(self)        
+        painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         font_height = self.editor.fontMetrics().height()
 

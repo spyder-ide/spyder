@@ -649,7 +649,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.register_shortcut(re_run_action, context="_",
                                name="Re-run last script",
                                add_shortcut_to_tip=True)
-        
         run_selected_action = create_action(self, _("Run &selection or "
                                                     "current line"),
                                             icon=ima.icon('run_selection'),
@@ -776,7 +775,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # --- Edit Toolbar ---
         create_new_cell = create_action(self, _("Create new Cell at "
                                                 "current line"),
-                                        icon=ima.icon('run_selection'),
+                                        icon=ima.icon('cell'),
                                         tip=_("Create new Cell"),
                                         triggered=self.create_cell,
                                         context=Qt.WidgetShortcut)
