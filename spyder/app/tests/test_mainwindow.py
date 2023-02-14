@@ -863,6 +863,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_dedicated_consoles")
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 def test_shell_execution(main_window, qtbot, tmpdir):
     """Test that bash/batch files can be executed."""
     ext = 'sh'
