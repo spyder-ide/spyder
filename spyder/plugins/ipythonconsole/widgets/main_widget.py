@@ -426,6 +426,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=lambda: self.tabs.tab_navigate(-1),
             register_shortcut=True
         )
+
         # --- For the client
         self.env_action = self.create_action(
             IPythonConsoleWidgetActions.ShowEnvironmentVariables,
