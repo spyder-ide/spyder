@@ -81,7 +81,7 @@ assert args.gui in (None, 'pyqt5', 'pyside2'), \
 installed_dev_repo = False
 if not args.no_install:
     prev_branch = None
-    boot_branch_file = DEVPATH / "boot_branch.txt"
+    boot_branch_file = DEVPATH / ".boot_branch.txt"
     if boot_branch_file.exists():
         prev_branch = boot_branch_file.read_text()
 
