@@ -12,12 +12,15 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from datetime import datetime
 import logging
 import os
 import os.path as osp
 import re
 import sys
 import time
+from typing import Dict, Optional
+import uuid
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
@@ -43,6 +46,8 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.editor.api.run import (
+    EditorRunConfiguration, FileRun, SelectionRun, CellRun)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -57,14 +62,19 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                        get_run_configuration, RunConfigDialog,
-                                        RunConfiguration, RunConfigOneDialog)
 from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.run.api import (
+    RunContext, RunConfigurationMetadata, RunConfiguration,
+    SupportedExtensionContexts, ExtendedContext)
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
 logger = logging.getLogger(__name__)
+
+RunContext.File = 'file'
+RunContext.Selection = 'selection'
+RunContext.Cell = 'cell'
 
 
 class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
@@ -121,6 +131,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
+
+    # This signal is used to communicate with the run plugin
+    sig_editor_focus_changed_uuid = Signal(str)
 
     sig_help_requested = Signal(dict)
     """
@@ -204,6 +217,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             except EnvironmentError:
                 pass
 
+        self.pending_run_files = set({})
+        self.run_configurations_per_origin = {}
+        self.supported_run_configurations = {}
+
+        self.file_per_id = {}
+        self.id_per_file = {}
+        self.metadata_per_id: Dict[str, RunConfigurationMetadata] = {}
+
         self.projects = None
         self.outlineexplorer = None
 
@@ -245,6 +266,94 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             statusbar.add_status_widget(self.cursorpos_status)
             statusbar.add_status_widget(self.vcs_status)
 
+
+        self.supported_run_extensions = [
+            {
+                'input_extension': 'py',
+                'contexts': [
+                    {'context': {'name': 'File'}, 'is_super': True},
+                    {'context': {'name': 'Selection'}, 'is_super': False},
+                    {'context': {'name': 'Cell'}, 'is_super': False}
+                ]
+            }
+        ]
+
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            self.sig_editor_focus_changed_uuid.connect(
+                run.switch_focused_run_configuration)
+
+            run.register_run_configuration_provider(
+                self.NAME, self.supported_run_extensions)
+
+            run.create_run_button(
+                RunContext.Cell,
+                _("Run cell"),
+                icon=ima.icon('run_cell'),
+                tip=_("Run current cell\n[Use #%% to create cells]"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=True,
+                add_to_menu=True
+            )
+
+            run.create_run_button(
+                RunContext.Cell,
+                _("Run cell and advance"),
+                icon=ima.icon('run_cell_advance'),
+                tip=_("Run current cell and go to the next one"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=True,
+                add_to_menu=True,
+                extra_action_name='advance'
+            )
+
+            run.create_run_button(
+                RunContext.Cell,
+                _("Re-run last cell"),
+                tip=_("Re run last cell "),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_menu=True,
+                re_run=True
+            )
+
+            run.create_run_button(
+                RunContext.Selection,
+                _("Run &selection or current line"),
+                icon=ima.icon('run_selection'),
+                tip=_("Run selection or current line"),
+                shortcut_context="_",
+                register_shortcut=True,
+                add_to_toolbar=True,
+                add_to_menu=True
+            )
+
+            run.create_run_button(
+                RunContext.Selection,
+                _("Run &to line"),
+                tip=_("Run selection up to the current line"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=False,
+                add_to_menu=True,
+                extra_action_name="to line",
+                conjunction_or_preposition="up"
+            )
+
+            run.create_run_button(
+                RunContext.Selection,
+                _("Run &from line"),
+                tip=_("Run selection from the current line"),
+                shortcut_context="editor",
+                register_shortcut=True,
+                add_to_toolbar=False,
+                add_to_menu=True,
+                extra_action_name="line",
+                conjunction_or_preposition="from"
+            )
+
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
@@ -259,7 +368,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.completion_capabilities = {}
 
         # Setup new windows:
-        self.main.all_actions_defined.connect(self.setup_other_windows)
+        self.main.sig_setup_finished.connect(self.setup_other_windows)
 
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -363,12 +472,64 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         except AttributeError:
             pass
 
+    def update_run_focus_file(self):
+        """
+        Inform other plugins that the current editor with focus has changed.
+        """
+        filename = self.get_current_filename()
+        file_id = self.id_per_file.get(filename, None)
+        self.sig_editor_focus_changed_uuid.emit(file_id)
+
+    def register_file_run_metadata(self, filename, filename_ext):
+        """Register opened files with the Run plugin."""
+        all_uuids = CONF.get('editor', 'file_uuids', default={})
+        file_id = all_uuids.get(filename, str(uuid.uuid4()))
+        all_uuids[filename] = file_id
+        CONF.set('editor', 'file_uuids', all_uuids)
+
+        metadata: RunConfigurationMetadata = {
+            'name': filename,
+            'source': self.NAME,
+            'path': filename,
+            'datetime': datetime.now(),
+            'uuid': file_id,
+            'context': {
+                'name': 'File'
+            },
+            'input_extension': filename_ext
+        }
+
+        self.file_per_id[file_id] = filename
+        self.id_per_file[filename] = file_id
+        self.metadata_per_id[file_id] = metadata
+
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            run.register_run_configuration_metadata(self, metadata)
+
     @Slot(dict)
     def report_open_file(self, options):
-        """Report that a file was opened to the completion manager."""
+        """Report that a file was opened to other plugins."""
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
+        __, filename_ext = osp.splitext(filename)
+        filename_ext = filename_ext[1:]
+
+        able_to_run_file = False
+        if filename_ext in self.supported_run_configurations:
+            ext_contexts = self.supported_run_configurations[filename_ext]
+
+            if (
+                filename not in self.id_per_file
+                and RunContext.File in ext_contexts
+            ):
+                self.register_file_run_metadata(filename, filename_ext)
+                able_to_run_file = True
+
+        if not able_to_run_file:
+            self.pending_run_files |= {(filename, filename_ext)}
+
         status = None
         if self.main.get_plugin(Plugins.Completions, error=False):
             status = (
@@ -625,88 +786,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Replace text")
 
         # --- Run toolbar ---
-        run_action = create_action(self, _("&Run"), icon=ima.icon('run'),
-                                   tip=_("Run file"),
-                                   triggered=self.run_file)
-        self.register_shortcut(run_action, context="_", name="Run",
-                               add_shortcut_to_tip=True)
-
-        configure_action = create_action(
-            self,
-            _("&Configuration per file..."),
-            icon=ima.icon('run_settings'),
-            tip=_("Run settings"),
-            menurole=QAction.NoRole,
-            triggered=self.edit_run_configurations)
-
-        self.register_shortcut(configure_action, context="_",
-                               name="Configure", add_shortcut_to_tip=True)
-
-        re_run_action = create_action(self, _("Re-run &last script"),
-                                      icon=ima.icon('run_again'),
-                            tip=_("Run again last file"),
-                            triggered=self.re_run_file)
-        self.register_shortcut(re_run_action, context="_",
-                               name="Re-run last script",
-                               add_shortcut_to_tip=True)
-
-        run_selected_action = create_action(self, _("Run &selection or "
-                                                    "current line"),
-                                            icon=ima.icon('run_selection'),
-                                            tip=_("Run selection or "
-                                                  "current line"),
-                                            triggered=self.run_selection,
-                                            context=Qt.WidgetShortcut)
-        self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection", add_shortcut_to_tip=True)
-
-        run_to_line_action = create_action(self, _("Run &to current line"),
-                                           tip=_("Run to current line"),
-                                           triggered=self.run_to_line,
-                                           context=Qt.WidgetShortcut)
-        self.register_shortcut(run_to_line_action, context="Editor",
-                               name="Run to line", add_shortcut_to_tip=True)
-
-        run_from_line_action = create_action(self, _("Run &from current line"),
-                                             tip=_("Run from current line"),
-                                             triggered=self.run_from_line,
-                                             context=Qt.WidgetShortcut)
-        self.register_shortcut(run_from_line_action, context="Editor",
-                               name="Run from line", add_shortcut_to_tip=True)
-
-        run_cell_action = create_action(self,
-                            _("Run cell"),
-                            icon=ima.icon('run_cell'),
-                            tip=_("Run current cell \n"
-                                  "[Use #%% to create cells]"),
-                            triggered=self.run_cell,
-                            context=Qt.WidgetShortcut)
-
-        self.register_shortcut(run_cell_action, context="Editor",
-                               name="Run cell", add_shortcut_to_tip=True)
-
-        run_cell_advance_action = create_action(
-            self,
-            _("Run cell and advance"),
-            icon=ima.icon('run_cell_advance'),
-            tip=_("Run current cell and go to the next one "),
-            triggered=self.run_cell_and_advance,
-            context=Qt.WidgetShortcut)
-
-        self.register_shortcut(run_cell_advance_action, context="Editor",
-                               name="Run cell and advance",
-                               add_shortcut_to_tip=True)
-
-        re_run_last_cell_action = create_action(self,
-                   _("Re-run last cell"),
-                   tip=_("Re run last cell "),
-                   triggered=self.re_run_last_cell,
-                   context=Qt.WidgetShortcut)
-        self.register_shortcut(re_run_last_cell_action,
-                               context="Editor",
-                               name='re-run last cell',
-                               add_shortcut_to_tip=True)
-
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
@@ -1064,19 +1143,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.main.search_menu_actions = (
             search_menu_actions + self.main.search_menu_actions)
 
-        # ---- Run menu/toolbar construction ----
-        run_menu_actions = [run_action, run_cell_action,
-                            run_cell_advance_action,
-                            re_run_last_cell_action, MENU_SEPARATOR,
-                            run_selected_action, run_to_line_action,
-                            run_from_line_action, re_run_action,
-                            configure_action, MENU_SEPARATOR]
-        self.main.run_menu_actions = (
-            run_menu_actions + self.main.run_menu_actions)
-        run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, run_selected_action]
-        self.main.run_toolbar_actions += run_toolbar_actions
-
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [
             showblanks_action,
@@ -1108,21 +1174,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
             file_toolbar_actions +
-            [MENU_SEPARATOR] +
-            run_toolbar_actions +
             [MENU_SEPARATOR]
         )
         self.pythonfile_dependent_actions = [
-            run_action,
-            configure_action,
-            run_selected_action,
-            run_cell_action,
-            run_cell_advance_action,
-            re_run_last_cell_action,
             blockcomment_action,
             unblockcomment_action,
         ]
-        self.cythonfile_compatible_actions = [run_action, configure_action]
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
@@ -1465,6 +1522,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
+        editorstack.editor_focus_changed.connect(self.update_run_focus_file)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
@@ -1539,6 +1597,18 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot(str, str)
     def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if filename in self.id_per_file:
+            file_id = self.id_per_file.pop(filename)
+            self.file_per_id.pop(file_id)
+            self.metadata_per_id.pop(file_id)
+            if run is not None:
+                run.deregister_run_configuration_metadata(file_id)
+        else:
+            _, filename_ext = osp.splitext(filename)
+            filename_ext = filename_ext[1:]
+            self.pending_run_files -= {(filename, filename_ext)}
+
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
@@ -1574,19 +1644,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             ApplicationMenus.Tools).get_actions()
         help_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
+        run_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Run).get_actions()
 
-        # TODO: Rewrite when the editor is moved to the new API
-        from spyder.plugins.debugger.api import DebuggerToolbarActions
-        debug_toolbar_actions = []
-        for action_name in [DebuggerToolbarActions.DebugCurrentFile,
-                            DebuggerToolbarActions.DebugCurrentCell]:
-            action = self.main.debugger.get_action(action_name)
-            debug_toolbar_actions.append(action)
+        # --- TODO: Rewrite when the editor is moved to the new API
+        debug_toolbar_actions = self.main.toolbar.get_application_toolbar(
+            ApplicationToolbars.Debug).actions()
+        run_toolbar_actions = self.main.toolbar.get_application_toolbar(
+            ApplicationToolbars.Run).actions()
 
         self.toolbar_list = ((_("File toolbar"), "file_toolbar",
                               self.main.file_toolbar_actions),
                              (_("Run toolbar"), "run_toolbar",
-                              self.main.run_toolbar_actions),
+                              run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
                               debug_toolbar_actions))
 
@@ -1594,7 +1664,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
                           (_("Sour&ce"), self.main.source_menu_actions),
-                          (_("&Run"), self.main.run_menu_actions),
+                          (_("&Run"), run_menu_actions),
                           (_("&Tools"), tools_menu_actions),
                           (_("&View"), []),
                           (_("&Help"), help_menu_actions))
@@ -1793,10 +1863,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             cython_enable = python_enable or (
                 programs.is_module_installed('Cython') and editor.is_cython())
             for action in self.pythonfile_dependent_actions:
-                if action in self.cythonfile_compatible_actions:
-                    enable = cython_enable
-                else:
-                    enable = python_enable
+                enable = python_enable
                 action.setEnabled(enable)
             self.sig_file_opened_closed_or_updated.emit(
                 self.get_current_filename(), self.get_current_language())
@@ -2758,8 +2825,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self._get_editorstack()
-        if save_all and CONF.get(
-                'editor', 'save_all_before_run', default=True):
+        if save_all and self.get_option('save_all_before_run'):
             editorstack.save_all(save_new_files=False)
         editor = self._get_editor(filename)
 
@@ -2770,130 +2836,187 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         return editor.toPlainText()
 
-    #------ Run Python script
-    @Slot()
-    def edit_run_configurations(self):
-        dialog = RunConfigDialog(self)
-        dialog.size_change.connect(lambda s: self.set_dialog_size(s))
-        if self.dialog_size is not None:
-            dialog.resize(self.dialog_size)
-        fname = osp.abspath(self.get_current_filename())
-        dialog.setup(fname)
-        if dialog.exec_():
-            fname = dialog.file_to_run
-            if fname is not None:
-                self.load(fname)
-                self.run_file()
+    # ------ Run files
+    def add_supported_run_configuration(self, config: EditorRunConfiguration):
+        origin = config['origin']
+        extension = config['extension']
+        contexts = config['contexts']
 
-    @Slot()
-    def run_file(self, method=None):
-        """Run script inside current interpreter or in a new one"""
-        if method is None:
-            method = "runfile"
+        ext_contexts = []
+        for context in contexts:
+            is_super = RunContext[context['name']] == RunContext.File
+            ext_contexts.append(
+                ExtendedContext(context=context, is_super=is_super))
+        supported_extension = SupportedExtensionContexts(
+            input_extension=extension, contexts=ext_contexts)
+        self.supported_run_extensions.append(supported_extension)
 
-        fname = osp.abspath(self.get_current_filename())
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            run.register_run_configuration_provider(
+                self.NAME, [supported_extension])
 
-        # Only save dirname if the file exists
-        dirname = ''
-        if osp.isfile(fname):
-            # Get fname's dirname before we escape the single and double
-            # quotes. Fixes spyder-ide/spyder#6771.
-            dirname = osp.dirname(fname)
+        actual_contexts = set({})
+        ext_origins = self.run_configurations_per_origin.get(extension, {})
 
-        # Escape single and double quotes in fname and dirname.
-        # Fixes spyder-ide/spyder#2158.
-        fname = fname.replace("'", r"\'").replace('"', r'\"')
-        dirname = dirname.replace("'", r"\'").replace('"', r'\"')
+        file_enabled = False
+        for context in contexts:
+            context_name = context['name']
+            context_id = getattr(RunContext, context_name)
+            actual_contexts |= {context_id}
+            context_origins = ext_origins.get(context_id, set({}))
+            context_origins |= {origin}
+            ext_origins[context_id] = context_origins
+            if context_id == RunContext.File:
+                file_enabled = True
 
-        runconf = get_run_configuration(fname)
-        if runconf is None:
-            dialog = RunConfigOneDialog(self)
-            dialog.size_change.connect(lambda s: self.set_dialog_size(s))
-            if self.dialog_size is not None:
-                dialog.resize(self.dialog_size)
-            dialog.setup(fname)
-            if CONF.get('run', 'open_at_least_once',
-                        not running_under_pytest()):
-                # Open Run Config dialog at least once: the first time
-                # a script is ever run in Spyder, so that the user may
-                # see it at least once and be conscious that it exists
-                show_dlg = True
-                CONF.set('run', 'open_at_least_once', False)
+        ext_contexts = self.supported_run_configurations.get(
+            extension, set({}))
+        ext_contexts |= actual_contexts
+        self.supported_run_configurations[extension] = ext_contexts
+        self.run_configurations_per_origin[extension] = ext_origins
+
+        for filename, filename_ext in list(self.pending_run_files):
+            if filename_ext == extension and file_enabled:
+                self.register_file_run_metadata(filename, filename_ext)
             else:
-                # Open Run Config dialog only
-                # if ALWAYS_OPEN_FIRST_RUN_OPTION option is enabled
-                show_dlg = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION)
-            if show_dlg and not dialog.exec_():
-                return
-            runconf = dialog.get_configuration()
+                self.pending_run_files -= {(filename, filename_ext)}
 
-        if runconf.default:
-            # use global run preferences settings
-            runconf = RunConfiguration()
+    def remove_supported_run_configuration(
+        self,
+        config: EditorRunConfiguration
+    ):
+        origin = config['origin']
+        extension = config['extension']
+        contexts = config['contexts']
 
-        args = runconf.get_arguments()
-        python_args = runconf.get_python_arguments()
-        interact = runconf.interact
-        post_mortem = runconf.post_mortem
-        current = runconf.current
-        systerm = runconf.systerm
-        clear_namespace = runconf.clear_namespace
-        console_namespace = runconf.console_namespace
+        unsupported_extension = SupportedExtensionContexts(
+            input_extension=extension, contexts=contexts)
 
-        force_wdir = False
-        if runconf.file_dir:
-            wdir = dirname
-        elif runconf.cw_dir:
-            wdir = ''
-        elif osp.isdir(runconf.dir):
-            wdir = runconf.dir
-            force_wdir = True
-        else:
-            wdir = ''
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            run.deregister_run_configuration_provider(
+                self.NAME, [unsupported_extension])
 
-        python = True  # Note: in the future, it may be useful to run
-        # something in a terminal instead of a Python interp.
-        self.__last_ec_exec = (fname, wdir, args, interact, method,
-                               python, python_args, current, systerm,
-                               post_mortem, clear_namespace,
-                               console_namespace, force_wdir)
-        self.re_run_file(save_new_files=False)
+        to_remove = []
+        ext_origins = self.run_configurations_per_origin[extension]
+        for context in contexts:
+            context_name = context['name']
+            context_id = getattr(RunContext, context_name)
+            context_origins = ext_origins[context_id]
+            context_origins -= {origin}
+            if len(context_origins) == 0:
+                to_remove.append(context_id)
+                ext_origins.pop(context_id)
 
-    def set_dialog_size(self, size):
-        self.dialog_size = size
+        if len(ext_origins) == 0:
+            self.run_configurations_per_origin.pop(extension)
 
-    @Slot()
-    def re_run_file(self, save_new_files=True):
-        """Re-run last script"""
+        ext_contexts = self.supported_run_configurations[extension]
+        for context in to_remove:
+            ext_contexts -= {context}
+
+        if len(ext_contexts) == 0:
+            self.supported_run_configurations.pop(extension)
+
+        for metadata_id in list(self.metadata_per_id.keys()):
+            metadata = self.metadata_per_id[metadata_id]
+            if metadata['input_extension'] == extension:
+                if metadata['context'] in to_remove:
+                    self.metadata_per_id.pop(metadata_id)
+                    filename = self.file_per_id.pop(metadata_id)
+                    self.id_per_file.pop(filename)
+                    self.pending_run_files |= {
+                        (filename, metadata['input_extension'])}
+
+    def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
+        editorstack = self.get_current_editorstack()
+        self.focus_run_configuration(metadata_id)
         if self.get_option('save_all_before_run'):
-            all_saved = self.save_all(save_new_files=save_new_files)
-            if all_saved is not None and not all_saved:
-                return
-        if self.__last_ec_exec is None:
-            return
-        (fname, wdir, args, interact, method,
-         python, python_args, current, systerm,
-         post_mortem, clear_namespace,
-         console_namespace, force_wdir) = self.__last_ec_exec
-        focus_to_editor = self.get_option('focus_to_editor')
+            editorstack.save_all(save_new_files=False)
+        metadata = self.metadata_per_id[metadata_id]
+        context = metadata['context']['name']
+        context = getattr(RunContext, context)
+        run_input = {}
+        if context == RunContext.File:
+            run_input = FileRun(path=metadata['name'])
+        run_conf = RunConfiguration(output_formats=[], run_input=run_input,
+                                    metadata=metadata)
+        return run_conf
 
-        if not systerm:
-            self.sig_run_file_in_ipyclient.emit(
-                fname, wdir, args, post_mortem, current, clear_namespace,
-                console_namespace, focus_to_editor, method, force_wdir)
+    def get_run_configuration_per_context(
+        self, context, action_name,
+        re_run=False
+    ) -> Optional[RunConfiguration]:
+        editorstack = self.get_current_editorstack()
+        if self.get_option('save_all_before_run'):
+            editorstack.save_all(save_new_files=False)
 
-        else:
-            if method in ["runfile", "debugfile"]:
-                debug = method == "debugfile"
-                self.main.open_external_console(
-                    fname, wdir, args, interact, debug, python, python_args,
-                    systerm, post_mortem)
+        fname = self.get_current_filename()
+        __, filename_ext = osp.splitext(fname)
+        fname_ext = filename_ext[1:]
+        run_input = {}
+        context_name = None
+
+        if context == RunContext.Selection:
+            if action_name == 'to line':
+                ret = editorstack.run_to_line()
+                if ret is not None:
+                    text, offsets, line_cols, enc = ret
+                else:
+                    return
+            elif action_name == 'line':
+                text, offsets, line_cols, enc = editorstack.run_from_line()
+            else:
+                text, offsets, line_cols, enc = editorstack.run_selection()
+            context_name = 'Selection'
+            run_input = SelectionRun(
+                path=fname, selection=text, encoding=enc,
+                line_col_bounds=line_cols, character_bounds=offsets)
+        elif context == RunContext.Cell:
+            if re_run:
+                info = editorstack.re_run_last_cell()
+            else:
+                info = editorstack.get_cell()
+            text, offsets, line_cols, cell_name, enc = info
+            context_name = 'Cell'
+            copy_cell = editorstack.run_cell_copy
+            run_input = CellRun(
+                path=fname, cell=text, cell_name=cell_name, encoding=enc,
+                line_col_bounds=line_cols, character_bounds=offsets,
+                copy=copy_cell)
+
+            if action_name == 'advance':
+                editorstack.advance_cell()
+
+        metadata: RunConfigurationMetadata = {
+            'name': fname,
+            'source': self.NAME,
+            'path': fname,
+            'datetime': datetime.now(),
+            'uuid': None,
+            'context': {
+                'name': context_name
+            },
+            'input_extension': fname_ext
+        }
+        run_conf = RunConfiguration(output_formats=[], run_input=run_input,
+                                    metadata=metadata)
+
+        return run_conf
+
+    def focus_run_configuration(self, uuid: str):
+        fname = self.file_per_id[uuid]
+        editorstack = self.get_current_editorstack()
+        current_fname = self.get_current_filename()
+        if current_fname != fname:
+            editorstack.set_current_filename(fname)
 
     @Slot()
-    def run_selection(self, prefix=None):
+    def run_selection(self):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
-        editorstack.run_selection(prefix)
+        editorstack.run_selection()
 
     @Slot()
     def run_to_line(self):

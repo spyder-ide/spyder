@@ -27,7 +27,11 @@ from spyder.plugins.debugger.widgets.main_widget import (
     DebuggerWidgetActions)
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
+from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
+from spyder.plugins.run.api import (
+    WorkingDirOpts, WorkingDirSource, RunExecutionParameters,
+    ExtendedRunExecutionParameters)
 from spyder.plugins.toolbar.api import ApplicationToolbars
 
 
@@ -394,9 +398,47 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         It should only be called when an editor is available.
         """
         editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editor.switch_to_plugin()
-            editor.run_file(method="debugfile")
+        if not editor:
+            return
+
+        editor.switch_to_plugin()
+
+        # TODO: This is a temporary measure to debug files whilst the debug API
+        # is defined.
+        current_fname = editor.get_current_filename()
+        fname_uuid = editor.id_per_file[current_fname]
+        run_conf = editor.get_run_configuration(fname_uuid)
+        fname_params = self.main.run.get_last_used_executor_parameters(
+            fname_uuid)
+
+        selected = None
+        if fname_params['executor'] == self.main.ipyconsole.NAME:
+            selected = fname_params['selected']
+
+        if selected is None:
+            ipy_params = IPythonConsolePyConfiguration(
+                current=True, post_mortem=False,
+                python_args_enabled=False, python_args='',
+                clear_namespace=False, console_namespace=False)
+            wdir_opts = WorkingDirOpts(
+                source=WorkingDirSource.CurrentDirectory,
+                path=osp.dirname(current_fname))
+
+            exec_conf = RunExecutionParameters(
+                working_dir=wdir_opts, executor_params=ipy_params)
+            ext_exec_conf = ExtendedRunExecutionParameters(
+                uuid=None, name=None, params=exec_conf)
+        else:
+            run_plugin = self.main.run
+            all_exec_conf = run_plugin.get_executor_configuration_parameters(
+                self.main.ipyconsole.NAME, 'py', RunContext.File
+            )
+            all_exec_conf = all_exec_conf['params']
+            ext_exec_conf = all_exec_conf[selected]
+
+        ext_exec_conf['params']['executor_params']['debug'] = True
+        self.main.run.run_configuration(
+            self.main.ipyconsole.NAME, run_conf, ext_exec_conf)
 
     @Slot()
     def debug_cell(self):
@@ -405,6 +447,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         It should only be called when an editor is available.
         """
+        # TODO: This is a temporary measure to debug selections whilst the
+        # debug API is defined.
         editor = self.get_plugin(Plugins.Editor, error=False)
         if editor:
             editor.run_cell(method="debugcell")
@@ -416,9 +460,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         It should only be called when an editor is available.
         """
+        # TODO: This is a temporary measure to debug selections whilst the
+        # debug API is defined.
         editor = self.get_plugin(Plugins.Editor, error=False)
         if editor:
-            editor.run_selection(prefix="%%debug\n")
+            editorstack = editor.get_current_editorstack()
+            text = "%%debug\n" + editorstack.run_selection()[0]
+            self.main.ipyconsole.run_selection(text)
 
     @Slot()
     def clear_all_breakpoints(self):

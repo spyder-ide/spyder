@@ -9,8 +9,8 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-import os
 import os.path as osp
+from typing import List
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -20,18 +20,23 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import get_translation
+from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
+from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
-from spyder.utils.programs import get_temp_dir
+from spyder.plugins.run.api import (
+    RunContext, RunExecutor, RunConfiguration,
+    ExtendedRunExecutionParameters, RunResult, run_execute)
+from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
 
 # Localization
 _ = get_translation('spyder')
 
 
-class IPythonConsole(SpyderDockablePlugin):
+class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     """
     IPython Console plugin
 
@@ -41,7 +46,7 @@ class IPythonConsole(SpyderDockablePlugin):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
+    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run,
                 Plugins.Projects, Plugins.PythonpathManager,
                 Plugins.WorkingDirectory]
     TABIFY = [Plugins.History]
@@ -217,6 +222,76 @@ class IPythonConsole(SpyderDockablePlugin):
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
 
+        # Run configurations
+        self.cython_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'pyx',
+            'contexts': [
+                {
+                    'name': 'File'
+                }
+            ]
+        }
+
+        self.python_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'py',
+            'contexts': [
+                {
+                    'name': 'File'
+                },
+                {
+                    'name': 'Cell'
+                },
+                {
+                    'name': 'Selection'
+                },
+            ]
+        }
+
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Cell'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'pyx',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 0
+            },
+        ]
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         # Register conf page
@@ -281,11 +356,21 @@ class IPythonConsole(SpyderDockablePlugin):
             self.run_cell)
         editor.exec_in_extconsole.connect(self.run_selection)
 
+        editor.add_supported_run_configuration(
+            self.python_editor_run_configuration)
+        editor.add_supported_run_configuration(
+            self.cython_editor_run_configuration)
+
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
+
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
 
     @on_plugin_available(plugin=Plugins.WorkingDirectory)
     def on_working_directory_available(self):
@@ -326,11 +411,22 @@ class IPythonConsole(SpyderDockablePlugin):
             self.run_cell)
         editor.exec_in_extconsole.disconnect(self.run_selection)
 
+        editor.remove_supported_run_configuration(
+            self.python_editor_run_configuration)
+        editor.remove_supported_run_configuration(
+            self.cython_editor_run_configuration)
+
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
 
     @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
     def on_working_directory_teardown(self):
@@ -542,6 +638,78 @@ class IPythonConsole(SpyderDockablePlugin):
         """Close client tab from index or client (or close current tab)"""
         self.get_widget().close_client(index=index, client=client,
                                        ask_recursive=ask_recursive)
+
+    # ---- For execution
+    @run_execute(context=RunContext.File)
+    def exec_files(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+        wdir = cwd_opts['path']
+        args = params['python_args']
+        post_mortem = params['post_mortem']
+        current_client = params['current']
+        clear_variables = params['clear_namespace']
+        console_namespace = params['console_namespace']
+        debug = params.get('debug', False)
+
+        # Escape single and double quotes in fname and dirname.
+        # Fixes spyder-ide/spyder#2158.
+        filename = filename.replace("'", r"\'").replace('"', r'\"')
+
+        force_wdir = False
+        if wdir is not None:
+            if osp.isdir(wdir):
+                force_wdir = True
+
+        self.run_script(
+            filename,
+            wdir,
+            args,
+            post_mortem,
+            current_client,
+            clear_variables,
+            console_namespace,
+            focus_to_editor=True,
+            method='debugfile' if debug else 'runfile',
+            force_wdir=force_wdir
+        )
+
+        return []
+
+    @run_execute(context=RunContext.Selection)
+    def exec_selection(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        run_input: SelectionRun = input['run_input']
+        text = run_input['selection']
+        self.run_selection(text)
+
+    @run_execute(context=RunContext.Cell)
+    def exec_cell(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        run_input: CellRun = input['run_input']
+        cell_text = run_input['cell']
+        cell_name = run_input['cell_name']
+        filename = run_input['path']
+        copy = run_input['copy']
+        self.run_cell(cell_text, cell_name, filename, copy,
+                      focus_to_editor=True)
 
     # ---- For execution and debugging
     def run_script(self, filename, wdir, args='',

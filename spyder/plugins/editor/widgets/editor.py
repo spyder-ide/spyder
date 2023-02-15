@@ -492,24 +492,6 @@ class EditorStack(QWidget):
             name='Cycle to next file',
             parent=self)
 
-        run_selection = CONF.config_shortcut(
-            self.run_selection,
-            context='Editor',
-            name='Run selection',
-            parent=self)
-
-        run_to_line = CONF.config_shortcut(
-            self.run_to_line,
-            context='Editor',
-            name='Run to line',
-            parent=self)
-
-        run_from_line = CONF.config_shortcut(
-            self.run_from_line,
-            context='Editor',
-            name='Run from line',
-            parent=self)
-
         new_file = CONF.config_shortcut(
             self.sig_new_file[()],
             context='Editor',
@@ -600,18 +582,6 @@ class EditorStack(QWidget):
             name="close file 2",
             parent=self)
 
-        run_cell = CONF.config_shortcut(
-            self.run_cell,
-            context="Editor",
-            name="run cell",
-            parent=self)
-
-        run_cell_and_advance = CONF.config_shortcut(
-            self.run_cell_and_advance,
-            context="Editor",
-            name="run cell and advance",
-            parent=self)
-
         go_to_next_cell = CONF.config_shortcut(
             self.advance_cell,
             context="Editor",
@@ -622,12 +592,6 @@ class EditorStack(QWidget):
             lambda: self.advance_cell(reverse=True),
             context="Editor",
             name="go to previous cell",
-            parent=self)
-
-        re_run_last_cell = CONF.config_shortcut(
-            self.re_run_last_cell,
-            context="Editor",
-            name="re-run last cell",
             parent=self)
 
         prev_warning = CONF.config_shortcut(
@@ -667,13 +631,11 @@ class EditorStack(QWidget):
             parent=self)
 
         # Return configurable ones
-        return [inspect, gotoline, tab,
-                tabshift, run_selection, run_to_line, run_from_line, new_file,
-                open_file, save_file, save_all, save_as, close_all,
-                prev_edit_pos, prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
-                zoom_out, zoom_reset, close_file_1, close_file_2, run_cell,
-                run_cell_and_advance,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+        return [inspect, gotoline, tab, tabshift, new_file, open_file,
+                save_file, save_all, save_as, close_all, prev_edit_pos,
+                prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
+                zoom_out, zoom_reset, close_file_1, close_file_2,
+                go_to_next_cell, go_to_previous_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
                 prevtab, nexttab, external_fileexp]
@@ -2542,12 +2504,6 @@ class EditorStack(QWidget):
                                 self.edit_goto.emit(fname, lineno, name))
         finfo.sig_save_bookmarks.connect(lambda s1, s2:
                                          self.sig_save_bookmarks.emit(s1, s2))
-        editor.sig_run_selection.connect(self.run_selection)
-        editor.sig_run_to_line.connect(self.run_to_line)
-        editor.sig_run_from_line.connect(self.run_from_line)
-        editor.sig_run_cell.connect(self.run_cell)
-        editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
-        editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_process_code_analysis.connect(
             self.sig_update_code_analysis_actions)
@@ -2843,6 +2799,8 @@ class EditorStack(QWidget):
     def _run_lines_cursor(self, direction):
         """ Select and run all lines from cursor in given direction"""
         editor = self.get_current_editor()
+        finfo = self.get_current_finfo()
+        enc = finfo.encoding
 
         # Move cursor to start of line then move to beginning or end of
         # document with KeepAnchor
@@ -2854,26 +2812,26 @@ class EditorStack(QWidget):
         elif direction == 'down':
             cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
 
-        code_text = editor.get_selection_as_executable_code(cursor)
-        if code_text:
-            self.exec_in_extconsole.emit(code_text.rstrip(),
-                                         self.focus_to_editor)
+        selection = editor.get_selection_as_executable_code(cursor)
+        if selection:
+            code_text, off_pos, line_col_pos = selection
+            return code_text.rstrip(), off_pos, line_col_pos, enc
 
     def run_to_line(self):
         """
         Run all lines from the beginning up to, but not including, current
         line.
         """
-        self._run_lines_cursor(direction='up')
+        return self._run_lines_cursor(direction='up')
 
     def run_from_line(self):
         """
         Run all lines from and including the current line to the end of
         the document.
         """
-        self._run_lines_cursor(direction='down')
+        return self._run_lines_cursor(direction='down')
 
-    def run_selection(self, prefix=None):
+    def run_selection(self):
         """
         Run selected text or current line in console.
 
@@ -2885,29 +2843,41 @@ class EditorStack(QWidget):
         cursor there. If cursor is on last line and that line is empty, then do
         not move cursor.
         """
-        if prefix is None:
-            prefix = ''
-
-        text = self.get_current_editor().get_selection_as_executable_code()
-        if text:
-            self.exec_in_extconsole.emit(
-                prefix + text.rstrip(), self.focus_to_editor)
-            return
-
         editor = self.get_current_editor()
+        encoding = self.get_current_finfo().encoding
+        selection = editor.get_selection_as_executable_code()
+        if selection:
+            text, off_pos, line_col_pos = selection
+            return text, off_pos, line_col_pos, encoding
+
+        line_col_from, line_col_to = editor.get_current_line_bounds()
+        line_off_from, line_off_to = editor.get_current_line_offsets()
         line = editor.get_current_line()
         text = line.lstrip()
-        if text:
-            self.exec_in_extconsole.emit(
-                prefix + text, self.focus_to_editor)
+
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
         if self.focus_to_editor:
             editor.move_cursor_to_next('line', 'down')
 
+        return (
+            text, (line_off_from, line_off_to),
+            (line_col_from, line_col_to),
+            encoding
+        )
+
+    def get_cell(self):
+        """Get current cell attributes."""
+        text, block, off_pos, line_col_pos = (
+            self.get_current_editor().get_cell_as_executable_code())
+        encoding = self.get_current_finfo().encoding
+        name = cell_name(block)
+        return text, off_pos, line_col_pos, name, encoding
+
     def run_cell(self, method=None):
         """Run current cell."""
-        text, block = self.get_current_editor().get_cell_as_executable_code()
+        text, block, *__ = (
+            self.get_current_editor().get_cell_as_executable_code())
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
         name = cell_name(block)
@@ -2943,11 +2913,13 @@ class EditorStack(QWidget):
         editor = self.data[index].editor
 
         try:
-            text = editor.get_cell_code(cell_name)
+            text, off_pos, col_pos = editor.get_cell_code_and_position(
+                cell_name)
+            encoding = self.get_current_finfo().encoding
         except RuntimeError:
             return
 
-        self._run_cell_text(text, editor, (filename, cell_name))
+        return text, off_pos, col_pos, cell_name, encoding
 
     def _run_cell_text(self, text, editor, cell_id, method=None):
         """Run cell code in the console.

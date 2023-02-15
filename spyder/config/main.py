@@ -390,6 +390,7 @@ DEFAULTS = [
               '_/file switcher': 'Ctrl+P',
               '_/symbol finder': 'Ctrl+Alt+P',
               '_/run': "F5",
+              '_/run selection': "F9",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
               # -- In plugins/init
@@ -457,9 +458,8 @@ DEFAULTS = [
               'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
-              'editor/run selection': "F9",
-              'editor/run to line': 'Shift+F9',
-              'editor/run from line': CTRL + '+F9',
+              'editor/run selection up to line': 'Shift+F9',
+              'editor/run selection from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -487,7 +487,7 @@ DEFAULTS = [
               'editor/run cell and advance': 'Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
-              'editor/re-run last cell': 'Alt+Return',
+              'editor/re-run cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
@@ -501,9 +501,9 @@ DEFAULTS = [
               'console/clear shell': "Ctrl+L",
               'console/clear line': "Shift+Escape",
               # ---- In Pylint ----
-              'pylint/run analysis': "F8",
+              'pylint/run file in pylint': "F8",
               # ---- In Profiler ----
-              'profiler/run profiler': "F10",
+              'profiler/run file in profiler': "F10",
               # ---- In widgets/ipythonconsole/shell.py ----
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
@@ -586,6 +586,7 @@ NAME_MAP = {
             'layout_settings',
             'recent_files',
             'splitter_state',
+            'file_uuids'
             ]
          ),
         ('explorer', [
@@ -628,6 +629,8 @@ NAME_MAP = {
             'configurations',
             'defaultconfiguration',
             'default/wdir/fixed_directory',
+            'last_used_parameters',
+            'parameters'
           ]
          ),
         ('workingdir', [
