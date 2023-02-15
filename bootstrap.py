@@ -81,7 +81,8 @@ if not args.no_install:
         prev_branch = boot_branch_file.read_text()
 
     result = subprocess.run(
-        ["git", "merge-base", "--fork-point", "master"]
+        ["git", "merge-base", "--fork-point", "master"],
+        capture_output=True
     )
     branch = "master" if result.stdout else "not master"
     boot_branch_file.write_text(branch)
