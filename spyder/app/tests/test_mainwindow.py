@@ -2103,7 +2103,8 @@ def test_plots_scroll(main_window, qtbot):
             "    plt.plot([1, 2, 3, 4], '.')\n"
             "    plt.show()\n"
             "    time.sleep(.1)")
-        qtbot.waitUntil(lambda: sb._first_thumbnail_shown, timeout=SHELL_TIMEOUT)
+        qtbot.waitUntil(lambda: sb._first_thumbnail_shown,
+                        timeout=SHELL_TIMEOUT)
         sb.set_current_index(5)
         scrollbar.setValue(scrollbar.minimum())
 
