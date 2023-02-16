@@ -634,6 +634,9 @@ class FoldingPanel(Panel):
         called when Key_Delete is pressed, and in several other places, which
         is handled by _expand_selection below.
         """
+        if not self._block_decos:
+            return
+
         delete_request = event.key() == Qt.Key_Backspace
 
         enter_request = False
@@ -652,6 +655,9 @@ class FoldingPanel(Panel):
         current selection starts and/or ends in one, or the cursor is over a
         block deco.
         """
+        if not self._block_decos:
+            return
+
         cursor = self.editor.textCursor()
         self._key_pressed = True
 
@@ -709,6 +715,7 @@ class FoldingPanel(Panel):
 
                     self.editor.setTextCursor(tc)
 
+        self._update_block_decos(start_pos, end_pos)
         self._key_pressed = False
 
     def _refresh_editor_and_scrollbars(self):
@@ -753,6 +760,29 @@ class FoldingPanel(Panel):
             deco = self._block_decos[deco_line]
             self.editor.decorations.remove(deco)
         self._block_decos = {}
+
+    def _update_block_decos(self, start_pos, end_pos):
+        """
+        Update block decorations in case some are going to be removed by the
+        user.
+
+        Parameters
+        ----------
+        start_pos: int
+            Start cursor position of the selection that's going to remove or
+            replace text in the editor
+        end_pos: int
+            End cursor position of the same selection.
+        """
+        start_line = self.editor.document().findBlock(start_pos).blockNumber()
+        end_line = self.editor.document().findBlock(end_pos).blockNumber()
+
+        for deco_line in self._block_decos.copy():
+            if start_line <= deco_line <= end_line:
+                deco = self._block_decos[deco_line]
+                self._block_decos.pop(deco_line)
+                self.editor.decorations.remove(deco)
+                self.folding_status[deco_line + 1] = False
 
     def expand_all(self):
         """Expands all fold triggers."""
