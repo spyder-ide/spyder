@@ -642,7 +642,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.sig_sort_by_column.emit()
 
     def editHeaderMenu(self, pos):
-
+        """Launchs edition menu for header."""
         globalPos = self.mapToGlobal(pos)
         index = self.indexAt(pos)
         self.header_class.setCurrentIndex(index)
@@ -791,6 +791,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         clipboard.setText(contents)
 
     def resize_to_contents(self, rows=False):
+        """Resize rows or cols to its contents."""
         dataframe_editor = self.parent()
         class_name = dataframe_editor.__class__.__name__
         if class_name == 'DataFrameEditor':
@@ -801,6 +802,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 self.parent().resize_to_contents()
 
     def flags(self, index):
+        """Set flags"""
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
                                 Qt.ItemIsEditable | Qt.ItemIsEnabled |
                                 Qt.ItemIsSelectable | Qt.EditRole))
@@ -837,6 +839,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.edit(index.child(index.row(), index.column()))
 
     def insert_item(self, axis=0, before_above=False):
+        """Insert row or column."""
         current_index = self.currentIndex()
         column = current_index.column()
         row = current_index.row()
@@ -898,6 +901,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.model().dataChanged.emit(current_index, current_index)
 
     def duplicate_row_col(self, dup_row=False):
+        """Duplicate row or column."""
         current_index = self.currentIndex()
         column = current_index.column()
         row = current_index.row()
@@ -998,7 +1002,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
     @Slot()
     def remove_item(self, force=False, axis=0):
-        """Remove item"""
+        """Remove item."""
         current_index = self.currentIndex()
         indexes = self.selectedIndexes()
 
@@ -1186,11 +1190,13 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
         return header
 
     def flags(self, index):
+        """Set flags"""
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
                                 Qt.ItemIsEditable | Qt.ItemIsEnabled |
                                 Qt.ItemIsSelectable))
 
     def setData(self, index, value, role):
+        """Cell content change"""
         if role == Qt.EditRole:
             if self.axis == 1:
                 old_value = self.model.df.index[index.row()]
@@ -1469,6 +1475,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
             event.accept()
 
     def flags(self, index):
+        """Set flags"""
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
                                 Qt.ItemIsEditable | Qt.ItemIsEnabled |
                                 Qt.ItemIsSelectable))
@@ -1815,6 +1822,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     @Slot()
     def resize_to_contents(self):
+        """"Resize columns to contents"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.dataTable.resizeColumnsToContents()
         self.dataModel.fetch_more(columns=True)
