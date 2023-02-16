@@ -183,6 +183,8 @@ class FoldingPanel(Panel):
         (self.current_tree, self.root,
          self.folding_regions, self.folding_nesting,
          self.folding_levels, self.folding_status) = folding_info
+
+        self._clear_block_decos()
         self.update()
 
     def sizeHint(self):
@@ -199,14 +201,17 @@ class FoldingPanel(Panel):
             collapsed = self.folding_status[line_number]
             line_end = self.folding_regions[line_number]
             mouse_over = self._mouse_over_line == line_number
+
             if not mouse_hover:
                 self._draw_fold_indicator(
                     top_position, mouse_over, collapsed, painter)
+
             if collapsed:
                 if mouse_hover:
                     self._draw_fold_indicator(
                         top_position, mouse_over, collapsed, painter)
-                # check if the block already has a decoration,
+
+                # Check if the block already has a decoration,
                 # it might have been folded by the parent
                 # editor/document in the case of cloned editor
                 for deco_line in self._block_decos:
@@ -220,13 +225,14 @@ class FoldingPanel(Panel):
             elif not mouse_hover:
                 for deco_line in list(self._block_decos.keys()):
                     deco = self._block_decos[deco_line]
-                    # check if the block decoration has been removed, it
+
+                    # Check if the block decoration has been removed, it
                     # might have been unfolded by the parent
                     # editor/document in the case of cloned editor
                     if deco.block == block:
                         # remove it and
                         self._block_decos.pop(deco_line)
-                        self.editor.decorations.remove(deco)
+                        self.editor.decorations.remove(deco, key='folded')
                         del deco
                         break
 
@@ -520,12 +526,12 @@ class FoldingPanel(Panel):
         deco.tooltip = text
         deco.block = block
         deco.select_line()
-        deco.set_outline(drift_color(
-            self._get_scope_highlight_color(), 110))
+        deco.set_outline(drift_color(self._get_scope_highlight_color(), 110))
         deco.set_background(self._get_scope_highlight_color())
         deco.set_foreground(QColor(QStylePalette.COLOR_TEXT_4))
+
         self._block_decos[start_line] = deco
-        self.editor.decorations.add(deco)
+        self.editor.decorations.add(deco, key='folded')
 
     def _get_block_until_line(self, block, end_line):
         while block.blockNumber() <= end_line and block.isValid():
@@ -545,20 +551,24 @@ class FoldingPanel(Panel):
         if start_line - 1 in self._block_decos:
             deco = self._block_decos[start_line - 1]
             self._block_decos.pop(start_line - 1)
-            self.editor.decorations.remove(deco)
+            self.editor.decorations.remove(deco, key='folded')
 
         while block.blockNumber() < end_line and block.isValid():
             current_line = block.blockNumber()
             block.setVisible(True)
             get_next = True
-            if (current_line in self.folding_regions
-                    and current_line != start_line):
+
+            if (
+                current_line in self.folding_regions
+                and current_line != start_line
+            ):
                 block_end = self.folding_regions[current_line]
                 if self.folding_status[current_line]:
                     # Skip setting visible blocks until the block is done
                     get_next = False
                     block = self._get_block_until_line(block, block_end - 1)
                     # pass
+
             if get_next:
                 block = block.next()
 
@@ -569,8 +579,10 @@ class FoldingPanel(Panel):
         :param block: The QTextBlock to expand/collapse
         """
         start_line = block.blockNumber()
+
         if start_line not in self.folding_regions:
             return
+
         end_line = self.folding_regions[start_line]
         if self.folding_status[start_line]:
             self.unfold_region(block, start_line, end_line)
@@ -581,6 +593,7 @@ class FoldingPanel(Panel):
             self.fold_region(block, start_line, end_line)
             self.folding_status[start_line] = True
             self._clear_scope_decos()
+
         self._refresh_editor_and_scrollbars()
 
     def mousePressEvent(self, event):
@@ -607,7 +620,7 @@ class FoldingPanel(Panel):
                     self._highlight_caret_scope)
                 self._block_nbr = -1
 
-            self.editor.new_text_set.connect(self._clear_block_deco)
+            self.editor.new_text_set.connect(self._clear_block_decos)
         else:
 
             self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
@@ -618,7 +631,7 @@ class FoldingPanel(Panel):
                     self._highlight_caret_scope)
                 self._block_nbr = -1
 
-            self.editor.new_text_set.disconnect(self._clear_block_deco)
+            self.editor.new_text_set.disconnect(self._clear_block_decos)
 
     def _on_key_pressed(self, event):
         """
@@ -741,7 +754,7 @@ class FoldingPanel(Panel):
         Collapses all triggers and makes all blocks with fold level > 0
         invisible.
         """
-        self._clear_block_deco()
+        self._clear_block_decos()
         block = self.editor.document().firstBlock()
         while block.isValid():
             line_number = block.blockNumber()
@@ -755,11 +768,9 @@ class FoldingPanel(Panel):
         self.editor.setTextCursor(tc)
         self.collapse_all_triggered.emit()
 
-    def _clear_block_deco(self):
+    def _clear_block_decos(self):
         """Clear the folded block decorations."""
-        for deco_line in self._block_decos:
-            deco = self._block_decos[deco_line]
-            self.editor.decorations.remove(deco)
+        self.editor.decorations.remove_key('folded')
         self._block_decos = {}
 
     def _update_block_decos(self, start_pos, end_pos):
@@ -782,7 +793,7 @@ class FoldingPanel(Panel):
             if start_line <= deco_line <= end_line:
                 deco = self._block_decos[deco_line]
                 self._block_decos.pop(deco_line)
-                self.editor.decorations.remove(deco)
+                self.editor.decorations.remove(deco, key='folded')
                 self.folding_status[deco_line + 1] = False
 
     def expand_all(self):
@@ -794,7 +805,7 @@ class FoldingPanel(Panel):
                 end_line = self.folding_regions[line_number]
                 self.unfold_region(block, line_number, end_line)
             block = block.next()
-        self._clear_block_deco()
+        self._clear_block_decos()
         self._refresh_editor_and_scrollbars()
         self.expand_all_triggered.emit()
 
