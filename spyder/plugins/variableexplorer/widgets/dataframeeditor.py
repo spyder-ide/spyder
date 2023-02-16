@@ -1003,20 +1003,23 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
     @Slot()
     def remove_item(self, force=False, axis=0):
         """Remove item."""
-        current_index = self.currentIndex()
         indexes = self.selectedIndexes()
-
+        index_label = []
         if not indexes:
             return
 
         for index in indexes:
             if not index.isValid():
                 return
-
-        if axis == 0:
-            index_title = self.model().df.axes[axis][current_index.row()]
-        else:
-            index_title = self.model().df.axes[axis][current_index.column()]
+            else:
+                if axis == 0:
+                    row_label = self.model().df.axes[axis][index.row()]
+                    if row_label not in index_label:
+                        index_label.append(row_label)
+                else:
+                    column_label = self.model().df.axes[axis][index.column()]
+                    if column_label not in index_label:
+                        index_label.append(column_label)
 
         if not force:
             one = _("Do you want to remove the selected item?")
@@ -1026,7 +1029,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                                           QMessageBox.Yes | QMessageBox.No)
 
         if force or answer == QMessageBox.Yes:
-            self.model().df.drop(index_title, inplace=True, axis=axis)
+            for label in index_label:
+                self.model().df.drop(label, inplace=True, axis=axis)
             self.parent()._reload()
             index = QModelIndex()
             self.model().dataChanged.emit(index, index)
