@@ -817,10 +817,16 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                                                        QLineEdit.Normal,
                                                        "")
             if confirmation:
-                self.header_class.model().setData(model_index, value,
-                                                  Qt.EditRole)
-                self.parent()._reload()
-                self.model().dataChanged.emit(pos, pos)
+                if value not in self.model().df.columns.tolist():
+                    self.header_class.model().setData(model_index, value,
+                                                      Qt.EditRole)
+                    self.parent()._reload()
+                    self.model().dataChanged.emit(pos, pos)
+                else:
+                    QMessageBox.warning(self.model().dialog,
+                                        "Warning: duplicate column",
+                                        "Column with name \"" + value
+                                        + "\" already exists")
 
     def edit_item(self):
         """Edit item"""
@@ -1183,14 +1189,21 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
         return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
                                 Qt.ItemIsEditable | Qt.ItemIsEnabled |
                                 Qt.ItemIsSelectable))
-    
+
     def setData(self, index, value, role):
         if role == Qt.EditRole:
             if self.axis == 1:
                 old_value = self.model.df.index[index.row()]
                 try:
-                    self.model.df.rename(index={old_value: value},
-                                         inplace=True, errors='raise')
+                    if value not in self.model.df.index.tolist():
+                        self.model.df.rename(index={old_value: value},
+                                             inplace=True, errors='raise')
+                    else:
+                        QMessageBox.warning(self.model.dialog,
+                                            "Warning: duplicate index",
+                                            "Row with name \"" + value
+                                            + "\" already exists")
+                        return False
                 except:
                     return False
                 self.model.dialog._reload()
