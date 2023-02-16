@@ -123,8 +123,11 @@ def test_dataframe_to_type(qtbot):
 
     # Show context menu and select option `To bool`
     view.menu.show()
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
     qtbot.keyPress(view.menu, Qt.Key_Return)
 
     # Check that changes where made from the editor
