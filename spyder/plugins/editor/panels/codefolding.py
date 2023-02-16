@@ -403,7 +403,7 @@ class FoldingPanel(Panel):
             end (int) end line of the decoration
         """
         color = self._get_scope_highlight_color()
-        draw_order = DRAW_ORDERS.get('codefolding')
+        draw_order = DRAW_ORDERS.get('folding_areas')
         d = TextDecoration(self.editor.document(),
                            start_line=max(0, start - 1),
                            end_line=end,
@@ -513,7 +513,8 @@ class FoldingPanel(Panel):
         """
         start_line = block.blockNumber()
         text = self.editor.get_text_region(start_line + 1, end_line)
-        draw_order = DRAW_ORDERS.get('codefolding')
+        draw_order = DRAW_ORDERS.get('folded_regions')
+
         deco = TextDecoration(block, draw_order=draw_order)
         deco.signals.clicked.connect(self._on_fold_deco_clicked)
         deco.tooltip = text
