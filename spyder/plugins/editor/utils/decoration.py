@@ -51,7 +51,7 @@ class TextDecorationsManager(Manager, QObject):
         self.update_timer.timeout.connect(
             self._update)
 
-    def add(self, decorations):
+    def add(self, decorations, key=None):
         """
         Add text decorations on a CodeEditor instance.
 
@@ -63,15 +63,20 @@ class TextDecorationsManager(Manager, QObject):
         Returns:
             int: Amount of decorations added.
         """
-        current_decorations = self._decorations["misc"]
+        key = "misc" if key is None else key
+        if key != "misc" and self._decorations.get(key) is None:
+            self._decorations[key] = []
+
+        current_decorations = self._decorations[key]
         added = 0
+
         if isinstance(decorations, list):
             not_repeated = set(decorations) - set(current_decorations)
             current_decorations.extend(list(not_repeated))
-            self._decorations["misc"] = current_decorations
+            self._decorations[key] = current_decorations
             added = len(not_repeated)
         elif decorations not in current_decorations:
-            self._decorations["misc"].append(decorations)
+            self._decorations[key].append(decorations)
             added = 1
 
         if added > 0:
@@ -83,7 +88,7 @@ class TextDecorationsManager(Manager, QObject):
         self._decorations[key] = decorations
         self.update()
 
-    def remove(self, decoration):
+    def remove(self, decoration, key=None):
         """
         Removes a text decoration from the editor.
 
@@ -93,11 +98,12 @@ class TextDecorationsManager(Manager, QObject):
             Set to False to avoid updating several times while removing
             several decorations
         """
+        key = "misc" if key is None else key
         try:
-            self._decorations["misc"].remove(decoration)
+            self._decorations[key].remove(decoration)
             self.update()
             return True
-        except ValueError:
+        except (ValueError, KeyError):
             return False
 
     def remove_key(self, key):
