@@ -144,7 +144,7 @@ def test_leaks(main_window, qtbot):
                 and shell._prompt_html is not None
             ),
             timeout=SHELL_TIMEOUT)
-    
+
         # Count initial objects
         # Only one of each should be present, but because of many leaks,
         # this is most likely not the case. Here only closing is tested
@@ -159,7 +159,7 @@ def test_leaks(main_window, qtbot):
         for o in objects:
             if type(o).__name__ == "ShellWidget":
                 n_shell_init += 1
-    
+
         # Open a second file and console
         main_window.editor.new()
         main_window.ipyconsole.create_new_client()
@@ -167,7 +167,7 @@ def test_leaks(main_window, qtbot):
         code_editor = main_window.editor.get_focus_widget()
         # Show an error in the editor
         code_editor.set_text("aaa")
-    
+
         shell = main_window.ipyconsole.get_current_shellwidget()
         qtbot.waitUntil(
             lambda: (
@@ -177,7 +177,7 @@ def test_leaks(main_window, qtbot):
             timeout=SHELL_TIMEOUT)
         with qtbot.waitSignal(shell.executed):
             shell.execute("%debug print()")
-    
+
         # Close all files and consoles
         main_window.editor.close_all_files()
         main_window.ipyconsole.restart()
@@ -863,7 +863,6 @@ def test_dedicated_consoles(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_dedicated_consoles")
-@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 def test_shell_execution(main_window, qtbot, tmpdir):
     """Test that bash/batch files can be executed."""
     ext = 'sh'

@@ -1,4 +1,4 @@
-set -exou
+set -exo
 
 TEMP_DIR=$1
 
