@@ -747,7 +747,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 triggered=lambda checked, environment=name,
                 path=path_to_environment:
                     self.create_environment_client(
-                    path_to_environment=path, environment=environment),
+                    path_to_custom_interpreter=path, environment=environment),
             )
             environment_consoles.append(action)
         for item in environment_consoles:
@@ -1462,7 +1462,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
                           cache=True, initial_cwd=None, environment='A',
-                          is_environment=False, path_to_environment=None):
+                          path_to_custom_interpreter=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
@@ -1476,7 +1476,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     is_pylab=is_pylab,
                     is_sympy=is_sympy),
             interpreter_versions=self.interpreter_versions(
-                is_environment, path_to_environment),
+                path_to_custom_interpreter),
             context_menu_actions=self.context_menu_actions,
             given_name=given_name,
             give_focus=give_focus,
@@ -1492,8 +1492,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             is_cython=is_cython,
             is_pylab=is_pylab,
             is_sympy=is_sympy,
-            is_environment=is_environment,
-            path_to_environment=path_to_environment
+            path_to_custom_interpreter=path_to_custom_interpreter
         )
 
         try:
@@ -1594,10 +1593,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
 
-    def create_environment_client(self, environment='', path_to_environment=''):
+    def create_environment_client(self, environment='',
+                                  path_to_custom_interpreter=''):
         """Force creation of Environment client"""
-        self.create_new_client(is_environment=True, environment=environment,
-                               path_to_environment=path_to_environment)
+        self.create_new_client(environment=environment,
+                               path_to_custom_interpreter=path_to_custom_interpreter)
 
     @Slot(str)
     def create_client_from_path(self, path):

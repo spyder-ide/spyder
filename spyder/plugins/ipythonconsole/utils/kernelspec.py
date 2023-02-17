@@ -114,13 +114,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     def argv(self):
         """Command to start kernels"""
         # Python interpreter used to start kernels
-        if self.path_to_custom_interpreter:
-            self.set_conf(
-                'executable', self.path_to_custom_interpreter,
-                section='main_interpreter')
-            self.set_conf('default', False, section='main_interpreter')
-            self.set_conf('custom', True, section='main_interpreter')
-        if self.get_conf('default', section='main_interpreter'):
+        if (self.get_conf('default', section='main_interpreter') and
+                not self.path_to_custom_interpreter):
             pyexec = get_python_executable()
         else:
             pyexec = self.get_conf('executable', section='main_interpreter')
