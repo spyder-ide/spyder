@@ -225,8 +225,17 @@ class FoldingPanel(Panel):
                         break
 
     def highlight_folded_regions(self):
-        """Highlight folded regions."""
-        for __, line_number, block in self.editor.visible_blocks:
+        """Highlight folded regions on the editor's visible buffer."""
+        first_block_nb, last_block_nb = self.editor.get_buffer_block_numbers()
+
+        # This can happen at startup, and when it does, we don't need to move
+        # pass this point.
+        if first_block_nb == last_block_nb:
+            return
+
+        for block_number in range(first_block_nb, last_block_nb):
+            block = self.editor.document().findBlockByNumber(block_number)
+            line_number = block_number + 1
 
             if line_number in self.folding_regions:
                 collapsed = self.folding_status[line_number]
