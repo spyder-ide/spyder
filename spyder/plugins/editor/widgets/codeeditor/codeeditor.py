@@ -2042,6 +2042,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.underline_errors_enabled:
             self.underline_errors()
 
+        if self.folding_supported and self.code_folding:
+            self.highlight_folded_regions()
+
         # This is required to update decorations whether there are or not
         # underline errors in the visible portion of the screen.
         # See spyder-ide/spyder#14268.

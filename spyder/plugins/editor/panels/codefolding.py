@@ -240,6 +240,17 @@ class FoldingPanel(Panel):
             if line_number in self.folding_regions:
                 collapsed = self.folding_status[line_number]
 
+                # Check if a block is folded by UI inspection.
+                # This is necesary because the algorithm that detects folded
+                # regions can fail under certain circumstances.
+                ui_collapsed = (
+                    block.isVisible() and not block.next().isVisible()
+                )
+
+                if collapsed != ui_collapsed:
+                    collapsed = ui_collapsed
+                    self.folding_status[line_number] = ui_collapsed
+
                 if collapsed:
                     # Check if the block already has a decoration,
                     # it might have been folded by the parent
