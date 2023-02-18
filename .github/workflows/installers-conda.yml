@@ -272,7 +272,17 @@ jobs:
                   echo "$shortcut_path does not exist"
               fi
           else
-              echo "TEST WINDOWS INSTALLER HERE"
+              cmd.exe /C start /wait "$PKG_PATH" /S
+
+              ls -al $HOME/AppData/Local
+              ls -alr $HOME/AppData/Roaming
+
+              shortcut_path="$HOME/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/spyder/Spyder.lnk"
+              if [[ -e $shortcut_path ]]; then
+                  echo "$shortcut_path successfully created"
+              else
+                  echo "$shortcut_path odes not exist"
+              fi
           fi
 
       - name: Notarize or Compute Checksum
