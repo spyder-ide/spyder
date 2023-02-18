@@ -150,7 +150,8 @@ class Application(SpyderPluginV2):
             container.compute_dependencies()
 
         # Check for updates
-        if DEV is None and self.get_conf('check_updates_on_startup'):
+        # if DEV is None and self.get_conf('check_updates_on_startup'):
+        if self.get_conf('check_updates_on_startup'): # undo later, just debugging
             container.give_updates_feedback = False
             container.check_updates(startup=True)
 

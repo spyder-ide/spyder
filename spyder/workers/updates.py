@@ -66,7 +66,8 @@ class WorkerUpdates(QObject):
         """
         # Don't perform any check for development versions
         if 'dev' in self.version:
-            return (False, self.latest_release)
+            return (True, self.latest_release) # undo later: return true just debugging
+            #return (False, self.latest_release)
 
         # Filter releases
         if is_stable_version(self.version):
