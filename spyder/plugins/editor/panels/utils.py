@@ -98,6 +98,12 @@ class FoldingStatus(dict):
         values = dict.values(self)
         return [x.status for x in values]
 
+    def get(self, key):
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return False
+
     def __getitem__(self, key):
         value = dict.__getitem__(self, key)
         return value.status

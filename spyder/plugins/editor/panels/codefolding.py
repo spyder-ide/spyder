@@ -10,10 +10,11 @@
 """
 This module contains the marker panel.
 
-Adapted from pyqode/core/panels/folding.py of the
-`PyQode project <https://github.com/pyQode/pyQode>`_.
+Adapted from pyqode/core/panels/folding.py of the PyQode project
+https://github.com/pyQode/pyQode
+
 Original file:
-<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/panels/folding.py>
+https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/panels/folding.py
 """
 
 # Standard library imports
@@ -199,7 +200,6 @@ class FoldingPanel(Panel):
                                   painter, mouse_hover=False):
         if line_number in self.folding_regions:
             collapsed = self.folding_status[line_number]
-            line_end = self.folding_regions[line_number]
             mouse_over = self._mouse_over_line == line_number
 
             if not mouse_hover:
@@ -210,18 +210,6 @@ class FoldingPanel(Panel):
                 if mouse_hover:
                     self._draw_fold_indicator(
                         top_position, mouse_over, collapsed, painter)
-
-                # Check if the block already has a decoration,
-                # it might have been folded by the parent
-                # editor/document in the case of cloned editor
-                for deco_line in self._block_decos:
-                    deco = self._block_decos[deco_line]
-                    if deco.block == block:
-                        # no need to add a deco, just go to the
-                        # next block
-                        break
-                else:
-                    self._add_fold_decoration(block, line_end)
             elif not mouse_hover:
                 for deco_line in list(self._block_decos.keys()):
                     deco = self._block_decos[deco_line]
@@ -236,16 +224,39 @@ class FoldingPanel(Panel):
                         del deco
                         break
 
+    def highlight_folded_regions(self):
+        """Highlight folded regions."""
+        for __, line_number, block in self.editor.visible_blocks:
+
+            if line_number in self.folding_regions:
+                collapsed = self.folding_status[line_number]
+
+                if collapsed:
+                    # Check if the block already has a decoration,
+                    # it might have been folded by the parent
+                    # editor/document in the case of cloned editor
+                    for deco_line in self._block_decos:
+                        deco = self._block_decos[deco_line]
+                        if deco.block == block:
+                            # no need to add a deco, just go to the
+                            # next block
+                            break
+                    else:
+                        line_end = self.folding_regions[line_number]
+                        self._add_fold_decoration(block, line_end)
+
     def paintEvent(self, event):
-        # Paints the fold indicators and the possible fold region background
-        # on the folding panel.
-        super(FoldingPanel, self).paintEvent(event)
+        """
+        Paint fold indicators on the folding panel and possible folding region
+        background on the editor.
+        """
+        super().paintEvent(event)
         painter = QPainter(self)
         self.paint_cell(painter)
+        # Draw collapsed indicators
         if not self._display_folding and not self._key_pressed:
-            if any(self.folding_status.values()):
-                for info in self.editor.visible_blocks:
-                    top_position, line_number, block = info
+            for top_position, line_number, block in self.editor.visible_blocks:
+                if self.folding_status.get(line_number):
                     self._draw_collapsed_indicator(
                         line_number, top_position, block,
                         painter, mouse_hover=True)
@@ -264,7 +275,8 @@ class FoldingPanel(Panel):
                 # folding panel and make some text modifications
                 # that trigger a folding recomputation.
                 pass
-        # Draw fold triggers
+
+        # Draw all fold indicators
         for top_position, line_number, block in self.editor.visible_blocks:
             self._draw_collapsed_indicator(
                 line_number, top_position, block, painter, mouse_hover=False)
@@ -540,14 +552,19 @@ class FoldingPanel(Panel):
         return block
 
     def fold_region(self, block, start_line, end_line):
-        """Fold region spanned by *start_line* and *end_line*."""
+        """Fold region spanned by `start_line` and `end_line`."""
+        # Note: The block passed to this method is the first one that needs to
+        # be hidden.
+        initial_block = self.editor.document().findBlockByNumber(
+            start_line - 1)
+        self._add_fold_decoration(initial_block, end_line)
+
         while block.blockNumber() < end_line and block.isValid():
             block.setVisible(False)
             block = block.next()
-        return block
 
     def unfold_region(self, block, start_line, end_line):
-        """Unfold region spanned by *start_line* and *end_line*."""
+        """Unfold region spanned by `start_line` and `end_line`."""
         if start_line - 1 in self._block_decos:
             deco = self._block_decos[start_line - 1]
             self._block_decos.pop(start_line - 1)
@@ -567,7 +584,6 @@ class FoldingPanel(Panel):
                     # Skip setting visible blocks until the block is done
                     get_next = False
                     block = self._get_block_until_line(block, block_end - 1)
-                    # pass
 
             if get_next:
                 block = block.next()

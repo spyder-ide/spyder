@@ -1278,6 +1278,10 @@ class LSPMixin:
         except Exception:
             self.manage_lsp_handle_errors("Error when processing folding")
 
+    def highlight_folded_regions(self):
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.highlight_folded_regions()
+
     def _finish_update_folding(self):
         """Finish updating code folding."""
         folding_panel = self.panels.get(FoldingPanel)
@@ -1287,6 +1291,8 @@ class LSPMixin:
         # Fixes spyder-ide/spyder#19514
         if self._folding_info is not None:
             folding_panel.update_folding(self._folding_info)
+
+        self.highlight_folded_regions()
 
         # Update indent guides, which depend on folding
         if self.indent_guides._enabled and len(self.patch) > 0:
