@@ -181,22 +181,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             add_to_toolbar=ApplicationToolbars.Debug
         )
 
-        widget = self.get_widget()
-        main_toolbar = widget.get_main_toolbar()
-
-        for item in [
-                debug_file_action,
-                debug_cell_action,
-                debug_selection_action,
-                ]:
-            widget.add_item_to_toolbar(
-                item,
-                toolbar=main_toolbar,
-                section=DebuggerWidgetMainToolBarSections.Run,
-                before_section=DebuggerWidgetMainToolBarSections.Main,
-            )
-        main_toolbar._render()
-
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
         run = self.get_plugin(Plugins.Run)

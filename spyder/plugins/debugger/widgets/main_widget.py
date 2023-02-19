@@ -307,28 +307,18 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        secondary_toolbar = self.create_toolbar("widget_control")
-
-        for item in [
-                enter_debug_action,
-                inspect_action,
-                ]:
-            self.add_item_to_toolbar(
-                item,
-                toolbar=main_toolbar,
-                section=DebuggerWidgetMainToolBarSections.Main,
-            )
-
         for item in [next_action,
                      continue_action,
                      step_action,
                      return_action,
                      stop_action,
                      goto_cursor_action,
+                     enter_debug_action,
+                     inspect_action,
                      search_action]:
             self.add_item_to_toolbar(
                 item,
-                toolbar=secondary_toolbar,
+                toolbar=main_toolbar,
                 section=DebuggerWidgetMainToolBarSections.Main,
             )
 
