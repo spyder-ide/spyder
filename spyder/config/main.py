@@ -526,9 +526,9 @@ DEFAULTS = [
               # ---- In widgets/debugger/framesbrowser.py ----
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
-              'debugger/debug file': "Ctrl+F5",
-              'debugger/debug cell': 'Alt+Shift+Return',
-              'debugger/debug selection': '',
+              'debugger/run file in debugger': "Ctrl+F5",
+              'debugger/run cell in debugger': 'Alt+Shift+Return',
+              'debugger/run selection in debugger': '',
               'debugger/next': "Ctrl+F10",
               'debugger/continue': "Ctrl+F12",
               'debugger/step': "Ctrl+F11",

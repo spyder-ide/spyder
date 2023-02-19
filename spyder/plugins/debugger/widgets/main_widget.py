@@ -44,12 +44,6 @@ class DebuggerWidgetActions:
     ToggleLocalsOnClick = 'toggle_show_locals_on_click_action'
 
 
-class DebuggerToolbarActions:
-    DebugCurrentFile = 'debug file'
-    DebugCurrentCell = 'debug cell'
-    DebugCurrentSelection = 'debug selection'
-
-
 class DebuggerBreakpointActions:
     ToggleBreakpoint = 'toggle breakpoint'
     ToggleConditionalBreakpoint = 'toggle conditional breakpoint'
@@ -62,6 +56,7 @@ class DebuggerWidgetOptionsMenuSections:
 
 
 class DebuggerWidgetMainToolBarSections:
+    Run = "run"
     Main = 'main_section'
 
 
@@ -113,14 +108,6 @@ class DebuggerWidget(ShellConnectMainWidget):
     shellwidget: object
         The shellwidget the request originated from
     """
-
-    sig_debug_file = Signal()
-    """This signal is emitted to request the current file to be debugged."""
-
-    sig_debug_cell = Signal()
-    """This signal is emitted to request the current cell to be debugged."""
-    sig_debug_selection = Signal()
-    """This signal is emitted to request the current line to be debugged."""
 
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
@@ -273,33 +260,6 @@ class DebuggerWidget(ShellConnectMainWidget):
             register_shortcut=True
         )
 
-        debug_file_action = self.create_action(
-            DebuggerToolbarActions.DebugCurrentFile,
-            text=_("&Debug file"),
-            tip=_("Debug file"),
-            icon=self.create_icon('debug'),
-            triggered=self.sig_debug_file,
-            register_shortcut=True,
-        )
-
-        debug_cell_action = self.create_action(
-            DebuggerToolbarActions.DebugCurrentCell,
-            text=_("Debug cell"),
-            tip=_("Debug cell"),
-            icon=self.create_icon('debug_cell'),
-            triggered=self.sig_debug_cell,
-            register_shortcut=True,
-        )
-
-        debug_selection_action = self.create_action(
-            DebuggerToolbarActions.DebugCurrentSelection,
-            text=_("Debug selection or current line"),
-            tip=_("Debug selection or current line"),
-            icon=self.create_icon('debug_selection'),
-            triggered=self.sig_debug_selection,
-            register_shortcut=True,
-        )
-
         self.create_action(
             DebuggerBreakpointActions.ToggleBreakpoint,
             text=_("Set/Clear breakpoint"),
@@ -350,9 +310,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         secondary_toolbar = self.create_toolbar("widget_control")
 
         for item in [
-                debug_file_action,
-                debug_cell_action,
-                debug_selection_action,
                 enter_debug_action,
                 inspect_action,
                 ]:
