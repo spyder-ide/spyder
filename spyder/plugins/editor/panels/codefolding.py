@@ -57,12 +57,9 @@ class FoldingPanel(Panel):
 
     def __init__(self):
         Panel.__init__(self)
-        self._indicators_icons = (
-            'folding.arrow_right_off',
-            'folding.arrow_right_on',
-            'folding.arrow_down_off',
-            'folding.arrow_down_on'
-        )
+        self.collapsed_icon = ima.icon('folding.arrow_right')
+        self.uncollapsed_icon = ima.icon('folding.arrow_down')
+
         self._block_nbr = -1
         self._highlight_caret = False
         self.highlight_caret_scope = False
@@ -87,35 +84,6 @@ class FoldingPanel(Panel):
         self.folding_status = {}
         self.folding_levels = {}
         self.folding_nesting = {}
-
-    @property
-    def indicators_icons(self):
-        """
-        Gets/sets the icons for the fold indicators.
-
-        The list of indicators is interpreted as follow::
-
-            (COLLAPSED_OFF, COLLAPSED_ON, EXPANDED_OFF, EXPANDED_ON)
-
-        :returns: tuple(str, str, str, str)
-        """
-        return self._indicators_icons
-
-    @indicators_icons.setter
-    def indicators_icons(self, value):
-        if len(value) != 4:
-            raise ValueError('The list of custom indicators must contains 4 '
-                             'strings')
-        self._indicators_icons = value
-        if self.editor:
-            # propagate changes to every clone
-            for clone in self.editor.clones:
-                try:
-                    clone.modes.get(
-                        self.__class__).indicators_icons = value
-                except KeyError:
-                    # this should never happen since we're working with clones
-                    pass
 
     @property
     def highlight_caret_scope(self):
@@ -174,16 +142,13 @@ class FoldingPanel(Panel):
                                   painter, mouse_hover=False):
         if line_number in self.folding_regions:
             collapsed = self.folding_status[line_number]
-            mouse_over = self._mouse_over_line == line_number
 
             if not mouse_hover:
-                self._draw_fold_indicator(
-                    top_position, mouse_over, collapsed, painter)
+                self._draw_fold_indicator(top_position, collapsed, painter)
 
             if collapsed:
                 if mouse_hover:
-                    self._draw_fold_indicator(
-                        top_position, mouse_over, collapsed, painter)
+                    self._draw_fold_indicator(top_position, collapsed, painter)
             elif not mouse_hover:
                 for deco_line in list(self._block_decos.keys()):
                     deco = self._block_decos[deco_line]
@@ -335,23 +300,22 @@ class FoldingPanel(Panel):
                          rect.bottomLeft() -
                          QPointF(0, 1))
 
-    def _draw_fold_indicator(self, top, mouse_over, collapsed, painter):
+    def _draw_fold_indicator(self, top, collapsed, painter):
         """
         Draw the fold indicator/trigger (arrow).
 
         :param top: Top position
-        :param mouse_over: Whether the mouse is over the indicator
         :param collapsed: Whether the trigger is collapsed or not.
         :param painter: QPainter
         """
-        rect = QRect(0, top, self.sizeHint().width(),
-                     self.sizeHint().height())
-        index = 0
-        if not collapsed:
-            index = 2
-        if mouse_over:
-            index += 1
-        ima.icon(self._indicators_icons[index]).paint(painter, rect)
+        rect = QRect(0, top, self.sizeHint().width(), self.sizeHint().height())
+
+        if collapsed:
+            icon = self.collapsed_icon
+        else:
+            icon = self.uncollapsed_icon
+
+        icon.paint(painter, rect)
 
     def find_parent_scope(self, block):
         """Find parent scope, if the block is not a fold trigger."""
