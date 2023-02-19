@@ -106,7 +106,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Handle pdb has stopped"""
         # this will set the focus to the editor
         self.sig_load_pdb_file.emit(fname, lineno)
-        if self.shellwidget._pdb_take_focus:
+        if not self.shellwidget._pdb_take_focus:
             # Not taking focus will be required on each call to the debugger
             self.shellwidget._pdb_take_focus = True
         else:
