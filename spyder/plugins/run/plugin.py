@@ -761,6 +761,20 @@ class Run(SpyderPluginV2):
         self.get_container().run_configuration(
             executor_name, config, executor_conf)
 
+    def run_current_configuration(self, executor_name: str, context_name: str):
+        """
+        Run executor for context with current configuraation
+
+        Parameters
+        ----------
+        executor_name: str
+            The name of the run executor to use.
+        context_name: str
+            The identifier of the run context.
+        """
+        self.get_container().gen_anonymous_execution_run(
+            context_name, last_executor_name=executor_name)()
+
     # -------------------------------------------------------------------------
     # End of temporary APIs
     # -------------------------------------------------------------------------

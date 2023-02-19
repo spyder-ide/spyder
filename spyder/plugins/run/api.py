@@ -49,6 +49,10 @@ class RunContextType(dict):
 
 
 RunContext = RunContextType('context')
+RunContext.File = 'file'
+RunContext.Cell = 'cell'
+RunContext.Selection = 'selection'
+
 RunResultFormat = RunContextType('result display format')
 
 RunResultFormat.NoDisplay = 'no_display'

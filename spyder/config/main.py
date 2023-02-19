@@ -194,6 +194,11 @@ DEFAULTS = [
               'pdb_stop_first_line': True,
               'breakpoints_panel': True,
              }),
+            ('run',
+             {
+              'save_all_before_run': True,
+              'run_cell_copy': False,
+             }),
             ('plots',
              {
               'mute_inline_plotting': True,
@@ -247,9 +252,6 @@ DEFAULTS = [
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
               'max_recent_files': 20,
-              'save_all_before_run': True,
-              'focus_to_editor': True,
-              'run_cell_copy': False,
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,

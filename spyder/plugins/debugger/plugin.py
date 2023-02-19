@@ -8,6 +8,7 @@
 
 # Standard library imports
 import os.path as osp
+from typing import List
 
 # Third-party imports
 from qtpy.QtCore import Slot
@@ -30,20 +31,23 @@ from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
 from spyder.plugins.run.api import (
-    WorkingDirOpts, WorkingDirSource, RunExecutionParameters,
-    ExtendedRunExecutionParameters)
+    WorkingDirOpts, WorkingDirSource, RunExecutionParameters, RunConfiguration,
+    ExtendedRunExecutionParameters, RunExecutor, run_execute, RunContext,
+    RunResult)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
+from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
 # Localization
 _ = get_translation("spyder")
 
 
-class Debugger(SpyderDockablePlugin, ShellConnectMixin):
+class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'
-    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
+    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences, Plugins.Run]
     OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.Toolbar,
                 Plugins.VariableExplorer]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
@@ -63,7 +67,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         return _('Display and explore frames while debugging.')
 
     def get_icon(self):
-        return self.create_icon('dictedit')
+        return self.create_icon('debug')
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -80,6 +84,66 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         widget.sig_load_pdb_file.connect(
             self._load_pdb_file_in_editor)
 
+        self.python_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'py',
+            'contexts': [
+                {
+                    'name': 'File'
+                },
+                {
+                    'name': 'Cell'
+                },
+                {
+                    'name': 'Selection'
+                },
+            ]
+        }
+
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Cell'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+        ]
+
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -94,6 +158,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
+
+        editor.add_supported_run_configuration(
+            self.python_editor_run_configuration)
 
         # The editor is available, connect signals.
         widget.sig_edit_goto.connect(editor.load)
@@ -123,6 +190,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
+
+        editor.remove_supported_run_configuration(
+            self.python_editor_run_configuration)
 
         widget.sig_edit_goto.disconnect(editor.load)
 
@@ -390,83 +460,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    @Slot()
-    def debug_file(self):
-        """
-        Debug current file.
-
-        It should only be called when an editor is available.
-        """
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if not editor:
-            return
-
-        editor.switch_to_plugin()
-
-        # TODO: This is a temporary measure to debug files whilst the debug API
-        # is defined.
-        current_fname = editor.get_current_filename()
-        fname_uuid = editor.id_per_file[current_fname]
-        run_conf = editor.get_run_configuration(fname_uuid)
-        fname_params = self.main.run.get_last_used_executor_parameters(
-            fname_uuid)
-
-        selected = None
-        if fname_params['executor'] == self.main.ipyconsole.NAME:
-            selected = fname_params['selected']
-
-        if selected is None:
-            ipy_params = IPythonConsolePyConfiguration(
-                current=True, post_mortem=False,
-                python_args_enabled=False, python_args='',
-                clear_namespace=False, console_namespace=False)
-            wdir_opts = WorkingDirOpts(
-                source=WorkingDirSource.CurrentDirectory,
-                path=osp.dirname(current_fname))
-
-            exec_conf = RunExecutionParameters(
-                working_dir=wdir_opts, executor_params=ipy_params)
-            ext_exec_conf = ExtendedRunExecutionParameters(
-                uuid=None, name=None, params=exec_conf)
-        else:
-            run_plugin = self.main.run
-            all_exec_conf = run_plugin.get_executor_configuration_parameters(
-                self.main.ipyconsole.NAME, 'py', RunContext.File
-            )
-            all_exec_conf = all_exec_conf['params']
-            ext_exec_conf = all_exec_conf[selected]
-
-        ext_exec_conf['params']['executor_params']['debug'] = True
-        self.main.run.run_configuration(
-            self.main.ipyconsole.NAME, run_conf, ext_exec_conf)
-
-    @Slot()
-    def debug_cell(self):
-        """
-        Debug current cell.
-
-        It should only be called when an editor is available.
-        """
-        # TODO: This is a temporary measure to debug selections whilst the
-        # debug API is defined.
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editor.run_cell(method="debugcell")
-
-    @Slot()
-    def debug_selection(self):
-        """
-        Debug current selection or line.
-
-        It should only be called when an editor is available.
-        """
-        # TODO: This is a temporary measure to debug selections whilst the
-        # debug API is defined.
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editorstack = editor.get_current_editorstack()
-            text = "%%debug\n" + editorstack.run_selection()[0]
-            self.main.ipyconsole.run_selection(text)
 
     @Slot()
     def clear_all_breakpoints(self):
@@ -516,3 +509,96 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         widget.print_debug_file_msg()
         return False
+
+    # ---- For execution
+    @run_execute(context=RunContext.File)
+    def exec_files(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        console = self.get_plugin(Plugins.IPythonConsole)
+        if console is None:
+            return
+
+        exec_params = conf['params']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+        params["run_method"] = "debugfile"
+
+        console.exec_files(input, conf)
+
+        self.get_widget().set_pdb_take_focus(False)
+
+    @run_execute(context=RunContext.Cell)
+    def exec_cell(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        console = self.get_plugin(Plugins.IPythonConsole)
+        if console is None:
+            return
+
+        run_input: CellRun = input['run_input']
+        if run_input['copy']:
+            console.run_selection("%%debug\n" + run_input['cell'])
+            return
+
+        exec_params = conf['params']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+        params["run_method"] = "debugcell"
+
+        console.exec_cell(input, conf)
+
+        self.get_widget().set_pdb_take_focus(False)
+
+
+    @run_execute(context=RunContext.Selection)
+    def exec_selection(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        console = self.get_plugin(Plugins.IPythonConsole)
+        if console is None:
+            return
+
+        run_input: SelectionRun = input['run_input']
+        run_input['selection'] = "%%debug\n" + run_input['selection']
+
+        console.exec_selection(input, conf)
+
+        self.get_widget().set_pdb_take_focus(False)
+
+    @Slot()
+    def debug_file(self):
+        """
+        Debug current file.
+        """
+        run = self.get_plugin(Plugins.Run)
+        if run is None:
+            return
+        run.run_current_configuration(self.NAME, RunContext.File)
+
+    @Slot()
+    def debug_cell(self):
+        """
+        Debug current cell.
+        """
+        run = self.get_plugin(Plugins.Run)
+        if run is None:
+            return
+        run.run_current_configuration(self.NAME, RunContext.Cell)
+
+    @Slot()
+    def debug_selection(self):
+        """
+        Debug current selection or line.
+        """
+        run = self.get_plugin(Plugins.Run)
+        if run is None:
+            return
+        run.run_current_configuration(self.NAME, RunContext.Selection)

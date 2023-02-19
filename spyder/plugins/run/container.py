@@ -130,7 +130,7 @@ class RunContainer(PluginMainContainer):
     def gen_anonymous_execution_run(
         self,
         context: str,
-        action_name: Optional[str],
+        action_name: Optional[str] = None,
         re_run: bool = False,
         last_executor_name: Optional[str] = None
     ) -> Callable:

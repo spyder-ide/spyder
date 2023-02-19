@@ -1823,8 +1823,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.stop_button_click_handler()
 
     # ---- For cells
-    def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 method='runcell', focus_to_editor=False):
+    def run_cell(self, code, cell_name, filename,
+                 method='runcell'):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -1840,22 +1840,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client is not None:
             is_spyder_kernel = client.shellwidget.is_spyder_kernel
 
-            # Only use copy for runcell
-            if method == 'runcell' and (run_cell_copy or not is_spyder_kernel):
-                # Use copy of cell
-                line = code.strip()
-            elif is_spyder_kernel:
+            if is_spyder_kernel:
                 # Use custom function
                 line = (str(
                         "{}({}, '{}')").format(
                                 str(method),
                                 repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
-
-                if method == "debugcell":
-                    # To keep focus in editor after running debugfile
-                    client.shellwidget._pdb_focus_to_editor = focus_to_editor
-            # External kernels and run_cell_copy, just execute the code
+            elif method == 'runcell':
+                # Use copy of cell
+                line = code.strip()
             else:
                 # Can not use custom function on non-spyder kernels
                 client.shellwidget.append_html_message(
@@ -1867,16 +1861,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 return
 
             try:
-                self.execute_code(line, set_focus=not focus_to_editor)
+                self.execute_code(line)
             except AttributeError:
                 pass
 
-            # This is necessary to prevent raising the console if the editor
-            # and console are tabified next to each other and the 'Maintain
-            # focus in the editor' option is enabled.
-            # Fixes spyder-ide/spyder#17028
-            if not focus_to_editor:
-                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
@@ -1890,7 +1878,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For scripts
     def run_script(self, filename, wdir, args, post_mortem, current_client,
-                   clear_variables, console_namespace, focus_to_editor,
+                   clear_variables, console_namespace,
                    method=None, force_wdir=False):
         """Run script in current or dedicated client."""
         norm = lambda text: remove_backslashes(str(text))
@@ -1933,9 +1921,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     line += ", current_namespace=True"
                 line += ")"
 
-                if method == "debugfile":
-                    # To keep focus in editor after running debugfile
-                    client.shellwidget._pdb_focus_to_editor = focus_to_editor
             elif method in ["runfile", "debugfile"]:
                 # External, non spyder-kernels, use %run
                 line = "%run "
@@ -1960,8 +1945,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     # Fixes spyder-ide/spyder#7293.
                     pass
                 elif current_client:
-                    self.execute_code(line, current_client, clear_variables,
-                                      set_focus=not focus_to_editor)
+                    self.execute_code(line, current_client, clear_variables)
                 else:
                     if is_new_client:
                         client.shellwidget.silent_execute('%clear')
@@ -1970,16 +1954,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     client.shellwidget.sig_prompt_ready.connect(
                         lambda: self.execute_code(
                             line, current_client, clear_variables,
-                            set_focus=not focus_to_editor,
                             shellwidget=client.shellwidget
                         )
                     )
             except AttributeError:
                 pass
 
-            # Show plugin after execution if focus is going to be given to it.
-            if not focus_to_editor:
-                self.sig_switch_to_plugin_requested.emit()
         else:
             # XXX: not sure it can really happen
             QMessageBox.warning(
@@ -2055,7 +2035,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For execution
     def execute_code(self, lines, current_client=True, clear_variables=False,
-                     set_focus=True, shellwidget=None):
+                     shellwidget=None):
         """Execute code instructions."""
         if current_client:
             sw = self.get_current_shellwidget()
@@ -2081,19 +2061,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 sw.execute(str(lines))
             except AttributeError:
                 pass
-
-            if set_focus:
-                # The `activateWindow` call below needs to be inside this `if`
-                # to avoid giving focus to the console when it's undocked,
-                # users are running code from the editor and the 'Maintain
-                # focus in the editor' option is enabled.
-                # Fixes spyder-ide/spyder#3221
-                self.activateWindow()
-
-                # Gives focus to the current client
-                focus_widget = self.get_focus_widget()
-                if focus_widget:
-                    focus_widget.setFocus()
 
     # ---- For error handling
     def go_to_error(self, text):

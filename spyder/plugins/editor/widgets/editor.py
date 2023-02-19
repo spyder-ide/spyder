@@ -179,8 +179,6 @@ class EditorStack(QWidget):
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
-    exec_in_extconsole = Signal(str, bool)
-    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -391,8 +389,6 @@ class EditorStack(QWidget):
         self.remove_trailing_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
-        self.focus_to_editor = True
-        self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
         self.__file_status_flag = False
@@ -1189,13 +1185,6 @@ class EditorStack(QWidget):
         """`state` can be one of ('LF', 'CRLF', 'CR')"""
         # CONF.get(self.CONF_SECTION, 'convert_eol_on_save_to')
         self.convert_eol_on_save_to = state
-
-    def set_focus_to_editor(self, state):
-        self.focus_to_editor = state
-
-    def set_run_cell_copy(self, state):
-        """If `state` is ``True``, code cells will be copied to the console."""
-        self.run_cell_copy = state
 
     def set_current_project_path(self, root_path=None):
         """
@@ -2857,8 +2846,6 @@ class EditorStack(QWidget):
 
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
-        if self.focus_to_editor:
-            editor.move_cursor_to_next('line', 'down')
 
         return (
             text, (line_off_from, line_off_to),
@@ -2873,22 +2860,6 @@ class EditorStack(QWidget):
         encoding = self.get_current_finfo().encoding
         name = cell_name(block)
         return text, off_pos, line_col_pos, name, encoding
-
-    def run_cell(self, method=None):
-        """Run current cell."""
-        text, block, *__ = (
-            self.get_current_editor().get_cell_as_executable_code())
-        finfo = self.get_current_finfo()
-        editor = self.get_current_editor()
-        name = cell_name(block)
-        filename = finfo.filename
-
-        self._run_cell_text(text, editor, (filename, name), method)
-
-    def run_cell_and_advance(self, method=None):
-        """Run current cell and advance to the next one"""
-        self.run_cell(method)
-        self.advance_cell()
 
     def advance_cell(self, reverse=False):
         """Advance to the next cell.
@@ -2920,32 +2891,6 @@ class EditorStack(QWidget):
             return
 
         return text, off_pos, col_pos, cell_name, encoding
-
-    def _run_cell_text(self, text, editor, cell_id, method=None):
-        """Run cell code in the console.
-
-        Cell code is run in the console by copying it to the console if
-        `self.run_cell_copy` is ``True`` otherwise by using the `run_cell`
-        function.
-
-        Parameters
-        ----------
-        text : str
-            The code in the cell as a string.
-        line : int
-            The starting line number of the cell in the file.
-        """
-        (filename, cell_name) = cell_id
-        if editor.is_python_or_ipython():
-            if method is None:
-                method = "runcell"
-            # self.run_cell_copy only works for runcell
-            run_cell_copy = self.run_cell_copy
-            if method != "runcell":
-                run_cell_copy = False
-            self.sig_run_cell_in_ipyclient.emit(
-                text, cell_name, filename, run_cell_copy, method,
-                self.focus_to_editor)
 
     #  ------ Drag and drop
     def dragEnterEvent(self, event):

@@ -273,7 +273,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             register_shortcut=True
         )
 
-        self.create_action(
+        debug_file_action = self.create_action(
             DebuggerToolbarActions.DebugCurrentFile,
             text=_("&Debug file"),
             tip=_("Debug file"),
@@ -282,7 +282,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             register_shortcut=True,
         )
 
-        self.create_action(
+        debug_cell_action = self.create_action(
             DebuggerToolbarActions.DebugCurrentCell,
             text=_("Debug cell"),
             tip=_("Debug cell"),
@@ -291,7 +291,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             register_shortcut=True,
         )
 
-        self.create_action(
+        debug_selection_action = self.create_action(
             DebuggerToolbarActions.DebugCurrentSelection,
             text=_("Debug selection or current line"),
             tip=_("Debug selection or current line"),
@@ -347,18 +347,31 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
+        secondary_toolbar = self.create_toolbar("widget_control")
+
+        for item in [
+                debug_file_action,
+                debug_cell_action,
+                debug_selection_action,
+                enter_debug_action,
+                inspect_action,
+                ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=main_toolbar,
+                section=DebuggerWidgetMainToolBarSections.Main,
+            )
+
         for item in [next_action,
                      continue_action,
                      step_action,
                      return_action,
                      stop_action,
                      goto_cursor_action,
-                     enter_debug_action,
-                     inspect_action,
                      search_action]:
             self.add_item_to_toolbar(
                 item,
-                toolbar=main_toolbar,
+                toolbar=secondary_toolbar,
                 section=DebuggerWidgetMainToolBarSections.Main,
             )
 
@@ -528,6 +541,16 @@ class DebuggerWidget(ShellConnectMainWidget):
                       'in debug mode.')
         sw.append_html_message(debug_msg, before_prompt=True)
 
+    def set_pdb_take_focus(self, take_focus):
+        """
+        Set whether current pdb should take focus when stopping on the 
+        next call.
+        """
+        widget = self.current_widget()
+        if widget is None:
+            return False
+        widget.shellwidget._pdb_take_focus = take_focus
+
     @Slot(bool)
     def toggle_finder(self, checked):
         """Show or hide finder."""
@@ -622,6 +645,4 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        focus_to_editor = self.get_conf("focus_to_editor", section="editor")
-        widget.shellwidget.pdb_execute_command(
-            command, focus_to_editor=focus_to_editor)
+        widget.shellwidget.pdb_execute_command(command)

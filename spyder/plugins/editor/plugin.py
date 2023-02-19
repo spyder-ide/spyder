@@ -72,10 +72,6 @@ from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 logger = logging.getLogger(__name__)
 
-RunContext.File = 'file'
-RunContext.Selection = 'selection'
-RunContext.Cell = 'cell'
-
 
 class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     """
@@ -94,11 +90,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
 
     # Signals
-    sig_run_file_in_ipyclient = Signal(
-        str, str, str, bool, bool, bool, bool, bool, str, bool)
-    sig_run_cell_in_ipyclient = Signal(str, object, str, bool, str, bool)
-
-    exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
 
     sig_dir_opened = Signal(str)
@@ -1443,8 +1434,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             ('set_edgeline_enabled',                'edge_line'),
             ('set_indent_guides',                   'indent_guides'),
             ('set_code_folding_enabled',            'code_folding'),
-            ('set_focus_to_editor',                 'focus_to_editor'),
-            ('set_run_cell_copy',                   'run_cell_copy'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_close_quotes_enabled',            'close_quotes'),
             ('set_add_colons_enabled',              'add_colons'),
@@ -1513,11 +1502,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_option_changed.connect(self.sig_option_changed)
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
-        editorstack.exec_in_extconsole.connect(
-                                    lambda text, option:
-                                    self.exec_in_extconsole.emit(text, option))
-        editorstack.sig_run_cell_in_ipyclient.connect(
-            self.sig_run_cell_in_ipyclient)
         editorstack.update_plugin_title.connect(self.sig_update_plugin_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
@@ -2832,7 +2816,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self._get_editorstack()
-        if save_all and self.get_option('save_all_before_run'):
+        if save_all and self.get_option('save_all_before_run', section="run"):
             editorstack.save_all(save_new_files=False)
         editor = self._get_editor(filename)
 
@@ -2939,7 +2923,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
         editorstack = self.get_current_editorstack()
         self.focus_run_configuration(metadata_id)
-        if self.get_option('save_all_before_run'):
+        if self.get_option('save_all_before_run', section="run"):
             editorstack.save_all(save_new_files=False)
         metadata = self.metadata_per_id[metadata_id]
         context = metadata['context']['name']
@@ -2956,7 +2940,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         re_run=False
     ) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
-        if self.get_option('save_all_before_run'):
+        if self.get_option('save_all_before_run', section="run"):
             editorstack.save_all(save_new_files=False)
 
         fname = self.get_current_filename()
@@ -2987,7 +2971,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 info = editorstack.get_cell()
             text, offsets, line_cols, cell_name, enc = info
             context_name = 'Cell'
-            copy_cell = editorstack.run_cell_copy
+            copy_cell = self.get_option('run_cell_copy', section='run')
             run_input = CellRun(
                 path=fname, cell=text, cell_name=cell_name, encoding=enc,
                 line_col_bounds=line_cols, character_bounds=offsets,
@@ -3036,24 +3020,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """Run all lines from current line to end"""
         editorstack = self.get_current_editorstack()
         editorstack.run_from_line()
-
-    @Slot()
-    def run_cell(self, method=None):
-        """Run current cell"""
-        editorstack = self.get_current_editorstack()
-        editorstack.run_cell(method=method)
-
-    @Slot()
-    def run_cell_and_advance(self, method=None):
-        """Run current cell and advance to the next one"""
-        editorstack = self.get_current_editorstack()
-        editorstack.run_cell_and_advance(method)
-
-    @Slot()
-    def re_run_last_cell(self):
-        """Run last executed cell."""
-        editorstack = self.get_current_editorstack()
-        editorstack.re_run_last_cell()
 
     # ------ Code bookmarks
     @Slot(int)
@@ -3123,8 +3089,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             occurrence_o = self.get_option(occurrence_n)
             occurrence_timeout_n = 'occurrence_highlighting/timeout'
             occurrence_timeout_o = self.get_option(occurrence_timeout_n)
-            focus_to_editor_n = 'focus_to_editor'
-            focus_to_editor_o = self.get_option(focus_to_editor_n)
 
             for editorstack in self.editorstacks:
                 if currentline_n in options:
@@ -3138,8 +3102,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 if occurrence_timeout_n in options:
                     editorstack.set_occurrence_highlighting_timeout(
                                                            occurrence_timeout_o)
-                if focus_to_editor_n in options:
-                    editorstack.set_focus_to_editor(focus_to_editor_o)
 
             # --- everything else
             tabbar_n = 'show_tab_bar'
@@ -3174,8 +3136,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             converteol_o = self.get_option(converteol_n)
             converteolto_n = 'convert_eol_on_save_to'
             converteolto_o = self.get_option(converteolto_n)
-            runcellcopy_n = 'run_cell_copy'
-            runcellcopy_o = self.get_option(runcellcopy_n)
             closepar_n = 'close_parentheses'
             closepar_o = self.get_option(closepar_n)
             close_quotes_n = 'close_quotes'
@@ -3232,8 +3192,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     editorstack.set_convert_eol_on_save(converteol_o)
                 if converteolto_n in options:
                     editorstack.set_convert_eol_on_save_to(converteolto_o)
-                if runcellcopy_n in options:
-                    editorstack.set_run_cell_copy(runcellcopy_o)
                 if closepar_n in options:
                     editorstack.set_close_parentheses_enabled(closepar_o)
                 if close_quotes_n in options:

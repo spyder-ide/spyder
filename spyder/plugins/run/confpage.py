@@ -223,7 +223,22 @@ class RunConfigPage(PluginConfigPage):
         sn_buttons_layout.setColumnStretch(1, 2)
         sn_buttons_layout.setColumnStretch(2, 1)
 
+        # --- Run code tab ---
+        newcb = self.create_checkbox
+        saveall_box = newcb(_("Save all files before running script"),
+                            'save_all_before_run')
+        run_cell_box = newcb(_("Copy full cell contents to the console when "
+                               "running code cells"), 'run_cell_copy')
+
+        run_layout = QVBoxLayout()
+        run_layout.addWidget(saveall_box)
+        run_layout.addWidget(run_cell_box)
+
+        editor_group = QGroupBox(_("Editor interaction"))
+        editor_group.setLayout(run_layout)
+
         vlayout = QVBoxLayout(self)
+        vlayout.addWidget(editor_group)
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(executor_group)

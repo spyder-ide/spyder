@@ -496,7 +496,7 @@ class ConsoleWidget(PluginMainWidget):
         self.dialog_manager.show(editor)
 
     @Slot()
-    def run_script(self, filename=None, silent=False, set_focus=False,
+    def run_script(self, filename=None, silent=False,
                    args=None):
         """
         Run a Python script.
@@ -521,9 +521,6 @@ class ConsoleWidget(PluginMainWidget):
         filename = osp.abspath(filename)
         rbs = remove_backslashes
         command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
-
-        if set_focus:
-            self.shell.setFocus()
 
         self.change_visibility(True, True)
 
