@@ -25,9 +25,9 @@ import sys
 from intervaltree import IntervalTree
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
 from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
-                        QLinearGradient, QPen, QPalette, QResizeEvent,
-                        QCursor, QTextCursor)
-from qtpy.QtWidgets import QApplication, QStyleOptionViewItem, QStyle
+                        QLinearGradient, QPen, QResizeEvent, QCursor,
+                        QTextCursor)
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.api.panel import Panel
@@ -57,7 +57,6 @@ class FoldingPanel(Panel):
 
     def __init__(self):
         Panel.__init__(self)
-        self._native_icons = False
         self._indicators_icons = (
             'folding.arrow_right_off',
             'folding.arrow_right_on',
@@ -90,29 +89,6 @@ class FoldingPanel(Panel):
         self.folding_nesting = {}
 
     @property
-    def native_icons(self):
-        """
-        Defines whether the panel will use native indicator icons or
-        use custom ones.
-
-        If you want to use custom indicator icons, you must first
-        set this flag to False.
-        """
-        return self.native_icons
-
-    @native_icons.setter
-    def native_icons(self, value):
-        self._native_icons = value
-        # propagate changes to every clone
-        if self.editor:
-            for clone in self.editor.clones:
-                try:
-                    clone.modes.get(self.__class__).native_icons = value
-                except KeyError:
-                    # this should never happen since we're working with clones
-                    pass
-
-    @property
     def indicators_icons(self):
         """
         Gets/sets the icons for the fold indicators.
@@ -120,8 +96,6 @@ class FoldingPanel(Panel):
         The list of indicators is interpreted as follow::
 
             (COLLAPSED_OFF, COLLAPSED_ON, EXPANDED_OFF, EXPANDED_ON)
-
-        To use this property you must first set `native_icons` to False.
 
         :returns: tuple(str, str, str, str)
         """
@@ -372,31 +346,12 @@ class FoldingPanel(Panel):
         """
         rect = QRect(0, top, self.sizeHint().width(),
                      self.sizeHint().height())
-        if self._native_icons:
-            opt = QStyleOptionViewItem()
-
-            opt.rect = rect
-            opt.state = (QStyle.State_Active |
-                         QStyle.State_Item |
-                         QStyle.State_Children)
-            if not collapsed:
-                opt.state |= QStyle.State_Open
-            if mouse_over:
-                opt.state |= (QStyle.State_MouseOver |
-                              QStyle.State_Enabled |
-                              QStyle.State_Selected)
-                opt.palette.setBrush(QPalette.Window,
-                                     self.palette().highlight())
-            opt.rect.translate(-2, 0)
-            self.style().drawPrimitive(QStyle.PE_IndicatorBranch,
-                                       opt, painter, self)
-        else:
-            index = 0
-            if not collapsed:
-                index = 2
-            if mouse_over:
-                index += 1
-            ima.icon(self._indicators_icons[index]).paint(painter, rect)
+        index = 0
+        if not collapsed:
+            index = 2
+        if mouse_over:
+            index += 1
+        ima.icon(self._indicators_icons[index]).paint(painter, rect)
 
     def find_parent_scope(self, block):
         """Find parent scope, if the block is not a fold trigger."""
