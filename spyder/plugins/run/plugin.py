@@ -395,7 +395,7 @@ class Run(SpyderPluginV2):
         shortcut_context: Optional[str] = None,
         register_shortcut: bool = False,
         extra_action_name: Optional[str] = None,
-        conjunction_or_preposition: str = "and",
+        context_modificator: Optional[str] = None,
         add_to_toolbar: bool = False,
         add_to_menu: bool = False,
         re_run: bool = False
@@ -422,10 +422,9 @@ class Run(SpyderPluginV2):
         extra_action_name: Optional[str]
             The name of the action to execute on the run input provider
             after requesting the run input.
-        conjunction_or_preposition: str
-            The conjunction or preposition used to describe the action that
-            should take place after the context, e.g. run <and> advance,
-            run selection <from> the current line, etc. Default: "and".
+        context_modificator: Optional[str]
+            The name of the modification to apply to the action.
+            e.g. run selection <up to line>
         add_to_toolbar: bool
             If True, then the action will be added to the Run section of the
             main toolbar.
@@ -448,7 +447,8 @@ class Run(SpyderPluginV2):
         Cell can be used if and only if the file was registered.
 
         2. The button will be registered as `run <context>` or
-        `run <context> and <extra_action_name>` on the action registry.
+        `run <context> <context_modificator> and <extra_action_name>`
+        on the action registry.
 
         3. The created button will operate over the last focused run input
         provider.
@@ -459,7 +459,7 @@ class Run(SpyderPluginV2):
         selection), the editor will register their corresponding icons and
         shortcuts.
         """
-        key = (context_name, extra_action_name, conjunction_or_preposition,
+        key = (context_name, extra_action_name, context_modificator,
                re_run)
 
         action = self.get_container().create_run_button(
@@ -470,7 +470,7 @@ class Run(SpyderPluginV2):
             shortcut_context=shortcut_context,
             register_shortcut=register_shortcut,
             extra_action_name=extra_action_name,
-            conjunction_or_preposition=conjunction_or_preposition,
+            context_modificator=context_modificator,
             re_run=re_run
         )
 
@@ -510,7 +510,7 @@ class Run(SpyderPluginV2):
         self,
         context_name: str,
         extra_action_name: Optional[str] = None,
-        conjunction_or_preposition: str = "and",
+        context_modificator: Optional[str] = None,
         re_run: bool = False
     ):
         """
@@ -524,10 +524,9 @@ class Run(SpyderPluginV2):
         extra_action_name: Optional[str]
             The name of the action to execute on the run input provider
             after requesting the run input.
-        conjunction_or_preposition: str
-            The conjunction or preposition used to describe the action that
-            should take place after the context, i.e. run <and> advance,
-            run selection <from> the current line, etc. Default: "and".
+        context_modificator: Optional[str]
+            The name of the modification to apply to the action.
+            e.g. run selection <up to line>
         re_run: bool
             If True, then the button was registered as a re-run button
             instead of a run one.
@@ -542,7 +541,7 @@ class Run(SpyderPluginV2):
         toolbar = self.get_plugin(Plugins.Toolbar)
         shortcuts = self.get_plugin(Plugins.Shortcuts)
 
-        key = (context_name, extra_action_name, conjunction_or_preposition,
+        key = (context_name, extra_action_name, context_modificator,
                re_run)
 
         with self.action_lock:

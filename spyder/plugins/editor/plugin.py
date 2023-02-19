@@ -47,7 +47,8 @@ from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.api.run import (
-    EditorRunConfiguration, FileRun, SelectionRun, CellRun)
+    EditorRunConfiguration, FileRun, SelectionRun, CellRun,
+    SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
@@ -297,7 +298,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 register_shortcut=True,
                 add_to_toolbar=True,
                 add_to_menu=True,
-                extra_action_name='advance'
+                extra_action_name=ExtraAction.Advance
             )
 
             run.create_run_button(
@@ -318,7 +319,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 shortcut_context="_",
                 register_shortcut=True,
                 add_to_toolbar=True,
-                add_to_menu=True
+                add_to_menu=True,
+                extra_action_name=ExtraAction.Advance,
             )
 
             run.create_run_button(
@@ -329,8 +331,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 register_shortcut=True,
                 add_to_toolbar=False,
                 add_to_menu=True,
-                extra_action_name="to line",
-                conjunction_or_preposition="up"
+                context_modificator=SelectionContextModificator.ToLine
             )
 
             run.create_run_button(
@@ -341,8 +342,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 register_shortcut=True,
                 add_to_toolbar=False,
                 add_to_menu=True,
-                extra_action_name="line",
-                conjunction_or_preposition="from"
+                context_modificator=SelectionContextModificator.FromLine
             )
 
         layout = QVBoxLayout()
@@ -2936,7 +2936,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         return run_conf
 
     def get_run_configuration_per_context(
-        self, context, action_name,
+        self, context, extra_action_name, context_modificator,
         re_run=False
     ) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
@@ -2950,17 +2950,21 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         context_name = None
 
         if context == RunContext.Selection:
-            if action_name == 'to line':
+            if context_modificator == SelectionContextModificator.ToLine:
                 ret = editorstack.get_to_current_line()
                 if ret is not None:
                     text, offsets, line_cols, enc = ret
                 else:
                     return
-            elif action_name == 'line':
+            elif (
+                context_modificator == SelectionContextModificator.FromLine
+            ):
                 text, offsets, line_cols, enc = (
                     editorstack.get_from_current_line())
             else:
                 text, offsets, line_cols, enc = editorstack.get_selection()
+            if extra_action_name == ExtraAction.Advance:
+                editorstack.advance_line()
             context_name = 'Selection'
             run_input = SelectionRun(
                 path=fname, selection=text, encoding=enc,
@@ -2978,7 +2982,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 line_col_bounds=line_cols, character_bounds=offsets,
                 copy=copy_cell)
 
-            if action_name == 'advance':
+            if extra_action_name == ExtraAction.Advance:
                 editorstack.advance_cell()
 
         metadata: RunConfigurationMetadata = {

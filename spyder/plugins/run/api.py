@@ -309,7 +309,8 @@ class RunConfigurationProvider(QObject):
     def get_run_configuration_per_context(
             self,
             context: str,
-            action_name: Optional[str] = None,
+            extra_action_name: Optional[str] = None,
+            context_modificator: Optional[str] = None,
             re_run: bool = False
         ) -> Optional[RunConfiguration]:
         """
@@ -323,10 +324,13 @@ class RunConfigurationProvider(QObject):
         context: str
             The context identifier for which the run configuration
             is requested.
-        action_name: Optional[str]
+        extra_action_name: Optional[str]
             If not None, the name of the action that the provider should take
             after gathering the run configuration input. Else, no action needs
             to take place.
+        context_modificator: Optional[str]
+            str describing how to alter the context.
+            e.g. run selection <from line>
         re_run: bool
             If True, then the requested configuration should correspond to the
             last executed configuration for the given context.

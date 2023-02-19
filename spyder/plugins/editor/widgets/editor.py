@@ -2786,7 +2786,7 @@ class EditorStack(QWidget):
 
     #  ------ Run
     def _get_lines_cursor(self, direction):
-        """ Select and run all lines from cursor in given direction"""
+        """ Select and return all lines from cursor in given direction"""
         editor = self.get_current_editor()
         finfo = self.get_current_finfo()
         enc = finfo.encoding
@@ -2808,21 +2808,21 @@ class EditorStack(QWidget):
 
     def get_to_current_line(self):
         """
-        Run all lines from the beginning up to, but not including, current
+        Get all lines from the beginning up to, but not including, current
         line.
         """
         return self._get_lines_cursor(direction='up')
 
     def get_from_current_line(self):
         """
-        Run all lines from and including the current line to the end of
+        Get all lines from and including the current line to the end of
         the document.
         """
         return self._get_lines_cursor(direction='down')
 
     def get_selection(self):
         """
-        Run selected text or current line in console.
+        Get selected text or current line in console.
 
         If some text is selected, then execute that text in console.
 
@@ -2844,16 +2844,23 @@ class EditorStack(QWidget):
         line = editor.get_current_line()
         text = line.lstrip()
 
-        if editor.is_cursor_on_last_line() and text:
-            editor.append(editor.get_line_separator())
-
-        editor.move_cursor_to_next('line', 'down')
-
         return (
             text, (line_off_from, line_off_to),
             (line_col_from, line_col_to),
             encoding
         )
+
+    def advance_line(self):
+        """Advance to the next line."""
+        editor = self.get_current_editor()
+        if (
+            editor.is_cursor_on_last_line()
+            and editor.get_current_line().strip()
+        ):
+            editor.append(editor.get_line_separator())
+
+        editor.move_cursor_to_next('line', 'down')
+
 
     def get_current_cell(self):
         """Get current cell attributes."""
