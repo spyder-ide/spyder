@@ -2785,7 +2785,7 @@ class EditorStack(QWidget):
         finfo.editor.format_document_or_range()
 
     #  ------ Run
-    def _run_lines_cursor(self, direction):
+    def _get_lines_cursor(self, direction):
         """ Select and run all lines from cursor in given direction"""
         editor = self.get_current_editor()
         finfo = self.get_current_finfo()
@@ -2806,21 +2806,21 @@ class EditorStack(QWidget):
             code_text, off_pos, line_col_pos = selection
             return code_text.rstrip(), off_pos, line_col_pos, enc
 
-    def run_to_line(self):
+    def get_to_current_line(self):
         """
         Run all lines from the beginning up to, but not including, current
         line.
         """
-        return self._run_lines_cursor(direction='up')
+        return self._get_lines_cursor(direction='up')
 
-    def run_from_line(self):
+    def get_from_current_line(self):
         """
         Run all lines from and including the current line to the end of
         the document.
         """
-        return self._run_lines_cursor(direction='down')
+        return self._get_lines_cursor(direction='down')
 
-    def run_selection(self):
+    def get_selection(self):
         """
         Run selected text or current line in console.
 
@@ -2855,7 +2855,7 @@ class EditorStack(QWidget):
             encoding
         )
 
-    def get_cell(self):
+    def get_current_cell(self):
         """Get current cell attributes."""
         text, block, off_pos, line_col_pos = (
             self.get_current_editor().get_cell_as_executable_code())
@@ -2875,7 +2875,7 @@ class EditorStack(QWidget):
 
         move_func()
 
-    def re_run_last_cell(self):
+    def get_last_cell(self):
         """Run the previous cell again."""
         if self.last_cell_call is None:
             return

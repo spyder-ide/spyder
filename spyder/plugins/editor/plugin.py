@@ -2951,24 +2951,25 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         if context == RunContext.Selection:
             if action_name == 'to line':
-                ret = editorstack.run_to_line()
+                ret = editorstack.get_to_current_line()
                 if ret is not None:
                     text, offsets, line_cols, enc = ret
                 else:
                     return
             elif action_name == 'line':
-                text, offsets, line_cols, enc = editorstack.run_from_line()
+                text, offsets, line_cols, enc = (
+                    editorstack.get_from_current_line())
             else:
-                text, offsets, line_cols, enc = editorstack.run_selection()
+                text, offsets, line_cols, enc = editorstack.get_selection()
             context_name = 'Selection'
             run_input = SelectionRun(
                 path=fname, selection=text, encoding=enc,
                 line_col_bounds=line_cols, character_bounds=offsets)
         elif context == RunContext.Cell:
             if re_run:
-                info = editorstack.re_run_last_cell()
+                info = editorstack.get_last_cell()
             else:
-                info = editorstack.get_cell()
+                info = editorstack.get_current_cell()
             text, offsets, line_cols, cell_name, enc = info
             context_name = 'Cell'
             copy_cell = self.get_option('run_cell_copy', section='run')
@@ -3002,24 +3003,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         current_fname = self.get_current_filename()
         if current_fname != fname:
             editorstack.set_current_filename(fname)
-
-    @Slot()
-    def run_selection(self):
-        """Run selection or current line in external console"""
-        editorstack = self.get_current_editorstack()
-        editorstack.run_selection()
-
-    @Slot()
-    def run_to_line(self):
-        """Run all lines from beginning up to current line"""
-        editorstack = self.get_current_editorstack()
-        editorstack.run_to_line()
-
-    @Slot()
-    def run_from_line(self):
-        """Run all lines from current line to end"""
-        editorstack = self.get_current_editorstack()
-        editorstack.run_from_line()
 
     # ------ Code bookmarks
     @Slot(int)
