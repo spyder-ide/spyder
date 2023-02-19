@@ -195,6 +195,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
                 section=DebuggerWidgetMainToolBarSections.Run,
                 before_section=DebuggerWidgetMainToolBarSections.Main,
             )
+        main_toolbar._render()
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
