@@ -2847,6 +2847,8 @@ class EditorStack(QWidget):
         if editor.is_cursor_on_last_line() and text:
             editor.append(editor.get_line_separator())
 
+        editor.move_cursor_to_next('line', 'down')
+
         return (
             text, (line_off_from, line_off_to),
             (line_col_from, line_col_to),
