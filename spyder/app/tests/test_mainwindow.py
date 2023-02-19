@@ -639,7 +639,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
                                  Qt.LeftButton)
 
         # Debug the cell
-        debug_cell_action = main_window.debugger.get_action(
+        debug_cell_action = main_window.run.get_action(
             "run cell in debugger")
         with qtbot.waitSignal(shell.executed):
             debug_cell_action.trigger()
@@ -1567,7 +1567,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Debug cell ------
-    debug_cell_action = main_window.debugger.get_action(
+    debug_cell_action = main_window.run.get_action(
         "run cell in debugger")
     with qtbot.waitSignal(shell.executed):
         debug_cell_action.trigger()
@@ -5956,7 +5956,7 @@ def test_debug_selection(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     debug_widget = main_window.debugger.get_widget()
-    debug_selection_action = debug_widget.get_action(
+    debug_selection_action = main_window.run.get_action(
         "run selection in debugger")
     continue_action = debug_widget.get_action(
         DebuggerWidgetActions.Continue)

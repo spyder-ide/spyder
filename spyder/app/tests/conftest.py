@@ -393,7 +393,7 @@ def main_window(request, tmpdir, qtbot):
     # it's used a lot.
     toolbar = window.get_plugin(Plugins.Toolbar)
     debug_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Debug)
-    debug_action = window.debugger.get_action(
+    debug_action = window.run.get_action(
         "run file in debugger")
     debug_button = debug_toolbar.widgetForAction(debug_action)
     window.debug_button = debug_button
