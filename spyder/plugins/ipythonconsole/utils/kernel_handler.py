@@ -138,8 +138,12 @@ class KernelHandler(QObject):
     """
 
     _shutdown_thread_list = []
-    _shutdown_thread_list_lock = Lock()
     """List of running shutdown threads"""
+
+    _shutdown_thread_list_lock = Lock()
+    """
+    Lock to add threads to _shutdown_thread_list or clear that list.
+    """
 
     def __init__(
         self,
