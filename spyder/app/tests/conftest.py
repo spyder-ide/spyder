@@ -415,7 +415,7 @@ def main_window(request, tmpdir, qtbot):
         run_cell_and_advance_action)
     window.run_cell_and_advance_button = run_cell_and_advance_button
 
-    run_selection_action = window.run.get_action('run selection')
+    run_selection_action = window.run.get_action('run selection and advance')
     run_selection_button = run_toolbar.widgetForAction(run_selection_action)
     window.run_selection_button = run_selection_button
 
