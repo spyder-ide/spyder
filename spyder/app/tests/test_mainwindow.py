@@ -56,7 +56,7 @@ from spyder.config.base import (
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import (
-    DebuggerWidgetActions, DebuggerToolbarActions)
+    DebuggerWidgetActions)
 from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -640,7 +640,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 
         # Debug the cell
         debug_cell_action = main_window.debugger.get_action(
-            DebuggerToolbarActions.DebugCurrentCell)
+            "run cell in debugger")
         with qtbot.waitSignal(shell.executed):
             debug_cell_action.trigger()
 
@@ -1568,7 +1568,7 @@ def test_run_code(main_window, qtbot, tmpdir):
 
     # ---- Debug cell ------
     debug_cell_action = main_window.debugger.get_action(
-        DebuggerToolbarActions.DebugCurrentCell)
+        "run cell in debugger")
     with qtbot.waitSignal(shell.executed):
         debug_cell_action.trigger()
     qtbot.keyClicks(shell._control, '!c')
@@ -5957,7 +5957,7 @@ def test_debug_selection(main_window, qtbot):
     control = shell._control
     debug_widget = main_window.debugger.get_widget()
     debug_selection_action = debug_widget.get_action(
-        DebuggerToolbarActions.DebugCurrentSelection)
+        "run selection in debugger")
     continue_action = debug_widget.get_action(
         DebuggerWidgetActions.Continue)
 
