@@ -1819,8 +1819,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     # editor by error
     debugger = main_window.debugger
     debug_next_action = debugger.get_action(DebuggerWidgetActions.Next)
-    debug_next_button = debugger.get_widget()._auxiliary_toolbars[
-        "widget_control"].widgetForAction(debug_next_action)
+    debug_next_button = debugger.get_widget()._main_toolbar.widgetForAction(
+        debug_next_action)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_next_button, Qt.LeftButton)
     assert not main_window.editor._ismaximized
