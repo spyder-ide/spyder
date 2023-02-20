@@ -26,7 +26,7 @@ spyder_crash.log
 .cache
 .coverage*
 MANIFEST
-boot_branch.txt
+.boot_branch.txt
 
 # git .orig files
 *.orig

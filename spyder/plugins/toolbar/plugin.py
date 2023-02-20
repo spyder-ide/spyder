@@ -90,8 +90,7 @@ class Toolbar(SpyderPluginV2):
 
         # TODO: Until all core plugins are migrated, this is needed.
         ACTION_MAP = {
-            ApplicationToolbars.File: self._main.file_toolbar_actions,
-            ApplicationToolbars.Run: self._main.run_toolbar_actions,
+            ApplicationToolbars.File: self._main.file_toolbar_actions
         }
         for toolbar in container.get_application_toolbars():
             toolbar_id = toolbar.ID

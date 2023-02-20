@@ -20,6 +20,7 @@ class Plugins:
     Debugger = 'debugger'
     Editor = 'editor'
     Explorer = 'explorer'
+    ExternalConsole = 'external_console'
     Find = 'find_in_files'
     Help = 'help'
     History = 'historylog'

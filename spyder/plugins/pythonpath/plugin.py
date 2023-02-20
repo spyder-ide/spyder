@@ -134,7 +134,7 @@ class PythonpathManager(SpyderPluginV2):
     # ---- Public API
     def get_spyder_pythonpath(self):
         """Get Pythonpath paths handled by Spyder as a list."""
-        self.get_container().get_spyder_pythonpath()
+        return self.get_container().get_spyder_pythonpath()
 
     def show_path_manager(self):
         """Show Path manager dialog."""
