@@ -178,11 +178,6 @@ class RunConfigPage(PluginConfigPage):
             self.executor_index_changed)
         self.executor_combo.setModel(self.executor_model)
 
-        executor_group = QGroupBox(_('Run executors'))
-        executor_layout = QVBoxLayout()
-        executor_layout.addWidget(self.executor_combo)
-        executor_group.setLayout(executor_layout)
-
         self.params_table = RunParametersTableView(self, self.table_model)
         self.params_table.setMaximumHeight(180)
 
@@ -223,7 +218,7 @@ class RunConfigPage(PluginConfigPage):
         sn_buttons_layout.setColumnStretch(1, 2)
         sn_buttons_layout.setColumnStretch(2, 1)
 
-        # --- Run code tab ---
+        # --- Editor interactions tab ---
         newcb = self.create_checkbox
         saveall_box = newcb(_("Save all files before running script"),
                             'save_all_before_run')
@@ -236,12 +231,10 @@ class RunConfigPage(PluginConfigPage):
         run_widget = QWidget()
         run_widget.setLayout(run_layout)
 
-
-
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
-        vlayout.addWidget(executor_group)
+        vlayout.addWidget(self.executor_combo)
         vlayout.addWidget(params_group)
         vlayout.addLayout(sn_buttons_layout)
         vlayout.addStretch(1)
@@ -251,7 +244,7 @@ class RunConfigPage(PluginConfigPage):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(executor_widget), _("Run executors"))
         self.tabs.addTab(
-            self.create_tab(run_widget), _("Editor interaction"))
+            self.create_tab(run_widget), _("Editor interactions"))
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.tabs)
         self.setLayout(main_layout)
