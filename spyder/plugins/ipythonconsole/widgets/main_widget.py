@@ -1903,6 +1903,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 line = method + "('%s'" % (norm(filename))
                 if args:
                     line += ", args='%s'" % norm(args)
+                if (
+                    wdir and client.shellwidget.is_external_kernel
+                    and os.path.samefile(wdir, os.path.dirname(filename))
+                ):
+                    # No working directory for external kernels
+                    wdir = ""
                 if wdir:
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
