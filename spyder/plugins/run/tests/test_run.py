@@ -133,6 +133,7 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
         self,
         context: str,
         action_name: Optional[str] = None,
+        context_modificator: Optional[str] = None,
         re_run: bool = False
     ) -> Optional[RunConfiguration]:
 

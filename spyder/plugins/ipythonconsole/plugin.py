@@ -350,11 +350,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         editor = self.get_plugin(Plugins.Editor)
         self.sig_edit_goto_requested.connect(editor.load)
         self.sig_edit_new.connect(editor.new)
-        editor.sig_run_file_in_ipyclient.connect(
-            self.run_script)
-        editor.sig_run_cell_in_ipyclient.connect(
-            self.run_cell)
-        editor.exec_in_extconsole.connect(self.run_selection)
 
         editor.add_supported_run_configuration(
             self.python_editor_run_configuration)
@@ -405,11 +400,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         editor = self.get_plugin(Plugins.Editor)
         self.sig_edit_goto_requested.disconnect(editor.load)
         self.sig_edit_new.disconnect(editor.new)
-        editor.sig_run_file_in_ipyclient.disconnect(
-            self.run_script)
-        editor.sig_run_cell_in_ipyclient.disconnect(
-            self.run_cell)
-        editor.exec_in_extconsole.disconnect(self.run_selection)
 
         editor.remove_supported_run_configuration(
             self.python_editor_run_configuration)
@@ -659,16 +649,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         current_client = params['current']
         clear_variables = params['clear_namespace']
         console_namespace = params['console_namespace']
-        debug = params.get('debug', False)
+        run_method = params.get('run_method', 'runfile')
 
         # Escape single and double quotes in fname and dirname.
         # Fixes spyder-ide/spyder#2158.
         filename = filename.replace("'", r"\'").replace('"', r'\"')
-
-        force_wdir = False
-        if wdir is not None:
-            if osp.isdir(wdir):
-                force_wdir = True
 
         self.run_script(
             filename,
@@ -678,9 +663,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             current_client,
             clear_variables,
             console_namespace,
-            focus_to_editor=True,
-            method='debugfile' if debug else 'runfile',
-            force_wdir=force_wdir
+            method=run_method,
         )
 
         return []
@@ -705,18 +688,25 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         run_input: CellRun = input['run_input']
         cell_text = run_input['cell']
+
+        if run_input['copy']:
+            self.run_selection(cell_text)
+            return
+
         cell_name = run_input['cell_name']
         filename = run_input['path']
-        copy = run_input['copy']
-        self.run_cell(cell_text, cell_name, filename, copy,
-                      focus_to_editor=True)
+
+        exec_params = conf['params']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+        run_method = params.get('run_method', 'runcell')
+        self.run_cell(cell_text, cell_name, filename,
+                      method=run_method)
 
     # ---- For execution and debugging
     def run_script(self, filename, wdir, args='',
                    post_mortem=False, current_client=True,
                    clear_variables=False, console_namespace=False,
-                   focus_to_editor=True, method=None,
-                   force_wdir=False):
+                   method=None):
         """
         Run script in current or dedicated client.
 
@@ -739,14 +729,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             False otherwise.
         console_namespace : bool, optional
             True if the console namespace should be used, False otherwise.
-        focus_to_editor: bool, optional
-            Leave focus in the editor after execution.
         method : str or None
             Method to run the file. It must accept the same arguments as
             `runfile`.
-        force_wdir: bool
-            The working directory is ignored on remote kernels except if
-            force_wdir is True
 
         Returns
         -------
@@ -761,43 +746,31 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             current_client,
             clear_variables,
             console_namespace,
-            focus_to_editor,
-            method,
-            force_wdir)
+            method
+        )
 
-    def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 method='runcell', focus_to_editor=False):
+    def run_cell(self, code, cell_name, filename, method='runcell'):
         """
         Run cell in current or dedicated client.
 
         Parameters
         ----------
         code : str
-            Piece of code to run that corresponds to a cell in case
-            `run_cell_copy` is True.
+            Piece of code to run that corresponds to a cell.
         cell_name : str or int
             Cell name or index.
         filename : str
             Path of the file where the cell to execute is located.
-        run_cell_copy : bool
-            True if the cell should be executed line by line,
-            False if the provided `function` should be used.
         method : str, optional
-            Name handler of the kernel function to be used to execute the cell
-            in case `run_cell_copy` is False.
+            Name handler of the kernel function to be used to execute the cell.
             The default is 'runcell'.
-        focus_to_editor: bool
-            Whether to give focus to the editor after running the cell. If
-            False, focus is given to the console.
 
         Returns
         -------
         None.
         """
         self.sig_unmaximize_plugin_requested.emit()
-        self.get_widget().run_cell(
-            code, cell_name, filename, run_cell_copy, method=method,
-            focus_to_editor=focus_to_editor)
+        self.get_widget().run_cell(code, cell_name, filename, method=method)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """
@@ -823,10 +796,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             current_client=current_client,
             clear_variables=clear_variables)
 
-    def run_selection(self, lines, focus_to_editor=True):
+    def run_selection(self, lines):
         """Execute selected lines in the current console."""
         self.sig_unmaximize_plugin_requested.emit()
-        self.get_widget().execute_code(lines, set_focus=not focus_to_editor)
+        self.get_widget().execute_code(lines)
 
     # ---- For working directory and path management
     def set_current_client_working_directory(self, directory):

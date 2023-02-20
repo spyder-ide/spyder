@@ -110,9 +110,9 @@ class RunContainer(PluginMainContainer):
         self.current_input_extension: Optional[str] = None
 
         self.context_actions: Dict[
-            Tuple[str, str], Tuple[QAction, Callable]] = {}
+            Tuple[str, str, str], Tuple[QAction, Callable]] = {}
         self.re_run_actions: Dict[
-            Tuple[str, str], Tuple[QAction, Callable]] = {}
+            Tuple[str, str, str], Tuple[QAction, Callable]] = {}
         self.run_executor_actions: Dict[
             Tuple[str, str], Tuple[QAction, Callable]] = {}
 
@@ -130,7 +130,8 @@ class RunContainer(PluginMainContainer):
     def gen_anonymous_execution_run(
         self,
         context: str,
-        action_name: Optional[str],
+        extra_action_name: Optional[str] = None,
+        context_modificator: Optional[str] = None,
         re_run: bool = False,
         last_executor_name: Optional[str] = None
     ) -> Callable:
@@ -144,7 +145,8 @@ class RunContainer(PluginMainContainer):
                     self.currently_selected_configuration)
             else:
                 run_conf = input_provider.get_run_configuration_per_context(
-                    context, action_name, re_run=re_run)
+                    context, extra_action_name, context_modificator,
+                    re_run=re_run)
 
             if run_conf is None:
                 return
@@ -190,8 +192,12 @@ class RunContainer(PluginMainContainer):
 
             self.last_executed_per_context |= {(uuid, context)}
 
-            if (context, action_name) in self.re_run_actions:
-                act, _ = self.re_run_actions[(context, action_name)]
+            if (
+                (context, extra_action_name, context_modificator)
+                in self.re_run_actions
+            ):
+                act, _ = self.re_run_actions[
+                    (context, extra_action_name, context_modificator)]
                 act.setEnabled(True)
 
         return anonymous_execution_run
@@ -303,12 +309,12 @@ class RunContainer(PluginMainContainer):
         elif uuid is None:
             self.run_action.setEnabled(False)
 
-            for context, act in self.context_actions:
-                action, __ = self.context_actions[(context, act)]
+            for context, act, mod in self.context_actions:
+                action, __ = self.context_actions[(context, act, mod)]
                 action.setEnabled(False)
 
-            for context, act in self.re_run_actions:
-                action, __ = self.re_run_actions[(context, act)]
+            for context, act, mod in self.re_run_actions:
+                action, __ = self.re_run_actions[(context, act, mod)]
                 action.setEnabled(False)
 
             for context_name, executor_name in self.run_executor_actions:
@@ -326,14 +332,14 @@ class RunContainer(PluginMainContainer):
         input_provider_ext_ctxs = self.supported_extension_contexts[
             self.current_input_provider]
 
-        for context, act in self.context_actions:
+        for context, act, mod in self.context_actions:
             key = (self.current_input_extension, context)
             status = key in self.executor_model
             status = status and key in input_provider_ext_ctxs
-            action, __ = self.context_actions[(context, act)]
+            action, __ = self.context_actions[(context, act, mod)]
             action.setEnabled(status)
 
-        for context, act in self.re_run_actions:
+        for context, act, mod in self.re_run_actions:
             key = (self.current_input_extension, context)
             status = key in self.executor_model
             status = status and key in input_provider_ext_ctxs
@@ -342,7 +348,7 @@ class RunContainer(PluginMainContainer):
                 (self.currently_selected_configuration,
                  context) in self.last_executed_per_context)
 
-            action, __ = self.re_run_actions[(context, act)]
+            action, __ = self.re_run_actions[(context, act, mod)]
             action.setEnabled(status and last_run_exists)
 
         for context_name, executor_name in self.run_executor_actions:
@@ -368,7 +374,7 @@ class RunContainer(PluginMainContainer):
         shortcut_context: Optional[str] = None,
         register_shortcut: bool = False,
         extra_action_name: Optional[str] = None,
-        conjunction_or_preposition: str = "and",
+        context_modificator: Optional[str] = None,
         re_run: bool = False
     ) -> QAction:
         """
@@ -393,10 +399,9 @@ class RunContainer(PluginMainContainer):
         extra_action_name: Optional[str]
             The name of the action to execute on the run input provider
             after requesting the run input.
-        conjunction_or_preposition: str
-            The conjunction or preposition used to describe the action that
-            should take place after the context, e.g. run <and> advance,
-            run selection <from> the current line, etc. Default: and
+        context_modificator: Optional[str]
+            The name of the modification to apply to the action, e.g. run
+            selection <up to line>.
         re_run: bool
             If True, then the button will act as a re-run button instead of
             a run one.
@@ -414,7 +419,8 @@ class RunContainer(PluginMainContainer):
         Cell can be used if and only if the file was registered.
 
         2. The button will be registered as `run <context>` or
-        `run <context> and <extra_action_name>` on the action registry.
+        `run <context> <context_modificator> and <extra_action_name>` 
+        on the action registry.
 
         3. The created button will operate over the last focused run input
         provider.
@@ -426,20 +432,25 @@ class RunContainer(PluginMainContainer):
         shortcuts.
         """
         dict_actions = self.re_run_actions if re_run else self.context_actions
-        if (context_name, extra_action_name) in dict_actions:
+
+        if (
+            (context_name, extra_action_name, context_modificator)
+            in dict_actions
+        ):
             action, __ = self.context_actions[
-                (context_name, extra_action_name)]
+                (context_name, extra_action_name, context_modificator)]
             return action
 
         prefix = 're-' if re_run else ''
         action_name = f'{prefix}run {context_name}'
+        if context_modificator is not None:
+            action_name = f'{action_name} {context_modificator}'
         if extra_action_name is not None:
-            action_name = (f'{action_name} {conjunction_or_preposition} '
-                           f'{extra_action_name}')
+            action_name = f'{action_name} and {extra_action_name}'
 
         func = self.gen_anonymous_execution_run(
-            context_name, extra_action_name, re_run=re_run,
-            last_executor_name=None)
+            context_name, extra_action_name, context_modificator,
+            re_run=re_run, last_executor_name=None)
 
         action = self.create_action(
             action_name,
@@ -453,11 +464,13 @@ class RunContainer(PluginMainContainer):
         )
 
         if re_run:
-            self.re_run_actions[(context_name, extra_action_name)] = (
+            self.re_run_actions[
+                (context_name, extra_action_name, context_modificator)] = (
                 action, func)
             action.setEnabled(False)
         else:
-            self.context_actions[(context_name, extra_action_name)] = (
+            self.context_actions[
+                (context_name, extra_action_name, context_modificator)] = (
                 action, func)
 
         self.sig_run_action_created.emit(action_name, register_shortcut,
@@ -531,7 +544,7 @@ class RunContainer(PluginMainContainer):
                                      selected_executor=executor_name)
         else:
             func = self.gen_anonymous_execution_run(
-                context_name, None, re_run=False,
+                context_name, re_run=False,
                 last_executor_name=executor_name)
 
         action = self.create_action(

@@ -27,7 +27,6 @@ from spyder.api.plugins import Plugins
 from spyder.app import start
 from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.manager import CONF
-from spyder.plugins.debugger.api import DebuggerToolbarActions
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.run.api import RunActions, StoredRunConfigurationExecutor
@@ -394,8 +393,8 @@ def main_window(request, tmpdir, qtbot):
     # it's used a lot.
     toolbar = window.get_plugin(Plugins.Toolbar)
     debug_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Debug)
-    debug_action = window.debugger.get_action(
-        DebuggerToolbarActions.DebugCurrentFile)
+    debug_action = window.run.get_action(
+        "run file in debugger")
     debug_button = debug_toolbar.widgetForAction(debug_action)
     window.debug_button = debug_button
 
@@ -415,7 +414,7 @@ def main_window(request, tmpdir, qtbot):
         run_cell_and_advance_action)
     window.run_cell_and_advance_button = run_cell_and_advance_button
 
-    run_selection_action = window.run.get_action('run selection')
+    run_selection_action = window.run.get_action('run selection and advance')
     run_selection_button = run_toolbar.widgetForAction(run_selection_action)
     window.run_selection_button = run_selection_button
 

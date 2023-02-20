@@ -80,3 +80,12 @@ class CellRun(TypedDict):
 
     # True if the text should be copied over.
     copy: bool
+
+
+class SelectionContextModificator:
+    ToLine = "up to line"
+    FromLine = "from line"
+
+
+class ExtraAction:
+    Advance = "advance"

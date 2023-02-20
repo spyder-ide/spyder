@@ -55,8 +55,7 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
-from spyder.plugins.debugger.api import (
-    DebuggerWidgetActions, DebuggerToolbarActions)
+from spyder.plugins.debugger.api import DebuggerWidgetActions
 from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -634,8 +633,8 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
                                  Qt.LeftButton)
 
         # Debug the cell
-        debug_cell_action = main_window.debugger.get_action(
-            DebuggerToolbarActions.DebugCurrentCell)
+        debug_cell_action = main_window.run.get_action(
+            "run cell in debugger")
         with qtbot.waitSignal(shell.executed):
             debug_cell_action.trigger()
 
@@ -1562,8 +1561,8 @@ def test_run_code(main_window, qtbot, tmpdir):
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Debug cell ------
-    debug_cell_action = main_window.debugger.get_action(
-        DebuggerToolbarActions.DebugCurrentCell)
+    debug_cell_action = main_window.run.get_action(
+        "run cell in debugger")
     with qtbot.waitSignal(shell.executed):
         debug_cell_action.trigger()
     qtbot.keyClicks(shell._control, '!c')
@@ -1625,7 +1624,7 @@ def test_run_code(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 @pytest.mark.parametrize('main_window',
-                         [{'spy_config': ('editor', 'run_cell_copy', True)}],
+                         [{'spy_config': ('run', 'run_cell_copy', True)}],
                          indirect=True)
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_cell_copy(main_window, qtbot, tmpdir):
@@ -1641,9 +1640,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    # Make sure run_cell_copy is properly set
-    for editorstack in main_window.editor.editorstacks:
-        editorstack.set_run_cell_copy(True)
+
     # Load test file
     main_window.editor.load(filepath)
 
@@ -1680,7 +1677,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
 
     # ---- Closing test file and reset config ----
     main_window.editor.close_file()
-    CONF.set('editor', 'run_cell_copy', False)
+    CONF.set('run', 'run_cell_copy', False)
 
 
 @flaky(max_runs=3)
@@ -3043,7 +3040,7 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 @pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
 @pytest.mark.parametrize('main_window',
-                         [{'spy_config': ('editor', 'run_cell_copy', True)}],
+                         [{'spy_config': ('run', 'run_cell_copy', True)}],
                          indirect=True)
 def test_preferences_empty_shortcut_regression(main_window, qtbot):
     """
@@ -3519,7 +3516,7 @@ def test_varexp_refresh(main_window, qtbot):
 @pytest.mark.skipif(sys.platform == 'darwin' or os.name == 'nt',
                     reason="Fails on macOS and Windows")
 @pytest.mark.parametrize('main_window',
-                         [{'spy_config': ('editor', 'run_cell_copy', False)}],
+                         [{'spy_config': ('run', 'run_cell_copy', False)}],
                          indirect=True)
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_runcell_edge_cases(main_window, qtbot, tmpdir):
@@ -5426,7 +5423,8 @@ def test_out_runfile_runcell(main_window, qtbot):
         CONF.set('run', 'last_used_parameters', run_parameters)
 
         with qtbot.waitSignal(shell.executed):
-            main_window.editor.run_cell()
+            qtbot.mouseClick(main_window.run_cell_button,
+                             Qt.LeftButton)
         if shown:
             assert "]: " + str(num) in control.toPlainText()
         else:
@@ -5952,8 +5950,8 @@ def test_debug_selection(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     debug_widget = main_window.debugger.get_widget()
-    debug_selection_action = debug_widget.get_action(
-        DebuggerToolbarActions.DebugCurrentSelection)
+    debug_selection_action = main_window.run.get_action(
+        "run selection in debugger")
     continue_action = debug_widget.get_action(
         DebuggerWidgetActions.Continue)
 

@@ -198,8 +198,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._pdb_prompt = (None, None)  # prompt, password
         self._pdb_last_cmd = ''  # last command sent to pdb
         self._pdb_frame_loc = (None, None)  # fname, lineno
-        self._pdb_focus_to_editor = False  # Focus to editor after command
-                                          # execution
+        self._pdb_take_focus = True  # Focus to shell after command execution
         # Command queue
         self._pdb_input_queue = []  # List of (code, hidden, echo_stack_entry)
         # Temporary flags
@@ -270,11 +269,11 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             prefix = '!'
         return prefix
 
-    def pdb_execute_command(self, command, focus_to_editor=False):
+    def pdb_execute_command(self, command):
         """
         Execute a pdb command
         """
-        self._pdb_focus_to_editor = focus_to_editor
+        self._pdb_take_focus = False
         self.pdb_execute(
             self._pdb_cmd_prefix() + command, hidden=False,
             echo_stack_entry=False, add_history=False)
