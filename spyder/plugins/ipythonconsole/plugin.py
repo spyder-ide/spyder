@@ -655,11 +655,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         # Fixes spyder-ide/spyder#2158.
         filename = filename.replace("'", r"\'").replace('"', r'\"')
 
-        force_wdir = False
-        if wdir is not None:
-            if osp.isdir(wdir):
-                force_wdir = True
-
         self.run_script(
             filename,
             wdir,
@@ -669,7 +664,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             clear_variables,
             console_namespace,
             method=run_method,
-            force_wdir=force_wdir
         )
 
         return []
@@ -712,7 +706,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def run_script(self, filename, wdir, args='',
                    post_mortem=False, current_client=True,
                    clear_variables=False, console_namespace=False,
-                   method=None, force_wdir=False):
+                   method=None):
         """
         Run script in current or dedicated client.
 
@@ -738,9 +732,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         method : str or None
             Method to run the file. It must accept the same arguments as
             `runfile`.
-        force_wdir: bool
-            The working directory is ignored on remote kernels except if
-            force_wdir is True
 
         Returns
         -------
@@ -755,8 +746,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             current_client,
             clear_variables,
             console_namespace,
-            method,
-            force_wdir)
+            method
+        )
 
     def run_cell(self, code, cell_name, filename, method='runcell'):
         """

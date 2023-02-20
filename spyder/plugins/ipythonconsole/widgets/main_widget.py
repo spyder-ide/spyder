@@ -1877,8 +1877,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For scripts
     def run_script(self, filename, wdir, args, post_mortem, current_client,
-                   clear_variables, console_namespace, method=None,
-                   force_wdir=False):
+                   clear_variables, console_namespace, method=None):
         """Run script in current or dedicated client."""
         norm = lambda text: remove_backslashes(str(text))
 
@@ -1906,12 +1905,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 line = method + "('%s'" % (norm(filename))
                 if args:
                     line += ", args='%s'" % norm(args)
-                if (
-                    wdir and client.shellwidget.is_external_kernel
-                    and not force_wdir
-                ):
-                    # No working directory for external kernels
-                    wdir = ''
                 if wdir:
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
