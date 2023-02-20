@@ -103,6 +103,14 @@ class MainInterpreter(SpyderPluginV2):
     def interpreter_status(self):
         return self.get_container().interpreter_status
 
+    def set_custom_interpreter(self, interpreter):
+        """Set given interpreter as the current selected one."""
+        self._add_to_custom_interpreters(interpreter)
+        self.set_conf("default", False)
+        self.set_conf("custom", True)
+        self.set_conf("custom_interpreter", interpreter)
+        self.set_conf("executable", interpreter)
+
     # ---- Private API
     def _open_interpreter_preferences(self):
         """Open the Preferences dialog in the main interpreter section."""
