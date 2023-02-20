@@ -140,11 +140,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             icon=self.create_icon('debug'),
             shortcut_context=self.NAME,
             register_shortcut=True,
-            add_to_menu=(
-                ApplicationMenus.Debug,
-                DebugMenuSections.StartDebug,
-                DebugMenuSections.ControlDebug
-            ),
+            add_to_menu={
+                "menu": ApplicationMenus.Debug,
+                "section": DebugMenuSections.StartDebug,
+                "before_section": DebugMenuSections.ControlDebug
+            },
             add_to_toolbar=ApplicationToolbars.Debug
         )
 
@@ -156,11 +156,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             icon=self.create_icon('debug_cell'),
             shortcut_context=self.NAME,
             register_shortcut=True,
-            add_to_menu=(
-                ApplicationMenus.Debug,
-                DebugMenuSections.StartDebug,
-                DebugMenuSections.ControlDebug
-            ),
+            add_to_menu={
+                "menu": ApplicationMenus.Debug,
+                "section": DebugMenuSections.StartDebug,
+                "before_section": DebugMenuSections.ControlDebug
+            },
             add_to_toolbar=ApplicationToolbars.Debug
         )
 
@@ -172,11 +172,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             icon=self.create_icon('debug_selection'),
             shortcut_context=self.NAME,
             register_shortcut=True,
-            add_to_menu=(
-                ApplicationMenus.Debug,
-                DebugMenuSections.StartDebug,
-                DebugMenuSections.ControlDebug
-            ),
+            add_to_menu={
+                "menu": ApplicationMenus.Debug,
+                "section": DebugMenuSections.StartDebug,
+                "before_section": DebugMenuSections.ControlDebug
+            },
             add_to_toolbar=ApplicationToolbars.Debug
         )
 

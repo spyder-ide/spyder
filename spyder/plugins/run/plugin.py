@@ -432,8 +432,8 @@ class Run(SpyderPluginV2):
             main toolbar. If a string, it must be a toolbar_id
         add_to_menu: object
             If True, then the action will be added to the Run menu.
-            If a tuple of 3 strings, it corresponds to 
-            (menu_id, menu_section, before_section)
+            If a dictionnary, it corresponds to 
+            {'menu': ..., 'section': ..., 'before_section': ...}
         re_run: bool
             If True, then the button will act as a re-run button instead of
             a run one.
@@ -497,8 +497,10 @@ class Run(SpyderPluginV2):
                 ApplicationMenus.Run, RunMenuSections.RunExtras,
                 RunMenuSections.RunInExecutors
             )
-            if isinstance(add_to_menu, tuple):
-                menu_id, menu_section, before_section = add_to_menu
+            if isinstance(add_to_menu, dict):
+                menu_id = add_to_menu['menu']
+                menu_section = add_to_menu['section']
+                before_section = add_to_menu.get('before_section', None)
 
             main_menu = self.get_plugin(Plugins.MainMenu)
             if main_menu:
@@ -624,8 +626,8 @@ class Run(SpyderPluginV2):
             main toolbar. If a string, it will be a toolbat id
         add_to_menu: object
             If True, then the action will be added to the Run menu.
-            If a tuple of 3 strings, it corresponds to 
-            (menu_id, menu_section, before_section)
+            If a dictionnary, it corresponds to 
+            {'menu': ..., 'section': ..., 'before_section': ...}
 
         Returns
         -------
@@ -680,8 +682,10 @@ class Run(SpyderPluginV2):
                 ApplicationMenus.Run, RunMenuSections.RunExtras,
                 RunMenuSections.RunInExecutors
             )
-            if isinstance(add_to_menu, tuple):
-                menu_id, menu_section, before_section = add_to_menu
+            if isinstance(add_to_menu, dict):
+                menu_id = add_to_menu['menu']
+                menu_section = add_to_menu['section']
+                before_section = add_to_menu.get('before_section', None)
 
             main_menu = self.get_plugin(Plugins.MainMenu)
             if main_menu:
