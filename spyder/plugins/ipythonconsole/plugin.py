@@ -758,8 +758,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             method,
             force_wdir)
 
-    def run_cell(self, code, cell_name, filename,
-                 method='runcell'):
+    def run_cell(self, code, cell_name, filename, method='runcell'):
         """
         Run cell in current or dedicated client.
 
