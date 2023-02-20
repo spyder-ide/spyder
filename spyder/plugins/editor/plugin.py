@@ -283,7 +283,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Run cell"),
                 icon=ima.icon('run_cell'),
                 tip=_("Run current cell\n[Use #%% to create cells]"),
-                shortcut_context="editor",
+                shortcut_context=self.NAME,
                 register_shortcut=True,
                 add_to_toolbar=True,
                 add_to_menu=True
@@ -294,7 +294,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Run cell and advance"),
                 icon=ima.icon('run_cell_advance'),
                 tip=_("Run current cell and go to the next one"),
-                shortcut_context="editor",
+                shortcut_context=self.NAME,
                 register_shortcut=True,
                 add_to_toolbar=True,
                 add_to_menu=True,
@@ -305,7 +305,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 RunContext.Cell,
                 _("Re-run last cell"),
                 tip=_("Re run last cell "),
-                shortcut_context="editor",
+                shortcut_context=self.NAME,
                 register_shortcut=True,
                 add_to_menu=True,
                 re_run=True
@@ -316,7 +316,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 _("Run &selection or current line"),
                 icon=ima.icon('run_selection'),
                 tip=_("Run selection or current line"),
-                shortcut_context="_",
+                shortcut_context=self.NAME,
                 register_shortcut=True,
                 add_to_toolbar=True,
                 add_to_menu=True,
@@ -327,7 +327,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 RunContext.Selection,
                 _("Run &to line"),
                 tip=_("Run selection up to the current line"),
-                shortcut_context="editor",
+                shortcut_context=self.NAME,
                 register_shortcut=True,
                 add_to_toolbar=False,
                 add_to_menu=True,
@@ -338,7 +338,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 RunContext.Selection,
                 _("Run &from line"),
                 tip=_("Run selection from the current line"),
-                shortcut_context="editor",
+                shortcut_context=self.NAME,
                 register_shortcut=True,
                 add_to_toolbar=False,
                 add_to_menu=True,
@@ -2951,9 +2951,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         if context == RunContext.Selection:
             if context_modificator == SelectionContextModificator.ToLine:
-                ret = editorstack.get_to_current_line()
-                if ret is not None:
-                    text, offsets, line_cols, enc = ret
+                to_current_line = editorstack.get_to_current_line()
+                if to_current_line is not None:
+                    text, offsets, line_cols, enc = to_current_line
                 else:
                     return
             elif (
@@ -2963,6 +2963,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     editorstack.get_from_current_line())
             else:
                 text, offsets, line_cols, enc = editorstack.get_selection()
+
             if extra_action_name == ExtraAction.Advance:
                 editorstack.advance_line()
             context_name = 'Selection'

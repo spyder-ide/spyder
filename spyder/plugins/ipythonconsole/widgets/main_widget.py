@@ -1823,8 +1823,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.stop_button_click_handler()
 
     # ---- For cells
-    def run_cell(self, code, cell_name, filename,
-                 method='runcell'):
+    def run_cell(self, code, cell_name, filename, method='runcell'):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -1878,8 +1877,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For scripts
     def run_script(self, filename, wdir, args, post_mortem, current_client,
-                   clear_variables, console_namespace,
-                   method=None, force_wdir=False):
+                   clear_variables, console_namespace, method=None,
+                   force_wdir=False):
         """Run script in current or dedicated client."""
         norm = lambda text: remove_backslashes(str(text))
 

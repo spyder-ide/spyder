@@ -712,8 +712,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def run_script(self, filename, wdir, args='',
                    post_mortem=False, current_client=True,
                    clear_variables=False, console_namespace=False,
-                   method=None,
-                   force_wdir=False):
+                   method=None, force_wdir=False):
         """
         Run script in current or dedicated client.
 
@@ -775,16 +774,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         method : str, optional
             Name handler of the kernel function to be used to execute the cell.
             The default is 'runcell'.
-        set_focus: bool
-            Whether to give focus to the console after running the cell.
 
         Returns
         -------
         None.
         """
         self.sig_unmaximize_plugin_requested.emit()
-        self.get_widget().run_cell(
-            code, cell_name, filename, method=method)
+        self.get_widget().run_cell(code, cell_name, filename, method=method)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """

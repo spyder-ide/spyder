@@ -496,8 +496,7 @@ class ConsoleWidget(PluginMainWidget):
         self.dialog_manager.show(editor)
 
     @Slot()
-    def run_script(self, filename=None, silent=False,
-                   args=None):
+    def run_script(self, filename=None, silent=False, args=None):
         """
         Run a Python script.
         """

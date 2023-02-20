@@ -24,8 +24,7 @@ from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerBreakpointActions, DebuggerWidget,
-    DebuggerWidgetActions, DebuggerWidgetMainToolBarSections)
+    DebuggerBreakpointActions, DebuggerWidget, DebuggerWidgetActions)
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
@@ -133,7 +132,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
         run = self.get_plugin(Plugins.Run)
         run.register_executor_configuration(self, self.executor_configuration)
 
-        debug_file_action = run.create_run_in_executor_button(
+        run.create_run_in_executor_button(
             RunContext.File,
             self.NAME,
             text=_("&Debug file"),
@@ -149,7 +148,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             add_to_toolbar=ApplicationToolbars.Debug
         )
 
-        debug_cell_action = run.create_run_in_executor_button(
+        run.create_run_in_executor_button(
             RunContext.Cell,
             self.NAME,
             text=_("Debug cell"),
@@ -165,7 +164,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             add_to_toolbar=ApplicationToolbars.Debug
         )
 
-        debug_selection_action = run.create_run_in_executor_button(
+        run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
             text=_("Debug selection or current line"),
@@ -512,7 +511,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
 
     # ---- For execution
     @run_execute(context=RunContext.File)
-    def exec_files(
+    def debug_file(
         self,
         input: RunConfiguration,
         conf: ExtendedRunExecutionParameters
@@ -531,7 +530,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
         self.get_widget().set_pdb_take_focus(False)
 
     @run_execute(context=RunContext.Cell)
-    def exec_cell(
+    def debug_cell(
         self,
         input: RunConfiguration,
         conf: ExtendedRunExecutionParameters
@@ -556,7 +555,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
 
 
     @run_execute(context=RunContext.Selection)
-    def exec_selection(
+    def debug_selection(
         self,
         input: RunConfiguration,
         conf: ExtendedRunExecutionParameters

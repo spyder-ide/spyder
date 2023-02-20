@@ -56,7 +56,6 @@ class DebuggerWidgetOptionsMenuSections:
 
 
 class DebuggerWidgetMainToolBarSections:
-    Run = "run"
     Main = 'main_section'
 
 
@@ -490,7 +489,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def set_pdb_take_focus(self, take_focus):
         """
-        Set whether current pdb should take focus when stopping on the 
+        Set whether current Pdb session should take focus when stopping on the
         next call.
         """
         widget = self.current_widget()

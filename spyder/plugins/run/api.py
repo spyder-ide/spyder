@@ -329,8 +329,8 @@ class RunConfigurationProvider(QObject):
             after gathering the run configuration input. Else, no action needs
             to take place.
         context_modificator: Optional[str]
-            str describing how to alter the context.
-            e.g. run selection <from line>
+            str describing how to alter the context, e.g. run selection
+            <from line>.
         re_run: bool
             If True, then the requested configuration should correspond to the
             last executed configuration for the given context.

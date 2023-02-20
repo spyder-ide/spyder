@@ -2861,7 +2861,6 @@ class EditorStack(QWidget):
 
         editor.move_cursor_to_next('line', 'down')
 
-
     def get_current_cell(self):
         """Get current cell attributes."""
         text, block, off_pos, line_col_pos = (

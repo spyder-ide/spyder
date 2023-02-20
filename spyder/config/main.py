@@ -392,7 +392,6 @@ DEFAULTS = [
               '_/file switcher': 'Ctrl+P',
               '_/symbol finder': 'Ctrl+Alt+P',
               '_/run': "F5",
-              '_/run selection': "F9",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
               # -- In plugins/init
@@ -460,8 +459,6 @@ DEFAULTS = [
               'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
-              'editor/run selection up to line': 'Shift+F9',
-              'editor/run selection from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -487,6 +484,9 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
+              'editor/run selection and advance': "F9",
+              'editor/run selection up to line': 'Shift+F9',
+              'editor/run selection from line': CTRL + '+F9',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run cell': 'Alt+Return',

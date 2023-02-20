@@ -55,8 +55,7 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
-from spyder.plugins.debugger.api import (
-    DebuggerWidgetActions)
+from spyder.plugins.debugger.api import DebuggerWidgetActions
 from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text

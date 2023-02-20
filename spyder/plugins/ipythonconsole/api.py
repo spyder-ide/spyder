@@ -38,5 +38,6 @@ class IPythonConsolePyConfiguration(TypedDict):
     # then it will use an empty one.
     console_namespace: bool
 
-    # If not None, then the console will use an alternative run method.
+    # If not None, then the console will use an alternative run method
+    # (e.g. `runfile`, `debugfile` or `debugcell`).
     run_method: NotRequired[str]

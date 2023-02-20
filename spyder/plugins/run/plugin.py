@@ -425,11 +425,11 @@ class Run(SpyderPluginV2):
             The name of the action to execute on the run input provider
             after requesting the run input.
         context_modificator: Optional[str]
-            The name of the modification to apply to the action.
-            e.g. run selection <up to line>
+            The name of the modification to apply to the action, e.g. run
+            selection <up to line>.
         add_to_toolbar: object
             If True, then the action will be added to the Run section of the
-            main toolbar. If a string, it will be a toolbat id
+            main toolbar. If a string, it must be a toolbar_id
         add_to_menu: object
             If True, then the action will be added to the Run menu.
             If a tuple of 3 strings, it corresponds to 
@@ -482,6 +482,7 @@ class Run(SpyderPluginV2):
             toolbar_id = ApplicationToolbars.Run
             if isinstance(add_to_toolbar, str):
                 toolbar_id = add_to_toolbar
+
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
@@ -498,6 +499,7 @@ class Run(SpyderPluginV2):
             )
             if isinstance(add_to_menu, tuple):
                 menu_id, menu_section, before_section = add_to_menu
+
             main_menu = self.get_plugin(Plugins.MainMenu)
             if main_menu:
                 main_menu.add_item_to_application_menu(
@@ -543,8 +545,8 @@ class Run(SpyderPluginV2):
             The name of the action to execute on the run input provider
             after requesting the run input.
         context_modificator: Optional[str]
-            The name of the modification to apply to the action.
-            e.g. run selection <up to line>
+            The name of the modification to apply to the action, e.g. run
+            run selection <up to line>.
         re_run: bool
             If True, then the button was registered as a re-run button
             instead of a run one.
@@ -663,6 +665,7 @@ class Run(SpyderPluginV2):
             toolbar_id = ApplicationToolbars.Run
             if isinstance(add_to_toolbar, str):
                 toolbar_id = add_to_toolbar
+
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
@@ -679,6 +682,7 @@ class Run(SpyderPluginV2):
             )
             if isinstance(add_to_menu, tuple):
                 menu_id, menu_section, before_section = add_to_menu
+
             main_menu = self.get_plugin(Plugins.MainMenu)
             if main_menu:
                 main_menu.add_item_to_application_menu(

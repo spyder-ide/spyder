@@ -400,8 +400,8 @@ class RunContainer(PluginMainContainer):
             The name of the action to execute on the run input provider
             after requesting the run input.
         context_modificator: Optional[str]
-            The name of the modification to apply to the action.
-            e.g. run selection <up to line>
+            The name of the modification to apply to the action, e.g. run
+            selection <up to line>.
         re_run: bool
             If True, then the button will act as a re-run button instead of
             a run one.
@@ -432,6 +432,7 @@ class RunContainer(PluginMainContainer):
         shortcuts.
         """
         dict_actions = self.re_run_actions if re_run else self.context_actions
+
         if (
             (context_name, extra_action_name, context_modificator)
             in dict_actions
