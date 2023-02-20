@@ -308,7 +308,9 @@ class FoldingPanel(Panel):
         :param collapsed: Whether the trigger is collapsed or not.
         :param painter: QPainter
         """
-        rect = QRect(0, top, self.sizeHint().width(), self.sizeHint().height())
+        rect = QRect(
+            0, top, self.sizeHint().width() + 2, self.sizeHint().height() + 2
+        )
 
         if collapsed:
             icon = self.collapsed_icon
