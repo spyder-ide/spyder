@@ -542,40 +542,22 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 #==============================================================================
 # Mac application utilities
 #==============================================================================
-def running_in_mac_app(pyexec=None):
+def running_in_mac_app(pyexec=sys.executable):
     """
-    Check if Python executable is located inside a standalone Mac app.
+    Check if Spyder is running as a macOS bundle app by looking for the
+    `SPYDER_APP` environment variable.
 
-    If no executable is provided, the default will check `sys.executable`, i.e.
-    whether Spyder is running from a standalone Mac app.
-
-    This is important for example for the single_instance option and the
-    interpreter status in the statusbar.
+    If a python executable is provided, checks if it is the same as the macOS
+    bundle app environment executable.
     """
-    if pyexec is None:
-        pyexec = sys.executable
+    # Spyder is macOS app
+    mac_app = os.environ.get('SPYDER_APP') is not None
 
-    bpath = get_mac_app_bundle_path()
-
-    if bpath and pyexec == osp.join(bpath, 'Contents/MacOS/python'):
+    if sys.platform == 'darwin' and mac_app and pyexec == sys.executable:
+        # executable is macOS app
         return True
     else:
         return False
-
-
-def get_mac_app_bundle_path():
-    """
-    Return the full path to the macOS app bundle. Otherwise return None.
-
-    EXECUTABLEPATH environment variable only exists if Spyder is a macOS app
-    bundle. In which case it will always end with
-    "/<app name>.app/Conents/MacOS/Spyder".
-    """
-    app_exe_path = os.environ.get('EXECUTABLEPATH', None)
-    if sys.platform == "darwin" and app_exe_path:
-        return osp.dirname(osp.dirname(osp.dirname(osp.abspath(app_exe_path))))
-    else:
-        return None
 
 
 # =============================================================================
@@ -584,8 +566,9 @@ def get_mac_app_bundle_path():
 def get_spyder_umamba_path():
     """Return the path to the Micromamba executable bundled with Spyder."""
     if running_in_mac_app():
-        path = osp.join(osp.dirname(osp.dirname(__file__)),
-                        'bin', 'micromamba')
+        # TODO: Change to CONDA_EXE when
+        # conda-forge/conda-standalone-feedstock#45 is resolved
+        path = os.environ.get('CONDA_PYTHON_EXE')
     elif is_pynsist():
         path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
                                     'bin', 'micromamba.exe'))

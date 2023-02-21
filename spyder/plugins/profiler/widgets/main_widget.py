@@ -35,7 +35,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import get_conf_path, running_in_mac_app
+from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string
 from spyder.utils.misc import get_python_executable, getcwd_or_home
@@ -541,11 +541,6 @@ class ProfilerWidget(PluginMainWidget):
         self.process.setProcessEnvironment(proc_env)
 
         executable = self.get_conf('executable', section='main_interpreter')
-
-        if not running_in_mac_app(executable):
-            env = self.process.processEnvironment()
-            env.remove('PYTHONHOME')
-            self.process.setProcessEnvironment(env)
 
         self.output = ''
         self.error_output = ''

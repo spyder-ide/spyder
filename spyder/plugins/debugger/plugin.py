@@ -8,6 +8,7 @@
 
 # Standard library imports
 import os.path as osp
+from typing import List
 
 # Third-party imports
 from qtpy.QtCore import Slot
@@ -23,25 +24,29 @@ from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerBreakpointActions, DebuggerToolbarActions, DebuggerWidget,
-    DebuggerWidgetActions)
+    DebuggerBreakpointActions, DebuggerWidget, DebuggerWidgetActions)
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES
+from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
+from spyder.plugins.run.api import (
+    RunConfiguration, ExtendedRunExecutionParameters, RunExecutor, run_execute,
+    RunContext, RunResult)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
+from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
 # Localization
 _ = get_translation("spyder")
 
 
-class Debugger(SpyderDockablePlugin, ShellConnectMixin):
+class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'
-    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.Toolbar,
-                Plugins.VariableExplorer]
+    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences, Plugins.Run]
+    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.VariableExplorer]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME
@@ -59,15 +64,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         return _('Display and explore frames while debugging.')
 
     def get_icon(self):
-        return self.create_icon('dictedit')
+        return self.create_icon('debug')
 
     def on_initialize(self):
         widget = self.get_widget()
         widget.sig_pdb_state_changed.connect(
             self._update_current_codeeditor_pdb_state)
-        widget.sig_debug_file.connect(self.debug_file)
-        widget.sig_debug_cell.connect(self.debug_cell)
-        widget.sig_debug_selection.connect(self.debug_selection)
         widget.sig_toggle_breakpoints.connect(self._set_or_clear_breakpoint)
         widget.sig_toggle_conditional_breakpoints.connect(
             self._set_or_edit_conditional_breakpoint)
@@ -75,6 +77,114 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         widget.sig_load_pdb_file.connect(
             self._load_pdb_file_in_editor)
+
+        self.python_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'py',
+            'contexts': [
+                {
+                    'name': 'File'
+                },
+                {
+                    'name': 'Cell'
+                },
+                {
+                    'name': 'Selection'
+                },
+            ]
+        }
+
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Cell'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+        ]
+
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
+
+        run.create_run_in_executor_button(
+            RunContext.File,
+            self.NAME,
+            text=_("&Debug file"),
+            tip=_("Debug file"),
+            icon=self.create_icon('debug'),
+            shortcut_context=self.NAME,
+            register_shortcut=True,
+            add_to_menu={
+                "menu": ApplicationMenus.Debug,
+                "section": DebugMenuSections.StartDebug,
+                "before_section": DebugMenuSections.ControlDebug
+            },
+            add_to_toolbar=ApplicationToolbars.Debug
+        )
+
+        run.create_run_in_executor_button(
+            RunContext.Cell,
+            self.NAME,
+            text=_("Debug cell"),
+            tip=_("Debug cell"),
+            icon=self.create_icon('debug_cell'),
+            shortcut_context=self.NAME,
+            register_shortcut=True,
+            add_to_menu={
+                "menu": ApplicationMenus.Debug,
+                "section": DebugMenuSections.StartDebug,
+                "before_section": DebugMenuSections.ControlDebug
+            },
+            add_to_toolbar=ApplicationToolbars.Debug
+        )
+
+        run.create_run_in_executor_button(
+            RunContext.Selection,
+            self.NAME,
+            text=_("Debug selection or current line"),
+            tip=_("Debug selection or current line"),
+            icon=self.create_icon('debug_selection'),
+            shortcut_context=self.NAME,
+            register_shortcut=True,
+            add_to_menu={
+                "menu": ApplicationMenus.Debug,
+                "section": DebugMenuSections.StartDebug,
+                "before_section": DebugMenuSections.ControlDebug
+            },
+            add_to_toolbar=ApplicationToolbars.Debug
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -91,6 +201,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
 
+        editor.add_supported_run_configuration(
+            self.python_editor_run_configuration)
+
         # The editor is available, connect signals.
         widget.sig_edit_goto.connect(editor.load)
         editor.sig_codeeditor_created.connect(self._add_codeeditor)
@@ -99,9 +212,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # Apply shortcuts to editor and add actions to pythonfile list
         editor_shortcuts = [
-            DebuggerToolbarActions.DebugCurrentFile,
-            DebuggerToolbarActions.DebugCurrentCell,
-            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
@@ -120,6 +230,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
 
+        editor.remove_supported_run_configuration(
+            self.python_editor_run_configuration)
+
         widget.sig_edit_goto.disconnect(editor.load)
 
         editor.sig_codeeditor_created.disconnect(self._add_codeeditor)
@@ -128,9 +241,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         # Remove editor actions
         editor_shortcuts = [
-            DebuggerToolbarActions.DebugCurrentFile,
-            DebuggerToolbarActions.DebugCurrentCell,
-            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
         ]
@@ -151,16 +261,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-
-        # StartDebug section
-        for action in [DebuggerToolbarActions.DebugCurrentFile,
-                       DebuggerToolbarActions.DebugCurrentCell,
-                       DebuggerToolbarActions.DebugCurrentSelection]:
-            mainmenu.add_item_to_application_menu(
-                self.get_action(action),
-                menu_id=ApplicationMenus.Debug,
-                section=DebugMenuSections.StartDebug,
-                before_section=DebugMenuSections.ControlDebug)
 
         # ControlDebug section
         for action in [DebuggerWidgetActions.Next,
@@ -189,9 +289,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
         names = [
-            DebuggerToolbarActions.DebugCurrentFile,
-            DebuggerToolbarActions.DebugCurrentCell,
-            DebuggerToolbarActions.DebugCurrentSelection,
             DebuggerWidgetActions.Next,
             DebuggerWidgetActions.Step,
             DebuggerWidgetActions.Return,
@@ -205,30 +302,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
             mainmenu.remove_item_from_application_menu(
                 name,
                 menu_id=ApplicationMenus.Debug
-            )
-
-    @on_plugin_available(plugin=Plugins.Toolbar)
-    def on_toolbar_available(self):
-        toolbar = self.get_plugin(Plugins.Toolbar)
-
-        for action in [DebuggerToolbarActions.DebugCurrentFile,
-                       DebuggerToolbarActions.DebugCurrentCell,
-                       DebuggerToolbarActions.DebugCurrentSelection]:
-            toolbar.add_item_to_application_toolbar(
-                self.get_action(action),
-                toolbar_id=ApplicationToolbars.Debug
-            )
-
-    @on_plugin_teardown(plugin=Plugins.Toolbar)
-    def on_toolbar_teardown(self):
-        toolbar = self.get_plugin(Plugins.Toolbar)
-
-        for action in [DebuggerToolbarActions.DebugCurrentFile,
-                       DebuggerToolbarActions.DebugCurrentCell,
-                       DebuggerToolbarActions.DebugCurrentSelection]:
-            toolbar.remove_item_from_application_toolbar(
-                action,
-                toolbar_id=ApplicationToolbars.Debug
             )
 
     # ---- Private API
@@ -386,39 +459,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    @Slot()
-    def debug_file(self):
-        """
-        Debug current file.
-
-        It should only be called when an editor is available.
-        """
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editor.switch_to_plugin()
-            editor.run_file(method="debugfile")
-
-    @Slot()
-    def debug_cell(self):
-        """
-        Debug current cell.
-
-        It should only be called when an editor is available.
-        """
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editor.run_cell(method="debugcell")
-
-    @Slot()
-    def debug_selection(self):
-        """
-        Debug current selection or line.
-
-        It should only be called when an editor is available.
-        """
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        if editor:
-            editor.run_selection(prefix="%%debug\n")
 
     @Slot()
     def clear_all_breakpoints(self):
@@ -468,3 +508,66 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin):
 
         widget.print_debug_file_msg()
         return False
+
+    # ---- For execution
+    @run_execute(context=RunContext.File)
+    def debug_file(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        console = self.get_plugin(Plugins.IPythonConsole)
+        if console is None:
+            return
+
+        exec_params = conf['params']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+        params["run_method"] = "debugfile"
+
+        console.exec_files(input, conf)
+
+        self.get_widget().set_pdb_take_focus(False)
+
+    @run_execute(context=RunContext.Cell)
+    def debug_cell(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        console = self.get_plugin(Plugins.IPythonConsole)
+        if console is None:
+            return
+
+        run_input: CellRun = input['run_input']
+        if run_input['copy']:
+            console.run_selection("%%debug\n" + run_input['cell'])
+            return
+
+        exec_params = conf['params']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+        params["run_method"] = "debugcell"
+
+        console.exec_cell(input, conf)
+
+        self.get_widget().set_pdb_take_focus(False)
+
+
+    @run_execute(context=RunContext.Selection)
+    def debug_selection(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        console = self.get_plugin(Plugins.IPythonConsole)
+        if console is None:
+            return
+
+        run_input: SelectionRun = input['run_input']
+        run_input['selection'] = "%%debug\n" + run_input['selection']
+
+        console.exec_selection(input, conf)
+
+        self.get_widget().set_pdb_take_focus(False)

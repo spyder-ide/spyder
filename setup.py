@@ -286,6 +286,7 @@ spyder_plugins_entry_points = [
     'debugger = spyder.plugins.debugger.plugin:Debugger',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
+    'external_console = spyder.plugins.externalconsole.plugin:ExternalConsole',
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
     'historylog = spyder.plugins.history.plugin:HistoryLog',

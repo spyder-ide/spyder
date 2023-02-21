@@ -243,6 +243,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget = shellwidget
         self.shellwidget.set_mute_inline_plotting(self.mute_inline_plotting)
         shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
+        shellwidget.executing.connect(self._handle_new_execution)
 
     def _handle_new_figure(self, fig, fmt):
         """
@@ -250,6 +251,10 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         kernel.
         """
         self.thumbnails_sb.add_thumbnail(fig, fmt)
+
+    def _handle_new_execution(self):
+        """Handle a new execution in the console."""
+        self.thumbnails_sb._first_thumbnail_shown = False
 
     # ---- Toolbar Handlers
     def zoom_in(self):
@@ -587,7 +592,8 @@ class ThumbnailScrollBar(QFrame):
         # is added to the scrollarea, we need to do it instead in a slot
         # connected to the scrollbar's rangeChanged signal.
         # See spyder-ide/spyder#10914 for more details.
-        self._new_thumbnail_added = False
+        self._scroll_to_last_thumbnail = False
+        self._first_thumbnail_shown = False
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
             self._scroll_to_newest_item)
 
@@ -768,6 +774,15 @@ class ThumbnailScrollBar(QFrame):
         """
         Add a new thumbnail to that thumbnail scrollbar.
         """
+        # Always stick at end for the first thumbnail
+        is_first = not self._first_thumbnail_shown
+
+        # Stick at end if we are already at the end
+        stick_at_end = False
+        sb = self.scrollarea.verticalScrollBar()
+        if sb.value() == sb.maximum():
+            stick_at_end = True
+
         thumbnail = FigureThumbnail(
             parent=self, background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
@@ -777,15 +792,27 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_context_menu_requested.connect(
             lambda point: self.show_context_menu(point, thumbnail))
         self._thumbnails.append(thumbnail)
-        self._new_thumbnail_added = True
+        self._scroll_to_last_thumbnail = True
+        self._first_thumbnail_shown = True
 
         self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
         self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
         self.scene.setRowStretch(self.scene.rowCount(), 100)
-        self.set_current_thumbnail(thumbnail)
+
+        # Only select a new thumbnail if the last one was selected
+        select_last = (
+            len(self._thumbnails) < 2
+            or self.current_thumbnail == self._thumbnails[-2]
+            or is_first
+        )
+        if select_last:
+            self.set_current_thumbnail(thumbnail)
 
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
+
+        if not is_first and not stick_at_end:
+            self._scroll_to_last_thumbnail = False
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
@@ -912,8 +939,8 @@ class ThumbnailScrollBar(QFrame):
         Note that this method is called each time the rangeChanged signal
         is emitted by the scrollbar.
         """
-        if self._new_thumbnail_added:
-            self._new_thumbnail_added = False
+        if self._scroll_to_last_thumbnail:
+            self._scroll_to_last_thumbnail = False
             self.scrollarea.verticalScrollBar().setValue(vsb_max)
 
     # ---- ScrollBar Handlers

@@ -11,7 +11,7 @@ Pyenv utilities
 import os
 import os.path as osp
 
-from spyder.config.base import get_home_dir, running_in_mac_app
+from spyder.config.base import get_home_dir
 from spyder.utils.programs import find_program, run_shell_command
 
 

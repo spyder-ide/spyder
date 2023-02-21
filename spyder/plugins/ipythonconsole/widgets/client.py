@@ -421,9 +421,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
 
-        # To sync with working directory toolbar
-        self.shellwidget.executed.connect(self.shellwidget.update_cwd)
-
     def add_to_history(self, command):
         """Add command to history"""
         if self.shellwidget.is_debugging():
@@ -562,7 +559,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """Close the client."""
         # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
         try:
-            # Close client
             self.stop_button_click_handler()
         except RuntimeError:
             pass
@@ -574,8 +570,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             pass
 
         self.shutdown(is_last_client)
-        self.close()
-        self.setParent(None)
+
+        # Prevent errors in our tests
+        try:
+            self.close()
+            self.setParent(None)
+        except RuntimeError:
+            pass
 
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""

@@ -20,7 +20,7 @@ from typing import Optional
 # Third party imports
 from qtpy import PYQT5
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QFocusEvent, QIcon
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
                             QToolButton, QVBoxLayout, QWidget)
 
@@ -149,6 +149,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     Parameters
     ----------
+    # --- Optional overridable methods
     error_data: dict
         The dictionary containing error data. The expected keys are:
         >>> error_data= {
@@ -201,6 +202,16 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     ----------
     plugin_instance: SpyderDockablePlugin
         Unmaximize plugin only if it is not `plugin_instance`.
+    """
+
+    sig_focus_status_changed = Signal(bool)
+    """
+    This signal is emitted to inform the focus status of the widget.
+
+    Parameters
+    ----------
+    status: bool
+        True if the widget is focused. False otherwise.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -477,6 +488,16 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     def closeEvent(self, event):
         self.on_close()
         super().closeEvent(event)
+
+    def focusInEvent(self, event: QFocusEvent) -> None:
+        self.sig_focus_status_changed.emit(True)
+        self.on_focus_in()
+        return super().focusInEvent(event)
+
+    def focusOutEvent(self, event: QFocusEvent) -> None:
+        self.sig_focus_status_changed.emit(False)
+        self.on_focus_out()
+        return super().focusOutEvent(event)
 
     # ---- Public methods to use
     # -------------------------------------------------------------------------
@@ -995,6 +1016,14 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         This method **must** only operate on local attributes.
         """
+        pass
+
+    def on_focus_in(self):
+        """Perform actions when the widget receives focus."""
+        pass
+
+    def on_focus_out(self):
+        """Perform actions when the widget loses focus."""
         pass
 
 

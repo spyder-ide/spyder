@@ -194,6 +194,11 @@ DEFAULTS = [
               'pdb_stop_first_line': True,
               'breakpoints_panel': True,
              }),
+            ('run',
+             {
+              'save_all_before_run': True,
+              'run_cell_copy': False,
+             }),
             ('plots',
              {
               'mute_inline_plotting': True,
@@ -247,9 +252,6 @@ DEFAULTS = [
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
               'max_recent_files': 20,
-              'save_all_before_run': True,
-              'focus_to_editor': True,
-              'run_cell_copy': False,
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
@@ -458,9 +460,6 @@ DEFAULTS = [
               'editor/select all': "Ctrl+A",
               # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
-              'editor/run selection': "F9",
-              'editor/run to line': 'Shift+F9',
-              'editor/run from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -486,9 +485,12 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
+              'editor/run selection and advance': "F9",
+              'editor/run selection up to line': 'Shift+F9',
+              'editor/run selection from line': CTRL + '+F9',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
-              'editor/re-run last cell': 'Alt+Return',
+              'editor/re-run cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
@@ -502,9 +504,9 @@ DEFAULTS = [
               'console/clear shell': "Ctrl+L",
               'console/clear line': "Shift+Escape",
               # ---- In Pylint ----
-              'pylint/run analysis': "F8",
+              'pylint/run file in pylint': "F8",
               # ---- In Profiler ----
-              'profiler/run profiler': "F10",
+              'profiler/run file in profiler': "F10",
               # ---- In widgets/ipythonconsole/shell.py ----
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
@@ -525,9 +527,9 @@ DEFAULTS = [
               # ---- In widgets/debugger/framesbrowser.py ----
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
-              'debugger/debug file': "Ctrl+F5",
-              'debugger/debug cell': 'Alt+Shift+Return',
-              'debugger/debug selection': '',
+              'debugger/run file in debugger': "Ctrl+F5",
+              'debugger/run cell in debugger': 'Alt+Shift+Return',
+              'debugger/run selection in debugger': '',
               'debugger/next': "Ctrl+F10",
               'debugger/continue': "Ctrl+F12",
               'debugger/step': "Ctrl+F11",
@@ -587,6 +589,7 @@ NAME_MAP = {
             'layout_settings',
             'recent_files',
             'splitter_state',
+            'file_uuids'
             ]
          ),
         ('explorer', [
@@ -629,6 +632,8 @@ NAME_MAP = {
             'configurations',
             'defaultconfiguration',
             'default/wdir/fixed_directory',
+            'last_used_parameters',
+            'parameters'
           ]
          ),
         ('workingdir', [
