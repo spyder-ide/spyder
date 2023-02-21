@@ -27,8 +27,7 @@ from spyder.api.translations import get_translation
 from spyder.plugins.run.api import (
     RunConfigurationProvider, SupportedExtensionContexts, RunExecutor,
     SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
-    RunConfigurationMetadata, RunActions, RunConfiguration,
-    ExtendedRunExecutionParameters, StoredRunConfigurationExecutor,
+    RunConfigurationMetadata, RunActions, StoredRunConfigurationExecutor,
     StoredRunExecutorParameters)
 from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.container import RunContainer
@@ -727,10 +726,6 @@ class Run(SpyderPluginV2):
         """
         self.destroy_run_button(context_name, executor_name, None)
 
-    # -------------------------------------------------------------------------
-    # ---- TODO: Temporary APIs, remove once the debug API is defined.
-    # -------------------------------------------------------------------------
-
     def get_last_used_executor_parameters(
         self,
         uuid: str
@@ -778,38 +773,6 @@ class Run(SpyderPluginV2):
         """
         return self.get_container().get_executor_configuration_parameters(
             executor_name, extension, context_id)
-
-    def run_configuration(
-        self,
-        executor_name: str,
-        config: RunConfiguration,
-        executor_conf: ExtendedRunExecutionParameters
-    ):
-        """
-        Manually execute a run configuration on a given executor with a set
-        of execution parameters.
-
-        Parameters
-        ----------
-        executor_name: str
-            The name of the run executor to use.
-        config: RunConfiguration
-            The run configuration that will be executed.
-        executor_conf:
-            The parameter set that the run executor requires.
-
-        Notes
-        -----
-        This is a temporary API defined to replace the debug interaction
-        currently defined. It will disappear once the debug API is put in
-        place.
-        """
-        self.get_container().run_configuration(
-            executor_name, config, executor_conf)
-
-    # -------------------------------------------------------------------------
-    # End of temporary APIs
-    # -------------------------------------------------------------------------
 
     # ---- Private API
     # -------------------------------------------------------------------------

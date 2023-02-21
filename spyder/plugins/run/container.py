@@ -26,7 +26,7 @@ from spyder.plugins.run.api import (
     RunResultFormat, RunConfigurationProvider, RunResultViewer, OutputFormat,
     SupportedExecutionRunConfiguration, RunConfigurationMetadata,
     StoredRunConfigurationExecutor, ExtendedRunExecutionParameters,
-    RunExecutionParameters, WorkingDirOpts, WorkingDirSource, RunConfiguration,
+    RunExecutionParameters, WorkingDirOpts, WorkingDirSource,
     SupportedExtensionContexts)
 from spyder.plugins.run.models import (
     RunExecutorParameters, RunExecutorListModel, RunConfigurationListModel)
@@ -1017,31 +1017,3 @@ class RunContainer(PluginMainContainer):
 
         mru_executors_uuids[uuid] = params
         self.set_conf('last_used_parameters', mru_executors_uuids)
-
-    def run_configuration(
-        self,
-        executor_name: str,
-        config: RunConfiguration,
-        executor_conf: ExtendedRunExecutionParameters
-    ):
-        """
-        Manually execute a run configuration on a given executor with a set
-        of execution parameters.
-
-        Parameters
-        ----------
-        executor_name: str
-            The name of the run executor to use.
-        config: RunConfiguration
-            The run configuration that will be executed.
-        executor_conf:
-            The parameter set that the run executor requires.
-
-        Notes
-        -----
-        This is a temporary API defined to replace the debug interaction
-        currently defined. It will disappear once the debug API is put in
-        place.
-        """
-        executor = self.run_executors[executor_name]
-        executor.exec_run_configuration(config, executor_conf)
