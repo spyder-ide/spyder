@@ -23,7 +23,8 @@ from spyder.api.translations import get_translation
 from spyder.config.base import (get_safe_mode, is_pynsist, running_in_mac_app,
                                 running_under_pytest)
 from spyder.plugins.ipythonconsole import (
-    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SpyderKernelError)
+    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
+    SpyderKernelError)
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
@@ -43,16 +44,16 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
     "<pre>"
     "    <tt>{0}</tt>"
     "</pre>"
-    "doesn't have the <tt>spyder-kernels</tt> module installed. Without this "
+    "doesn't have the <tt>spyder-kernels{1}</tt> module installed. Without this "
     "module is not possible for Spyder to create a console for you.<br><br>"
     "You can install it by activating your environment (if necessary) and "
     "running in a system terminal:"
     "<pre>"
-    "    <tt>{1}</tt>"
+    "    <tt>{2}</tt>"
     "</pre>"
     "or"
     "<pre>"
-    "    <tt>{2}</tt>"
+    "    <tt>{3}</tt>"
     "</pre>")
 
 
@@ -87,6 +88,7 @@ def has_spyder_kernels(pyexec):
     """Check if env has spyder kernels."""
     return is_module_installed(
         'spyder_kernels',
+        version=SPYDER_KERNELS_VERSION,
         interpreter=pyexec)
 
 
@@ -121,6 +123,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 raise SpyderKernelError(
                     ERROR_SPYDER_KERNEL_INSTALLED.format(
                           pyexec,
+                          SPYDER_KERNELS_VERSION,
                           SPYDER_KERNELS_CONDA,
                           SPYDER_KERNELS_PIP
                       )
