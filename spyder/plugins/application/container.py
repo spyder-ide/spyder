@@ -353,7 +353,16 @@ class ApplicationContainer(PluginMainContainer):
                 if self.application_update_status:
                     self.application_update_status.set_no_status()
         # Update checkbox based on user interaction
+        from logging import getLogger
+        custom_logger = getLogger('CUSTOM_LOGGER')
+        custom_logger.info('1')
+        custom_logger.info("container.py, _check_updates_ready, BEFORE")
+        custom_logger.info(f"SELECTED, {check_updates, self.get_conf(option)}")
+        custom_logger.info(f"SAVED, {self.get_conf(option)}")
         self.set_conf(option, check_updates)
+        custom_logger.info("container.py, _check_updates_ready, AFTER")
+        custom_logger.info(f"SELECTED, {check_updates, self.get_conf(option)}")
+        custom_logger.info(f"SAVED, {self.get_conf(option)}")
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)

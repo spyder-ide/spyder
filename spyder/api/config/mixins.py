@@ -134,12 +134,17 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
+        from logging import getLogger
+        custom_logger = getLogger('CUSTOM_LOGGER')
+        custom_logger.info('2')
+        custom_logger.info(f"mixins.py, set_conf, BEFORE: {option, value}")
         CONF.set(
             section,
             option,
             value,
             recursive_notification=recursive_notification
         )
+        custom_logger.info(f"mixins.py, set_conf, AFTER: {option, value}")
 
     def remove_conf(self,
                     option: ConfigurationKey,

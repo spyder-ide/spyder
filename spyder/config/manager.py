@@ -506,6 +506,8 @@ class ConfigurationManager(object):
 
         If section is None, the `option` is added to the default section.
         """
+        from logging import getLogger
+        custom_logger = getLogger('CUSTOM_LOGGER')
         original_option = option
         if isinstance(option, tuple):
             base_option = option[0]
@@ -524,6 +526,8 @@ class ConfigurationManager(object):
             option = base_option
 
         config = self.get_active_conf(section)
+        custom_logger.info('3')
+        custom_logger.info(f"manager.py, set: {option, value}")
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
         if notification:

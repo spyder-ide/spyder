@@ -20,6 +20,8 @@ import os.path as osp
 import re
 import shutil
 import time
+from logging import getLogger
+custom_logger = getLogger('CUSTOM_LOGGER')
 
 # Local imports
 from spyder.config.base import get_conf_path, get_module_source_path
@@ -85,6 +87,7 @@ class DefaultsConfig(cp.ConfigParser, object):
 
     def _set(self, section, option, value, verbose):
         """Set method."""
+        custom_logger.info(f"user.py, _set: {option, value}")
         if not self.has_section(section):
             self.add_section(section)
 
@@ -99,9 +102,12 @@ class DefaultsConfig(cp.ConfigParser, object):
 
     def _save(self):
         """Save config into the associated .ini file."""
+        
         fpath = self.get_config_fpath()
+        custom_logger.info(f"user.py, _save: {fpath}")
 
         def _write_file(fpath):
+            custom_logger.info(f"user.py, _save, _write_file: tries to write to CONF file")
             with io.open(fpath, 'w', encoding='utf-8') as configfile:
                 self.write(configfile)
 
@@ -110,6 +116,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         try:
             # The "easy" way
             _write_file(fpath)
+            custom_logger.info(f"user.py, _save, AFTER first try")
         except EnvironmentError:
             try:
                 # The "delete and sleep" way
@@ -118,7 +125,9 @@ class DefaultsConfig(cp.ConfigParser, object):
 
                 time.sleep(0.05)
                 _write_file(fpath)
+                custom_logger.info(f"user.py, _save, AFTER second try")
             except Exception as e:
+                custom_logger.info(f"user.py, _save, INSIDE Exception")
                 print('Failed to write user configuration file to disk, with '
                       'the exception shown below')  # spyder: test-skip
                 print(e)  # spyder: test-skip
@@ -539,6 +548,7 @@ class UserConfig(DefaultsConfig):
 
         If section is None, the `option` is added to the default section.
         """
+        custom_logger.info('4B')
         section = self._check_section_option(section, option)
         default_value = self.get_default(section, option)
 
@@ -557,6 +567,7 @@ class UserConfig(DefaultsConfig):
 
         self._set(section, option, value, verbose)
         if save:
+            custom_logger.info(f"user.py, set B: {option, value}")
             self._save()
 
     def remove_section(self, section):
@@ -948,6 +959,8 @@ class MultiUserConfig(object):
 
         If section is None, the `option` is added to the default section.
         """
+        custom_logger.info('4A')
+        custom_logger.info(f"user.py, set A: {option, value}")
         config = self._get_config(section, option)
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
