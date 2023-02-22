@@ -24,7 +24,6 @@ import warnings
 
 # Local imports
 from spyder import __version__
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 
 #==============================================================================
@@ -485,8 +484,6 @@ def get_translation(modname, dirname=None):
 
     def translate_dumb(x):
         """Dumb function to not use translations."""
-        if not is_text_string(x):
-            return to_text_string(x, "utf-8")
         return x
 
     locale_path = get_module_data_path(dirname, relpath="locale",
@@ -506,19 +503,23 @@ def get_translation(modname, dirname=None):
     else:
         os.environ["LANGUAGE"] = language  # Works on Linux
 
+    if language == "en":
+        return translate_dumb
+
     import gettext
     try:
-        _trans = gettext.translation(modname, locale_path, codeset="utf-8")
-        lgettext = _trans.lgettext
+        _trans = gettext.translation(modname, locale_path)
 
         def translate_gettext(x):
-            y = lgettext(x)
-            if is_text_string(y):
-                return y
-            else:
-                return to_text_string(y, "utf-8")
+            return _trans.gettext(x)
         return translate_gettext
-    except Exception:
+    except Exception as exc:
+        # logging module is not yet initialised at this point
+        print(
+            f"Could not load translations for {language} due to: "
+            f"{exc.__class__.__name__} - {exc}",
+            file=sys.stderr
+        )
         return translate_dumb
 
 
