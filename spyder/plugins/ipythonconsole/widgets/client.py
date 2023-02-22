@@ -26,7 +26,7 @@ from qtpy.QtCore import QUrl, QTimer, Signal, Slot, QThread
 from qtpy.QtWidgets import (QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import (
     get_home_dir, get_module_source_path, running_under_pytest)
@@ -48,8 +48,7 @@ from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------------------

@@ -18,16 +18,13 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import get_conf_path
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
 from spyder.plugins.workingdirectory.container import (
     WorkingDirectoryContainer)
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
-
-# Localization
-_ = get_translation('spyder')
 
 
 class WorkingDirectory(SpyderPluginV2):

@@ -14,15 +14,12 @@ from qtpy.QtWidgets import QSpinBox
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidgetMenus
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
-
-# Localization
-_ = get_translation('spyder')
 
 
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1

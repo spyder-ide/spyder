@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
@@ -40,10 +40,6 @@ from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Constants

@@ -20,16 +20,12 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
 from spyder.widgets.browser import FrameWebView, WebViewActions
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Constants
