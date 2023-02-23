@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout, QComboBox,
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration)
 from spyder.plugins.run.container import RunContainer
@@ -29,9 +29,6 @@ from spyder.plugins.run.models import (
 from spyder.plugins.run.widgets import (
     ExecutionParametersDialog, RunDialogStatus)
 
-
-# Localization
-_ = get_translation("spyder")
 
 
 def move_file_to_front(contexts: List[str]) -> List[str]:

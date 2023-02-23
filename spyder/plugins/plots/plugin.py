@@ -11,11 +11,8 @@ Plots Plugin.
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.shellconnect.mixins import ShellConnectMixin
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class Plots(SpyderDockablePlugin, ShellConnectMixin):

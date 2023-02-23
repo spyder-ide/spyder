@@ -9,13 +9,9 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QAction
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class PreferencesActions:

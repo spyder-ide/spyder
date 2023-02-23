@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun, SelectionRun
 from spyder.plugins.externalconsole.api import (
     ExtConsolePyConfiguration, ExtConsoleShConfiguration)
@@ -32,10 +32,6 @@ from spyder.plugins.run.api import (
     RunResult, RunExecutor)
 from spyder.utils import programs
 from spyder.utils.misc import get_python_executable
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class ExternalConsole(SpyderPluginV2, RunExecutor):

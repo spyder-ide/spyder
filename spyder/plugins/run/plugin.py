@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QAction
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.api import (
     RunConfigurationProvider, SupportedExtensionContexts, RunExecutor,
     SupportedExecutionRunConfiguration, RunResultViewer, OutputFormat,
@@ -34,9 +34,6 @@ from spyder.plugins.run.container import RunContainer
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Plugin

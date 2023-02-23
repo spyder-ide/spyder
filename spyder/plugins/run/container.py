@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QAction
 # Local imports
 from spyder.utils.sourcecode import camel_case_to_snake_case
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.api import (
     RunActions, StoredRunExecutorParameters, RunContext, RunExecutor,
     RunResultFormat, RunConfigurationProvider, RunResultViewer, OutputFormat,
@@ -31,10 +31,6 @@ from spyder.plugins.run.api import (
 from spyder.plugins.run.models import (
     RunExecutorParameters, RunExecutorListModel, RunConfigurationListModel)
 from spyder.plugins.run.widgets import RunDialog, RunDialogStatus
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class RunContainer(PluginMainContainer):

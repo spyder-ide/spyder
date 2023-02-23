@@ -17,13 +17,9 @@ import traceback
 from qtpy.QtCore import QMutex, QMutexLocker, QThread, Signal
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils.encoding import is_text_file
 from spyder.utils.palette import SpyderPalette
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # ---- Constants

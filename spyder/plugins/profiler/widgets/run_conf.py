@@ -15,14 +15,10 @@ from qtpy.QtWidgets import (
     QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
 from spyder.utils.misc import getcwd_or_home
-
-
-# Translations
-_ = get_translation('spyder')
 
 
 class ProfilerPyConfigurationGroup(RunExecutorConfigurationGroup):

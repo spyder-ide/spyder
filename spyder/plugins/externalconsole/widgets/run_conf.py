@@ -16,7 +16,7 @@ from qtpy.QtWidgets import (
     QHBoxLayout, QLabel)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata,
@@ -25,8 +25,6 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
 
-# For translations
-_ = get_translation('spyder')
 
 # Main constants
 RUN_DEFAULT_CONFIG = _("Run file with default configuration")

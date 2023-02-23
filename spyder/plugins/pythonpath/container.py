@@ -13,7 +13,7 @@ import os.path as osp
 
 from qtpy.QtCore import Signal
 
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import get_conf_path
 from spyder.plugins.pythonpath.utils import get_system_pythonpath
@@ -21,8 +21,7 @@ from spyder.plugins.pythonpath.widgets.pathmanager import PathManager
 from spyder.utils import encoding
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 

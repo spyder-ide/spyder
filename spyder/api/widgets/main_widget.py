@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
 from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
@@ -42,8 +42,6 @@ from spyder.utils.stylesheet import (
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
-# Localization
-_ = get_translation('spyder')
 
 # Logging
 logger = logging.getLogger(__name__)

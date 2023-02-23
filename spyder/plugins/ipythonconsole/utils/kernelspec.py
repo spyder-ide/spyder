@@ -19,7 +19,7 @@ from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import (get_safe_mode, is_pynsist, running_in_mac_app,
                                 running_under_pytest)
 from spyder.plugins.ipythonconsole import (
@@ -34,11 +34,6 @@ from spyder.utils.programs import is_python_interpreter, is_module_installed
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
-
-
-# Localization
-_ = get_translation('spyder')
-
 ERROR_SPYDER_KERNEL_INSTALLED = _(
     "The Python environment or installation whose interpreter is located at"
     "<pre>"
