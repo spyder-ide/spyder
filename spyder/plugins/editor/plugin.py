@@ -1113,6 +1113,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +
+                                [create_new_cell] +
                                 self.main.file_toolbar_actions)
 
         self.main.file_toolbar_actions += file_toolbar_actions
@@ -2739,6 +2740,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.update_cursorpos_actions()
 
     @Slot()
+    def create_cell(self, prefix=None):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.create_new_cell()
+
+    @Slot()
     def go_to_previous_cursor_position(self):
         self.__ignore_cursor_history = True
         self.switch_to_plugin()
@@ -2880,6 +2887,56 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if filename_ext == extension and file_enabled:
                 self.register_file_run_metadata(filename, filename_ext)
             else:
+                self.pending_run_files -= {(filename, filename_ext)}
+
+    def remove_supported_run_configuration(
+        self,
+        config: EditorRunConfiguration
+    ):
+        origin = config['origin']
+        extension = config['extension']
+        contexts = config['contexts']
+
+        unsupported_extension = SupportedExtensionContexts(
+            input_extension=extension, contexts=contexts)
+
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run:
+            run.deregister_run_configuration_provider(
+                self.NAME, [unsupported_extension])
+
+        to_remove = []
+        ext_origins = self.run_configurations_per_origin[extension]
+        for context in contexts:
+            context_name = context['name']
+            context_id = getattr(RunContext, context_name)
+            context_origins = ext_origins[context_id]
+            context_origins -= {origin}
+            if len(context_origins) == 0:
+                to_remove.append(context_id)
+                ext_origins.pop(context_id)
+
+        if len(ext_origins) == 0:
+            self.run_configurations_per_origin.pop(extension)
+
+        ext_contexts = self.supported_run_configurations[extension]
+        for context in to_remove:
+            ext_contexts -= {context}
+
+        if len(ext_contexts) == 0:
+            self.supported_run_configurations.pop(extension)
+
+        for metadata_id in list(self.metadata_per_id.keys()):
+            metadata = self.metadata_per_id[metadata_id]
+            if metadata['input_extension'] == extension:
+                if metadata['context'] in to_remove:
+                    self.metadata_per_id.pop(metadata_id)
+                    filename = self.file_per_id.pop(metadata_id)
+                    self.id_per_file.pop(filename)
+                    self.pending_run_files |= {
+                        (filename, metadata['input_extension'])}
+
+    def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
         editorstack = self.get_current_editorstack()
         self.focus_run_configuration(metadata_id)
         if self.get_option('save_all_before_run', section="run"):

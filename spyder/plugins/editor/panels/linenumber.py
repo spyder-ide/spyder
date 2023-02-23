@@ -100,10 +100,9 @@ class LineNumberArea(Panel):
             data = block.userData()
             if self._markers_margin and data:
                 if is_cell_header(block):
-                    cell_line_color = self.linenumbers_color
                     pen = painter.pen()
                     pen.setStyle(Qt.SolidLine)
-                    pen.setBrush(cell_line_color)
+                    pen.setBrush(self.linenumbers_color)
                     painter.setPen(pen)
                     painter.drawLine(0, top, self.width(), top)
 

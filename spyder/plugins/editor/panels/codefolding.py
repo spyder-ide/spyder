@@ -144,7 +144,7 @@ class FoldingPanel(Panel):
     def __init__(self):
         Panel.__init__(self)
         self._native_icons = False
-        self.linenumbers_color = QColor(Qt.darkGray)
+        self.linecell_color = QColor(Qt.darkGray)
         self._indicators_icons = (
             'folding.arrow_right_off',
             'folding.arrow_right_on',
@@ -241,10 +241,9 @@ class FoldingPanel(Panel):
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
         painter = QPainter(self)
-        cell_line_color = self.linenumbers_color
         pen = painter.pen()
         pen.setStyle(Qt.SolidLine)
-        pen.setBrush(cell_line_color)
+        pen.setBrush(self.linecell_color)
         painter.setPen(pen)
         for top_position, line_number, block in self.editor.visible_blocks:
             if is_cell_header(block):
