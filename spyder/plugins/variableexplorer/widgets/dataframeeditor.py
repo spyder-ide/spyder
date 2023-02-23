@@ -723,12 +723,14 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                                     icon=ima.icon('editcopy'),
                                     triggered=self.copy,
                                     context=Qt.WidgetShortcut)
-        functions = ((_("To bool"), bool), (_("To complex"), complex),
-                     (_("To int"), int), (_("To float"), float),
-                     (_("To str"), to_text_string))
+        functions = ((_("Bool"), bool), (_("Complex"), complex),
+                     (_("Int"), int), (_("Float"), float),
+                     (_("Str"), to_text_string))
 
+        convert_to_action = create_action(self, _('Convert to'))
         menu_actions = [
             self.edit_action,
+            copy_action,
             self.removerow_action,
             self.removecol_action,
             MENU_SEPARATOR,
@@ -739,20 +741,23 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             self.duplicate_row_action,
             self.duplicate_col_action,
             MENU_SEPARATOR,
-            resize_action,
-            resize_columns_action,
+            convert_to_action,
             MENU_SEPARATOR,
-            copy_action
+            resize_action,
+            resize_columns_action
         ]
         self.menu_actions = menu_actions.copy()
-
+        convert_to_menu = QMenu(self)
+        convert_to_action.setMenu(convert_to_menu)
+        convert_to_actions = []
         for name, func in functions:
             def slot():
                 self.change_type(func)
-            menu_actions += [create_action(self, name,
-                                           triggered=slot,
-                                           context=Qt.WidgetShortcut)]
+            convert_to_actions += [create_action(self, name,
+                                                 triggered=slot,
+                                                 context=Qt.WidgetShortcut)]
         menu = QMenu(self)
+        add_actions(convert_to_menu, convert_to_actions)
         add_actions(menu, menu_actions)
         return menu
 
@@ -841,6 +846,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
     def insert_item(self, axis=0, before_above=False):
         """Insert row or column."""
         current_index = self.currentIndex()
+        if not current_index.isValid():
+            return False
         column = current_index.column()
         row = current_index.row()
         step = 0
@@ -903,6 +910,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
     def duplicate_row_col(self, dup_row=False):
         """Duplicate row or column."""
         current_index = self.currentIndex()
+        if not current_index.isValid():
+            return False
         column = current_index.column()
         row = current_index.row()
 
@@ -1436,7 +1445,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         for item in self.dataTable.menu_actions:
             if item is not None:
-                toolbar.addAction(item)
+                if item.text() != 'Convert to':
+                    toolbar.addAction(item)
         self.vlayout.addWidget(toolbar)
         self.vlayout.addLayout(self.layout)
         return True
