@@ -1669,14 +1669,24 @@ class EditorStack(QWidget):
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
 
-            editor = self.get_current_editor()
-            if editor:
-                editor.setFocus()
-
             if new_index is not None:
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
+
+            # Give focus to the previous editor in the stack
+            editor = self.get_current_editor()
+            if editor:
+                # This is necessary to avoid a segfault when closing several
+                # files that were removed outside Spyder one after the other.
+                # Fixes spyder-ide/spyder#18838
+                QApplication.processEvents()
+
+                # This allows to close files that were removed outside Spyder
+                # one after the other without refocusing each one.
+                self.__file_status_flag = False
+
+                editor.setFocus()
 
             self.add_last_closed_file(finfo.filename)
 
@@ -2369,7 +2379,7 @@ class EditorStack(QWidget):
 
             answer = self.msgbox.exec_()
             if answer == QMessageBox.Yes:
-                self.close_file(index)
+                self.close_file(index, force=True)
             else:
                 finfo.newly_created = True
                 finfo.editor.document().setModified(True)
