@@ -13,12 +13,8 @@ from qtpy.QtCore import QEvent, Qt, Signal, Slot
 from qtpy.QtWidgets import QComboBox, QMessageBox, QSizePolicy
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils.encoding import to_unicode_from_fs
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # ---- Constants

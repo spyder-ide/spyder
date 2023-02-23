@@ -12,7 +12,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN,
                                         ALWAYS_OPEN_FIRST_RUN_OPTION,
                                         CLEAR_ALL_VARIABLES,
@@ -29,9 +29,6 @@ from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN,
                                         WDIR_USE_FIXED_DIR_OPTION,
                                         WDIR_USE_SCRIPT_DIR_OPTION)
 from spyder.utils.misc import getcwd_or_home
-
-# Localization
-_ = get_translation("spyder")
 
 
 class RunConfigPage(PluginConfigPage):

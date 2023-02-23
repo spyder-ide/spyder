@@ -15,16 +15,13 @@ import os.path as osp
 import shutil
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import get_project_config_folder
 from spyder.plugins.projects.utils.config import (ProjectMultiConfig,
                                                   PROJECT_NAME_MAP,
                                                   PROJECT_DEFAULTS,
                                                   PROJECT_CONF_VERSION,
                                                   WORKSPACE)
-
-# Localization
-_ = get_translation("spyder")
 
 
 class BaseProjectType:

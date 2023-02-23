@@ -16,15 +16,11 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils.programs import is_module_installed
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import PylintWidget
-
-
-# Localization
-_ = get_translation("spyder")
 
 
 class PylintActions:

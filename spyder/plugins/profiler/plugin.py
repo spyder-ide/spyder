@@ -15,15 +15,12 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
                                                          is_profiler_installed)
 from spyder.plugins.run.widgets import get_run_configuration
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Constants
