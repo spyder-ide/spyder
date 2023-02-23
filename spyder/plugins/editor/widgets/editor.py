@@ -2327,9 +2327,15 @@ class EditorStack(QWidget):
             self.readonly_changed.emit(read_only)
 
     def __check_file_status(self, index):
-        """Check if file has been changed in any way outside Spyder:
-        1. removed, moved or renamed outside Spyder
-        2. modified outside Spyder"""
+        """
+        Check if file has been changed in any way outside Spyder.
+
+        Notes
+        -----
+        Possible ways are:
+        * The file was removed, moved or renamed outside Spyder.
+        * The file was modified outside Spyder.
+        """
         if self.__file_status_flag:
             # Avoid infinite loop: when the QMessageBox.question pops, it
             # gets focus and then give it back to the CodeEditor instance,
@@ -2347,18 +2353,20 @@ class EditorStack(QWidget):
             # File was just created (not yet saved): do nothing
             # (do not return because of the clean-up at the end of the method)
             pass
-
         elif not osp.isfile(finfo.filename):
             # File doesn't exist (removed, moved or offline):
             self.msgbox = QMessageBox(
-                    QMessageBox.Warning,
-                    self.title,
-                    _("<b>%s</b> is unavailable "
-                      "(this file may have been removed, moved "
-                      "or renamed outside Spyder)."
-                      "<br>Do you want to close it?") % name,
-                    QMessageBox.Yes | QMessageBox.No,
-                    self)
+                QMessageBox.Warning,
+                self.title,
+                _("The file <b>%s</b> is unavailable."
+                  "<br><br>"
+                  "It may have been removed, moved or renamed outside Spyder."
+                  "<br><br>"
+                  "Do you want to close it?") % name,
+                QMessageBox.Yes | QMessageBox.No,
+                self
+            )
+
             answer = self.msgbox.exec_()
             if answer == QMessageBox.Yes:
                 self.close_file(index)
@@ -2366,21 +2374,23 @@ class EditorStack(QWidget):
                 finfo.newly_created = True
                 finfo.editor.document().setModified(True)
                 self.modification_changed(index=index)
-
         else:
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
-            if to_text_string(lastm.toString()) \
-               != to_text_string(finfo.lastmodified.toString()):
+            if str(lastm.toString()) != str(finfo.lastmodified.toString()):
                 if finfo.editor.document().isModified():
                     self.msgbox = QMessageBox(
                         QMessageBox.Question,
                         self.title,
-                        _("<b>%s</b> has been modified outside Spyder."
-                          "<br>Do you want to reload it and lose all "
-                          "your changes?") % name,
+                        _("The file <b>%s</b> has been modified outside "
+                          "Spyder."
+                          "<br><br>"
+                          "Do you want to reload it and lose all your "
+                          "changes?") % name,
                         QMessageBox.Yes | QMessageBox.No,
-                        self)
+                        self
+                    )
+
                     answer = self.msgbox.exec_()
                     if answer == QMessageBox.Yes:
                         self.reload(index)
