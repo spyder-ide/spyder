@@ -259,7 +259,7 @@ jobs:
               echo "$app_path does not exist"
           fi
 
-      - name: Notarize or Checksum
+      - name: Notarize or Compute Checksum
         if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
         run: |
           if [[ $RUNNER_OS == "macOS" ]]; then
