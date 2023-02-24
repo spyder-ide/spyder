@@ -257,6 +257,7 @@ jobs:
                   echo ""
               else
                   echo "$app_path does not exist"
+                  exit 1
               fi
           elif [[ $RUNNER_OS == "Linux" ]]; then
               $PKG_PATH -b
@@ -270,6 +271,7 @@ jobs:
                   echo ""
               else
                   echo "$shortcut_path does not exist"
+                  exit 1
               fi
           else
               cmd.exe /C start /wait "$PKG_PATH" /S
@@ -282,6 +284,7 @@ jobs:
                   echo "$shortcut_path successfully created"
               else
                   echo "$shortcut_path odes not exist"
+                  exit 1
               fi
           fi
 
