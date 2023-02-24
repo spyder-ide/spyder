@@ -12,13 +12,10 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.pylint.main_widget import (MAX_HISTORY_ENTRIES,
                                                MIN_HISTORY_ENTRIES,
                                                PylintWidget)
-
-# Localization
-_ = get_translation("spyder")
 
 
 class PylintConfigPage(PluginConfigPage):

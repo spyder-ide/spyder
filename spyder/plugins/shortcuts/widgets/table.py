@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QSpacerItem, QTableView, QVBoxLayout)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
@@ -29,9 +29,6 @@ from spyder.widgets.helperwidgets import (VALID_FINDER_CHARS,
                                           CustomSortFilterProxy,
                                           FinderLineEdit, HelperToolButton,
                                           HTMLDelegate)
-
-# Localization
-_ = get_translation('spyder')
 
 
 # Valid shortcut keys

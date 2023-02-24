@@ -16,17 +16,13 @@ import sys
 from qtpy.QtCore import QTimer, Signal
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.status import BaseTimerStatus
 from spyder.config.base import is_pynsist, running_in_mac_app
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
 from spyder.utils.workers import WorkerManager
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class InterpreterStatus(BaseTimerStatus):

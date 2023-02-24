@@ -20,7 +20,7 @@ os.environ['SPYDER_PYTEST'] = 'True'
 # NOTE: This needs to be imported before any QApplication.
 # Don't remove it or change it to a different location!
 # pylint: disable=wrong-import-position
-from qtpy import QtWebEngineWidgets  # pylint: disable=unused-import
+from qtpy import QtWebEngineWidgets  # noqa
 import pytest
 
 

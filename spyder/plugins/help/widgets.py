@@ -24,14 +24,14 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  loading, usage, warning)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
-from spyder.py3compat import get_meth_class_inst, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette
@@ -40,10 +40,6 @@ from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Constants
@@ -682,7 +678,7 @@ class HelpWidget(PluginMainWidget):
             func = cb[0]
             args = cb[1:]
             func(*args)
-            if get_meth_class_inst(func) is self.rich_text:
+            if func.__self__ is self.rich_text:
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()

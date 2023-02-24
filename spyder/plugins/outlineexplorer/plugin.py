@@ -7,17 +7,14 @@
 """Outline Explorer Plugin."""
 
 # Third party imports
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Qt, Slot
 
 # Local imports
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class OutlineExplorer(SpyderDockablePlugin):
@@ -30,7 +27,7 @@ class OutlineExplorer(SpyderDockablePlugin):
     WIDGET_CLASS = OutlineExplorerWidget
 
     # ---- SpyderDockablePlugin API
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name() -> str:
         """Return widget title."""
@@ -47,7 +44,9 @@ class OutlineExplorer(SpyderDockablePlugin):
     def on_initialize(self):
         if self.main:
             self.main.restore_scrollbar_position.connect(
-                self.restore_scrollbar_position)
+                self._restore_scrollbar_position)
+        self.sig_mainwindow_state_changed.connect(
+            self._on_mainwindow_state_changed)
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -81,14 +80,27 @@ class OutlineExplorer(SpyderDockablePlugin):
         editor.sig_open_files_finished.disconnect(
             self.update_all_editors)
 
-    #------ Public API ---------------------------------------------------------
-    def restore_scrollbar_position(self):
+    # ----- Private API
+    # -------------------------------------------------------------------------
+    @Slot(object)
+    def _on_mainwindow_state_changed(self, window_state):
+        """Actions to take when the main window has changed its state."""
+        if window_state == Qt.WindowMinimized:
+            # There's no need to update the treewidget when the plugin is
+            # minimized.
+            self.get_widget().change_tree_visibility(False)
+        else:
+            self.get_widget().change_tree_visibility(True)
+
+    def _restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = self.get_conf('scrollbar_position', None)
         explorer = self.get_widget()
         if scrollbar_pos is not None:
             explorer.treewidget.set_scrollbar_position(scrollbar_pos)
 
+    # ----- Public API
+    # -------------------------------------------------------------------------
     @Slot(dict, str)
     def start_symbol_services(self, capabilities, language):
         """Enable LSP symbols functionality."""
@@ -106,3 +118,7 @@ class OutlineExplorer(SpyderDockablePlugin):
         """Update all editors with an associated LSP server."""
         explorer = self.get_widget()
         explorer.update_all_editors()
+
+    def get_supported_languages(self):
+        """List of languages with symbols support."""
+        return self.get_widget().get_supported_languages()

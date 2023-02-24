@@ -12,7 +12,6 @@ IPython console plugin.
 """
 
 # Standard library imports
-from __future__ import print_function
 import os
 import os.path as osp
 import re
@@ -1083,7 +1082,7 @@ class BaseEditMixin(object):
         startpos = cursor.selectionStart()
 
         # Find a valid Python variable name
-        if valid_python_variable and not completion:
+        if valid_python_variable:
             match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
             if not match:
                 # This is assumed in several places of our codebase,

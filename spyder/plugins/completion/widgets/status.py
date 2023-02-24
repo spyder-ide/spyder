@@ -15,13 +15,9 @@ from qtpy.QtCore import QPoint, Signal
 from qtpy.QtWidgets import QMenu
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.utils.qthelpers import add_actions, create_action
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class CompletionStatus(StatusBarWidget):

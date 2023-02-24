@@ -11,8 +11,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import with_statement
-
 # Standard library imports
 import os
 import os.path as osp
@@ -32,7 +30,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.config.main import NAME_FILTERS
@@ -49,10 +47,6 @@ try:
     from nbconvert import PythonExporter as nbexporter
 except:
     nbexporter = None    # analysis:ignore
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # ---- Constants

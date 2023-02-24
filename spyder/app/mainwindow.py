@@ -20,6 +20,7 @@ Licensed under the terms of the MIT License
 # Stdlib imports
 # =============================================================================
 from collections import OrderedDict
+import configparser as cp
 from enum import Enum
 import errno
 import gc
@@ -81,7 +82,7 @@ from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.otherplugins import get_spyderplugins_mods
-from spyder.py3compat import configparser as cp, PY3, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
@@ -144,6 +145,17 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     # To be removed in Spyder 6
     sig_pythonpath_changed = Signal(object, object)
+
+    sig_window_state_changed = Signal(object)
+    """
+    This signal is emitted when the window state has changed (for instance,
+    between maximized and minimized states).
+
+    Parameters
+    ----------
+    window_state: Qt.WindowStates
+        The window state.
+    """
 
     def __init__(self, splash=None, options=None):
         QMainWindow.__init__(self)
@@ -422,6 +434,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Connect Main window Signals to plugin signals
         self.sig_moved.connect(plugin.sig_mainwindow_moved)
         self.sig_resized.connect(plugin.sig_mainwindow_resized)
+        self.sig_window_state_changed.connect(
+            plugin.sig_mainwindow_state_changed)
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
@@ -1798,7 +1812,7 @@ def main(options, args):
     # **** Create main window ****
     mainwindow = None
     try:
-        if PY3 and options.report_segfault:
+        if options.report_segfault:
             import faulthandler
             with open(faulthandler_file, 'w') as f:
                 faulthandler.enable(file=f)

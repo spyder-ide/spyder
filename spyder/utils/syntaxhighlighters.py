@@ -10,7 +10,7 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 """
 
 # Standard library imports
-from __future__ import print_function
+import builtins
 import keyword
 import os
 import re
@@ -29,8 +29,7 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
-                              PY36_OR_MORE)
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
@@ -442,10 +441,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                     r"\b[+-]?0[oO][0-7]+[lL]?\b",
                     r"\b[+-]?0[bB][01]+[lL]?\b",
                     r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"]
-    if PY3:
-        prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
-    else:
-        prefix = "r|u|ur|R|U|UR|Ur|uR|b|B|br|Br|bR|BR"
+    prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
     dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
     uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
@@ -460,21 +456,20 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                    % prefix
     # Needed to achieve correct highlighting in Python 3.6+
     # See spyder-ide/spyder#7324.
-    if PY36_OR_MORE:
-        # Based on
-        # https://github.com/python/cpython/blob/
-        # 81950495ba2c36056e0ce48fd37d514816c26747/Lib/tokenize.py#L117
-        # In order: Hexnumber, Binnumber, Octnumber, Decnumber,
-        # Pointfloat + Exponent, Expfloat, Imagnumber
-        number_regex = [
-                r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
-                r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
-                r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
-                r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
-                r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
-                "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
-                r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
-                r"\b[0-9](?:_?[0-9])*[jJ]\b"]
+    # Based on
+    # https://github.com/python/cpython/blob/
+    # 81950495ba2c36056e0ce48fd37d514816c26747/Lib/tokenize.py#L117
+    # In order: Hexnumber, Binnumber, Octnumber, Decnumber,
+    # Pointfloat + Exponent, Expfloat, Imagnumber
+    number_regex = [
+            r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
+            r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
+            r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
+            r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
+            r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
+            "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+            r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+            r"\b[0-9](?:_?[0-9])*[jJ]\b"]
     number = any("number", number_regex)
 
     string = any("string", [sq3string, dq3string, sqstring, dqstring])

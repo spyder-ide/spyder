@@ -21,7 +21,7 @@ import os.path as osp
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QComboBox, QCompleter, QLineEdit,
-                            QSizePolicy, QToolTip)
+                            QSizePolicy, QToolButton, QToolTip)
 
 # Local imports
 from spyder.config.base import _
@@ -177,11 +177,15 @@ class PatternComboBox(BaseComboBox):
             self.clear_action, QLineEdit.TrailingPosition
         )
 
+        # Button that corresponds to the clear_action above
+        self.clear_button = self.lineEdit().findChildren(QToolButton)[0]
+
         # Hide clear_action by default because lineEdit is empty when the
         # combobox is created, so it doesn't make sense to show it.
         self.clear_action.setVisible(False)
 
         self.lineEdit().textChanged.connect(self._on_text_changed)
+        self.installEventFilter(self)
 
     def _on_text_changed(self, text):
         """Actions to take when text has changed on the line edit widget."""
@@ -189,6 +193,21 @@ class PatternComboBox(BaseComboBox):
             self.clear_action.setVisible(True)
         else:
             self.clear_action.setVisible(False)
+
+    def eventFilter(self, widget, event):
+        """
+        Event filter for this combobox.
+
+        Notes
+        -----
+        * Reduce space between clear_action and the right border of lineEdit.
+        """
+        if event.type() == QEvent.Paint:
+            self.clear_button.move(
+                self.lineEdit().width() - 22, self.clear_button.y()
+            )
+
+        return super().eventFilter(widget, event)
 
 
 class EditableComboBox(BaseComboBox):

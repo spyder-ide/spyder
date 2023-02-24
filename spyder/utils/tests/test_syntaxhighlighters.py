@@ -10,7 +10,6 @@ from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QTextDocument
 
 from spyder.utils.syntaxhighlighters import HtmlSH, PythonSH, MarkdownSH
-from spyder.py3compat import PY3
 
 def compare_formats(actualFormats, expectedFormats, sh):
     assert len(actualFormats) == len(expectedFormats)
@@ -69,13 +68,9 @@ def test_PythonSH_UTF16_string():
 
 
 def test_python_string_prefix():
-    if PY3:
-        prefixes = ("r", "u", "R", "U", "f", "F", "fr", "Fr", "fR", "FR",
-                    "rf", "rF", "Rf", "RF", "b", "B", "br", "Br", "bR", "BR",
-                    "rb", "rB", "Rb", "RB")
-    else:
-        prefixes = ("r", "u", "ur", "R", "U", "UR", "Ur", "uR", "b", "B",
-                    "br", "Br", "bR", "BR")
+    prefixes = ("r", "u", "R", "U", "f", "F", "fr", "Fr", "fR", "FR",
+                "rf", "rF", "Rf", "RF", "b", "B", "br", "Br", "bR", "BR",
+                "rb", "rB", "Rb", "RB")
     for prefix in prefixes:
         txt = "[%s'test', %s'''test''']" % (prefix, prefix)
 

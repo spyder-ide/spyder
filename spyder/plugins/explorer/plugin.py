@@ -18,15 +18,12 @@ import os.path as osp
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.plugins.explorer.widgets.main_widget import ExplorerWidget
 from spyder.plugins.explorer.confpage import ExplorerConfigPage
-
-# Localization
-_ = get_translation('spyder')
 
 
 class Explorer(SpyderDockablePlugin):

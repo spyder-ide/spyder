@@ -29,7 +29,7 @@ from qtpy.QtWidgets import QApplication
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.mixins import SpyderPluginObserver
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -44,8 +44,7 @@ from .enum import Plugins
 from .old_api import SpyderPluginWidget
 
 
-# Localization
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 
@@ -277,6 +276,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     ----------
     plugin_instance: SpyderDockablePlugin
         Unmaximize plugin only if it is not `plugin_instance`.
+    """
+
+    sig_mainwindow_state_changed = Signal(object)
+    """
+    This signal is emitted when the main window state has changed (for
+    instance, between maximized and minimized states).
+
+    Parameters
+    ----------
+    window_state: Qt.WindowStates
+        The window state.
     """
 
     # --- Private attributes -------------------------------------------------

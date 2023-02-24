@@ -91,7 +91,7 @@ def fix_indentation(text, indent_chars):
 
 def is_builtin(text):
     """Test if passed string is the name of a Python builtin object"""
-    from spyder.py3compat import builtins
+    import builtins
     return text in [str(name) for name in dir(builtins)
                     if not name.startswith('_')]
 

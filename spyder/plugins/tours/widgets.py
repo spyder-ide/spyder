@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 # Local imports
 from spyder import __docs_url__
 from spyder.api.panel import Panel
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import _
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
@@ -39,10 +39,8 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.stylesheet import DialogStyle
 
-MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
 
-# Localization
-_ = get_translation('spyder')
+MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
 
 MAC = sys.platform == 'darwin'
 

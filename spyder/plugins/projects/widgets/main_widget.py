@@ -9,8 +9,6 @@
 # pylint: disable=C0103
 
 # Standard library imports
-from __future__ import print_function
-
 import os.path as osp
 
 # Third party imports
@@ -19,13 +17,10 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.explorer.api import DirViewActions
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
-
-
-_ = get_translation('spyder')
 
 
 class ProjectExplorerOptionsMenuSections:

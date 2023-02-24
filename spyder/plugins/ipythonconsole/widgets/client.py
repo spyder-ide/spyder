@@ -26,7 +26,7 @@ from qtpy.QtCore import QUrl, QTimer, Signal, Slot, QThread
 from qtpy.QtWidgets import (QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import (
     get_home_dir, get_module_source_path, running_under_pytest)
@@ -48,8 +48,7 @@ from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------------------
@@ -232,9 +231,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.sig_remote_execute.disconnect(
             self._when_prompt_is_ready)
 
-        # It's necessary to do this at this point to avoid giving
-        # focus to _control at startup.
-        self._connect_control_signals()
+        # Notes:
+        # 1. It's necessary to do this at this point to avoid giving focus to
+        #    _control at startup.
+        # 2. The try except is needed to avoid some errors in our tests.
+        try:
+            self._connect_control_signals()
+        except RuntimeError:
+            pass
 
         if self.give_focus:
             self.shellwidget._control.setFocus()

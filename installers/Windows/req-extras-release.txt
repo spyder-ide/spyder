@@ -10,7 +10,7 @@ rope
 yapf
 
 # Scientific packages (for Same as Spyder)
-numpy<1.23
+numpy
 scipy
 pandas
 openpyxl  # pandas optional dependency to handle Excel files
@@ -21,3 +21,6 @@ sympy
 
 # Spyder external plugins
 spyder-terminal>=1.2.2
+
+# Constraint PyZMQ to be <25
+pyzmq<25

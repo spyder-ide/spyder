@@ -10,10 +10,8 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout
 
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerTreeWidget
-
-_ = get_translation('spyder')
 
 
 # ---- Enums
@@ -174,9 +172,9 @@ class OutlineExplorerWidget(PluginMainWidget):
             # need to set the treewidget visibility to True for it to be
             # updated after writing new content in the editor.
             # Fixes spyder-ide/spyder#16634
-            self.treewidget.change_visibility(True)
+            self.change_tree_visibility(True)
         else:
-            self.treewidget.change_visibility(self.is_visible)
+            self.change_tree_visibility(self.is_visible)
 
     def create_window(self):
         """
@@ -216,6 +214,14 @@ class OutlineExplorerWidget(PluginMainWidget):
         """Update all editors with an associated LSP server."""
         self.treewidget.update_all_editors()
 
+    def get_supported_languages(self):
+        """List of languages with symbols support."""
+        return self.treewidget._languages
+
+    def change_tree_visibility(self, is_visible):
+        "Change treewidget's visibility."
+        self.treewidget.change_visibility(is_visible)
+
     # ---- Private API
     # -------------------------------------------------------------------------
     @Slot(object)
@@ -227,6 +233,6 @@ class OutlineExplorerWidget(PluginMainWidget):
         if window_state == Qt.WindowMinimized:
             # There's no need to update the treewidget when the plugin is
             # minimized.
-            self.treewidget.change_visibility(False)
+            self.change_tree_visibility(False)
         else:
-            self.treewidget.change_visibility(True)
+            self.change_tree_visibility(True)

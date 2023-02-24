@@ -244,6 +244,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
+        self.headers.clear()
+        self.project_header = None
+        self.user_header = None
+        self.system_header = None
 
         # Project path
         if self.project_path:
@@ -559,7 +563,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         Request to update path values on main window if current and previous
         system paths are different.
         """
-        if self.system_path != self.get_conf('system_path'):
+        if self.system_path != self.get_conf('system_path', default=()):
             self.sig_path_changed.emit(self.get_path_dict())
         self.set_conf('system_path', self.system_path)
 

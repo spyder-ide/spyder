@@ -432,17 +432,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         logger.debug(f"Set current editor to file {editor.fname}")
         self.current_editor = editor
 
-        # Update tree with currently stored info or require symbols if
-        # necessary.
         if (
-            editor.get_language().lower() in self._languages
-            and len(self.editor_tree_cache[editor_id]) == 0
+            self.is_visible
+            and (editor.get_language().lower() in self._languages)
+            and not editor.is_tree_updated
         ):
             if editor.info is not None:
-                if update:
-                    self.update_editor(editor.info)
-            elif editor.is_cloned:
-                editor.request_symbols()
+                self.update_editor(editor.info)
 
     def register_editor(self, editor):
         """
@@ -542,15 +538,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 f"Don't update tree of file {editor.fname} because plugin is "
                 f"not visible"
             )
-
-            # This keeps track of files that have been modified while the
-            # Outline is hidden. That way we'll only update those when the user
-            # makes it visible.
-            language = editor.get_language().lower()
-            if not self.starting[language]:
-                if editor.is_tree_updated:
-                    editor.is_tree_updated = False
-
             self.sig_hide_spinner.emit()
             return
 
@@ -661,7 +648,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if self.current_editor is editor:
                 self.current_editor = None
 
-            logger.debug(f"Removing tree of file f{editor.fname}")
+            logger.debug(f"Removing tree of file {editor.fname}")
 
             editor_id = self.editor_ids.pop(editor)
             language = editor.get_language().lower()

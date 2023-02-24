@@ -8,4 +8,4 @@
 This module contains the internationalization API.
 """
 
-from spyder.config.base import get_translation
+from spyder.config.base import get_translation, _

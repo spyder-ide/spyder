@@ -9,8 +9,8 @@ import sys
 import re
 from subprocess import Popen, PIPE
 import os
+import shlex
 
-from pylint.epylint import py_run
 from pylsp import hookimpl, lsp
 
 try:
@@ -85,20 +85,21 @@ class PylintLinter:
             # save.
             return cls.last_diags[document.path]
 
-        # py_run will call shlex.split on its arguments, and shlex.split does
-        # not handle Windows paths (it will try to perform escaping). Turn
-        # backslashes into forward slashes first to avoid this issue.
-        path = document.path
-        if sys.platform.startswith('win'):
-            path = path.replace('\\', '/')
+        cmd = [
+            sys.executable,
+            '-c',
+            'import sys; from pylint.lint import Run; Run(sys.argv[1:])',
+            '-f',
+            'json',
+            document.path
+        ] + (shlex.split(str(flags)) if flags else [])
+        log.debug("Calling pylint with '%s'", ' '.join(cmd))
 
-        pylint_call = '{} -f json {}'.format(path, flags)
-        log.debug("Calling pylint with '%s'", pylint_call)
-        json_out, err = py_run(pylint_call, return_std=True)
-
-        # Get strings
-        json_out = json_out.getvalue()
-        err = err.getvalue()
+        with Popen(cmd, stdout=PIPE, stderr=PIPE,
+                   cwd=document._workspace.root_path, universal_newlines=True) as process:
+            process.wait()
+            json_out = process.stdout.read()
+            err = process.stderr.read()
 
         if err != '':
             log.error("Error calling pylint: '%s'", err)
@@ -126,6 +127,7 @@ class PylintLinter:
         # The type can be any of:
         #
         #  * convention
+        #  * information
         #  * error
         #  * fatal
         #  * refactor
@@ -150,6 +152,8 @@ class PylintLinter:
             }
 
             if diag['type'] == 'convention':
+                severity = lsp.DiagnosticSeverity.Information
+            elif diag['type'] == 'information':
                 severity = lsp.DiagnosticSeverity.Information
             elif diag['type'] == 'error':
                 severity = lsp.DiagnosticSeverity.Error

@@ -17,7 +17,7 @@ from qtpy.QtCore import QPoint, Qt, Signal, Slot
 from qtpy.QtWidgets import QMenu, QLabel
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import is_pynsist, running_in_mac_app
 from spyder.plugins.application.widgets.install import (
@@ -26,11 +26,9 @@ from spyder.plugins.application.widgets.install import (
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 
+
 # Setup logger
 logger = logging.getLogger(__name__)
-
-# Localization
-_ = get_translation('spyder')
 
 
 class ApplicationUpdateStatus(StatusBarWidget):

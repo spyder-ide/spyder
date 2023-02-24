@@ -6,8 +6,6 @@
 
 """Running programs utilities."""
 
-from __future__ import print_function
-
 # Standard library imports
 from ast import literal_eval
 from getpass import getuser
@@ -84,42 +82,32 @@ def is_program_installed(basename):
     """
     home = get_home_dir()
     req_paths = []
-    if sys.platform == 'darwin':
-        if basename.endswith('.app') and osp.exists(basename):
-            return basename
+    if (
+        sys.platform == 'darwin'
+        and basename.endswith('.app')
+        and osp.exists(basename)
+    ):
+        return basename
 
+    if os.name == 'posix':
         pyenv = [
+            osp.join(home, '.pyenv', 'bin'),
             osp.join('/usr', 'local', 'bin'),
-            osp.join(home, '.pyenv', 'bin')
         ]
 
-        # Prioritize Anaconda before Miniconda; local before global.
-        a = [osp.join(home, 'opt'), '/opt']
-        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-
-        req_paths.extend(pyenv + conda)
-
-    elif sys.platform.startswith('linux'):
-        pyenv = [
-            osp.join('/usr', 'local', 'bin'),
-            osp.join(home, '.pyenv', 'bin')
-        ]
-
-        a = [home, '/opt']
-        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-
-        req_paths.extend(pyenv + conda)
-
-    elif os.name == 'nt':
+        a = [home, osp.join(home, 'opt'), '/opt']
+        b = ['mambaforge', 'miniforge3', 'miniforge',
+             'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
+    else:
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
-        a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
-        b = ['Anaconda', 'Miniconda', 'Anaconda3', 'Miniconda3']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+        a = [home, osp.join(home, 'AppData', 'Local'),
+             'C:\\', osp.join('C:\\', 'ProgramData')]
+        b = ['Mambaforge', 'Miniforge3', 'Miniforge',
+             'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
 
-        req_paths.extend(pyenv + conda)
+    conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+    req_paths.extend(pyenv + conda)
 
     for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
@@ -744,15 +732,19 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         if wdir is not None:
             # wdir can come with / as os.sep, so we need to take care of it.
             wdir = wdir.replace('/', '\\')
-        
-        if osp.splitdrive(wdir)[0].startswith("\\\\"): #UNC paths start with \\
-            from qtpy.QtWidgets import QMessageBox
-            from spyder.config.base import _
-            QMessageBox.critical(None, _('Run'),
-                                 _("External terminal does not support a UNC "
-                                   "file path as the working directory."),
-                                 QMessageBox.Ok)
-            return
+
+            # UNC paths start with \\
+            if osp.splitdrive(wdir)[0].startswith("\\\\"):
+                from qtpy.QtWidgets import QMessageBox
+                from spyder.config.base import _
+                QMessageBox.critical(
+                    None,
+                    _('Run'),
+                    _("External terminals does not support a UNC file path as "
+                      "the working directory."),
+                    QMessageBox.Ok
+                )
+                return
 
         # python_exe must be quoted in case it has spaces
         cmd = f'start cmd.exe /K ""{executable}" '
@@ -762,10 +754,13 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
             from spyder.config.base import _
-            QMessageBox.critical(None, _('Run'),
-                                 _("It was not possible to run this file in "
-                                   "an external terminal"),
-                                 QMessageBox.Ok)
+            QMessageBox.critical(
+                None,
+                _('Run'),
+                _("It was not possible to run this file in an external "
+                  "terminal"),
+                QMessageBox.Ok
+            )
     elif sys.platform.startswith('linux'):
         programs = [{'cmd': 'gnome-terminal', 'execute-option': '-x'},
                     {'cmd': 'konsole', 'execute-option': '-e'},

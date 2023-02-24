@@ -31,7 +31,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
@@ -43,7 +43,6 @@ from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
     KernelConnectionDialog, PageControlWidget, ShellWidget)
-from spyder.py3compat import PY38_OR_MORE
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
@@ -53,8 +52,7 @@ from spyder.widgets.tabs import Tabs
 from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 
@@ -1068,7 +1066,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         - Do this as early as possible to make it a low priority and
           overrideable.
         """
-        if os.name == 'nt' and PY38_OR_MORE:
+        if os.name == 'nt' and sys.version_info[:2] >= (3, 8):
             # Tests on Linux hang if we don't leave this import here.
             import tornado
             if tornado.version_info >= (6, 1):
