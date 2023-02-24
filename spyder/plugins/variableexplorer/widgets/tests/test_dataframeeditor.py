@@ -127,6 +127,8 @@ def test_dataframe_to_type(qtbot):
     qtbot.keyPress(view.menu, Qt.Key_Up)
     qtbot.keyPress(view.menu, Qt.Key_Up)
     qtbot.keyPress(view.menu, Qt.Key_Return)
+    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
     qtbot.keyPress(view.menu, Qt.Key_Return)
 
     # Check that changes where made from the editor
