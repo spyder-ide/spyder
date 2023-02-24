@@ -105,8 +105,6 @@ jobs:
     - name: Determine Build Matrix
       id: build-matrix
       run: |
-        [[ $IS_RELEASE == "true" ]] && BUILD_WIN="false"
-
         if [[ $BUILD_MAC == "true" ]]; then
             target_platform="'osx-64'"
             include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
