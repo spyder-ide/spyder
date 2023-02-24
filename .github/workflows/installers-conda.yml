@@ -21,6 +21,11 @@ on:
         required: false
         default: true
         type: boolean
+      ssh:
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
       mac:
         description: 'Build macOS installer'
         required: false
@@ -50,6 +55,7 @@ env:
   BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
   BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
   BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
 
 jobs:
   build-noarch-pkgs:
@@ -295,6 +301,16 @@ jobs:
               cd $(dirname $PKG_PATH)
               echo $(sha256sum $PKG_NAME) > "${PKG_GLOB}-sha256sum.txt"
           fi
+
+      - name: Setup Remote SSH Connection
+        # Notes:
+        # 1. This only works for conda, probably because it has the necessary
+        #    MSYS2 packages to create the connection.
+        # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
+        #    usage.
+        if: failure() || env.ENABLE_SSH
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 45
 
       - name: Upload Artifact
         if: env.IS_RELEASE == 'false'
