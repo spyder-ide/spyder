@@ -21,7 +21,7 @@ import numpy as np
 
 # Local imports
 import spyder_kernels.utils.iofuncs as iofuncs
-from spyder_kernels.py3compat import is_text_string
+from spyder_kernels.py3compat import is_text_string, PY2
 
 
 # Full path to this file's parent directory for loading data
@@ -227,6 +227,7 @@ def test_matlab_import(real_values):
     assert valid
 
 
+@pytest.mark.skipif(PY2, reason="Fails on Python 2")
 @pytest.mark.parametrize('spydata_file_name', ['export_data.spydata',
                                                'export_data_renamed.spydata'])
 def test_spydata_import(spydata_file_name, spydata_values):

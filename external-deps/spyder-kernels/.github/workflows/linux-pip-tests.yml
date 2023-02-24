@@ -10,6 +10,10 @@ on:
     - master
     - 2.*
 
+concurrency:
+  group: linux-pip-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   linux:
     name: Py${{ matrix.PYTHON_VERSION }}
@@ -50,7 +54,10 @@ jobs:
           conda list
       - name: Run tests
         shell: bash -l {0}
-        run: xvfb-run --auto-servernum pytest spyder_kernels --cov=spyder_kernels -x -vv || xvfb-run --auto-servernum pytest spyder_kernels --cov=spyder_kernels -x -vv || xvfb-run --auto-servernum pytest spyder_kernels --cov=spyder_kernels -x -vv
+        run: |
+          xvfb-run --auto-servernum pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          xvfb-run --auto-servernum pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
+          xvfb-run --auto-servernum pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv
       - name: Upload coverage to Codecov
         if: matrix.PYTHON_VERSION == '3.8'
         shell: bash -l {0}
