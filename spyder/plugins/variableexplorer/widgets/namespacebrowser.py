@@ -185,20 +185,30 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
             if extension == '.spydata':
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
-                answer = QMessageBox.warning(self, title,
-                           _("<b>Warning: '%s' files can contain malicious code!</b><br></br>"
-                              "Do not continue unless this file is from a trusted source. "
-                              "Would you like to import it anways?"
-                              ) % extension, buttons)
+                answer = QMessageBox.warning(
+                    self,
+                    title,
+                    _("<b>Warning: %s files can contain malicious code!</b>"
+                      "<br><br>"
+                      "Do not continue unless this file is from a trusted "
+                      "source. Would you like to import it "
+                      "anyway?") % extension,
+                    buttons
+                )
+
                 if answer == QMessageBox.Cancel:
                     return
             if extension not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
-                answer = QMessageBox.question(self, title,
-                           _("<b>Unsupported file extension '%s'</b><br><br>"
-                              "Would you like to import it anyway "
-                              "(by selecting a known file format)?"
-                              ) % extension, buttons)
+                answer = QMessageBox.question(
+                    self,
+                    title,
+                    _("<b>Unsupported file extension '%s'</b>"
+                      "<br><br>"
+                      "Would you like to import it anyway by selecting a "
+                      "known file format?") % extension,
+                    buttons
+                )
                 if answer == QMessageBox.Cancel:
                     return
                 formats = list(iofunctions.load_extensions.keys())
