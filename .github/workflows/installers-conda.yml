@@ -235,15 +235,19 @@ jobs:
         run: |
           [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
           python build_installers.py ${args[@]}
-          PKG_FILE=$(python build_installers.py --artifact-name)
-          PKG_NAME=$(basename $PKG_FILE)
-          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+          PKG_PATH=$(python build_installers.py --artifact-name)
+          PKG_NAME=$(basename $PKG_PATH)
+          PKG_GLOB=${PKG_PATH%.*}
+          PKG_BASE_NAME=${PKG_NAME%.*}
+          echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo "PKG_GLOB=$PKG_GLOB" >> $GITHUB_ENV
+          echo "PKG_BASE_NAME=$PKG_BASE_NAME" >> $GITHUB_ENV
 
       - name: Test Application Bundle
         if: runner.os == 'macOS'
         run: |
-          installer -dumplog -pkg $PKG_FILE -target CurrentUserHomeDirectory 2>&1
+          installer -dumplog -pkg $PKG_PATH -target CurrentUserHomeDirectory 2>&1
           app_path=$HOME/Applications/Spyder.app
           if [[ -e "$app_path" ]]; then
               ls -al $app_path/Contents/MacOS
@@ -255,15 +259,22 @@ jobs:
               echo "$app_path does not exist"
           fi
 
-      - name: Notarize package installer
-        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
-        run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
+      - name: Notarize or Compute Checksum
+        if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
+        run: |
+          if [[ $RUNNER_OS == "macOS" ]]; then
+              ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
+          else
+              cd $(dirname $PKG_PATH)
+              echo $(sha256sum $PKG_NAME) > "${PKG_GLOB}-sha256sum.txt"
+          fi
 
       - name: Upload Artifact
+        if: env.IS_RELEASE == 'false'
         uses: actions/upload-artifact@v3
         with:
-          path: ${{ env.PKG_FILE }}
-          name: ${{ env.PKG_NAME }}
+          path: ${{ env.PKG_GLOB }}*
+          name: ${{ env.PKG_BASE_NAME }}
 
       - name: Get Release
         if: env.IS_RELEASE == 'true'
@@ -279,4 +290,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.PKG_FILE }}
+          asset_path: ${{ env.PKG_GLOB }}*
