@@ -21,7 +21,7 @@ import numpy as np
 
 # Local imports
 import spyder_kernels.utils.iofuncs as iofuncs
-from spyder_kernels.py3compat import is_text_string
+from spyder_kernels.py3compat import is_text_string, PY2
 
 
 # Full path to this file's parent directory for loading data
@@ -88,7 +88,7 @@ def spydata_values():
     B = 'ham'
     C = np.eye(3)
     D = {'a': True, 'b': np.eye(4, dtype=np.complex128)}
-    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_)]
+    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_), np.eye(4, dtype=object)]
     return {'A': A, 'B': B, 'C': C, 'D': D, 'E': E}
 
 
@@ -227,6 +227,7 @@ def test_matlab_import(real_values):
     assert valid
 
 
+@pytest.mark.skipif(PY2, reason="Fails on Python 2")
 @pytest.mark.parametrize('spydata_file_name', ['export_data.spydata',
                                                'export_data_renamed.spydata'])
 def test_spydata_import(spydata_file_name, spydata_values):

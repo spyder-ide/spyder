@@ -353,8 +353,12 @@ def post_mortem_excepthook(type, value, tb):
         _print('*' * 40)
         _print('Entering post mortem debugging...')
         _print('*' * 40)
-        #  add ability to move between frames
-        p.send_initial_notification = False
+
+        # Inform Spyder about position of exception: pdb.Pdb.interaction() calls
+        # cmd.Cmd.cmdloop(), which calls SpyderPdb.preloop() where
+        # send_initial_notification is handled.
+        p.send_initial_notification = True
+
         p.reset()
         frame = tb.tb_next.tb_frame
         # wait for stdout to print
