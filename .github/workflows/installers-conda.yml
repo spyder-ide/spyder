@@ -172,6 +172,8 @@ jobs:
         with:
           environment-file: installers-conda/build-environment.yml
           extra-specs: python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-env: true
 
       - name: Env Variables
         run: |
@@ -184,7 +186,7 @@ jobs:
           [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
           [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
 
-          env
+          env | sort
 
       - name: Download Local Conda Packages
         if: needs.build-noarch-pkgs.result == 'success'
@@ -265,18 +267,16 @@ jobs:
 
       - name: Get Release
         if: env.IS_RELEASE == 'true'
+        uses: bruceadams/get-release@v1.3.2
         id: get_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        uses: bruceadams/get-release@v1.2.0
 
       - name: Upload Release Asset
         if: env.IS_RELEASE == 'true'
-        uses: actions/upload-release-asset@v1
+        uses: shogo82148/actions-upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ${{ env.PKG_FILE }}
-          asset_name: ${{ env.PKG_NAME }}
-          asset_content_type: application/octet-stream
