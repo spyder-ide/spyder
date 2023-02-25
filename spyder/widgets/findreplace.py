@@ -104,9 +104,7 @@ class FindReplace(QWidget):
         self.search_text.sig_resized.connect(self._resize_replace_text)
 
         self.number_matches_text = QLabel(self)
-        self.search_text.clear_action.triggered.connect(
-            self.number_matches_text.hide
-        )
+        self.search_text.clear_action.triggered.connect(self.clear_matches)
         self.hide_number_matches_text = False
         self.number_matches_pixmap = (
             ima.icon('number_matches').pixmap(self.icon_size)
@@ -119,9 +117,6 @@ class FindReplace(QWidget):
         self.messages_action.setVisible(False)
         self.search_text.lineEdit().addAction(
             self.messages_action, QLineEdit.TrailingPosition)
-        self.search_text.clear_action.triggered.connect(
-            lambda: self.messages_action.setVisible(False)
-        )
 
         # Button corresponding to the messages_action above
         self.messages_button = (
@@ -362,15 +357,6 @@ class FindReplace(QWidget):
     def update_replace_combo(self):
         self.replace_text.lineEdit().returnPressed.emit()
 
-    @Slot(bool)
-    def toggle_highlighting(self, state):
-        """Toggle the 'highlight all results' feature"""
-        if self.editor is not None:
-            if state:
-                self.highlight_matches()
-            else:
-                self.clear_matches()
-
     def show(self, hide_replace=True):
         """Overrides Qt Method"""
         QWidget.show(self)
@@ -535,6 +521,8 @@ class FindReplace(QWidget):
     def clear_matches(self):
         """Clear all highlighted matches"""
         self.matches_string = ""
+        self.messages_action.setVisible(False)
+        self.number_matches_text.hide()
         if self.is_code_editor:
             self.editor.clear_found_results()
 
@@ -554,7 +542,6 @@ class FindReplace(QWidget):
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
             self.change_number_matches()
-            self.messages_action.setVisible(False)
             self.clear_matches()
             return None
         else:
