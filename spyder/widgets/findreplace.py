@@ -256,11 +256,20 @@ class FindReplace(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.shortcuts = self.create_shortcuts(parent)
 
+        # To highlight found results in the editor
         self.highlight_timer = QTimer(self)
         self.highlight_timer.setSingleShot(True)
         self.highlight_timer.setInterval(300)
         self.highlight_timer.timeout.connect(self.highlight_matches)
+
+        # Install event filter for search_text
         self.search_text.installEventFilter(self)
+
+        # To avoid painting number_matches_text on every resize event
+        self.show_matches_timer = QTimer(self)
+        self.show_matches_timer.setSingleShot(True)
+        self.show_matches_timer.setInterval(25)
+        self.show_matches_timer.timeout.connect(self.show_matches)
 
     def eventFilter(self, widget, event):
         """
@@ -520,8 +529,8 @@ class FindReplace(QWidget):
             case = self.case_button.isChecked()
             word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
-            self.editor.highlight_found_results(text, word=word,
-                                                regexp=regexp, case=case)
+            self.editor.highlight_found_results(
+                text, word=word, regexp=regexp, case=case)
 
     def clear_matches(self):
         """Clear all highlighted matches"""
@@ -847,7 +856,10 @@ class FindReplace(QWidget):
             self.search_text.setMinimumWidth(int(total_width / 2))
             self.hide_number_matches_text = False
 
-        self.show_matches()
+        # We don't call show_matches directly here to avoid flickering when the
+        # user hits the widget's minimal width, which changes from text to an
+        # icon (or vice versa) for number_matches_text.
+        self.show_matches_timer.start()
 
     def _resize_replace_text(self, size, old_size):
         """
