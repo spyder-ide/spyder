@@ -19,24 +19,22 @@ https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/panels/folding.py
 
 # Standard library imports
 from math import ceil
-import sys
 
 # Third party imports
 from intervaltree import IntervalTree
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
-from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
-                        QLinearGradient, QPen, QResizeEvent, QCursor,
-                        QTextCursor)
+from qtpy.QtGui import (QTextBlock, QFontMetricsF, QPainter, QLinearGradient,
+                        QPen, QResizeEvent, QCursor, QTextCursor)
 from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.api.panel import Panel
+from spyder.config.gui import is_dark_interface
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
 from spyder.widgets.mixins import EOL_SYMBOLS
 
 
@@ -57,6 +55,7 @@ class FoldingPanel(Panel):
 
     def __init__(self):
         Panel.__init__(self)
+
         self.collapsed_icon = ima.icon('folding.arrow_right')
         self.uncollapsed_icon = ima.icon('folding.arrow_down')
 
@@ -273,14 +272,16 @@ class FoldingPanel(Panel):
         """
         c = self.editor.sideareas_color
         grad = QLinearGradient(rect.topLeft(), rect.topRight())
-        if sys.platform == 'darwin':
-            grad.setColorAt(0, c.lighter(100))
-            grad.setColorAt(1, c.lighter(110))
-            outline = c.darker(110)
-        else:
+
+        if is_dark_interface():
             grad.setColorAt(0, c.lighter(110))
             grad.setColorAt(1, c.lighter(130))
             outline = c.darker(100)
+        else:
+            grad.setColorAt(0, c.darker(105))
+            grad.setColorAt(1, c.darker(115))
+            outline = c.lighter(110)
+
         painter.fillRect(rect, grad)
         painter.setPen(QPen(outline))
         painter.drawLine(rect.topLeft() +
@@ -347,10 +348,12 @@ class FoldingPanel(Panel):
         and for darker ones will be a lighter color
         """
         color = self.editor.sideareas_color
-        if color.lightness() < 128:
+
+        if is_dark_interface():
             color = drift_color(color, 130)
         else:
             color = drift_color(color, 105)
+
         return color
 
     def _decorate_block(self, start, end):
@@ -479,9 +482,8 @@ class FoldingPanel(Panel):
         deco.tooltip = text
         deco.block = block
         deco.select_line()
-        deco.set_outline(drift_color(self._get_scope_highlight_color(), 110))
         deco.set_background(self._get_scope_highlight_color())
-        deco.set_foreground(QColor(QStylePalette.COLOR_TEXT_4))
+        deco.set_full_width(flag=True, clear=True)
 
         self._block_decos[start_line] = deco
         self.editor.decorations.add(deco, key='folded')
