@@ -3,8 +3,9 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+
 """
-This module contains the Scroll Flag panel
+Scroll flag panel for the editor.
 """
 
 # Standard library imports
@@ -13,9 +14,10 @@ from math import ceil
 import sys
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt, QThread, QTimer
-from qtpy.QtGui import QPainter, QColor, QCursor
-from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
+from qtpy.QtCore import QSize, Qt, QThread
+from qtpy.QtGui import QColor, QCursor, QPainter
+from qtpy.QtWidgets import QApplication, QStyle, QStyleOptionSlider
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.plugins.completion.api import DiagnosticSeverity
@@ -55,10 +57,6 @@ class ScrollFlagArea(Panel):
         self._slider_range_brush = QColor(Qt.gray)
         self._slider_range_brush.setAlphaF(.5)
 
-        self._update_list_timer = QTimer(self)
-        self._update_list_timer.setSingleShot(True)
-        self._update_list_timer.timeout.connect(self.update_flags)
-
         # Dictionary with flag lists
         self._dict_flag_list = {}
 
@@ -90,8 +88,12 @@ class ScrollFlagArea(Panel):
         editor.sig_alt_left_mouse_pressed.connect(self.mousePressEvent)
         editor.sig_alt_mouse_moved.connect(self.mouseMoveEvent)
         editor.sig_leave_out.connect(self.update)
-        editor.sig_flags_changed.connect(self.delayed_update_flags)
+        editor.sig_flags_changed.connect(self.update_flags)
         editor.sig_theme_colors_changed.connect(self.update_flag_colors)
+
+        # This prevents that flags are updated while the user is moving the
+        # cursor, e.g. when typing.
+        editor.sig_cursor_position_changed.connect(self.update_flags)
 
     @property
     def slider(self):
@@ -99,7 +101,6 @@ class ScrollFlagArea(Panel):
         return self.editor.verticalScrollBar().isVisible()
 
     def closeEvent(self, event):
-        self._update_list_timer.stop()
         self._update_flags_thread.quit()
         self._update_flags_thread.wait()
         super().closeEvent(event)
@@ -117,17 +118,7 @@ class ScrollFlagArea(Panel):
             self._facecolors[name] = QColor(color)
             self._edgecolors[name] = self._facecolors[name].darker(120)
 
-    def delayed_update_flags(self):
-        """
-        This function is called every time a flag is changed.
-        There is no need of updating the flags thousands of time by second,
-        as it is quite resources-heavy. This limits the calls to REFRESH_RATE.
-        """
-        if self._update_list_timer.isActive():
-            return
-
-        self._update_list_timer.start(REFRESH_RATE)
-
+    @qdebounced(timeout=REFRESH_RATE)
     def update_flags(self):
         """Update flags list in a thread."""
         logger.debug("Updating current flags")
