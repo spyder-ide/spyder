@@ -248,7 +248,8 @@ jobs:
           echo "PKG_GLOB=$PKG_GLOB" >> $GITHUB_ENV
           echo "PKG_BASE_NAME=$PKG_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Test Installer Application
+      - name: Test macOS & Linux Installers
+        if: runner.os != 'Windows'
         run: |
           if [[ $RUNNER_OS == "macOS" ]]; then
               installer -dumplog -pkg $PKG_PATH -target CurrentUserHomeDirectory 2>&1
@@ -277,20 +278,22 @@ jobs:
                   echo "$shortcut_path does not exist"
                   exit 1
               fi
-          else
-              cmd.exe /C start /wait "$PKG_PATH" /S
-
-              ls -al $HOME/AppData/Local
-              ls -alr $HOME/AppData/Roaming
-
-              shortcut_path="$HOME/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/spyder/Spyder.lnk"
-              if [[ -e $shortcut_path ]]; then
-                  echo "$shortcut_path successfully created"
-              else
-                  echo "$shortcut_path odes not exist"
-                  exit 1
-              fi
           fi
+
+      - name: Test Windows Installer
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
+
+          set "shortcut_path=%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
+          if exist "%shortcut_path%" (
+              echo "Spyder installed successfully"
+          ) else (
+              echo "Spyder NOT installed successfully"
+              EXIT /B 1
+          )
+          EXIT /B %ERRORLEVEL%
 
       - name: Notarize or Compute Checksum
         if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
@@ -308,7 +311,7 @@ jobs:
         #    MSYS2 packages to create the connection.
         # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
         #    usage.
-        if: failure() || env.ENABLE_SSH
+        if: failure() && env.ENABLE_SSH == 'true'
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 45
 
