@@ -89,7 +89,7 @@ def editor_find_replace_bot(base_editor_bot, qtbot):
     layout.addWidget(find_replace)
 
     # Resize widget and show
-    widget.resize(480, 360)
+    widget.resize(900, 360)
     widget.show()
 
     return widget

@@ -50,7 +50,7 @@ def findreplace_editor(qtbot, request):
     layout.addWidget(findreplace)
 
     # Resize widget and show
-    widget.resize(480, 360)
+    widget.resize(900, 360)
     widget.show()
 
     return widget
