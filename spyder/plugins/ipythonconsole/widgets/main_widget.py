@@ -45,11 +45,9 @@ from spyder.utils.palette import QStylePalette
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
-from spyder.utils.conda import get_list_conda_envs
-from spyder.utils.programs import get_interpreter_info
-from spyder.utils.pyenv import get_list_pyenv_envs
 from spyder.utils.workers import WorkerManager
-from spyder.config.base import is_pynsist, running_in_mac_app
+from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.pyenv import get_list_pyenv_envs
 
 
 # Localization and logging
@@ -274,8 +272,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.run_cell_filename = None
         self.interrupt_action = None
         self.initial_conf_options = self.get_conf_options()
-        self.registered_spyder_kernel_handlers = {}
-        self.path_to_env = {}
+        self.registered_spyder_kernel_handlers = {}        
         self.envs = {}
         self.value = ''
         self.default_interpreter = sys.executable
@@ -680,36 +677,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Compute info of default interpreter to have it available in
         # case we need to switch to it. This will avoid lags when
         # doing that in get_value.
-        #if self.default_interpreter not in self.path_to_env:
-        #    self._get_env_info(self.default_interpreter)
 
         # Get envs
         conda_env = get_list_conda_envs()
         pyenv_env = get_list_pyenv_envs()
         return {**conda_env, **pyenv_env}
-
-    def _get_env_info(self, path):
-        """Get environment information."""
-        path = path.lower() if os.name == 'nt' else path
-        try:
-            name = self.path_to_env[path]
-        except KeyError:
-            if (
-                self.default_interpreter == path
-                and (running_in_mac_app() or is_pynsist())
-            ):
-                name = 'internal'
-            elif 'conda' in path:
-                name = 'conda'
-            elif 'pyenv' in path:
-                name = 'pyenv'
-            else:
-                name = 'custom'
-            version = get_interpreter_info(path)
-            self.path_to_env[path] = name
-            self.envs[name] = (path, version)
-        __, version = self.envs[name]
-        return f'{name} ({version})'
 
     def get_envs(self):
         """
@@ -724,12 +696,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def update_envs(self, worker, output, error):
         """Update the list of environments in the system."""
         self.envs.update(**output)
-        for env in list(self.envs.keys()):
-            path, version = self.envs[env]
-            # Save paths in lowercase on Windows to avoid issues with
-            # capitalization.
-            path = path.lower() if os.name == 'nt' else path
-            self.path_to_env[path] = env
 
     def update_environment_menu(self):
         """Update context menu entries to select specific interpreter to launch a console."""
