@@ -127,9 +127,9 @@ def test_dataframe_to_type(qtbot):
     qtbot.keyPress(view.menu, Qt.Key_Up)
     qtbot.keyPress(view.menu, Qt.Key_Up)
     qtbot.keyPress(view.menu, Qt.Key_Return)
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Up)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    submenu = view.menu.activeAction().menu()
+    qtbot.keyPress(submenu, Qt.Key_Return)
+    qtbot.wait(1000)
 
     # Check that changes where made from the editor
     assert editor.btn_save_and_close.isEnabled()
