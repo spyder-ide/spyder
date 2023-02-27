@@ -68,6 +68,7 @@ try:
     pydoc.safeimport = spyder_safeimport
 except Exception:
     pass
+
 # Needed to prevent showing a warning message regarding debugging
 # See spyder-ide/spyder#20390
 if is_pynsist():
