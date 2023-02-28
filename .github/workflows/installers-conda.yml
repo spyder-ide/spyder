@@ -21,6 +21,11 @@ on:
         required: false
         default: true
         type: boolean
+      ssh:
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
       mac:
         description: 'Build macOS installer'
         required: false
@@ -50,6 +55,7 @@ env:
   BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
   BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
   BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
 
 jobs:
   build-noarch-pkgs:
@@ -105,8 +111,6 @@ jobs:
     - name: Determine Build Matrix
       id: build-matrix
       run: |
-        [[ $IS_RELEASE == "true" ]] && BUILD_WIN="false"
-
         if [[ $BUILD_MAC == "true" ]]; then
             target_platform="'osx-64'"
             include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
@@ -244,20 +248,52 @@ jobs:
           echo "PKG_GLOB=$PKG_GLOB" >> $GITHUB_ENV
           echo "PKG_BASE_NAME=$PKG_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Test Application Bundle
-        if: runner.os == 'macOS'
+      - name: Test macOS & Linux Installers
+        if: runner.os != 'Windows'
         run: |
-          installer -dumplog -pkg $PKG_PATH -target CurrentUserHomeDirectory 2>&1
-          app_path=$HOME/Applications/Spyder.app
-          if [[ -e "$app_path" ]]; then
-              ls -al $app_path/Contents/MacOS
-              cat $app_path/Contents/Info.plist
-              echo ""
-              cat $app_path/Contents/MacOS/spyder-script
-              echo ""
-          else
-              echo "$app_path does not exist"
+          if [[ $RUNNER_OS == "macOS" ]]; then
+              installer -dumplog -pkg $PKG_PATH -target CurrentUserHomeDirectory 2>&1
+              app_path=$HOME/Applications/Spyder.app
+              if [[ -e "$app_path" ]]; then
+                  ls -al $app_path/Contents/MacOS
+                  cat $app_path/Contents/Info.plist
+                  echo ""
+                  cat $app_path/Contents/MacOS/spyder-script
+                  echo ""
+              else
+                  echo "$app_path does not exist"
+                  exit 1
+              fi
+          elif [[ $RUNNER_OS == "Linux" ]]; then
+              $PKG_PATH -b
+              shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
+              if [[ -e $shortcut_path ]]; then
+                  echo "Contents of" $HOME/.local/Spyder-* :
+                  ls -al $HOME/.local/Spyder-*
+                  echo ""
+                  echo "Contents of $shortcut_path :"
+                  cat $shortcut_path
+                  echo ""
+              else
+                  echo "$shortcut_path does not exist"
+                  exit 1
+              fi
           fi
+
+      - name: Test Windows Installer
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
+
+          set "shortcut_path=%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
+          if exist "%shortcut_path%" (
+              echo "Spyder installed successfully"
+          ) else (
+              echo "Spyder NOT installed successfully"
+              EXIT /B 1
+          )
+          EXIT /B %ERRORLEVEL%
 
       - name: Notarize or Compute Checksum
         if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
@@ -268,6 +304,16 @@ jobs:
               cd $(dirname $PKG_PATH)
               echo $(sha256sum $PKG_NAME) > "${PKG_GLOB}-sha256sum.txt"
           fi
+
+      - name: Setup Remote SSH Connection
+        # Notes:
+        # 1. This only works for conda, probably because it has the necessary
+        #    MSYS2 packages to create the connection.
+        # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
+        #    usage.
+        if: failure() && env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 45
 
       - name: Upload Artifact
         if: env.IS_RELEASE == 'false'
