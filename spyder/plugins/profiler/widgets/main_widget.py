@@ -533,6 +533,7 @@ class ProfilerWidget(PluginMainWidget):
             proc_env.insert(k, v)
         proc_env.insert("PYTHONIOENCODING", "utf8")
         proc_env.remove('PYTHONPATH')
+        proc_env.remove('PYTHONEXECUTABLE') # needed on macOS to set sys.path correctly
         if self.pythonpath is not None:
             logger.debug(f"Pass Pythonpath {self.pythonpath} to process")
             proc_env.insert('PYTHONPATH', os.pathsep.join(self.pythonpath))
