@@ -4255,7 +4255,6 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(firstline)
         cursor.endEditBlock()
         
-        return None
     # ---- Kill ring handlers
     # Taken from Jupyter's QtConsole
     # Copyright (c) 2001-2015, IPython Development Team
