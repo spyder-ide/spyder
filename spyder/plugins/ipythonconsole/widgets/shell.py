@@ -126,6 +126,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # To request restart
     sig_restart_kernel = Signal()
 
+    sig_kernel_state_arrived = Signal(dict)
+    """
+    A new kernel state, which needs to be processed.
+    
+    Parameters
+    ----------
+    state: dict
+        Kernel state. The structure of this dictionary is defined in the
+        `SpyderKernel.get_state` method of Spyder-kernels.
+    """
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  handlers, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -158,6 +169,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'set_debug_state': self.set_debug_state,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
+            'update_state': self.update_state,
         })
         self.kernel_comm_handlers = handlers
 
@@ -485,24 +497,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         return self._cwd
 
-    def update_cwd(self):
+    def update_state(self, state):
         """
-        Update working directory in Spyder after getting its value from the
-        kernel.
+        New state received from kernel.
         """
-        if not self.spyder_kernel_ready:
-            # Frontend sends first
-            return
-        self.call_kernel(callback=self.on_getting_cwd).get_cwd()
-
-    def on_getting_cwd(self, cwd):
-        """
-        If necessary, notify that the working directory was changed to other
-        plugins.
-        """
-        if cwd != self._cwd:
+        cwd = state.pop("cwd", None)
+        if cwd and self._cwd and cwd != self._cwd:
+            # Only set it if self._cwd is already set
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
+
+        if state:
+            self.sig_kernel_state_arrived.emit(state)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""

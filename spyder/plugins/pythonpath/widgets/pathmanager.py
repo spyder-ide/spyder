@@ -244,6 +244,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
+        self.headers.clear()
+        self.project_header = None
+        self.user_header = None
+        self.system_header = None
 
         # Project path
         if self.project_path:

@@ -9,8 +9,8 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-import os
 import os.path as osp
+from typing import List
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -19,19 +19,21 @@ from qtpy.QtCore import Signal, Slot
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
+from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
+from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
-from spyder.utils.programs import get_temp_dir
+from spyder.plugins.run.api import (
+    RunContext, RunExecutor, RunConfiguration,
+    ExtendedRunExecutionParameters, RunResult, run_execute)
+from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
 
-# Localization
-_ = get_translation('spyder')
 
-
-class IPythonConsole(SpyderDockablePlugin):
+class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     """
     IPython Console plugin
 
@@ -41,7 +43,7 @@ class IPythonConsole(SpyderDockablePlugin):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu,
+    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run,
                 Plugins.Projects, Plugins.PythonpathManager,
                 Plugins.WorkingDirectory, Plugins.StatusBar]
     TABIFY = [Plugins.History]
@@ -217,6 +219,76 @@ class IPythonConsole(SpyderDockablePlugin):
 
         self.sig_focus_changed.connect(self.main.plugin_focus_changed)
 
+        # Run configurations
+        self.cython_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'pyx',
+            'contexts': [
+                {
+                    'name': 'File'
+                }
+            ]
+        }
+
+        self.python_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'py',
+            'contexts': [
+                {
+                    'name': 'File'
+                },
+                {
+                    'name': 'Cell'
+                },
+                {
+                    'name': 'Selection'
+                },
+            ]
+        }
+
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Cell'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'pyx',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 0
+            },
+        ]
+
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
         # Add status widget
@@ -291,17 +363,22 @@ class IPythonConsole(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         self.sig_edit_goto_requested.connect(editor.load)
         self.sig_edit_new.connect(editor.new)
-        editor.sig_run_file_in_ipyclient.connect(
-            self.run_script)
-        editor.sig_run_cell_in_ipyclient.connect(
-            self.run_cell)
-        editor.exec_in_extconsole.connect(self.run_selection)
+
+        editor.add_supported_run_configuration(
+            self.python_editor_run_configuration)
+        editor.add_supported_run_configuration(
+            self.cython_editor_run_configuration)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.connect(self._on_project_loaded)
         projects.sig_project_closed.connect(self._on_project_closed)
+
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
 
     @on_plugin_available(plugin=Plugins.WorkingDirectory)
     def on_working_directory_available(self):
@@ -336,17 +413,23 @@ class IPythonConsole(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         self.sig_edit_goto_requested.disconnect(editor.load)
         self.sig_edit_new.disconnect(editor.new)
-        editor.sig_run_file_in_ipyclient.disconnect(
-            self.run_script)
-        editor.sig_run_cell_in_ipyclient.disconnect(
-            self.run_cell)
-        editor.exec_in_extconsole.disconnect(self.run_selection)
+
+        editor.remove_supported_run_configuration(
+            self.python_editor_run_configuration)
+        editor.remove_supported_run_configuration(
+            self.cython_editor_run_configuration)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
 
     @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
     def on_working_directory_teardown(self):
@@ -559,12 +642,84 @@ class IPythonConsole(SpyderDockablePlugin):
         self.get_widget().close_client(index=index, client=client,
                                        ask_recursive=ask_recursive)
 
+    # ---- For execution
+    @run_execute(context=RunContext.File)
+    def exec_files(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+        wdir = cwd_opts['path']
+        args = params['python_args']
+        post_mortem = params['post_mortem']
+        current_client = params['current']
+        clear_variables = params['clear_namespace']
+        console_namespace = params['console_namespace']
+        run_method = params.get('run_method', 'runfile')
+
+        # Escape single and double quotes in fname and dirname.
+        # Fixes spyder-ide/spyder#2158.
+        filename = filename.replace("'", r"\'").replace('"', r'\"')
+
+        self.run_script(
+            filename,
+            wdir,
+            args,
+            post_mortem,
+            current_client,
+            clear_variables,
+            console_namespace,
+            method=run_method,
+        )
+
+        return []
+
+    @run_execute(context=RunContext.Selection)
+    def exec_selection(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        run_input: SelectionRun = input['run_input']
+        text = run_input['selection']
+        self.run_selection(text)
+
+    @run_execute(context=RunContext.Cell)
+    def exec_cell(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[RunResult]:
+
+        run_input: CellRun = input['run_input']
+        cell_text = run_input['cell']
+
+        if run_input['copy']:
+            self.run_selection(cell_text)
+            return
+
+        cell_name = run_input['cell_name']
+        filename = run_input['path']
+
+        exec_params = conf['params']
+        params: IPythonConsolePyConfiguration = exec_params['executor_params']
+        run_method = params.get('run_method', 'runcell')
+        self.run_cell(cell_text, cell_name, filename,
+                      method=run_method)
+
     # ---- For execution and debugging
     def run_script(self, filename, wdir, args='',
                    post_mortem=False, current_client=True,
                    clear_variables=False, console_namespace=False,
-                   focus_to_editor=True, method=None,
-                   force_wdir=False):
+                   method=None):
         """
         Run script in current or dedicated client.
 
@@ -587,14 +742,9 @@ class IPythonConsole(SpyderDockablePlugin):
             False otherwise.
         console_namespace : bool, optional
             True if the console namespace should be used, False otherwise.
-        focus_to_editor: bool, optional
-            Leave focus in the editor after execution.
         method : str or None
             Method to run the file. It must accept the same arguments as
             `runfile`.
-        force_wdir: bool
-            The working directory is ignored on remote kernels except if
-            force_wdir is True
 
         Returns
         -------
@@ -609,43 +759,31 @@ class IPythonConsole(SpyderDockablePlugin):
             current_client,
             clear_variables,
             console_namespace,
-            focus_to_editor,
-            method,
-            force_wdir)
+            method
+        )
 
-    def run_cell(self, code, cell_name, filename, run_cell_copy,
-                 method='runcell', focus_to_editor=False):
+    def run_cell(self, code, cell_name, filename, method='runcell'):
         """
         Run cell in current or dedicated client.
 
         Parameters
         ----------
         code : str
-            Piece of code to run that corresponds to a cell in case
-            `run_cell_copy` is True.
+            Piece of code to run that corresponds to a cell.
         cell_name : str or int
             Cell name or index.
         filename : str
             Path of the file where the cell to execute is located.
-        run_cell_copy : bool
-            True if the cell should be executed line by line,
-            False if the provided `function` should be used.
         method : str, optional
-            Name handler of the kernel function to be used to execute the cell
-            in case `run_cell_copy` is False.
+            Name handler of the kernel function to be used to execute the cell.
             The default is 'runcell'.
-        focus_to_editor: bool
-            Whether to give focus to the editor after running the cell. If
-            False, focus is given to the console.
 
         Returns
         -------
         None.
         """
         self.sig_unmaximize_plugin_requested.emit()
-        self.get_widget().run_cell(
-            code, cell_name, filename, run_cell_copy, method=method,
-            focus_to_editor=focus_to_editor)
+        self.get_widget().run_cell(code, cell_name, filename, method=method)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """
@@ -671,10 +809,10 @@ class IPythonConsole(SpyderDockablePlugin):
             current_client=current_client,
             clear_variables=clear_variables)
 
-    def run_selection(self, lines, focus_to_editor=True):
+    def run_selection(self, lines):
         """Execute selected lines in the current console."""
         self.sig_unmaximize_plugin_requested.emit()
-        self.get_widget().execute_code(lines, set_focus=not focus_to_editor)
+        self.get_widget().execute_code(lines)
 
     # ---- For working directory and path management
     def set_current_client_working_directory(self, directory):
@@ -719,10 +857,6 @@ class IPythonConsole(SpyderDockablePlugin):
             Path to the new current working directory.
         """
         self.get_widget().save_working_directory(dirname)
-
-    def update_working_directory(self):
-        """Update working directory to console current working directory."""
-        self.get_widget().update_working_directory()
 
     def update_path(self, path_dict, new_path_dict):
         """

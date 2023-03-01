@@ -41,11 +41,10 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
                          QItemSelectionModel, QEvent)
 from qtpy.QtGui import QColor, QCursor
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
-                            QHBoxLayout, QInputDialog, QLineEdit, QMenu,
-                            QMessageBox, QPushButton, QTableView,
-                            QScrollBar, QTableWidget, QFrame,
-                            QItemDelegate)
+from qtpy.QtWidgets import (QApplication, QCheckBox, QGridLayout, QHBoxLayout,
+                            QInputDialog, QLineEdit, QMenu, QMessageBox,
+                            QPushButton, QTableView, QScrollBar, QTableWidget,
+                            QFrame, QItemDelegate)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -68,7 +67,7 @@ COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 _bool_false = ['false', 'f', '0', '0.', '0.0', ' ']
 
 # Default format for data frames with floats
-DEFAULT_FORMAT = '%.6g'
+DEFAULT_FORMAT = '.6g'
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
@@ -118,13 +117,13 @@ class DataFrameModel(QAbstractTableModel):
     https://github.com/wavexx/gtabview/blob/master/gtabview/models.py
     """
 
-    def __init__(self, dataFrame, format=DEFAULT_FORMAT, parent=None):
+    def __init__(self, dataFrame, format_spec=DEFAULT_FORMAT, parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
         self.df_columns_list = None
         self.df_index_list = None
-        self._format = format
+        self._format_spec = format_spec
         self.complex_intran = None
         self.display_error_idxs = []
 
@@ -265,14 +264,14 @@ class DataFrameModel(QAbstractTableModel):
                 max_min = None
             self.max_min_col.append(max_min)
 
-    def get_format(self):
-        """Return current format"""
-        # Avoid accessing the private attribute _format from outside
-        return self._format
+    def get_format_spec(self):
+        """Return current format+spec"""
+        # Avoid accessing the private attribute _format_spec from outside
+        return self._format_spec
 
-    def set_format(self, format):
+    def set_format_spec(self, format_spec):
         """Change display format"""
-        self._format = format
+        self._format_spec = format_spec
         self.reset()
 
     def bgcolor(self, state):
@@ -354,11 +353,11 @@ class DataFrameModel(QAbstractTableModel):
             value = self.get_value(row, column)
             if isinstance(value, float):
                 try:
-                    return to_qvariant(self._format % value)
+                    return to_qvariant(format(value, self._format_spec))
                 except (ValueError, TypeError):
-                    # may happen if format = '%d' and value = NaN;
+                    # may happen if format = 'd' and value = NaN;
                     # see spyder-ide/spyder#4139.
-                    return to_qvariant(DEFAULT_FORMAT % value)
+                    return to_qvariant(format(value, DEFAULT_FORMAT))
             elif is_type_text_string(value):
                 # Don't perform any conversion on strings
                 # because it leads to differences between
@@ -1017,8 +1016,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
-        format = '%' + self.get_conf('dataframe_format')
-        self.dataModel.set_format(format)
+        self.dataModel.set_format_spec(self.get_conf('dataframe_format'))
 
         return True
 
@@ -1301,26 +1299,19 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         """
         Ask user for display format for floats and use it.
         """
-        format, valid = QInputDialog.getText(self, _('Format'),
-                                             _("Float formatting"),
-                                             QLineEdit.Normal,
-                                             self.dataModel.get_format())
+        format_spec, valid = QInputDialog.getText(
+            self, _('Format'), _("Float formatting"), QLineEdit.Normal,
+            self.dataModel.get_format_spec())
         if valid:
-            format = str(format)
+            format_spec = str(format_spec)
             try:
-                format % 1.1
+                format(1.1, format_spec)
             except:
-                msg = _("Format ({}) is incorrect").format(format)
+                msg = _("Format ({}) is incorrect").format(format_spec)
                 QMessageBox.critical(self, _("Error"), msg)
                 return
-            if not format.startswith('%'):
-                msg = _("Format ({}) should start with '%'").format(format)
-                QMessageBox.critical(self, _("Error"), msg)
-                return
-            self.dataModel.set_format(format)
-
-            format = format[1:]
-            self.set_conf('dataframe_format', format)
+            self.dataModel.set_format_spec(format_spec)
+            self.set_conf('dataframe_format', format_spec)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""

@@ -15,12 +15,8 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
-
-
-# For translations
-_ = get_translation('spyder')
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):

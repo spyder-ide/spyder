@@ -689,7 +689,7 @@ except Exception:
     # fallback fail.
     # See issue spyder-ide/spyder#17889
     if app is None:
-        app = QApplication(['Spyder'])
+        app = QApplication(['Spyder', '--no-sandbox'])
         app.setApplicationName('Spyder')
 
     reset_reply = QMessageBox.critical(

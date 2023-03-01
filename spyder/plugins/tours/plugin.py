@@ -14,15 +14,12 @@ Tours Plugin.
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import get_safe_mode, running_under_pytest
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.tours.container import TourActions, ToursContainer
 from spyder.plugins.tours.tours import INTRO_TOUR, TourIdentifiers
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Plugin

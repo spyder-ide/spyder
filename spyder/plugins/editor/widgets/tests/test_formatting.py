@@ -12,6 +12,7 @@ import os.path as osp
 import random
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
@@ -257,6 +258,7 @@ def test_closing_document_formatting(
     assert code_editor.get_text_with_eol() == expected
 
 
+@flaky(max_runs=5)
 @pytest.mark.order(1)
 @pytest.mark.parametrize('formatter', [autopep8, black])
 def test_formatting_on_save(completions_editor, formatter, qtbot):
@@ -306,7 +308,7 @@ def test_formatting_on_save(completions_editor, formatter, qtbot):
     with qtbot.waitSignal(
             code_editor.completions_response_signal, timeout=30000):
         editorstack.save(force=True)
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Check that auto-formatting was applied on save and that we restored the
     # previous line.

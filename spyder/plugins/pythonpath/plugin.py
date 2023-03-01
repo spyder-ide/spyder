@@ -14,15 +14,12 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 from spyder.plugins.pythonpath.container import (
     PythonpathActions, PythonpathContainer)
-
-# Localization
-_ = get_translation('spyder')
 
 
 class PythonpathManager(SpyderPluginV2):
@@ -134,7 +131,7 @@ class PythonpathManager(SpyderPluginV2):
     # ---- Public API
     def get_spyder_pythonpath(self):
         """Get Pythonpath paths handled by Spyder as a list."""
-        self.get_container().get_spyder_pythonpath()
+        return self.get_container().get_spyder_pythonpath()
 
     def show_path_manager(self):
         """Show Path manager dialog."""

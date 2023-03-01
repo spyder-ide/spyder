@@ -20,13 +20,11 @@ from qtpy.QtGui import QKeySequence
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.menus import MENU_SEPARATOR, SpyderMenu
 from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
 from spyder.utils.qthelpers import set_menu_icons, SpyderAction
 
-# Localization
-_ = get_translation('spyder')
 
 # Extended typing definitions
 ItemType = Union[SpyderAction, SpyderMenu]
@@ -250,7 +248,6 @@ class MainMenu(SpyderPluginV2):
             ApplicationMenus.Edit: self._main.edit_menu_actions,
             ApplicationMenus.Search: self._main.search_menu_actions,
             ApplicationMenus.Source: self._main.source_menu_actions,
-            ApplicationMenus.Run: self._main.run_menu_actions,
         }
 
         if menu_id in app_menu_actions:
@@ -305,15 +302,12 @@ class MainMenu(SpyderPluginV2):
                 self._main.search_menu_actions, self._main.search_menu),
             ApplicationMenus.Source: (
                 self._main.source_menu_actions, self._main.source_menu),
-            ApplicationMenus.Run: (
-                self._main.run_menu_actions, self._main.run_menu),
         }
 
         app_menus = {
             ApplicationMenus.Edit: self._main.edit_menu,
             ApplicationMenus.Search: self._main.search_menu,
             ApplicationMenus.Source: self._main.source_menu,
-            ApplicationMenus.Run: self._main.run_menu,
         }
 
         menu = self.get_application_menu(menu_id)

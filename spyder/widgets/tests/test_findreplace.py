@@ -100,6 +100,51 @@ def test_replace_selection(findreplace_editor, qtbot):
     assert len(editor.get_selected_text()) == len(expected)
 
 
+def test_replace_all(findreplace_editor, qtbot):
+    """
+    Test find replace final selection in the editor.
+
+    Regression test for spyder-ide/spyder#20403
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+    findreplace.show_replace()
+
+    findreplace.search_text.setCurrentText('a')
+    findreplace.replace_text.setCurrentText('x')
+
+    # Replace all
+    editor.set_text('a\naa')
+    expected = 'x\nxx'
+    qtbot.wait(500)
+    findreplace.replace_find_all()
+    qtbot.wait(500)
+    assert editor.toPlainText() == expected
+
+    # Replace all with whole word matching
+    editor.set_text('a\naa')
+    expected = 'x\naa'
+    qtbot.wait(500)
+    qtbot.mouseClick(findreplace.words_button, Qt.LeftButton)
+    findreplace.replace_find_all()
+    qtbot.wait(500)
+    qtbot.mouseClick(findreplace.words_button, Qt.LeftButton)
+    assert editor.toPlainText() == expected
+
+    findreplace.search_text.setCurrentText(r'a(\d+)a')
+    findreplace.replace_text.setCurrentText(r'b\1b')
+
+    # Replace all with regex
+    editor.set_text('a123a\nabca')
+    expected = 'b123b\nabca'
+    qtbot.wait(500)
+    qtbot.mouseClick(findreplace.re_button, Qt.LeftButton)
+    findreplace.replace_find_all()
+    qtbot.wait(500)
+    qtbot.mouseClick(findreplace.re_button, Qt.LeftButton)
+    assert editor.toPlainText() == expected
+
+
 def test_messages_action(findreplace_editor, qtbot):
     """
     Test that we set the right icons and tooltips on messages_action.

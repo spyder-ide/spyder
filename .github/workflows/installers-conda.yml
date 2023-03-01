@@ -1,10 +1,5 @@
 on:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - labeled
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
@@ -14,19 +9,38 @@ on:
       - '**.py'
       - '**.sh'
       - '!**.md'
-      - '!installers/**'
-      - '!.github/workflows/installer-win.yml'
-      - '!.github/workflows/installer-macos.yml'
 
   release:
     types:
       - created
 
-  push:
-    tags:
-      - v*pre*
-
   workflow_dispatch:
+    inputs:
+      pre:
+        description: 'Build as release candidate'
+        required: false
+        default: true
+        type: boolean
+      ssh:
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
+      mac:
+        description: 'Build macOS installer'
+        required: false
+        default: true
+        type: boolean
+      linux:
+        description: 'Build Linux installer'
+        required: false
+        default: true
+        type: boolean
+      win:
+        description: 'Build Windows installer'
+        required: false
+        default: true
+        type: boolean
 
 concurrency:
   group: installers-conda-${{ github.ref }}
@@ -35,17 +49,19 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'labeled' }}
-  IS_BUILD: ${{ github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts' }}
-  IS_LABELED_PR: ${{ github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts' }}
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
-  IS_PRE: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) || (github.event.action == 'labeled' && github.event.label.name == 'build-installer-artifacts') }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
+  BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
+  BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
+  BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
 
 jobs:
   build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     strategy:
       matrix:
         pkg: ["python-lsp-server", "qtconsole"]
@@ -86,7 +102,6 @@ jobs:
   build-matrix:
     name: Determine Build Matrix
     runs-on: ubuntu-latest
-    if: github.event.action != 'labeled' || github.event.label.name == 'build-installer-artifacts'
     outputs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
       include: ${{ steps.build-matrix.outputs.include }}
@@ -96,27 +111,24 @@ jobs:
     - name: Determine Build Matrix
       id: build-matrix
       run: |
-        target_platform="'osx-64', 'linux-64'"
-        include="\
-        {'os': 'macos-11', 'target-platform': 'osx-64'},\
-        {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
-        "
-        python_version="'3.9'"
-
-        if [[ $IS_STANDARD_PR == 'true' ]]; then
-            target_platform=$target_platform", 'win-64'"
-            include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        if [[ $BUILD_MAC == "true" ]]; then
+            target_platform="'osx-64'"
+            include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
         fi
+        if [[ $BUILD_LNX == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
+            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64'}"
+        fi
+        if [[ $BUILD_WIN == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'win-64'"
+            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        fi
+
+        python_version="'3.9'"
 
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
         echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
-
-    - name: Remove Label
-      if: github.event.action == 'labeled'
-      uses: actions-ecosystem/action-remove-labels@v1
-      with:
-        labels: build-installer-artifacts
 
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
@@ -124,7 +136,7 @@ jobs:
     needs:
       - build-matrix
       - build-noarch-pkgs
-    if: ${{ ! failure() && ! cancelled() && needs.build-matrix.result == 'success' }}
+    if: ${{ ! failure() && ! cancelled() }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -164,6 +176,8 @@ jobs:
         with:
           environment-file: installers-conda/build-environment.yml
           extra-specs: python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-env: true
 
       - name: Env Variables
         run: |
@@ -176,10 +190,10 @@ jobs:
           [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
           [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
 
-          env
+          env | sort
 
       - name: Download Local Conda Packages
-        if: env.IS_STANDARD_PR
+        if: needs.build-noarch-pkgs.result == 'success'
         uses: actions/download-artifact@v3
         with:
           path: ${{ env.ARTIFACTS_PATH }}
@@ -225,50 +239,101 @@ jobs:
         run: |
           [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
           python build_installers.py ${args[@]}
-          PKG_FILE=$(python build_installers.py --artifact-name)
-          PKG_NAME=$(basename $PKG_FILE)
-          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+          PKG_PATH=$(python build_installers.py --artifact-name)
+          PKG_NAME=$(basename $PKG_PATH)
+          PKG_GLOB=${PKG_PATH%.*}
+          PKG_BASE_NAME=${PKG_NAME%.*}
+          echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo "PKG_GLOB=$PKG_GLOB" >> $GITHUB_ENV
+          echo "PKG_BASE_NAME=$PKG_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Test Application Bundle
-        if: runner.os == 'macOS'
+      - name: Test macOS & Linux Installers
+        if: runner.os != 'Windows'
         run: |
-          installer -dumplog -pkg $PKG_FILE -target CurrentUserHomeDirectory 2>&1
-          app_path=$HOME/Applications/Spyder.app
-          if [[ -e "$app_path" ]]; then
-              ls -al $app_path/Contents/MacOS
-              cat $app_path/Contents/Info.plist
-              echo ""
-              cat $app_path/Contents/MacOS/spyder-script
-              echo ""
-          else
-              echo "$app_path does not exist"
+          if [[ $RUNNER_OS == "macOS" ]]; then
+              installer -dumplog -pkg $PKG_PATH -target CurrentUserHomeDirectory 2>&1
+              app_path=$HOME/Applications/Spyder.app
+              if [[ -e "$app_path" ]]; then
+                  ls -al $app_path/Contents/MacOS
+                  cat $app_path/Contents/Info.plist
+                  echo ""
+                  cat $app_path/Contents/MacOS/spyder-script
+                  echo ""
+              else
+                  echo "$app_path does not exist"
+                  exit 1
+              fi
+          elif [[ $RUNNER_OS == "Linux" ]]; then
+              $PKG_PATH -b
+              shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
+              if [[ -e $shortcut_path ]]; then
+                  echo "Contents of" $HOME/.local/Spyder-* :
+                  ls -al $HOME/.local/Spyder-*
+                  echo ""
+                  echo "Contents of $shortcut_path :"
+                  cat $shortcut_path
+                  echo ""
+              else
+                  echo "$shortcut_path does not exist"
+                  exit 1
+              fi
           fi
 
-      - name: Notarize package installer
-        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
-        run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
+      - name: Test Windows Installer
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
+
+          set "shortcut_path=%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
+          if exist "%shortcut_path%" (
+              echo "Spyder installed successfully"
+          ) else (
+              echo "Spyder NOT installed successfully"
+              EXIT /B 1
+          )
+          EXIT /B %ERRORLEVEL%
+
+      - name: Notarize or Compute Checksum
+        if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
+        run: |
+          if [[ $RUNNER_OS == "macOS" ]]; then
+              ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
+          else
+              cd $(dirname $PKG_PATH)
+              echo $(sha256sum $PKG_NAME) > "${PKG_GLOB}-sha256sum.txt"
+          fi
+
+      - name: Setup Remote SSH Connection
+        # Notes:
+        # 1. This only works for conda, probably because it has the necessary
+        #    MSYS2 packages to create the connection.
+        # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
+        #    usage.
+        if: failure() && env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 45
 
       - name: Upload Artifact
+        if: env.IS_RELEASE == 'false'
         uses: actions/upload-artifact@v3
         with:
-          path: ${{ env.PKG_FILE }}
-          name: ${{ env.PKG_NAME }}
+          path: ${{ env.PKG_GLOB }}*
+          name: ${{ env.PKG_BASE_NAME }}
 
       - name: Get Release
-        if: github.event_name == 'release'
+        if: env.IS_RELEASE == 'true'
+        uses: bruceadams/get-release@v1.3.2
         id: get_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        uses: bruceadams/get-release@v1.2.0
 
       - name: Upload Release Asset
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
+        if: env.IS_RELEASE == 'true'
+        uses: shogo82148/actions-upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.PKG_FILE }}
-          asset_name: ${{ env.PKG_NAME }}
-          asset_content_type: application/octet-stream
+          asset_path: ${{ env.PKG_GLOB }}*

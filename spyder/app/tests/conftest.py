@@ -25,13 +25,15 @@ import pytest
 # Spyder imports
 from spyder.api.plugins import Plugins
 from spyder.app import start
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.manager import CONF
-from spyder.plugins.debugger.api import DebuggerToolbarActions
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.run.api import RunActions, StoredRunConfigurationExecutor
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
+from spyder.utils.environ import (get_user_env, set_user_env,
+                                  amend_user_shell_init)
 
 
 # =============================================================================
@@ -240,6 +242,22 @@ def preferences_dialog_helper(qtbot, main_window, section):
     return dlg, index, page
 
 
+def generate_run_parameters(mainwindow, filename, selected=None,
+                            executor=None):
+    """Generate run configuration parameters for a given filename."""
+    file_uuid = mainwindow.editor.id_per_file[filename]
+    if executor is None:
+        executor = mainwindow.ipyconsole.NAME
+
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=executor,
+        selected=selected,
+        display_dialog=False,
+        first_execution=False)
+
+    return {file_uuid: file_run_params}
+
+
 # =============================================================================
 # ---- Pytest hooks
 # =============================================================================
@@ -375,10 +393,30 @@ def main_window(request, tmpdir, qtbot):
     # it's used a lot.
     toolbar = window.get_plugin(Plugins.Toolbar)
     debug_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Debug)
-    debug_action = window.debugger.get_action(
-        DebuggerToolbarActions.DebugCurrentFile)
+    debug_action = window.run.get_action(
+        "run file in debugger")
     debug_button = debug_toolbar.widgetForAction(debug_action)
     window.debug_button = debug_button
+
+    # Add a handle to the run buttons to access it quickly because they are
+    # used a lot.
+    run_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Run)
+    run_action = window.run.get_action(RunActions.Run)
+    run_button = run_toolbar.widgetForAction(run_action)
+    window.run_button = run_button
+
+    run_cell_action = window.run.get_action('run cell')
+    run_cell_button = run_toolbar.widgetForAction(run_cell_action)
+    window.run_cell_button = run_cell_button
+
+    run_cell_and_advance_action = window.run.get_action('run cell and advance')
+    run_cell_and_advance_button = run_toolbar.widgetForAction(
+        run_cell_and_advance_action)
+    window.run_cell_and_advance_button = run_cell_and_advance_button
+
+    run_selection_action = window.run.get_action('run selection and advance')
+    run_selection_button = run_toolbar.widgetForAction(run_selection_action)
+    window.run_selection_button = run_selection_button
 
     QApplication.processEvents()
 
@@ -549,3 +587,20 @@ def main_window(request, tmpdir, qtbot):
                     window = None
                     CONF.reset_to_defaults(notification=False)
                     raise
+
+
+@pytest.fixture
+def restore_user_env():
+    """Set user environment variables and restore upon test exit"""
+    if not running_in_ci():
+        pytest.skip("Skipped because not in CI.")
+
+    if os.name == "nt":
+        orig_env = get_user_env()
+
+    yield
+
+    if os.name == "nt":
+        set_user_env(orig_env)
+    else:
+        amend_user_shell_init(restore=True)

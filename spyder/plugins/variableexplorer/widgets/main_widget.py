@@ -14,14 +14,11 @@ from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
 from spyder.utils.programs import is_module_installed
-
-# Localization
-_ = get_translation('spyder')
 
 
 # =============================================================================
@@ -421,7 +418,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self._set_actions_and_menus(nsb)
 
         # To update the Variable Explorer after execution
-        shellwidget.executed.connect(nsb.refresh_namespacebrowser)
+        shellwidget.sig_kernel_state_arrived.connect(nsb.update_view)
         shellwidget.sig_config_spyder_kernel.connect(nsb.setup_kernel)
         return nsb
 
@@ -431,7 +428,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.sig_free_memory_requested.disconnect(self.free_memory)
         nsb.sig_start_spinner_requested.disconnect(self.start_spinner)
         nsb.sig_stop_spinner_requested.disconnect(self.stop_spinner)
-        nsb.shellwidget.executed.disconnect(nsb.refresh_namespacebrowser)
+        nsb.shellwidget.sig_kernel_state_arrived.disconnect(nsb.update_view)
         nsb.shellwidget.sig_config_spyder_kernel.disconnect(
             nsb.setup_kernel)
 

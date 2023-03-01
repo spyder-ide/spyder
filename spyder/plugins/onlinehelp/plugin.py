@@ -14,12 +14,9 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import get_conf_path
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Plugin
