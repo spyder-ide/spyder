@@ -708,7 +708,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             name = str(item)
             action = self.create_action(
                 name=name,
-                text=item + ' ('+environment_consoles_names[item][1]+')',
+                text=f'{item} ({environment_consoles_names[item][1]})',
                 icon=self.create_icon('ipython_console'),
                 triggered=lambda checked, environment=name,
                 path=path_to_environment:
