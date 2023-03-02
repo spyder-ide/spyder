@@ -61,6 +61,7 @@ from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
@@ -2987,7 +2988,11 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     # Check the menus are correctly updated
     count = 0
-    for menu_item in main_window.source_menu_actions:
+    mainmenu = main_window.get_plugin(Plugins.MainMenu)
+    source_menu_actions = mainmenu.get_application_menu(
+        ApplicationMenus.Source
+    ).get_actions()
+    for menu_item in source_menu_actions:
         if menu_item and isinstance(menu_item, QAction):
             print(menu_item.text(), menu_item.isChecked())
 

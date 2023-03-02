@@ -21,7 +21,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.mainmenu.api import ApplicationMenus, SourceMenuSections
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import PylintWidget
 from spyder.plugins.run.api import (
@@ -138,7 +138,9 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         if mainmenu:
             mainmenu.add_item_to_application_menu(
-                self.run_action, menu_id=ApplicationMenus.Source)
+                self.run_action, menu_id=ApplicationMenus.Source,
+                section=SourceMenuSections.CodeAnalysis
+            )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -168,7 +170,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         if self.run_action is not None:
             mainmenu.remove_item_from_application_menu(
                 self.run_action.name,
-                menu_id=ApplicationMenus.Source
+                menu_id=ApplicationMenus.Source,
             )
 
     @on_plugin_teardown(plugin=Plugins.Run)

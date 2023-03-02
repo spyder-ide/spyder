@@ -55,7 +55,7 @@ class SourceMenuSections:
     Options = 'options_section'
     Linting = 'linting_section'
     Cursor = 'cursor_section'
-    Actions = 'actions_section'
+    Formatting = 'formatting_section'
     CodeAnalysis = 'code_analysis_section'
 
 

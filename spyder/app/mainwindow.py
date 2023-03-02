@@ -246,8 +246,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.edit_menu_actions = []
         self.search_menu = None
         self.search_menu_actions = []
-        self.source_menu = None
-        self.source_menu_actions = []
+        # self.source_menu = None
+        # self.source_menu_actions = []
 
         # TODO: Move to corresponding Plugins
         self.file_toolbar = None
@@ -824,8 +824,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         mainmenu = self.mainmenu
         self.edit_menu = mainmenu.get_application_menu("edit_menu")
         self.search_menu = mainmenu.get_application_menu("search_menu")
-        self.source_menu = mainmenu.get_application_menu("source_menu")
-        self.source_menu.aboutToShow.connect(self.update_source_menu)
+        # self.source_menu = mainmenu.get_application_menu("source_menu")
+        # self.source_menu.aboutToShow.connect(self.update_source_menu)
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -907,7 +907,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Filling out menu/toolbar entries:
         add_actions(self.edit_menu, self.edit_menu_actions)
         add_actions(self.search_menu, self.search_menu_actions)
-        add_actions(self.source_menu, self.source_menu_actions)
+        # add_actions(self.source_menu, self.source_menu_actions)
 
     def __getattr__(self, attr):
         """
@@ -1191,16 +1191,16 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     # ---- Other
     # -------------------------------------------------------------------------
-    def update_source_menu(self):
-        """Update source menu options that vary dynamically."""
-        # This is necessary to avoid an error at startup.
-        # Fixes spyder-ide/spyder#14901
-        try:
-            editor = self.get_plugin(Plugins.Editor, error=False)
-            if editor:
-                editor.refresh_formatter_name()
-        except AttributeError:
-            pass
+    # def update_source_menu(self):
+    #     """Update source menu options that vary dynamically."""
+    #     # This is necessary to avoid an error at startup.
+    #     # Fixes spyder-ide/spyder#14901
+    #     try:
+    #         editor = self.get_plugin(Plugins.Editor, error=False)
+    #         if editor:
+    #             editor.refresh_formatter_name()
+    #     except AttributeError:
+    #         pass
 
     def free_memory(self):
         """Free memory after event."""

@@ -64,7 +64,7 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.File, _("&File"))
         create_app_menu(ApplicationMenus.Edit, _("&Edit"), dynamic=False)
         create_app_menu(ApplicationMenus.Search, _("&Search"), dynamic=False)
-        create_app_menu(ApplicationMenus.Source, _("Sour&ce"), dynamic=False)
+        create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
         create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
         if self.is_plugin_enabled(Plugins.IPythonConsole):
@@ -247,7 +247,7 @@ class MainMenu(SpyderPluginV2):
         app_menu_actions = {
             ApplicationMenus.Edit: self._main.edit_menu_actions,
             ApplicationMenus.Search: self._main.search_menu_actions,
-            ApplicationMenus.Source: self._main.source_menu_actions,
+            # ApplicationMenus.Source: self._main.source_menu_actions,
         }
 
         if menu_id in app_menu_actions:
@@ -300,14 +300,14 @@ class MainMenu(SpyderPluginV2):
                 self._main.edit_menu_actions, self._main.edit_menu),
             ApplicationMenus.Search: (
                 self._main.search_menu_actions, self._main.search_menu),
-            ApplicationMenus.Source: (
-                self._main.source_menu_actions, self._main.source_menu),
+            # ApplicationMenus.Source: (
+                # self._main.source_menu_actions, self._main.source_menu),
         }
 
         app_menus = {
             ApplicationMenus.Edit: self._main.edit_menu,
             ApplicationMenus.Search: self._main.search_menu,
-            ApplicationMenus.Source: self._main.source_menu,
+            # ApplicationMenus.Source: self._main.source_menu,
         }
 
         menu = self.get_application_menu(menu_id)

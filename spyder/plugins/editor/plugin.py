@@ -36,6 +36,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -63,7 +64,7 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.mainmenu.api import ApplicationMenus, SourceMenuSections
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
@@ -865,6 +866,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Unblockcomment")
 
         # ----------------------------------------------------------------------
+        # --- Part of Edit menu
         # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
         # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
@@ -911,7 +913,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
-        eol_menu = QMenu(_("Convert end-of-line characters"), self)
+        eol_menu = SpyderMenu(parent=self, title=_("Convert end-of-line characters"))
         eol_menu.setObjectName('checkbox-padding')
         add_actions(eol_menu, eol_actions)
 
@@ -1135,7 +1137,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             search_menu_actions + self.main.search_menu_actions)
 
         # ---- Source menu/toolbar construction ----
-        source_menu_actions = [
+        source_menu_option_actions = [
             showblanks_action,
             scrollpastend_action,
             showindentguides_action,
@@ -1144,23 +1146,88 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             show_codestyle_warnings_action,
             show_docstring_warnings_action,
             underline_errors,
-            MENU_SEPARATOR,
+        ]
+        source_menu_linting_actions = [
             self.todo_list_action,
             self.warning_list_action,
             self.previous_warning_action,
             self.next_warning_action,
-            MENU_SEPARATOR,
+        ]
+        source_menu_cursor_actions = [
             self.previous_edit_cursor_action,
             self.previous_cursor_action,
             self.next_cursor_action,
-            MENU_SEPARATOR,
+        ]
+        source_menu_formatting_actions = [
             eol_menu,
             trailingspaces_action,
             fixindentation_action,
             self.formatting_action
         ]
-        self.main.source_menu_actions = (
-            source_menu_actions + self.main.source_menu_actions)
+        # source_menu_actions = [
+        #     showblanks_action,
+        #     scrollpastend_action,
+        #     showindentguides_action,
+        #     showcodefolding_action,
+        #     show_classfunc_dropdown_action,
+        #     show_codestyle_warnings_action,
+        #     show_docstring_warnings_action,
+        #     underline_errors,
+        #     # MENU_SEPARATOR,
+        #     self.todo_list_action,
+        #     self.warning_list_action,
+        #     self.previous_warning_action,
+        #     self.next_warning_action,
+        #     # MENU_SEPARATOR,
+        #     self.previous_edit_cursor_action,
+        #     self.previous_cursor_action,
+        #     self.next_cursor_action,
+        #     # MENU_SEPARATOR,
+        #     eol_menu,
+        #     trailingspaces_action,
+        #     fixindentation_action,
+        #     self.formatting_action
+        # ]
+
+        mainmenu = self.main.get_plugin(Plugins.MainMenu)
+        if mainmenu:
+            source_menu = mainmenu.get_application_menu(ApplicationMenus.Source)
+            source_menu.aboutToShow.connect(self.refresh_formatter_name)
+            for option_item in source_menu_option_actions:
+                mainmenu.add_item_to_application_menu(
+                    option_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Options,
+                    before_section=SourceMenuSections.CodeAnalysis
+                )
+            for linting_item in source_menu_linting_actions:
+                mainmenu.add_item_to_application_menu(
+                    linting_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Linting,
+                    before_section=SourceMenuSections.CodeAnalysis
+                )
+            for cursor_item in source_menu_cursor_actions:
+                mainmenu.add_item_to_application_menu(
+                    cursor_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Cursor,
+                    before_section=SourceMenuSections.CodeAnalysis
+                )
+            for formatting_item in source_menu_formatting_actions:
+                mainmenu.add_item_to_application_menu(
+                    formatting_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Formatting,
+                    before_section=SourceMenuSections.CodeAnalysis
+                )
+
+        # self.main.source_menu_actions = (
+        #     source_menu_actions + self.main.source_menu_actions)
 
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
@@ -1624,12 +1691,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # the MainMenus plugin
         file_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.File).get_actions()
+        source_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Source).get_actions()
+        run_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Run).get_actions()
         tools_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Tools).get_actions()
         help_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
-        run_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Run).get_actions()
 
         # --- TODO: Rewrite when the editor is moved to the new API
         debug_toolbar_actions = self.main.toolbar.get_application_toolbar(
@@ -1647,7 +1716,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.menu_list = ((_("&File"), file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
-                          (_("Sour&ce"), self.main.source_menu_actions),
+                          (_("Sour&ce"), source_menu_actions),
                           (_("&Run"), run_menu_actions),
                           (_("&Tools"), tools_menu_actions),
                           (_("&View"), []),
