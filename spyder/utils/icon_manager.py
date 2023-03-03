@@ -181,6 +181,7 @@ class IconManager():
             'replace_next':            [('mdi6.arrow-right-bottom',), {'color': self.MAIN_FG_COLOR}],
             'replace_all':             [('mdi.file-replace-outline',), {'color': self.MAIN_FG_COLOR}],
             'replace_selection':       [('ph.rectangle-bold',), {'color': self.MAIN_FG_COLOR}],
+            'number_matches':          [('mdi.pound-box-outline',), {'color': self.MAIN_FG_COLOR}],
             'undo':                    [('mdi.undo',), {'color': self.MAIN_FG_COLOR}],
             'redo':                    [('mdi.redo',), {'color': self.MAIN_FG_COLOR}],
             'refresh':                 [('mdi.refresh',), {'color': self.MAIN_FG_COLOR}],

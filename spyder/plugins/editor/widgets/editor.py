@@ -2226,9 +2226,13 @@ class EditorStack(QWidget):
             pass
 
         self.update_plugin_title.emit()
+
         # Make sure that any replace happens in the editor on top
         # See spyder-ide/spyder#9688.
         self.find_widget.set_editor(editor, refresh=False)
+
+        # Update total number of matches when switching files.
+        self.find_widget.update_matches()
 
         if editor is not None:
             # Needed in order to handle the close of files open in a directory

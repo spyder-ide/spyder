@@ -75,6 +75,7 @@ def editor_find_replace_bot(base_editor_bot, qtbot):
 
     editor_stack = base_editor_bot
     layout.addWidget(editor_stack)
+    widget.editor_stack = editor_stack
 
     text = ('spam bacon\n'
             'spam sausage\n'
@@ -89,7 +90,7 @@ def editor_find_replace_bot(base_editor_bot, qtbot):
     layout.addWidget(find_replace)
 
     # Resize widget and show
-    widget.resize(480, 360)
+    widget.resize(900, 360)
     widget.show()
 
     return widget
@@ -662,6 +663,35 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     qtbot.wait(500)
     qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     assert finder.replace_text.currentText() == 'This is some test text!'
+
+
+def test_update_matches_in_find_replace(editor_find_replace_bot, qtbot):
+    """
+    Check that the total number of matches in the FindReplace widget is updated
+    when switching files.
+    """
+    editor_stack = editor_find_replace_bot.editor_stack
+    finder = editor_find_replace_bot.find_replace
+
+    # Search for "spam" in current file
+    finder.show(hide_replace=False)
+    finder.search_text.setFocus()
+    finder.search_text.set_current_text('spam')
+    qtbot.wait(500)
+    qtbot.keyClick(finder.search_text, Qt.Key_Return)
+
+    # Open a new file and only write "spam" on it
+    editor_stack.new('foo.py', 'utf-8', 'spam')
+
+    # Focus new file and check the number of matches was updated
+    editor_stack.set_stack_index(1)
+    assert finder.number_matches_text.text() == '1 matches'
+    qtbot.wait(500)
+
+    # Focus initial file and check the number of matches was updated
+    editor_stack.set_stack_index(0)
+    qtbot.wait(500)
+    assert finder.number_matches_text.text() == '3 matches'
 
 
 def test_autosave_all(editor_bot, mocker):

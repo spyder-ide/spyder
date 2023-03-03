@@ -16,7 +16,7 @@ import re
 
 # Third party imports
 from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QPixmap, QTextCursor
 from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
                             QLineEdit, QToolButton, QSizePolicy, QSpacerItem,
                             QWidget)
@@ -81,6 +81,9 @@ class FindReplace(QWidget):
         )
         glayout.addWidget(self.close_button, 0, 0)
 
+        # Icon size is the same for all buttons
+        self.icon_size = self.close_button.iconSize()
+
         # Find layout
         self.search_text = SearchText(self)
 
@@ -101,9 +104,12 @@ class FindReplace(QWidget):
         self.search_text.sig_resized.connect(self._resize_replace_text)
 
         self.number_matches_text = QLabel(self)
-        self.search_text.clear_action.triggered.connect(
-            self.number_matches_text.hide
+        self.search_text.clear_action.triggered.connect(self.clear_matches)
+        self.hide_number_matches_text = False
+        self.number_matches_pixmap = (
+            ima.icon('number_matches').pixmap(self.icon_size)
         )
+        self.matches_string = ""
 
         self.no_matches_icon = ima.icon('no_matches')
         self.error_icon = ima.icon('error')
@@ -111,9 +117,6 @@ class FindReplace(QWidget):
         self.messages_action.setVisible(False)
         self.search_text.lineEdit().addAction(
             self.messages_action, QLineEdit.TrailingPosition)
-        self.search_text.clear_action.triggered.connect(
-            lambda: self.messages_action.setVisible(False)
-        )
 
         # Button corresponding to the messages_action above
         self.messages_button = (
@@ -248,11 +251,20 @@ class FindReplace(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.shortcuts = self.create_shortcuts(parent)
 
+        # To highlight found results in the editor
         self.highlight_timer = QTimer(self)
         self.highlight_timer.setSingleShot(True)
         self.highlight_timer.setInterval(300)
         self.highlight_timer.timeout.connect(self.highlight_matches)
+
+        # Install event filter for search_text
         self.search_text.installEventFilter(self)
+
+        # To avoid painting number_matches_text on every resize event
+        self.show_matches_timer = QTimer(self)
+        self.show_matches_timer.setSingleShot(True)
+        self.show_matches_timer.setInterval(25)
+        self.show_matches_timer.timeout.connect(self.show_matches)
 
     def eventFilter(self, widget, event):
         """
@@ -345,20 +357,11 @@ class FindReplace(QWidget):
     def update_replace_combo(self):
         self.replace_text.lineEdit().returnPressed.emit()
 
-    @Slot(bool)
-    def toggle_highlighting(self, state):
-        """Toggle the 'highlight all results' feature"""
-        if self.editor is not None:
-            if state:
-                self.highlight_matches()
-            else:
-                self.clear_matches()
-
     def show(self, hide_replace=True):
         """Overrides Qt Method"""
         QWidget.show(self)
 
-        self._resize_search_text()
+        self._width_adjustments()
         self.visibility_changed.emit(True)
         self.change_number_matches()
 
@@ -397,7 +400,7 @@ class FindReplace(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self._resize_search_text()
+        self._width_adjustments()
 
     @Slot()
     def replace_widget(self, replace_on):
@@ -512,11 +515,14 @@ class FindReplace(QWidget):
             case = self.case_button.isChecked()
             word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
-            self.editor.highlight_found_results(text, word=word,
-                                                regexp=regexp, case=case)
+            self.editor.highlight_found_results(
+                text, word=word, regexp=regexp, case=case)
 
     def clear_matches(self):
         """Clear all highlighted matches"""
+        self.matches_string = ""
+        self.messages_action.setVisible(False)
+        self.number_matches_text.hide()
         if self.is_code_editor:
             self.editor.clear_found_results()
 
@@ -536,7 +542,6 @@ class FindReplace(QWidget):
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
             self.change_number_matches()
-            self.messages_action.setVisible(False)
             self.clear_matches()
             return None
         else:
@@ -748,16 +753,12 @@ class FindReplace(QWidget):
     def change_number_matches(self, current_match=0, total_matches=0):
         """Change number of match and total matches."""
         if current_match and total_matches:
-            self.number_matches_text.show()
-            self.messages_action.setVisible(False)
-            matches_string = u"{} {} {}".format(current_match, _(u"of"),
-                                                total_matches)
-            self.number_matches_text.setText(matches_string)
+            self.matches_string = "{} {} {}".format(current_match, _("of"),
+                                                    total_matches)
+            self.show_matches()
         elif total_matches:
-            self.number_matches_text.show()
-            self.messages_action.setVisible(False)
-            matches_string = u"{} {}".format(total_matches, _(u"matches"))
-            self.number_matches_text.setText(matches_string)
+            self.matches_string = "{} {}".format(total_matches, _("matches"))
+            self.show_matches()
         else:
             self.number_matches_text.hide()
             if self.search_text.currentText():
@@ -777,6 +778,21 @@ class FindReplace(QWidget):
     def show_no_matches(self):
         """Show a no matches message with an icon."""
         self._show_icon_message('no_matches')
+
+    def show_matches(self):
+        """Show the number of matches found in the document."""
+        if not self.matches_string:
+            return
+
+        self.number_matches_text.show()
+        self.messages_action.setVisible(False)
+
+        if self.hide_number_matches_text:
+            self.number_matches_text.setPixmap(self.number_matches_pixmap)
+            self.number_matches_text.setToolTip(self.matches_string)
+        else:
+            self.number_matches_text.setPixmap(QPixmap())
+            self.number_matches_text.setText(self.matches_string)
 
     def show_error(self, error_msg):
         """Show a regexp error message with an icon."""
@@ -808,13 +824,29 @@ class FindReplace(QWidget):
         self.messages_action.setToolTip(tooltip)
         self.messages_action.setVisible(True)
 
-    def _resize_search_text(self):
-        """Adjust search_text combobox min width according to total one."""
+    def _width_adjustments(self):
+        """Several adjustments according to the widget's total width."""
+        # The widgets list includes search_text and number_matches_text. That's
+        # why we substract a 2 below.
+        buttons_width = self.icon_size.width() * (len(self.widgets) - 2)
+
         total_width = self.size().width()
-        if total_width < (self.search_text.recommended_width + 200):
+        matches_width = self.number_matches_text.size().width()
+        minimal_width = (
+            self.search_text.recommended_width + buttons_width + matches_width
+        )
+
+        if total_width < minimal_width:
             self.search_text.setMinimumWidth(30)
+            self.hide_number_matches_text = True
         else:
             self.search_text.setMinimumWidth(int(total_width / 2))
+            self.hide_number_matches_text = False
+
+        # We don't call show_matches directly here to avoid flickering when the
+        # user hits the widget's minimal width, which changes from text to an
+        # icon (or vice versa) for number_matches_text.
+        self.show_matches_timer.start()
 
     def _resize_replace_text(self, size, old_size):
         """
