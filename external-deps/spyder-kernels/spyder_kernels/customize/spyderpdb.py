@@ -16,6 +16,7 @@ import sys
 import traceback
 import threading
 from collections import namedtuple
+from functools import lru_cache
 
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.debugger import Pdb as ipyPdb
@@ -312,6 +313,9 @@ class SpyderPdb(ipyPdb):
     # --- Methods overriden for skipping libraries
     def stop_here(self, frame):
         """Check if pdb should stop here."""
+        # Never stop if we are continuing unless there is a breakpoint
+        if self.stopframe == self.botframe:
+            return False
         if (frame is not None
                 and "__tracebackhide__" in frame.f_locals
                 and frame.f_locals["__tracebackhide__"] == "__pdb_exit__"):
@@ -593,6 +597,21 @@ class SpyderPdb(ipyPdb):
                 print("--KeyboardInterrupt--\n"
                       "For copying text while debugging, use Ctrl+Shift+C",
                       file=self.stdout)
+
+    @lru_cache
+    def canonic(self, filename):
+        """Return canonical form of filename."""
+        return super().canonic(filename)
+
+    def do_exitdb(self, arg):
+        """Exit the debugger"""
+        self._set_stopinfo(self.botframe, None, -1)
+        sys.settrace(None)
+        frame = sys._getframe().f_back
+        while frame and frame is not self.botframe:
+            del frame.f_trace
+            frame = frame.f_back
+        return 1
 
     def cmdloop(self, intro=None):
         """
