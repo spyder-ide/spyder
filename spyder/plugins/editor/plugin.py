@@ -866,7 +866,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Unblockcomment")
 
         # ----------------------------------------------------------------------
-        # --- Part of Edit menu
         # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
         # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
@@ -1136,7 +1135,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.main.search_menu_actions = (
             search_menu_actions + self.main.search_menu_actions)
 
-        # ---- Source menu/toolbar construction ----
+        # ---- Source menu construction ----
         source_menu_option_actions = [
             showblanks_action,
             scrollpastend_action,
@@ -1164,31 +1163,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             fixindentation_action,
             self.formatting_action
         ]
-        # source_menu_actions = [
-        #     showblanks_action,
-        #     scrollpastend_action,
-        #     showindentguides_action,
-        #     showcodefolding_action,
-        #     show_classfunc_dropdown_action,
-        #     show_codestyle_warnings_action,
-        #     show_docstring_warnings_action,
-        #     underline_errors,
-        #     # MENU_SEPARATOR,
-        #     self.todo_list_action,
-        #     self.warning_list_action,
-        #     self.previous_warning_action,
-        #     self.next_warning_action,
-        #     # MENU_SEPARATOR,
-        #     self.previous_edit_cursor_action,
-        #     self.previous_cursor_action,
-        #     self.next_cursor_action,
-        #     # MENU_SEPARATOR,
-        #     eol_menu,
-        #     trailingspaces_action,
-        #     fixindentation_action,
-        #     self.formatting_action
-        # ]
-
         mainmenu = self.main.get_plugin(Plugins.MainMenu)
         if mainmenu:
             source_menu = mainmenu.get_application_menu(ApplicationMenus.Source)
@@ -1225,9 +1199,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     section=SourceMenuSections.Formatting,
                     before_section=SourceMenuSections.CodeAnalysis
                 )
-
-        # self.main.source_menu_actions = (
-        #     source_menu_actions + self.main.source_menu_actions)
 
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (

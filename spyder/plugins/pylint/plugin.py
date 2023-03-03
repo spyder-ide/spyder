@@ -170,7 +170,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         if self.run_action is not None:
             mainmenu.remove_item_from_application_menu(
                 self.run_action.name,
-                menu_id=ApplicationMenus.Source,
+                menu_id=ApplicationMenus.Source
             )
 
     @on_plugin_teardown(plugin=Plugins.Run)
