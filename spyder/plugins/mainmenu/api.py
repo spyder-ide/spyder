@@ -48,7 +48,8 @@ class EditMenuSections:
 
 
 class SearchMenuSections:
-    Search = 'undo_redo_section'
+    FindInText = 'find_text_section'
+    FindInFiles = 'find_files_section'
 
 
 class SourceMenuSections:
