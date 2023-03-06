@@ -714,6 +714,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 path=path_to_environment:
                     self.create_environment_client(
                     path_to_custom_interpreter=path, environment=environment),
+                overwrite=True
             )
             environment_consoles.append(action)
         for item in environment_consoles:
