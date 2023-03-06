@@ -29,8 +29,9 @@ class PylintConfigPage(PluginConfigPage):
                                         'save_before', default=True)
 
         hist_group = QGroupBox(_("History"))
-        hist_label1 = QLabel(_("The following option will be applied at next "
-                               "startup."))
+        hist_label1 = QLabel(_("Choose how many results you want to store in "
+                               "the history results, pick a number between "
+                               "1-100."))
         hist_label1.setWordWrap(True)
         hist_spin = self.create_spinbox(
             _("History: "),
@@ -43,8 +44,6 @@ class PylintConfigPage(PluginConfigPage):
         )
 
         results_group = QGroupBox(_("Results"))
-        results_label1 = QLabel(_("Results are stored here:"))
-        results_label1.setWordWrap(True)
 
         # Warning: do not try to regroup the following QLabel contents with
         # widgets above -- this string was isolated here in a single QLabel
@@ -55,7 +54,6 @@ class PylintConfigPage(PluginConfigPage):
         results_label2.setWordWrap(True)
 
         settings_layout = QVBoxLayout()
-        settings_layout.addWidget(save_box)
         settings_group.setLayout(settings_layout)
 
         hist_layout = QVBoxLayout()
@@ -64,7 +62,6 @@ class PylintConfigPage(PluginConfigPage):
         hist_group.setLayout(hist_layout)
 
         results_layout = QVBoxLayout()
-        results_layout.addWidget(results_label1)
         results_layout.addWidget(results_label2)
         results_group.setLayout(results_layout)
 

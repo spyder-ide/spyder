@@ -105,7 +105,7 @@ class MainInterpreter(SpyderPluginV2):
 
     # ---- Private API
     def _open_interpreter_preferences(self):
-        """Open the Preferences dialog in the main interpreter section."""
+        """Open the Preferences dialog in the Code analysis section."""
         self._main.show_preferences()
         preferences = self._main.preferences
         container = preferences.get_container()

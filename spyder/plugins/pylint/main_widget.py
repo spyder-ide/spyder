@@ -21,7 +21,7 @@ import time
 
 # Third party imports
 import pylint
-from qtpy.compat import getopenfilename
+from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
@@ -69,6 +69,7 @@ class PylintWidgetActions:
     RunCodeAnalysis = "run_analysis_action"
     BrowseFile = "browse_action"
     ShowLog = "log_action"
+    SaveHistory = "save_history"
 
 
 class PylintWidgetOptionsMenuSections:
@@ -287,6 +288,10 @@ class PylintWidget(PluginMainWidget):
     word: str
         Word to select on given row.
     """
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the main interpreter preferences.
+    """
 
     sig_start_analysis_requested = Signal()
     """
@@ -485,6 +490,24 @@ class PylintWidget(PluginMainWidget):
         else:
             self.curr_filenames = []
 
+    def save_history(self):
+        """Save data."""
+        title = _("Save code analysis result")
+        filename, _selfilter = getsavefilename(
+            self,
+            title,
+            getcwd_or_home(),
+            _("Code analysis result") + " (*.Result)",
+        )
+        extension = osp.splitext(filename)[1].lower()
+        if not extension:
+            # Needed to prevent trying to save a data file without extension
+            # See spyder-ide/spyder#19633
+            filename = filename + '.Result'
+
+        if filename:
+            self.datatree.save_data(filename)
+
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -522,6 +545,13 @@ class PylintWidget(PluginMainWidget):
             icon=self.create_icon("log"),
             triggered=self.show_log,
         )
+        self.save_action = self.create_action(
+            PylintWidgetActions.SaveHistory,
+            text=_("Save"),
+            tip=_("Save output"),
+            icon=self.create_icon("filesave"),
+            triggered=self.save_history,
+        )
 
         options_menu = self.get_options_menu()
         self.add_item_to_menu(
@@ -542,12 +572,12 @@ class PylintWidget(PluginMainWidget):
             menu=options_menu,
             section=PylintWidgetOptionsMenuSections.Section,
         )
-        self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.ExpandSelectionAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Section,
-        )
+        #self.add_item_to_menu(
+        #    self.treewidget.get_action(
+        #        OneColumnTreeActions.ExpandSelectionAction),
+        #    menu=options_menu,
+        #    section=PylintWidgetOptionsMenuSections.Section,
+        #)
         self.add_item_to_menu(
             change_history_depth_action,
             menu=options_menu,
@@ -561,6 +591,8 @@ class PylintWidget(PluginMainWidget):
             section=PylintWidgetOptionsMenuSections.History,
         )
         self.treewidget.restore_action.setVisible(False)
+        self.treewidget.collapse_selection_action.setVisible(False)
+        self.treewidget.expand_selection_action.setVisible(False)
 
         toolbar = self.get_main_toolbar()
         for item in [self.filecombo, self.browse_action,
@@ -578,7 +610,7 @@ class PylintWidget(PluginMainWidget):
                      self.datelabel,
                      self.create_stretcher(
                          id_=PylintWidgetToolbarItems.Stretcher2),
-                     self.log_action]:
+                     self.log_action, self.save_action]:
             self.add_item_to_toolbar(
                 item,
                 secondary_toolbar,
@@ -618,37 +650,10 @@ class PylintWidget(PluginMainWidget):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    @Slot()
-    @Slot(int)
-    def change_history_depth(self, value=None):
-        """
-        Set history maximum entries.
-
-        Parameters
-        ----------
-        value: int or None, optional
-            The valur to set  the maximum history depth. If no value is
-            provided, an input dialog will be launched. Default is None.
-        """
-        if value is None:
-            dialog = QInputDialog(self)
-
-            # Set dialog properties
-            dialog.setModal(False)
-            dialog.setWindowTitle(_("History"))
-            dialog.setLabelText(_("Maximum entries"))
-            dialog.setInputMode(QInputDialog.IntInput)
-            dialog.setIntRange(MIN_HISTORY_ENTRIES, MAX_HISTORY_ENTRIES)
-            dialog.setIntStep(1)
-            dialog.setIntValue(self.get_conf("max_entries"))
-
-            # Connect slot
-            dialog.intValueSelected.connect(
-                lambda value: self.set_conf("max_entries", value))
-
-            dialog.show()
-        else:
-            self.set_conf("max_entries", value)
+    
+    def change_history_depth(self):
+        """Request to open the main interpreter preferences."""
+        self.sig_open_preferences_requested.emit()
 
     def get_filename(self):
         """

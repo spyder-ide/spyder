@@ -75,7 +75,9 @@ class Pylint(SpyderDockablePlugin):
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_start_analysis_requested.connect(self.start_code_analysis)
-
+        widget.sig_open_preferences_requested.connect(
+            self._open_interpreter_preferences
+        )
         # Add action to application menus
         pylint_act = self.create_action(
             PylintActions.AnalyzeCurrentFile,
@@ -160,6 +162,15 @@ class Pylint(SpyderDockablePlugin):
 
     # --- Private API
     # ------------------------------------------------------------------------
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the main interpreter section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("pylint")
+        dlg.set_current_index(index)
+
     @Slot()
     def _set_filename(self):
         """
