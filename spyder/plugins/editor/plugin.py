@@ -2740,7 +2740,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.update_cursorpos_actions()
 
     @Slot()
-    def create_cell(self, prefix=None):
+    def create_cell(self):
         editor = self.get_current_editor()
         if editor is not None:
             editor.create_new_cell()

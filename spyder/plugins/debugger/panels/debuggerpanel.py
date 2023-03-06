@@ -8,12 +8,13 @@ This module contains the DebuggerPanel panel
 """
 # Third party imports
 from qtpy.QtCore import QSize, Qt, QRect, Slot
-from qtpy.QtGui import QPainter, QFontMetrics
+from qtpy.QtGui import QPainter, QFontMetrics, QColor
 
 # Local imports
 from spyder.utils.icon_manager import ima
 from spyder.api.panel import Panel
 from spyder.config.base import debug_print
+from spyder.plugins.outlineexplorer.api import is_cell_header
 
 
 class DebuggerPanel(Panel):
@@ -22,6 +23,8 @@ class DebuggerPanel(Panel):
     def __init__(self, breakpoints_manager):
         """Initialize panel."""
         Panel.__init__(self)
+
+        self.linecell_color = QColor(Qt.darkGray)
 
         self.breakpoints_manager = breakpoints_manager
 
@@ -90,8 +93,14 @@ class DebuggerPanel(Panel):
         super(DebuggerPanel, self).paintEvent(event)
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
+        pen = painter.pen()
+        pen.setStyle(Qt.SolidLine)
+        pen.setBrush(self.linecell_color)
+        painter.setPen(pen)
 
         for top, line_number, block in self.editor.visible_blocks:
+            if is_cell_header(block):
+                painter.drawLine(0, top, self.width(), top)
             if self.line_number_hint == line_number:
                 self._draw_breakpoint_icon(top, painter, "transparent")
             if self._current_line_arrow == line_number and not self.stop:
