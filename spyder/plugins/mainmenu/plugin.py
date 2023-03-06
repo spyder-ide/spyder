@@ -245,8 +245,7 @@ class MainMenu(SpyderPluginV2):
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
         app_menu_actions = {
-            ApplicationMenus.Edit: self._main.edit_menu_actions,
-            # ApplicationMenus.Search: self._main.search_menu_actions,
+            ApplicationMenus.Edit: self._main.edit_menu_actions
         }
 
         if menu_id in app_menu_actions:
@@ -296,14 +295,11 @@ class MainMenu(SpyderPluginV2):
         #       Temporal solution while migration is complete
         app_menu_actions = {
             ApplicationMenus.Edit: (
-                self._main.edit_menu_actions, self._main.edit_menu),
-            # ApplicationMenus.Search: (
-            #     self._main.search_menu_actions, self._main.search_menu),
+                self._main.edit_menu_actions, self._main.edit_menu)
         }
 
         app_menus = {
-            ApplicationMenus.Edit: self._main.edit_menu,
-            # ApplicationMenus.Search: self._main.search_menu,
+            ApplicationMenus.Edit: self._main.edit_menu
         }
 
         menu = self.get_application_menu(menu_id)

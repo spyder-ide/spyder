@@ -1131,9 +1131,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
-        # self.main.search_toolbar_actions = [find_action,
-        #                                     find_next_action,
-        #                                     replace_action]
 
         # ---- Edit menu/toolbar construction ----
         self.edit_menu_actions = [self.toggle_comment_action,
@@ -1144,12 +1141,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         mainmenu = self.main.get_plugin(Plugins.MainMenu)
         # ---- Search menu construction ----
-        # if not hasattr(self.main, 'search_menu_actions'):
-        #     # This list will not exist in the fast tests.
-        #     self.main.search_menu_actions = []
-
-        # self.main.search_menu_actions = (
-        #     search_menu_actions + self.main.search_menu_actions)
         search_menu_actions = [self.find_action,
                                self.find_next_action,
                                self.find_previous_action,

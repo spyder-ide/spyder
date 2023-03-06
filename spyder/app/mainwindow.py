@@ -244,8 +244,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Menu bars
         self.edit_menu = None
         self.edit_menu_actions = []
-        # self.search_menu = None
-        # self.search_menu_actions = []
 
         # TODO: Move to corresponding Plugins
         self.file_toolbar = None
@@ -821,7 +819,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             ApplicationMenus, FileMenuSections)
         mainmenu = self.mainmenu
         self.edit_menu = mainmenu.get_application_menu("edit_menu")
-        # self.search_menu = mainmenu.get_application_menu("search_menu")
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -902,7 +899,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # TODO: Migrate to use the MainMenu Plugin instead of list of actions
         # Filling out menu/toolbar entries:
         add_actions(self.edit_menu, self.edit_menu_actions)
-        # add_actions(self.search_menu, self.search_menu_actions)
 
     def __getattr__(self, attr):
         """
@@ -946,7 +942,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             if isinstance(child, QMenu):
                 try:
                     child.aboutToShow.connect(self.update_edit_menu)
-                    # child.aboutToShow.connect(self.update_search_menu)
                 except TypeError:
                     pass
 
@@ -1193,7 +1188,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         self.update_edit_menu()
-        # self.update_search_menu()
 
     def show_shortcuts(self, menu):
         """Show action shortcuts in menu."""
@@ -1294,33 +1288,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             if self.get_plugin(Plugins.Editor, error=False):
                 for action in self.editor.edit_menu_actions:
                     action.setEnabled(True)
-
-    # def update_search_menu(self):
-    #     """Update search menu"""
-    #     # Disabling all actions except the last one
-    #     # (which is Find in files) to begin with
-    #     for child in self.search_menu.actions()[:-1]:
-    #         child.setEnabled(False)
-
-    #     widget, textedit_properties = self.get_focus_widget_properties()
-    #     if textedit_properties is None:  # widget is not an editor/console
-    #         return
-
-    #     # !!! Below this line, widget is expected to be a QPlainTextEdit
-    #     #     instance
-    #     console, not_readonly, readwrite_editor = textedit_properties
-
-    #     # Find actions only trigger an effect in the Editor
-    #     if not console:
-    #         for action in self.search_menu.actions():
-    #             try:
-    #                 action.setEnabled(True)
-    #             except RuntimeError:
-    #                 pass
-
-    #     # Disable the replace action for read-only files
-    #     if len(self.search_menu_actions) > 3:
-    #         self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def set_splash(self, message):
         """Set splash message"""
