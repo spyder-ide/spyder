@@ -15,14 +15,11 @@ from qtpy.QtWidgets import (
     QRadioButton, QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
 from spyder.utils.misc import getcwd_or_home
 
-
-# Localization
-_ = get_translation("spyder")
 
 # Main constants
 RUN_DEFAULT_CONFIG = _("Run file with default configuration")

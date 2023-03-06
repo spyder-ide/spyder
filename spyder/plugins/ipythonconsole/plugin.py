@@ -19,7 +19,7 @@ from qtpy.QtCore import Signal, Slot
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
@@ -31,9 +31,6 @@ from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunConfiguration,
     ExtendedRunExecutionParameters, RunResult, run_execute)
 from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
-
-# Localization
-_ = get_translation('spyder')
 
 
 class IPythonConsole(SpyderDockablePlugin, RunExecutor):

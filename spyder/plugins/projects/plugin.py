@@ -28,7 +28,7 @@ from qtpy.QtWidgets import QInputDialog, QMessageBox
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.config.base import (get_home_dir, get_project_config_folder,
                                 running_in_mac_app, running_under_pytest)
@@ -47,8 +47,8 @@ from spyder.plugins.completion.api import (
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
-# Localization and logging
-_ = get_translation("spyder")
+
+# Logging
 logger = logging.getLogger(__name__)
 
 

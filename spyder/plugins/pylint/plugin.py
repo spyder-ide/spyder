@@ -19,7 +19,7 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.pylint.confpage import PylintConfigPage
@@ -27,10 +27,6 @@ from spyder.plugins.pylint.main_widget import PylintWidget
 from spyder.plugins.run.api import (
     RunContext, RunConfiguration, PossibleRunResult, run_execute,
     ExtendedRunExecutionParameters, RunExecutor)
-
-
-# Localization
-_ = get_translation("spyder")
 
 
 class PylintActions:

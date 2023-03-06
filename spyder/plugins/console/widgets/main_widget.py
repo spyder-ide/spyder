@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QAction, QInputDialog, QLineEdit, QVBoxLayout
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.config.decorators import on_conf_change
 from spyder.utils.installers import InstallerInternalError
@@ -42,8 +42,8 @@ from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.reporterror import SpyderErrorDialog
 
-# Localization
-_ = get_translation('spyder')
+
+# Logging
 logger = logging.getLogger(__name__)
 
 

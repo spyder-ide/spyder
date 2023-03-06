@@ -24,15 +24,11 @@ from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 from qtpy.QtWidgets import QItemDelegate, QTableView, QVBoxLayout
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import (PluginMainWidgetMenus,
                                             PluginMainWidget)
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.sourcecode import disambiguate_fname
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Constants

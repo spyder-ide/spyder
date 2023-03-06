@@ -18,7 +18,7 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun
 from spyder.plugins.profiler.api import ProfilerPyConfiguration
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
@@ -30,9 +30,6 @@ from spyder.plugins.run.api import (
     RunExecutor, run_execute, RunContext, RunConfiguration,
     ExtendedRunExecutionParameters, PossibleRunResult)
 
-
-# Localization
-_ = get_translation('spyder')
 
 
 class Profiler(SpyderDockablePlugin, RunExecutor):

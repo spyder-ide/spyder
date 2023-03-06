@@ -26,12 +26,9 @@ from qtpy.QtWidgets import (
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.gui import get_font
 from spyder.widgets.helperwidgets import FinderWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class FramesBrowserState:

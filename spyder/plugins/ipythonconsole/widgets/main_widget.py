@@ -27,7 +27,7 @@ from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
@@ -47,8 +47,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 
