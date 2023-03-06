@@ -1256,17 +1256,11 @@ class LSPMixin:
         """Update folding information with new data from the LSP."""
         try:
             lines = self.toPlainText().splitlines()
-            extended_ranges = []
-            for folding_range in ranges:
-                start = folding_range['startLine']
-                end = folding_range['endLine']
-                text_region = self.get_text_region(start, end, lines)
-                extended_ranges.append((start, end, text_region))
-
             folding_panel = self.panels.get(FoldingPanel)
 
             current_tree, root = merge_folding(
-                extended_ranges, folding_panel.current_tree, folding_panel.root
+                ranges, lines, self.get_line_separator(),
+                folding_panel.current_tree, folding_panel.root
             )
 
             folding_info = collect_folding_regions(root)
