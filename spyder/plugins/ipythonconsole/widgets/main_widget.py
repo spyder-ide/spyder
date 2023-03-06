@@ -1427,12 +1427,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None, environment='A',
+                          cache=True, initial_cwd=None, environment='Default',
                           path_to_custom_interpreter=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
-                         str_id=environment)
+                         str_id='A', str_env_name=environment)
 
         client = ClientWidget(
             self,
