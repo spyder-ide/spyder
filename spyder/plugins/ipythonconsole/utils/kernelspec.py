@@ -191,7 +191,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
-            'SPY_EXTERNAL_INTERPRETER': self.path_to_custom_interpreter,
+            'SPY_EXTERNAL_INTERPRETER': not default_interpreter or self.path_to_custom_interpreter,
             'SPY_UMR_ENABLED': self.get_conf(
                 'umr/enabled', section='main_interpreter'),
             'SPY_UMR_VERBOSE': self.get_conf(
