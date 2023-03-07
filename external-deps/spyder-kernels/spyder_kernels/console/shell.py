@@ -233,7 +233,13 @@ class SpyderShell(ZMQInteractiveShell):
                 self.kernel.log.error(
                     "Interrupt message not supported on Windows")
         else:
-            self.kernel._send_interupt_children()
+            # This is necessary to make the call below work for IPykernel
+            # versions equal or less than 6.21.2 and greater than it.
+            # See ipython/ipykernel#1101
+            if hasattr(self.kernel, '_send_interupt_children'):
+                self.kernel._send_interupt_children()
+            else:
+                self.kernel._send_interrupt_children()
 
     def request_pdb_stop(self):
         """Request pdb to stop at the next possible position."""
