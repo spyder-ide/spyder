@@ -927,8 +927,8 @@ def is_module_installed(module_name, version=None, interpreter=None,
     if version is None:
         return True
     else:
-        if ';' in version:
-            versions = version.split(';')
+        if ',' in version:
+            versions = version.split(',')
         else:
             versions = [version]
 

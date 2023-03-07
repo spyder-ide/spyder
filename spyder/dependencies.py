@@ -38,35 +38,35 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = ">=7.31.1;<9.0.0"
-JEDI_REQVER = '>=0.17.2;<0.19.0'
+IPYTHON_REQVER = ">=7.31.1,<9.0.0"
+JEDI_REQVER = '>=0.17.2,<0.19.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PARAMIKO_REQVER = '>=2.4.0'
-PARSO_REQVER = '>=0.7.0;<0.9.0'
+PARSO_REQVER = '>=0.7.0,<0.9.0'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
-PYLINT_REQVER = '>=2.5.0;<3.0'
+PYLINT_REQVER = '>=2.5.0,<3.0'
 PYLINT_VENV_REQVER = '>=2.1.1'
-PYLSP_REQVER = '>=1.7.1;<1.8.0'
+PYLSP_REQVER = '>=1.7.1,<1.8.0'
 PYLSP_BLACK_REQVER = '>=1.2.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=22.1.0'
-QDARKSTYLE_REQVER = '>=3.0.2;<3.1.0'
+QDARKSTYLE_REQVER = '>=3.0.2,<3.1.0'
 QSTYLIZER_REQVER = '>=0.2.2'
 QTAWESOME_REQVER = '>=1.2.1'
-QTCONSOLE_REQVER = '>=5.4.0;<5.5.0'
+QTCONSOLE_REQVER = '>=5.4.0,<5.5.0'
 QTPY_REQVER = '>=2.1.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=2.4.2;<2.5.0'
+SPYDER_KERNELS_REQVER = '>=2.4.2,<2.5.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
@@ -296,10 +296,11 @@ DESCRIPTIONS += [
 # Code
 # =============================================================================
 class Dependency(object):
-    """Spyder's dependency
+    """
+    Spyder's dependency
 
-    version may starts with =, >=, > or < to specify the exact requirement ;
-    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
+    Version may starts with =, >=, > or < to specify the exact requirement;
+    multiple conditions may be separated by ',' (e.g. '>=0.13,<1.0')"""
 
     OK = 'OK'
     NOK = 'NOK'
