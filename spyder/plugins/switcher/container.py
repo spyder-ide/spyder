@@ -9,10 +9,8 @@
 
 # Spyder imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-
-_ = get_translation("switcher.spyder")
 
 
 class SwitcherContainer(PluginMainContainer):

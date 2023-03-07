@@ -14,12 +14,10 @@ from qtpy.QtGui import QIcon
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 
 from spyder.plugins.switcher.confpage import SwitcherConfigPage
 from spyder.plugins.switcher.container import SwitcherContainer
-
-_ = get_translation("switcher.spyder")
 
 
 class Switcher(SpyderPluginV2):

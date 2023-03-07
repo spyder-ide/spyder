@@ -7,9 +7,7 @@
 """Switcher Preferences Page."""
 
 from spyder.api.preferences import PluginConfigPage
-from spyder.api.translations import get_translation
-
-_ = get_translation("switcher.spyder")
+from spyder.api.translations import _
 
 
 class SwitcherConfigPage(PluginConfigPage):
