@@ -826,6 +826,8 @@ def check_version(actver, version, cmp_op):
             return parse(actver) < parse(version)
         elif cmp_op == '<=':
             return parse(actver) <= parse(version)
+        elif cmp_op == '!=':
+            return parse(actver) != parse(version)
         else:
             return False
     except TypeError:
@@ -937,10 +939,13 @@ def is_module_installed(module_name, version=None, interpreter=None,
             symb = _ver[:match.start()]
             if not symb:
                 symb = '='
-            assert symb in ('>=', '>', '=', '<', '<='),\
-                "Invalid version condition '%s'" % symb
+
+            if symb not in ['>=', '>', '=', '<', '<=', '!=']:
+                raise RuntimeError(f"Invalid version condition '{symb}'")
+
             ver = _ver[match.start():]
             output = output and check_version(module_version, ver, symb)
+
         return output
 
 
