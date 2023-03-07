@@ -6,12 +6,8 @@
 
 """Module checking Spyder installation requirements"""
 
-# Standard library imports
-import sys
-import os.path as osp
-
 # Third-party imports
-from pkg_resources import parse_version
+from packaging.version import parse
 
 
 def show_warning(message):
@@ -29,6 +25,7 @@ def show_warning(message):
         root.mainloop()
     except Exception:
         pass
+
     raise RuntimeError(message)
 
 
@@ -39,8 +36,11 @@ def check_qt():
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]
         actual_ver = qtpy.QT_VERSION
-        if (actual_ver is None or
-                parse_version(actual_ver) < parse_version(required_ver)):
+
+        if (
+            actual_ver is None
+            or parse(actual_ver) < parse(required_ver)
+        ):
             show_warning("Please check Spyder installation requirements:\n"
                          "%s %s+ is required (found %s)."
                          % (package_name, required_ver, actual_ver))

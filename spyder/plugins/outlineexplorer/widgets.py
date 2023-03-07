@@ -14,7 +14,7 @@ import uuid
 
 # Third party imports
 from intervaltree import IntervalTree
-from pkg_resources import parse_version
+from packaging.version import parse
 from qtpy import PYSIDE2, PYSIDE_VERSION
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
@@ -718,7 +718,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # [1] https://bugreports.qt.io/browse/PYSIDE-74
         # [2] https://codereview.qt-project.org/c/pyside/pyside-setup/+/312945
         update = (
-            (PYSIDE2 and parse_version(PYSIDE_VERSION) <= parse_version("5.15.0"))
+            (PYSIDE2 and parse(PYSIDE_VERSION) <= parse("5.15.0"))
             or (current_ordered_items != new_ordered_items)
         )
         if update:

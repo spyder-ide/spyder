@@ -23,8 +23,8 @@ import threading
 import time
 
 # Third party imports
+from packaging.version import parse
 import pkg_resources
-from pkg_resources import parse_version
 import psutil
 
 # Local imports
@@ -817,15 +817,15 @@ def check_version(actver, version, cmp_op):
 
     try:
         if cmp_op == '>':
-            return parse_version(actver) > parse_version(version)
+            return parse(actver) > parse(version)
         elif cmp_op == '>=':
-            return parse_version(actver) >= parse_version(version)
+            return parse(actver) >= parse(version)
         elif cmp_op == '=':
-            return parse_version(actver) == parse_version(version)
+            return parse(actver) == parse(version)
         elif cmp_op == '<':
-            return parse_version(actver) < parse_version(version)
+            return parse(actver) < parse(version)
         elif cmp_op == '<=':
-            return parse_version(actver) <= parse_version(version)
+            return parse(actver) <= parse(version)
         else:
             return False
     except TypeError:
