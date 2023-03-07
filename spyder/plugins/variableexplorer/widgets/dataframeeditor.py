@@ -243,7 +243,7 @@ class DataFrameModel(QAbstractTableModel):
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
             return
         self.max_min_col = []
-        for __, col in self.df.iteritems():
+        for __, col in self.df.items():
             # This is necessary to catch an error in Pandas when computing
             # the maximum of a column.
             # Fixes spyder-ide/spyder#17145
