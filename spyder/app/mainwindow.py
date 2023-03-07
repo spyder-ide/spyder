@@ -1663,7 +1663,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def create_switcher(self):
         """Create switcher dialog instance."""
         if self.switcher is None:
-            from spyder.widgets.switcher import Switcher
+            from spyder.plugins.switcher.widgets import Switcher
             self.switcher = Switcher(self)
 
         return self.switcher

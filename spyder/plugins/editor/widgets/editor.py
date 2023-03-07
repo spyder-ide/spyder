@@ -793,7 +793,7 @@ class EditorStack(QWidget):
             self.switcher_dlg.clear()
             return
         if self.switcher_dlg is None:
-            from spyder.widgets.switcher import Switcher
+            from spyder.plugins.switcher.widgets import Switcher
             self.switcher_dlg = Switcher(self)
             self.switcher_manager = EditorSwitcherManager(
                 self.get_plugin(),

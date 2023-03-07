@@ -140,3 +140,10 @@ def get_file_icon(path):
         scale_factor = 0.6
 
     return ima.get_icon_by_extension_or_type(path, scale_factor)
+
+
+def clean_string(text):
+    """Remove regex special characters from string."""
+    for ch in ('(', ')', '.', '\\', '?', '*', '[', ']', '&', '|', '^', '+'):
+        text = text.replace(ch, '')
+    return text
