@@ -710,7 +710,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 name=name,
                 text=f'{item} ({environment_consoles_names[item][1]})',
                 icon=self.create_icon('ipython_console'),
-                triggered=lambda checked, environment=name,
+                triggered=lambda checked, environment=name.split()[1],
                 path=path_to_environment:
                     self.create_environment_client(
                     path_to_custom_interpreter=path, environment=environment),
