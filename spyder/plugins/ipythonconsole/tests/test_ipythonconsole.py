@@ -2018,7 +2018,7 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
     # Validate created consoles names and code executed
     for filename in filenames:
         basename = osp.basename(filename)
-        client_name = f'{basename}/A (default)'
+        client_name = f'{basename}/A (Default)'
         variable_name = basename.split('.')[0]
 
         client = ipyconsole.get_client_for_file(filename)
