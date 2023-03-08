@@ -12,12 +12,9 @@ from qtpy.QtCore import Qt, Slot
 # Local imports
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class OutlineExplorer(SpyderDockablePlugin):

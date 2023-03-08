@@ -16,9 +16,9 @@ import sys
 # Third-part imports
 from pylsp._utils import get_eol_chars as _get_eol_chars
 
-
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
+CAMEL_CASE_RE = re.compile(r'(?<!^)(?=[A-Z])')
 
 
 def get_eol_chars(text):
@@ -238,3 +238,8 @@ def shortest_path(files_path_list):
                 shortest_path_length = len(path_elmts)
                 shortest_path = path_elmts
         return os.path.join(*shortest_path)
+
+
+def camel_case_to_snake_case(input_str: str) -> str:
+    """Convert a CamelCase string into a snake_case one."""
+    return CAMEL_CASE_RE.sub('_', input_str).lower()

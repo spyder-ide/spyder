@@ -16,7 +16,6 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.preferences import PluginConfigPage
-from spyder.api.translations import get_translation
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.layout.layouts import VerticalSplitLayout2
 

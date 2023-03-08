@@ -16,7 +16,7 @@ from typing import Union, Optional
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.toolbar.container import (
@@ -24,9 +24,6 @@ from spyder.plugins.toolbar.container import (
 
 # Third-party imports
 from qtpy.QtWidgets import QWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class Toolbar(SpyderPluginV2):
@@ -90,8 +87,7 @@ class Toolbar(SpyderPluginV2):
 
         # TODO: Until all core plugins are migrated, this is needed.
         ACTION_MAP = {
-            ApplicationToolbars.File: self._main.file_toolbar_actions,
-            ApplicationToolbars.Run: self._main.run_toolbar_actions,
+            ApplicationToolbars.File: self._main.file_toolbar_actions
         }
         for toolbar in container.get_application_toolbars():
             toolbar_id = toolbar.ID

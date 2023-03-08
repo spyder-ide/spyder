@@ -16,16 +16,13 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
                             QLineEdit, QMessageBox, QPushButton, QVBoxLayout)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
-
-# Localization
-_ = get_translation('spyder')
 
 
 class MainInterpreterConfigPage(PluginConfigPage):

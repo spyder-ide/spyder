@@ -8,6 +8,9 @@
 Profiler Plugin.
 """
 
+# Standard library imports
+from typing import List
+
 # Third party imports
 from qtpy.QtCore import Signal
 
@@ -15,49 +18,44 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.api.translations import _
+from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.profiler.api import ProfilerPyConfiguration
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
-from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
-                                                         is_profiler_installed)
-from spyder.plugins.run.widgets import get_run_configuration
-
-# Localization
-_ = get_translation('spyder')
-
-
-# --- Constants
-# ----------------------------------------------------------------------------
-class ProfilerActions:
-    ProfileCurrentFile = 'profile_current_filename_action'
+from spyder.plugins.profiler.widgets.main_widget import (
+    ProfilerWidget, is_profiler_installed)
+from spyder.plugins.profiler.widgets.run_conf import (
+    ProfilerPyConfigurationGroup)
+from spyder.plugins.run.api import (
+    RunExecutor, run_execute, RunContext, RunConfiguration,
+    ExtendedRunExecutionParameters, PossibleRunResult)
 
 
-# --- Plugin
-# ----------------------------------------------------------------------------
-class Profiler(SpyderDockablePlugin):
+
+class Profiler(SpyderDockablePlugin, RunExecutor):
     """
     Profiler (after python's profile and pstats).
     """
 
     NAME = 'profiler'
-    REQUIRES = [Plugins.Preferences, Plugins.Editor]
-    OPTIONAL = [Plugins.MainMenu]
+    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
+    OPTIONAL = []
     TABIFY = [Plugins.Help]
     WIDGET_CLASS = ProfilerWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = ProfilerConfigPage
     CONF_FILE = False
 
-    # --- Signals
-    # ------------------------------------------------------------------------
+    # ---- Signals
+    # -------------------------------------------------------------------------
     sig_started = Signal()
     """This signal is emitted to inform the profiling process has started."""
 
     sig_finished = Signal()
     """This signal is emitted to inform the profile profiling has finished."""
 
-    # --- SpyderDockablePlugin API
-    # ------------------------------------------------------------------------
+    # ---- SpyderDockablePlugin API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Profiler")
@@ -73,16 +71,18 @@ class Profiler(SpyderDockablePlugin):
         widget.sig_started.connect(self.sig_started)
         widget.sig_finished.connect(self.sig_finished)
 
-        run_action = self.create_action(
-            ProfilerActions.ProfileCurrentFile,
-            text=_("Run profiler"),
-            tip=_("Run profiler"),
-            icon=self.create_icon('profiler'),
-            triggered=self.run_profiler,
-            register_shortcut=True,
-        )
-
-        run_action.setEnabled(is_profiler_installed())
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': ProfilerPyConfigurationGroup,
+                'requires_cwd': True,
+                'priority': 3
+            }
+        ]
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
@@ -95,13 +95,22 @@ class Profiler(SpyderDockablePlugin):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-    @on_plugin_available(plugin=Plugins.MainMenu)
-    def on_main_menu_available(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        run_action = self.get_action(ProfilerActions.ProfileCurrentFile)
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
 
-        mainmenu.add_item_to_application_menu(
-            run_action, menu_id=ApplicationMenus.Run)
+        if is_profiler_installed():
+            run.create_run_in_executor_button(
+                RunContext.File,
+                self.NAME,
+                text=_("Run profiler"),
+                tip=_("Run profiler"),
+                icon=self.create_icon('profiler'),
+                shortcut_context='profiler',
+                register_shortcut=True,
+                add_to_menu=True
+            )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -114,17 +123,16 @@ class Profiler(SpyderDockablePlugin):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
 
-    @on_plugin_teardown(plugin=Plugins.MainMenu)
-    def on_main_menu_teardown(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
+        run.destroy_run_in_executor_button(
+            RunContext.File, self.NAME)
 
-        mainmenu.remove_item_from_application_menu(
-            ProfilerActions.ProfileCurrentFile,
-            menu_id=ApplicationMenus.Run
-        )
-
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def run_profiler(self):
         """
         Run profiler.
@@ -144,23 +152,23 @@ class Profiler(SpyderDockablePlugin):
         """
         self.get_widget().stop()
 
-    def analyze(self, filename):
-        """
-        Run profile analysis on `filename`.
+    @run_execute(context=RunContext.File)
+    def run_file(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[PossibleRunResult]:
+        self.switch_to_plugin()
 
-        Parameters
-        ----------
-        filename: str
-            Path to file to analyze.
-        """
-        wdir, args = None, []
-        runconf = get_run_configuration(filename)
-        if runconf is not None:
-            if runconf.wdir_enabled:
-                wdir = runconf.wdir
+        exec_params = conf['params']
+        cwd_opts = exec_params['working_dir']
+        params: ProfilerPyConfiguration = exec_params['executor_params']
 
-            if runconf.args_enabled:
-                args = runconf.args
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+
+        wdir = cwd_opts['path']
+        args = params['args']
 
         self.get_widget().analyze(
             filename,

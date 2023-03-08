@@ -16,15 +16,11 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import running_under_pytest
 from spyder.plugins.statusbar.confpage import StatusBarConfigPage
 from spyder.plugins.statusbar.container import StatusBarContainer
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class StatusBarWidgetPosition:

@@ -1,13 +1,10 @@
 import unittest
 import sys
-from packaging.version import parse
 
 import pytest
-from qtpy import QT6, QT_VERSION
+from qtpy import QT6
 from qtpy import QtWidgets, QtGui
-from qtpy.QtTest import QTest
 
-from qtconsole.client import QtKernelClient
 from qtconsole.jupyter_widget import JupyterWidget
 
 from . import no_display
@@ -73,35 +70,9 @@ class TestJupyterWidget(unittest.TestCase):
             'In [2]: '
         ))
 
-        # Check proper syntax highlighting
-        if QT6 and parse(QT_VERSION) >= parse('6.3'):
-            html = (
-                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
-                '<html><head><meta name="qrichtext" content="1" /><meta charset="utf-8" /><style type="text/css">\n'
-                'p, li { white-space: pre-wrap; }\n'
-                'hr { height: 1px; border-width: 0; }\n'
-                '</style></head><body style=\" font-family:\'Monospace\'; font-size:9pt; font-weight:400; font-style:normal;\">\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Header</p>\n'
-                '<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br /></p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" color:#000080;">[other] In [</span><span style=" font-weight:700; color:#000080;">1</span><span style=" color:#000080;">]:</span> a = 1 + 1</p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" color:#000080;">\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0...:</span> b = range(10)</p>\n'
-                '<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br /></p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" color:#000080;">In [</span><span style=" font-weight:700; color:#000080;">2</span><span style=" color:#000080;">]:</span> </p></body></html>'
-            )
-        elif QT6 and parse(QT_VERSION) < parse('6.3'):
-            html = (
-                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
-                '<html><head><meta name="qrichtext" content="1" /><meta charset="utf-8" /><style type="text/css">\n'
-                'p, li { white-space: pre-wrap; }\n'
-                '</style></head><body style=\" font-family:\'Monospace\'; font-size:9pt; font-weight:400; font-style:normal;\">\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Header</p>\n'
-                '<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br /></p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" color:#000080;">[other] In [</span><span style=" font-weight:700; color:#000080;">1</span><span style=" color:#000080;">]:</span> a = 1 + 1</p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" color:#000080;">\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0...:</span> b = range(10)</p>\n'
-                '<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br /></p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" color:#000080;">In [</span><span style=" font-weight:700; color:#000080;">2</span><span style=" color:#000080;">]:</span> </p></body></html>'
-            )
-        else:
+        # Check proper syntax highlighting.
+        # This changes with every Qt6 release, that's why we don't test it on it.
+        if not QT6:
             html = (
                 '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
                 '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
@@ -115,7 +86,7 @@ class TestJupyterWidget(unittest.TestCase):
                 '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" color:#000080;">In [</span><span style=" font-weight:600; color:#000080;">2</span><span style=" color:#000080;">]:</span> </p></body></html>'
             )
         
-        self.assertEqual(document.toHtml(), html)
+            self.assertEqual(document.toHtml(), html)
 
     def test_copy_paste_prompt(self):
         """Test copy/paste removes partial and full prompts."""

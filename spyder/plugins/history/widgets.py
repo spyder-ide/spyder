@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
@@ -26,9 +26,6 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 from spyder.widgets.tabs import Tabs
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Constants

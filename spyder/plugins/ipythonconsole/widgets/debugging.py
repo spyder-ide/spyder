@@ -198,8 +198,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._pdb_prompt = (None, None)  # prompt, password
         self._pdb_last_cmd = ''  # last command sent to pdb
         self._pdb_frame_loc = (None, None)  # fname, lineno
-        self._pdb_focus_to_editor = False  # Focus to editor after command
-                                          # execution
+        self._pdb_take_focus = True  # Focus to shell after command execution
         # Command queue
         self._pdb_input_queue = []  # List of (code, hidden, echo_stack_entry)
         # Temporary flags
@@ -270,11 +269,11 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             prefix = '!'
         return prefix
 
-    def pdb_execute_command(self, command, focus_to_editor=False):
+    def pdb_execute_command(self, command):
         """
         Execute a pdb command
         """
-        self._pdb_focus_to_editor = focus_to_editor
+        self._pdb_take_focus = False
         self.pdb_execute(
             self._pdb_cmd_prefix() + command, hidden=False,
             echo_stack_entry=False, add_history=False)
@@ -395,9 +394,10 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
         See publish_pdb_state and notify_spyder in spyder_kernels
         """
-        if 'step' in pdb_state and 'fname' in pdb_state['step']:
-            fname = pdb_state['step']['fname']
-            lineno = pdb_state['step']['lineno']
+        pdb_step = pdb_state.pop('step', None)
+        if pdb_step and 'fname' in pdb_step:
+            fname = pdb_step['fname']
+            lineno = pdb_step['lineno']
 
             last_pdb_loc = self._pdb_frame_loc
             self._pdb_frame_loc = (fname, lineno)
@@ -406,12 +406,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             if (fname, lineno) != last_pdb_loc:
                 self.sig_pdb_step.emit(fname, lineno)
 
-        if 'stack' in pdb_state:
-            pdb_stack, pdb_index = pdb_state['stack']
+        pdb_stack = pdb_state.pop('stack', None)
+        if pdb_stack:
+            pdb_stack, pdb_index = pdb_stack
             self.sig_pdb_stack.emit(pdb_stack, pdb_index)
 
-        if 'request_pdb_input' in pdb_state:
-            self.pdb_execute(pdb_state['request_pdb_input'])
+        request_pdb_input =  pdb_state.pop('request_pdb_input', None)
+        if request_pdb_input:
+            self.pdb_execute(request_pdb_input)
+
+        self.update_state(pdb_state)
 
     def show_pdb_output(self, text):
         """Show Pdb output."""

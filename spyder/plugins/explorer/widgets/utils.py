@@ -18,12 +18,9 @@ from qtpy.QtCore import QFileInfo, Slot
 from qtpy.QtWidgets import QFileIconProvider, QMessageBox
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
-
-
-_ = get_translation('spyder')
 
 
 def open_file_in_external_explorer(filename):

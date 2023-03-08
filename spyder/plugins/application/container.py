@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__, __version__
 from spyder import dependencies
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.utils.installers import InstallerMissingDependencies
 from spyder.config.utils import is_anaconda
@@ -38,9 +38,6 @@ from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.workers.updates import WorkerUpdates
-
-# Localization
-_ = get_translation('spyder')
 
 
 class ApplicationPluginMenus:

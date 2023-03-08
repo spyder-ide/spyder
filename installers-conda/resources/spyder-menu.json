@@ -5,7 +5,7 @@
     "menu_items": [
         {
             "name": "Spyder",
-            "description": "Spyder description",
+            "description": "Scientific PYthon Development EnviRonment",
             "icon": "{{ MENU_DIR }}/spyder.{{ ICON_EXT }}",
             "command": ["spyder", "$@"],
             "activate": true,
@@ -20,7 +20,8 @@
                         "Graphics",
                         "Science"
                     ],
-                    "precommand": "export SPY_BRANCH=__SPY_BRANCH__ && export SPY_COMMIT=__SPY_COMMIT__"
+                    "precommand": "export SPY_BRANCH=__SPY_BRANCH__ && export SPY_COMMIT=__SPY_COMMIT__",
+                    "StartupWMClass": "Spyder"
                 },
                 "osx": {
                     "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"",
