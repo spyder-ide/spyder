@@ -16,11 +16,12 @@ import functools
 import inspect
 import logging
 import os
-from pkg_resources import parse_version, iter_entry_points
 from typing import List, Union
 import weakref
 
 # Third-party imports
+from packaging.version import parse
+from pkg_resources import iter_entry_points
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 
 # Local imports
@@ -739,8 +740,8 @@ class CompletionPlugin(SpyderPluginV2):
 
         # Check if there were any version changes between configurations
         provider_config = provider_configurations[provider_name]
-        provider_conf_version = parse_version(Provider.CONF_VERSION)
-        current_conf_version = parse_version(provider_config['version'])
+        provider_conf_version = parse(Provider.CONF_VERSION)
+        current_conf_version = parse(provider_config['version'])
 
         current_conf_values = provider_config['values']
         current_defaults = provider_config['defaults']
