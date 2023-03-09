@@ -21,8 +21,8 @@ class MainWindowMock(QMainWindow):
     register_shortcut = Mock()
     file_menu_actions = []
     file_toolbar_actions = []
-    edit_menu_actions = []
-    edit_toolbar_actions = []
+    # edit_menu_actions = []
+    # edit_toolbar_actions = []
     statusbar = Mock()
     new_instance = Mock()
     plugin_focus_changed = Mock()

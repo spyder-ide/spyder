@@ -62,7 +62,7 @@ class MainMenu(SpyderPluginV2):
         # work on Mac. Remove the 'dynamic' kwarg when migrating a menu!
         create_app_menu = self.create_application_menu
         create_app_menu(ApplicationMenus.File, _("&File"))
-        create_app_menu(ApplicationMenus.Edit, _("&Edit"), dynamic=False)
+        create_app_menu(ApplicationMenus.Edit, _("&Edit"))
         create_app_menu(ApplicationMenus.Search, _("&Search"))
         create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
@@ -245,7 +245,7 @@ class MainMenu(SpyderPluginV2):
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
         app_menu_actions = {
-            ApplicationMenus.Edit: self._main.edit_menu_actions
+            # ApplicationMenus.Edit: self._main.edit_menu_actions
         }
 
         if menu_id in app_menu_actions:
@@ -294,12 +294,12 @@ class MainMenu(SpyderPluginV2):
         # TODO: For now just add the item to the bottom for non-migrated menus.
         #       Temporal solution while migration is complete
         app_menu_actions = {
-            ApplicationMenus.Edit: (
-                self._main.edit_menu_actions, self._main.edit_menu)
+            # ApplicationMenus.Edit: (
+                # self._main.edit_menu_actions, self._main.edit_menu)
         }
 
         app_menus = {
-            ApplicationMenus.Edit: self._main.edit_menu
+            # ApplicationMenus.Edit: self._main.edit_menu
         }
 
         menu = self.get_application_menu(menu_id)
