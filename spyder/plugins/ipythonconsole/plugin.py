@@ -201,7 +201,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
-        # widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -216,8 +215,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_help_requested.connect(self.sig_help_requested)
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
-
-        # self.sig_focus_changed.connect(self.main.plugin_focus_changed)
 
         # Run configurations
         self.cython_editor_run_configuration = {

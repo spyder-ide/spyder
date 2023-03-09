@@ -227,7 +227,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
-        # self.edit_menu_actions = None #XXX: find another way to notify Spyder
         self.stack_menu_actions = None
         self.checkable_actions = {}
 
@@ -795,7 +794,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         )
         self.register_shortcut(self.replace_action, context="find_replace",
                                name="Replace text")
-
 
         # --- Run toolbar ---
         # --- Source code Toolbar ---
@@ -1706,7 +1704,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                  lambda state: self.redirect_stdio.emit(state))
         editorstack.update_plugin_title.connect(self.sig_update_plugin_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
-        # editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.editor_focus_changed.connect(self.update_run_focus_file)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
