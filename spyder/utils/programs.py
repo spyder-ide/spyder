@@ -23,8 +23,8 @@ import threading
 import time
 
 # Third party imports
+from packaging.version import parse
 import pkg_resources
-from pkg_resources import parse_version
 import psutil
 
 # Local imports
@@ -817,15 +817,17 @@ def check_version(actver, version, cmp_op):
 
     try:
         if cmp_op == '>':
-            return parse_version(actver) > parse_version(version)
+            return parse(actver) > parse(version)
         elif cmp_op == '>=':
-            return parse_version(actver) >= parse_version(version)
+            return parse(actver) >= parse(version)
         elif cmp_op == '=':
-            return parse_version(actver) == parse_version(version)
+            return parse(actver) == parse(version)
         elif cmp_op == '<':
-            return parse_version(actver) < parse_version(version)
+            return parse(actver) < parse(version)
         elif cmp_op == '<=':
-            return parse_version(actver) <= parse_version(version)
+            return parse(actver) <= parse(version)
+        elif cmp_op == '!=':
+            return parse(actver) != parse(version)
         else:
             return False
     except TypeError:
@@ -925,8 +927,8 @@ def is_module_installed(module_name, version=None, interpreter=None,
     if version is None:
         return True
     else:
-        if ';' in version:
-            versions = version.split(';')
+        if ',' in version:
+            versions = version.split(',')
         else:
             versions = [version]
 
@@ -937,10 +939,13 @@ def is_module_installed(module_name, version=None, interpreter=None,
             symb = _ver[:match.start()]
             if not symb:
                 symb = '='
-            assert symb in ('>=', '>', '=', '<', '<='),\
-                "Invalid version condition '%s'" % symb
+
+            if symb not in ['>=', '>', '=', '<', '<=', '!=']:
+                raise RuntimeError(f"Invalid version condition '{symb}'")
+
             ver = _ver[match.start():]
             output = output and check_version(module_version, ver, symb)
+
         return output
 
 

@@ -31,7 +31,7 @@ from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
-from pkg_resources import parse_version
+from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
@@ -953,7 +953,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
-     parse_version(ipy_release.version) == parse_version('7.11.0')),
+     parse(ipy_release.version) == parse('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
@@ -1993,8 +1993,8 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    (parse_version(ipy_release.version) >= parse_version('7.23.0') and
-     parse_version(ipykernel.__version__) <= parse_version('5.5.3')),
+    (parse(ipy_release.version) >= parse('7.23.0') and
+     parse(ipykernel.__version__) <= parse('5.5.3')),
     reason="Fails due to a bug in the %matplotlib magic")
 @pytest.mark.skipif(
     sys.platform.startswith('linux'),
@@ -2283,8 +2283,8 @@ def test_run_static_code_analysis(main_window, qtbot):
     result_content = treewidget.results
     assert result_content['C:']
 
-    pylint_version = parse_version(pylint.__version__)
-    if pylint_version < parse_version('2.5.0'):
+    pylint_version = parse(pylint.__version__)
+    if pylint_version < parse('2.5.0'):
         number_of_conventions = 5
     else:
         number_of_conventions = 3

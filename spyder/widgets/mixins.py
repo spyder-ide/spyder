@@ -18,9 +18,9 @@ import re
 import sre_constants
 import sys
 import textwrap
-from pkg_resources import parse_version
 
 # Third party imports
+from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
@@ -1200,8 +1200,10 @@ class BaseEditMixin(object):
         # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
         # See spyder-ide/spyder#12663 and
         # https://bugreports.qt.io/browse/QTBUG-35861
-        if (parse_version(QT_VERSION) < parse_version('5.15')
-                or os.name == 'nt' or sys.platform == 'darwin'):
+        if (
+            parse(QT_VERSION) < parse('5.15')
+            or os.name == 'nt' or sys.platform == 'darwin'
+        ):
             cursor = self.textCursor()
             cursor.setPosition(cursor.position())
             self.setTextCursor(cursor)

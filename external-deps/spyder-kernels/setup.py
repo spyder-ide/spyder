@@ -42,7 +42,7 @@ REQUIREMENTS = [
     'ipykernel<5; python_version<"3"',
     'ipykernel>=6.16.1,<7; python_version>="3"',
     'ipython<6; python_version<"3"',
-    'ipython>=7.31.1,<9; python_version>="3"',
+    'ipython>=7.31.1,<9,!=8.8.0,!=8.9.0,!=8.10.0; python_version>="3"',
     'jupyter-client>=5.3.4,<6; python_version<"3"',
     'jupyter-client>=7.4.9,<8; python_version>="3"',
     'pyzmq>=17,<20; python_version<"3"',
