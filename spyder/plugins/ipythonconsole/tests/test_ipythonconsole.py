@@ -1148,8 +1148,11 @@ def test_startup_working_directory(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux.")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'), reason="Only works on Linux")
+@pytest.mark.skipif(
+    parse('8.7.0') < parse(ipy_release.version) < parse('8.11.0'),
+    reason="Fails for IPython 8.8.0, 8.9.0 and 8.10.0")
 def test_console_complete(ipyconsole, qtbot, tmpdir):
     """Test code completions in the console."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1164,7 +1167,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
         except KeyError:
             return False
 
-    # test complete with one result
+    # Test completions with one result
     with qtbot.waitSignal(shell.executed):
         shell.execute('cbs = 1')
     qtbot.waitUntil(lambda: check_value('cbs', 1))
@@ -1176,7 +1179,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs',
                     timeout=6000)
 
-    # test complete with several result
+    # Test completions with several results
     with qtbot.waitSignal(shell.executed):
         shell.execute('cbba = 1')
     qtbot.waitUntil(lambda: check_value('cbba', 1))
@@ -1188,12 +1191,24 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
+    # Check that we don't get repeated text after completing the expression
+    # below.
+    # This is a regression test for issue spyder-ide/spyder#20393
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import pandas as pd')
+
+    qtbot.keyClicks(control, 'test = pd.conc')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.wait(500)
+    completed_text = control.toPlainText().splitlines()[-1].split(':')[-1]
+    assert completed_text.strip() == 'test = pd.concat'
+
     # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
     # Test complete in debug mode
-    # check abs is completed twice (as the cursor moves)
+    # Check abs is completed twice (as the cursor moves)
     qtbot.keyClicks(control, 'ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abs')
@@ -1268,10 +1283,12 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     # Check we can use custom complete for pdb
     test_file = tmpdir.join('test.py')
     test_file.write('stuff\n')
+
     # Set a breakpoint in the new file
     qtbot.keyClicks(control, '!b ' + str(test_file) + ':1')
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(control, Qt.Key_Enter)
+
     # Check we can complete the breakpoint number
     qtbot.keyClicks(control, '!ignore ')
     qtbot.keyClick(control, Qt.Key_Tab)
