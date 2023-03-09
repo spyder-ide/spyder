@@ -14,7 +14,7 @@ from qtpy.QtCore import Signal
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.plugins.switcher.widgets import Switcher
+from spyder.plugins.switcher.widgets.switcher import Switcher
 
 
 class SwitcherContainer(PluginMainContainer):

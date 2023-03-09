@@ -26,7 +26,7 @@ class Switcher(SpyderPluginV2):
     """
 
     NAME = "switcher"
-    REQUIRES = []
+    REQUIRES = [Plugins.Editor]
     OPTIONAL = []
     CONTAINER_CLASS = SwitcherContainer
     CONF_SECTION = NAME
