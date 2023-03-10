@@ -19,7 +19,7 @@ from spyder.py3compat import to_text_string
 def dlg_switcher(qtbot):
     """Set up switcher widget."""
     # Local import need to run tests locally
-    from spyder.widgets.switcher import (Switcher,
+    from spyder.plugins.switcher.widgets.switcher import (Switcher,
                                          create_options_example_switcher,
                                          create_help_example_switcher,
                                          create_line_example_switcher,
