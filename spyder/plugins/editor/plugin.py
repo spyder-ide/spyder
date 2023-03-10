@@ -2676,28 +2676,39 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.last_edit_cursor_pos = (to_text_string(filename), position)
 
     def current_file_changed(self, filename, position, line, column):
-        cursor = self.get_current_editor().textCursor()
-        self.add_cursor_to_history(to_text_string(filename), cursor)
+        editor = self.get_current_editor()
 
-        # Hide any open tooltips
-        current_stack = self.get_current_editorstack()
-        if current_stack is not None:
-            current_stack.hide_tooltip()
+        # Needed to validate if an editor exists.
+        # See spyder-ide/spyder#20643
+        if editor:
+            cursor = editor.textCursor()
+            self.add_cursor_to_history(to_text_string(filename), cursor)
 
-        # Update debugging state
-        ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
-        if ipyconsole is not None:
-            pdb_state = ipyconsole.get_pdb_state()
-            pdb_last_step = ipyconsole.get_pdb_last_step()
-            self.update_pdb_state(pdb_state, pdb_last_step)
+            # Hide any open tooltips
+            current_stack = self.get_current_editorstack()
+            if current_stack is not None:
+                current_stack.hide_tooltip()
+
+            # Update debugging state
+            ipyconsole = self.main.get_plugin(Plugins.IPythonConsole,
+                                              error=False)
+            if ipyconsole is not None:
+                pdb_state = ipyconsole.get_pdb_state()
+                pdb_last_step = ipyconsole.get_pdb_last_step()
+                self.update_pdb_state(pdb_state, pdb_last_step)
 
     def current_editor_cursor_changed(self, line, column):
         """Handles the change of the cursor inside the current editor."""
-        code_editor = self.get_current_editor()
-        filename = code_editor.filename
-        cursor = code_editor.textCursor()
-        self.add_cursor_to_history(
-            to_text_string(filename), cursor)
+        editor = self.get_current_editor()
+
+        # Needed to validate if an editor exists.
+        # See spyder-ide/spyder#20643
+        if editor:
+            code_editor = self.get_current_editor()
+            filename = code_editor.filename
+            cursor = code_editor.textCursor()
+            self.add_cursor_to_history(
+                to_text_string(filename), cursor)
 
     def remove_file_cursor_history(self, id, filename):
         """Remove the cursor history of a file if the file is closed."""
