@@ -2677,9 +2677,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def current_file_changed(self, filename, position, line, column):
         editor = self.get_current_editor()
+
+        # Needed to validate if an editor exists.
+        # See spyder-ide/spyder#20643
         if editor:
-            # Need to validate if an editor exist.
-            # See spyder-ide/spyder#20643
             cursor = editor.textCursor()
             self.add_cursor_to_history(to_text_string(filename), cursor)
 
@@ -2699,9 +2700,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     def current_editor_cursor_changed(self, line, column):
         """Handles the change of the cursor inside the current editor."""
         editor = self.get_current_editor()
+
+        # Needed to validate if an editor exists.
+        # See spyder-ide/spyder#20643
         if editor:
-            # Need to validate if an editor exist.
-            # See spyder-ide/spyder#20643
             code_editor = self.get_current_editor()
             filename = code_editor.filename
             cursor = code_editor.textCursor()
