@@ -20,11 +20,6 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.utils import is_ubuntu
 from spyder.py3compat import TEXT_TYPES, to_text_string
-from spyder.utils.icon_manager import ima
-from spyder.widgets.helperwidgets import HTMLDelegate
-from spyder.utils.stringmatching import get_search_scores
-from spyder.utils.switcher import clean_string
-
 
 
 class SwitcherBaseItem(QStandardItem):
