@@ -2756,8 +2756,14 @@ class EditorStack(QWidget):
         if processevents:
             self.starting_long_process.emit(_("Loading %s...") % filename)
 
-        # Read file contents
-        text, enc = encoding.read(filename)
+        # This is necessary to avoid a crash at startup when trying to restore
+        # files from the previous session.
+        # Fixes spyder-ide/spyder#20670
+        try:
+            # Read file contents
+            text, enc = encoding.read(filename)
+        except Exception:
+            return
 
         # Associate hash of file's text with its name for autosave
         self.autosave.file_hashes[filename] = hash(text)
