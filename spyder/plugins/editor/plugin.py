@@ -2262,17 +2262,25 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                                        editorwindow,
                                                        focus=focus)
             if current_editor is None:
-                # -- Not a valid filename:
+                # Not a valid filename, we need to continue.
                 if not osp.isfile(filename):
                     continue
-                # --
+
                 current_es = self.get_current_editorstack(editorwindow)
+
                 # Creating the editor widget in the first editorstack
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
                     filename, set_current=False, add_where=add_where,
                     processevents=processevents)
+
+                # This can happen when it was not possible to load filename
+                # from disk.
+                # Fixes spyder-ide/spyder#20670
+                if finfo is None:
+                    continue
+
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
@@ -2281,6 +2289,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
+
             if goto is not None:  # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word,
                                           start_column=start_column,
@@ -2288,6 +2297,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
+
             if processevents:
                 QApplication.processEvents()
             else:
