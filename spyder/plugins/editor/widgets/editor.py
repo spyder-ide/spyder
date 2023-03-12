@@ -38,7 +38,7 @@ from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
+from spyder.plugins.switcher.manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.editorstack_helpers import (
     ThreadManager, FileInfo, StackHistory)
