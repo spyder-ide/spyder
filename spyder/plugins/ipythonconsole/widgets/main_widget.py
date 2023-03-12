@@ -1500,14 +1500,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
             # Set full client name
             client_id = dict(int_id=master_client.id_['int_id'],
-                             str_id=chr(slave_ord + 1))
+                             str_id=chr(slave_ord + 1),
+                             str_env_name=master_client.id_['str_env_name'])
         else:
             # If we couldn't find a client with the same connection file,
             # it means this is a new master client
             self.master_clients += 1
 
             # Set full client name
-            client_id = dict(int_id=str(self.master_clients), str_id='A')
+            client_id = dict(int_id=str(self.master_clients), str_id='A',
+                             str_env_name=_("Unknown"))
 
         # Creating the client
         client = ClientWidget(
