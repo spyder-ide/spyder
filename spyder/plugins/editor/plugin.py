@@ -845,10 +845,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                add_shortcut_to_tip=True)
 
         # --- Edit Toolbar ---
-        create_new_cell = create_action(self, _("Create new Cell at "
+        create_new_cell = create_action(self, _("Create new cell at the "
                                                 "current line"),
                                         icon=ima.icon('cell'),
-                                        tip=_("Create new Cell"),
+                                        tip=_("Create new cell"),
                                         triggered=self.create_cell,
                                         context=Qt.WidgetShortcut)
         self.register_shortcut(create_new_cell, context="Editor",

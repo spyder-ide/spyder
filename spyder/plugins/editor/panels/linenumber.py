@@ -99,6 +99,7 @@ class LineNumberArea(Panel):
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()
             if self._markers_margin and data:
+                # Paint cell line dividers
                 if is_cell_header(block):
                     pen = painter.pen()
                     pen.setStyle(Qt.SolidLine)

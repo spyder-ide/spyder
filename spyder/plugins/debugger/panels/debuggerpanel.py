@@ -25,7 +25,6 @@ class DebuggerPanel(Panel):
         Panel.__init__(self)
 
         self.linecell_color = QColor(Qt.darkGray)
-
         self.breakpoints_manager = breakpoints_manager
 
         self.setMouseTracking(True)
@@ -93,6 +92,8 @@ class DebuggerPanel(Panel):
         super(DebuggerPanel, self).paintEvent(event)
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
+
+        # To paint the cell divider
         pen = painter.pen()
         pen.setStyle(Qt.SolidLine)
         pen.setBrush(self.linecell_color)

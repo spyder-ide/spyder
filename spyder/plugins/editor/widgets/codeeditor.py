@@ -4235,18 +4235,18 @@ class CodeEditor(TextEditBaseWidget):
         return True
 
     def create_new_cell(self):
-        firstline = '#%% Start Cell \r\n'
-        endline = '\r\n'
+        firstline = '#%% ' + self.get_line_separator()
+        endline = self.get_line_separator()
         cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            endline = '\r\n#%% End Cell'
+            endline = self.get_line_separator() + '#%%'
         else:
             start_pos = end_pos = cursor.position()
+
+        # Add cell comment or enclose current selection in cells
         cursor.beginEditBlock()
-        cursor.setPosition(start_pos)
-        cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.setPosition(end_pos)
         cursor.movePosition(QTextCursor.EndOfBlock)
         cursor.insertText(endline)

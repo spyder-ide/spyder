@@ -241,10 +241,14 @@ class FoldingPanel(Panel):
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
         painter = QPainter(self)
+
+        # To paint cell dividers
         pen = painter.pen()
         pen.setStyle(Qt.SolidLine)
         pen.setBrush(self.linecell_color)
         painter.setPen(pen)
+
+        # Paint cell dividers in the visible region
         for top_position, line_number, block in self.editor.visible_blocks:
             if is_cell_header(block):
                 painter.drawLine(0, top_position, self.width(), top_position)
