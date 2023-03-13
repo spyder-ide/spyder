@@ -1080,16 +1080,6 @@ class CodeEditor(TextEditBaseWidget):
             additional_msg = "cloned editor"
         else:
             additional_msg = ""
-
-            # We need to be sure that this signal is disconnected before
-            # calling document_did_open below because that method creates a
-            # unique connection for it and this method is called every time the
-            # server is restarted.
-            try:
-                self._timer_sync_symbols_and_folding.timeout.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-
             self.document_did_open()
 
         logger.debug(u"Completion services available for {0}: {1}".format(
@@ -1152,6 +1142,16 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
+
+        # We need to be sure that this signal is disconnected before trying to
+        # connect it below.
+        # Note: It can already be connected when the user requires a server
+        # restart or when the server failed to start.
+        # Fixes spyder-ide/spyder#20679
+        try:
+            self._timer_sync_symbols_and_folding.timeout.disconnect()
+        except (TypeError, RuntimeError):
+            pass
 
         # The connect is performed here instead of in __init__() because
         # notify_close() may have been called (which disconnects the signal).
