@@ -1181,8 +1181,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
             for action in [
                     self.cut_action, self.copy_action, self.paste_action,
-                    self.selectall_action
-                    ]:
+                    self.selectall_action]:
                 mainmenu.add_item_to_application_menu(
                     action,
                     menu_id=ApplicationMenus.Edit,
@@ -1191,12 +1190,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     omit_id=True
                 )
 
-            for search_item in self.edit_menu_actions:
+            for edit_item in self.edit_menu_actions:
                 mainmenu.add_item_to_application_menu(
-                    search_item,
+                    edit_item,
                     omit_id=True,
                     menu_id=ApplicationMenus.Edit,
-                    before_section=SearchMenuSections.FindInFiles,
                     section=EditMenuSections.Editor
                 )
 
@@ -1214,8 +1212,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     search_item,
                     omit_id=True,
                     menu_id=ApplicationMenus.Search,
-                    before_section=SearchMenuSections.FindInFiles,
-                    section=SearchMenuSections.FindInText
+                    section=SearchMenuSections.FindInText,
+                    before_section=SearchMenuSections.FindInFiles
                 )
 
         # ---- Source menu construction ----
@@ -1257,7 +1255,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     omit_id=True,
                     menu_id=ApplicationMenus.Source,
                     section=SourceMenuSections.Options,
-                    before_section=SourceMenuSections.CodeAnalysis
+                    before_section=SourceMenuSections.Linting
                 )
             for linting_item in source_menu_linting_actions:
                 mainmenu.add_item_to_application_menu(
@@ -1265,7 +1263,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     omit_id=True,
                     menu_id=ApplicationMenus.Source,
                     section=SourceMenuSections.Linting,
-                    before_section=SourceMenuSections.CodeAnalysis
+                    before_section=SourceMenuSections.Cursor
                 )
             for cursor_item in source_menu_cursor_actions:
                 mainmenu.add_item_to_application_menu(
@@ -1273,7 +1271,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     omit_id=True,
                     menu_id=ApplicationMenus.Source,
                     section=SourceMenuSections.Cursor,
-                    before_section=SourceMenuSections.CodeAnalysis
+                    before_section=SourceMenuSections.Formatting
                 )
             for formatting_item in source_menu_formatting_actions:
                 mainmenu.add_item_to_application_menu(

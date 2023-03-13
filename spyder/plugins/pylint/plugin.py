@@ -138,7 +138,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         if mainmenu:
             mainmenu.add_item_to_application_menu(
-                self.run_action, menu_id=ApplicationMenus.Source,
+                self.run_action,
+                menu_id=ApplicationMenus.Source,
                 section=SourceMenuSections.CodeAnalysis
             )
 
