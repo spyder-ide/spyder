@@ -66,6 +66,7 @@ MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
+    ChangeHistoryContext = "change_history_depth_action_from_context_menu"
     RunCodeAnalysis = "run_analysis_action"
     BrowseFile = "browse_action"
     ShowLog = "log_action"
@@ -524,19 +525,19 @@ class PylintWidget(PluginMainWidget):
             icon=self.create_icon("history"),
             triggered=self.change_history_depth,
         )
+        change_history_depth_context_action = self.create_action(
+            PylintWidgetActions.ChangeHistoryContext,
+            text=_("History results"),
+            tip=_("Set history maximum entries"),
+            icon=self.create_icon("history"),
+            triggered=self.change_history_depth_from_context,
+        )
         self.code_analysis_action = self.create_action(
             PylintWidgetActions.RunCodeAnalysis,
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("run"),
             triggered=self.sig_start_analysis_requested,
-        )
-        self.browse_action = self.create_action(
-            PylintWidgetActions.BrowseFile,
-            text=_("Select Python file"),
-            tip=_("Select Python file"),
-            icon=self.create_icon("fileopen"),
-            triggered=self.select_file,
         )
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
@@ -554,30 +555,7 @@ class PylintWidget(PluginMainWidget):
         )
 
         options_menu = self.get_options_menu()
-        self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.CollapseAllAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Global,
-        )
-        self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.ExpandAllAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Global,
-        )
-        self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.CollapseSelectionAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Section,
-        )
-        #self.add_item_to_menu(
-        #    self.treewidget.get_action(
-        #        OneColumnTreeActions.ExpandSelectionAction),
-        #    menu=options_menu,
-        #    section=PylintWidgetOptionsMenuSections.Section,
-        #)
+
         self.add_item_to_menu(
             change_history_depth_action,
             menu=options_menu,
@@ -586,7 +564,7 @@ class PylintWidget(PluginMainWidget):
 
         # Update OneColumnTree contextual menu
         self.add_item_to_menu(
-            change_history_depth_action,
+            change_history_depth_context_action,
             menu=self.treewidget.menu,
             section=PylintWidgetOptionsMenuSections.History,
         )
@@ -595,7 +573,7 @@ class PylintWidget(PluginMainWidget):
         self.treewidget.expand_selection_action.setVisible(False)
 
         toolbar = self.get_main_toolbar()
-        for item in [self.filecombo, self.browse_action,
+        for item in [self.filecombo,
                      self.code_analysis_action]:
             self.add_item_to_toolbar(
                 item,
@@ -650,7 +628,38 @@ class PylintWidget(PluginMainWidget):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    
+
+    @Slot()
+    @Slot(int)
+    def change_history_depth_from_context(self, value=None):
+        """
+        Set history maximum entries.
+        Parameters
+        ----------
+        value: int or None, optional
+            The valur to set  the maximum history depth. If no value is
+            provided, an input dialog will be launched. Default is None.
+        """
+        if value is None:
+            dialog = QInputDialog(self)
+
+            # Set dialog properties
+            dialog.setModal(False)
+            dialog.setWindowTitle(_("History"))
+            dialog.setLabelText(_("Maximum entries"))
+            dialog.setInputMode(QInputDialog.IntInput)
+            dialog.setIntRange(MIN_HISTORY_ENTRIES, MAX_HISTORY_ENTRIES)
+            dialog.setIntStep(1)
+            dialog.setIntValue(self.get_conf("max_entries"))
+
+            # Connect slot
+            dialog.intValueSelected.connect(
+                lambda value: self.set_conf("max_entries", value))
+
+            dialog.show()
+        else:
+            self.set_conf("max_entries", value)
+
     def change_history_depth(self):
         """Request to open the main interpreter preferences."""
         self.sig_open_preferences_requested.emit()
@@ -859,27 +868,6 @@ class PylintWidget(PluginMainWidget):
         ]
 
         return get_pylintrc_path(search_paths=search_paths)
-
-    @Slot()
-    def select_file(self, filename=None):
-        """
-        Select filename using a open file dialog and set as current filename.
-
-        If `filename` is provided, the dialog is not used.
-        """
-        if filename is None:
-            self.sig_redirect_stdio_requested.emit(False)
-            filename, _selfilter = getopenfilename(
-                self,
-                _("Select Python file"),
-                getcwd_or_home(),
-                _("Python files") + " (*.py ; *.pyw)",
-            )
-            self.sig_redirect_stdio_requested.emit(True)
-
-        if filename:
-            self.set_filename(filename)
-            self.start_code_analysis()
 
     def test_for_custom_interpreter(self):
         """

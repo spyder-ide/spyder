@@ -123,7 +123,7 @@ class Pylint(SpyderDockablePlugin):
 
         pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
         mainmenu.add_item_to_application_menu(
-            pylint_act, menu_id=ApplicationMenus.Source)
+            pylint_act, menu_id=ApplicationMenus.Run)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -163,7 +163,7 @@ class Pylint(SpyderDockablePlugin):
     # --- Private API
     # ------------------------------------------------------------------------
     def _open_interpreter_preferences(self):
-        """Open the Preferences dialog in the main interpreter section."""
+        """Open the Preferences dialog in the Code analysis section."""
         self._main.show_preferences()
         preferences = self._main.preferences
         container = preferences.get_container()
