@@ -16,6 +16,13 @@ instead.
 humanfriendly :
     spyder-terminal plugin
     ModuleNotFoundError: No module named 'humanfriendly.tables'
+keyring:
+    ModuleNotFoundError: No module named 'keyring.backends.kwallet'
+    ModuleNotFoundError: No module named 'keyring.backends.SecretService'
+    ModuleNotFoundError: No module named 'keyring.backends.Windows'
+    ModuleNotFoundError: No module named 'keyring.backends.chainer'
+    ModuleNotFoundError: No module named 'keyring.backends.libsecret'
+    ModuleNotFoundError: No module named 'keyring.backends.macOS'
 pkg_resources:
     ImportError: The 'more_itertools' package is required; normally this is
     bundled with this package so if you get this warning, consult the
@@ -42,6 +49,7 @@ spyder_terminal :
 # Packages that cannot be in the zip folder
 PACKAGES = [
     'humanfriendly',
+    'keyring',
     'pkg_resources',
     'pygments',
     'pylint_venv',
