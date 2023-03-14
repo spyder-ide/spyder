@@ -36,6 +36,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -63,11 +64,14 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus, EditMenuSections, SearchMenuSections, SourceMenuSections
+)
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -223,7 +227,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
-        self.edit_menu_actions = None #XXX: find another way to notify Spyder
         self.stack_menu_actions = None
         self.checkable_actions = {}
 
@@ -752,28 +755,44 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         # ---- Find menu and toolbar ----
         _text = _("&Find text")
-        find_action = create_action(self, _text, icon=ima.icon('find'),
-                                    tip=_text, triggered=self.find,
-                                    context=Qt.WidgetShortcut)
-        self.register_shortcut(find_action, context="find_replace",
+        self.find_action = create_action(
+            self, _text,
+            icon=ima.icon('find'),
+            tip=_text,
+            triggered=self.find,
+            context=Qt.WidgetShortcut
+        )
+        self.register_shortcut(self.find_action, context="find_replace",
                                name="Find text", add_shortcut_to_tip=True)
-        find_next_action = create_action(self, _("Find &next"),
-                                         icon=ima.icon('findnext'),
-                                         triggered=self.find_next,
-                                         context=Qt.WidgetShortcut)
-        self.register_shortcut(find_next_action, context="find_replace",
+        self.find_next_action = create_action(
+            self, _("Find &next"),
+            icon=ima.icon('findnext'),
+            triggered=self.find_next,
+            context=Qt.WidgetShortcut
+        )
+        self.register_shortcut(self.find_next_action, context="find_replace",
                                name="Find next")
-        find_previous_action = create_action(self, _("Find &previous"),
-                                             icon=ima.icon('findprevious'),
-                                             triggered=self.find_previous,
-                                             context=Qt.WidgetShortcut)
-        self.register_shortcut(find_previous_action, context="find_replace",
-                               name="Find previous")
+        self.find_previous_action = create_action(
+            self, _("Find &previous"),
+            icon=ima.icon('findprevious'),
+            triggered=self.find_previous,
+            context=Qt.WidgetShortcut
+        )
+        self.register_shortcut(
+            self.find_previous_action,
+            context="find_replace",
+            name="Find previous"
+        )
         _text = _("&Replace text")
-        replace_action = create_action(self, _text, icon=ima.icon('replace'),
-                                       tip=_text, triggered=self.replace,
-                                       context=Qt.WidgetShortcut)
-        self.register_shortcut(replace_action, context="find_replace",
+        self.replace_action = create_action(
+            self,
+            _text,
+            icon=ima.icon('replace'),
+            tip=_text,
+            triggered=self.replace,
+            context=Qt.WidgetShortcut
+        )
+        self.register_shortcut(self.replace_action, context="find_replace",
                                name="Replace text")
 
         # --- Run toolbar ---
@@ -911,7 +930,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
-        eol_menu = QMenu(_("Convert end-of-line characters"), self)
+        eol_menu = SpyderMenu(parent=self, title=_("Convert end-of-line characters"))
         eol_menu.setObjectName('checkbox-padding')
         add_actions(eol_menu, eol_actions)
 
@@ -975,11 +994,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
 
-        gotoline_action = create_action(self, _("Go to line..."),
-                                        icon=ima.icon('gotoline'),
-                                        triggered=self.go_to_line,
-                                        context=Qt.WidgetShortcut)
-        self.register_shortcut(gotoline_action, context="Editor",
+        self.gotoline_action = create_action(
+            self, _("Go to line..."),
+            icon=ima.icon('gotoline'),
+            triggered=self.go_to_line,
+            context=Qt.WidgetShortcut
+        )
+        self.register_shortcut(self.gotoline_action, context="Editor",
                                name="Go to line")
 
         workdir_action = create_action(self,
@@ -1109,16 +1130,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
-        search_menu_actions = [find_action,
-                               find_next_action,
-                               find_previous_action,
-                               replace_action,
-                               gotoline_action]
 
-        self.main.search_toolbar_actions = [find_action,
-                                            find_next_action,
-                                            replace_action]
-
+        mainmenu = self.main.get_plugin(Plugins.MainMenu)
         # ---- Edit menu/toolbar construction ----
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
@@ -1126,16 +1139,85 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                   self.text_uppercase_action,
                                   self.text_lowercase_action]
 
-        # ---- Search menu/toolbar construction ----
-        if not hasattr(self.main, 'search_menu_actions'):
-            # This list will not exist in the fast tests.
-            self.main.search_menu_actions = []
+        if mainmenu:
+            edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
+            edit_menu.aboutToShow.connect(self.update_edit_menu)
 
-        self.main.search_menu_actions = (
-            search_menu_actions + self.main.search_menu_actions)
+            def create_edit_action(text, tr_text, icon):
+                textseq = text.split(' ')
+                method_name = textseq[0].lower() + "".join(textseq[1:])
+                action = create_action(
+                    self, tr_text,
+                    icon=icon,
+                    triggered=self.base_edit_actions_callback,
+                    data=method_name,
+                    context=Qt.WidgetShortcut
+                )
+                self.register_shortcut(action, "Editor", text)
+                return action
 
-        # ---- Source menu/toolbar construction ----
-        source_menu_actions = [
+            self.undo_action = create_edit_action('Undo', _('Undo'),
+                                                  ima.icon('undo'))
+            self.redo_action = create_edit_action('Redo', _('Redo'),
+                                                  ima.icon('redo'))
+            self.copy_action = create_edit_action('Copy', _('Copy'),
+                                                  ima.icon('editcopy'))
+            self.cut_action = create_edit_action('Cut', _('Cut'),
+                                                 ima.icon('editcut'))
+            self.paste_action = create_edit_action('Paste', _('Paste'),
+                                                   ima.icon('editpaste'))
+            self.selectall_action = create_edit_action("Select All",
+                                                       _("Select All"),
+                                                       ima.icon('selectall'))
+
+            for action in [self.undo_action, self.redo_action]:
+                mainmenu.add_item_to_application_menu(
+                    action,
+                    menu_id=ApplicationMenus.Edit,
+                    section=EditMenuSections.UndoRedo,
+                    before_section=EditMenuSections.Editor,
+                    omit_id=True
+                )
+
+            for action in [
+                    self.cut_action, self.copy_action, self.paste_action,
+                    self.selectall_action]:
+                mainmenu.add_item_to_application_menu(
+                    action,
+                    menu_id=ApplicationMenus.Edit,
+                    section=EditMenuSections.Copy,
+                    before_section=EditMenuSections.Editor,
+                    omit_id=True
+                )
+
+            for edit_item in self.edit_menu_actions:
+                mainmenu.add_item_to_application_menu(
+                    edit_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Edit,
+                    section=EditMenuSections.Editor
+                )
+
+        # ---- Search menu construction ----
+        search_menu_actions = [self.find_action,
+                               self.find_next_action,
+                               self.find_previous_action,
+                               self.replace_action,
+                               self.gotoline_action]
+        if mainmenu:
+            search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
+            search_menu.aboutToShow.connect(self.update_search_menu)
+            for search_item in search_menu_actions:
+                mainmenu.add_item_to_application_menu(
+                    search_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Search,
+                    section=SearchMenuSections.FindInText,
+                    before_section=SearchMenuSections.FindInFiles
+                )
+
+        # ---- Source menu construction ----
+        source_menu_option_actions = [
             showblanks_action,
             scrollpastend_action,
             showindentguides_action,
@@ -1144,23 +1226,61 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             show_codestyle_warnings_action,
             show_docstring_warnings_action,
             underline_errors,
-            MENU_SEPARATOR,
+        ]
+        source_menu_linting_actions = [
             self.todo_list_action,
             self.warning_list_action,
             self.previous_warning_action,
             self.next_warning_action,
-            MENU_SEPARATOR,
+        ]
+        source_menu_cursor_actions = [
             self.previous_edit_cursor_action,
             self.previous_cursor_action,
             self.next_cursor_action,
-            MENU_SEPARATOR,
+        ]
+        source_menu_formatting_actions = [
             eol_menu,
             trailingspaces_action,
             fixindentation_action,
             self.formatting_action
         ]
-        self.main.source_menu_actions = (
-            source_menu_actions + self.main.source_menu_actions)
+        if mainmenu:
+            source_menu = mainmenu.get_application_menu(
+                ApplicationMenus.Source
+            )
+            source_menu.aboutToShow.connect(self.refresh_formatter_name)
+            for option_item in source_menu_option_actions:
+                mainmenu.add_item_to_application_menu(
+                    option_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Options,
+                    before_section=SourceMenuSections.Linting
+                )
+            for linting_item in source_menu_linting_actions:
+                mainmenu.add_item_to_application_menu(
+                    linting_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Linting,
+                    before_section=SourceMenuSections.Cursor
+                )
+            for cursor_item in source_menu_cursor_actions:
+                mainmenu.add_item_to_application_menu(
+                    cursor_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Cursor,
+                    before_section=SourceMenuSections.Formatting
+                )
+            for formatting_item in source_menu_formatting_actions:
+                mainmenu.add_item_to_application_menu(
+                    formatting_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Formatting,
+                    before_section=SourceMenuSections.CodeAnalysis
+                )
 
         # ---- Dock widget and file dependent actions ----
         self.dock_toolbar_actions = (
@@ -1180,7 +1300,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 print_preview_action,
                 self.print_action,
                 self.save_all_action,
-                gotoline_action,
+                self.gotoline_action,
                 workdir_action,
                 self.close_action,
                 self.close_all_action,
@@ -1190,7 +1310,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self.unindent_action
             ]
         )
-        self.stack_menu_actions = [gotoline_action, workdir_action]
+        self.stack_menu_actions = [self.gotoline_action, workdir_action]
 
         return self.file_dependent_actions
 
@@ -1239,6 +1359,84 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.get_current_editor,
             self.get_current_editorstack,
             section=self.get_plugin_title())
+
+    def base_edit_actions_callback(self):
+        """Callback for base edit actions of text based widgets."""
+        widget = QApplication.focusWidget()
+        action = self.sender()
+        callback = from_qvariant(action.data(), to_text_string)
+
+        if isinstance(widget, BaseEditMixin) and hasattr(widget, callback):
+            getattr(widget, callback)()
+        else:
+            return
+
+    def update_edit_menu(self):
+        """
+        Enable edition related actions only when the Editor has focus.
+
+        Also enable actions in case the focused widget has editable properties.
+        """
+        # Disabling all actions to begin with
+        for child in [
+                self.undo_action, self.redo_action, self.copy_action,
+                self.cut_action, self.paste_action, self.selectall_action
+                ] + self.edit_menu_actions:
+            child.setEnabled(False)
+
+        possible_text_widget = QApplication.focusWidget()
+        editor = self.get_current_editor()
+        readwrite_editor = possible_text_widget == editor
+
+        if readwrite_editor and not editor.isReadOnly():
+            # Case where the current editor has the focus
+            if not self.is_file_opened():
+                return
+            # Undo, redo
+            self.undo_action.setEnabled(editor.document().isUndoAvailable())
+            self.redo_action.setEnabled(editor.document().isRedoAvailable())
+            # Editor only actions
+            for action in self.edit_menu_actions:
+                action.setEnabled(True)
+            not_readonly = not editor.isReadOnly()
+            has_selection = editor.has_selected_text()
+        elif (isinstance(possible_text_widget, BaseEditMixin) and
+              hasattr(possible_text_widget, "isReadOnly")):
+            # Case when a text based widget has the focus.
+            not_readonly = not possible_text_widget.isReadOnly()
+            has_selection = possible_text_widget.has_selected_text()
+        else:
+            # Case when no text based widget has the focus.
+            return
+
+        # Copy, cut, paste, select all
+        self.copy_action.setEnabled(has_selection)
+        self.cut_action.setEnabled(has_selection and not_readonly)
+        self.paste_action.setEnabled(not_readonly)
+        self.selectall_action.setEnabled(True)
+
+    def update_search_menu(self):
+        """
+        Enable search related actions only when the Editor has focus.
+        """
+        search_menu_actions = [
+            self.find_action,
+            self.find_next_action,
+            self.find_previous_action,
+            self.replace_action,
+            self.gotoline_action
+        ]
+        editor = self.get_current_editor()
+        if editor:
+            plugin_focus = (
+                self.find_widget.search_text.lineEdit().hasFocus() or
+                editor.hasFocus()
+            )
+            for search_menu_action in search_menu_actions:
+                action_enabled = plugin_focus
+                if search_menu_action == self.replace_action:
+                    action_enabled = plugin_focus and not editor.isReadOnly()
+                search_menu_action.setEnabled(action_enabled)
 
     def update_source_menu(self, options, **kwargs):
         option_names = [opt[-1] if isinstance(opt, tuple) else opt
@@ -1504,7 +1702,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                  lambda state: self.redirect_stdio.emit(state))
         editorstack.update_plugin_title.connect(self.sig_update_plugin_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
-        editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
         editorstack.editor_focus_changed.connect(self.sig_editor_focus_changed)
         editorstack.editor_focus_changed.connect(self.update_run_focus_file)
         editorstack.zoom_in.connect(lambda: self.zoom(1))
@@ -1624,12 +1821,18 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # the MainMenus plugin
         file_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.File).get_actions()
+        edit_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Edit).get_actions()
+        search_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Search).get_actions()
+        source_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Source).get_actions()
+        run_menu_actions = self.main.mainmenu.get_application_menu(
+            ApplicationMenus.Run).get_actions()
         tools_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Tools).get_actions()
         help_menu_actions = self.main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
-        run_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Run).get_actions()
 
         # --- TODO: Rewrite when the editor is moved to the new API
         debug_toolbar_actions = self.main.toolbar.get_application_toolbar(
@@ -1645,9 +1848,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                               debug_toolbar_actions))
 
         self.menu_list = ((_("&File"), file_menu_actions),
-                          (_("&Edit"), self.main.edit_menu_actions),
-                          (_("&Search"), self.main.search_menu_actions),
-                          (_("Sour&ce"), self.main.source_menu_actions),
+                          (_("&Edit"), edit_menu_actions),
+                          (_("&Search"), search_menu_actions),
+                          (_("Sour&ce"), source_menu_actions),
                           (_("&Run"), run_menu_actions),
                           (_("&Tools"), tools_menu_actions),
                           (_("&View"), []),
