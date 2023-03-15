@@ -46,8 +46,7 @@ from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 from spyder.utils.workers import WorkerManager
-from spyder.utils.conda import get_list_conda_envs
-from spyder.utils.pyenv import get_list_pyenv_envs
+from spyder.utils.envs import get_list_envs
 
 
 # Logging
@@ -271,7 +270,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.run_cell_filename = None
         self.interrupt_action = None
         self.initial_conf_options = self.get_conf_options()
-        self.registered_spyder_kernel_handlers = {}        
+        self.registered_spyder_kernel_handlers = {}
         self.envs = {}
         self.value = ''
         self.default_interpreter = sys.executable
@@ -671,24 +670,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
 
-    def _get_envs(self):
-        """Get the list of environments in the system."""
-        # Compute info of default interpreter to have it available in
-        # case we need to switch to it. This will avoid lags when
-        # doing that in get_value.
-
-        # Get envs
-        conda_env = get_list_conda_envs()
-        pyenv_env = get_list_pyenv_envs()
-        return {**conda_env, **pyenv_env}
-
     def get_envs(self):
         """
-        Get the list of environments in a thread to keep them up to
-        date.
+        Get the list of environments/interpreters in a worker.
         """
         self._worker_manager.terminate_all()
-        worker = self._worker_manager.create_python_worker(self._get_envs)
+        worker = self._worker_manager.create_python_worker(get_list_envs)
         worker.sig_finished.connect(self.update_envs)
         worker.start()
 
@@ -697,7 +684,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.envs.update(**output)
 
     def update_environment_menu(self):
-        """Update context menu entries to select specific interpreter to launch a console."""
+        """
+        Update context menu submenu with entries for available interpreters.
+        """
         self.get_envs()
         environment_consoles_names = self.envs
         environment_consoles = []
@@ -722,7 +711,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 menu=self.console_environment_menu
             )
         self.console_environment_menu._render()
-        
+
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
     def change_clients_help_connection(self, value):
@@ -1563,9 +1552,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def create_environment_client(self, environment='',
                                   path_to_custom_interpreter=''):
-        """Force creation of Environment client"""
-        self.create_new_client(environment=environment,
-                               path_to_custom_interpreter=path_to_custom_interpreter)
+        """Force creation of Environment client."""
+        self.create_new_client(
+            environment=environment,
+            path_to_custom_interpreter=path_to_custom_interpreter
+        )
 
     @Slot(str)
     def create_client_from_path(self, path):

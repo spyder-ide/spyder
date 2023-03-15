@@ -16,12 +16,10 @@ import sys
 from qtpy.QtCore import QTimer, Signal
 
 # Local imports
-from spyder.api.translations import _
 from spyder.api.widgets.status import BaseTimerStatus
 from spyder.config.base import is_pynsist, running_in_mac_app
-from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.envs import get_list_envs
 from spyder.utils.programs import get_interpreter_info
-from spyder.utils.pyenv import get_list_pyenv_envs
 from spyder.utils.workers import WorkerManager
 
 
@@ -107,19 +105,6 @@ class InterpreterStatus(BaseTimerStatus):
         else:
             return osp.dirname(osp.dirname(interpreter))
 
-    def _get_envs(self):
-        """Get the list of environments in the system."""
-        # Compute info of default interpreter to have it available in
-        # case we need to switch to it. This will avoid lags when
-        # doing that in get_value.
-        if self.default_interpreter not in self.path_to_env:
-            self._get_env_info(self.default_interpreter)
-
-        # Get envs
-        conda_env = get_list_conda_envs()
-        pyenv_env = get_list_pyenv_envs()
-        return {**conda_env, **pyenv_env}
-
     def _get_env_info(self, path):
         """Get environment information."""
         path = path.lower() if os.name == 'nt' else path
@@ -164,7 +149,17 @@ class InterpreterStatus(BaseTimerStatus):
         date.
         """
         self._worker_manager.terminate_all()
-        worker = self._worker_manager.create_python_worker(self._get_envs)
+
+        # Compute info of default interpreter to have it available in
+        # case we need to switch to it. This will avoid lags when
+        # doing that in get_value.
+        if self.default_interpreter not in self.path_to_env:
+            default_worker = self._worker_manager.create_python_worker(
+                self._get_env_info,
+                self.default_interpreter
+            )
+            default_worker.start()
+        worker = self._worker_manager.create_python_worker(get_list_envs)
         worker.sig_finished.connect(self.update_envs)
         worker.start()
 
