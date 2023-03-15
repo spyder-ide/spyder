@@ -1586,7 +1586,7 @@ def test_stop_pdb(ipyconsole, qtbot):
     # Start and interrupt a long execution
     shell.execute("import time; time.sleep(10)")
     qtbot.wait(500)
-    with qtbot.waitSignal(shell.executed, timeout=5000):
+    with qtbot.waitSignal(shell.executed, timeout=1000):
         qtbot.mouseClick(stop_button, Qt.LeftButton)
     assert "KeyboardInterrupt" in control.toPlainText()
     # We are still in the debugger
