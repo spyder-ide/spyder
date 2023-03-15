@@ -67,8 +67,8 @@ MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
     ChangeHistoryContext = "change_history_depth_action_from_context_menu"
+    LoadData = 'load_data_action'
     RunCodeAnalysis = "run_analysis_action"
-    BrowseFile = "browse_action"
     ShowLog = "log_action"
     SaveHistory = "save_history"
 
@@ -539,6 +539,13 @@ class PylintWidget(PluginMainWidget):
             icon=self.create_icon("run"),
             triggered=self.sig_start_analysis_requested,
         )
+        self.load_action = self.create_action(
+            ProfilerWidgetActions.LoadData,
+            text=_("Load data"),
+            tip=_('Load code analysis'),
+            icon=self.create_icon('fileimport'),
+            triggered=self.compare,
+        )
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
             text=_("Output"),
@@ -588,7 +595,7 @@ class PylintWidget(PluginMainWidget):
                      self.datelabel,
                      self.create_stretcher(
                          id_=PylintWidgetToolbarItems.Stretcher2),
-                     self.log_action, self.save_action]:
+                     self.log_action, self.save_action, self.load_action]:
             self.add_item_to_toolbar(
                 item,
                 secondary_toolbar,
