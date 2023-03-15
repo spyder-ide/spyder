@@ -8,6 +8,10 @@ on:
     branches:
     - master
 
+concurrency:
+  group: macos-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   macos:
     name: Mac Py${{ matrix.PYTHON_VERSION }}
@@ -45,4 +49,4 @@ jobs:
           conda list
       - name: Run tests
         shell: bash -l {0}
-        run: pytest -x -vv --color=yes --cov=qtconsole qtconsole
+        run: pytest -vv --color=yes --cov=qtconsole qtconsole
