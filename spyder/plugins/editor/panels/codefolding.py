@@ -260,9 +260,6 @@ class FoldingPanel(Panel):
                     self._draw_collapsed_indicator(
                         line_number, top_position, block,
                         painter, mouse_hover=True)
-                    if is_cell_header(block):
-                        painter.drawLine(0, top_position, self.width(),
-                                         top_position)
             return
 
         # Draw background over the selected non collapsed fold region
@@ -271,9 +268,6 @@ class FoldingPanel(Panel):
                 self._mouse_over_line)
             try:
                 self._draw_fold_region_background(block, painter)
-                if is_cell_header(block):
-                    painter.drawLine(0, top_position, self.width(),
-                                     top_position)
             except (ValueError, KeyError):
                 # Catching the KeyError above is necessary to avoid
                 # issue spyder-ide/spyder#10918.
@@ -283,8 +277,6 @@ class FoldingPanel(Panel):
                 pass
         # Draw fold triggers
         for top_position, line_number, block in self.editor.visible_blocks:
-            if is_cell_header(block):
-                painter.drawLine(0, top_position, self.width(), top_position)
             self._draw_collapsed_indicator(
                 line_number, top_position, block, painter, mouse_hover=False)
 
