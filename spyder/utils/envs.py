@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Python environment general utilities
+Python environments general utilities
 """
 
 from spyder.utils.conda import get_list_conda_envs

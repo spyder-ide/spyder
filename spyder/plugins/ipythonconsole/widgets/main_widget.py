@@ -1438,10 +1438,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
         )
+
         # Add client to widget
         self.add_tab(
             client, name=client.get_name(), filename=filename,
             give_focus=give_focus)
+
         # Create new kernel
         kernel_spec = SpyderKernelSpec(
             is_cython=is_cython,
@@ -1605,6 +1607,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # For help requests
         control.sig_help_requested.connect(self.sig_help_requested)
+
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
 
