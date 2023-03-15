@@ -946,42 +946,66 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
     def next_index_name(self, indexes, label):
         """ Calculate and generate next index_name for a duplicate
         column/row rol/col_copy(ind)"""
-        # verify if find '_copy(' in the label
         ind = -1
         name = ''
-        if label.rfind('_copy(') == -1:
-            # if not found, verify in other indexes
-            name = label + '_copy('
-            for n in indexes:
-                if n.rfind(name) == 0:
-                    # label_copy( starts in first position
-                    init_pos = len(name)
-                    final_pos = len(n) - 1
-                    curr_ind = n[init_pos:final_pos]
-                    if curr_ind.isnumeric() and \
-                       n[final_pos:final_pos+1] == ')':
-                        if ind < int(curr_ind):
-                            ind = int(curr_ind)
-        else:
-            # if 'copy_(' string is in label, verify if valid and check next
-            init_pos = label.rfind('_copy(') + 6
-            final_pos = len(label) - 1
-            curr_ind = label[init_pos:final_pos]
-            if curr_ind.isnumeric():
-                if label[final_pos:final_pos+1] == ')':
-                    ind = int(curr_ind)
-                    name = label[0:init_pos]
-                    for n in indexes:
-                        if n.rfind(name) == 0:
-                            init_pos = len(name)
-                            final_pos = len(n) - 1
-                            curr_ind = n[init_pos:final_pos]
-                            if curr_ind.isnumeric() and \
-                               n[final_pos:final_pos+1] == ')':
-                                if ind < int(curr_ind):
-                                    ind = int(curr_ind)
+        acceptable_types = [str, float, int, complex, bool]
+        if type(label) not in acceptable_types:
+            # case receiving a different type of acceptable_type,
+            # treat as string
+            label = str(label)
+        if type(label) == str:
+            # make all indexes strings to compare
+            for i in range(len(indexes)):
+                if type(indexes[i]) != str:
+                    indexes[i] = str(indexes[i])
+            # verify if find '_copy(' in the label
+            if label.rfind('_copy(') == -1:
+                # if not found, verify in other indexes
+                name = label + '_copy('
+                for n in indexes:
+                    if n.rfind(name) == 0:
+                        # label_copy( starts in first position
+                        init_pos = len(name)
+                        final_pos = len(n) - 1
+                        curr_ind = n[init_pos:final_pos]
+                        if curr_ind.isnumeric() and \
+                           n[final_pos:final_pos+1] == ')':
+                            if ind < int(curr_ind):
+                                ind = int(curr_ind)
+            else:
+                # if 'copy_(' string is in label,
+                # verify if valid and check next
+                init_pos = label.rfind('_copy(') + 6
+                final_pos = len(label) - 1
+                curr_ind = label[init_pos:final_pos]
+                if curr_ind.isnumeric():
+                    if label[final_pos:final_pos+1] == ')':
+                        ind = int(curr_ind)
+                        name = label[0:init_pos]
+                        for n in indexes:
+                            if n.rfind(name) == 0:
+                                init_pos = len(name)
+                                final_pos = len(n) - 1
+                                curr_ind = n[init_pos:final_pos]
+                                if curr_ind.isnumeric() and \
+                                   n[final_pos:final_pos+1] == ')':
+                                    if ind < int(curr_ind):
+                                        ind = int(curr_ind)
+                    else:
+                        # if not cosed parenthesis treat entire string as valid
+                        name = label + '_copy('
+                        for n in indexes:
+                            if n.rfind(name) == 0:
+                                init_pos = len(name)
+                                final_pos = len(n) - 1
+                                curr_ind = n[init_pos:final_pos]
+                                if curr_ind.isnumeric() and \
+                                   n[final_pos:final_pos+1] == ')':
+                                    if ind < int(curr_ind):
+                                        ind = int(curr_ind)
                 else:
-                    # if not cosed parenthesis treat entire string as valid
+                    # found '_copy(Not a number)', treat entire string as valid
+                    # and check if exist other '_copy(Not number)*_copy(number)
                     name = label + '_copy('
                     for n in indexes:
                         if n.rfind(name) == 0:
@@ -992,22 +1016,14 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                                n[final_pos:final_pos+1] == ')':
                                 if ind < int(curr_ind):
                                     ind = int(curr_ind)
-            else:
-                # found '_copy(Not a number)', treat entire string as valid
-                # and check if exist other '_copy(Not a number)*_copy(number)
-                name = label + '_copy('
-                for n in indexes:
-                    if n.rfind(name) == 0:
-                        init_pos = len(name)
-                        final_pos = len(n) - 1
-                        curr_ind = n[init_pos:final_pos]
-                        if curr_ind.isnumeric() and \
-                           n[final_pos:final_pos+1] == ')':
-                            if ind < int(curr_ind):
-                                ind = int(curr_ind)
-
-        ind = ind+1
-        return name + str(ind) + ')'
+            ind = ind+1
+            return name + str(ind) + ')'
+        else:
+            # type is numeric: increment 1 and check if it is in list
+            label = label + 1
+            while label in indexes:
+                label = label + 1
+            return label
 
     @Slot()
     def remove_item(self, force=False, axis=0):
@@ -1039,7 +1055,14 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
         if force or answer == QMessageBox.Yes:
             for label in index_label:
-                self.model().df.drop(label, inplace=True, axis=axis)
+                try:
+                    self.model().df.drop(label, inplace=True, axis=axis)
+                except TypeError as e:
+                    QMessageBox.warning(self.model().dialog,
+                                        "Warning: can not remove!",
+                                        "ValueError: %s" % to_text_string(e)
+                                        + " must be removed from index.")
+                    return False
             self.parent()._reload()
             index = QModelIndex()
             self.model().dataChanged.emit(index, index)
@@ -1213,17 +1236,23 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
         if role == Qt.EditRole:
             if self.axis == 1:
                 old_value = self.model.df.index[index.row()]
-                try:
-                    if value not in self.model.df.index.tolist():
+
+                if value not in self.model.df.index.tolist():
+                    try:
                         self.model.df.rename(index={old_value: value},
                                              inplace=True, errors='raise')
-                    else:
+                    except TypeError as e:
                         QMessageBox.warning(self.model.dialog,
-                                            "Warning: duplicate index",
-                                            "Row with name \"" + value
-                                            + "\" already exists")
+                                            "Warning: can not rename!",
+                                            "ValueError: %s"
+                                            % to_text_string(e)
+                                            + " must be removed from index.")
                         return False
-                except:
+                else:
+                    QMessageBox.warning(self.model.dialog,
+                                        "Warning: duplicate index",
+                                        "Row with name \"" + value
+                                        + "\" already exists")
                     return False
                 self.model.dialog._reload()
                 self.model.dataChanged.emit(index, index)
