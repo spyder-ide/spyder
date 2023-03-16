@@ -1249,22 +1249,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 ApplicationMenus.Source
             )
             source_menu.aboutToShow.connect(self.refresh_formatter_name)
-            for option_item in source_menu_option_actions:
-                mainmenu.add_item_to_application_menu(
-                    option_item,
-                    omit_id=True,
-                    menu_id=ApplicationMenus.Source,
-                    section=SourceMenuSections.Options,
-                    before_section=SourceMenuSections.Linting
-                )
-            for linting_item in source_menu_linting_actions:
-                mainmenu.add_item_to_application_menu(
-                    linting_item,
-                    omit_id=True,
-                    menu_id=ApplicationMenus.Source,
-                    section=SourceMenuSections.Linting,
-                    before_section=SourceMenuSections.Cursor
-                )
             for cursor_item in source_menu_cursor_actions:
                 mainmenu.add_item_to_application_menu(
                     cursor_item,
@@ -1280,6 +1264,22 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     menu_id=ApplicationMenus.Source,
                     section=SourceMenuSections.Formatting,
                     before_section=SourceMenuSections.CodeAnalysis
+                )
+            for option_item in source_menu_option_actions:
+                mainmenu.add_item_to_application_menu(
+                    option_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Options,
+                    before_section=SourceMenuSections.Linting
+                )
+            for linting_item in source_menu_linting_actions:
+                mainmenu.add_item_to_application_menu(
+                    linting_item,
+                    omit_id=True,
+                    menu_id=ApplicationMenus.Source,
+                    section=SourceMenuSections.Linting,
+                    before_section=SourceMenuSections.Cursor
                 )
 
         # ---- Dock widget and file dependent actions ----
