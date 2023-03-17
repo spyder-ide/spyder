@@ -4,3 +4,4 @@ scanner:
 
 pycodestyle:
     exclude: external-deps
+from django 
