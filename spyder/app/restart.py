@@ -235,7 +235,6 @@ def main():
         pynsist_python = osp.join(pynsist_installation, "Python", "pythonw.exe")
         pynsist_script = osp.join(pynsist_installation, "Spyder.launch.pyw")
         command = [f'"{pynsist_python}"', f'"{pynsist_script}"']
-        print(command)
     else:
         if is_bootstrap:
             script = osp.join(spyder_dir, 'bootstrap.py')
