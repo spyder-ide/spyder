@@ -12,10 +12,12 @@ import os
 import sys
 if os.environ.get('PYTHONPATH'):
     for path in os.environ['PYTHONPATH'].split(os.pathsep):
-        try:
-            sys.path.remove(path.rstrip(os.sep))
-        except ValueError:
-            pass
+        if 'pkgs' not in path:
+            # Don't remove pynsist installer entry for 'pkgs' directory
+            try:
+                sys.path.remove(path.rstrip(os.sep))
+            except ValueError:
+                pass
 
 # Standard library imports
 import ctypes
