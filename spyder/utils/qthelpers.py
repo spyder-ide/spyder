@@ -166,6 +166,35 @@ def keybinding(attr):
     return from_qvariant(QKeySequence.keyBindings(ks)[0], str)
 
 
+def keyevent_to_keysequence(event):
+    """Get key sequence corresponding to a key event as a string."""
+    try:
+        # See https://stackoverflow.com/a/20656496/438386 for context
+        return QKeySequence(event.modifiers() | event.key()).toString()
+    except TypeError:
+        # This error appears in old PyQt versions (e.g. 5.12) which are
+        # running under Python 3.10+. In that case, we need to build the
+        # key sequence as an int.
+        # See https://stackoverflow.com/a/23919177/438386 for context.
+        key = event.key()
+        alt = event.modifiers() & Qt.AltModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
+        meta = event.modifiers() & Qt.MetaModifier
+
+        key_sequence = key
+        if ctrl:
+            key_sequence += Qt.CTRL
+        if shift:
+            key_sequence += Qt.SHIFT
+        if alt:
+            key_sequence += Qt.ALT
+        if meta:
+            key_sequence += Qt.META
+
+        return QKeySequence(key_sequence).toString()
+
+
 def _process_mime_path(path, extlist):
     if path.startswith(r"file://"):
         if os.name == 'nt':

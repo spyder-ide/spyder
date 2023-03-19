@@ -22,7 +22,7 @@ import sys
 from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
-from qtpy.QtGui import QDrag, QKeySequence
+from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QFileSystemModel, QInputDialog, QLabel, QLineEdit,
                             QMessageBox, QProxyStyle, QStyle, QTextEdit,
@@ -41,7 +41,8 @@ from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import file_uri, start_file
+from spyder.utils.qthelpers import (
+    file_uri, keyevent_to_keysequence, start_file)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -775,9 +776,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def keyPressEvent(self, event):
         """Handle keyboard shortcuts and special keys."""
-        # Get keyboard sequence introduced by the user as a string.
-        # From https://stackoverflow.com/a/20656496/438386
-        key_seq = QKeySequence(event.modifiers() | event.key()).toString()
+        key_seq = keyevent_to_keysequence(event)
 
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             self.clicked()
