@@ -24,6 +24,9 @@ _ = get_translation("spyder")
 class PylintConfigPage(PluginConfigPage):
 
     def setup_page(self):
+        settings_group = QGroupBox(_("Settings"))
+        real_time_box = self.create_checkbox(_("Real time analysis"),
+                                             'real_time_analysis', default=True)
         hist_group = QGroupBox(_("History"))
         hist_label1 = QLabel(_("Choose how many results you want to store in "
                                "the history results, pick a number between "
@@ -49,6 +52,10 @@ class PylintConfigPage(PluginConfigPage):
         results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
         results_label2.setWordWrap(True)
 
+        settings_layout = QVBoxLayout()
+        settings_layout.addWidget(real_time_box)
+        settings_group.setLayout(settings_layout)
+
         hist_layout = QVBoxLayout()
         hist_layout.addWidget(hist_label1)
         hist_layout.addWidget(hist_spin)
@@ -59,6 +66,7 @@ class PylintConfigPage(PluginConfigPage):
         results_group.setLayout(results_layout)
 
         vlayout = QVBoxLayout()
+        vlayout.addWidget(settings_group)
         vlayout.addWidget(hist_group)
         vlayout.addWidget(results_group)
         vlayout.addStretch(1)

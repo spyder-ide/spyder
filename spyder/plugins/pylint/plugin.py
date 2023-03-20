@@ -97,6 +97,7 @@ class Pylint(SpyderDockablePlugin):
 
         # Connect to Editor
         widget.sig_edit_goto_requested.connect(editor.load)
+        widget.sig_open_file_requested.connect(editor.load)
         editor.sig_editor_focus_changed.connect(self._set_filename)
 
         pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)

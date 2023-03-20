@@ -23,9 +23,10 @@ import time
 import pylint
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
-                         Slot)
+                         Slot, Qt)
+from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QVBoxLayout)
+                            QVBoxLayout, QHBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -36,16 +37,19 @@ from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.misc import getcwd_or_home, get_home_dir
 from spyder.utils.misc import get_python_executable
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
+from spyder.utils.stylesheet import DialogStyle
 
 # Localization
 _ = get_translation("spyder")
 
+MAC = sys.platform == 'darwin'
 
 # --- Constants
 # ----------------------------------------------------------------------------
@@ -61,7 +65,6 @@ SUCCESS_COLOR = SpyderPalette.COLOR_SUCCESS_1
 # is easier to use
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
-
 
 
 class PylintWidgetActions:
@@ -275,6 +278,7 @@ class PylintWidget(PluginMainWidget):
     VERSION = "1.1.0"
 
     # --- Signals
+    sig_open_file_requested = Signal(str)
     sig_edit_goto_requested = Signal(str, int, str)
     """
     This signal will request to open a file in a given row and column
@@ -324,6 +328,18 @@ class PylintWidget(PluginMainWidget):
         self.datelabel = QLabel(self)
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
+        # Image
+        icon_filename = 'code-analysis'
+        image_path = get_image_path(icon_filename)
+        image = QPixmap(image_path)
+        self.image_label = QLabel()
+        image_height = int(image.height())
+        image_width = int(image.width())
+        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
+                             Qt.SmoothTransformation)
+        self.image_label.setPixmap(image)
+        self.image_label.setAlignment(Qt.AlignCenter)
+
         self.treewidget = ResultsTree(self)
 
         if osp.isfile(self.DATAPATH):
@@ -343,10 +359,12 @@ class PylintWidget(PluginMainWidget):
 
         # Layout
         layout = QVBoxLayout()
-        layout.addWidget(self.treewidget)
+        layout.addWidget(self.image_label, alignment=Qt.AlignCenter)
+        #layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
         # Signals
+        self.filecombo.currentTextChanged.connect(self.sig_open_file_requested)
         self.filecombo.valid.connect(self._check_new_file)
         self.treewidget.sig_edit_goto_requested.connect(
             self.sig_edit_goto_requested)
@@ -515,7 +533,7 @@ class PylintWidget(PluginMainWidget):
         return _("Code Analysis")
 
     def get_focus_widget(self):
-        return self.treewidget
+        return self.image_label
 
     def setup(self):
         change_history_depth_action = self.create_action(
@@ -539,12 +557,13 @@ class PylintWidget(PluginMainWidget):
             icon=self.create_icon("run"),
             triggered=self.sig_start_analysis_requested,
         )
+
         self.load_action = self.create_action(
-            ProfilerWidgetActions.LoadData,
+            PylintWidgetActions.LoadData,
             text=_("Load data"),
             tip=_('Load code analysis'),
             icon=self.create_icon('fileimport'),
-            triggered=self.compare,
+            triggered=self.sig_start_analysis_requested,
         )
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
