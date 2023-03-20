@@ -48,22 +48,22 @@ class EditMenuSections:
 
 
 class SearchMenuSections:
-    Search = 'undo_redo_section'
+    FindInText = 'find_text_section'
+    FindInFiles = 'find_files_section'
 
 
 class SourceMenuSections:
     Options = 'options_section'
     Linting = 'linting_section'
     Cursor = 'cursor_section'
-    Actions = 'actions_section'
+    Formatting = 'formatting_section'
     CodeAnalysis = 'code_analysis_section'
 
 
 class RunMenuSections:
     Run = 'run_section'
     RunExtras = 'run_extras_section'
-    Profile = 'profile_section'
-
+    RunInExecutors = 'executors_section'
 
 class DebugMenuSections:
     StartDebug = 'start_debug_section'

@@ -9,7 +9,7 @@ Debugger Plugin API.
 """
 
 from spyder.plugins.debugger.widgets.main_widget import (
-    DebuggerWidgetActions, DebuggerToolbarActions, DebuggerBreakpointActions,
+    DebuggerWidgetActions, DebuggerBreakpointActions,
     DebuggerWidgetOptionsMenuSections, DebuggerWidgetMainToolBarSections,
     DebuggerWidgetMenus, DebuggerContextMenuSections,
     DebuggerContextMenuActions)

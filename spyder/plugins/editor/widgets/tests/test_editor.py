@@ -75,6 +75,7 @@ def editor_find_replace_bot(base_editor_bot, qtbot):
 
     editor_stack = base_editor_bot
     layout.addWidget(editor_stack)
+    widget.editor_stack = editor_stack
 
     text = ('spam bacon\n'
             'spam sausage\n'
@@ -89,7 +90,7 @@ def editor_find_replace_bot(base_editor_bot, qtbot):
     layout.addWidget(find_replace)
 
     # Resize widget and show
-    widget.resize(480, 360)
+    widget.resize(900, 360)
     widget.show()
 
     return widget
@@ -289,10 +290,10 @@ def test_run_top_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(1) # line number is one based
     editor.move_cursor(3)
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'a = 1'
+    text, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
+    assert text == 'a = 1'
+
     # check cursor moves to start of next line; note line number is zero based
     assert editor.get_cursor_line_column() == (1, 0)
 
@@ -300,25 +301,24 @@ def test_run_top_line(editor_bot, qtbot):
 def test_run_last_nonempty_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(4)
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'x = 2'
+    text, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
+    assert text == 'x = 2'
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
 
 def test_run_empty_line_in_middle(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(3)
-    with qtbot.assertNotEmitted(editor_stack.exec_in_extconsole):
-        editor_stack.run_selection()
+    _, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
     assert editor.get_cursor_line_column() == (3, 0) # check cursor moves down
 
 
 def test_run_last_line_when_empty(editor_bot, qtbot):
     editor_stack, editor = editor_bot
-    with qtbot.assertNotEmitted(editor_stack.exec_in_extconsole):
-        editor_stack.run_selection()
+    _, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
     # check cursor doesn't move
     assert editor.get_cursor_line_column() == (4, 0)
 
@@ -327,10 +327,9 @@ def test_run_last_line_when_nonempty(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.stdkey_backspace() # delete empty line at end
     old_text = editor.toPlainText()
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'x = 2'
+    text, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
+    assert text == 'x = 2'
     expected_new_text = old_text + editor.get_line_separator()
     # check blank line got added
     assert editor.toPlainText() == expected_new_text
@@ -662,6 +661,35 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     qtbot.wait(500)
     qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     assert finder.replace_text.currentText() == 'This is some test text!'
+
+
+def test_update_matches_in_find_replace(editor_find_replace_bot, qtbot):
+    """
+    Check that the total number of matches in the FindReplace widget is updated
+    when switching files.
+    """
+    editor_stack = editor_find_replace_bot.editor_stack
+    finder = editor_find_replace_bot.find_replace
+
+    # Search for "spam" in current file
+    finder.show(hide_replace=False)
+    finder.search_text.setFocus()
+    finder.search_text.set_current_text('spam')
+    qtbot.wait(500)
+    qtbot.keyClick(finder.search_text, Qt.Key_Return)
+
+    # Open a new file and only write "spam" on it
+    editor_stack.new('foo.py', 'utf-8', 'spam')
+
+    # Focus new file and check the number of matches was updated
+    editor_stack.set_stack_index(1)
+    assert finder.number_matches_text.text() == '1 matches'
+    qtbot.wait(500)
+
+    # Focus initial file and check the number of matches was updated
+    editor_stack.set_stack_index(0)
+    qtbot.wait(500)
+    assert finder.number_matches_text.text() == '3 matches'
 
 
 def test_autosave_all(editor_bot, mocker):

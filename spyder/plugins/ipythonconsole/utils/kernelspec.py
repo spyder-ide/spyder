@@ -19,11 +19,12 @@ from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import (get_safe_mode, is_pynsist, running_in_mac_app,
                                 running_under_pytest)
 from spyder.plugins.ipythonconsole import (
-    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SpyderKernelError)
+    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
+    SpyderKernelError)
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
@@ -33,26 +34,22 @@ from spyder.utils.programs import is_python_interpreter, is_module_installed
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
-
-
-# Localization
-_ = get_translation('spyder')
-
 ERROR_SPYDER_KERNEL_INSTALLED = _(
     "The Python environment or installation whose interpreter is located at"
     "<pre>"
     "    <tt>{0}</tt>"
     "</pre>"
-    "doesn't have the <tt>spyder-kernels</tt> module installed. Without this "
-    "module is not possible for Spyder to create a console for you.<br><br>"
+    "doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. "
+    "Without this module and specific version is not possible for Spyder to "
+    "create a console for you.<br><br>"
     "You can install it by activating your environment (if necessary) and "
-    "running in a system terminal:"
+    "then running in a system terminal:"
     "<pre>"
-    "    <tt>{1}</tt>"
+    "    <tt>{2}</tt>"
     "</pre>"
     "or"
     "<pre>"
-    "    <tt>{2}</tt>"
+    "    <tt>{3}</tt>"
     "</pre>")
 
 
@@ -87,6 +84,7 @@ def has_spyder_kernels(pyexec):
     """Check if env has spyder kernels."""
     return is_module_installed(
         'spyder_kernels',
+        version=SPYDER_KERNELS_VERSION,
         interpreter=pyexec)
 
 
@@ -121,6 +119,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 raise SpyderKernelError(
                     ERROR_SPYDER_KERNEL_INSTALLED.format(
                           pyexec,
+                          SPYDER_KERNELS_VERSION,
                           SPYDER_KERNELS_CONDA,
                           SPYDER_KERNELS_PIP
                       )
@@ -227,6 +226,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             env_vars['SPY_RUN_CYTHON'] = True
 
         # App considerations
+        # ??? Do we need this?
         if (running_in_mac_app() or is_pynsist()):
             if default_interpreter:
                 # See spyder-ide/spyder#16927
@@ -234,6 +234,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 # See spyder-ide/spyder#17552
                 env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
             else:
+                # ??? Do we need this?
                 env_vars.pop('PYTHONHOME', None)
 
         # Remove this variable because it prevents starting kernels for

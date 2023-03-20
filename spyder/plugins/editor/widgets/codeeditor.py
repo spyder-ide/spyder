@@ -27,11 +27,11 @@ import re
 import sre_constants
 import sys
 import textwrap
-from pkg_resources import parse_version
 
 # Third party imports
 from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
+from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QEventLoop, QRegExp, Qt, QTimer, QThread,
@@ -75,7 +75,7 @@ from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
-from spyder.py3compat import to_text_string, is_string, is_text_string
+from spyder.py3compat import to_text_string, is_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
@@ -176,12 +176,6 @@ class CodeEditor(TextEditBaseWidget):
     sig_bookmarks_changed = Signal()
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(bool)
-    sig_run_selection = Signal()
-    sig_run_to_line = Signal()
-    sig_run_from_line = Signal()
-    sig_run_cell_and_advance = Signal()
-    sig_run_cell = Signal()
-    sig_re_run_last_cell = Signal()
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
     sig_refresh_formatting = Signal(bool)
@@ -1086,16 +1080,6 @@ class CodeEditor(TextEditBaseWidget):
             additional_msg = "cloned editor"
         else:
             additional_msg = ""
-
-            # We need to be sure that this signal is disconnected before
-            # calling document_did_open below because that method creates a
-            # unique connection for it and this method is called every time the
-            # server is restarted.
-            try:
-                self._timer_sync_symbols_and_folding.timeout.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-
             self.document_did_open()
 
         logger.debug(u"Completion services available for {0}: {1}".format(
@@ -1158,6 +1142,16 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
+
+        # We need to be sure that this signal is disconnected before trying to
+        # connect it below.
+        # Note: It can already be connected when the user requires a server
+        # restart or when the server failed to start.
+        # Fixes spyder-ide/spyder#20679
+        try:
+            self._timer_sync_symbols_and_folding.timeout.disconnect()
+        except (TypeError, RuntimeError):
+            pass
 
         # The connect is performed here instead of in __init__() because
         # notify_close() may have been called (which disconnects the signal).
@@ -3401,8 +3395,35 @@ class CodeEditor(TextEditBaseWidget):
             raise RuntimeError("Cell {} not found.".format(repr(cell)))
 
         cursor = QTextCursor(selected_block)
-        cell_code, _ = self.get_cell_as_executable_code(cursor)
-        return cell_code
+        text, _, off_pos, col_pos = self.get_cell_as_executable_code(cursor)
+        return text
+
+    def get_cell_code_and_position(self, cell):
+        """
+        Get code and position for a given cell.
+
+        If the cell doesn't exist, raise an exception.
+        """
+        selected_block = None
+        if is_string(cell):
+            for oedata in self.cell_list():
+                if oedata.def_name == cell:
+                    selected_block = oedata.block
+                    break
+        else:
+            if cell == 0:
+                selected_block = self.document().firstBlock()
+            else:
+                cell_list = list(self.cell_list())
+                if cell <= len(cell_list):
+                    selected_block = cell_list[cell - 1].block
+
+        if not selected_block:
+            raise RuntimeError("Cell {} not found.".format(repr(cell)))
+
+        cursor = QTextCursor(selected_block)
+        text, _, off_pos, col_pos = self.get_cell_as_executable_code(cursor)
+        return text, off_pos, col_pos
 
     def get_cell_count(self):
         """Get number of cells in document."""
@@ -4514,31 +4535,6 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.sig_show_object_info)
 
         # Run actions
-        self.run_cell_action = create_action(
-            self, _("Run cell"), icon=ima.icon('run_cell'),
-            shortcut=CONF.get_shortcut('editor', 'run cell'),
-            triggered=self.sig_run_cell)
-        self.run_cell_and_advance_action = create_action(
-            self, _("Run cell and advance"), icon=ima.icon('run_cell_advance'),
-            shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
-            triggered=self.sig_run_cell_and_advance)
-        self.re_run_last_cell_action = create_action(
-            self, _("Re-run last cell"),
-            shortcut=CONF.get_shortcut('editor', 're-run last cell'),
-            triggered=self.sig_re_run_last_cell)
-        self.run_selection_action = create_action(
-            self, _("Run &selection or current line"),
-            icon=ima.icon('run_selection'),
-            shortcut=CONF.get_shortcut('editor', 'run selection'),
-            triggered=self.sig_run_selection)
-        self.run_to_line_action = create_action(
-            self, _("Run to current line"),
-            shortcut=CONF.get_shortcut('editor', 'run to line'),
-            triggered=self.sig_run_to_line)
-        self.run_from_line_action = create_action(
-            self, _("Run from current line"),
-            shortcut=CONF.get_shortcut('editor', 'run from line'),
-            triggered=self.sig_run_from_line)
 
         # Zoom actions
         zoom_in_action = create_action(
@@ -4577,13 +4573,10 @@ class CodeEditor(TextEditBaseWidget):
 
         # Build menu
         self.menu = QMenu(self)
-        actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
-                     self.re_run_last_cell_action, self.run_selection_action,
-                     self.run_to_line_action, self.run_from_line_action,
-                     self.gotodef_action, self.inspect_current_object_action,
-                     None, self.undo_action,
-                     self.redo_action, None, self.cut_action,
-                     self.copy_action, self.paste_action, selectall_action]
+        actions_1 = [self.gotodef_action, self.inspect_current_object_action,
+                     None, self.undo_action, self.redo_action, None,
+                     self.cut_action, self.copy_action,
+                     self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
                      None, toggle_comment_action, self.docstring_action,
                      self.format_action]
@@ -4660,8 +4653,10 @@ class CodeEditor(TextEditBaseWidget):
             # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
             # See spyder-ide/spyder#12663 and
             # https://bugreports.qt.io/browse/QTBUG-35861
-            if (parse_version(QT_VERSION) < parse_version('5.15')
-                    or os.name == 'nt' or sys.platform == 'darwin'):
+            if (
+                parse(QT_VERSION) < parse('5.15')
+                or os.name == 'nt' or sys.platform == 'darwin'
+            ):
                 cursor = self.textCursor()
                 cursor.setPosition(cursor.position())
                 self.setTextCursor(cursor)
@@ -5416,12 +5411,6 @@ class CodeEditor(TextEditBaseWidget):
                                                 nbformat is not None)
         self.ipynb_convert_action.setVisible(self.is_json() and
                                              nbformat is not None)
-        self.run_cell_action.setVisible(self.is_python_or_ipython())
-        self.run_cell_and_advance_action.setVisible(self.is_python_or_ipython())
-        self.run_selection_action.setVisible(self.is_python_or_ipython())
-        self.run_to_line_action.setVisible(self.is_python_or_ipython())
-        self.run_from_line_action.setVisible(self.is_python_or_ipython())
-        self.re_run_last_cell_action.setVisible(self.is_python_or_ipython())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
         formatter = CONF.get(

@@ -16,6 +16,9 @@ from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
 from spyder_kernels.comms.commbase import CommBase
 
+from spyder.config.base import (
+    get_debug_level, running_under_pytest)
+
 logger = logging.getLogger(__name__)
 TIMEOUT_KERNEL_START = 30
 
@@ -70,6 +73,9 @@ class KernelComm(CommBase, QObject):
     def _set_call_return_value(self, call_dict, data, is_error=False):
         """Override to use the comm_channel for all replies."""
         with self.comm_channel_manager(self.calling_comm_id, False):
+            if is_error and (get_debug_level() or running_under_pytest()):
+                # Disable error muting when debugging or testing
+                call_dict['settings']['display_error'] = True
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 

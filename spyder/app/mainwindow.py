@@ -137,7 +137,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     # Signals
     restore_scrollbar_position = Signal()
     sig_setup_finished = Signal()
-    all_actions_defined = Signal()
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")
     sig_moved = Signal("QMoveEvent")
@@ -242,21 +241,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.paste_action = None
         self.selectall_action = None
 
-        # Menu bars
-        self.edit_menu = None
-        self.edit_menu_actions = []
-        self.search_menu = None
-        self.search_menu_actions = []
-        self.source_menu = None
-        self.source_menu_actions = []
-        self.run_menu = None
-        self.run_menu_actions = []
-
         # TODO: Move to corresponding Plugins
         self.file_toolbar = None
         self.file_toolbar_actions = []
-        self.run_toolbar = None
-        self.run_toolbar_actions = []
 
         self.menus = []
 
@@ -419,7 +406,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             self.unmaximize_plugin)
 
         if isinstance(plugin, SpyderDockablePlugin):
-            plugin.sig_focus_changed.connect(self.plugin_focus_changed)
             plugin.sig_switch_to_plugin_requested.connect(
                 self.switch_to_plugin)
             plugin.sig_update_ancestor_requested.connect(
@@ -825,13 +811,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # TODO: Remove when all menus are migrated to use the Main Menu Plugin
         logger.info("Creating Menus...")
         from spyder.plugins.mainmenu.api import (
-            ApplicationMenus, FileMenuSections)
+            ApplicationMenus, FileMenuSections
+        )
         mainmenu = self.mainmenu
-        self.edit_menu = mainmenu.get_application_menu("edit_menu")
-        self.search_menu = mainmenu.get_application_menu("search_menu")
-        self.source_menu = mainmenu.get_application_menu("source_menu")
-        self.source_menu.aboutToShow.connect(self.update_source_menu)
-        self.run_menu = mainmenu.get_application_menu("run_menu")
 
         # Switcher shortcuts
         self.file_switcher_action = create_action(
@@ -856,38 +838,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.register_shortcut(self.symbol_finder_action, context="_",
                                name="symbol finder", add_shortcut_to_tip=True)
 
-        def create_edit_action(text, tr_text, icon):
-            textseq = text.split(' ')
-            method_name = textseq[0].lower() + "".join(textseq[1:])
-            action = create_action(self, tr_text,
-                                   icon=icon,
-                                   triggered=self.global_callback,
-                                   data=method_name,
-                                   context=Qt.WidgetShortcut)
-            self.register_shortcut(action, "Editor", text)
-            return action
-
-        self.undo_action = create_edit_action('Undo', _('Undo'),
-                                              ima.icon('undo'))
-        self.redo_action = create_edit_action('Redo', _('Redo'),
-                                              ima.icon('redo'))
-        self.copy_action = create_edit_action('Copy', _('Copy'),
-                                              ima.icon('editcopy'))
-        self.cut_action = create_edit_action('Cut', _('Cut'),
-                                             ima.icon('editcut'))
-        self.paste_action = create_edit_action('Paste', _('Paste'),
-                                               ima.icon('editpaste'))
-        self.selectall_action = create_edit_action("Select All",
-                                                   _("Select All"),
-                                                   ima.icon('selectall'))
-
-        self.edit_menu_actions += [self.undo_action, self.redo_action,
-                                   None, self.cut_action, self.copy_action,
-                                   self.paste_action, self.selectall_action,
-                                   None]
-        if self.get_plugin(Plugins.Editor, error=False):
-            self.edit_menu_actions += self.editor.edit_menu_actions
-
         switcher_actions = [
             self.file_switcher_action,
             self.symbol_finder_action
@@ -906,20 +856,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         logger.info("Creating toolbars...")
         toolbar = self.toolbar
         self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
-        self.run_toolbar = toolbar.get_application_toolbar("run_toolbar")
 
         self.set_splash(_("Setting up main window..."))
-
-        # TODO: Migrate to use the MainMenu Plugin instead of list of actions
-        # Filling out menu/toolbar entries:
-        add_actions(self.edit_menu, self.edit_menu_actions)
-        add_actions(self.search_menu, self.search_menu_actions)
-        add_actions(self.source_menu, self.source_menu_actions)
-        add_actions(self.run_menu, self.run_menu_actions)
-
-        # Emitting the signal notifying plugins that main window menu and
-        # toolbar actions are all defined:
-        self.all_actions_defined.emit()
 
     def __getattr__(self, attr):
         """
@@ -957,15 +895,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         if self.splash is not None:
             self.splash.hide()
-
-        # Menu about to show
-        for child in self.menuBar().children():
-            if isinstance(child, QMenu):
-                try:
-                    child.aboutToShow.connect(self.update_edit_menu)
-                    child.aboutToShow.connect(self.update_search_menu)
-                except TypeError:
-                    pass
 
         # Register custom layouts
         if self.layouts is not None:
@@ -1203,25 +1132,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     # ---- Other
     # -------------------------------------------------------------------------
-    def update_source_menu(self):
-        """Update source menu options that vary dynamically."""
-        # This is necessary to avoid an error at startup.
-        # Fixes spyder-ide/spyder#14901
-        try:
-            editor = self.get_plugin(Plugins.Editor, error=False)
-            if editor:
-                editor.refresh_formatter_name()
-        except AttributeError:
-            pass
-
     def free_memory(self):
         """Free memory after event."""
         gc.collect()
-
-    def plugin_focus_changed(self):
-        """Focus has changed from one plugin to another"""
-        self.update_edit_menu()
-        self.update_search_menu()
 
     def show_shortcuts(self, menu):
         """Show action shortcuts in menu."""
@@ -1282,73 +1195,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             readwrite_editor = not_readonly and not console
             textedit_properties = (console, not_readonly, readwrite_editor)
         return widget, textedit_properties
-
-    def update_edit_menu(self):
-        """Update edit menu"""
-        widget, textedit_properties = self.get_focus_widget_properties()
-        if textedit_properties is None:  # widget is not an editor/console
-            return
-        # !!! Below this line, widget is expected to be a QPlainTextEdit
-        #     instance
-        console, not_readonly, readwrite_editor = textedit_properties
-
-        if hasattr(self, 'editor'):
-            # Editor has focus and there is no file opened in it
-            if (not console and not_readonly and self.editor
-                    and not self.editor.is_file_opened()):
-                return
-
-        # Disabling all actions to begin with
-        for child in self.edit_menu.actions():
-            child.setEnabled(False)
-
-        self.selectall_action.setEnabled(True)
-
-        # Undo, redo
-        self.undo_action.setEnabled(readwrite_editor
-                                    and widget.document().isUndoAvailable())
-        self.redo_action.setEnabled(readwrite_editor
-                                    and widget.document().isRedoAvailable())
-
-        # Copy, cut, paste, delete
-        has_selection = widget.has_selected_text()
-        self.copy_action.setEnabled(has_selection)
-        self.cut_action.setEnabled(has_selection and not_readonly)
-        self.paste_action.setEnabled(not_readonly)
-
-        # Comment, uncomment, indent, unindent...
-        if not console and not_readonly:
-            # This is the editor and current file is writable
-            if self.get_plugin(Plugins.Editor, error=False):
-                for action in self.editor.edit_menu_actions:
-                    action.setEnabled(True)
-
-    def update_search_menu(self):
-        """Update search menu"""
-        # Disabling all actions except the last one
-        # (which is Find in files) to begin with
-        for child in self.search_menu.actions()[:-1]:
-            child.setEnabled(False)
-
-        widget, textedit_properties = self.get_focus_widget_properties()
-        if textedit_properties is None:  # widget is not an editor/console
-            return
-
-        # !!! Below this line, widget is expected to be a QPlainTextEdit
-        #     instance
-        console, not_readonly, readwrite_editor = textedit_properties
-
-        # Find actions only trigger an effect in the Editor
-        if not console:
-            for action in self.search_menu.actions():
-                try:
-                    action.setEnabled(True)
-                except RuntimeError:
-                    pass
-
-        # Disable the replace action for read-only files
-        if len(self.search_menu_actions) > 3:
-            self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def set_splash(self, message):
         """Set splash message"""
@@ -1438,19 +1284,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                 dockwidget, location = plugin._create_dockwidget()
                 self.addDockWidget(location, dockwidget)
                 self.widgetlist.append(plugin)
-
-    def global_callback(self):
-        """Global callback"""
-        widget = QApplication.focusWidget()
-        action = self.sender()
-        callback = from_qvariant(action.data(), to_text_string)
-        from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-        from spyder.plugins.ipythonconsole.widgets import ControlWidget
-
-        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
-            getattr(widget, callback)()
-        else:
-            return
 
     def redirect_internalshell_stdio(self, state):
         console = self.get_plugin(Plugins.Console, error=False)

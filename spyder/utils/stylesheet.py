@@ -306,7 +306,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             )
 
             css['QTabWidget::tab-bar'].setValues(
-                alignment='center',
+                alignment='left',
             )
         else:
             # Remove spurious pixel to the left

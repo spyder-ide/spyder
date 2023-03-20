@@ -16,17 +16,12 @@ import sys
 from qtpy.QtCore import QTimer, Signal
 
 # Local imports
-from spyder.api.translations import get_translation
 from spyder.api.widgets.status import BaseTimerStatus
 from spyder.config.base import is_pynsist, running_in_mac_app
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.pyenv import get_list_pyenv_envs
 from spyder.utils.workers import WorkerManager
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class InterpreterStatus(BaseTimerStatus):
@@ -127,6 +122,7 @@ class InterpreterStatus(BaseTimerStatus):
     def _get_env_info(self, path):
         """Get environment information."""
         path = path.lower() if os.name == 'nt' else path
+
         try:
             name = self.path_to_env[path]
         except KeyError:
@@ -144,6 +140,7 @@ class InterpreterStatus(BaseTimerStatus):
             version = get_interpreter_info(path)
             self.path_to_env[path] = name
             self.envs[name] = (path, version)
+
         __, version = self.envs[name]
         return f'{name} ({version})'
 
@@ -174,7 +171,12 @@ class InterpreterStatus(BaseTimerStatus):
 
     def update_envs(self, worker, output, error):
         """Update the list of environments in the system."""
-        self.envs.update(**output)
+        # This is necessary to avoid an error when the worker can't return a
+        # proper output.
+        # Fixes spyder-ide/spyder#20539
+        if output is not None:
+            self.envs.update(**output)
+
         for env in list(self.envs.keys()):
             path, version = self.envs[env]
             # Save paths in lowercase on Windows to avoid issues with

@@ -201,16 +201,6 @@ class SpyderCondaPkg(BuildCondaPkg):
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
-        self.logger.info("Creating Spyder source patch...")
-
-        patch = self.repo.git.diff(
-            "...origin/installers-conda-patch"
-        )
-        # newline keyword is not added to pathlib until Python>=3.10,
-        # so we must use open to ensure LF on Windows
-        with open(SPYPATCHFILE, 'w', newline='\n') as f:
-            f.write(patch)
-
         self.logger.info("Creating Spyder menu file...")
         _menufile = RESOURCES / "spyder-menu.json"
         menufile = DIST / "spyder-menu.json"
@@ -222,27 +212,6 @@ class SpyderCondaPkg(BuildCondaPkg):
         menufile.write_text(text)
 
     def _patch_meta(self, meta):
-        # Add source code patch
-        search_patches = re.compile(
-            r'^source:\n([ ]{2,}.*\n)*  patches:\n(    .*\n)+',
-            flags=re.MULTILINE
-        )
-        if search_patches.search(meta):
-            # Append patch to existing patches
-            meta = search_patches.sub(
-                rf'\g<0>    - {SPYPATCHFILE.name}\n', meta
-            )
-        else:
-            # Add patch node
-            meta = re.sub(
-                r'^source:\n([ ]{2,}.*\n)*',
-                rf'\g<0>  patches:\n    - {SPYPATCHFILE.name}\n',
-                meta, flags=re.MULTILINE
-            )
-        # Copy source code patch to feedstock
-        src_patch = self._fdstk_path / "recipe" / SPYPATCHFILE.name
-        copy(SPYPATCHFILE, src_patch)
-
         # Remove osx_is_app
         meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
                       r'\g<1>', meta, flags=re.MULTILINE)

@@ -588,6 +588,7 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
             current_namespace=current_namespace,
             exec_fun=debugger.run,
             stack_depth=1,
+            post_mortem=post_mortem
         )
 
 
@@ -688,7 +689,8 @@ def debugcell(cellname, filename=None, post_mortem=False):
             filename=filename,
             canonic_filename=debugger.canonic(filename),
             exec_fun=debugger.run,
-            stack_depth=1
+            stack_depth=1,
+            post_mortem=post_mortem
         )
 
 

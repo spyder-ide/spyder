@@ -21,18 +21,20 @@ import sys
 import tempfile
 import threading
 import time
+import logging
 
 # Third party imports
+from packaging.version import parse
 import pkg_resources
-from pkg_resources import parse_version
 import psutil
 
 # Local imports
-from spyder.config.base import (running_under_pytest, get_home_dir,
-                                running_in_mac_app)
+from spyder.config.base import _, running_under_pytest, get_home_dir
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
+
+logger = logging.getLogger(__name__)
 HERE = osp.abspath(osp.dirname(__file__))
 
 
@@ -82,42 +84,32 @@ def is_program_installed(basename):
     """
     home = get_home_dir()
     req_paths = []
-    if sys.platform == 'darwin':
-        if basename.endswith('.app') and osp.exists(basename):
-            return basename
+    if (
+        sys.platform == 'darwin'
+        and basename.endswith('.app')
+        and osp.exists(basename)
+    ):
+        return basename
 
+    if os.name == 'posix':
         pyenv = [
+            osp.join(home, '.pyenv', 'bin'),
             osp.join('/usr', 'local', 'bin'),
-            osp.join(home, '.pyenv', 'bin')
         ]
 
-        # Prioritize Anaconda before Miniconda; local before global.
-        a = [osp.join(home, 'opt'), '/opt']
-        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-
-        req_paths.extend(pyenv + conda)
-
-    elif sys.platform.startswith('linux'):
-        pyenv = [
-            osp.join('/usr', 'local', 'bin'),
-            osp.join(home, '.pyenv', 'bin')
-        ]
-
-        a = [home, '/opt']
-        b = ['anaconda', 'miniconda', 'anaconda3', 'miniconda3']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-
-        req_paths.extend(pyenv + conda)
-
-    elif os.name == 'nt':
+        a = [home, osp.join(home, 'opt'), '/opt']
+        b = ['mambaforge', 'miniforge3', 'miniforge',
+             'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
+    else:
         pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
 
-        a = [home, 'C:\\', osp.join('C:\\', 'ProgramData')]
-        b = ['Anaconda', 'Miniconda', 'Anaconda3', 'Miniconda3']
-        conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+        a = [home, osp.join(home, 'AppData', 'Local'),
+             'C:\\', osp.join('C:\\', 'ProgramData')]
+        b = ['Mambaforge', 'Miniforge3', 'Miniforge',
+             'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
 
-        req_paths.extend(pyenv + conda)
+    conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+    req_paths.extend(pyenv + conda)
 
     for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
@@ -715,6 +707,122 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     return p_args
 
 
+def run_general_file_in_terminal(
+    executable: str,
+    args: str,
+    fname: str,
+    script_args: str,
+    wdir: str,
+    close_after_exec: bool = False,
+    windows_shell: str = "cmd.exe /K"
+):
+    """
+    Run a file on a given CLI executable.
+
+    Arguments
+    ---------
+    executable: str
+        Name or path to the executable.
+    args: str
+        Arguments to pass to the executable.
+    fname: str
+        Path to the file to execute in the shell interpreter/executable.
+    script_args: str
+        File arguments
+    wdir: str
+        Working directory path from which the file will be executed.
+    windows_shell: str
+        Name of the executable to use as shell (Windows only).
+    """
+
+    # Quote fname in case it has spaces (all platforms)
+    # fname = f'"{fname}"'
+    wdir = None if not wdir else wdir  # Cannot be empty string
+    args = shell_split(args)
+    script_args = shell_split(script_args)
+    p_args = args + [fname] + script_args
+    p_args = [f'"{x}"' for x in p_args]
+
+    if os.name == 'nt':
+        if wdir is not None:
+            # wdir can come with / as os.sep, so we need to take care of it.
+            wdir = wdir.replace('/', '\\')
+
+        # python_exe must be quoted in case it has spaces
+        cmd = f'start {windows_shell} ""{executable}" '
+        cmd += ' '.join(p_args)  # + '"'
+        logger.info('Executing on external console: %s', cmd)
+
+        try:
+            run_shell_command(cmd, cwd=wdir)
+        except WindowsError:
+            from qtpy.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                None,
+                _('Run'),
+                _("It was not possible to run this file in an external "
+                  "terminal"),
+                QMessageBox.Ok
+            )
+    elif sys.platform.startswith('linux'):
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '--'},
+                    {'cmd': 'konsole', 'execute-option': '-e'},
+                    {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
+                    {'cmd': 'xterm', 'execute-option': '-e'}]
+        for program in programs:
+            if is_program_installed(program['cmd']):
+                f = None
+                if not close_after_exec:
+                    f = tempfile.NamedTemporaryFile(
+                        'wt',
+                        prefix='run_spyder_',
+                        suffix='.sh',
+                        dir=get_temp_dir(),
+                        delete=False
+                    )
+
+                    logger.info('Executing on external console: %s',
+                                ' '.join([executable] + p_args))
+                    f.write(' '.join([executable] + p_args) + '\n')
+                    f.write(f'read -p "{_("Press enter to continue...")}"\n')
+                    executable = '/usr/bin/bash'
+                    p_args = [f.name]
+
+                cmd = [program['cmd'], program['execute-option'], executable]
+                cmd.extend(p_args)
+                run_shell_command(' '.join(cmd), cwd=wdir)
+                if f:
+                    f.close()
+                return
+    elif sys.platform == 'darwin':
+        f = tempfile.NamedTemporaryFile(
+            'wt',
+            prefix='run_spyder_',
+            suffix='.sh',
+            dir=get_temp_dir(),
+            delete=False
+        )
+        if wdir:
+            f.write('cd "{}"\n'.format(wdir))
+        f.write(' '.join([executable] + p_args) + '\n')
+        if not close_after_exec:
+            f.write(f'read -p "{_("Press enter to continue...")}"\n')
+        f.close()
+        os.chmod(f.name, 0o777)
+
+        def run_terminal_thread():
+            proc = run_shell_command(f'open -a Terminal.app {f.name}')
+            # Prevent race condition
+            time.sleep(3)
+            proc.wait()
+            os.remove(f.name)
+
+        thread = threading.Thread(target=run_terminal_thread)
+        thread.start()
+    else:
+        raise NotImplementedError
+
+
 def run_python_script_in_terminal(fname, wdir, args, interact, debug,
                                   python_args, executable=None, pypath=None):
     """
@@ -746,7 +854,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
             # UNC paths start with \\
             if osp.splitdrive(wdir)[0].startswith("\\\\"):
                 from qtpy.QtWidgets import QMessageBox
-                from spyder.config.base import _
                 QMessageBox.critical(
                     None,
                     _('Run'),
@@ -763,7 +870,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
             run_shell_command(cmd, cwd=wdir, env=env)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
-            from spyder.config.base import _
             QMessageBox.critical(
                 None,
                 _('Run'),
@@ -772,7 +878,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
                 QMessageBox.Ok
             )
     elif sys.platform.startswith('linux'):
-        programs = [{'cmd': 'gnome-terminal', 'execute-option': '-x'},
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '--'},
                     {'cmd': 'konsole', 'execute-option': '-e'},
                     {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
                     {'cmd': 'xterm', 'execute-option': '-e'}]
@@ -788,8 +894,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact, debug,
                                         delete=False)
         if wdir:
             f.write('cd "{}"\n'.format(wdir))
-        if running_in_mac_app(executable):
-            f.write(f'export PYTHONHOME={os.environ["PYTHONHOME"]}\n')
         if pypath is not None:
             f.write(f'export PYTHONPATH={pypath}\n')
         f.write(' '.join([executable] + p_args))
@@ -813,8 +917,8 @@ def check_version_range(module_version, version_range):
     """
     Check if a module's version lies in `version_range`.
     """
-    if ';' in version_range:
-        versions = version_range.split(';')
+    if ',' in version_range:
+        versions = version_range.split(',')
     else:
         versions = [version_range]
 
@@ -825,10 +929,13 @@ def check_version_range(module_version, version_range):
         symb = _ver[:match.start()]
         if not symb:
             symb = '='
-        assert symb in ('>=', '>', '=', '<', '<='),\
-            "Invalid version condition '%s'" % symb
+
+        if symb not in ['>=', '>', '=', '<', '<=', '!=']:
+            raise RuntimeError(f"Invalid version condition '{symb}'")
+
         ver = _ver[match.start():]
         output = output and check_version(module_version, ver, symb)
+
     return output
 
 
@@ -850,15 +957,17 @@ def check_version(actver, version, cmp_op):
 
     try:
         if cmp_op == '>':
-            return parse_version(actver) > parse_version(version)
+            return parse(actver) > parse(version)
         elif cmp_op == '>=':
-            return parse_version(actver) >= parse_version(version)
+            return parse(actver) >= parse(version)
         elif cmp_op == '=':
-            return parse_version(actver) == parse_version(version)
+            return parse(actver) == parse(version)
         elif cmp_op == '<':
-            return parse_version(actver) < parse_version(version)
+            return parse(actver) < parse(version)
         elif cmp_op == '<=':
-            return parse_version(actver) <= parse_version(version)
+            return parse(actver) <= parse(version)
+        elif cmp_op == '!=':
+            return parse(actver) != parse(version)
         else:
             return False
     except TypeError:

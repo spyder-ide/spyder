@@ -8,36 +8,38 @@
 Pylint Code Analysis Plugin.
 """
 
+# Standard library imports
+from typing import List
+
 # Third party imports
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
-from spyder.utils.programs import is_module_installed
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.api.translations import _
+from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.mainmenu.api import ApplicationMenus, SourceMenuSections
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import PylintWidget
-
-
-# Localization
-_ = get_translation("spyder")
+from spyder.plugins.run.api import (
+    RunContext, RunConfiguration, PossibleRunResult, run_execute,
+    ExtendedRunExecutionParameters, RunExecutor)
 
 
 class PylintActions:
     AnalyzeCurrentFile = 'run analysis'
 
 
-class Pylint(SpyderDockablePlugin):
+class Pylint(SpyderDockablePlugin, RunExecutor):
 
     NAME = "pylint"
     WIDGET_CLASS = PylintWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = PylintConfigPage
-    REQUIRES = [Plugins.Preferences, Plugins.Editor]
+    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
     OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
     TABIFY = [Plugins.Help]
     CONF_FILE = False
@@ -59,6 +61,8 @@ class Pylint(SpyderDockablePlugin):
         Word to select on given row.
     """
 
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Code Analysis")
@@ -78,17 +82,23 @@ class Pylint(SpyderDockablePlugin):
         widget.sig_open_preferences_requested.connect(
             self._open_interpreter_preferences
         )
-        # Add action to application menus
-        pylint_act = self.create_action(
-            PylintActions.AnalyzeCurrentFile,
-            text=_("Run code analysis"),
-            tip=_("Run code analysis"),
-            icon=self.create_icon("pylint"),
-            triggered=self.start_code_analysis,
-            context=Qt.ApplicationShortcut,
-            register_shortcut=True
-        )
-        pylint_act.setEnabled(is_module_installed("pylint"))
+
+        # To have a reference to the run action of this plugin
+        self.run_action = None
+
+        # Run configuration
+        self.executor_configuration = [
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': False,
+                'priority': 4
+            }
+        ]
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
@@ -99,11 +109,6 @@ class Pylint(SpyderDockablePlugin):
         widget.sig_edit_goto_requested.connect(editor.load)
         widget.sig_open_file_requested.connect(editor.load)
         editor.sig_editor_focus_changed.connect(self._set_filename)
-
-        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-
-        # TODO: use new API when editor has migrated
-        editor.pythonfile_dependent_actions += [pylint_act]
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -118,13 +123,29 @@ class Pylint(SpyderDockablePlugin):
         projects.sig_project_loaded.connect(self._set_project_dir)
         projects.sig_project_closed.connect(self._unset_project_dir)
 
-    @on_plugin_available(plugin=Plugins.MainMenu)
-    def on_main_menu_available(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
 
-        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-        mainmenu.add_item_to_application_menu(
-            pylint_act, menu_id=ApplicationMenus.Run)
+        self.run_action = run.create_run_in_executor_button(
+            RunContext.File,
+            self.NAME,
+            text=_("Run code analysis"),
+            tip=_("Run code analysis"),
+            icon=self.create_icon("pylint"),
+            shortcut_context='pylint',
+            register_shortcut=True,
+            add_to_menu=True
+        )
+
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        if mainmenu:
+            mainmenu.add_item_to_application_menu(
+                self.run_action,
+                menu_id=ApplicationMenus.Source,
+                section=SourceMenuSections.CodeAnalysis
+            )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -134,12 +155,6 @@ class Pylint(SpyderDockablePlugin):
         # Connect to Editor
         widget.sig_edit_goto_requested.disconnect(editor.load)
         editor.sig_editor_focus_changed.disconnect(self._set_filename)
-
-        pylint_act = self.get_action(PylintActions.AnalyzeCurrentFile)
-
-        # TODO: use new API when editor has migrated
-        pylint_act.setVisible(False)
-        editor.pythonfile_dependent_actions.remove(pylint_act)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -156,13 +171,7 @@ class Pylint(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        mainmenu.remove_item_from_application_menu(
-            PylintActions.AnalyzeCurrentFile,
-            menu_id=ApplicationMenus.Source
-        )
 
-    # --- Private API
-    # ------------------------------------------------------------------------
     def _open_interpreter_preferences(self):
         """Open the Preferences dialog in the Code analysis section."""
         self._main.show_preferences()
@@ -171,6 +180,23 @@ class Pylint(SpyderDockablePlugin):
         dlg = container.dialog
         index = dlg.get_index_by_name("pylint")
         dlg.set_current_index(index)
+        if self.run_action is not None:
+            mainmenu.remove_item_from_application_menu(
+                self.run_action.name,
+                menu_id=ApplicationMenus.Source
+            )
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
+        run.destroy_run_in_executor_button(
+            RunContext.File,
+            self.NAME)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
 
     @Slot()
     def _set_filename(self):
@@ -193,8 +219,8 @@ class Pylint(SpyderDockablePlugin):
         widget = self.get_widget()
         widget.set_conf("project_dir", None)
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def change_history_depth(self, value=None):
         """
         Change history maximum number of entries.
@@ -212,6 +238,18 @@ class Pylint(SpyderDockablePlugin):
         Get current filename in combobox.
         """
         return self.get_widget().get_filename()
+
+    @run_execute(context=RunContext.File)
+    def run_file(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[PossibleRunResult]:
+
+        self.switch_to_plugin()
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+        self.start_code_analysis(filename)
 
     @Slot()
     def start_code_analysis(self, filename=None):

@@ -26,12 +26,9 @@ from qtpy.QtWidgets import (
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.gui import get_font
 from spyder.widgets.helperwidgets import FinderWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class FramesBrowserState:
@@ -106,9 +103,9 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Handle pdb has stopped"""
         # this will set the focus to the editor
         self.sig_load_pdb_file.emit(fname, lineno)
-        if self.shellwidget._pdb_focus_to_editor:
-            # Focus to editor will be requested each time
-            self.shellwidget._pdb_focus_to_editor = False
+        if not self.shellwidget._pdb_take_focus:
+            # Not taking focus will be required on each call to the debugger
+            self.shellwidget._pdb_take_focus = True
         else:
             # take back focus
             self.shellwidget._control.setFocus()

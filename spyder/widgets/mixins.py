@@ -18,9 +18,9 @@ import re
 import sre_constants
 import sys
 import textwrap
-from pkg_resources import parse_version
 
 # Third party imports
+from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
@@ -1118,6 +1118,18 @@ class BaseEditMixin(object):
         cursor.select(QTextCursor.BlockUnderCursor)
         return to_text_string(cursor.selectedText())
 
+    def get_current_line_bounds(self):
+        """Return the (line, column) bounds for the current line."""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return self.get_selection_start_end(cursor)
+
+    def get_current_line_offsets(self):
+        """Return the start and end offset positions for the current line."""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return self.get_selection_offsets()
+
     def get_current_line_to_cursor(self):
         """Return text from prompt to cursor."""
         return self.get_text(self.current_prompt_pos, 'cursor')
@@ -1176,6 +1188,13 @@ class BaseEditMixin(object):
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
 
+    def get_selection_offsets(self, cursor=None):
+        """Return selection start and end offset positions."""
+        if cursor is None:
+            cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        return start, end
+
     #------Text selection
     def has_selected_text(self):
         """Returns True if some text is selected."""
@@ -1200,8 +1219,10 @@ class BaseEditMixin(object):
         # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
         # See spyder-ide/spyder#12663 and
         # https://bugreports.qt.io/browse/QTBUG-35861
-        if (parse_version(QT_VERSION) < parse_version('5.15')
-                or os.name == 'nt' or sys.platform == 'darwin'):
+        if (
+            parse(QT_VERSION) < parse('5.15')
+            or os.name == 'nt' or sys.platform == 'darwin'
+        ):
             cursor = self.textCursor()
             cursor.setPosition(cursor.position())
             self.setTextCursor(cursor)

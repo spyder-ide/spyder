@@ -21,20 +21,13 @@ class MainWindowMock(QMainWindow):
     register_shortcut = Mock()
     file_menu_actions = []
     file_toolbar_actions = []
-    edit_menu_actions = []
-    edit_toolbar_actions = []
-    run_menu_actions = []
-    run_toolbar_actions = []
-    source_menu_actions = []
-    source_toolbar_actions = []
-    search_menu_actions = []
     statusbar = Mock()
-    all_actions_defined = Mock()
     new_instance = Mock()
     plugin_focus_changed = Mock()
     fallback_completions = Mock()
     ipyconsole = Mock()
     mainmenu = Mock()
+    sig_setup_finished = Mock()
 
 
 @pytest.mark.parametrize(

@@ -19,16 +19,13 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 
 # Local imports
 from spyder import __version__
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import is_pynsist
 from spyder.utils.icon_manager import ima
 from spyder.workers.updates import WorkerDownloadInstaller
 
 # Logger setup
 logger = logging.getLogger(__name__)
-
-# Localization
-_ = get_translation('spyder')
 
 # Update installation process statuses
 NO_STATUS = __version__

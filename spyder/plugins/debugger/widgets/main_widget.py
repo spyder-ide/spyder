@@ -13,14 +13,11 @@ from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.config.gui import get_color_scheme
 from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
-
-# Localization
-_ = get_translation('spyder')
 
 
 # =============================================================================
@@ -42,12 +39,6 @@ class DebuggerWidgetActions:
     ToggleExcludeInternal = 'toggle_exclude_internal_action'
     ToggleCaptureLocals = 'toggle_capture_locals_action'
     ToggleLocalsOnClick = 'toggle_show_locals_on_click_action'
-
-
-class DebuggerToolbarActions:
-    DebugCurrentFile = 'debug file'
-    DebugCurrentCell = 'debug cell'
-    DebugCurrentSelection = 'debug selection'
 
 
 class DebuggerBreakpointActions:
@@ -113,14 +104,6 @@ class DebuggerWidget(ShellConnectMainWidget):
     shellwidget: object
         The shellwidget the request originated from
     """
-
-    sig_debug_file = Signal()
-    """This signal is emitted to request the current file to be debugged."""
-
-    sig_debug_cell = Signal()
-    """This signal is emitted to request the current cell to be debugged."""
-    sig_debug_selection = Signal()
-    """This signal is emitted to request the current line to be debugged."""
 
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
@@ -271,33 +254,6 @@ class DebuggerWidget(ShellConnectMainWidget):
             icon=self.create_icon('fromcursor'),
             triggered=self.goto_current_step,
             register_shortcut=True
-        )
-
-        self.create_action(
-            DebuggerToolbarActions.DebugCurrentFile,
-            text=_("&Debug file"),
-            tip=_("Debug file"),
-            icon=self.create_icon('debug'),
-            triggered=self.sig_debug_file,
-            register_shortcut=True,
-        )
-
-        self.create_action(
-            DebuggerToolbarActions.DebugCurrentCell,
-            text=_("Debug cell"),
-            tip=_("Debug cell"),
-            icon=self.create_icon('debug_cell'),
-            triggered=self.sig_debug_cell,
-            register_shortcut=True,
-        )
-
-        self.create_action(
-            DebuggerToolbarActions.DebugCurrentSelection,
-            text=_("Debug selection or current line"),
-            tip=_("Debug selection or current line"),
-            icon=self.create_icon('debug_selection'),
-            triggered=self.sig_debug_selection,
-            register_shortcut=True,
         )
 
         self.create_action(
@@ -528,6 +484,16 @@ class DebuggerWidget(ShellConnectMainWidget):
                       'in debug mode.')
         sw.append_html_message(debug_msg, before_prompt=True)
 
+    def set_pdb_take_focus(self, take_focus):
+        """
+        Set whether current Pdb session should take focus when stopping on the
+        next call.
+        """
+        widget = self.current_widget()
+        if widget is None:
+            return False
+        widget.shellwidget._pdb_take_focus = take_focus
+
     @Slot(bool)
     def toggle_finder(self, checked):
         """Show or hide finder."""
@@ -622,6 +588,4 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        focus_to_editor = self.get_conf("focus_to_editor", section="editor")
-        widget.shellwidget.pdb_execute_command(
-            command, focus_to_editor=focus_to_editor)
+        widget.shellwidget.pdb_execute_command(command)
