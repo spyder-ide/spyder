@@ -4235,13 +4235,13 @@ class CodeEditor(TextEditBaseWidget):
         return True
 
     def create_new_cell(self):
-        firstline = '#%% ' + self.get_line_separator()
+        firstline = '# %%' + self.get_line_separator()
         endline = self.get_line_separator()
         cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            endline = self.get_line_separator() + '#%%'
+            endline = self.get_line_separator() + '# %%'
         else:
             start_pos = end_pos = cursor.position()
 
