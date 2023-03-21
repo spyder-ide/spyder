@@ -34,7 +34,7 @@ class SwitcherContainer(PluginMainContainer):
     # --- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
-        self.switcher = Switcher(self)
+        self.switcher = Switcher(self._plugin.get_main())
         self.switcher.sig_rejected.connect(self.sig_rejected)
         self.switcher.sig_text_changed.connect(self.sig_text_changed)
         self.switcher.sig_item_changed.connect(self.sig_item_changed)
@@ -46,3 +46,31 @@ class SwitcherContainer(PluginMainContainer):
 
     # --- Public API
     # ------------------------------------------------------------------------
+    def open_switcher(self, symbol=False):
+        """Open switcher dialog box."""
+        switcher = self.switcher
+        if switcher is not None and switcher.isVisible():
+            switcher.clear()
+            switcher.hide()
+            return
+        if symbol:
+            switcher.set_search_text('@')
+        else:
+            switcher.set_search_text('')
+            switcher.setup()
+        switcher.show()
+
+        # Note: The +8 pixel on the top makes it look better
+        # FIXME: Why is this using the toolbars menu? A: To not be on top of
+        # the toolbars.
+        # Probably toolbars should be taken into account for this 'delta' only
+        # when are visible
+        mainwindow = self._plugin.get_main()
+        delta_top = (mainwindow.toolbar.toolbars_menu.geometry().height() +
+                        mainwindow.menuBar().geometry().height() + 8)
+
+        switcher.set_position(delta_top)
+
+    def open_symbolfinder(self):
+        """Open symbol list management dialog box."""
+        self.open_switcher(symbol=True)

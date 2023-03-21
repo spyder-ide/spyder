@@ -222,6 +222,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             'projects': Plugins.Projects,
             'findinfiles': Plugins.Find,
             'layouts': Plugins.Layout,
+            'switcher': Plugins.Switcher,
         }
 
         self.thirdparty_plugins = []

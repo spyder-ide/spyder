@@ -389,8 +389,6 @@ DEFAULTS = [
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
-              '_/file switcher': 'Ctrl+P',
-              '_/symbol finder': 'Ctrl+Alt+P',
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
@@ -506,6 +504,9 @@ DEFAULTS = [
               'pylint/run file in pylint': "F8",
               # ---- In Profiler ----
               'profiler/run file in profiler': "F10",
+              # ---- In Switcher ----
+              'switcher/file switcher': 'Ctrl+P',
+              'switcher/symbol finder': 'Ctrl+Alt+P',
               # ---- In widgets/ipythonconsole/shell.py ----
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
