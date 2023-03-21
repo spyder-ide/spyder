@@ -226,9 +226,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         self.thirdparty_plugins = []
 
-        # File switcher
-        self.switcher = None
-
         # Preferences
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -712,10 +709,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-        # Switcher instance
-        logger.info("Loading switcher...")
-        self.create_switcher()
-
         # Load and register internal and external plugins
         external_plugins = find_external_plugins()
         internal_plugins = find_internal_plugins()
@@ -827,28 +820,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.source_menu = mainmenu.get_application_menu("source_menu")
         self.source_menu.aboutToShow.connect(self.update_source_menu)
 
-        # Switcher shortcuts
-        self.file_switcher_action = create_action(
-            self,
-            _('File switcher...'),
-            icon=ima.icon('filelist'),
-            tip=_('Fast switch between files'),
-            triggered=self.open_switcher,
-            context=Qt.ApplicationShortcut,
-            id_='file_switcher'
-        )
-        self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher")
-        self.symbol_finder_action = create_action(
-            self, _('Symbol finder...'),
-            icon=ima.icon('symbol_find'),
-            tip=_('Fast symbol search in file'),
-            triggered=self.open_symbolfinder,
-            context=Qt.ApplicationShortcut,
-            id_='symbol_finder'
-        )
-        self.register_shortcut(self.symbol_finder_action, context="_",
-                               name="symbol finder", add_shortcut_to_tip=True)
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
@@ -882,17 +853,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if self.get_plugin(Plugins.Editor, error=False):
             self.edit_menu_actions += self.editor.edit_menu_actions
 
-        switcher_actions = [
-            self.file_switcher_action,
-            self.symbol_finder_action
-        ]
-        for switcher_action in switcher_actions:
-            mainmenu.add_item_to_application_menu(
-                switcher_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Switcher,
-                before_section=FileMenuSections.Restart
-            )
         self.set_splash("")
 
         # Toolbars
@@ -1630,43 +1590,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Wrapper to handle plugins request to restart Spyder."""
         self.application.restart(
             reset=reset, close_immediately=close_immediately)
-
-    # ---- Global Switcher
-    # -------------------------------------------------------------------------
-    def open_switcher(self, symbol=False):
-        """Open switcher dialog box."""
-        if self.switcher is not None and self.switcher.isVisible():
-            self.switcher.clear()
-            self.switcher.hide()
-            return
-        if symbol:
-            self.switcher.set_search_text('@')
-        else:
-            self.switcher.set_search_text('')
-            self.switcher.setup()
-        self.switcher.show()
-
-        # Note: The +6 pixel on the top makes it look better
-        # FIXME: Why is this using the toolbars menu? A: To not be on top of
-        # the toolbars.
-        # Probably toolbars should be taken into account for this 'delta' only
-        # when are visible
-        delta_top = (self.toolbar.toolbars_menu.geometry().height() +
-                     self.menuBar().geometry().height() + 6)
-
-        self.switcher.set_position(delta_top)
-
-    def open_symbolfinder(self):
-        """Open symbol list management dialog box."""
-        self.open_switcher(symbol=True)
-
-    def create_switcher(self):
-        """Create switcher dialog instance."""
-        if self.switcher is None:
-            from spyder.plugins.switcher.widgets.switcher import Switcher
-            self.switcher = Switcher(self)
-
-        return self.switcher
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
