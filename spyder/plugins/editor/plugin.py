@@ -51,7 +51,7 @@ from spyder.plugins.editor.api.run import (
     SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
-from spyder.plugins.switcher.manager import EditorSwitcherManager
+# from spyder.plugins.switcher.manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
@@ -1232,13 +1232,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.add_dockwidget()
 
-        # Add modes to switcher
-        self.switcher_manager = EditorSwitcherManager(
-            self,
-            self.main.switcher,
-            self.get_current_editor,
-            self.get_current_editorstack,
-            section=self.get_plugin_title())
+        # # Add modes to switcher
+        # self.switcher_manager = EditorSwitcherManager(
+        #     self,
+        #     self.main.switcher, # this main.switcher instance no longer exists
+        #     section=self.get_plugin_title())
 
     def update_source_menu(self, options, **kwargs):
         option_names = [opt[-1] if isinstance(opt, tuple) else opt
