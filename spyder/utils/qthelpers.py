@@ -166,7 +166,7 @@ def keybinding(attr):
     return from_qvariant(QKeySequence.keyBindings(ks)[0], str)
 
 
-def keyevent_to_keysequence(event):
+def keyevent_to_keysequence_str(event):
     """Get key sequence corresponding to a key event as a string."""
     try:
         # See https://stackoverflow.com/a/20656496/438386 for context

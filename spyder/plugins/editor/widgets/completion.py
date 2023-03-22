@@ -20,7 +20,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
-from spyder.utils.qthelpers import keyevent_to_keysequence
+from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
@@ -367,7 +367,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # take effect in textedit.
             # Fixes spyder-ide/spyder#19372
             if modifier:
-                key_sequence = keyevent_to_keysequence(event)
+                key_sequence = keyevent_to_keysequence_str(event)
 
                 # Ask to save file if the user pressed the sequence for that.
                 # Fixes spyder-ide/spyder#14806

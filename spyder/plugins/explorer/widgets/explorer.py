@@ -42,7 +42,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (
-    file_uri, keyevent_to_keysequence, start_file)
+    file_uri, keyevent_to_keysequence_str, start_file)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -776,7 +776,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def keyPressEvent(self, event):
         """Handle keyboard shortcuts and special keys."""
-        key_seq = keyevent_to_keysequence(event)
+        key_seq = keyevent_to_keysequence_str(event)
 
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             self.clicked()
