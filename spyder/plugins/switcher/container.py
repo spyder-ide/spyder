@@ -21,7 +21,7 @@ from spyder.plugins.switcher.widgets.switcher import Switcher
 class SwitcherContainer(PluginMainContainer):
 
     # Signals
-
+    # signals needed when the EditorSwitcherManager is migrated
     # Dismissed switcher
     sig_rejected = Signal()
     # Search/Filter text changes

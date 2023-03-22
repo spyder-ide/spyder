@@ -1232,10 +1232,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.add_dockwidget()
 
-        # # Add modes to switcher
+        # Add modes to switcher
+        # TODO: 'Switcher' object has no attribute 'add_mode' 
+        # it is needed to create a public API that contains the methods 
+        # that handles the EditorSwitcherManager
+
         # self.switcher_manager = EditorSwitcherManager(
         #     self,
-        #     self.main.switcher, # this main.switcher instance no longer exists
+        #     self.main.switcher,
+        #     self.get_current_editor,
+        #     self.get_current_editorstack,
         #     section=self.get_plugin_title())
 
     def update_source_menu(self, options, **kwargs):
