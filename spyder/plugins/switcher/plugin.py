@@ -90,7 +90,7 @@ class Switcher(SpyderPluginV2):
                 action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Switcher,
-                before_section=FileMenuSections.Restart
+                before_section=FileMenuSections.Navigation
             )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)

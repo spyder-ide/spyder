@@ -1039,7 +1039,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.new_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.New,
-            before_section=FileMenuSections.Restart,
+            before_section=FileMenuSections.Open,
             omit_id=True)
         # Open section
         open_actions = [
@@ -1052,7 +1052,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 open_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Open,
-                before_section=FileMenuSections.Restart,
+                before_section=FileMenuSections.Save,
                 omit_id=True)
         # Save section
         save_actions = [
@@ -1067,7 +1067,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 save_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
-                before_section=FileMenuSections.Restart,
+                before_section=FileMenuSections.Print,
                 omit_id=True)
         # Print
         print_actions = [
@@ -1079,7 +1079,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 print_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Print,
-                before_section=FileMenuSections.Restart,
+                before_section=FileMenuSections.Close,
                 omit_id=True)
         # Close
         close_actions = [
@@ -1091,7 +1091,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 close_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart,
+                before_section=FileMenuSections.Switcher,
                 omit_id=True)
         # Navigation
         if sys.platform == 'darwin':
