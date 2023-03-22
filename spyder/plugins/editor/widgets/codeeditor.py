@@ -27,11 +27,11 @@ import re
 import sre_constants
 import sys
 import textwrap
-from pkg_resources import parse_version
 
 # Third party imports
 from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
+from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QEventLoop, QRegExp, Qt, QTimer, QThread,
@@ -1080,16 +1080,6 @@ class CodeEditor(TextEditBaseWidget):
             additional_msg = "cloned editor"
         else:
             additional_msg = ""
-
-            # We need to be sure that this signal is disconnected before
-            # calling document_did_open below because that method creates a
-            # unique connection for it and this method is called every time the
-            # server is restarted.
-            try:
-                self._timer_sync_symbols_and_folding.timeout.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-
             self.document_did_open()
 
         logger.debug(u"Completion services available for {0}: {1}".format(
@@ -1152,6 +1142,16 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
+
+        # We need to be sure that this signal is disconnected before trying to
+        # connect it below.
+        # Note: It can already be connected when the user requires a server
+        # restart or when the server failed to start.
+        # Fixes spyder-ide/spyder#20679
+        try:
+            self._timer_sync_symbols_and_folding.timeout.disconnect()
+        except (TypeError, RuntimeError):
+            pass
 
         # The connect is performed here instead of in __init__() because
         # notify_close() may have been called (which disconnects the signal).
@@ -4653,8 +4653,10 @@ class CodeEditor(TextEditBaseWidget):
             # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
             # See spyder-ide/spyder#12663 and
             # https://bugreports.qt.io/browse/QTBUG-35861
-            if (parse_version(QT_VERSION) < parse_version('5.15')
-                    or os.name == 'nt' or sys.platform == 'darwin'):
+            if (
+                parse(QT_VERSION) < parse('5.15')
+                or os.name == 'nt' or sys.platform == 'darwin'
+            ):
                 cursor = self.textCursor()
                 cursor.setPosition(cursor.position())
                 self.setTextCursor(cursor)
