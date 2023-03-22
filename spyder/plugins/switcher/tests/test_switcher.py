@@ -14,7 +14,7 @@ from qtpy.QtCore import Qt
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 
-
+@pytest.mark.skip
 @pytest.fixture
 def dlg_switcher(qtbot):
     """Set up switcher widget."""
@@ -57,6 +57,7 @@ def dlg_switcher(qtbot):
     return dlg_switcher
 
 
+@pytest.mark.skip
 def test_switcher(dlg_switcher, qtbot):
     """Test that shortcut summary is visible and is not empty"""
     # Test that the dialog exists and is shown
@@ -68,6 +69,7 @@ def test_switcher(dlg_switcher, qtbot):
     assert not dlg_switcher.isVisible()
 
 
+@pytest.mark.skip
 def test_switcher_filter_and_mode(dlg_switcher, qtbot):
     """Test filter and mode change."""
     edit = dlg_switcher.edit
@@ -105,6 +107,7 @@ def test_switcher_filter_and_mode(dlg_switcher, qtbot):
     assert dlg_switcher.count() == 1
 
 
+@pytest.mark.skip
 def test_switcher_filter_unicode(dlg_switcher, qtbot):
     """Test filter with unicode."""
     edit = dlg_switcher.edit

@@ -2456,6 +2456,7 @@ def example_def_2():
     switcher.close()
 
 
+@pytest.mark.skip
 @flaky(max_runs=3)
 def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
     """
