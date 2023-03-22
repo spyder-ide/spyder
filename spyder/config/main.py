@@ -389,7 +389,7 @@ DEFAULTS = [
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
-              # -- Switch to --
+              # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
@@ -530,13 +530,13 @@ DEFAULTS = [
               # -- Files --
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
-              'explorer/copy absolute path': 'Ctrl+Alt+C',
-              'explorer/copy relative path': 'Alt+Shift+C',
+              'explorer/copy absolute path': 'Alt+Shift+C',
+              'explorer/copy relative path': 'Alt+Shift+D',
               # -- Projects --
               'project_explorer/copy file': 'Ctrl+C',
               'project_explorer/paste file': 'Ctrl+V',
-              'project_explorer/copy absolute path': 'Ctrl+Alt+C',
-              'project_explorer/copy relative path': 'Alt+Shift+C',
+              'project_explorer/copy absolute path': 'Alt+Shift+C',
+              'project_explorer/copy relative path': 'Alt+Shift+D',
               # -- Find --
               'find_in_files/find in files': 'Alt+Shift+F',
               }),
