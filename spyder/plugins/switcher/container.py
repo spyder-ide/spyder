@@ -8,6 +8,7 @@
 """Switcher Main Container."""
 
 # Third-party imports
+from qtpy.QtCore import Qt
 from qtpy.QtCore import Signal
 
 # Spyder imports
@@ -35,6 +36,27 @@ class SwitcherContainer(PluginMainContainer):
     # ------------------------------------------------------------------------
     def setup(self):
         self.switcher = Switcher(self._plugin.get_main())
+
+        # Switcher shortcuts
+        self.create_action(
+            'file switcher',
+            _('File switcher...'),
+            icon= self._plugin.get_icon(),
+            tip=_('Fast switch between files'),
+            triggered=self.open_switcher,
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut
+        )
+        
+        self.create_action(
+            'symbol finder',
+            _('Symbol finder...'),
+            icon=self.create_icon('symbol_find'),
+            tip=_('Fast symbol search in file'),
+            triggered=self.open_symbolfinder,
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut
+        )
         self.switcher.sig_rejected.connect(self.sig_rejected)
         self.switcher.sig_text_changed.connect(self.sig_text_changed)
         self.switcher.sig_item_changed.connect(self.sig_item_changed)

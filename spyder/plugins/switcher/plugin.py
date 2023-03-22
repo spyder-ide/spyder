@@ -10,7 +10,6 @@ Switcher Plugin.
 """
 
 # Third-party imports
-from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.api.translations import _
@@ -59,33 +58,12 @@ class Switcher(SpyderPluginV2):
 
     def on_initialize(self):
         container = self.get_container()
-
-         # Switcher shortcuts
-        self.create_action(
-            SwitcherActions.FileSwitcherAction,
-            _('File switcher...'),
-            icon= self.get_icon(),
-            tip=_('Fast switch between files'),
-            triggered=container.open_switcher,
-            register_shortcut=True,
-            context=Qt.ApplicationShortcut
-        )
-        
-        self.create_action(
-            SwitcherActions.SymbolFinderAction,
-            _('Symbol finder...'),
-            icon=self.create_icon('symbol_find'),
-            tip=_('Fast symbol search in file'),
-            triggered=container.open_symbolfinder,
-            register_shortcut=True,
-            context=Qt.ApplicationShortcut
-        )
     
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for switcher_action in [SwitcherActions.FileSwitcherAction, SwitcherActions.SymbolFinderAction]:
-            action = self.get_action(switcher_action)
+            action = self.get_container().get_action(switcher_action)
             mainmenu.add_item_to_application_menu(
                 action,
                 menu_id=ApplicationMenus.File,
@@ -97,7 +75,7 @@ class Switcher(SpyderPluginV2):
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for switcher_action in [SwitcherActions.FileSwitcherAction, SwitcherActions.SymbolFinderAction]:
-            action = self.get_action(switcher_action)
+            action = self.get_container().get_action(switcher_action)
             mainmenu.remove_item_from_application_menu(
             action,
             menu_id=ApplicationMenus.File)
