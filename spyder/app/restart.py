@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
 from spyder.app.utils import create_splash_screen
-from spyder.config.base import _, running_in_mac_app
+from spyder.config.base import _, running_in_mac_app, is_pynsist
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication
@@ -230,6 +230,11 @@ def main():
     if running_in_mac_app(sys.executable):
         exe = env['EXECUTABLEPATH']
         command = [f'"{exe}"']
+    elif is_pynsist():
+        pynsist_installation = osp.dirname(spyder_dir)
+        pynsist_python = osp.join(pynsist_installation, "Python", "pythonw.exe")
+        pynsist_script = osp.join(pynsist_installation, "Spyder.launch.pyw")
+        command = [f'"{pynsist_python}"', f'"{pynsist_script}"']
     else:
         if is_bootstrap:
             script = osp.join(spyder_dir, 'bootstrap.py')
