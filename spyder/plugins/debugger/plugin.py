@@ -538,7 +538,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
 
         run_input: CellRun = input['run_input']
         if run_input['copy']:
-            console.run_selection("%%debug\n" + run_input['cell'])
+            code = run_input['cell']
+            if not code.strip():
+                # Empty cell
+                return
+            console.run_selection("%%debug\n" + code)
             return
 
         exec_params = conf['params']
@@ -562,7 +566,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             return
 
         run_input: SelectionRun = input['run_input']
-        run_input['selection'] = "%%debug\n" + run_input['selection']
+        code = run_input['selection']
+        if not code.strip():
+            # No selection
+            return
+
+        run_input['selection'] = "%%debug\n" + code
 
         console.exec_selection(input, conf)
 

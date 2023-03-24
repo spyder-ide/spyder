@@ -17,8 +17,9 @@ import re
 # Third-party imports
 from IPython.core.history import HistoryManager
 from IPython.core.inputtransformer2 import TransformerManager
-from IPython.lib.lexers import IPythonLexer, IPython3Lexer
-from pygments.lexer import bygroups
+from IPython.lib.lexers import (
+    IPythonLexer, IPython3Lexer, PythonLexer, Python3Lexer, bygroups, using
+)
 from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -33,14 +34,20 @@ from spyder.config.base import get_conf_path
 class SpyderIPy3Lexer(IPython3Lexer):
     # Detect !cmd command and highlight them
     tokens = IPython3Lexer.tokens
-    tokens['root'].insert(
-        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
+    spyder_tokens = [
+        (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
+        (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
+        ]
+    tokens['root'] = spyder_tokens + tokens['root']
 
 
 class SpyderIPy2Lexer(IPythonLexer):
     tokens = IPython3Lexer.tokens
-    tokens['root'].insert(
-        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
+    spyder_tokens = [
+        (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(PythonLexer))),
+        (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(PythonLexer))),
+        ]
+    tokens['root'] = spyder_tokens + tokens['root']
 
 
 class PdbHistory(HistoryManager):

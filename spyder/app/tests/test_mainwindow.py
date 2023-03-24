@@ -511,13 +511,13 @@ def test_get_help_ipython_console(main_window, qtbot):
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write some object in the console
-    qtbot.keyClicks(control, 'runfile')
+    qtbot.keyClicks(control, 'get_ipython')
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "SpyderShell"), timeout=6000)
 
 
 @flaky(max_runs=3)
@@ -674,10 +674,10 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
-    # Wait until continue and stop on the breakpoint
-    qtbot.waitUntil(lambda: "IPdb [2]:" in control.toPlainText())
+    # Check we went to the first breakpoint
+    assert "2---> 2 a = 10" in control.toPlainText()
 
-    # Verify that we are still on debugging
+    # Verify that we are still debugging
     assert shell.is_waiting_pdb_input()
 
     # Remove breakpoint and close test file
@@ -3282,13 +3282,14 @@ def test_debug_unsaved_file(main_window, qtbot):
     qtbot.wait(500)
 
     # Start debugging
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # There is a breakpoint, so it should continue
-    qtbot.waitUntil(
-        lambda: '!continue' in shell._control.toPlainText())
-    qtbot.waitUntil(
-        lambda: "1---> 2 print(1)" in control.toPlainText())
+    assert "1---> 2 print(1)" in control.toPlainText()
+    
+    # Verify that we are still  debugging
+    assert shell.is_waiting_pdb_input()
 
 
 @flaky(max_runs=3)
@@ -5155,6 +5156,50 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
     assert 'spyder-boilerplate' in external_names
 
 
+def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
+    """Test that the debugger can handle variables named globals and locals"""
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Test profilefile
+    code = (
+        "globals = 10\n"
+        "def fun():\n"
+        "    locals = 15\n"
+        "    return\n"
+        "fun()"
+        )
+    p = tmpdir.join("test_gl.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+
+    # Run file inside a debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("debugfile(" + repr(str(p)) + ")")
+
+    # Add breakpoint on line 4 and go there
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("b 4")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("c")
+
+    # Make sure we can look at the variables
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("globals")
+    assert "Out  [3]: 10" in shell._control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("locals")
+    assert "Out  [4]: 15" in shell._control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+
+    # no errors
+    assert "error" not in shell._control.toPlainText().lower()
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_print_multiprocessing(main_window, qtbot, tmpdir):
