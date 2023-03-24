@@ -97,7 +97,11 @@ def path_is_library(path, initial_pathlist=None):
 
 
 def capture_last_Expr(code_ast, out_varname):
-    """Parse line and modify code to capture in globals the last expression."""
+    """
+    Parse line and modify code to capture in globals the last expression.
+
+    The namespace must contain __spyder_builtins__ that is the builtins module
+    """
     # Modify ast code to capture the last expression
     capture_last_expression = False
     if (
@@ -108,7 +112,8 @@ def capture_last_Expr(code_ast, out_varname):
         expr_node = code_ast.body[-1]
         # Create new assign node
         assign_node = ast.parse(
-            'globals()[{}] = None'.format(repr(out_varname))).body[0]
+            '__spyder_builtins__.globals()[{}] = None'.format(
+                repr(out_varname))).body[0]
         # Replace None by the value
         assign_node.value = expr_node.value
         # Fix line number and column offset
@@ -118,7 +123,7 @@ def capture_last_Expr(code_ast, out_varname):
             # Exists from 3.8, necessary from 3.11
             assign_node.end_lineno = expr_node.end_lineno
             if assign_node.lineno == assign_node.end_lineno:
-                # Add 'globals()[{}] = ' and remove 'None'
+                # Add '__spyder_builtins__.globals()[{}] = ' and remove 'None'
                 assign_node.end_col_offset += expr_node.end_col_offset - 4
             else:
                 assign_node.end_col_offset = expr_node.end_col_offset
