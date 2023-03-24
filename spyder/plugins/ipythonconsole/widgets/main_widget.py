@@ -2516,9 +2516,17 @@ class IPythonConsoleWidget(PluginMainWidget):
         match = get_error_match(str(text))
         if match:
             fname, lnb = match.groups()
-            if ("<ipython-input-" in fname and
-                    self.run_cell_filename is not None):
+            if (
+                "<ipython-input-" in fname
+                and self.run_cell_filename is not None
+            ):
                 fname = self.run_cell_filename
+
+            # For IPython 8+ tracebacks.
+            # Fixes spyder-ide/spyder#20407
+            if '~' in fname:
+                fname = osp.expanduser(fname)
+
             # This is needed to fix issue spyder-ide/spyder#9217.
             try:
                 self.sig_edit_goto_requested.emit(
