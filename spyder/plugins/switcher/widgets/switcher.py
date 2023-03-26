@@ -166,7 +166,7 @@ class Switcher(QDialog):
             self.current_item_changed)
         self.edit.setFocus()
 
-    # --- Helper methods
+    # ---- Helper methods
     def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
         item.set_width(self._ITEM_WIDTH)
@@ -179,7 +179,7 @@ class Switcher(QDialog):
             self.set_height()
         self.setup_sections()
 
-    # --- API
+    # ---- API
     def clear(self):
         """Remove all items from the list and clear the search text."""
         self.set_placeholder_text('')
@@ -360,7 +360,7 @@ class Switcher(QDialog):
         """Handle item selection."""
         self.sig_item_changed.emit(self.current_item())
 
-    # --- Qt overrides
+    # ---- Qt overrides
     # ------------------------------------------------------------------------
     @Slot()
     @Slot(QListWidgetItem)
@@ -388,7 +388,7 @@ class Switcher(QDialog):
         """Override Qt method."""
         super(Switcher, self).resizeEvent(event)
 
-    # --- Helper methods: Lineedit widget
+    # ---- Helper methods: Lineedit widget
     def search_text(self):
         """Get the normalized (lowecase) content of the search text."""
         return to_text_string(self.edit.text()).lower()
@@ -397,7 +397,7 @@ class Switcher(QDialog):
         """Set the content of the search text."""
         self.edit.setText(string)
 
-    # --- Helper methods: List widget
+    # ---- Helper methods: List widget
     def _is_separator(self, item):
         """Check if item is an separator item (SwitcherSeparatorItem)."""
         return isinstance(item, SwitcherSeparatorItem)
