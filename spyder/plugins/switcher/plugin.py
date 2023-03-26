@@ -15,9 +15,8 @@ Switcher Plugin.
 from spyder.api.translations import _
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import on_plugin_available, on_plugin_teardown
-from spyder.plugins.switcher.confpage import SwitcherConfigPage
 from spyder.plugins.switcher.container import SwitcherContainer
-from spyder.plugins.mainmenu.api import (ApplicationMenus, FileMenuSections)
+from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
 
 
 # --- Constants
@@ -35,10 +34,8 @@ class Switcher(SpyderPluginV2):
     """
 
     NAME = "switcher"
-    REQUIRES = []
     OPTIONAL = [Plugins.MainMenu]
     CONTAINER_CLASS = SwitcherContainer
-    CONF_WIDGET_CLASS = SwitcherConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False
 
@@ -51,7 +48,7 @@ class Switcher(SpyderPluginV2):
         return _("Switcher")
 
     def get_description(self):
-        return _("A multi purpose switcher.")
+        return _("A multi-purpose switcher.")
 
     def get_icon(self):
         return self.create_icon('filelist')

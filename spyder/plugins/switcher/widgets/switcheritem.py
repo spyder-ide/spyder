@@ -66,7 +66,7 @@ class SwitcherBaseItem(QStandardItem):
         """
         raise NotImplementedError
 
-    # --- API
+    # ---- API
     def set_width(self, value):
         """Set the content width."""
         self._width = value - (self._padding * 3)
@@ -93,7 +93,7 @@ class SwitcherBaseItem(QStandardItem):
         """Return whether the item is of action type."""
         return bool(self._action_item)
 
-    # --- Qt overrides
+    # ---- Qt overrides
     def refresh(self):
         """Override Qt."""
         super(SwitcherBaseItem, self).refresh()
@@ -129,7 +129,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         self.setFlags(Qt.NoItemFlags)
         self._set_rendered_text()
 
-    # --- Helpers
+    # ---- Helpers
     def _set_styles(self):
         """Set the styles for this item."""
         for attr in self._STYLE_ATTRIBUTES:
@@ -249,7 +249,7 @@ class SwitcherItem(SwitcherBaseItem):
         self._set_styles()
         self._set_rendered_text()
 
-    # --- Helpers
+    # ---- Helpers
     def _render_text(self, title=None, description=None, section=None):
         """Render the html template for this item."""
         if self._rich_title:
@@ -321,7 +321,7 @@ class SwitcherItem(SwitcherBaseItem):
         doc.setDocumentMargin(self._PADDING)
         return doc.size().height()
 
-    # --- API
+    # ---- API
     def set_icon(self, icon):
         """Set the QIcon for the list item."""
         self._icon = icon

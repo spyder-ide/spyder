@@ -57,6 +57,8 @@ class SwitcherContainer(PluginMainContainer):
             register_shortcut=True,
             context=Qt.ApplicationShortcut
         )
+
+        # Signals
         self.switcher.sig_rejected.connect(self.sig_rejected)
         self.switcher.sig_text_changed.connect(self.sig_text_changed)
         self.switcher.sig_item_changed.connect(self.sig_item_changed)
@@ -69,17 +71,19 @@ class SwitcherContainer(PluginMainContainer):
     # --- Public API
     # ------------------------------------------------------------------------
     def open_switcher(self, symbol=False):
-        """Open switcher dialog box."""
+        """Open switcher dialog."""
         switcher = self.switcher
         if switcher is not None and switcher.isVisible():
             switcher.clear()
             switcher.hide()
             return
+
         if symbol:
             switcher.set_search_text('@')
         else:
             switcher.set_search_text('')
             switcher.setup()
+
         switcher.show()
 
         # Note: The +8 pixel on the top makes it look better
@@ -89,7 +93,7 @@ class SwitcherContainer(PluginMainContainer):
         # when are visible
         mainwindow = self._plugin.get_main()
         delta_top = (mainwindow.toolbar.toolbars_menu.geometry().height() +
-                        mainwindow.menuBar().geometry().height() + 8)
+                     mainwindow.menuBar().geometry().height() + 8)
 
         switcher.set_position(delta_top)
 
