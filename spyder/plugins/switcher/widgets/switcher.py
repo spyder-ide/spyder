@@ -23,7 +23,7 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.utils import is_ubuntu
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
-from spyder.plugins.switcher.widgets.switcheritem import SwitcherItem, SwitcherBaseItem, SwitcherSeparatorItem
+from spyder.plugins.switcher.widgets.item import SwitcherItem, SwitcherSeparatorItem
 from spyder.py3compat import TEXT_TYPES, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.widgets.helperwidgets import HTMLDelegate
