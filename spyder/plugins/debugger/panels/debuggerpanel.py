@@ -14,7 +14,6 @@ from qtpy.QtGui import QPainter, QFontMetrics, QColor
 from spyder.utils.icon_manager import ima
 from spyder.api.panel import Panel
 from spyder.config.base import debug_print
-from spyder.plugins.outlineexplorer.api import is_cell_header
 
 
 class DebuggerPanel(Panel):
@@ -89,19 +88,11 @@ class DebuggerPanel(Panel):
 
         Paint breakpoints icons.
         """
-        super(DebuggerPanel, self).paintEvent(event)
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
-        # To paint the cell divider
-        pen = painter.pen()
-        pen.setStyle(Qt.SolidLine)
-        pen.setBrush(self.linecell_color)
-        painter.setPen(pen)
-
         for top, line_number, block in self.editor.visible_blocks:
-            if is_cell_header(block):
-                painter.drawLine(0, top, self.width(), top)
+            self.paint_cell(painter)
             if self.line_number_hint == line_number:
                 self._draw_breakpoint_icon(top, painter, "transparent")
             if self._current_line_arrow == line_number and not self.stop:

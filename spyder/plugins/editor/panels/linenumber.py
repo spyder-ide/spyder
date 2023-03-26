@@ -20,7 +20,6 @@ from qtpy.QtGui import QPainter, QColor, QStaticText, QFontMetricsF
 from spyder.utils.icon_manager import ima
 from spyder.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
-from spyder.plugins.outlineexplorer.api import is_cell_header
 
 
 class LineNumberArea(Panel):
@@ -70,6 +69,7 @@ class LineNumberArea(Panel):
 
         Painting line number area
         """
+
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         font_height = self.editor.fontMetrics().height()
@@ -98,15 +98,8 @@ class LineNumberArea(Panel):
 
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()
+            self.paint_cell(painter)
             if self._markers_margin and data:
-                # Paint cell line dividers
-                if is_cell_header(block):
-                    pen = painter.pen()
-                    pen.setStyle(Qt.SolidLine)
-                    pen.setBrush(self.linenumbers_color)
-                    painter.setPen(pen)
-                    painter.drawLine(0, top, self.width(), top)
-
                 if data.code_analysis:
                     errors = 0
                     warnings = 0

@@ -27,6 +27,7 @@ from qtpy.QtCore import Qt, QRect
 
 # Local imports
 from spyder.api.editorextension import EditorExtension
+from spyder.plugins.outlineexplorer.api import is_cell_header
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ class Panel(QWidget, EditorExtension):
         self.order_in_zone = -1
         self._scrollable = False
         self._background_brush = None
+        self.linecell_color = QColor(Qt.darkGray)
         self._foreground_pen = None
         # Position in the editor (top, left, right, bottom)
         self.position = -1
@@ -132,8 +134,22 @@ class Panel(QWidget, EditorExtension):
                 self.palette().windowText().color()))
             painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
+            # Paint cell dividers in the visible region
         else:
             logger.debug(f'paintEvent method must be defined in {self}')
+
+    def paint_cell(self, painter):
+        for top_position, line_number, block in self.editor.visible_blocks:
+            if (is_cell_header(block)
+                and (self.position == self.Position.LEFT or
+                     self.position == self.Position.RIGHT)):
+                pen = painter.pen()
+                pen.setStyle(Qt.SolidLine)
+                pen.setBrush(self.linecell_color)
+                painter.setPen(pen)
+                painter.drawLine(0, top_position, self.width(),
+                                 top_position)
+
 
     def sizeHint(self):
         """
