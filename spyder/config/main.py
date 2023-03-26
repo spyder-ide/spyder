@@ -375,8 +375,7 @@ DEFAULTS = [
              }),
             ('shortcuts',
              {
-              # ---- Global ----
-              # -- In app/spyder.py
+              # -- Application --
               '_/close pane': "Shift+Ctrl+F4",
               '_/lock unlock panes': "Shift+Ctrl+F5",
               '_/use next layout': "Shift+Alt+PgDown",
@@ -392,7 +391,7 @@ DEFAULTS = [
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
-              # -- In plugins/init
+              # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
@@ -406,15 +405,15 @@ DEFAULTS = [
               '_/switch to plots': "Ctrl+Shift+J" if MAC else "Ctrl+Shift+G",
               '_/switch to pylint': "Ctrl+Shift+C",
               '_/switch to profiler': "Ctrl+Shift+R",
-              # -- In widgets/findreplace.py
+              '_/switch to breakpoints': "Ctrl+Shift+B",
+              # -- Find/replace --
               'find_replace/find text': "Ctrl+F",
               'find_replace/find next': "Ctrl+G" if MAC else "F3",
               'find_replace/find previous': (
                   "Ctrl+Shift+G" if MAC else "Shift+F3"),
               'find_replace/replace text': "Ctrl+R",
               'find_replace/hide find and replace': "Escape",
-              # ---- Editor ----
-              # -- In widgets/sourcecode/codeeditor.py
+              # -- Editor --
               'editor/code completion': CTRL+'+Space',
               'editor/duplicate line up': (
                   "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
@@ -455,7 +454,6 @@ DEFAULTS = [
               'editor/paste': 'Ctrl+V',
               'editor/delete': 'Del',
               'editor/select all': "Ctrl+A",
-              # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
@@ -494,20 +492,19 @@ DEFAULTS = [
               'editor/docstring': "Ctrl+Alt+D",
               'editor/autoformatting': "Ctrl+Alt+I",
               'editor/show in external file explorer': '',
-              # -- In Breakpoints
-              '_/switch to breakpoints': "Ctrl+Shift+B",
-              # ---- Consoles (in widgets/shell) ----
+              # -- Internal console --
               'console/inspect current object': "Ctrl+I",
               'console/clear shell': "Ctrl+L",
               'console/clear line': "Shift+Escape",
-              # ---- In Pylint ----
+              # -- Pylint --
               'pylint/run file in pylint': "F8",
-              # ---- In Profiler ----
+              # -- Profiler --
               'profiler/run file in profiler': "F10",
               # ---- In Switcher ----
               'switcher/file switcher': 'Ctrl+P',
               'switcher/symbol finder': 'Ctrl+Alt+P',
               # ---- In widgets/ipythonconsole/shell.py ----
+              # -- IPython console --
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
               'ipython_console/restart kernel': "Ctrl+.",
@@ -516,15 +513,14 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              # ---- In widgets/arraybuider.py ----
+              # -- Array buider --
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
-              # ---- In widgets/variableexplorer/arrayeditor.py ----
+              # -- Variable explorer --
               'variable_explorer/copy': 'Ctrl+C',
-              # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
-              # ---- In widgets/debugger/framesbrowser.py ----
+              # -- Debugger --
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
               'debugger/run file in debugger': "Ctrl+F5",
@@ -537,7 +533,7 @@ DEFAULTS = [
               'debugger/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
-              # ---- In widgets/plots/figurebrowser.py ----
+              # -- Plots --
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
@@ -547,12 +543,17 @@ DEFAULTS = [
               'plots/close all': 'Ctrl+Shift+W',
               'plots/zoom in': "Ctrl++",
               'plots/zoom out': "Ctrl+-",
-              # ---- In widgets/explorer ----
+              # -- Files --
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
-              'explorer/copy absolute path': 'Ctrl+Alt+C',
-              'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
-              # ---- In plugins/findinfiles/plugin ----
+              'explorer/copy absolute path': 'Alt+Shift+C',
+              'explorer/copy relative path': 'Alt+Shift+D',
+              # -- Projects --
+              'project_explorer/copy file': 'Ctrl+C',
+              'project_explorer/paste file': 'Ctrl+V',
+              'project_explorer/copy absolute path': 'Alt+Shift+C',
+              'project_explorer/copy relative path': 'Alt+Shift+D',
+              # -- Find --
               'find_in_files/find in files': 'Alt+Shift+F',
               }),
             ('appearance', APPEARANCE),
@@ -659,4 +660,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '75.0.0'
+CONF_VERSION = '76.0.0'

@@ -48,14 +48,15 @@ class EditMenuSections:
 
 
 class SearchMenuSections:
-    Search = 'undo_redo_section'
+    FindInText = 'find_text_section'
+    FindInFiles = 'find_files_section'
 
 
 class SourceMenuSections:
     Options = 'options_section'
     Linting = 'linting_section'
     Cursor = 'cursor_section'
-    Actions = 'actions_section'
+    Formatting = 'formatting_section'
     CodeAnalysis = 'code_analysis_section'
 
 

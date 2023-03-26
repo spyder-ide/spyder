@@ -2175,9 +2175,13 @@ class EditorStack(QWidget):
             pass
 
         self.update_plugin_title.emit()
+
         # Make sure that any replace happens in the editor on top
         # See spyder-ide/spyder#9688.
         self.find_widget.set_editor(editor, refresh=False)
+
+        # Update total number of matches when switching files.
+        self.find_widget.update_matches()
 
         if editor is not None:
             # Needed in order to handle the close of files open in a directory
@@ -2694,8 +2698,14 @@ class EditorStack(QWidget):
         if processevents:
             self.starting_long_process.emit(_("Loading %s...") % filename)
 
-        # Read file contents
-        text, enc = encoding.read(filename)
+        # This is necessary to avoid a crash at startup when trying to restore
+        # files from the previous session.
+        # Fixes spyder-ide/spyder#20670
+        try:
+            # Read file contents
+            text, enc = encoding.read(filename)
+        except Exception:
+            return
 
         # Associate hash of file's text with its name for autosave
         self.autosave.file_hashes[filename] = hash(text)

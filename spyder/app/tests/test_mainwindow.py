@@ -32,7 +32,7 @@ from matplotlib.testing.compare import compare_images
 import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
-from pkg_resources import parse_version
+from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
@@ -61,6 +61,7 @@ from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
@@ -1122,7 +1123,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 @flaky(max_runs=3)
 @pytest.mark.skipif(
     (os.name == 'nt' or sys.platform == 'darwin' or
-     parse_version(ipy_release.version) == parse_version('7.11.0')),
+     parse(ipy_release.version) == parse('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_run_cython_code(main_window, qtbot):
@@ -2268,8 +2269,8 @@ def test_plots_scroll(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    (parse_version(ipy_release.version) >= parse_version('7.23.0') and
-     parse_version(ipykernel.__version__) <= parse_version('5.5.3')),
+    (parse(ipy_release.version) >= parse('7.23.0') and
+     parse(ipykernel.__version__) <= parse('5.5.3')),
     reason="Fails due to a bug in the %matplotlib magic")
 @pytest.mark.skipif(
     sys.platform.startswith('linux'),
@@ -2564,8 +2565,8 @@ def test_run_static_code_analysis(main_window, qtbot):
     result_content = treewidget.results
     assert result_content['C:']
 
-    pylint_version = parse_version(pylint.__version__)
-    if pylint_version < parse_version('2.5.0'):
+    pylint_version = parse(pylint.__version__)
+    if pylint_version < parse('2.5.0'):
         number_of_conventions = 5
     else:
         number_of_conventions = 3
@@ -2988,7 +2989,11 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     # Check the menus are correctly updated
     count = 0
-    for menu_item in main_window.source_menu_actions:
+    mainmenu = main_window.get_plugin(Plugins.MainMenu)
+    source_menu_actions = mainmenu.get_application_menu(
+        ApplicationMenus.Source
+    ).get_actions()
+    for menu_item in source_menu_actions:
         if menu_item and isinstance(menu_item, QAction):
             print(menu_item.text(), menu_item.isChecked())
 
@@ -5097,8 +5102,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
     # Test copy
     cursor = code_editor.textCursor()
     cursor.setPosition(69)
-    cursor.movePosition(QTextCursor.End,
-                        QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     qtbot.keyClick(code_editor, "c", modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == (
@@ -6118,6 +6122,68 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
         shell.execute("import sys; sys_path = sys.path")
 
     assert str(new_dir) in shell.get_value("sys_path")
+
+
+@flaky(max_runs=3)
+def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
+    """
+    Test that file names in IPython console tracebacks are clickable.
+
+    This is a regression test for issue spyder-ide/spyder#20407.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Open test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Introduce an error at the end of the file. This only works if the last
+    # line is empty.
+    text = code_editor.toPlainText()
+    assert text.splitlines(keepends=True)[-1].endswith('\n')
+
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    code_editor.setTextCursor(cursor)
+    qtbot.keyClicks(code_editor, '1/0')
+
+    # Run test file
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
+
+    # Find last 'File' line in traceback, which corresponds to the file we
+    # opened.
+    control.setFocus()
+    find_widget = main_window.ipyconsole.get_widget().find_widget
+    find_widget.show()
+    find_widget.search_text.lineEdit().setText('  File')
+    find_widget.find_previous()
+
+    # Position mouse on top of that line
+    cursor_point = control.cursorRect(control.textCursor()).center()
+    qtbot.mouseMove(control, cursor_point)
+    qtbot.wait(500)
+
+    # Check cursor shape is the right one
+    assert QApplication.overrideCursor().shape() == Qt.PointingHandCursor
+
+    # Click on the line and check that that sends us to the editor
+    qtbot.mouseClick(control.viewport(), Qt.LeftButton, pos=cursor_point,
+                     delay=300)
+    assert QApplication.focusWidget() is code_editor
+
+    # Check we are in the right line
+    cursor = code_editor.textCursor()
+    assert cursor.blockNumber() == code_editor.blockCount() - 1
+
+    # Remove error and save file
+    code_editor.delete_line()
+    code_editor.sig_save_requested.emit()
+    qtbot.wait(500)
 
 
 if __name__ == "__main__":
