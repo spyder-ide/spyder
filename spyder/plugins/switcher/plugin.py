@@ -59,8 +59,10 @@ class Switcher(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for switcher_action in [SwitcherActions.FileSwitcherAction, SwitcherActions.SymbolFinderAction]:
-            action = self.get_container().get_action(switcher_action)
+        for switcher_action in [
+                SwitcherActions.FileSwitcherAction,
+                SwitcherActions.SymbolFinderAction]:
+            action = self.get_action(switcher_action)
             mainmenu.add_item_to_application_menu(
                 action,
                 menu_id=ApplicationMenus.File,
@@ -71,8 +73,10 @@ class Switcher(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for switcher_action in [SwitcherActions.FileSwitcherAction, SwitcherActions.SymbolFinderAction]:
-            action = self.get_container().get_action(switcher_action)
+        for switcher_action in [
+                SwitcherActions.FileSwitcherAction,
+                SwitcherActions.SymbolFinderAction]:
+            action = self.get_action(switcher_action)
             mainmenu.remove_item_from_application_menu(
             action,
             menu_id=ApplicationMenus.File)

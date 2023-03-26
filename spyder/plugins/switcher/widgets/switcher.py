@@ -30,22 +30,24 @@ from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.utils.stringmatching import get_search_scores
 from spyder.plugins.switcher.utils import clean_string
 
+
 # Style dict constants
 FONT_SIZE = 10
 ITEM_STYLES = {
-        'title_color': ima.MAIN_FG_COLOR,
-        'description_color': 'rgb(153, 153, 153)',
-        'section_color': 'rgb(70, 179, 239)',
-        'shortcut_color': 'rgb(153, 153, 153)',
-        'title_font_size': FONT_SIZE,
-        'description_font_size': FONT_SIZE,
-        'section_font_size': FONT_SIZE,
-        'shortcut_font_size': FONT_SIZE,
-    }
+    'title_color': ima.MAIN_FG_COLOR,
+    'description_color': 'rgb(153, 153, 153)',
+    'section_color': 'rgb(70, 179, 239)',
+    'shortcut_color': 'rgb(153, 153, 153)',
+    'title_font_size': FONT_SIZE,
+    'description_font_size': FONT_SIZE,
+    'section_font_size': FONT_SIZE,
+    'shortcut_font_size': FONT_SIZE,
+}
+
 ITEM_SEPARATOR_STYLES = {
-        'color': ima.MAIN_FG_COLOR,
-        'font_size': FONT_SIZE,
-    }
+    'color': ima.MAIN_FG_COLOR,
+    'font_size': FONT_SIZE,
+}
 
 
 class KeyPressFilter(QObject):
