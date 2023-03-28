@@ -8,6 +8,14 @@ Changes in Jupyter Qt console
 5.4
 ~~~
 
+5.4.1
+-----
+
+`5.4.1 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.1>`__
+
+* Fix crash at startup with PySide6.
+* Cast images width and height to int when trying to insert them.
+
 5.4.0
 -----
 
