@@ -11,7 +11,6 @@ File used to start kernels for the IPython Console
 """
 
 # Standard library imports
-from distutils.version import LooseVersion
 import os
 import os.path as osp
 import sys
@@ -73,7 +72,6 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options."""
-    import ipykernel
     from IPython.core.application import get_ipython_dir
     from traitlets.config.loader import Config, load_pyconfig_files
 
@@ -149,19 +147,11 @@ def kernel_config():
     # use our config system to configure the
     # inline backend but want to use
     # '%matplotlib inline' at runtime
-    if LooseVersion(ipykernel.__version__) < LooseVersion('4.5'):
-        dpi_option = 'savefig.dpi'
-    else:
-        dpi_option = 'figure.dpi'
-
-    # The typical default figure size is too large for inline use,
-    # so we shrink the figure size to 6x4, and tweak fonts to
-    # make that fit.
     spy_cfg.InlineBackend.rc = {
         'figure.figsize': (6.0, 4.0),
         # 72 dpi matches SVG/qtconsole.
         # This only affects PNG export, as SVG has no dpi setting.
-        dpi_option: 72,
+        'figure.dpi': 72,
         # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
         'font.size': 10,
         # 10pt still needs a little more room on the xlabel
@@ -190,7 +180,8 @@ def kernel_config():
                 # Resolution
                 resolution_o = os.environ.get('SPY_RESOLUTION_O')
                 if resolution_o is not None:
-                    spy_cfg.InlineBackend.rc[dpi_option] = float(resolution_o)
+                    spy_cfg.InlineBackend.rc['figure.dpi'] = float(
+                        resolution_o)
 
                 # Figure size
                 width_o = float(os.environ.get('SPY_WIDTH_O'))
@@ -248,8 +239,7 @@ def kernel_config():
 
     # Disable the new mechanism to capture and forward low-level output
     # in IPykernel 6. For that we have Wurlitzer.
-    if LooseVersion(ipykernel.__version__) >= LooseVersion('6.3.0'):
-        spy_cfg.IPKernelApp.capture_fd_output = False
+    spy_cfg.IPKernelApp.capture_fd_output = False
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
