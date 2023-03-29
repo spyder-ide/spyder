@@ -17,7 +17,6 @@ import sys
 import site
 
 # Third-party imports
-from packaging.version import parse
 from traitlets import DottedObjectName
 
 # Local imports
