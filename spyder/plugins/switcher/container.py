@@ -41,7 +41,7 @@ class SwitcherContainer(PluginMainContainer):
         self.create_action(
             'file switcher',
             _('File switcher...'),
-            icon= self._plugin.get_icon(),
+            icon=self._plugin.get_icon(),
             tip=_('Fast switch between files'),
             triggered=self.open_switcher,
             register_shortcut=True,

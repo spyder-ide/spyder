@@ -387,7 +387,6 @@ DEFAULTS = [
               '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
-              # -- In plugins/editor
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
@@ -500,10 +499,9 @@ DEFAULTS = [
               'pylint/run file in pylint': "F8",
               # -- Profiler --
               'profiler/run file in profiler': "F10",
-              # ---- In Switcher ----
+              # -- Switcher --
               'switcher/file switcher': 'Ctrl+P',
               'switcher/symbol finder': 'Ctrl+Alt+P',
-              # ---- In widgets/ipythonconsole/shell.py ----
               # -- IPython console --
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",

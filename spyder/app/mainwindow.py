@@ -810,38 +810,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         mainmenu = self.mainmenu
 
 
-        def create_edit_action(text, tr_text, icon):
-            textseq = text.split(' ')
-            method_name = textseq[0].lower() + "".join(textseq[1:])
-            action = create_action(self, tr_text,
-                                   icon=icon,
-                                   triggered=self.global_callback,
-                                   data=method_name,
-                                   context=Qt.WidgetShortcut)
-            self.register_shortcut(action, "Editor", text)
-            return action
-
-        self.undo_action = create_edit_action('Undo', _('Undo'),
-                                              ima.icon('undo'))
-        self.redo_action = create_edit_action('Redo', _('Redo'),
-                                              ima.icon('redo'))
-        self.copy_action = create_edit_action('Copy', _('Copy'),
-                                              ima.icon('editcopy'))
-        self.cut_action = create_edit_action('Cut', _('Cut'),
-                                             ima.icon('editcut'))
-        self.paste_action = create_edit_action('Paste', _('Paste'),
-                                               ima.icon('editpaste'))
-        self.selectall_action = create_edit_action("Select All",
-                                                   _("Select All"),
-                                                   ima.icon('selectall'))
-
-        self.edit_menu_actions += [self.undo_action, self.redo_action,
-                                   None, self.cut_action, self.copy_action,
-                                   self.paste_action, self.selectall_action,
-                                   None]
-        if self.get_plugin(Plugins.Editor, error=False):
-            self.edit_menu_actions += self.editor.edit_menu_actions
-
         self.set_splash("")
 
         # Toolbars

@@ -52,7 +52,7 @@ from spyder.plugins.editor.api.run import (
     SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
-# from spyder.plugins.switcher.manager import EditorSwitcherManager
+from spyder.plugins.switcher.manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
@@ -1357,12 +1357,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # it is needed to create a public API that contains the methods 
         # that handles the EditorSwitcherManager
 
-        # self.switcher_manager = EditorSwitcherManager(
-        #     self,
-        #     self.main.switcher,
-        #     self.get_current_editor,
-        #     self.get_current_editorstack,
-        #     section=self.get_plugin_title())
+        self.switcher_manager = EditorSwitcherManager(
+            self,
+            self.main.switcher.get_container().switcher,
+            self.get_current_editor,
+            self.get_current_editorstack,
+            section=self.get_plugin_title())
 
     def base_edit_actions_callback(self):
         """Callback for base edit actions of text based widgets."""
