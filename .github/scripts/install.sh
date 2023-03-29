@@ -23,8 +23,8 @@ if [ "$USE_CONDA" = "true" ]; then
     # To check our manifest and coverage
     micromamba install check-manifest -c conda-forge codecov -q -y
 
-    # Install PyZMQ 24 to avoid hangs
-    micromamba install -c conda-forge pyzmq=24
+    # To test with Jupyter-client 8
+    micromamba install jupyter_client=8.1
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -47,8 +47,8 @@ else
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
 
-    # Install PyZMQ 24 to avoid hangs
-    pip install pyzmq==24.0.1
+    # To test with Jupyter-client 8
+    pip install jupyter-client==8.1
 fi
 
 # Install subrepos from source

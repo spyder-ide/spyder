@@ -538,6 +538,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         self.log.warning("kernel restarted")
         self._kernel_restarted_message(died=died)
+
+        # This resets the autorestart counter so that the kernel can be
+        # auto-restarted before the next time it's polled to see if it's alive.
+        if self.kernel_manager:
+            self.kernel_manager.reset_autorestart_count()
+
         self.reset()
 
     def _handle_inspect_reply(self, rep):
@@ -831,8 +837,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         # Calculate where the cursor should be *after* the change:
         position += added
-
-        document = self._control.document()
         if position == self._get_cursor().position():
             self._auto_call_tip()
 
