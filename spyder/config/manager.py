@@ -32,6 +32,7 @@ EXTRA_VALID_SHORTCUT_CONTEXTS = [
     'array_builder',
     'console',
     'find_replace',
+    'switcher'
 ]
 
 
