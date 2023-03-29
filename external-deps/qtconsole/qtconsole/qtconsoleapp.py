@@ -12,6 +12,8 @@ import signal
 import sys
 from warnings import warn
 
+from packaging.version import parse
+
 # If run on Windows:
 #
 # 1. Install an exception hook which pops up a message box.
@@ -416,8 +418,8 @@ class JupyterQtConsoleApp(JupyterApp, JupyterConsoleApp):
         # Fixes launching issues with Big Sur
         # https://bugreports.qt.io/browse/QTBUG-87014, fixed in qt 5.15.2
         if sys.platform == 'darwin':
-            v_5_15_2 = QtCore.QVersionNumber.fromString('5.15.2')[0]
-            v_current = QtCore.QVersionNumber.fromString(QT_VERSION)[0]
+            v_5_15_2 = parse('5.15.2')
+            v_current = parse(QT_VERSION)
             if v_current < v_5_15_2:
                 os.environ['QT_MAC_WANTS_LAYER'] = '1'
         self._init_asyncio_patch()

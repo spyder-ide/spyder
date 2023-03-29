@@ -22,6 +22,9 @@ if [ "$USE_CONDA" = "true" ]; then
 
     # To check our manifest and coverage
     micromamba install check-manifest -c conda-forge codecov -q -y
+
+    # To test with Jupyter-client 8
+    micromamba install jupyter_client=8.1
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -43,6 +46,9 @@ else
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
+
+    # To test with Jupyter-client 8
+    pip install jupyter-client==8.1
 fi
 
 # Install subrepos from source
