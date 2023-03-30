@@ -72,10 +72,8 @@ class SpyderShell(ZMQInteractiveShell):
         self.register_magics(code_runner)
         builtins.runfile = code_runner.runfile
         builtins.debugfile = code_runner.debugfile
-        builtins.profilefile = code_runner.profilefile
         builtins.runcell = code_runner.runcell
         builtins.debugcell = code_runner.debugcell
-        builtins.profilecell = code_runner.profilecell
         
     def ask_exit(self):
         """Engage the exit actions."""
