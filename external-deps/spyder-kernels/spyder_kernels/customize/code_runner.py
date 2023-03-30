@@ -197,6 +197,29 @@ class SpyderCodeRunner(Magics):
                 context_locals=local_ns,
             )
 
+    @runfile_arguments
+    @needs_local_scope
+    @line_magic
+    def profilefile(self, line, local_ns=None):
+        """
+        Profile a file.
+        """
+        args, local_ns = self._parse_runfile_argstring(
+            self.profilefile, line, local_ns)
+
+        with self._profile_exec() as prof_exec:
+            self._exec_file(
+                filename=args.filename,
+                canonic_filename=args.canonic_filename,
+                wdir=args.wdir,
+                current_namespace=args.current_namespace,
+                args=args.args,
+                exec_fun=prof_exec,
+                post_mortem=args.post_mortem,
+                context_globals=args.namespace,
+                context_locals=local_ns,
+            )
+
     @runcell_arguments
     @needs_local_scope
     @line_magic
@@ -234,6 +257,36 @@ class SpyderCodeRunner(Magics):
                 context_globals=self.shell.user_ns,
                 context_locals=local_ns,
             )
+
+    @runcell_arguments
+    @needs_local_scope
+    @line_magic
+    def profilecell(self, line, local_ns=None):
+        """
+        Profile a code cell from an editor.
+        """
+        args = self._parse_runcell_argstring(self.profilecell, line)
+
+        with self._profile_exec() as prof_exec:
+            return self._exec_cell(
+                cell_id=args.cell_id,
+                filename=args.filename,
+                canonic_filename=args.canonic_filename,
+                exec_fun=prof_exec,
+                post_mortem=args.post_mortem,
+                context_globals=self.shell.user_ns,
+                context_locals=local_ns,
+            )
+
+    @no_var_expand
+    @needs_local_scope
+    @line_cell_magic
+    def profile(self, line, cell=None, local_ns=None):
+        """Profile the given line."""
+        if cell is not None:
+            line += "\n" + cell
+        with self._profile_exec() as prof_exec:
+            return prof_exec(line, self.shell.user_ns, local_ns)
 
     @contextmanager
     def _debugger_exec(self, filename, continue_if_has_breakpoints):
@@ -273,6 +326,41 @@ class SpyderCodeRunner(Magics):
             # recursive debugger might change the position, but the parent
             # debugger (self) is not aware of this.
             session._previous_step = None
+
+    @contextmanager
+    def _profile_exec(self):
+        """Get an exec function for profiling."""
+        with tempfile.TemporaryDirectory() as tempdir:
+            # Reset the tracing function in case we are debugging
+            trace_fun = sys.gettrace()
+            sys.settrace(None)
+            # Get a file to save the results
+            profile_filename = os.path.join(tempdir, "profile.prof")
+            try:
+                if self.shell.is_debugging():
+                    def prof_exec(code, glob, loc):
+                        # if we are debugging (tracing), call_tracing is
+                        # necessary for profiling
+                        return sys.call_tracing(cProfile.runctx, (
+                            code, glob, loc, profile_filename
+                        ))
+                    yield prof_exec
+                else:
+                    yield partial(cProfile.runctx, filename=profile_filename)
+            finally:
+                # Resect tracing function
+                sys.settrace(trace_fun)
+                if os.path.isfile(profile_filename):
+                    # Send result to frontend
+                    with open(profile_filename, "br") as f:
+                        profile_result = f.read()
+                    try:
+                        frontend_request(blocking=False).show_profile_file(
+                            profile_result, create_pathlist()
+                        )
+                    except CommError:
+                        logger.debug(
+                            "Could not send profile result to the frontend.")
 
     def _exec_file(
         self,

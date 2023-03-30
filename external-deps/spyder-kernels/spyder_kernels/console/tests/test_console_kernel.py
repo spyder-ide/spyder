@@ -1406,5 +1406,35 @@ def test_django_settings(kernel):
     assert "'settings':" in nsview
 
 
+@flaky(max_runs=3)
+def test_running_namespace_profile(tmpdir):
+    """
+    Test that profile can get variables from running namespace.
+    """
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Remove all variables
+        client.execute_interactive("%reset -f", timeout=TIMEOUT)
+
+        # Write defined variable code to a file
+        code = "result = 10\n%profile print(result)\nsucess=True"
+        d = tmpdir.join("defined-test.ipy")
+        d.write(code)
+
+        # Run code file `d`
+        client.execute_interactive("%runfile {}"
+                                  .format(repr(str(d))), timeout=TIMEOUT)
+
+        # Verify that `result` is defined in the current namespace
+        client.inspect('sucess')
+        msg = client.get_shell_msg(timeout=TIMEOUT)
+        while "found" not in msg['content']:
+            msg = client.get_shell_msg(timeout=TIMEOUT)
+        content = msg['content']
+        assert content['found']
+
+
 if __name__ == "__main__":
     pytest.main()
