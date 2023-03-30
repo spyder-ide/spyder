@@ -111,6 +111,8 @@ def test_switcher_filter_unicode(dlg_switcher, qtbot):
     qtbot.wait(1000)
     assert dlg_switcher.count() == 2
 
+# Helper functions for tests
+
 
 def create_vcs_example_switcher(sw):
     """Add example data for vcs."""
@@ -201,15 +203,3 @@ def create_example_switcher(main=None):
 
     create_vcs_example_switcher(sw)
     sw.show()
-
-
-def test(main=None):  # pragma: no cover
-    """Launch the switcher with some test values."""
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-    create_example_switcher(main=main)
-    app.exec_()
-
-
-if __name__ == "__main__":  # pragma: no cover
-    test()
