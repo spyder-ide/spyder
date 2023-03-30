@@ -1837,15 +1837,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             is_spyder_kernel = client.shellwidget.is_spyder_kernel
 
             if is_spyder_kernel:
-                # Use custom function
-                line = (str(
-                        "{}({}, '{}')").format(
-                                str(method),
-                                repr(cell_name),
-                                norm(filename).replace("'", r"\'")))
+                if isinstance(cell_name, int):
+                    line = "%{} -i {} {}"
+                else:
+                    line = "%{} -n {} {}"
+                line = line.format(
+                    method,
+                    repr(cell_name),
+                    repr(norm(filename))
+                )
             elif method == 'runcell':
                 # Use copy of cell
                 line = code.strip()
+            elif method == 'debugcell':
+                line = "%%debug\n" + code.strip()
             else:
                 # Can not use custom function on non-spyder kernels
                 client.shellwidget.append_html_message(
@@ -1899,22 +1904,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 method = "runfile"
             # If spyder-kernels, use runfile
             if client.shellwidget.is_spyder_kernel:
-                line = method + "('%s'" % (norm(filename))
+                line = "%{} {}".format(method , repr(norm(filename)))
                 if args:
-                    line += ", args='%s'" % norm(args)
-                if (
-                    wdir and client.shellwidget.is_external_kernel
-                    and os.path.samefile(wdir, os.path.dirname(filename))
-                ):
-                    # No working directory for external kernels
-                    wdir = ""
+                    line += ' --args {}'.format(repr(norm(args)))
                 if wdir:
-                    line += ", wdir='%s'" % norm(wdir)
+                    if wdir == os.path.dirname(filename):
+                        # No working directory for external kernels
+                        # If it has not been explicitely given
+                        if not client.shellwidget.is_external_kernel:
+                            line += " --wdir"
+                    else:
+                        line += " --wdir {}".format(repr(norm(wdir)))
                 if post_mortem:
-                    line += ", post_mortem=True"
+                    line += " --post-mortem"
                 if console_namespace:
-                    line += ", current_namespace=True"
-                line += ")"
+                    line += " --current-namespace"
 
             elif method in ["runfile", "debugfile"]:
                 # External, non spyder-kernels, use %run

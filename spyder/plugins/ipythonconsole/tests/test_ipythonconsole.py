@@ -1666,7 +1666,7 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
 
     # Run file
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"runfile(filename=r'{str(file)}')")
+        shell.execute(f"%runfile {repr(str(file))}")
 
     # Assert we entered debugging after the print statement
     qtbot.wait(5000)
@@ -1774,7 +1774,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
     # Run file
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"debugfile(filename=r'{str(file)}')")
+        shell.execute(f"%debugfile {repr(str(file))}")
 
     # steps 4 times
     for i in range(4):

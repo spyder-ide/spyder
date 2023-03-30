@@ -519,7 +519,8 @@ class ConsoleWidget(PluginMainWidget):
         logger.debug("Running script with %s", args)
         filename = osp.abspath(filename)
         rbs = remove_backslashes
-        command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
+        command = '%runfile {} --args {}'.format(
+            repr(rbs(filename)), repr(rbs(args)))
 
         self.change_visibility(True, True)
 

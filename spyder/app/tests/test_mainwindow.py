@@ -1612,7 +1612,7 @@ def test_run_code(main_window, qtbot, tmpdir):
         shell.execute('%reset -f')
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runcell(0)')
+        shell.execute('%runcell -i 0')
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -2783,7 +2783,7 @@ def test_save_on_runfile(main_window, qtbot):
     qtbot.keyClicks(code_editor, 'test_var = 123', delay=100)
     filename = code_editor.filename
     with qtbot.waitSignal(shell.sig_prompt_ready):
-        shell.execute('runfile("{}")'.format(remove_backslashes(filename)))
+        shell.execute('%runfile {}'.format(repr(remove_backslashes(filename))))
 
     assert shell.get_value('test_var') == 123
     main_window.editor.close_file()
@@ -3314,7 +3314,7 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
         function = 'runcell'
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute(function + u"(0, r'{}')".format(to_text_string(p)))
+        shell.execute("%{} -i 0 {}".format(function, repr(to_text_string(p))))
 
     if debug:
         # Reach the 'name' input
@@ -3352,7 +3352,7 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
 
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("runcell(1, r'{}')".format(to_text_string(p)))
+        shell.execute("%runcell -i 1 {}".format(repr(to_text_string(p))))
 
     assert "1234" in shell._control.toPlainText()
     assert "This is not valid Python code" not in shell._control.toPlainText()
@@ -3550,17 +3550,17 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_cell_and_advance_button,
                          Qt.LeftButton)
-    qtbot.waitUntil(lambda: 'runcell(0' in shell._control.toPlainText(),
+    qtbot.waitUntil(lambda: '%runcell -i 0' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
-    assert 'runcell(0' in shell._control.toPlainText()
+    assert '%runcell -i 0' in shell._control.toPlainText()
     assert 'cell is empty' not in shell._control.toPlainText()
 
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_cell_and_advance_button,
                          Qt.LeftButton)
-    qtbot.waitUntil(lambda: 'runcell(1' in shell._control.toPlainText(),
+    qtbot.waitUntil(lambda: '%runcell -i 1' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
-    assert 'runcell(1' in shell._control.toPlainText()
+    assert '%runcell -i 1' in shell._control.toPlainText()
     assert 'Error' not in shell._control.toPlainText()
     assert 'cell is empty' in shell._control.toPlainText()
 
@@ -3740,8 +3740,8 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
 
     # Run tmp2 and get an error
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
-                      '", wdir="' + str(folder).replace("\\", "/") + '")')
+        shell.execute('%runfile ' + repr(str(test_file2).replace("\\", "/")) +
+                      ' --wdir ' + repr(str(folder).replace("\\", "/")))
     assert '1/0' in control.toPlainText()
 
     # Replace QApplication.processEvents to make sure it is not called
@@ -3803,8 +3803,8 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
     # Run tmp2 and get an error
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
-                      '", wdir="' + str(folder).replace("\\", "/") + '")')
+        shell.execute('%runfile ' + repr(str(test_file2).replace("\\", "/")) +
+                      ' --wdir ' + repr(str(folder).replace("\\", "/")))
     qtbot.wait(1000)
     assert '1/0' in control.toPlainText()
 
@@ -3941,7 +3941,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
 
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
+        shell.execute("%runcell -i 0 {}".format(repr(to_text_string(p))))
     control = main_window.ipyconsole.get_widget().get_focus_widget()
 
     error_text = 'save this file with the .ipy extension'
@@ -4047,7 +4047,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     main_window.debugger.clear_all_breakpoints()
 
     shell.execute(
-        "runfile(" + repr(str(file2)) + ")"
+        "%runfile " + repr(str(file2))
     )
 
     # Check nothing is in the variableexplorer
@@ -4071,7 +4071,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     # Run file inside a debugger
     with qtbot.waitSignal(shell.executed):
         shell.execute(
-            "debugfile(" + repr(str(file1)) + ")"
+            "%debugfile " + repr(str(file1))
         )
 
     # continue
@@ -4115,11 +4115,10 @@ def test_debug_namespace(main_window, qtbot, tmpdir):
 
     with qtbot.waitSignal(shell.executed):
         shell.execute(
-            "debugfile(" +
+            "%debugfile " +
             repr(str(file2)) +
-            ", wdir=" +
-            repr(str(tmpdir)) +
-            ")"
+            " --wdir " +
+            repr(str(tmpdir))
         )
 
     # Check nothing is in the variableexplorer
@@ -4161,8 +4160,7 @@ def test_post_mortem(main_window, qtbot, tmpdir):
     test_file.write('raise RuntimeError\n')
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute(
-            "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
+        shell.execute("%runfile " + repr(str(test_file)) + " --post-mortem")
 
     assert "IPdb [" in control.toPlainText()
 
@@ -5176,7 +5174,7 @@ def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
 
     # Run file inside a debugger
     with qtbot.waitSignal(shell.executed):
-        shell.execute("debugfile(" + repr(str(p)) + ")")
+        shell.execute("%debugfile " + repr(str(p)))
 
     # Add breakpoint on line 4 and go there
     with qtbot.waitSignal(shell.executed):
@@ -6231,6 +6229,55 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
     code_editor.delete_line()
     code_editor.sig_save_requested.emit()
     qtbot.wait(500)
+
+
+@flaky(max_runs=3)
+def test_runfile_namespace(main_window, qtbot, tmpdir):
+    """Test that the namespaces behave correctly when using runfile."""
+    baba_file = tmpdir.join("baba.py")
+    baba_file.write("baba = 1")
+    baba_path = to_text_string(baba_file)
+
+    # Create code
+    code = "\n".join([
+        "def fun():",
+        "    %runfile {}".format(repr(baba_path)),
+        '    print("test_locals", "baba" in locals(), "baba" in globals())',
+        "fun()",
+
+        "def fun():",
+        "    ns = {}",
+        "    %runfile {} --namespace ns".format(repr(baba_path)),
+        '    print("test_locals_namespace", "baba" in ns, "baba" in locals(), "baba" in globals())',
+        "fun()",
+
+        "ns = {}",
+        "%runfile {} --namespace ns".format(repr(baba_path)),
+        'print("test_globals_namespace", "baba" in ns, "baba" in globals())',
+
+        "%runfile {}".format(repr(baba_path)),
+        'print("test_globals", "baba" in globals())',
+    ])
+
+    p = tmpdir.join("test.ipy")
+    p.write(code)
+    test_file = to_text_string(p)
+
+    # Run file
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.execute('%runfile {}'.format(repr(test_file)))
+
+    # Check results
+    control = shell._control
+    assert "test_locals True False" in control.toPlainText()
+    assert "test_locals_namespace True False False" in control.toPlainText()
+    assert "test_globals_namespace True False" in control.toPlainText()
+    assert "test_globals True" in control.toPlainText()
 
 
 if __name__ == "__main__":
