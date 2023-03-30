@@ -1,27 +1,16 @@
 """ Defines a KernelClient that provides signals and slots.
 """
-import atexit
-import errno
-from threading import Thread
-import time
 
-import zmq
-# import ZMQError in top-level namespace, to avoid ugly attribute-error messages
-# during garbage collection of threads at exit:
-from zmq import ZMQError
-from zmq.eventloop import ioloop, zmqstream
-
+# Third-party imports
+from jupyter_client.channels import HBChannel
+from jupyter_client.threaded import ThreadedKernelClient, ThreadedZMQSocketChannel
 from qtpy import QtCore
+from traitlets import Type
 
 # Local imports
-from traitlets import Type, Instance
-from jupyter_client.channels import HBChannel
-from jupyter_client import KernelClient
-from jupyter_client.channels import InvalidPortNumber
-from jupyter_client.threaded import ThreadedKernelClient, ThreadedZMQSocketChannel
-
 from .kernel_mixins import QtKernelClientMixin
 from .util import SuperQObject
+
 
 class QtHBChannel(SuperQObject, HBChannel):
     # A longer timeout than the base class
@@ -36,11 +25,8 @@ class QtHBChannel(SuperQObject, HBChannel):
         # Emit the generic signal.
         self.kernel_died.emit(since_last_heartbeat)
 
-from jupyter_client import protocol_version_info
 
-major_protocol_version = protocol_version_info[0]
-
-class QtZMQSocketChannel(ThreadedZMQSocketChannel,SuperQObject):
+class QtZMQSocketChannel(ThreadedZMQSocketChannel, SuperQObject):
     """A ZMQ socket emitting a Qt signal when a message is received."""
     message_received = QtCore.Signal(object)
 
@@ -48,7 +34,6 @@ class QtZMQSocketChannel(ThreadedZMQSocketChannel,SuperQObject):
         """ Process any pending GUI events.
         """
         QtCore.QCoreApplication.instance().processEvents()
-
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -64,7 +49,6 @@ class QtZMQSocketChannel(ThreadedZMQSocketChannel,SuperQObject):
 class QtKernelClient(QtKernelClientMixin, ThreadedKernelClient):
     """ A KernelClient that provides signals and slots.
     """
-
     iopub_channel_class = Type(QtZMQSocketChannel)
     shell_channel_class = Type(QtZMQSocketChannel)
     stdin_channel_class = Type(QtZMQSocketChannel)
