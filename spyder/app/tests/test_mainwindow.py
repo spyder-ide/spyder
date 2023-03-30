@@ -2387,13 +2387,12 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
 
-@pytest.mark.skip
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
-    switcher = main_window.switcher
+    switcher = main_window.switcher.get_container().switcher
 
     # Assert that the full path of a file is shown in the switcher
     file_a = tmpdir.join('test_file_a.py')
@@ -2406,7 +2405,7 @@ def example_def_2():
 ''')
     main_window.editor.load(str(file_a))
 
-    main_window.open_switcher()
+    main_window.switcher.get_container().open_switcher()
     switcher_paths = [switcher.model.item(item_idx).get_description()
                       for item_idx in range(switcher.model.rowCount())]
     assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 75
@@ -2420,7 +2419,7 @@ def example_def_2():
     file_b.write('bar\n')
     main_window.editor.load(str(file_b))
 
-    main_window.open_switcher()
+    main_window.switcher.get_container().open_switcher()
     file_b_text = switcher.model.item(
         switcher.model.rowCount() - 1).get_description()
     assert '...' in file_b_text
@@ -2430,7 +2429,7 @@ def example_def_2():
     search_texts = ['test_file_a', 'file_b', 'foo_spam']
     expected_paths = [file_a, file_b, None]
     for search_text, expected_path in zip(search_texts, expected_paths):
-        main_window.open_switcher()
+        main_window.switcher.get_container().open_switcher()
         qtbot.keyClicks(switcher.edit, search_text)
         qtbot.wait(200)
         assert switcher.count() == bool(expected_path)
@@ -2450,14 +2449,13 @@ def example_def_2():
 
     qtbot.wait(9000)
 
-    main_window.open_switcher()
+    main_window.switcher.get_container().open_switcher()
     qtbot.keyClicks(switcher.edit, '@')
     qtbot.wait(200)
     assert switcher.count() == 2
     switcher.close()
 
 
-@pytest.mark.skip
 @flaky(max_runs=3)
 def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
     """
@@ -2508,12 +2506,12 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     # Add a file to the editor.
     file = tmpdir.join('test_file.py')
     file.write('''
-               def example_def():
-                   pass
+def example_def():
+    pass
 
-               def example_def_2():
-                   pass
-               ''')
+def example_def_2():
+    pass
+''')
     main_window.editor.load(str(file))
 
     code_editor = main_window.editor.get_focus_widget()
