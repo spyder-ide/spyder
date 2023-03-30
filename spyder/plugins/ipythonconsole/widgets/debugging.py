@@ -18,9 +18,9 @@ import re
 from IPython.core.history import HistoryManager
 from IPython.core.inputtransformer2 import TransformerManager
 from IPython.lib.lexers import (
-    IPythonLexer, IPython3Lexer, PythonLexer, Python3Lexer, bygroups, using
+    IPython3Lexer, Python3Lexer, bygroups, using
 )
-from pygments.token import Keyword, Operator, Text
+from pygments.token import Keyword, Operator
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEvent
@@ -38,15 +38,6 @@ class SpyderIPy3Lexer(IPython3Lexer):
         (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
         (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
     ]
-    tokens['root'] = spyder_tokens + tokens['root']
-
-
-class SpyderIPy2Lexer(IPythonLexer):
-    tokens = IPython3Lexer.tokens
-    spyder_tokens = [
-        (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(PythonLexer))),
-        (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(PythonLexer))),
-        ]
     tokens['root'] = spyder_tokens + tokens['root']
 
 
@@ -496,8 +487,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # add custom lexer
             if pygments_lexer == 'ipython3':
                 lexer = SpyderIPy3Lexer()
-            elif pygments_lexer == 'ipython2':
-                lexer = SpyderIPy2Lexer()
             else:
                 return
             self._highlighter._lexer = lexer
