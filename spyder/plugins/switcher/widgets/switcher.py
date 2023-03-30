@@ -6,24 +6,18 @@
 
 """Switcher Main Widget."""
 
-# Standard library imports
-import os
-import sys
 
 # Third party imports
-from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
-                         Signal, Slot, QModelIndex)
-from qtpy.QtGui import QStandardItem, QStandardItemModel, QTextDocument
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QLineEdit, QListView, QListWidgetItem, QStyle,
+from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex
+from qtpy.QtGui import QStandardItemModel
+from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
+                            QListView, QListWidgetItem, QStyle,
                             QVBoxLayout)
 
 # Local imports
-from spyder.config.base import _
-from spyder.config.manager import CONF
-from spyder.config.utils import is_ubuntu
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
-from spyder.plugins.switcher.widgets.item import SwitcherItem, SwitcherSeparatorItem
+from spyder.plugins.switcher.widgets.item import (
+    SwitcherItem, SwitcherSeparatorItem)
 from spyder.py3compat import TEXT_TYPES, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.widgets.helperwidgets import HTMLDelegate
