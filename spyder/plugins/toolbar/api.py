@@ -15,6 +15,7 @@ class ApplicationToolbars:
     File = 'file_toolbar'
     Run = 'run_toolbar'
     Debug = 'debug_toolbar'
+    Profile = 'profile_toolbar'
     Main = 'main_toolbar'
     WorkingDirectory = 'working_directory_toolbar'
 

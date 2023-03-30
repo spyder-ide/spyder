@@ -20,7 +20,7 @@ from IPython.core.inputtransformer2 import TransformerManager
 from IPython.lib.lexers import (
     IPython3Lexer, Python3Lexer, bygroups, using
 )
-from pygments.token import Keyword, Operator
+from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEvent
@@ -37,7 +37,9 @@ class SpyderIPy3Lexer(IPython3Lexer):
     spyder_tokens = [
         (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
         (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
-    ]
+        (r'(?s)(\s*)(%%profile)([^\n]*\n)(.*)', bygroups(
+            Text, Operator, Text, using(Python3Lexer))),
+        ]
     tokens['root'] = spyder_tokens + tokens['root']
 
 

@@ -6,36 +6,28 @@
 
 """Profiler config page."""
 
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
+from qtpy.QtWidgets import QVBoxLayout
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.plugins.profiler.widgets.main_widget import ProfilerWidget
 
 
 class ProfilerConfigPage(PluginConfigPage):
     def setup_page(self):
-        results_group = QGroupBox(_("Results"))
-        results_label1 = QLabel(_("Profiler plugin results "
-                                  "(the output of python's profile/cProfile)\n"
-                                  "are stored here:"))
-        results_label1.setWordWrap(True)
+        switch_to_plugin_cb = self.create_checkbox(
+            _("Open profiler when profiling finishes"),
+            'switch_to_plugin',
+            tip=_(
+                "This option switches to the profiler plugin "
+                "when a profiling has ended."))
 
-        # Warning: do not try to regroup the following QLabel contents with
-        # widgets above -- this string was isolated here in a single QLabel
-        # on purpose: to fix spyder-ide/spyder#863.
-        results_label2 = QLabel(ProfilerWidget.DATAPATH)
-
-        results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        results_label2.setWordWrap(True)
-
-        results_layout = QVBoxLayout()
-        results_layout.addWidget(results_label1)
-        results_layout.addWidget(results_label2)
-        results_group.setLayout(results_layout)
+        slow_spin = self.create_spinbox(
+            _("Maximum number of items displayed with large local time"),
+            _(""), 'n_slow_children',
+            min_=1, max_=1000000, step=1)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(results_group)
+        vlayout.addWidget(switch_to_plugin_cb)
+        vlayout.addWidget(slow_spin)
         vlayout.addStretch(1)
         self.setLayout(vlayout)

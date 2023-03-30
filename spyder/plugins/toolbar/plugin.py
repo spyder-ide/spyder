@@ -54,6 +54,7 @@ class Toolbar(SpyderPluginV2):
         create_app_toolbar(ApplicationToolbars.File, _("File toolbar"))
         create_app_toolbar(ApplicationToolbars.Run, _("Run toolbar"))
         create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
+        create_app_toolbar(ApplicationToolbars.Profile, _("Profile toolbar"))
         create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
 
     @on_plugin_available(plugin=Plugins.MainMenu)

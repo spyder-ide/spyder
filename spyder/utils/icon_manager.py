@@ -199,6 +199,9 @@ class IconManager():
             'MessageBoxWarning':       [('mdi.alert',), {'color': self.MAIN_FG_COLOR}],
             'arredit':                 [('mdi.table-edit',), {'color': self.MAIN_FG_COLOR}],
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
+            'swap':                    [('mdi.swap-vertical',), {'color': self.MAIN_FG_COLOR}],
+            'hide':                    [('mdi.eye-off',), {'color': self.MAIN_FG_COLOR}],
+            'slow':                    [('mdi.speedometer-slow',), {'color': self.MAIN_FG_COLOR}],
             'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'plot':                    [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
@@ -330,7 +333,7 @@ class IconManager():
             'tour.next':               [('mdi.skip-next',), {'color': self.MAIN_FG_COLOR}],
             'tour.end':                [('mdi.skip-forward',), {'color': self.MAIN_FG_COLOR}],
             # --- Third party plugins ------------------------------------------------
-            'profiler':                [('mdi.timer-outline',), {'color': self.MAIN_FG_COLOR}],
+            'profiler':                [('mdi.timer',), {'color': SpyderPalette.ICON_5}],
             'condapackages':           [('mdi.archive',), {'color': self.MAIN_FG_COLOR}],
             'spyder.example':          [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'spyder.autopep8':         [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],

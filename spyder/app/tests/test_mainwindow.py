@@ -5153,6 +5153,170 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
     assert 'spyder-boilerplate' in external_names
 
 
+def test_profiler(main_window, qtbot, tmpdir):
+    """Test if profiler works."""
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_widget().get_focus_widget()
+    profiler = main_window.profiler
+    profile_tree = profiler.get_widget()
+
+    sleep_str = '<built-in method time.sleep>'
+
+    # Test simple profile
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import time")
+
+    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 0
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profile time.sleep(0.1)")
+    qtbot.wait(1000)
+
+    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
+    item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
+    assert item == sleep_str
+
+    # Make sure the ordering methods don't reveal the root element.
+    profile_tree.toggle_tree_action.setChecked(True)
+    assert len(profile_tree.current_widget().data_tree.get_items(0)) == 1
+    item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
+    assert item == sleep_str
+    profile_tree.toggle_tree_action.setChecked(False)
+    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
+    item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
+    assert item == sleep_str
+    profile_tree.slow_local_tree()
+    assert len(profile_tree.current_widget().data_tree.get_items(0)) == 3
+
+    # Test profilecell
+    # Write code with a cell to a file
+    code = "result = 10; fname = __file__; time.sleep(0); time.time()"
+    p = tmpdir.join("cell-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+
+    # Execute profile cell
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilecell -i 0 " + repr(to_text_string(p)))
+
+    qtbot.wait(1000)
+
+    # Verify that the `result` variable is defined
+    assert shell.get_value('result') == 10
+
+    # Verify that the `fname` variable is `cell-test.py`
+    assert "cell-test.py" in shell.get_value('fname')
+
+    # Verify that two elements are in the profiler
+    # Actually 3 because globals is included too
+    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 3
+
+    # Test profilefile
+    code = (
+        "import time\n"
+        "def f():\n"
+        "    g()\n"
+        "    time.sleep(1)\n"
+        "def g(stop=False):\n"
+        "    time.sleep(1)\n"
+        "    if not stop:\n"
+        "        g(True)\n"
+        "f()"
+        )
+    p = tmpdir.join("cell-test_2.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilefile " + repr(to_text_string(p)))
+    qtbot.wait(1000)
+    # Check callee tree
+    profile_tree.toggle_tree_action.setChecked(False)
+    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
+    values = ["f", sleep_str, "g"]
+    for item, val in zip(
+            profile_tree.current_widget().data_tree.get_items(1), values):
+        assert val == item.item_key[2]
+
+    # Check caller tree
+    profile_tree.toggle_tree_action.setChecked(True)
+    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
+    values = [sleep_str, "f", "g"]
+    for item, val in zip(
+            profile_tree.current_widget().data_tree.get_items(1), values):
+        assert val == item.item_key[2]
+
+    # Check local time
+    profile_tree.slow_local_tree()
+    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 11
+
+    # Check no errors happened
+    assert "error" not in control.toPlainText().lower()
+
+    # Test profiling while debugging
+    # Reset the tree
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profile 0")
+    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 0
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug 0")
+
+    assert shell.is_debugging()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilefile " + repr(to_text_string(p)))
+    qtbot.wait(1000)
+
+    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
+    assert shell.is_debugging()
+    # Make sure the shell is not broken
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("13 + 1234")
+    assert shell.is_debugging()
+    assert "1247" in shell._control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+    assert not shell.is_debugging()
+
+
+def test_profiler_namespace(main_window, qtbot, tmpdir):
+    """Test that the profile magic finds the right namespace"""
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Test profilefile
+    code = (
+        "result = 10\n"
+        "%profile print(result)"
+        )
+    p = tmpdir.join("test_prof.ipy")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug 0")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%runfile " + repr(to_text_string(p)))
+    # Make sure no errors are shown
+    assert "error" not in shell._control.toPlainText().lower()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+
+    # Test in main namespace
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%reset -f")
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%runfile " + repr(to_text_string(p)))
+    # Make sure no errors are shown
+    assert "error" not in shell._control.toPlainText().lower()
+
+
 def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
     """Test that the debugger can handle variables named globals and locals."""
     ipyconsole = main_window.ipyconsole
