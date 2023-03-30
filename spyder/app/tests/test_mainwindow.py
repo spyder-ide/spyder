@@ -3288,7 +3288,7 @@ def test_debug_unsaved_file(main_window, qtbot):
     # There is a breakpoint, so it should continue
     assert "1---> 2 print(1)" in control.toPlainText()
     
-    # Verify that we are still  debugging
+    # Verify that we are still debugging
     assert shell.is_waiting_pdb_input()
 
 
@@ -5157,19 +5157,20 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
 
 
 def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
-    """Test that the debugger can handle variables named globals and locals"""
+    """Test that the debugger can handle variables named globals and locals."""
     ipyconsole = main_window.ipyconsole
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-    # Test profilefile
+
+    # Test code
     code = (
         "globals = 10\n"
         "def fun():\n"
         "    locals = 15\n"
         "    return\n"
         "fun()"
-        )
+    )
     p = tmpdir.join("test_gl.py")
     p.write(code)
     main_window.editor.load(to_text_string(p))
@@ -5195,11 +5196,10 @@ def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute("q")
 
-    # no errors
+    # No errors
     assert "error" not in shell._control.toPlainText().lower()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_print_multiprocessing(main_window, qtbot, tmpdir):

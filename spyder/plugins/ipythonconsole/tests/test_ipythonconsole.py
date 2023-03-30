@@ -1512,7 +1512,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
     assert "(((IPdb [1]))):" in control.toPlainText()
-    # quit two layer
+    # Quit two layers
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
     with qtbot.waitSignal(shell.executed):

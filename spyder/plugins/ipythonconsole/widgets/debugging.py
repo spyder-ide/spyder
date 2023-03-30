@@ -37,7 +37,7 @@ class SpyderIPy3Lexer(IPython3Lexer):
     spyder_tokens = [
         (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
         (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
-        ]
+    ]
     tokens['root'] = spyder_tokens + tokens['root']
 
 
