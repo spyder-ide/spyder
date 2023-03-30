@@ -313,7 +313,7 @@ class SpyderPdb(ipyPdb):
         if self._disable_next_stack_entry:
             self._disable_next_stack_entry = False
             return
-        return super(SpyderPdb, self).print_stack_entry(*args, **kwargs)
+        return super().print_stack_entry(*args, **kwargs)
 
     # --- Methods overriden for skipping libraries
     def stop_here(self, frame):
@@ -332,7 +332,7 @@ class SpyderPdb(ipyPdb):
             self.onecmd('exit')
             return False
 
-        if not super(SpyderPdb, self).stop_here(frame):
+        if not super().stop_here(frame):
             return False
         if frame is self.stopframe:
             return True
@@ -349,7 +349,7 @@ class SpyderPdb(ipyPdb):
     
     def should_continue(self, frame):
         """
-        Jump to first breakpoint if needed
+        Jump to first breakpoint if needed.
 
         Fixes spyder-ide/spyder#2034
         """

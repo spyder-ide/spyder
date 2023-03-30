@@ -189,7 +189,7 @@ class SpyderShell(ZMQInteractiveShell):
 
     def get_local_scope(self, stack_depth):
         """
-        Get local scope at given frame depth.
+        Get local scope at a given frame depth.
 
         Needed for magics that use "needs_local_scope" such as timeit
         """
@@ -209,8 +209,10 @@ class SpyderShell(ZMQInteractiveShell):
                     return session.curframe_locals
             elif frame is None and isinstance(session, NamespaceManager):
                 return session.ns_locals
+
         if frame is not None:
             return frame.f_locals
+
         return None
 
     @property
@@ -224,10 +226,11 @@ class SpyderShell(ZMQInteractiveShell):
         """Get the current namespace."""
         for session in self._namespace_stack[::-1]:
             if isinstance(session, SpyderPdb) and session.curframe is not None:
-                # return first debugging namespace
+                # Return first debugging namespace
                 return session.curframe.f_globals
             elif isinstance(session, NamespaceManager):
                 return session.ns_globals
+
         return self.__user_ns
 
     @user_ns.setter
@@ -236,13 +239,7 @@ class SpyderShell(ZMQInteractiveShell):
         self.__user_ns = namespace
 
     def _get_current_namespace(self, with_magics=False, frame=None):
-        """
-        Return a copy of the current namespace
-
-        Only return a single dict for variable exxplorer.
-        This is globals() if not debugging, or a dictionary containing
-        both locals() and globals() for current frame when debugging
-        """
+        """Return a copy of the current namespace."""
         if frame is not None:
             ns = frame.f_globals.copy()
             ns.update(self.context_locals(frame))
@@ -261,16 +258,18 @@ class SpyderShell(ZMQInteractiveShell):
             cell_magics = self.magics_manager.magics['cell']
             ns.update(line_magics)
             ns.update(cell_magics)
+
         return ns
 
     def _get_reference_namespace(self, name):
         """
         Return namespace where reference name is defined
 
-        It returns the globals() if reference has not yet been defined
+        It returns the user namespace if name has not yet been defined.
         """
         lcls = self.context_locals()
         if lcls and name in lcls:
+
             return lcls
         return self.user_ns
 

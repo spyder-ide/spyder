@@ -100,7 +100,7 @@ def capture_last_Expr(code_ast, out_varname):
     """
     Parse line and modify code to capture in globals the last expression.
 
-    The namespace must contain __spyder_builtins__ that is the builtins module
+    The namespace must contain __spyder_builtins__, which is the builtins module.
     """
     # Modify ast code to capture the last expression
     capture_last_expression = False

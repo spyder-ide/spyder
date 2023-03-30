@@ -4,56 +4,59 @@
 # Licensed under the terms of the MIT License
 # (see spyder_kernels/__init__.py for details)
 # -----------------------------------------------------------------------------
-#
-# Spyder magics
-#
 
+"""
+Spyder magics related to code execution, debugging, profiling, etc.
+"""
+
+# Standard library imports
 import ast
 import bdb
 import builtins
-import cProfile
+from contextlib import contextmanager
 import io
 import logging
 import os
 import pdb
-import tempfile
 import shlex
 import sys
 import time
-from functools import partial
-from contextlib import contextmanager
 
+# Third-party imports
 from IPython.core.inputtransformer2 import (
     TransformerManager,
     leading_indent,
     leading_empty_lines,
 )
 from IPython.core.magic import (
-    needs_local_scope,
-    no_var_expand,
-    line_cell_magic,
     magics_class,
     Magics,
 )
 
-from spyder_kernels.comms.frontendcomm import frontend_request, CommError
+# Local imports
+from spyder_kernels.comms.frontendcomm import frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.customize.utils import capture_last_Expr, canonic, create_pathlist
+from spyder_kernels.customize.utils import capture_last_Expr, canonic
 
 
-__umr__ = UserModuleReloader(namelist=os.environ.get("SPY_UMR_NAMELIST", None))
+# For logging
 logger = logging.getLogger(__name__)
-SHOW_GLOBAL_MSG = True
-SHOW_INVALID_SYNTAX_MSG = True
 
 
 @magics_class
 class SpyderCodeRunner(Magics):
     """
-    Functions and Magics related to code execution, debugging, profiling, etc.
+    Functions and magics related to code execution, debugging, profiling, etc.
     """
+    def __init__(self, *args, **kwargs):
+        self.show_global_msg = True
+        self.show_invalid_syntax_msg = True
+        self.umr = UserModuleReloader(
+            namelist=os.environ.get("SPY_UMR_NAMELIST", None)
+        )
+        super().__init__(*args, **kwargs)
 
     def runfile(self, filename=None, args=None, wdir=None, namespace=None,
                 post_mortem=False, current_namespace=False):
@@ -69,6 +72,7 @@ class SpyderCodeRunner(Magics):
         if filename is None:
             filename = self._get_current_file_name()
         canonic_filename = canonic(filename)
+
         return self._exec_file(
             filename=filename,
             canonic_filename=canonic_filename,
@@ -94,6 +98,7 @@ class SpyderCodeRunner(Magics):
         if filename is None:
             filename = self._get_current_file_name()
         canonic_filename = canonic(filename)
+
         with self._debugger_exec(canonic_filename, True) as debug_exec:
             self._exec_file(
                 filename=filename,
@@ -102,33 +107,6 @@ class SpyderCodeRunner(Magics):
                 wdir=wdir,
                 current_namespace=current_namespace,
                 exec_fun=debug_exec,
-                post_mortem=post_mortem,
-                context_globals=namespace,
-                context_locals=local_ns,
-            )
-
-    def profilefile(self, filename=None, args=None, wdir=None, namespace=None,
-                    post_mortem=False, current_namespace=False):
-        """
-        Profile a file.
-        """
-        if namespace is None:
-            namespace = self.shell.user_ns
-            local_ns = self.shell.get_local_scope(1)
-        else:
-            local_ns = None
-            current_namespace = True
-        if filename is None:
-            filename = self._get_current_file_name()
-        canonic_filename = canonic(filename)
-        with self._profile_exec() as prof_exec:
-            self._exec_file(
-                filename=filename,
-                canonic_filename=canonic_filename,
-                wdir=wdir,
-                current_namespace=current_namespace,
-                args=args,
-                exec_fun=prof_exec,
                 post_mortem=post_mortem,
                 context_globals=namespace,
                 context_locals=local_ns,
@@ -172,36 +150,6 @@ class SpyderCodeRunner(Magics):
                 context_locals=local_ns,
             )
 
-    def profilecell(self, cellname, filename=None, post_mortem=False):
-        """
-        Profile a code cell from an editor.
-        """
-        local_ns = self.shell.get_local_scope(1)
-        if filename is None:
-            filename = self._get_current_file_name()
-        canonic_filename = canonic(filename)
-
-        with self._profile_exec() as prof_exec:
-            return self._exec_cell(
-                cell_id=cellname,
-                filename=filename,
-                canonic_filename=canonic_filename,
-                exec_fun=prof_exec,
-                post_mortem=post_mortem,
-                context_globals=self.shell.user_ns,
-                context_locals=local_ns,
-            )
-
-    @no_var_expand
-    @needs_local_scope
-    @line_cell_magic
-    def profile(self, line, cell=None, local_ns=None):
-        """Profile the given line."""
-        if cell is not None:
-            line += "\n" + cell
-        with self._profile_exec() as prof_exec:
-            return prof_exec(line, self.shell.user_ns, local_ns)
-
     @contextmanager
     def _debugger_exec(self, filename, continue_if_has_breakpoints):
         """Get an exec function to use for debugging."""
@@ -214,19 +162,20 @@ class SpyderCodeRunner(Magics):
 
         session = self.shell.pdb_session
         sys.settrace(None)
+
         # Create child debugger
         debugger = SpyderPdb(
             completekey=session.completekey,
             stdin=session.stdin, stdout=session.stdout)
         debugger.use_rawinput = session.use_rawinput
         debugger.prompt = "(%s) " % session.prompt.strip()
-
         debugger.set_remote_filename(filename)
         debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
 
         try:
             def debug_exec(code, glob, loc):
                 return sys.call_tracing(debugger.run, (code, glob, loc))
+
             # Enter recursive debugger
             yield debug_exec
         finally:
@@ -239,41 +188,6 @@ class SpyderCodeRunner(Magics):
             # recursive debugger might change the position, but the parent
             # debugger (self) is not aware of this.
             session._previous_step = None
-
-    @contextmanager
-    def _profile_exec(self):
-        """Get an exec function for profiling."""
-        with tempfile.TemporaryDirectory() as tempdir:
-            # Reset the tracing function in case we are debugging
-            trace_fun = sys.gettrace()
-            sys.settrace(None)
-            # Get a file to save the results
-            profile_filename = os.path.join(tempdir, "profile.prof")
-            try:
-                if self.shell.is_debugging():
-                    def prof_exec(code, glob, loc):
-                        # if we are debugging (tracing), call_tracing is
-                        # necessary for profiling
-                        return sys.call_tracing(cProfile.runctx, (
-                            code, glob, loc, profile_filename
-                        ))
-                    yield prof_exec
-                else:
-                    yield partial(cProfile.runctx, filename=profile_filename)
-            finally:
-                # Resect tracing function
-                sys.settrace(trace_fun)
-                if os.path.isfile(profile_filename):
-                    # Send result to frontend
-                    with open(profile_filename, "br") as f:
-                        profile_result = f.read()
-                    try:
-                        frontend_request(blocking=False).show_profile_file(
-                            profile_result, create_pathlist()
-                        )
-                    except CommError:
-                        logger.debug(
-                            "Could not send profile result to the frontend.")
 
     def _exec_file(
         self,
@@ -290,8 +204,8 @@ class SpyderCodeRunner(Magics):
         """
         Execute a file.
         """
-        if __umr__.enabled:
-            __umr__.run()
+        if self.umr.enabled:
+            self.umr.run()
         if args is not None and not isinstance(args, str):
             raise TypeError("expected a character buffer object")
 
@@ -299,9 +213,9 @@ class SpyderCodeRunner(Magics):
             file_code = self._get_file_code(filename, raise_exception=True)
         except Exception:
             print(
-                "This command failed to be executed because an error occurred"
-                " while trying to get the file code from Spyder's"
-                " editor. The error was:\n\n"
+                "This command failed to be executed because an error occurred "
+                "while trying to get the file code from Spyder's  editor. "
+                "The error was:\n\n"
             )
             self.shell.showtraceback(exception_only=True)
             return
@@ -336,11 +250,11 @@ class SpyderCodeRunner(Magics):
                     wdir = os.path.dirname(filename)
                 if os.path.isdir(wdir):
                     os.chdir(wdir)
+
                     # See https://github.com/spyder-ide/spyder/issues/13632
                     if "multiprocessing.process" in sys.modules:
                         try:
                             import multiprocessing.process
-
                             multiprocessing.process.ORIGINAL_DIR = os.path.abspath(wdir)
                         except Exception:
                             pass
@@ -348,7 +262,7 @@ class SpyderCodeRunner(Magics):
                     print("Working directory {} doesn't exist.\n".format(wdir))
 
             try:
-                if __umr__.has_cython:
+                if self.umr.has_cython:
                     # Cython files
                     with io.open(filename, encoding="utf-8") as f:
                         self.shell.run_cell_magic("cython", "", f.read())
@@ -384,9 +298,9 @@ class SpyderCodeRunner(Magics):
             cell_code = frontend_request(blocking=True).run_cell(cell_id, filename)
         except Exception:
             print(
-                "This command failed to be executed because an error occurred"
-                " while trying to get the cell code from Spyder's"
-                " editor. The error was:\n\n"
+                "This command failed to be executed because an error occurred "
+                "while trying to get the cell code from Spyder's editor."
+                "The error was:\n\n"
             )
             self.shell.showtraceback(exception_only=True)
             return
@@ -427,9 +341,9 @@ class SpyderCodeRunner(Magics):
             return frontend_request(blocking=True).current_filename()
         except Exception:
             print(
-                "This command failed to be executed because an error occurred"
-                " while trying to get the current file name from Spyder's"
-                " editor. The error was:\n\n"
+                "This command failed to be executed because an error occurred "
+                "while trying to get the current file name from Spyder's editor."
+                "The error was:\n\n"
             )
             self.shell.showtraceback(exception_only=True)
             return None
@@ -448,9 +362,11 @@ class SpyderCodeRunner(Magics):
                     return f.read()
             except FileNotFoundError:
                 pass
+
             if raise_exception:
                 raise
-            # Else return None
+
+            # Finally return None
             return None
 
     def _exec_code(
@@ -465,26 +381,25 @@ class SpyderCodeRunner(Magics):
         global_warning=False,
     ):
         """Execute code and display any exception."""
-        global SHOW_INVALID_SYNTAX_MSG
-        global SHOW_GLOBAL_MSG
-
         if exec_fun is None:
             exec_fun = exec
 
         is_ipython = os.path.splitext(filename)[1] == ".ipy"
         try:
             if not is_ipython:
-                # TODO: remove the try-except and let the SyntaxError raise
-                # Because there should not be ipython code in a python file
+                # TODO: Remove the try-except and let the SyntaxError raise
+                # because there should't be IPython code in a Python file.
                 try:
-                    ast_code = ast.parse(self._transform_cell(code, indent_only=True))
+                    ast_code = ast.parse(
+                        self._transform_cell(code, indent_only=True)
+                    )
                 except SyntaxError as e:
                     try:
                         ast_code = ast.parse(self._transform_cell(code))
                     except SyntaxError:
                         raise e from None
                     else:
-                        if SHOW_INVALID_SYNTAX_MSG:
+                        if self.show_invalid_syntax_msg:
                             print(
                                 "\nWARNING: This is not valid Python code. "
                                 "If you want to use IPython magics, "
@@ -492,12 +407,12 @@ class SpyderCodeRunner(Magics):
                                 "we recommend that you save this file with the "
                                 ".ipy extension.\n"
                             )
-                            SHOW_INVALID_SYNTAX_MSG = False
+                            self.show_invalid_syntax_msg = False
             else:
                 ast_code = ast.parse(self._transform_cell(code))
 
             # Print warning for global
-            if global_warning and SHOW_GLOBAL_MSG:
+            if global_warning and self.show_global_msg:
                 has_global = any(
                     isinstance(node, ast.Global) for node in ast.walk(ast_code)
                 )
@@ -511,7 +426,7 @@ class SpyderCodeRunner(Magics):
                         "Configuration per file', if you want to capture the "
                         "namespace.\n"
                     )
-                    SHOW_GLOBAL_MSG = False
+                    self.show_global_msg = False
 
             if code.rstrip()[-1] == ";":
                 # Supress output with ;
@@ -529,7 +444,6 @@ class SpyderCodeRunner(Magics):
                 out = ns_globals.pop("_spyder_out", None)
                 if out is not None:
                     return out
-
         except SystemExit as status:
             # ignore exit(0)
             if status.code:

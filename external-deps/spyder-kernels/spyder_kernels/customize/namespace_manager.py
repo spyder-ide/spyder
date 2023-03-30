@@ -75,6 +75,7 @@ class NamespaceManager:
             main_mod = new_main_mod(self.filename, '__main__')
             self.ns_globals = main_mod.__dict__
             self.ns_locals = None
+
             # Needed to allow pickle to reference main
             if '__main__' in sys.modules:
                 self._previous_main = sys.modules['__main__']
