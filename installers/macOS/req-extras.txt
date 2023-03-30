@@ -8,5 +8,3 @@ pyflakes
 pyxdg
 rope
 yapf
-# Constraint PyZMQ to be <25
-pyzmq<25
