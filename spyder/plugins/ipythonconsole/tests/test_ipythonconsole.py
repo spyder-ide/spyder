@@ -1501,18 +1501,20 @@ def test_recursive_pdb(ipyconsole, qtbot):
         shell.execute("%debug print()")
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("abab = 10")
-    # Check that we can't use magic twice
+    # Check that we can use magic to enter recursive debugger
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("%debug print()")
-    assert "Please don't use '%debug'" in control.toPlainText()
+    assert "(IPdb [1]):" in control.toPlainText()
     # Check we can enter the recursive debugger twice
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "(IPdb [1]):" in control.toPlainText()
+    assert "((IPdb [1])):" in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "((IPdb [1])):" in control.toPlainText()
-    # quit one layer
+    assert "(((IPdb [1]))):" in control.toPlainText()
+    # Quit two layers
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!quit")
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
     assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
@@ -1524,7 +1526,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[4]:"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[3]:"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)

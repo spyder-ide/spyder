@@ -12,6 +12,7 @@ Spyder shell for Jupyter kernels.
 
 # Standard library imports
 import bdb
+import builtins
 import logging
 import os
 import signal
@@ -24,7 +25,9 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 
 # Local imports
 import spyder_kernels
+from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
+from spyder_kernels.customize.code_runner import SpyderCodeRunner
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.mpl import automatic_backend
 
@@ -45,8 +48,8 @@ class SpyderShell(ZMQInteractiveShell):
     ]
 
     def __init__(self, *args, **kwargs):
-        # Create _pdb_obj_stack before __init__
-        self._pdb_obj_stack = []
+        # Create _namespace_stack before __init__
+        self._namespace_stack = []
         self._request_pdb_stop = False
         self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
@@ -62,6 +65,16 @@ class SpyderShell(ZMQInteractiveShell):
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
 
+    def init_magics(self):
+        """Init magics"""
+        super().init_magics()
+        code_runner = SpyderCodeRunner(shell=self)
+        self.register_magics(code_runner)
+        builtins.runfile = code_runner.runfile
+        builtins.debugfile = code_runner.debugfile
+        builtins.runcell = code_runner.runcell
+        builtins.debugcell = code_runner.debugcell
+        
     def ask_exit(self):
         """Engage the exit actions."""
         if self.active_eventloop not in [None, "inline"]:
@@ -109,31 +122,21 @@ class SpyderShell(ZMQInteractiveShell):
                 if self.pdb_session:
                     setattr(self.pdb_session, key, pdb_conf[key])
 
-    def get_local_scope(self, stack_depth):
-        """Get local scope at given frame depth."""
-        frame = sys._getframe(stack_depth + 1)
-        if self._pdb_frame is frame:
-            # Avoid calling f_locals on _pdb_frame
-            return self.pdb_session.curframe_locals
-        else:
-            return frame.f_locals
-
-    def get_global_scope(self, stack_depth):
-        """Get global scope at given frame depth."""
-        frame = sys._getframe(stack_depth + 1)
-        return frame.f_globals
-
     def is_debugging(self):
         """
         Check if we are currently debugging.
         """
-        return bool(self._pdb_frame)
+        for session in self._namespace_stack[::-1]:
+            if isinstance(session, SpyderPdb) and session.curframe is not None:
+                return True
+        return False
 
     @property
     def pdb_session(self):
         """Get current pdb session."""
-        if len(self._pdb_obj_stack) > 0:
-            return self._pdb_obj_stack[-1]
+        for session in self._namespace_stack[::-1]:
+            if isinstance(session, SpyderPdb):
+                return session
         return None
 
     def add_pdb_session(self, pdb_obj):
@@ -141,14 +144,15 @@ class SpyderShell(ZMQInteractiveShell):
         if self.pdb_session == pdb_obj:
             # Already added
             return
-        self._pdb_obj_stack.append(pdb_obj)
+        self._namespace_stack.append(pdb_obj)
 
         # Set config to pdb obj
         self.set_pdb_configuration(self._pdb_conf)
 
         try:
             self.kernel.frontend_call(blocking=False).set_debug_state(
-                len(self._pdb_obj_stack))
+                len([s for s in self._namespace_stack
+                     if isinstance(s, SpyderPdb)]))
         except (CommError, TimeoutError):
             logger.debug("Could not send debugging state to the frontend.")
 
@@ -157,7 +161,7 @@ class SpyderShell(ZMQInteractiveShell):
         if self.pdb_session != pdb_obj:
             # Already removed
             return
-        self._pdb_obj_stack.pop()
+        self._namespace_stack.pop()
 
         if self.pdb_session:
             # Set config to newly active pdb obj
@@ -165,9 +169,49 @@ class SpyderShell(ZMQInteractiveShell):
 
         try:
             self.kernel.frontend_call(blocking=False).set_debug_state(
-                len(self._pdb_obj_stack))
+                len([s for s in self._namespace_stack
+                     if isinstance(s, SpyderPdb)]))
         except (CommError, TimeoutError):
             logger.debug("Could not send debugging state to the frontend.")
+
+    def add_namespace_manager(self, ns_manager):
+        """Add namespace manager to stack."""
+        self._namespace_stack.append(ns_manager)
+
+    def remove_namespace_manager(self, ns_manager):
+        """Remove namespace manager."""
+        if self._namespace_stack[-1] != ns_manager:
+            logger.debug("The namespace stack is inconsistent.")
+            return
+        self._namespace_stack.pop()
+
+    def get_local_scope(self, stack_depth):
+        """
+        Get local scope at a given frame depth.
+
+        Needed for magics that use "needs_local_scope" such as timeit
+        """
+        frame = sys._getframe(stack_depth + 1)
+        return self.context_locals(frame)
+
+    def context_locals(self, frame=None):
+        """
+        Get context locals.
+
+        If frame is not None, make sure frame.f_locals is not registered in a
+        debugger and return frame.f_locals
+        """
+        for session in self._namespace_stack[::-1]:
+            if isinstance(session, SpyderPdb) and session.curframe is not None:
+                if frame is None or frame == session.curframe:
+                    return session.curframe_locals
+            elif frame is None and isinstance(session, NamespaceManager):
+                return session.ns_locals
+
+        if frame is not None:
+            return frame.f_locals
+
+        return None
 
     @property
     def _pdb_frame(self):
@@ -176,28 +220,56 @@ class SpyderShell(ZMQInteractiveShell):
             return self.pdb_session.curframe
 
     @property
-    def _pdb_locals(self):
-        """
-        Return current Pdb frame locals if available. Otherwise
-        return an empty dictionary
-        """
-        if self._pdb_frame is not None:
-            return self.pdb_session.curframe_locals
-        else:
-            return {}
-
-    @property
     def user_ns(self):
         """Get the current namespace."""
-        if self._pdb_frame is not None:
-            return self._pdb_frame.f_globals
-        else:
-            return self.__user_ns
+        for session in self._namespace_stack[::-1]:
+            if isinstance(session, SpyderPdb) and session.curframe is not None:
+                # Return first debugging namespace
+                return session.curframe.f_globals
+            elif isinstance(session, NamespaceManager):
+                return session.ns_globals
+
+        return self.__user_ns
 
     @user_ns.setter
     def user_ns(self, namespace):
         """Set user_ns."""
         self.__user_ns = namespace
+
+    def _get_current_namespace(self, with_magics=False, frame=None):
+        """Return a copy of the current namespace."""
+        if frame is not None:
+            ns = frame.f_globals.copy()
+            ns.update(self.context_locals(frame))
+            return ns
+
+        ns = {}
+        ns.update(self.user_ns)
+        context_locals = self.context_locals()
+        if context_locals:
+            ns.update(context_locals)
+
+        # Add magics to ns so we can show help about them on the Help
+        # plugin
+        if with_magics:
+            line_magics = self.magics_manager.magics['line']
+            cell_magics = self.magics_manager.magics['cell']
+            ns.update(line_magics)
+            ns.update(cell_magics)
+
+        return ns
+
+    def _get_reference_namespace(self, name):
+        """
+        Return namespace where reference name is defined
+
+        It returns the user namespace if name has not yet been defined.
+        """
+        lcls = self.context_locals()
+        if lcls and name in lcls:
+
+            return lcls
+        return self.user_ns
 
     def showtraceback(self, exc_tuple=None, filename=None, tb_offset=None,
                       exception_only=False, running_compiled_code=False):

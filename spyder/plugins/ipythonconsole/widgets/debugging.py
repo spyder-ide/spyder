@@ -17,9 +17,10 @@ import re
 # Third-party imports
 from IPython.core.history import HistoryManager
 from IPython.core.inputtransformer2 import TransformerManager
-from IPython.lib.lexers import IPythonLexer, IPython3Lexer
-from pygments.lexer import bygroups
-from pygments.token import Keyword, Operator, Text
+from IPython.lib.lexers import (
+    IPython3Lexer, Python3Lexer, bygroups, using
+)
+from pygments.token import Keyword, Operator
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEvent
@@ -33,14 +34,11 @@ from spyder.config.base import get_conf_path
 class SpyderIPy3Lexer(IPython3Lexer):
     # Detect !cmd command and highlight them
     tokens = IPython3Lexer.tokens
-    tokens['root'].insert(
-        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
-
-
-class SpyderIPy2Lexer(IPythonLexer):
-    tokens = IPython3Lexer.tokens
-    tokens['root'].insert(
-        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
+    spyder_tokens = [
+        (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
+        (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
+    ]
+    tokens['root'] = spyder_tokens + tokens['root']
 
 
 class PdbHistory(HistoryManager):
@@ -498,8 +496,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # add custom lexer
             if pygments_lexer == 'ipython3':
                 lexer = SpyderIPy3Lexer()
-            elif pygments_lexer == 'ipython2':
-                lexer = SpyderIPy2Lexer()
             else:
                 return
             self._highlighter._lexer = lexer

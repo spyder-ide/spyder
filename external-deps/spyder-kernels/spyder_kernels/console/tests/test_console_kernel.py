@@ -901,7 +901,7 @@ def test_do_complete(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.completenames = lambda *ignore: ['baba']
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
     match = kernel.do_complete('ba', 2)
     assert 'baba' in match['matches']
     pdb_obj.curframe = None
@@ -959,7 +959,7 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local variable.
     kernel.shell.pdb_session.default('zz = 10')
@@ -985,7 +985,7 @@ def test_comprehensions_with_locals_in_pdb_2(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local variable.
     kernel.shell.pdb_session.default('aa = [1, 2]')
@@ -1011,7 +1011,7 @@ def test_namespaces_in_pdb(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Check adding something to globals works
     pdb_obj.default("globals()['test2'] = 0")
@@ -1054,7 +1054,7 @@ def test_functions_with_locals_in_pdb(kernel):
     Frame = namedtuple("Frame", ["f_globals"])
     pdb_obj.curframe = Frame(f_globals=kernel.shell.user_ns)
     pdb_obj.curframe_locals = kernel.shell.user_ns
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local function.
     kernel.shell.pdb_session.default(
@@ -1086,7 +1086,7 @@ def test_functions_with_locals_in_pdb_2(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local function.
     kernel.shell.pdb_session.default(
@@ -1123,7 +1123,7 @@ def test_locals_globals_in_pdb(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     assert kernel.get_value('a') == 1
 
