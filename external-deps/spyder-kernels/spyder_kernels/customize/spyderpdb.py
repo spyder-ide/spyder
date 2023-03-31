@@ -10,6 +10,7 @@
 import ast
 import bdb
 import builtins
+from contextlib import contextmanager
 import logging
 import os
 import sys
@@ -603,12 +604,43 @@ class SpyderPdb(ipyPdb):
         argument (which is an arbitrary expression or statement to be
         executed in the current environment).
         """
+        with self.recursive_debugger() as debugger:
+            self.message("ENTERING RECURSIVE DEBUGGER")
+            try:
+                globals = self.curframe.f_globals
+                locals = self.curframe_locals
+                return sys.call_tracing(debugger.run, (arg, globals, locals))
+            except Exception:
+                exc_info = sys.exc_info()[:2]
+                self.error(
+                    traceback.format_exception_only(*exc_info)[-1].strip())
+            finally:
+                self.message("LEAVING RECURSIVE DEBUGGER")
+
+    @contextmanager
+    def recursive_debugger(self):
+        """Get a recursive debugger."""
+        # Save and restore tracing function
+        trace_function = sys.gettrace()
+        sys.settrace(None)
+
+        # Create child debugger
+        debugger = self.__class__(
+            completekey=self.completekey,
+            stdin=self.stdin, stdout=self.stdout)
+        debugger.prompt = "(%s) " % self.prompt.strip()
         try:
-            super(SpyderPdb, self).do_debug(arg)
-        except Exception:
-            exc_info = sys.exc_info()[:2]
-            self.error(
-                traceback.format_exception_only(*exc_info)[-1].strip())
+            yield debugger
+        finally:
+            # Reset parent debugger
+            sys.settrace(trace_function)
+            self.lastcmd = debugger.lastcmd
+
+            # Reset _previous_step so that get_pdb_state() notifies Spyder about
+            # a changed debugger position. The reset is required because the
+            # recursive debugger might change the position, but the parent
+            # debugger (self) is not aware of this.
+            self._previous_step = None
 
     def user_return(self, frame, return_value):
         """This function is called when a return trap is set here."""

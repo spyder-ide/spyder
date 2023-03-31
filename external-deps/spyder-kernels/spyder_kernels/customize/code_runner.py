@@ -161,33 +161,15 @@ class SpyderCodeRunner(Magics):
             return
 
         session = self.shell.pdb_session
-        sys.settrace(None)
+        with session.recursive_debugger() as debugger:
+            debugger.set_remote_filename(filename)
+            debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
 
-        # Create child debugger
-        debugger = SpyderPdb(
-            completekey=session.completekey,
-            stdin=session.stdin, stdout=session.stdout)
-        debugger.use_rawinput = session.use_rawinput
-        debugger.prompt = "(%s) " % session.prompt.strip()
-        debugger.set_remote_filename(filename)
-        debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
-
-        try:
             def debug_exec(code, glob, loc):
                 return sys.call_tracing(debugger.run, (code, glob, loc))
 
             # Enter recursive debugger
             yield debug_exec
-        finally:
-            # Reset parent debugger
-            sys.settrace(session.trace_dispatch)
-            session.lastcmd = debugger.lastcmd
-
-            # Reset _previous_step so that get_pdb_state() notifies Spyder about
-            # a changed debugger position. The reset is required because the
-            # recursive debugger might change the position, but the parent
-            # debugger (self) is not aware of this.
-            session._previous_step = None
 
     def _exec_file(
         self,
