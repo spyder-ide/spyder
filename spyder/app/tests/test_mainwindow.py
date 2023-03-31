@@ -6235,7 +6235,7 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
 
 def test_recursive_debug_exception(main_window, qtbot):
     """
-    Test That an exception in a recursive debug does not break the debugger.
+    Test that an exception in a recursive debug does not break the debugger.
     """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -6247,14 +6247,13 @@ def test_recursive_debug_exception(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
 
-
-    # create new file
+    # Create new file
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code = 'print("res", 1 + 2)\nprint("res", 2 + 4)'
     code_editor.set_text(code)
 
-    # debug line
+    # Debug line
     with qtbot.waitSignal(shell.executed):
         shell.execute("debugfile()")
 
@@ -6264,13 +6263,13 @@ def test_recursive_debug_exception(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("debug 1/0")
 
-    assert "ENTERING RECURSIVE DEBUGGER" in control.toPlainText()
+    assert "Entering recursive debugger" in control.toPlainText()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("c")
 
     assert "ZeroDivisionError" in control.toPlainText()
-    assert "LEAVING RECURSIVE DEBUGGER" in control.toPlainText()
+    assert "Leaving recursive debugger" in control.toPlainText()
     assert "IPdb [2]:" in control.toPlainText()
     assert shell.is_debugging()
 
