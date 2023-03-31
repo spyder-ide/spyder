@@ -457,7 +457,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # Make sure the prompt is printed
         if clear and self.is_waiting_pdb_input():
             prompt, password = self._pdb_prompt
-            self.kernel_client.iopub_channel.flush()
+
+            try:
+                # This is necessary to avoid an error when the iopub channel is
+                # closed.
+                # See jupyter/qtconsole#574
+                if not self.kernel_client.iopub_channel.closed():
+                    self.kernel_client.iopub_channel.flush()
+            except AttributeError:
+                self.kernel_client.iopub_channel.flush()
+
             self._reading = False
             self._readline(prompt=prompt, callback=self._pdb_readline_callback,
                            password=password)
@@ -598,7 +607,15 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if print_prompt:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
-            self.kernel_client.iopub_channel.flush()
+            try:
+                # This is necessary to avoid an error when the iopub channel is
+                # closed.
+                # See jupyter/qtconsole#574
+                if not self.kernel_client.iopub_channel.closed():
+                    self.kernel_client.iopub_channel.flush()
+            except AttributeError:
+                self.kernel_client.iopub_channel.flush()
+
             self._waiting_pdb_input = True
             self._readline(prompt=prompt, callback=self._pdb_readline_callback,
                            password=password)
