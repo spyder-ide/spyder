@@ -6256,18 +6256,18 @@ def test_recursive_debug_exception(main_window, qtbot):
 
     # debug line
     with qtbot.waitSignal(shell.executed):
-        shell.execte("debugfile()")
+        shell.execute("debugfile()")
 
     assert shell.is_debugging()
     assert '----> 1 print("res", 1 + 2)' in control.toPlainText()
 
     with qtbot.waitSignal(shell.executed):
-        shell.execte("debug 1/0")
+        shell.execute("debug 1/0")
 
     assert "ENTERING RECURSIVE DEBUGGER" in control.toPlainText()
 
     with qtbot.waitSignal(shell.executed):
-        shell.execte("c")
+        shell.execute("c")
 
     assert "ZeroDivisionError" in control.toPlainText()
     assert "LEAVING RECURSIVE DEBUGGER" in control.toPlainText()
