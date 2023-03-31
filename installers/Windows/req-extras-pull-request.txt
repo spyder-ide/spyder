@@ -24,6 +24,3 @@ spyder-terminal>=1.2.2
 
 # Spyder external dependencies (spyder-kernels)
 ./external-deps/spyder-kernels
-
-# Constraint PyZMQ to be <25
-pyzmq<25
