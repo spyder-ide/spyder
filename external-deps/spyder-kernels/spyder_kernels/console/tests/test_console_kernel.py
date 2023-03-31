@@ -687,8 +687,8 @@ def test_runfile(tmpdir):
         u.write(code)
 
         # Run code file `d` to define `result` even after an error
-        client.execute_interactive("%runfile {}"
-                                  .format(repr(str(d))), timeout=TIMEOUT)
+        client.execute_interactive(
+            "%runfile {}".format(repr(str(d))), timeout=TIMEOUT)
 
         # Verify that `result` is defined in the current namespace
         client.inspect('result')
@@ -699,8 +699,8 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` without current namespace
-        client.execute_interactive("%runfile {}"
-                                  .format(repr(str(u))), timeout=TIMEOUT)
+        client.execute_interactive(
+            "%runfile {}".format(repr(str(u))), timeout=TIMEOUT)
 
         # Verify that the variable `result2` is defined
         client.inspect('result2')

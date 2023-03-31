@@ -14,13 +14,10 @@ import ast
 import bdb
 import builtins
 from contextlib import contextmanager
-import cProfile
-from functools import partial
 import io
 import logging
 import os
 import pdb
-import tempfile
 import shlex
 import sys
 import time
@@ -33,8 +30,6 @@ from IPython.core.inputtransformer2 import (
 )
 from IPython.core.magic import (
     needs_local_scope,
-    no_var_expand,
-    line_cell_magic,
     magics_class,
     Magics,
     line_magic,
@@ -42,11 +37,11 @@ from IPython.core.magic import (
 from IPython.core import magic_arguments
 
 # Local imports
-from spyder_kernels.comms.frontendcomm import frontend_request, CommError
+from spyder_kernels.comms.frontendcomm import frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.customize.utils import capture_last_Expr, canonic, create_pathlist
+from spyder_kernels.customize.utils import capture_last_Expr, canonic
 
 
 # For logging
@@ -60,13 +55,13 @@ def runfile_arguments(func):
         magic_arguments.argument(
             "filename",
             help="""
-            filename to run
+            Filename to run
             """,
         ),
         magic_arguments.argument(
             "--args",
             help="""
-            command line arguments (string)
+            Command line arguments (string)
             """,
         ),
         magic_arguments.argument(
@@ -74,27 +69,27 @@ def runfile_arguments(func):
             const=True,
             nargs="?",
             help="""
-            working directory
+            Working directory
             """,
         ),
         magic_arguments.argument(
             "--post-mortem",
             action="store_true",
             help="""
-            enter post-mortem mode on error
+            Enter post-mortem mode on errors
             """,
         ),
         magic_arguments.argument(
             "--current-namespace",
             action="store_true",
             help="""
-            use current namespace
+            Use current namespace
             """,
         ),
         magic_arguments.argument(
             "--namespace",
             help="""
-            namespace to run the file in
+            Namespace to run the file in
             """,
         )
         ]
@@ -123,7 +118,7 @@ def runcell_arguments(func):
             "filename",
             nargs="?",
             help="""
-            filename
+            Filename
             """,
         ),
         magic_arguments.argument(
@@ -131,7 +126,7 @@ def runcell_arguments(func):
             action="store_true",
             default=False,
             help="""
-            Automatically enter post mortem on exception.
+            Enter post-mortem mode on errors
             """,
         )
         ]
@@ -575,11 +570,12 @@ class SpyderCodeRunner(Magics):
     
     def _parse_argstring(self, magic_func, argstring):
         """
-        Parse a string of arguments for a magic function
+        Parse a string of arguments for a magic function.
 
         This is needed because magic_arguments.parse_argstring does
-        plateform-dependent things with quotes and backslahes
-        e.g. on windows, string are removed and backslahes are escaped
+        platform-dependent things with quotes and backslashes. For
+        example, on Windows, strings are removed and backslashes are
+        escaped.
         """
         argv = shlex.split(argstring)
         args = magic_func.parser.parse_args(argv)
@@ -589,14 +585,11 @@ class SpyderCodeRunner(Magics):
         return args
     
     def _parse_runfile_argstring(self, magic_func, argstring, local_ns):
-        """
-        Parse a string for runfile
-        """
+        """Parse an args string for runfile and debugfile."""
         args = self._parse_argstring(magic_func, argstring)
         if args.namespace is None:
             args.namespace = self.shell.user_ns
         else:
-            
             if local_ns is not None and args.namespace in local_ns:
                 args.namespace = local_ns[args.namespace]
             elif args.namespace in self.shell.user_ns:
@@ -610,9 +603,7 @@ class SpyderCodeRunner(Magics):
         return args, local_ns
 
     def _parse_runcell_argstring(self, magic_func, argstring):
-        """
-        Parse a sting for runcell
-        """
+        """Parse an args string for runcell and debugcell."""
         args = self._parse_argstring(magic_func, argstring)
         args.cell_id = args.name
         if args.cell_id is None:
