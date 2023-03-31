@@ -143,7 +143,6 @@ class FoldingPanel(Panel):
     def __init__(self):
         Panel.__init__(self)
         self._native_icons = False
-        self.linecell_color = QColor(Qt.darkGray)
         self._indicators_icons = (
             'folding.arrow_right_off',
             'folding.arrow_right_on',

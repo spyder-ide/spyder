@@ -23,7 +23,6 @@ class DebuggerPanel(Panel):
         """Initialize panel."""
         Panel.__init__(self)
 
-        self.linecell_color = QColor(Qt.darkGray)
         self.breakpoints_manager = breakpoints_manager
 
         self.setMouseTracking(True)

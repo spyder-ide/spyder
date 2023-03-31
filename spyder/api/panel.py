@@ -134,11 +134,11 @@ class Panel(QWidget, EditorExtension):
                 self.palette().windowText().color()))
             painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
-            # Paint cell dividers in the visible region
         else:
             logger.debug(f'paintEvent method must be defined in {self}')
 
     def paint_cell(self, painter):
+        """Paint cell dividers in the visible region if needed."""
         for top_position, line_number, block in self.editor.visible_blocks:
             if (is_cell_header(block)
                 and (self.position == self.Position.LEFT or
