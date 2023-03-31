@@ -3287,7 +3287,7 @@ def test_debug_unsaved_file(main_window, qtbot):
 
     # There is a breakpoint, so it should continue
     assert "1---> 2 print(1)" in control.toPlainText()
-    
+
     # Verify that we are still debugging
     assert shell.is_waiting_pdb_input()
 
@@ -6229,6 +6229,58 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
     code_editor.delete_line()
     code_editor.sig_save_requested.emit()
     qtbot.wait(500)
+
+
+def test_recursive_debug_exception(main_window, qtbot):
+    """
+    Test that an exception in a recursive debug does not break the debugger.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    # Create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code = 'print("res", 1 + 2)\nprint("res", 2 + 4)'
+    code_editor.set_text(code)
+
+    # Debug line
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("debugfile()")
+
+    assert shell.is_debugging()
+    assert '----> 1 print("res", 1 + 2)' in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("debug 1/0")
+
+    assert "Entering recursive debugger" in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("c")
+
+    assert "ZeroDivisionError" in control.toPlainText()
+    assert "Leaving recursive debugger" in control.toPlainText()
+    assert "IPdb [2]:" in control.toPlainText()
+    assert shell.is_debugging()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("n")
+
+    assert "res 3" in control.toPlainText()
+    assert shell.is_debugging()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+
+    assert not shell.is_debugging()
 
 
 @flaky(max_runs=3)
