@@ -605,7 +605,7 @@ class SpyderPdb(ipyPdb):
         executed in the current environment).
         """
         with self.recursive_debugger() as debugger:
-            self.message("ENTERING RECURSIVE DEBUGGER")
+            self.message("Entering recursive debugger")
             try:
                 globals = self.curframe.f_globals
                 locals = self.curframe_locals
@@ -615,7 +615,7 @@ class SpyderPdb(ipyPdb):
                 self.error(
                     traceback.format_exception_only(*exc_info)[-1].strip())
             finally:
-                self.message("LEAVING RECURSIVE DEBUGGER")
+                self.message("Leaving recursive debugger")
 
     @contextmanager
     def recursive_debugger(self):
