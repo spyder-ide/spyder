@@ -6253,7 +6253,7 @@ def test_recursive_debug_exception(main_window, qtbot):
 
     # Debug line
     with qtbot.waitSignal(shell.executed):
-        shell.execute("debugfile()")
+        shell.execute("%debugfile")
 
     assert shell.is_debugging()
     assert '----> 1 print("res", 1 + 2)' in control.toPlainText()
