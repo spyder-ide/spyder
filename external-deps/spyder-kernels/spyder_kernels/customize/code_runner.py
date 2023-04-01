@@ -490,7 +490,7 @@ class SpyderCodeRunner(Magics):
                     )
                     self.show_global_msg = False
 
-            if code.rstrip()[-1] == ";":
+            if code.rstrip()[-1:] == ";":
                 # Supress output with ;
                 capture_last_expression = False
 

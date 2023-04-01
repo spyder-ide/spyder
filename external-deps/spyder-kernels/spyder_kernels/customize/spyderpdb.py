@@ -181,7 +181,7 @@ class SpyderPdb(ipyPdb):
 
                 code_ast = ast.parse(line)
 
-                if line.rstrip()[-1] == ";":
+                if line.rstrip()[-1:] == ";":
                     # Supress output with ;
                     capture_last_expression = False
                 else:
