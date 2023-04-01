@@ -204,9 +204,7 @@ class RunContainer(PluginMainContainer):
         exec_params = self.get_last_used_executor_parameters(
             self.currently_selected_configuration)
 
-        first_execution = exec_params['first_execution']
         display_dialog = exec_params['display_dialog']
-        display_dialog = display_dialog or first_execution
 
         self.edit_run_configurations(
             display_dialog=display_dialog,
@@ -258,7 +256,7 @@ class RunContainer(PluginMainContainer):
 
             last_used_conf = StoredRunConfigurationExecutor(
                 executor=executor_name, selected=ext_params['uuid'],
-                display_dialog=open_dialog, first_execution=False)
+                display_dialog=open_dialog)
 
             self.set_last_used_execution_params(uuid, last_used_conf)
 
@@ -936,10 +934,10 @@ class RunContainer(PluginMainContainer):
         last_used_params = mru_executors_uuids.get(
             uuid,
             StoredRunConfigurationExecutor(
-            executor=None,
-            selected=None,
-            display_dialog=False,
-            first_execution=True)
+                executor=None,
+                selected=None,
+                display_dialog=False,
+            )
         )
 
         return last_used_params
@@ -976,8 +974,7 @@ class RunContainer(PluginMainContainer):
         default = StoredRunConfigurationExecutor(
             executor=executor_name,
             selected=None,
-            display_dialog=False,
-            first_execution=True
+            display_dialog=False
         )
         params = mru_executors_uuids.get(uuid, default)
 

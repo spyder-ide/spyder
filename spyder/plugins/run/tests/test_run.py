@@ -617,7 +617,6 @@ def test_run_plugin(qtbot, run_mock):
     assert stored_run_params['executor'] == test_executor_name
     assert stored_run_params['selected'] is None
     assert not stored_run_params['display_dialog']
-    assert not stored_run_params['first_execution']
 
     # The configuration gets run again
     with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
@@ -780,7 +779,6 @@ def test_run_plugin(qtbot, run_mock):
     assert stored_run_params['executor'] == executor_name
     assert stored_run_params['selected'] == exec_conf_uuid
     assert not stored_run_params['display_dialog']
-    assert not stored_run_params['first_execution']
 
     # Test teardown functions
     executor_1.on_run_teardown(run)

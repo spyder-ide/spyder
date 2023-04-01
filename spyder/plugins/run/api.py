@@ -271,10 +271,6 @@ class StoredRunConfigurationExecutor(TypedDict):
     # configuration is executed. Otherwise not.
     display_dialog: bool
 
-    # True if the configuration has been executed in the past, False
-    # otherwise.
-    first_execution: bool
-
 
 class RunConfigurationProvider(QObject):
     """

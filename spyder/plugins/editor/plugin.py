@@ -474,7 +474,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         file_id = self.id_per_file.get(filename, None)
         self.sig_editor_focus_changed_uuid.emit(file_id)
 
-    def register_file_run_metadata(self, filename, filename_ext):
+    def register_file_run_metadata(self, filename):
         """Register opened files with the Run plugin."""
         all_uuids = CONF.get('editor', 'file_uuids', default={})
         file_id = all_uuids.get(filename, str(uuid.uuid4()))
@@ -490,7 +490,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             'context': {
                 'name': 'File'
             },
-            'input_extension': filename_ext
+            'input_extension': osp.splitext(filename)[1][1:]
         }
 
         self.file_per_id[file_id] = filename
@@ -500,6 +500,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run = self.main.get_plugin(Plugins.Run, error=False)
         if run:
             run.register_run_configuration_metadata(self, metadata)
+    
+    def deregister_file_run_metadata(self, filename):
+        """Unregister opened files with the Run plugin."""
+        if filename not in self.id_per_file:
+            return
+        
+        file_id = self.id_per_file.pop(filename)
+        self.file_per_id.pop(file_id)
+        self.metadata_per_id.pop(file_id)
+        
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run is not None:
+            run.deregister_run_configuration_metadata(file_id)
 
     @Slot(dict)
     def report_open_file(self, options):
@@ -518,7 +531,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 filename not in self.id_per_file
                 and RunContext.File in ext_contexts
             ):
-                self.register_file_run_metadata(filename, filename_ext)
+                self.register_file_run_metadata(filename)
                 able_to_run_file = True
 
         if not able_to_run_file:
@@ -1778,13 +1791,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot(str, str)
     def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
-        run = self.main.get_plugin(Plugins.Run, error=False)
         if filename in self.id_per_file:
-            file_id = self.id_per_file.pop(filename)
-            self.file_per_id.pop(file_id)
-            self.metadata_per_id.pop(file_id)
-            if run is not None:
-                run.deregister_run_configuration_metadata(file_id)
+            self.deregister_file_run_metadata(filename)
         else:
             _, filename_ext = osp.splitext(filename)
             filename_ext = filename_ext[1:]
@@ -2654,6 +2662,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         filename = osp.abspath(to_text_string(source))
         index = self.get_filename_index(filename)
         if index is not None:
+            self.deregister_file_run_metadata(filename)
+            self.register_file_run_metadata(dest)
+                
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
@@ -3092,7 +3103,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         for filename, filename_ext in list(self.pending_run_files):
             if filename_ext == extension and file_enabled:
-                self.register_file_run_metadata(filename, filename_ext)
+                self.register_file_run_metadata(filename)
             else:
                 self.pending_run_files -= {(filename, filename_ext)}
 
