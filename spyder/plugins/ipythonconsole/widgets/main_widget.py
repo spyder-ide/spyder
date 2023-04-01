@@ -1910,7 +1910,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 if wdir:
                     if wdir == os.path.dirname(filename):
                         # No working directory for external kernels
-                        # If it has not been explicitely given
+                        # if it has not been explicitly given.
                         if not client.shellwidget.is_external_kernel:
                             line += " --wdir"
                     else:

@@ -6285,7 +6285,7 @@ def test_recursive_debug_exception(main_window, qtbot):
 
 @flaky(max_runs=3)
 def test_runfile_namespace(main_window, qtbot, tmpdir):
-    """Test that the namespaces behave correctly when using runfile."""
+    """Test that namespaces behave correctly when using runfile."""
     baba_file = tmpdir.join("baba.py")
     baba_file.write("baba = 1")
     baba_path = to_text_string(baba_file)
