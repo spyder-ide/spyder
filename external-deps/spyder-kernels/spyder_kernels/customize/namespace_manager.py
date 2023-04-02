@@ -112,7 +112,10 @@ class NamespaceManager:
             self.ns_globals.pop('__file__')
 
         if not self.current_namespace:
-            self.context_globals.update(self.ns_globals)
+            if self.context_locals is not None:
+                self.context_locals.update(self.ns_globals)
+            else:
+                self.context_globals.update(self.ns_globals)
 
         if self._previous_main:
             sys.modules['__main__'] = self._previous_main

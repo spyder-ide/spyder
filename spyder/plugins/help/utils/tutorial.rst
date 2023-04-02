@@ -44,7 +44,7 @@ We are going to run this program as a first example:
 
    .. code-block:: python
 
-        In [1]: runfile('/File/Path/hello.py', wdir=r'/File/Path')
+        In [1]: %runfile '/File/Path/hello.py' --wdir
         Hello World
 
         In [2]:
@@ -53,7 +53,7 @@ If so, then you have just run your first Python program -- well done.
 
 .. note::
 
-   The particular paths shown inside ``runfile()`` will depend on where you have saved the file, but this is inserted by Spyder automatically.
+   The particular paths shown next to ``%runfile`` will depend on where you have saved the file, but this is inserted by Spyder automatically.
 
 
 What happens when you execute a program?

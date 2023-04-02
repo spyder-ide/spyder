@@ -559,7 +559,7 @@ if __name__ == '__main__':
 
         # Run code
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
         client.inspect('result')
@@ -603,7 +603,7 @@ if __name__ == '__main__':
 
         # Run code
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
         client.inspect('result')
@@ -645,10 +645,10 @@ if __name__=='__main__':
 
         # Run code two times
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `x` variable is defined
         client.inspect('x')
@@ -687,8 +687,8 @@ def test_runfile(tmpdir):
         u.write(code)
 
         # Run code file `d` to define `result` even after an error
-        client.execute_interactive("runfile(r'{}', current_namespace=False)"
-                                  .format(str(d)), timeout=TIMEOUT)
+        client.execute_interactive(
+            "%runfile {}".format(repr(str(d))), timeout=TIMEOUT)
 
         # Verify that `result` is defined in the current namespace
         client.inspect('result')
@@ -699,8 +699,8 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` without current namespace
-        client.execute_interactive("runfile(r'{}', current_namespace=False)"
-                                  .format(str(u)), timeout=TIMEOUT)
+        client.execute_interactive(
+            "%runfile {}".format(repr(str(u))), timeout=TIMEOUT)
 
         # Verify that the variable `result2` is defined
         client.inspect('result2')
@@ -711,8 +711,8 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` with current namespace
-        msg = client.execute_interactive("runfile(r'{}', current_namespace=True)"
-                                        .format(str(u)), timeout=TIMEOUT)
+        msg = client.execute_interactive("%runfile {} --current-namespace"
+                                        .format(repr(str(u))), timeout=TIMEOUT)
         content = msg['content']
 
         # Verify that the variable `result3` is defined
@@ -835,7 +835,7 @@ turtle.bye()
 
         # Run code
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `tess` variable is defined
         client.inspect('tess')
@@ -853,7 +853,7 @@ turtle.bye()
 
         # Run code again
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `a` variable is defined
         client.inspect('a')
@@ -1228,13 +1228,13 @@ def test_global_message(tmpdir):
                     found = True
 
         # Run code in current namespace
-        client.execute_interactive("runfile(r'{}', current_namespace=True)".format(
-            str(p)), timeout=TIMEOUT, output_hook=check_found)
+        client.execute_interactive("%runfile {} --current-namespace".format(
+            repr(str(p))), timeout=TIMEOUT, output_hook=check_found)
         assert not found
 
         # Run code in empty namespace
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT,
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT,
             output_hook=check_found)
 
         assert found
@@ -1254,7 +1254,7 @@ def test_debug_namespace(tmpdir):
         d.write('def func():\n    bb = "hello"\n    breakpoint()\nfunc()')
 
         # Run code file `d`
-        msg_id = client.execute("runfile(r'{}')".format(str(d)))
+        msg_id = client.execute("%runfile {}".format(repr(str(d))))
 
         # make sure that 'bb' returns 'hello'
         client.get_stdin_msg(timeout=TIMEOUT)

@@ -29,9 +29,12 @@ from IPython.core.inputtransformer2 import (
     leading_empty_lines,
 )
 from IPython.core.magic import (
+    needs_local_scope,
     magics_class,
     Magics,
+    line_magic,
 )
+from IPython.core import magic_arguments
 
 # Local imports
 from spyder_kernels.comms.frontendcomm import frontend_request
@@ -43,6 +46,93 @@ from spyder_kernels.customize.utils import capture_last_Expr, canonic
 
 # For logging
 logger = logging.getLogger(__name__)
+
+
+def runfile_arguments(func):
+    """Decorator to add runfile magic arguments to magic."""
+    decorators = [
+        magic_arguments.magic_arguments(),
+        magic_arguments.argument(
+            "filename",
+            help="""
+            Filename to run
+            """,
+        ),
+        magic_arguments.argument(
+            "--args",
+            help="""
+            Command line arguments (string)
+            """,
+        ),
+        magic_arguments.argument(
+            "--wdir",
+            const=True,
+            nargs="?",
+            help="""
+            Working directory
+            """,
+        ),
+        magic_arguments.argument(
+            "--post-mortem",
+            action="store_true",
+            help="""
+            Enter post-mortem mode on errors
+            """,
+        ),
+        magic_arguments.argument(
+            "--current-namespace",
+            action="store_true",
+            help="""
+            Use current namespace
+            """,
+        ),
+        magic_arguments.argument(
+            "--namespace",
+            help="""
+            Namespace to run the file in
+            """,
+        )
+        ]
+    for dec in reversed(decorators):
+        func = dec(func)
+    return func
+
+
+def runcell_arguments(func):
+    """Decorator to add runcell magic arguments to magic."""
+    decorators = [
+        magic_arguments.magic_arguments(),
+        magic_arguments.argument(
+            "--name", "-n",
+            help="""
+            Cell name.
+            """,
+        ),
+        magic_arguments.argument(
+            "--index", "-i",
+            help="""
+            Cell index.
+            """,
+        ),
+        magic_arguments.argument(
+            "filename",
+            nargs="?",
+            help="""
+            Filename
+            """,
+        ),
+        magic_arguments.argument(
+            "--post-mortem",
+            action="store_true",
+            default=False,
+            help="""
+            Enter post-mortem mode on errors
+            """,
+        )
+        ]
+    for dec in reversed(decorators):
+        func = dec(func)
+    return func
 
 
 @magics_class
@@ -58,94 +148,84 @@ class SpyderCodeRunner(Magics):
         )
         super().__init__(*args, **kwargs)
 
-    def runfile(self, filename=None, args=None, wdir=None, namespace=None,
-                post_mortem=False, current_namespace=False):
+    @runfile_arguments
+    @needs_local_scope
+    @line_magic
+    def runfile(self, line, local_ns=None):
         """
         Run a file.
         """
-        if namespace is None:
-            namespace = self.shell.user_ns
-            local_ns = self.shell.get_local_scope(1)
-        else:
-            local_ns = None
-            current_namespace = True
-        if filename is None:
-            filename = self._get_current_file_name()
-        canonic_filename = canonic(filename)
+        args, local_ns = self._parse_runfile_argstring(
+            self.runfile, line, local_ns)
 
         return self._exec_file(
-            filename=filename,
-            canonic_filename=canonic_filename,
-            args=args,
-            wdir=wdir,
-            post_mortem=post_mortem,
-            current_namespace=current_namespace,
-            context_globals=namespace,
+            filename=args.filename,
+            canonic_filename=args.canonic_filename,
+            args=args.args,
+            wdir=args.wdir,
+            post_mortem=args.post_mortem,
+            current_namespace=args.current_namespace,
+            context_globals=args.namespace,
             context_locals=local_ns,
         )
 
-    def debugfile(self, filename=None, args=None, wdir=None, namespace=None,
-                  post_mortem=False, current_namespace=False):
+    @runfile_arguments
+    @needs_local_scope
+    @line_magic
+    def debugfile(self, line, local_ns=None):
         """
         Debug a file.
         """
-        if namespace is None:
-            namespace = self.shell.user_ns
-            local_ns = self.shell.get_local_scope(1)
-        else:
-            local_ns = None
-            current_namespace = True
-        if filename is None:
-            filename = self._get_current_file_name()
-        canonic_filename = canonic(filename)
+        args, local_ns = self._parse_runfile_argstring(
+            self.debugfile, line, local_ns)
 
-        with self._debugger_exec(canonic_filename, True) as debug_exec:
+        with self._debugger_exec(args.canonic_filename, True) as debug_exec:
             self._exec_file(
-                filename=filename,
-                canonic_filename=canonic_filename,
-                args=args,
-                wdir=wdir,
-                current_namespace=current_namespace,
+                filename=args.filename,
+                canonic_filename=args.canonic_filename,
+                args=args.args,
+                wdir=args.wdir,
+                current_namespace=args.current_namespace,
                 exec_fun=debug_exec,
-                post_mortem=post_mortem,
-                context_globals=namespace,
+                post_mortem=args.post_mortem,
+                context_globals=args.namespace,
                 context_locals=local_ns,
             )
 
-    def runcell(self, cellname, filename=None, post_mortem=False):
+    @runcell_arguments
+    @needs_local_scope
+    @line_magic
+    def runcell(self, line, local_ns=None):
         """
         Run a code cell from an editor.
         """
-        local_ns = self.shell.get_local_scope(1)
-        if filename is None:
-            filename = self._get_current_file_name()
-        canonic_filename = canonic(filename)
+        args = self._parse_runcell_argstring(self.runcell, line)
 
         return self._exec_cell(
-            cell_id=cellname,
-            filename=filename,
-            canonic_filename=canonic_filename,
-            post_mortem=post_mortem,
+            cell_id=args.cell_id,
+            filename=args.filename,
+            canonic_filename=args.canonic_filename,
+            post_mortem=args.post_mortem,
             context_globals=self.shell.user_ns,
             context_locals=local_ns,
         )
 
-    def debugcell(self, cellname, filename=None, post_mortem=False):
+    @runcell_arguments
+    @needs_local_scope
+    @line_magic
+    def debugcell(self, line, local_ns=None):
         """
         Debug a code cell from an editor.
         """
-        local_ns = self.shell.get_local_scope(1)
-        if filename is None:
-            filename = self._get_current_file_name()
-        canonic_filename = canonic(filename)
+        args = self._parse_runcell_argstring(self.debugcell, line)
 
-        with self._debugger_exec(canonic_filename, False) as debug_exec:
+        with self._debugger_exec(args.canonic_filename, False) as debug_exec:
             return self._exec_cell(
-                cell_id=cellname,
-                filename=filename,
-                canonic_filename=canonic_filename,
+                cell_id=args.cell_id,
+                filename=args.filename,
+                canonic_filename=args.canonic_filename,
                 exec_fun=debug_exec,
-                post_mortem=post_mortem,
+                post_mortem=args.post_mortem,
                 context_globals=self.shell.user_ns,
                 context_locals=local_ns,
             )
@@ -410,7 +490,7 @@ class SpyderCodeRunner(Magics):
                     )
                     self.show_global_msg = False
 
-            if code.rstrip()[-1] == ";":
+            if code.rstrip()[-1:] == ";":
                 # Supress output with ;
                 capture_last_expression = False
 
@@ -487,3 +567,45 @@ class SpyderCodeRunner(Magics):
             # wait for stdout to print
             time.sleep(0.1)
             p.interaction(frame, tb)
+    
+    def _parse_argstring(self, magic_func, argstring):
+        """
+        Parse a string of arguments for a magic function.
+
+        This is needed because magic_arguments.parse_argstring does
+        platform-dependent things with quotes and backslashes. For
+        example, on Windows, strings are removed and backslashes are
+        escaped.
+        """
+        argv = shlex.split(argstring)
+        args = magic_func.parser.parse_args(argv)
+        if args.filename is None:
+            args.filename = self._get_current_file_name()
+        args.canonic_filename = canonic(args.filename)
+        return args
+    
+    def _parse_runfile_argstring(self, magic_func, argstring, local_ns):
+        """Parse an args string for runfile and debugfile."""
+        args = self._parse_argstring(magic_func, argstring)
+        if args.namespace is None:
+            args.namespace = self.shell.user_ns
+        else:
+            if local_ns is not None and args.namespace in local_ns:
+                args.namespace = local_ns[args.namespace]
+            elif args.namespace in self.shell.user_ns:
+                args.namespace = self.shell.user_ns[args.namespace]
+            else:
+                raise NameError(
+                    f"name '{args.namespace}' is not defined"
+                )
+            local_ns = None
+            args.current_namespace = True
+        return args, local_ns
+
+    def _parse_runcell_argstring(self, magic_func, argstring):
+        """Parse an args string for runcell and debugcell."""
+        args = self._parse_argstring(magic_func, argstring)
+        args.cell_id = args.name
+        if args.cell_id is None:
+            args.cell_id = int(args.index)
+        return args
