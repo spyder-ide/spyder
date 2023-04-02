@@ -94,6 +94,16 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
                 'configuration_widget': None,
                 'requires_cwd': False,
                 'priority': 4
+            },
+            {
+                'input_extension': 'ipy',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': False,
+                'priority': 4
             }
         ]
 

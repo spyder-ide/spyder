@@ -121,6 +121,36 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
                 'requires_cwd': True,
                 'priority': 10
             },
+            {
+                'input_extension': 'ipy',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'ipy',
+                'context': {
+                    'name': 'Cell'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'ipy',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
         ]
 
     @on_plugin_available(plugin=Plugins.Run)

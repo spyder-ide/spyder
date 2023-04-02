@@ -78,6 +78,16 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 'configuration_widget': ExternalConsolePyConfiguration,
                 'requires_cwd': True,
                 'priority': 2
+            },
+            {
+                'input_extension': 'ipy',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': ExternalConsolePyConfiguration,
+                'requires_cwd': True,
+                'priority': 2
             }
         ]
 

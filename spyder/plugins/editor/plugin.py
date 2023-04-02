@@ -270,6 +270,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     {'context': {'name': 'Selection'}, 'is_super': False},
                     {'context': {'name': 'Cell'}, 'is_super': False}
                 ]
+            },
+            {
+                'input_extension': 'ipy',
+                'contexts': [
+                    {'context': {'name': 'File'}, 'is_super': True},
+                    {'context': {'name': 'Selection'}, 'is_super': False},
+                    {'context': {'name': 'Cell'}, 'is_super': False}
+                ]
             }
         ]
 
