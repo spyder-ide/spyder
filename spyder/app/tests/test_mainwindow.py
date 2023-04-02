@@ -69,7 +69,7 @@ from spyder.plugins.run.api import (
     WorkingDirSource, RunContext)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
-from spyder.utils.misc import remove_backslashes
+from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
@@ -6362,6 +6362,26 @@ def test_quotes_in_filename(main_window, qtbot, tmpdir):
 
     assert "802" in control.toPlainText()
     assert "error" not in control.toPlainText()
+    
+    # Make sure this works with ipy and renamed files too
+    
+    # Rename the file to ipython and send the signal
+    rename_file(path, path[:-2] + "ipy")
+    explorer = main_window.get_plugin(Plugins.Explorer)
+    explorer.sig_file_renamed.emit(path, path[:-2] + "ipy")
+    
+    code_editor.set_text("print(21 + 780)")
+    
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
+    assert "801" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "\\.ipy" in control.toPlainText()
+    
+    
+
+    
 
 
 if __name__ == "__main__":
