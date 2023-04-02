@@ -4,8 +4,11 @@
 import os
 from io import StringIO
 from unittest.mock import MagicMock
+
 import pytest
+from pylsp_jsonrpc.dispatchers import MethodDispatcher
 from pylsp_jsonrpc.endpoint import Endpoint
+from pylsp_jsonrpc.exceptions import JsonRpcException
 
 from pylsp import uris
 from pylsp.config.config import Config
@@ -21,10 +24,48 @@ def main():
 """
 
 
+class FakeEditorMethodsMixin:
+    """
+    Represents the methods to be added to a dispatcher class when faking an editor.
+    """
+    def m_window__work_done_progress__create(self, *_args, **_kwargs):
+        """
+        Fake editor method `window/workDoneProgress/create`.
+
+        related spec:
+        https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#window_workDoneProgress_create
+        """
+        return None
+
+
+class FakePythonLSPServer(FakeEditorMethodsMixin, PythonLSPServer):
+    pass
+
+
+class FakeEndpoint(Endpoint):
+    """
+    Fake Endpoint representing the editor / LSP client.
+
+    The `dispatcher` dict will be used to synchronously calculate the responses
+    for calls to `.request` and resolve the futures with the value or errors.
+
+    Fake methods in the `dispatcher` should raise `JsonRpcException` for any
+    error.
+    """
+    def request(self, method, params=None):
+        request_future = super().request(method, params)
+        try:
+            request_future.set_result(self._dispatcher[method](params))
+        except JsonRpcException as e:
+            request_future.set_exception(e)
+
+        return request_future
+
+
 @pytest.fixture
 def pylsp(tmpdir):
     """ Return an initialized python LS """
-    ls = PythonLSPServer(StringIO, StringIO)
+    ls = FakePythonLSPServer(StringIO, StringIO, endpoint_cls=FakeEndpoint)
 
     ls.m_initialize(
         processId=1,
@@ -38,7 +79,7 @@ def pylsp(tmpdir):
 @pytest.fixture
 def pylsp_w_workspace_folders(tmpdir):
     """ Return an initialized python LS """
-    ls = PythonLSPServer(StringIO, StringIO)
+    ls = FakePythonLSPServer(StringIO, StringIO, endpoint_cls=FakeEndpoint)
 
     folder1 = tmpdir.mkdir('folder1')
     folder2 = tmpdir.mkdir('folder2')
@@ -70,7 +111,10 @@ def consumer():
 
 @pytest.fixture()
 def endpoint(consumer):  # pylint: disable=redefined-outer-name
-    return Endpoint({}, consumer, id_generator=lambda: "id")
+    class Dispatcher(FakeEditorMethodsMixin, MethodDispatcher):
+        pass
+
+    return FakeEndpoint(Dispatcher(), consumer, id_generator=lambda: "id")
 
 
 @pytest.fixture

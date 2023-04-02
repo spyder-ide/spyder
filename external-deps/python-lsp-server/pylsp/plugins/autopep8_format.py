@@ -23,17 +23,16 @@ def pylsp_format_document(config, workspace, document, options):  # pylint: disa
 def pylsp_format_range(
     config, workspace, document, range, options
 ):  # pylint: disable=redefined-builtin,unused-argument
-    with workspace.report_progress("format_range: autopep8"):
-        log.info("Formatting document %s in range %s with autopep8", document, range)
+    log.info("Formatting document %s in range %s with autopep8", document, range)
 
-        # First we 'round' the range up/down to full lines only
-        range['start']['character'] = 0
-        range['end']['line'] += 1
-        range['end']['character'] = 0
+    # First we 'round' the range up/down to full lines only
+    range['start']['character'] = 0
+    range['end']['line'] += 1
+    range['end']['character'] = 0
 
-        # Add 1 for 1-indexing vs LSP's 0-indexing
-        line_range = (range['start']['line'] + 1, range['end']['line'] + 1)
-        return _format(config, document, line_range=line_range)
+    # Add 1 for 1-indexing vs LSP's 0-indexing
+    line_range = (range['start']['line'] + 1, range['end']['line'] + 1)
+    return _format(config, document, line_range=line_range)
 
 
 def _format(config, document, line_range=None):

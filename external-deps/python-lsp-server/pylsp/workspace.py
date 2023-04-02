@@ -37,6 +37,7 @@ class Workspace:
 
     M_PUBLISH_DIAGNOSTICS = 'textDocument/publishDiagnostics'
     M_PROGRESS = '$/progress'
+    M_INITIALIZE_PROGRESS = 'window/workDoneProgress/create'
     M_APPLY_EDIT = 'workspace/applyEdit'
     M_SHOW_MESSAGE = 'window/showMessage'
 
@@ -135,15 +136,43 @@ class Workspace:
         message: Optional[str] = None,
         percentage: Optional[int] = None,
     ) -> Generator[Callable[[str, Optional[int]], None], None, None]:
-        token = self._progress_begin(title, message, percentage)
+        if self._config:
+            client_supports_progress_reporting = (
+                self._config.capabilities.get("window", {}).get("workDoneProgress", False)
+            )
+        else:
+            client_supports_progress_reporting = False
 
-        def progress_message(message: str, percentage: Optional[int] = None) -> None:
-            self._progress_report(token, message, percentage)
+        if client_supports_progress_reporting:
+            try:
+                token = self._progress_begin(title, message, percentage)
+            except Exception:  # pylint: disable=broad-exception-caught
+                log.warning(
+                    "There was an error while trying to initialize progress reporting."
+                    "Likely progress reporting was used in a synchronous LSP handler, "
+                    "which is not supported by progress reporting yet.",
+                    exc_info=True
+                )
 
-        try:
-            yield progress_message
-        finally:
-            self._progress_end(token)
+            else:
+                def progress_message(message: str, percentage: Optional[int] = None) -> None:
+                    self._progress_report(token, message, percentage)
+
+                try:
+                    yield progress_message
+                finally:
+                    self._progress_end(token)
+
+                return
+
+        # FALLBACK:
+        # If the client doesn't support progress reporting, or if we failed to
+        # initialize it, we have a dummy method for the caller to use.
+        def dummy_progress_message(message: str, percentage: Optional[int] = None) -> None:
+            # pylint: disable=unused-argument
+            pass
+
+        yield dummy_progress_message
 
     def _progress_begin(
         self,
@@ -152,13 +181,16 @@ class Workspace:
         percentage: Optional[int] = None,
     ) -> str:
         token = str(uuid.uuid4())
+
+        self._endpoint.request(self.M_INITIALIZE_PROGRESS, {'token': token}).result(timeout=1.0)
+
         value = {
             "kind": "begin",
             "title": title,
         }
-        if message:
+        if message is not None:
             value["message"] = message
-        if percentage:
+        if percentage is not None:
             value["percentage"] = percentage
 
         self._endpoint.notify(

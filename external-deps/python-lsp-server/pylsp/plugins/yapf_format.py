@@ -23,23 +23,22 @@ def pylsp_format_document(workspace, document, options):
 
 
 @hookimpl
-def pylsp_format_range(workspace, document, range, options):  # pylint: disable=redefined-builtin
+def pylsp_format_range(document, range, options):  # pylint: disable=redefined-builtin
     log.info("Formatting document %s in range %s with yapf", document, range)
-    with workspace.report_progress("format_range: yapf"):
-        # First we 'round' the range up/down to full lines only
-        range['start']['character'] = 0
-        range['end']['line'] += 1
-        range['end']['character'] = 0
+    # First we 'round' the range up/down to full lines only
+    range['start']['character'] = 0
+    range['end']['line'] += 1
+    range['end']['character'] = 0
 
-        # From Yapf docs:
-        # lines: (list of tuples of integers) A list of tuples of lines, [start, end],
-        #   that we want to format. The lines are 1-based indexed. It can be used by
-        #   third-party code (e.g., IDEs) when reformatting a snippet of code rather
-        #   than a whole file.
+    # From Yapf docs:
+    # lines: (list of tuples of integers) A list of tuples of lines, [start, end],
+    #   that we want to format. The lines are 1-based indexed. It can be used by
+    #   third-party code (e.g., IDEs) when reformatting a snippet of code rather
+    #   than a whole file.
 
-        # Add 1 for 1-indexing vs LSP's 0-indexing
-        lines = [(range['start']['line'] + 1, range['end']['line'] + 1)]
-        return _format(document, lines=lines, options=options)
+    # Add 1 for 1-indexing vs LSP's 0-indexing
+    lines = [(range['start']['line'] + 1, range['end']['line'] + 1)]
+    return _format(document, lines=lines, options=options)
 
 
 def get_style_config(document_path, options=None):

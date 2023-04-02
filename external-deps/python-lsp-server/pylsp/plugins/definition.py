@@ -8,26 +8,25 @@ log = logging.getLogger(__name__)
 
 
 @hookimpl
-def pylsp_definitions(config, workspace, document, position):
-    with workspace.report_progress("go to definitions"):
-        settings = config.plugin_settings('jedi_definition')
-        code_position = _utils.position_to_jedi_linecolumn(document, position)
-        definitions = document.jedi_script(use_document_path=True).goto(
-            follow_imports=settings.get('follow_imports', True),
-            follow_builtin_imports=settings.get('follow_builtin_imports', True),
-            **code_position)
+def pylsp_definitions(config, document, position):
+    settings = config.plugin_settings('jedi_definition')
+    code_position = _utils.position_to_jedi_linecolumn(document, position)
+    definitions = document.jedi_script(use_document_path=True).goto(
+        follow_imports=settings.get('follow_imports', True),
+        follow_builtin_imports=settings.get('follow_builtin_imports', True),
+        **code_position)
 
-        follow_builtin_defns = settings.get("follow_builtin_definitions", True)
-        return [
-            {
-                'uri': uris.uri_with(document.uri, path=str(d.module_path)),
-                'range': {
-                    'start': {'line': d.line - 1, 'character': d.column},
-                    'end': {'line': d.line - 1, 'character': d.column + len(d.name)},
-                }
+    follow_builtin_defns = settings.get("follow_builtin_definitions", True)
+    return [
+        {
+            'uri': uris.uri_with(document.uri, path=str(d.module_path)),
+            'range': {
+                'start': {'line': d.line - 1, 'character': d.column},
+                'end': {'line': d.line - 1, 'character': d.column + len(d.name)},
             }
-            for d in definitions if d.is_definition() and (follow_builtin_defns or _not_internal_definition(d))
-        ]
+        }
+        for d in definitions if d.is_definition() and (follow_builtin_defns or _not_internal_definition(d))
+    ]
 
 
 def _not_internal_definition(definition):

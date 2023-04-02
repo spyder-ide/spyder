@@ -293,8 +293,7 @@ else:
             os.kill(pid, 0)
         except OSError as e:
             return e.errno == errno.EPERM
-        else:
-            return True
+        return True
 
 
 def get_eol_chars(text):
