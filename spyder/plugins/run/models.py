@@ -175,6 +175,9 @@ class RunConfigurationListModel(QAbstractListModel):
 
     def set_current_run_configuration(self, uuid: str):
         self.current_configuration = uuid
+    
+    def get_current_run_configuration(self):
+        return self.current_configuration
 
     def get_initial_index(self) -> int:
         return self.inverted_index[self.current_configuration]

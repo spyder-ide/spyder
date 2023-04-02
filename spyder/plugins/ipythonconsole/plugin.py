@@ -229,7 +229,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': 'py',
+            'extension': ['py', 'ipy'],
             'contexts': [
                 {
                     'name': 'File'
@@ -245,7 +245,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -255,7 +255,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Cell'
                 },
@@ -265,37 +265,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
-                'context': {
-                    'name': 'Selection'
-                },
-                'output_formats': [],
-                'configuration_widget': None,
-                'requires_cwd': True,
-                'priority': 0
-            },
-            {
-                'input_extension': 'ipy',
-                'context': {
-                    'name': 'File'
-                },
-                'output_formats': [],
-                'configuration_widget': IPythonConfigOptions,
-                'requires_cwd': True,
-                'priority': 0
-            },
-            {
-                'input_extension': 'ipy',
-                'context': {
-                    'name': 'Cell'
-                },
-                'output_formats': [],
-                'configuration_widget': None,
-                'requires_cwd': True,
-                'priority': 0
-            },
-            {
-                'input_extension': 'ipy',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Selection'
                 },

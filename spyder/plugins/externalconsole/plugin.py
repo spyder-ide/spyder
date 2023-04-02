@@ -59,7 +59,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         self.editor_configurations = [
             {
                 'origin': self.NAME,
-                'extension': 'py',
+                'extension': ['py', 'ipy'],
                 'contexts': [
                     {
                         'name': 'File'
@@ -70,7 +70,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -79,16 +79,6 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                 'requires_cwd': True,
                 'priority': 2
             },
-            {
-                'input_extension': 'ipy',
-                'context': {
-                    'name': 'File'
-                },
-                'output_formats': [],
-                'configuration_widget': ExternalConsolePyConfiguration,
-                'requires_cwd': True,
-                'priority': 2
-            }
         ]
 
         if os.name == 'nt':

@@ -62,16 +62,6 @@ class Run(SpyderPluginV2):
         focused `RunConfigurationProvider`
     """
 
-    sig_switch_run_configuration_focus = Signal(str)
-    """
-    Change the current run configuration to the one that is focused.
-
-    Arguments
-    ---------
-    uuid: str
-        The run configuration identifier.
-    """
-
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -93,9 +83,6 @@ class Run(SpyderPluginV2):
         self.toolbar_actions = set({})
         self.shortcut_actions = {}
         self.action_lock = Lock()
-
-        self.sig_switch_run_configuration_focus.connect(
-            self.switch_focused_run_configuration)
 
         container = self.get_container()
         container.sig_run_action_created.connect(

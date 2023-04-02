@@ -57,7 +57,6 @@ class RunContainer(PluginMainContainer):
 
         self.executor_use_count: Dict[str, int] = {}
         self.viewers_per_output: Dict[str, Set[str]] = {}
-        self.currently_selected_configuration: Optional[str] = None
 
         self.run_action = self.create_action(
             RunActions.Run,
@@ -283,13 +282,16 @@ class RunContainer(PluginMainContainer):
 
     def re_run_file(self):
         self.run_file(self.last_executed_file, selected_executor=None)
+    
+    @property
+    def currently_selected_configuration(self):
+        return self.metadata_model.get_current_run_configuration()
 
     def switch_focused_run_configuration(self, uuid: Optional[str]):
         uuid = uuid or None
+        self.metadata_model.set_current_run_configuration(uuid)
         if uuid is not None and uuid != self.currently_selected_configuration:
             self.run_action.setEnabled(True)
-            self.currently_selected_configuration = uuid
-            self.metadata_model.set_current_run_configuration(uuid)
 
             metadata = self.metadata_model[uuid]
             self.current_input_provider = metadata['source']
@@ -300,7 +302,7 @@ class RunContainer(PluginMainContainer):
             self.set_actions_status()
         elif uuid is None:
             self.run_action.setEnabled(False)
-
+            
             for context, act, mod in self.context_actions:
                 action, __ = self.context_actions[(context, act, mod)]
                 action.setEnabled(False)
@@ -579,7 +581,6 @@ class RunContainer(PluginMainContainer):
             provider_name, set({}))
 
         for supported_extension_contexts in supported_extensions_contexts:
-            ext = supported_extension_contexts['input_extension']
             for ext_context in supported_extension_contexts['contexts']:
                 context = ext_context['context']
                 is_super = ext_context['is_super']
@@ -589,7 +590,11 @@ class RunContainer(PluginMainContainer):
                     context_identifier = camel_case_to_snake_case(context_name)
                     context['identifier'] = context_identifier
                 setattr(RunContext, context_name, context_identifier)
-                provider_extensions_contexts |= {(ext, context_identifier)}
+                ext_list = supported_extension_contexts['input_extension']
+                if not isinstance(ext_list, list):
+                    ext_list = [ext_list]
+                for ext in ext_list:
+                    provider_extensions_contexts |= {(ext, context_identifier)}
                 if is_super:
                     self.super_contexts |= {context_identifier}
 
@@ -717,7 +722,6 @@ class RunContainer(PluginMainContainer):
         executor_count = self.executor_use_count.get(executor_id, 0)
 
         for config in configuration:
-            ext = config['input_extension']
             context = config['context']
             context_name = context['name']
             context_id = context.get('identifier', None)
@@ -736,9 +740,13 @@ class RunContainer(PluginMainContainer):
                 output_formats.append(updated_out)
 
             config['output_formats'] = output_formats
-            self.executor_model.add_input_executor_configuration(
-                ext, context_id, executor_id, config)
-            executor_count += 1
+            ext_list = config['input_extension']
+            if not isinstance(ext_list, list):
+                ext_list = [ext_list]
+            for ext in ext_list:
+                self.executor_model.add_input_executor_configuration(
+                    ext, context_id, executor_id, config)
+                executor_count += 1
 
         self.executor_use_count[executor_id] = executor_count
         self.executor_model.set_executor_name(executor_id, executor_name)

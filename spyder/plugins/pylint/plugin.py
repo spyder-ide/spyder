@@ -86,7 +86,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         # Run configuration
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -95,16 +95,6 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
                 'requires_cwd': False,
                 'priority': 4
             },
-            {
-                'input_extension': 'ipy',
-                'context': {
-                    'name': 'File'
-                },
-                'output_formats': [],
-                'configuration_widget': None,
-                'requires_cwd': False,
-                'priority': 4
-            }
         ]
 
     @on_plugin_available(plugin=Plugins.Editor)

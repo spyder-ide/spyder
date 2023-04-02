@@ -264,21 +264,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.supported_run_extensions = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'contexts': [
                     {'context': {'name': 'File'}, 'is_super': True},
                     {'context': {'name': 'Selection'}, 'is_super': False},
                     {'context': {'name': 'Cell'}, 'is_super': False}
                 ]
             },
-            {
-                'input_extension': 'ipy',
-                'contexts': [
-                    {'context': {'name': 'File'}, 'is_super': True},
-                    {'context': {'name': 'Selection'}, 'is_super': False},
-                    {'context': {'name': 'Cell'}, 'is_super': False}
-                ]
-            }
         ]
 
         run = self.main.get_plugin(Plugins.Run, error=False)
@@ -3072,48 +3064,52 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     # ------ Run files
     def add_supported_run_configuration(self, config: EditorRunConfiguration):
         origin = config['origin']
-        extension = config['extension']
+        extensions = config['extension']
         contexts = config['contexts']
-
-        ext_contexts = []
-        for context in contexts:
-            is_super = RunContext[context['name']] == RunContext.File
-            ext_contexts.append(
-                ExtendedContext(context=context, is_super=is_super))
-        supported_extension = SupportedExtensionContexts(
-            input_extension=extension, contexts=ext_contexts)
-        self.supported_run_extensions.append(supported_extension)
-
-        run = self.main.get_plugin(Plugins.Run, error=False)
-        if run:
-            run.register_run_configuration_provider(
-                self.NAME, [supported_extension])
-
-        actual_contexts = set({})
-        ext_origins = self.run_configurations_per_origin.get(extension, {})
-
-        file_enabled = False
-        for context in contexts:
-            context_name = context['name']
-            context_id = getattr(RunContext, context_name)
-            actual_contexts |= {context_id}
-            context_origins = ext_origins.get(context_id, set({}))
-            context_origins |= {origin}
-            ext_origins[context_id] = context_origins
-            if context_id == RunContext.File:
-                file_enabled = True
-
-        ext_contexts = self.supported_run_configurations.get(
-            extension, set({}))
-        ext_contexts |= actual_contexts
-        self.supported_run_configurations[extension] = ext_contexts
-        self.run_configurations_per_origin[extension] = ext_origins
-
-        for filename, filename_ext in list(self.pending_run_files):
-            if filename_ext == extension and file_enabled:
-                self.register_file_run_metadata(filename)
-            else:
-                self.pending_run_files -= {(filename, filename_ext)}
+        
+        if not isinstance(extensions, list):
+            extensions = [extensions]
+        
+        for extension in extensions:
+            ext_contexts = []
+            for context in contexts:
+                is_super = RunContext[context['name']] == RunContext.File
+                ext_contexts.append(
+                    ExtendedContext(context=context, is_super=is_super))
+            supported_extension = SupportedExtensionContexts(
+                input_extension=extension, contexts=ext_contexts)
+            self.supported_run_extensions.append(supported_extension)
+    
+            run = self.main.get_plugin(Plugins.Run, error=False)
+            if run:
+                run.register_run_configuration_provider(
+                    self.NAME, [supported_extension])
+    
+            actual_contexts = set({})
+            ext_origins = self.run_configurations_per_origin.get(extension, {})
+    
+            file_enabled = False
+            for context in contexts:
+                context_name = context['name']
+                context_id = getattr(RunContext, context_name)
+                actual_contexts |= {context_id}
+                context_origins = ext_origins.get(context_id, set({}))
+                context_origins |= {origin}
+                ext_origins[context_id] = context_origins
+                if context_id == RunContext.File:
+                    file_enabled = True
+    
+            ext_contexts = self.supported_run_configurations.get(
+                extension, set({}))
+            ext_contexts |= actual_contexts
+            self.supported_run_configurations[extension] = ext_contexts
+            self.run_configurations_per_origin[extension] = ext_origins
+    
+            for filename, filename_ext in list(self.pending_run_files):
+                if filename_ext == extension and file_enabled:
+                    self.register_file_run_metadata(filename)
+                else:
+                    self.pending_run_files -= {(filename, filename_ext)}
 
     def remove_supported_run_configuration(
         self,
