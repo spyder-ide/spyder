@@ -21,10 +21,19 @@ if [ "$USE_CONDA" = "true" ]; then
     micromamba install --file requirements/tests.yml
 
     # To check our manifest and coverage
-    micromamba install check-manifest -c conda-forge codecov -q -y
+    micromamba install check-manifest codecov -q -y
+
+    # Remove pylsp before installing its subrepo below
+    micromamba remove --force python-lsp-server python-lsp-server-base -y
 
     # To test with Jupyter-client 8
-    micromamba install jupyter_client=8.1
+    micromamba install --no-deps jupyter_client=8.1
+
+    # To test with pydocstyle 6.3.0
+    micromamba install pydocstyle=6.3.0
+
+    # To test with the latest autopep8
+    micromamba install autopep8=2
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -49,6 +58,12 @@ else
 
     # To test with Jupyter-client 8
     pip install jupyter-client==8.1
+
+    # To test with pydocstyle 6.3.0
+    pip install pydocstyle==6.3.0
+
+    # To test with the latest autopep8
+    pip install autopep8==2.0.2
 fi
 
 # Install subrepos from source
