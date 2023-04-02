@@ -88,11 +88,12 @@ class DebuggerPanel(Panel):
 
         Paint breakpoints icons.
         """
+        super(DebuggerPanel, self).paintEvent(event)
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
+        self.paint_cell(painter)
 
         for top, line_number, block in self.editor.visible_blocks:
-            self.paint_cell(painter)
             if self.line_number_hint == line_number:
                 self._draw_breakpoint_icon(top, painter, "transparent")
             if self._current_line_arrow == line_number and not self.stop:

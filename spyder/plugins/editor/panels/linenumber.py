@@ -95,10 +95,10 @@ class LineNumberArea(Panel):
                 # The editor doesn't care about leading, so each line
                 # must be drawn independently.
                 self.draw_linenumbers_slow(painter)
+        self.paint_cell(painter)
 
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()
-            self.paint_cell(painter)
             if self._markers_margin and data:
                 if data.code_analysis:
                     errors = 0
