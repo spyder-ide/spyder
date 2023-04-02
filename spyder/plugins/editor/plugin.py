@@ -165,6 +165,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     sig_codeeditor_created = Signal(object)
     """
     This signal is emitted when a codeeditor is created.
+    """
+
+    sig_diagnostics_update = Signal(list)
+    """
+    This signal is emitted when a diagnostics is created.
 
     Parameters
     ----------
@@ -1750,6 +1755,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
         editorstack.sig_help_requested.connect(self.sig_help_requested)
         editorstack.sig_codeeditor_created.connect(self.sig_codeeditor_created)
+        editorstack.sig_diagnostics_update.connect(self.sig_diagnostics_update)
         editorstack.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
         editorstack.sig_codeeditor_deleted.connect(self.sig_codeeditor_deleted)
 

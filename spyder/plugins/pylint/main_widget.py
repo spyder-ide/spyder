@@ -26,7 +26,7 @@ from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot, Qt)
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QVBoxLayout, QHBoxLayout)
+                            QVBoxLayout, QStackedLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -48,7 +48,7 @@ from spyder.utils.stylesheet import DialogStyle
 
 
 # Localization
-_ = get_translation("spyder")
+#_ = get_translation("spyder")
 
 
 # --- Constants
@@ -144,6 +144,33 @@ class CategoryItem(QTreeWidgetItem):
 # ---- Widgets
 # ----------------------------------------------------------------------------
 # TODO: display results on 3 columns instead of 1: msg_id, lineno, message
+class PanelEmptyWidget(QWidget):
+    """Update progress installation widget."""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        panel_empty_layout = QVBoxLayout()
+        self.label_empty = QLabel()
+        self.label_empty.setText('You havent analyzed any code yet.')
+        self.label_empty.setAlignment(Qt.AlignCenter)
+        self.label_empty.setStyleSheet(f"font-size: {DialogStyle.TitleFontSize}")
+        # Image
+        icon_filename = 'code-analysis'
+        image_path = get_image_path(icon_filename)
+        image = QPixmap(image_path)
+        self.image_label = QLabel()
+        image_height = int(image.height())
+        image_width = int(image.width())
+        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
+                             Qt.SmoothTransformation)
+        self.image_label.setPixmap(image)
+        self.image_label.setAlignment(Qt.AlignCenter)
+        panel_empty_layout.addWidget(self.image_label)
+        panel_empty_layout.addWidget(self.label_empty)
+
+        self.setLayout(panel_empty_layout)
+
+
 class ResultsTree(OneColumnTree):
 
     sig_edit_goto_requested = Signal(str, int, str)
@@ -328,19 +355,8 @@ class PylintWidget(PluginMainWidget):
         self.datelabel = QLabel(self)
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
-        # Image
-        icon_filename = 'code-analysis'
-        image_path = get_image_path(icon_filename)
-        image = QPixmap(image_path)
-        self.image_label = QLabel()
-        image_height = int(image.height())
-        image_width = int(image.width())
-        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                             Qt.SmoothTransformation)
-        self.image_label.setPixmap(image)
-        self.image_label.setAlignment(Qt.AlignCenter)
-
         self.treewidget = ResultsTree(self)
+        self.panelempty = PanelEmptyWidget(self)
 
         if osp.isfile(self.DATAPATH):
             try:
@@ -358,11 +374,10 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(fname)
 
         # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.image_label, alignment=Qt.AlignCenter)
-        #layout.addWidget(self.treewidget)
-        self.setLayout(layout)
-
+        self.stack_layout = layout = QStackedLayout()
+        self.stack_layout.addWidget(self.panelempty)
+        self.stack_layout.addWidget(self.treewidget)
+        self.setLayout(self.stack_layout)
         # Signals
         self.filecombo.currentTextChanged.connect(self.sig_open_file_requested)
         self.filecombo.valid.connect(self._check_new_file)
@@ -457,6 +472,8 @@ class PylintWidget(PluginMainWidget):
         self.stop_spinner()
 
     def _check_new_file(self):
+        self.code_analysis_action.setEnabled(not self.get_conf(
+            "real_time_analysis", False))
         fname = self.get_filename()
         if fname != self.filename:
             self.filename = fname
@@ -621,12 +638,15 @@ class PylintWidget(PluginMainWidget):
         if self.rdata:
             self.remove_obsolete_items()
             self.filecombo.insertItems(0, self.get_filenames())
-            self.code_analysis_action.setEnabled(self.filecombo.is_valid())
+            self.code_analysis_action.setEnabled(self.filecombo.is_valid() and
+                                                 not self.get_conf(
+                                                    "real_time_analysis",
+                                                    False))
         else:
             self.code_analysis_action.setEnabled(False)
 
         # Signals
-        self.filecombo.valid.connect(self.code_analysis_action.setEnabled)
+        #self.filecombo.valid.connect(self.code_analysis_action.setEnabled)
 
     @on_conf_change(option=['max_entries', 'history_filenames'])
     def on_conf_update(self, option, value):
@@ -740,6 +760,7 @@ class PylintWidget(PluginMainWidget):
         If this method is called while still running it will stop the code
         analysis.
         """
+        self.code_analysis_action.dis
         if self._is_running():
             self._kill_process()
         else:
@@ -824,14 +845,17 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
+            self.stack_layout.setCurrentWidget(self.panelempty)
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
+                self.stack_layout.setCurrentWidget(self.treewidget)
                 text = _("Analysis did not succeed "
                          "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
+                self.stack_layout.setCurrentWidget(self.treewidget)
                 text_style = "<span style=\"color: %s\"><b>%s </b></span>"
                 rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
                 prevrate_style = "<span style=\"color: %s\">%s</span>"

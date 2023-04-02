@@ -109,6 +109,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         widget.sig_edit_goto_requested.connect(editor.load)
         widget.sig_open_file_requested.connect(editor.load)
         editor.sig_editor_focus_changed.connect(self._set_filename)
+        editor.sig_diagnostics_update.connect(self._code_analysis_real_time)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -210,6 +211,10 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         except SpyderAPIError:
             # Editor was deleted
             pass
+
+    def _code_analysis_real_time(self, list):
+        widget = self.get_widget()
+        pass
 
     def _set_project_dir(self, value):
         widget = self.get_widget()

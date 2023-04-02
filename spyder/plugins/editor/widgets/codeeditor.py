@@ -228,6 +228,9 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    #: Signal emitted when diagnostics is defined/set
+    sig_diagnostics_update = Signal(list)
+
     # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
     # a URI is found, this signal is emitted
     sig_uri_found = Signal(str)
@@ -1311,6 +1314,7 @@ class CodeEditor(TextEditBaseWidget):
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
         self.cleanup_code_analysis()
+        self.sig_diagnostics_update.emit(diagnostics)
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
