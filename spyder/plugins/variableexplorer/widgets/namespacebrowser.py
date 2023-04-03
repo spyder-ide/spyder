@@ -36,7 +36,7 @@ from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
-from spyder.widgets.helperwidgets import FinderWidget
+from spyder.widgets.helperwidgets import FinderWidget, PanelEmptyWidget
 
 
 # Constants
@@ -102,6 +102,9 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.refresh_table()
         else:
             # Widgets
+            self.panelempty = PanelEmptyWidget(self)
+            self.panelempty.set_attributes('code-profiler',
+                                           'You havent profiled any code yet.')
             self.editor = RemoteCollectionsEditorTableView(
                 self,
                 data=None,

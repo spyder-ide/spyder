@@ -23,13 +23,14 @@ from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget)
+                            QVBoxLayout, QWidget, QStackedLayout)
 
 # Local library imports
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
+from spyder.widgets.helperwidgets import PanelEmptyWidget
 
 
 # TODO:
@@ -170,6 +171,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
 
+        # Widget empty panel
+        self.panelempty = PanelEmptyWidget(self)
+        self.panelempty.set_attributes('plots',
+                                       'You havent generated any plots yet.')
+        
+
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
         splitter.addWidget(self.figviewer)
@@ -177,9 +184,10 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
 
-        layout = QHBoxLayout(self)
-        layout.addWidget(splitter)
-        self.setLayout(layout)
+        self.stack_layout = layout = QStackedLayout()
+        self.stack_layout.addWidget(self.panelempty)
+        self.stack_layout.addWidget(splitter)
+        self.setLayout(self.stack_layout)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)

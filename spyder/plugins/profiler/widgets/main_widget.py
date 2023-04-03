@@ -28,7 +28,7 @@ from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QLabel, QMessageBox, QTreeWidget,
-                            QTreeWidgetItem, QVBoxLayout)
+                            QTreeWidgetItem, QStackedLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -43,6 +43,7 @@ from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
 from spyder.widgets.comboboxes import PythonModulesComboBox
+from spyder.widgets.helperwidgets import PanelEmptyWidget
 
 
 # Logging
@@ -173,13 +174,17 @@ class ProfilerWidget(PluginMainWidget):
         self.filecombo = PythonModulesComboBox(
             self, id_=ProfilerWidgetMainToolbarItems.FileCombo)
         self.datatree = ProfilerDataTree(self)
+        self.panelempty = PanelEmptyWidget(self)
+        self.panelempty.set_attributes('code-profiler',
+                                       'You havent profiled any code yet.')
         self.datelabel = QLabel()
         self.datelabel.ID = ProfilerWidgetInformationToolbarItems.DateLabel
 
         # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.datatree)
-        self.setLayout(layout)
+        self.stack_layout = layout = QStackedLayout()
+        self.stack_layout.addWidget(self.panelempty)
+        self.stack_layout.addWidget(self.datatree)
+        self.setLayout(self.stack_layout)
 
         # Signals
         self.datatree.sig_edit_goto_requested.connect(

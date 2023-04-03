@@ -224,6 +224,8 @@ class PlotsWidget(ShellConnectMainWidget):
             figviewer = widget.figviewer
             thumbnails_sb = widget.thumbnails_sb
             value = figviewer.figcanvas.fig is not None
+        else :
+            widget.setCurrentWidget(self.panelEmpty)
 
         for __, action in self.get_actions().items():
             try:
