@@ -40,13 +40,13 @@ def test_references(tmp_workspace):  # pylint: disable=redefined-outer-name
     DOC1_URI = uris.from_fs_path(os.path.join(tmp_workspace.root_path, DOC1_NAME))
     doc1 = Document(DOC1_URI, tmp_workspace)
 
-    refs = pylsp_references(doc1, tmp_workspace, position)
+    refs = pylsp_references(doc1, position)
 
     # Definition, the import and the instantiation
     assert len(refs) == 3
 
     # Briefly check excluding the definitions (also excludes imports, only counts uses)
-    no_def_refs = pylsp_references(doc1, tmp_workspace, position, exclude_declaration=True)
+    no_def_refs = pylsp_references(doc1, position, exclude_declaration=True)
     assert len(no_def_refs) == 1
 
     # Make sure our definition is correctly located
@@ -70,7 +70,7 @@ def test_references_builtin(tmp_workspace):  # pylint: disable=redefined-outer-n
     doc2_uri = uris.from_fs_path(os.path.join(str(tmp_workspace.root_path), DOC2_NAME))
     doc2 = Document(doc2_uri, tmp_workspace)
 
-    refs = pylsp_references(doc2, tmp_workspace, position)
+    refs = pylsp_references(doc2, position)
     assert len(refs) >= 1
 
     expected = {'start': {'line': 4, 'character': 7},
