@@ -374,7 +374,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.start_completion_services_for_language(language)
 
 
-    @Slot(str)
     def report_server_error(self, error):
         """Report server errors in our error report dialog."""
         error_data = dict(
