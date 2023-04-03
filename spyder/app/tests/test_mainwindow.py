@@ -6333,10 +6333,17 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_globals True" in control.toPlainText()
 
 
-def test_quotes_in_filename(main_window, qtbot, tmpdir):
-    """Test that we can run files with qotes in name"""
+def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
+    """
+    Test that we can run files with quotes in name, renamed files,
+    and ipy files.
+    """
     # create a file with a funky name
-    file = tmpdir.join("a'b\"c\\.py")
+    path = "a'b\"c\\.py"
+    if os.name == 'nt':
+        # path is not a valid file name on Windows
+        path = "abc.py"
+    file = tmpdir.join(path)
     file.write("print(23 + 780)")
     path = to_text_string(file)
     main_window.editor.load(path)
@@ -6362,26 +6369,22 @@ def test_quotes_in_filename(main_window, qtbot, tmpdir):
 
     assert "802" in control.toPlainText()
     assert "error" not in control.toPlainText()
-    
+
     # Make sure this works with ipy and renamed files too
-    
+
     # Rename the file to ipython and send the signal
     rename_file(path, path[:-2] + "ipy")
     explorer = main_window.get_plugin(Plugins.Explorer)
     explorer.sig_file_renamed.emit(path, path[:-2] + "ipy")
-    
+
     code_editor.set_text("print(21 + 780)")
-    
+
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     assert "801" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "\\.ipy" in control.toPlainText()
-    
-    
-
-    
 
 
 if __name__ == "__main__":
