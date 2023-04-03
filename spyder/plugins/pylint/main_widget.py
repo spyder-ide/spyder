@@ -24,7 +24,6 @@ import pylint
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot, Qt)
-from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QStackedLayout, QWidget)
 
@@ -44,7 +43,7 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
-from spyder.utils.stylesheet import DialogStyle
+from spyder.widgets.helperwidgets import PanelEmptyWidget
 
 
 # Localization
@@ -144,32 +143,6 @@ class CategoryItem(QTreeWidgetItem):
 # ---- Widgets
 # ----------------------------------------------------------------------------
 # TODO: display results on 3 columns instead of 1: msg_id, lineno, message
-class PanelEmptyWidget(QWidget):
-    """Update progress installation widget."""
-
-    def __init__(self, parent):
-        super().__init__(parent)
-        panel_empty_layout = QVBoxLayout()
-        self.label_empty = QLabel()
-        self.label_empty.setText('You havent analyzed any code yet.')
-        self.label_empty.setAlignment(Qt.AlignCenter)
-        self.label_empty.setStyleSheet(f"font-size: {DialogStyle.TitleFontSize}")
-        # Image
-        icon_filename = 'code-analysis'
-        image_path = get_image_path(icon_filename)
-        image = QPixmap(image_path)
-        self.image_label = QLabel()
-        image_height = int(image.height())
-        image_width = int(image.width())
-        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                             Qt.SmoothTransformation)
-        self.image_label.setPixmap(image)
-        self.image_label.setAlignment(Qt.AlignCenter)
-        panel_empty_layout.addWidget(self.image_label)
-        panel_empty_layout.addWidget(self.label_empty)
-
-        self.setLayout(panel_empty_layout)
-
 
 class ResultsTree(OneColumnTree):
 
@@ -357,6 +330,8 @@ class PylintWidget(PluginMainWidget):
 
         self.treewidget = ResultsTree(self)
         self.panelempty = PanelEmptyWidget(self)
+        self.panelempty.set_attributes('code-analysis',
+                                       'You havent analyzed any code yet.')
 
         if osp.isfile(self.DATAPATH):
             try:

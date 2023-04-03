@@ -22,13 +22,16 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
                             QToolButton, QToolTip, QVBoxLayout,
-                            QWidget, QHBoxLayout)
+                            QWidget, QHBoxLayout, QLabel)
+from qtpy.QtGui import QPixmap
 
 # Local imports
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette
+from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.stylesheet import DialogStyle
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
@@ -410,6 +413,7 @@ class FinderWidget(QWidget):
         else:
             self.sig_find_text.emit("")
 
+
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom column filter based on regex."""
 
@@ -454,6 +458,40 @@ def test_msgcheckbox():
     box.setIcon(QMessageBox.Information)
     box.exec_()
 
+
+class PanelEmptyWidget(QWidget):
+    """Update progress installation widget."""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.icon_filename = None
+        self.text = None
+
+    def set_attributes(self, icon_filename, text):
+        self.icon_filename = icon_filename
+        self.text = text
+        self.refresh()
+
+    def refresh(self):
+        panel_empty_layout = QVBoxLayout()
+        self.label_empty = QLabel()
+        self.label_empty.setText(self.text)
+        self.label_empty.setAlignment(Qt.AlignCenter)
+        self.label_empty.setStyleSheet(f"font-size: {DialogStyle.TitleFontSize}")
+        # Image
+        image_path = get_image_path(self.icon_filename)
+        image = QPixmap(image_path)
+        self.image_label = QLabel()
+        image_height = int(image.height())
+        image_width = int(image.width())
+        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
+                             Qt.SmoothTransformation)
+        self.image_label.setPixmap(image)
+        self.image_label.setAlignment(Qt.AlignCenter)
+        panel_empty_layout.addWidget(self.image_label)
+        panel_empty_layout.addWidget(self.label_empty)
+
+        self.setLayout(panel_empty_layout)
 
 if __name__ == '__main__':
     test_msgcheckbox()
