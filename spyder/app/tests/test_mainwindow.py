@@ -6333,6 +6333,10 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_globals True" in control.toPlainText()
 
 
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="No quotes in windows filepath"
+)
 def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     """
     Test that we can run files with quotes in name, renamed files,
@@ -6340,9 +6344,6 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     """
     # create a file with a funky name
     path = "a'b\"c\\.py"
-    if os.name == 'nt':
-        # path is not a valid file name on Windows
-        path = "abc.py"
     file = tmpdir.join(path)
     file.write("print(23 + 780)")
     path = to_text_string(file)
