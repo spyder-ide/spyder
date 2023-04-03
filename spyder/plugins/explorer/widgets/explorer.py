@@ -41,7 +41,8 @@ from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import file_uri, start_file
+from spyder.utils.qthelpers import (
+    file_uri, keyevent_to_keysequence_str, start_file)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -81,10 +82,10 @@ class DirViewActions:
     Delete = 'delete_action'
     Rename = 'rename_action'
     Move = 'move_action'
-    Copy = 'copy_action'
-    Paste = 'paste_action'
-    CopyAbsolutePath = 'copy_absolute_path_action'
-    CopyRelativePath = 'copy_relative_path_action'
+    Copy = 'copy file'
+    Paste = 'paste file'
+    CopyAbsolutePath = 'copy absolute path'
+    CopyRelativePath = 'copy relative path'
     ShowInSystemExplorer = 'show_system_explorer_action'
     VersionControlCommit = 'version_control_commit_action'
     VersionControlBrowse = 'version_control_browse_action'
@@ -384,11 +385,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
         )
 
         # Copy/Paste actions
-        copy_action = self.create_action(
+        self.copy_action = self.create_action(
             DirViewActions.Copy,
             text=_("Copy"),
             icon=self.create_icon('editcopy'),
             triggered=self.copy_file_clipboard,
+            register_shortcut=True
         )
 
         self.paste_action = self.create_action(
@@ -396,18 +398,21 @@ class DirView(QTreeView, SpyderWidgetMixin):
             text=_("Paste"),
             icon=self.create_icon('editpaste'),
             triggered=self.save_file_clipboard,
+            register_shortcut=True,
         )
 
-        copy_absolute_path_action = self.create_action(
+        self.copy_absolute_path_action = self.create_action(
             DirViewActions.CopyAbsolutePath,
             text=_("Copy Absolute Path"),
             triggered=self.copy_absolute_path,
+            register_shortcut=True,
         )
 
-        copy_relative_path_action = self.create_action(
+        self.copy_relative_path_action = self.create_action(
             DirViewActions.CopyRelativePath,
             text=_("Copy Relative Path"),
             triggered=self.copy_relative_path,
+            register_shortcut=True
         )
 
         # Show actions
@@ -560,8 +565,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
             )
 
         # Copy/Paste section
-        for item in [copy_action, self.paste_action, copy_absolute_path_action,
-                     copy_relative_path_action]:
+        for item in [self.copy_action, self.paste_action,
+                     self.copy_absolute_path_action,
+                     self.copy_relative_path_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
@@ -769,7 +775,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
             pass
 
     def keyPressEvent(self, event):
-        """Reimplement Qt method"""
+        """Handle keyboard shortcuts and special keys."""
+        key_seq = keyevent_to_keysequence_str(event)
+
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             self.clicked()
         elif event.key() == Qt.Key_F2:
@@ -778,6 +786,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
             self.delete()
         elif event.key() == Qt.Key_Backspace:
             self.go_to_parent_directory()
+        elif key_seq == self.copy_action.shortcut().toString():
+            self.copy_file_clipboard()
+        elif key_seq == self.paste_action.shortcut().toString():
+            self.save_file_clipboard()
+        elif key_seq == self.copy_absolute_path_action.shortcut().toString():
+            self.copy_absolute_path()
+        elif key_seq == self.copy_relative_path_action.shortcut().toString():
+            self.copy_relative_path()
         else:
             QTreeView.keyPressEvent(self, event)
 
