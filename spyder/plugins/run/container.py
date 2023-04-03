@@ -289,8 +289,12 @@ class RunContainer(PluginMainContainer):
 
     def switch_focused_run_configuration(self, uuid: Optional[str]):
         uuid = uuid or None
+        if uuid == self.currently_selected_configuration:
+            return
+
         self.metadata_model.set_current_run_configuration(uuid)
-        if uuid is not None and uuid != self.currently_selected_configuration:
+
+        if uuid is not None:
             self.run_action.setEnabled(True)
 
             metadata = self.metadata_model[uuid]
@@ -300,21 +304,23 @@ class RunContainer(PluginMainContainer):
             input_provider = self.run_metadata_provider[uuid]
             input_provider.focus_run_configuration(uuid)
             self.set_actions_status()
-        elif uuid is None:
-            self.run_action.setEnabled(False)
-            
-            for context, act, mod in self.context_actions:
-                action, __ = self.context_actions[(context, act, mod)]
-                action.setEnabled(False)
 
-            for context, act, mod in self.re_run_actions:
-                action, __ = self.re_run_actions[(context, act, mod)]
-                action.setEnabled(False)
+            return
 
-            for context_name, executor_name in self.run_executor_actions:
-                action, __ = self.run_executor_actions[
-                    (context_name, executor_name)]
-                action.setEnabled(False)
+        self.run_action.setEnabled(False)
+        
+        for context, act, mod in self.context_actions:
+            action, __ = self.context_actions[(context, act, mod)]
+            action.setEnabled(False)
+
+        for context, act, mod in self.re_run_actions:
+            action, __ = self.re_run_actions[(context, act, mod)]
+            action.setEnabled(False)
+
+        for context_name, executor_name in self.run_executor_actions:
+            action, __ = self.run_executor_actions[
+                (context_name, executor_name)]
+            action.setEnabled(False)
 
     def set_actions_status(self):
         if self.current_input_provider is None:
