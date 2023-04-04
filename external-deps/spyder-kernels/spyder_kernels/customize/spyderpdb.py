@@ -186,7 +186,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
                 code_ast = ast.parse(line)
 
-                if line.rstrip()[-1] == ";":
+                if line.rstrip()[-1:] == ";":
                     # Supress output with ;
                     capture_last_expression = False
                 else:
