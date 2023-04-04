@@ -31,8 +31,6 @@ from spyder.config.manager import CONF
 from spyder.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
     CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
-from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
-    NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import (
     generate_pandas_indexes)
 from spyder_kernels.utils.nsview import get_size
