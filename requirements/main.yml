@@ -31,7 +31,7 @@ dependencies:
   - python-lsp-black >=1.2.0
   - python-lsp-server >=1.7.1,<1.8.0
   - pyzmq >=22.1.0
-  - qdarkstyle >=3.0.2,<3.1.0
+  - qdarkstyle >=3.0.2,<3.2.0
   - qstylizer >=0.2.2
   - qtawesome >=1.2.1
   - qtconsole >=5.4.0,<5.5.0
