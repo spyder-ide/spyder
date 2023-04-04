@@ -462,7 +462,7 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False,
         else:
             ast_code = ast.parse(transform_cell(code))
 
-        if code.rstrip()[-1] == ";":
+        if code.rstrip()[-1:] == ";":
             # Supress output with ;
             capture_last_expression = False
 
