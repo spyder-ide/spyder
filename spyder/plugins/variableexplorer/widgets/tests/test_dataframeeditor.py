@@ -17,13 +17,15 @@ from datetime import datetime
 from unittest.mock import Mock, ANY
 
 # Third party imports
-from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
-                    MultiIndex, CategoricalIndex, Series)
+from flaky import flaky
+import numpy
+from packaging.version import parse
+from pandas import (
+    __version__ as pandas_version, DataFrame, date_range, read_csv, concat,
+    Index, RangeIndex, MultiIndex, CategoricalIndex, Series)
+import pytest
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
-import numpy
-import pytest
-from flaky import flaky
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -62,17 +64,27 @@ def data_index(dfi, i, j, role=Qt.DisplayRole):
     return dfi.data(dfi.createIndex(i, j), role)
 
 def generate_pandas_indexes():
-    """ Creates a dictionary of many possible pandas indexes """
-    return {
-        'Index': Index(list('ABCDEFGHIJKLMNOPQRST')),
+    """Creates a dictionary of many possible pandas indexes."""
+    # Float64Index was removed in Pandas 2.0
+    if parse(pandas_version) >= parse('2.0.0'):
+        float_index = 'Index'
+    else:
+        float_index = 'Float64Index'
+
+    indexes = {
         'RangeIndex': RangeIndex(0, 20),
-        'Float64Index': Index([i/10 for i in range(20)]),
+        float_index: Index([i/10 for i in range(20)]),
         'DatetimeIndex': date_range(start='2017-01-01', periods=20, freq='D'),
         'MultiIndex': MultiIndex.from_product(
             [list('ABCDEFGHIJ'), ('foo', 'bar')], names=['first', 'second']),
         'CategoricalIndex': CategoricalIndex(list('abcaadaccbbacabacccb'),
                                              categories=['a', 'b', 'c']),
-        }
+    }
+
+    if parse(pandas_version) < parse('2.0.0'):
+        indexes['Index'] = Index(list('ABCDEFGHIJKLMNOPQRST'))
+
+    return indexes
 
 
 # =============================================================================
@@ -395,7 +407,7 @@ def test_dataframeeditor_with_various_indexes():
         assert header.headerData(0, Qt.Horizontal,
                                  Qt.DisplayRole) == "0"
 
-        if rng_name == "Index":
+        if rng_name == "Index" and parse(pandas_version) < parse('2.0.0'):
             assert data(dfm, 0, 0) == 'A'
             assert data(dfm, 1, 0) == 'B'
             assert data(dfm, 2, 0) == 'C'
@@ -405,7 +417,7 @@ def test_dataframeeditor_with_various_indexes():
             assert data(dfm, 1, 0) == '1'
             assert data(dfm, 2, 0) == '2'
             assert data(dfm, 19, 0) == '19'
-        elif rng_name == "Float64Index":
+        elif rng_name in ["Float64Index", "Index"]:
             assert data(dfm, 0, 0) == '0'
             assert data(dfm, 1, 0) == '0.1'
             assert data(dfm, 2, 0) == '0.2'
