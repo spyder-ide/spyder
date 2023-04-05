@@ -21,10 +21,11 @@ if [ "$USE_CONDA" = "true" ]; then
     micromamba install --file requirements/tests.yml
 
     # To check our manifest and coverage
-    micromamba install check-manifest -c conda-forge codecov -q -y
+    micromamba install check-manifest codecov -q -y
 
-    # To test with Jupyter-client 8
-    micromamba install jupyter_client=8.1
+    # Remove pylsp before installing its subrepo below
+    micromamba remove --force python-lsp-server python-lsp-server-base -y
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -47,8 +48,6 @@ else
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
 
-    # To test with Jupyter-client 8
-    pip install jupyter-client==8.1
 fi
 
 # Install subrepos from source
