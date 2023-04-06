@@ -113,7 +113,7 @@ To release a new version of Spyder you need to follow these steps:
   - `binder/environment.yml`
   - `spyder/plugins/ipythonconsole/__init__.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
-**Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
+      **Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
 
 * Commit with
 
@@ -130,20 +130,30 @@ To release a new version of Spyder you need to follow these steps:
 
 ### Check release candidate
 
-* Update version in `__init__.py` (set release version, remove 'dev0', add 'preX'), then
+* Update version in `__init__.py` (set release version, remove '.dev0', add 'rcX'), then
 
       git add .
-      git commit -m "Release X.X.XpreX [ci skip]"
+      git commit -m "Release X.X.XrcX [ci skip]"
       git push upstream 5.x
 
 * Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)):
-    - Create Windows Installer
-    - Create macOS App Bundle and DMG
-    - Create conda-based installers for Windows, macOS, and Linux
+    - Create Windows Installer *
+    - Create macOS App Bundle and DMG *
+    - Create conda-based installers for Linux
+
+      **Note:** For the Windows and macOS installers you will need to trigger the workflows through the [GitHub REST API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event) or using the [GitHub CLI](https://cli.github.com/manual/gh_workflow_run) (the GitHub CLI is available at https://cli.github.com/). In case the GitHub CLI is used you will need to run:
+
+      * For the `Create Windows Installer` workflow:
+
+            gh workflow run installer-win.yml --ref 5.x
+
+      * For the `Create macOS App Bundle and DMG` workflow:
+
+            gh workflow run installer-macos.yml --ref 5.x
 
 * Download and test the installation of the resulting artifacts.
 
-* If either of the previous two steps fail merge a fix PR and begin again with incremented 'preX'.
+* If either of the previous two steps fail merge a fix PR and begin again with incremented 'rcX'.
 
 ## To do the release
 
@@ -157,7 +167,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * `git add .` and `git commit -m "Update Changelog"`
 
-* Update Announcements.md (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
+* Update [Announcements.md](Announcements.md) (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
 
 * `git add .` and `git commit -m "Update Announcements"`
 
