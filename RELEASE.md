@@ -141,7 +141,7 @@ To release a new version of Spyder you need to follow these steps:
     - Create macOS App Bundle and DMG *
     - Create conda-based installers for Linux
 
-      **Note:** For the Windows and macOS installers you will need to trigger the workflows through the [GitHub REST API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event) or using the [GitHub CLI](https://cli.github.com/manual/gh_workflow_run) (the GitHub CLI is available at https://cli.github.com/). In case the GitHub CLI is used you will need to run:
+      **Note:** For the Windows and macOS installers you need to trigger their workflows through the [GitHub REST API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event) or using the [GitHub CLI](https://cli.github.com/manual/gh_workflow_run) (the GitHub CLI is available at https://cli.github.com/). In case the GitHub CLI is used, you need to run:
 
       * For the `Create Windows Installer` workflow:
 
@@ -153,7 +153,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Download and test the installation of the resulting artifacts.
 
-* If either of the previous two steps fail merge a fix PR and begin again with incremented 'rcX'.
+* If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
 ## To do the release
 
