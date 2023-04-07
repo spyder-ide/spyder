@@ -52,7 +52,7 @@ from spyder.plugins.editor.api.run import (
     SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
-from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
+from spyder.plugins.switcher.manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
                                                   EditorSplitter,
@@ -1064,25 +1064,37 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         from spyder.plugins.mainmenu.api import (
             ApplicationMenus, FileMenuSections)
-        # New Section
-        self.main.mainmenu.add_item_to_application_menu(
-            self.new_action,
-            menu_id=ApplicationMenus.File,
-            section=FileMenuSections.New,
-            before_section=FileMenuSections.Restart,
-            omit_id=True)
-        # Open section
-        open_actions = [
-            self.open_action,
-            self.open_last_closed_action,
-            self.recent_file_menu,
-        ]
-        for open_action in open_actions:
+        # Navigation
+        if sys.platform == 'darwin':
             self.main.mainmenu.add_item_to_application_menu(
-                open_action,
+                self.tab_navigation_actions,
                 menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Open,
+                section=FileMenuSections.Navigation,
                 before_section=FileMenuSections.Restart,
+                omit_id=True)
+        # Close
+        close_actions = [
+            self.close_action,
+            self.close_all_action
+        ]
+        for close_action in close_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                close_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Close,
+                before_section=FileMenuSections.Switcher,
+                omit_id=True)
+        # Print
+        print_actions = [
+            print_preview_action,
+            self.print_action,
+        ]
+        for print_action in print_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                print_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Print,
+                before_section=FileMenuSections.Close,
                 omit_id=True)
         # Save section
         save_actions = [
@@ -1097,40 +1109,28 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 save_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
-                before_section=FileMenuSections.Restart,
+                before_section=FileMenuSections.Print,
                 omit_id=True)
-        # Print
-        print_actions = [
-            print_preview_action,
-            self.print_action,
+        # Open section
+        open_actions = [
+            self.open_action,
+            self.open_last_closed_action,
+            self.recent_file_menu,
         ]
-        for print_action in print_actions:
+        for open_action in open_actions:
             self.main.mainmenu.add_item_to_application_menu(
-                print_action,
+                open_action,
                 menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Print,
-                before_section=FileMenuSections.Restart,
+                section=FileMenuSections.Open,
+                before_section=FileMenuSections.Save,
                 omit_id=True)
-        # Close
-        close_actions = [
-            self.close_action,
-            self.close_all_action
-        ]
-        for close_action in close_actions:
-            self.main.mainmenu.add_item_to_application_menu(
-                close_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart,
-                omit_id=True)
-        # Navigation
-        if sys.platform == 'darwin':
-            self.main.mainmenu.add_item_to_application_menu(
-                self.tab_navigation_actions,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Navigation,
-                before_section=FileMenuSections.Restart,
-                omit_id=True)
+        # New Section
+        self.main.mainmenu.add_item_to_application_menu(
+            self.new_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.New,
+            before_section=FileMenuSections.Open,
+            omit_id=True)
 
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +
@@ -1363,9 +1363,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.add_dockwidget()
 
         # Add modes to switcher
+        # TODO: 'Switcher' object has no attribute 'add_mode' 
+        # it is needed to create a public API that contains the methods 
+        # that handles the EditorSwitcherManager
+
         self.switcher_manager = EditorSwitcherManager(
             self,
-            self.main.switcher,
+            self.main.switcher.get_container().switcher,
             self.get_current_editor,
             self.get_current_editorstack,
             section=self.get_plugin_title())

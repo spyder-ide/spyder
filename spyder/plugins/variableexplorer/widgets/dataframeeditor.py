@@ -37,14 +37,16 @@ import io
 from time import perf_counter
 
 # Third party imports
+from packaging.version import parse
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
-                         QItemSelectionModel, QEvent)
+from qtpy.QtCore import (
+    QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, Qt, Signal,
+    Slot)
 from qtpy.QtGui import QColor, QCursor
-from qtpy.QtWidgets import (QApplication, QCheckBox, QGridLayout, QHBoxLayout,
-                            QInputDialog, QLineEdit, QMenu, QMessageBox,
-                            QPushButton, QTableView, QScrollBar, QTableWidget,
-                            QFrame, QItemDelegate)
+from qtpy.QtWidgets import (
+    QApplication, QCheckBox, QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
+    QMenu, QMessageBox, QPushButton, QTableView, QScrollBar, QTableWidget,
+    QFrame, QItemDelegate)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -1384,7 +1386,11 @@ def test_edit(data, title="", parent=None):
 def test():
     """DataFrame editor test"""
     from numpy import nan
-    from pandas.util.testing import assert_frame_equal, assert_series_equal
+
+    if parse(pd.__version__) >= parse('2.0.0'):
+        from pandas.testing import assert_frame_equal, assert_series_equal
+    else:
+        from pandas.util.testing import assert_frame_equal, assert_series_equal
 
     app = qapplication()                  # analysis:ignore
 

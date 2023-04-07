@@ -8,6 +8,14 @@ Changes in Jupyter Qt console
 5.4
 ~~~
 
+5.4.2
+-----
+
+`5.4.2 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.2>`__
+
+* Check if the iopub channel is not closed before flushing it.
+* Fix kernel autorestart after it's killed for Jupyter-client 8+.
+
 5.4.1
 -----
 

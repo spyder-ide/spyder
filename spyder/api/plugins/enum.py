@@ -39,6 +39,7 @@ class Plugins:
     Run = 'run'
     Shortcuts = 'shortcuts'
     StatusBar = 'statusbar'
+    Switcher = 'switcher'
     Toolbar = "toolbar"
     Tours = 'tours'
     VariableExplorer = 'variable_explorer'
