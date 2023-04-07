@@ -16,10 +16,8 @@ from qtpy.QtGui import QStandardItem, QTextDocument
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.config.utils import is_ubuntu
-from spyder.py3compat import TEXT_TYPES, to_text_string
+from spyder.py3compat import to_text_string
 
 
 class SwitcherBaseItem(QStandardItem):

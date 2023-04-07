@@ -55,7 +55,7 @@ class Switcher(SpyderPluginV2):
 
     def on_initialize(self):
         container = self.get_container()
-    
+
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
@@ -78,9 +78,9 @@ class Switcher(SpyderPluginV2):
                 SwitcherActions.SymbolFinderAction]:
             action = self.get_action(switcher_action)
             mainmenu.remove_item_from_application_menu(
-            action,
-            menu_id=ApplicationMenus.File)
-
+                action,
+                menu_id=ApplicationMenus.File
+            )
 
     # --- Public API
     # ------------------------------------------------------------------------

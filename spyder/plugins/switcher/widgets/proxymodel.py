@@ -9,9 +9,6 @@
 # Third party imports
 from qtpy.QtCore import (QSortFilterProxyModel, Qt)
 
-# Local imports
-from spyder.config.base import _
-
 
 class SwitcherProxyModel(QSortFilterProxyModel):
     """A proxy model to perform sorting on the scored items."""
