@@ -9,7 +9,8 @@
 Switcher Plugin.
 """
 
-# Third-party imports
+# Standard library imports
+import sys
 
 # Local imports
 from spyder.api.translations import _
@@ -63,11 +64,15 @@ class Switcher(SpyderPluginV2):
                 SwitcherActions.FileSwitcherAction,
                 SwitcherActions.SymbolFinderAction]:
             action = self.get_action(switcher_action)
+            if sys.platform == 'darwin':
+                before_section = FileMenuSections.Navigation
+            else:
+                before_section = FileMenuSections.Restart
             mainmenu.add_item_to_application_menu(
                 action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Switcher,
-                before_section=FileMenuSections.Navigation
+                before_section=before_section
             )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
