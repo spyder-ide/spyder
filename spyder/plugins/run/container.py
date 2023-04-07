@@ -153,7 +153,6 @@ class RunContainer(PluginMainContainer):
 
             path = super_metadata['path']
             dirname = osp.dirname(path)
-            dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
             last_executor = last_executor_name
             if last_executor is None:
@@ -277,7 +276,6 @@ class RunContainer(PluginMainContainer):
             else:
                 dirname = working_dir_opts['path']
 
-            dirname = dirname.replace("'", r"\'").replace('"', r'\"')
             working_dir_opts['path'] = dirname
 
             self.last_executed_file = uuid

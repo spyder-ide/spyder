@@ -41,7 +41,7 @@ def test_range_format(workspace):
         'start': {'line': 0, 'character': 0},
         'end': {'line': 4, 'character': 10}
     }
-    res = pylsp_format_range(workspace, doc, def_range, None)
+    res = pylsp_format_range(doc, def_range, None)
 
     # Make sure B is still badly formatted
     assert apply_text_edits(doc, res) == "A = ['h', 'w', 'a']\n\nB = ['h',\n\n\n'w']\n"
