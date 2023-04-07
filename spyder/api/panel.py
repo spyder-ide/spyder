@@ -140,9 +140,10 @@ class Panel(QWidget, EditorExtension):
     def paint_cell(self, painter):
         """Paint cell dividers in the visible region if needed."""
         for top_position, line_number, block in self.editor.visible_blocks:
-            if (is_cell_header(block)
-                and (self.position == self.Position.LEFT or
-                     self.position == self.Position.RIGHT)):
+            if (
+                is_cell_header(block)
+                and (self.position in [self.Position.LEFT, self.Position.RIGHT])
+            ):
                 pen = painter.pen()
                 pen.setStyle(Qt.SolidLine)
                 pen.setBrush(self.linecell_color)
