@@ -224,9 +224,12 @@ class PlotsWidget(ShellConnectMainWidget):
             figviewer = widget.figviewer
             thumbnails_sb = widget.thumbnails_sb
             value = figviewer.figcanvas.fig is not None
-        else :
-            widget.setCurrentWidget(self.panelEmpty)
-
+            if value:
+                widget.set_panel_empty(False)
+            else:
+                widget.set_panel_empty(True)
+        else:
+            pass
         for __, action in self.get_actions().items():
             try:
                 if action and action not in [self.mute_action,

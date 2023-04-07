@@ -22,7 +22,7 @@ from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QInputDialog,
-                            QMessageBox, QVBoxLayout, QWidget)
+                            QMessageBox, QVBoxLayout, QStackedLayout, QWidget)
 from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -104,7 +104,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             # Widgets
             self.panelempty = PanelEmptyWidget(self)
             self.panelempty.set_attributes('code-profiler',
-                                           'You havent profiled any code yet.')
+                                           'You havent variables yet.')
             self.editor = RemoteCollectionsEditorTableView(
                 self,
                 data=None,
@@ -136,12 +136,23 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.sig_hide_finder_requested)
 
             # Layout
+            self.stack_layout = QStackedLayout()
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.editor)
             layout.addSpacing(1)
             layout.addWidget(self.finder)
-            self.setLayout(layout)
+            self.main_widget = QWidget()
+            self.main_widget.setLayout(layout)
+            self.stack_layout.addWidget(self.main_widget)
+            self.stack_layout.addWidget(self.panelempty)
+            self.setLayout(self.stack_layout)
+
+    def set_panel_empty(self, empty):
+        if empty:
+            self.stack_layout.setCurrentWidget(self.panelempty)
+        else:
+            self.stack_layout.setCurrentWidget(self.main_widget)
 
     def get_view_settings(self):
         """Return dict editor view settings"""
