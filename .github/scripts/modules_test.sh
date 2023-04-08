@@ -43,9 +43,6 @@ for f in spyder/*/*.py; do
     if [[ $f == spyder/widgets/browser.py ]]; then
         continue
     fi
-    if [[ $f == spyder/widgets/switcher.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/widgets/about.py ]]; then
         continue
     fi

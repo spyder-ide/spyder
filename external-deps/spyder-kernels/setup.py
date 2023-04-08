@@ -60,6 +60,8 @@ TEST_REQUIREMENTS = [
     'xarray',
     'pillow',
     'django',
+    'h5py',
+    'pydicom'
 ]
 
 setup(

@@ -12,3 +12,5 @@ scipy
 xarray
 pillow
 django
+h5py
+pydicom
