@@ -258,7 +258,7 @@ def _definitions():
                 ),
                 "license_file": str(SPYREPO / "LICENSE.txt"),
                 "installer_type": "sh",
-                "post_install": str(RESOURCES / "post-install.sh"),
+                "post_install": str(RESOURCES / "post-install-linux.sh"),
             }
         )
 
