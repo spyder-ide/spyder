@@ -11,7 +11,7 @@ import re
 
 # Third party imports
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel
+from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel, QStackedLayout
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -25,6 +25,7 @@ from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import PatternComboBox
+from spyder.widgets.helperwidgets import PanelEmptyWidget
 
 
 # ---- Constants
@@ -142,6 +143,11 @@ class FindInFilesWidget(PluginMainWidget):
             path_history = [path_history]
 
         # Widgets
+        # Widget empty panel
+        self.panelempty = PanelEmptyWidget(self)
+        self.panelempty.set_attributes('find.svg',
+                                       'You havent generated any plots yet.')
+        
         self.search_text_edit = PatternComboBox(
             self,
             search_text,
@@ -186,9 +192,10 @@ class FindInFilesWidget(PluginMainWidget):
             search_in_index)
 
         # Layout
-        layout = QHBoxLayout()
-        layout.addWidget(self.result_browser)
-        self.setLayout(layout)
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(self.result_browser)
+        self.stack_layout.addWidget(self.panelempty)
+        self.setLayout(self.stack_layout)
 
         # Signals
         self.path_selection_combo.sig_redirect_stdio_requested.connect(
@@ -314,6 +321,10 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
     def update_actions(self):
+        if self.result_browser.data:
+            self.stack_layout.setCurrentWidget(self.result_browser)
+        else:
+            self.stack_layout.setCurrentWidget(self.panelempty)
         self.find_action.setIcon(self.create_icon(
             'stop' if self.running else 'find'))
 

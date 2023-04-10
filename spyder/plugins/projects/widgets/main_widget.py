@@ -21,6 +21,7 @@ from spyder.api.translations import _
 from spyder.plugins.explorer.api import DirViewActions
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
+from spyder.widgets.helperwidgets import PanelEmptyWidget
 
 
 class ProjectExplorerOptionsMenuSections:
@@ -52,8 +53,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        self.emptywidget = ProjectExplorerTreeWidget(self)
-
+        self.emptywidget = PanelEmptyWidget(self)
+        self.emptywidget.set_attributes('projects',
+                                        'You havent generated any projects yet.')
         layout = QVBoxLayout()
         layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)

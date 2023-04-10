@@ -383,7 +383,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             save_data_action = self.get_action(
                 VariableExplorerWidgetActions.SaveData)
             save_data_action.setEnabled(nsb.filename is not None)
-            if nsb.filename:
+            if nsb.editor.source_model._data:
                 nsb.set_panel_empty(False)
             else:
                 nsb.set_panel_empty(True)
@@ -392,7 +392,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         if nsb is None:
             checked = False
         else:
-            nsb.set_panel_empty(False)
             checked = nsb.finder_is_visible()
         search_action.setChecked(checked)
 

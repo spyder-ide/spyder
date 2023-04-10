@@ -73,6 +73,9 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
+        self.panelempty = PanelEmptyWidget(self)
+        self.panelempty.set_attributes('variable-explorer',
+                                       'You havent variables yet.')
 
     def toggle_finder(self, show):
         """Show and hide the finder."""
@@ -102,9 +105,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.refresh_table()
         else:
             # Widgets
-            self.panelempty = PanelEmptyWidget(self)
-            self.panelempty.set_attributes('code-profiler',
-                                           'You havent variables yet.')
             self.editor = RemoteCollectionsEditorTableView(
                 self,
                 data=None,
