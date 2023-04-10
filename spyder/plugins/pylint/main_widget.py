@@ -512,7 +512,7 @@ class PylintWidget(PluginMainWidget):
             filename = filename + '.Result'
 
         if filename:
-            self.datatree.save_data(filename)
+            self.treewidget.save_data(filename)
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -520,7 +520,7 @@ class PylintWidget(PluginMainWidget):
         return _("Code Analysis")
 
     def get_focus_widget(self):
-        return self.image_label
+        return self.treewidget
 
     def setup(self):
         change_history_depth_action = self.create_action(
@@ -726,7 +726,7 @@ class PylintWidget(PluginMainWidget):
 
         self.filecombo.selected()
 
-    def start_code_analysis(self, filename=None):
+    def start_code_analysis(self, filename=None, list=None):
         """
         Perform code analysis for given `filename`.
 
@@ -735,15 +735,17 @@ class PylintWidget(PluginMainWidget):
         If this method is called while still running it will stop the code
         analysis.
         """
-        self.code_analysis_action.dis
-        if self._is_running():
-            self._kill_process()
-        else:
-            if filename is not None:
-                self.set_filename(filename)
+        if list is None:
+            if self._is_running():
+                self._kill_process()
+            else:
+                if filename is not None:
+                    self.set_filename(filename)
 
-            if self.filecombo.is_valid():
-                self._start()
+                if self.filecombo.is_valid():
+                    self._start()
+        else:
+            pass
 
         self.update_actions()
 

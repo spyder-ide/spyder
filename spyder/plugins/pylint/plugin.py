@@ -213,8 +213,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             pass
 
     def _code_analysis_real_time(self, list):
-        widget = self.get_widget()
-        pass
+        self.start_code_analysis(list)
+        print(list)
 
     def _set_project_dir(self, value):
         widget = self.get_widget()
@@ -257,7 +257,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         self.start_code_analysis(filename)
 
     @Slot()
-    def start_code_analysis(self, filename=None):
+    def start_code_analysis(self, filename=None, list=None):
         """
         Perform code analysis for given `filename`.
 
@@ -275,7 +275,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             filename = self.get_widget().get_filename()
 
         self.switch_to_plugin(force_focus=True)
-        self.get_widget().start_code_analysis(filename)
+        self.get_widget().start_code_analysis(filename, list)
 
     def stop_code_analysis(self):
         """
