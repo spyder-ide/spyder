@@ -796,6 +796,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Replace text")
 
         # --- Run toolbar ---
+
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
@@ -863,6 +864,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                add_shortcut_to_tip=True)
 
         # --- Edit Toolbar ---
+        create_new_cell = create_action(self, _("Create new cell at the "
+                                                "current line"),
+                                        icon=ima.icon('cell'),
+                                        tip=_("Create new cell"),
+                                        triggered=self.create_cell,
+                                        context=Qt.WidgetShortcut)
+        self.register_shortcut(create_new_cell, context="Editor",
+                               name="create_new_cell")
         self.toggle_comment_action = create_action(self,
                 _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
                 tip=_("Comment current line or selection"),
@@ -1125,6 +1134,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +
+                                [create_new_cell] +
                                 self.main.file_toolbar_actions)
 
         self.main.file_toolbar_actions += file_toolbar_actions
@@ -2955,6 +2965,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             editor.ensureCursorVisible()
         self.__ignore_cursor_history = False
         self.update_cursorpos_actions()
+
+    @Slot()
+    def create_cell(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.create_new_cell()
 
     @Slot()
     def go_to_previous_cursor_position(self):
