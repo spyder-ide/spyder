@@ -482,6 +482,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
                       "."),
                     QMessageBox.Ok)
 
+        self.activateWindow()
+        self.raise_()
+        self.setFocus()
         self.refresh()
 
     @Slot()
