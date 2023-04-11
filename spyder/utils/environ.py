@@ -22,7 +22,7 @@ except Exception:
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, running_in_ci
+from spyder.config.base import _, running_in_ci, running_in_mac_app
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
@@ -67,7 +67,11 @@ def get_user_environment_variables():
                 f"{shell} -l -c"
                 f""" "{sys.executable} -c 'import os; print(dict(os.environ))'" """
             )
-            proc = run_shell_command(cmd, env={}, text=True)
+            if running_in_mac_app():
+                env = {"PYTHONHOME": os.environ["PYTHONHOME"]}
+            else:
+                env = {}
+            proc = run_shell_command(cmd, env=env, text=True)
             stdout, stderr = proc.communicate()
             env_var = eval(stdout, None)
     except Exception:
