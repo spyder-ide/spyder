@@ -1054,66 +1054,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Free memory after event."""
         gc.collect()
 
-    def show_shortcuts(self, menu):
-        """Show action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(action._shown_shortcut)
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.show_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_shortcuts(self, menu):
-        """Hide action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(QKeySequence())
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.hide_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_options_menus(self):
-        """Hide options menu when menubar is pressed in macOS."""
-        for plugin in self.widgetlist + self.thirdparty_plugins:
-            if plugin.CONF_SECTION == 'editor':
-                editorstack = self.editor.get_current_editorstack()
-                editorstack.menu.hide()
-            else:
-                try:
-                    # New API
-                    plugin.options_menu.hide()
-                except AttributeError:
-                    # Old API
-                    plugin._options_menu.hide()
-
-    def get_focus_widget_properties(self):
-        """Get properties of focus widget
-        Returns tuple (widget, properties) where properties is a tuple of
-        booleans: (is_console, not_readonly, readwrite_editor)"""
-        from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-        from spyder.plugins.ipythonconsole.widgets import ControlWidget
-        widget = QApplication.focusWidget()
-
-        textedit_properties = None
-        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
-            console = isinstance(widget, ControlWidget)
-            not_readonly = not widget.isReadOnly()
-            readwrite_editor = not_readonly and not console
-            textedit_properties = (console, not_readonly, readwrite_editor)
-        return widget, textedit_properties
-
     def set_splash(self, message):
         """Set splash message"""
         if self.splash is None:
