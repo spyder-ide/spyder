@@ -23,8 +23,8 @@ from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
 from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.gui import get_font
-from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
@@ -36,7 +36,9 @@ from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 
 
-class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
+class TextEditBaseWidget(
+        QPlainTextEdit, BaseEditMixin, SpyderConfigurationAccessor
+        ):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
     focus_in = Signal()
@@ -121,7 +123,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self._current_line_block = None
 
     def setup_completion(self):
-        size = CONF.get('main', 'completion/size')
+        size = self.get_conf('completion/size', section='main')
         font = get_font()
         self.completion_widget.setup_appearance(size, font)
 

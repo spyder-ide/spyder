@@ -10,36 +10,32 @@ Contains the bookmarsks utilities.
 # Standard imports
 import os.path as osp
 
-# Local imports
-from spyder.config.manager import CONF
 
-
-def _load_all_bookmarks():
+def _load_all_bookmarks(slots):
     """Load all bookmarks from config."""
-    slots = CONF.get('editor', 'bookmarks', {})
     for slot_num in list(slots.keys()):
         if not osp.isfile(slots[slot_num][0]):
             slots.pop(slot_num)
     return slots
 
 
-def load_bookmarks(filename):
+def load_bookmarks(filename, slots):
     """Load all bookmarks for a specific file from config."""
-    bookmarks = _load_all_bookmarks()
+    bookmarks = _load_all_bookmarks(slots)
     return {k: v for k, v in bookmarks.items() if v[0] == filename}
 
 
-def load_bookmarks_without_file(filename):
+def load_bookmarks_without_file(filename, slots):
     """Load all bookmarks but those from a specific file."""
-    bookmarks = _load_all_bookmarks()
+    bookmarks = _load_all_bookmarks(slots)
     return {k: v for k, v in bookmarks.items() if v[0] != filename}
 
 
-def save_bookmarks(filename, bookmarks):
+def save_bookmarks(filename, bookmarks, old_slots):
     """Save all bookmarks from specific file to config."""
     if not osp.isfile(filename):
         return
-    slots = load_bookmarks_without_file(filename)
+    updated_slots = load_bookmarks_without_file(filename, old_slots)
     for slot_num, content in bookmarks.items():
-        slots[slot_num] = [filename, content[0], content[1]]
-    CONF.set('editor', 'bookmarks', slots)
+        updated_slots[slot_num] = [filename, content[0], content[1]]
+    return updated_slots

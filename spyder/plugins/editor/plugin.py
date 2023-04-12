@@ -38,7 +38,6 @@ from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import qbytearray_to_str, to_text_string
@@ -476,10 +475,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     def register_file_run_metadata(self, filename, filename_ext):
         """Register opened files with the Run plugin."""
-        all_uuids = CONF.get('editor', 'file_uuids', default={})
+        all_uuids = self.get_conf('file_uuids', default={})
         file_id = all_uuids.get(filename, str(uuid.uuid4()))
         all_uuids[filename] = file_id
-        CONF.set('editor', 'file_uuids', all_uuids)
+        self.set_conf('file_uuids', all_uuids)
 
         metadata: RunConfigurationMetadata = {
             'name': filename,
@@ -948,15 +947,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            '')
+            default='',
+            section='completions'
+        )
         self.formatting_action = create_action(
             self,
             _('Format file or selection with {0}').format(
                 formatter.capitalize()),
-            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            shortcut=self.get_shortcut('autoformatting'),
             context=Qt.WidgetShortcut,
             triggered=self.format_document_or_selection)
         self.formatting_action.setEnabled(False)
@@ -1033,13 +1033,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.go_to_next_file_action = create_action(
                 self,
                 _("Go to next file"),
-                shortcut=CONF.get_shortcut('editor', 'go to previous file'),
+                shortcut=self.get_shortcut('go to previous file'),
                 triggered=self.go_to_next_file,
             )
             self.go_to_previous_file_action = create_action(
                 self,
                 _("Go to previous file"),
-                shortcut=CONF.get_shortcut('editor', 'go to next file'),
+                shortcut=self.get_shortcut('go to next file'),
                 triggered=self.go_to_previous_file,
             )
             self.register_shortcut(
@@ -1479,7 +1479,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         color_scheme = self.get_color_scheme()
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
-            completion_size = CONF.get('main', 'completion/size')
+            completion_size = self.get_conf('completion/size', section='main')
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
@@ -1526,10 +1526,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
-            opt = CONF.get(
-                'completions',
+            opt = self.get_conf(
                 ('provider_configuration', 'lsp', 'values', conf_name),
-                False
+                default=False,
+                section='completions'
             )
             action.setChecked(opt)
 
@@ -1562,10 +1562,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.set_option(conf_name, checked)
         else:
             if conf_name in ('pycodestyle', 'pydocstyle'):
-                CONF.set(
-                    'completions',
+                self.set_conf(
                     ('provider_configuration', 'lsp', 'values', conf_name),
-                    checked)
+                    checked,
+                    section='completions'
+                )
             if self.main.get_plugin(Plugins.Completions, error=False):
                 completions = self.main.completions
                 completions.after_configuration_update([])
@@ -1679,26 +1680,25 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
 
-        editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
+        editorstack.set_help_enabled(self.get_conf('help', 'connect/editor'))
 
-        hover_hints = CONF.get(
-            'completions',
-            ('provider_configuration', 'lsp', 'values',
-                'enable_hover_hints'),
-            True
+        hover_hints = self.get_conf(
+            ('provider_configuration', 'lsp', 'values', 'enable_hover_hints'),
+            default=True,
+            section='completions'
         )
 
-        format_on_save = CONF.get(
-            'completions',
+        format_on_save = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'format_on_save'),
-            False
+            default=False,
+            section='completions'
         )
 
-        edge_line_columns = CONF.get(
-            'completions',
+        edge_line_columns = self.get_conf(
             ('provider_configuration', 'lsp', 'values',
              'pycodestyle/max_line_length'),
-            79
+            default=79,
+            section='completions'
         )
 
         editorstack.set_hover_hints_enabled(hover_hints)
@@ -2041,10 +2041,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.formatting_action.setEnabled(status)
 
     def refresh_formatter_name(self):
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            '')
+            default='',
+            section='completions'
+        )
         self.formatting_action.setText(
             _('Format file or selection with {0}').format(
                 formatter.capitalize()))
@@ -2102,7 +2103,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         bookmarks = to_text_string(bookmarks)
         filename = osp.normpath(osp.abspath(filename))
         bookmarks = eval(bookmarks)
-        save_bookmarks(filename, bookmarks)
+        old_slots = self.get_conf('bookmarks', default={})
+        new_slots = save_bookmarks(filename, bookmarks, old_slots)
+        self.set_conf('bookmarks', new_slots)
 
     #------ File I/O
     def __load_temp_file(self):
@@ -2454,7 +2457,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
-                current_editor.set_bookmarks(load_bookmarks(filename))
+                slots = self.get_conf('bookmarks', default={})
+                current_editor.set_bookmarks(load_bookmarks(filename, slots))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
@@ -3256,7 +3260,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot(int)
     def save_bookmark(self, slot_num):
         """Save current line and position as bookmark."""
-        bookmarks = CONF.get('editor', 'bookmarks')
+        bookmarks = self.get_conf('bookmarks')
         editorstack = self.get_current_editorstack()
         if slot_num in bookmarks:
             filename, line_num, column = bookmarks[slot_num]
@@ -3273,7 +3277,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot(int)
     def load_bookmark(self, slot_num):
         """Set cursor to bookmarked file and position."""
-        bookmarks = CONF.get('editor', 'bookmarks')
+        bookmarks = self.get_conf('bookmarks')
         if slot_num in bookmarks:
             filename, line_num, column = bookmarks[slot_num]
         else:
@@ -3380,7 +3384,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             tab_stop_width_spaces_n = 'tab_stop_width_spaces'
             tab_stop_width_spaces_o = self.get_option(tab_stop_width_spaces_n)
             help_n = 'connect_to_oi'
-            help_o = CONF.get('help', 'connect/editor')
+            help_o = self.get_conf('connect/editor', section='help')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
 
