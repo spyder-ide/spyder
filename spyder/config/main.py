@@ -387,8 +387,6 @@ DEFAULTS = [
               '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
-              '_/file switcher': 'Ctrl+P',
-              '_/symbol finder': 'Ctrl+Alt+P',
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
@@ -430,6 +428,7 @@ DEFAULTS = [
               'editor/go to new line': "Ctrl+Shift+Return",
               'editor/go to definition': "F3" if MAC else "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
+              'editor/create_new_cell': "Ctrl+2",
               'editor/blockcomment': "Ctrl+4",
               'editor/unblockcomment': "Ctrl+5",
               'editor/start of line': "Meta+A",
@@ -501,6 +500,9 @@ DEFAULTS = [
               'pylint/run file in pylint': "F8",
               # -- Profiler --
               'profiler/run file in profiler': "F10",
+              # -- Switcher --
+              'switcher/file switcher': 'Ctrl+P',
+              'switcher/symbol finder': 'Ctrl+Alt+P',
               # -- IPython console --
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
@@ -657,4 +659,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '76.0.0'
+CONF_VERSION = '77.0.0'

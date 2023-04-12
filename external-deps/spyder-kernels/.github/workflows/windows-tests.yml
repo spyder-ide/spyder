@@ -57,6 +57,6 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
-          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
-          pytest spyder_kernels --cov=spyder_kernels -x -vv
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
+          pytest spyder_kernels --cov=spyder_kernels -vv

@@ -645,10 +645,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         console_namespace = params['console_namespace']
         run_method = params.get('run_method', 'runfile')
 
-        # Escape single and double quotes in fname and dirname.
-        # Fixes spyder-ide/spyder#2158.
-        filename = filename.replace("'", r"\'").replace('"', r'\"')
-
         self.run_script(
             filename,
             wdir,

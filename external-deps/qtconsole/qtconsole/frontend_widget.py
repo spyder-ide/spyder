@@ -465,7 +465,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if info.kind == 'user':
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
-            self.kernel_client.iopub_channel.flush()
+            if not self.kernel_client.iopub_channel.closed():
+                self.kernel_client.iopub_channel.flush()
 
             # Reset the ANSI style information to prevent bad text in stdout
             # from messing up our colors. We're not a true terminal so we're
@@ -505,7 +506,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
-        self.kernel_client.iopub_channel.flush()
+        if not self.kernel_client.iopub_channel.closed():
+            self.kernel_client.iopub_channel.flush()
 
         def callback(line):
             self._finalize_input_request()
@@ -538,6 +540,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         self.log.warning("kernel restarted")
         self._kernel_restarted_message(died=died)
+
+        # This resets the autorestart counter so that the kernel can be
+        # auto-restarted before the next time it's polled to see if it's alive.
+        if self.kernel_manager:
+            self.kernel_manager.reset_autorestart_count()
+
         self.reset()
 
     def _handle_inspect_reply(self, rep):
@@ -831,8 +839,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         # Calculate where the cursor should be *after* the change:
         position += added
-
-        document = self._control.document()
         if position == self._get_cursor().position():
             self._auto_call_tip()
 
