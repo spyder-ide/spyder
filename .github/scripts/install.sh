@@ -20,8 +20,8 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test dependencies
     micromamba install --file requirements/tests.yml
 
-    # To check our manifest and coverage
-    micromamba install check-manifest codecov -q -y
+    # To check our manifest
+    micromamba install check-manifest -q -y
 
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
@@ -39,8 +39,8 @@ else
     # Install QtAwesome from Github
     pip install git+https://github.com/spyder-ide/qtawesome.git
 
-    # To check our manifest and coverage
-    pip install -q check-manifest codecov
+    # To check our manifest
+    pip install -q check-manifest
 
     # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
