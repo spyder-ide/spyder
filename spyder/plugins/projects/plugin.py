@@ -21,15 +21,15 @@ from qtpy.QtCore import Signal
 # Local imports
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import _
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.translations import _
 from spyder.config.base import running_in_mac_app
-from spyder.utils.misc import getcwd_or_home
+from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.projects.widgets.main_widget import (
     ProjectsActions, ProjectExplorerWidget)
-from spyder.plugins.completion.api import WorkspaceUpdateKind
+from spyder.utils.misc import getcwd_or_home
 
 
 # Logging
@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 class Projects(SpyderDockablePlugin):
     """Projects plugin."""
+
     NAME = 'project_explorer'
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -298,22 +299,51 @@ class Projects(SpyderDockablePlugin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def create_project(self, root_path, project_type_id=EmptyProject.ID,
-                        packages=None):
-        """Create a new project."""
-        self.get_widget().create_project(root_path, project_type_id, packages)
+    def create_project(self, path, project_type_id=EmptyProject.ID,
+                       packages=None):
+        """
+        Create a new project.
 
-    def open_project(self, path=None, project=None, restart_console=True,
+        Parameters
+        ----------
+        path: str
+            Filesystem path where the project will be created.
+        project_type_id: str, optional
+            Id for the project type. The default is 'empty-project-type'.
+        packages: list, optional
+            Package to install. Currently not in use.
+        """
+        self.get_widget().create_project(path, project_type_id, packages)
+
+    def open_project(self, path=None, project_type=None, restart_console=True,
                      save_previous_files=True, workdir=None):
-        """Open the project located in `path`."""
+        """
+        Open the project located in a given path.
+
+        Parameters
+        ----------
+        path: str
+            Filesystem path where the project is located.
+        project_type: spyder.plugins.projects.api.BaseProjectType, optional
+            Project type class.
+        restart_console: bool, optional
+            Whether to restart the IPython console (i.e. close all consoles and
+            reopen a single one) after opening the project. The default is
+            True.
+        save_previous_files: bool, optional
+            Whether to save the list of previous open files in the editor
+            before opening the project. The default is True.
+        workdir: str, optional
+            Working directory to set after opening the project. The default is
+            None.
+        """
         self.get_widget().open_project(
-            path, project, restart_console, save_previous_files, workdir
+            path, project_type, restart_console, save_previous_files, workdir
         )
 
     def close_project(self):
         """
-        Close current project and return to a window without an active
-        project
+        Close current project and return to a window without an active project.
         """
         self.get_widget().close_project()
 
@@ -324,29 +354,43 @@ class Projects(SpyderDockablePlugin):
         self.get_widget().delete_project()
 
     def get_active_project(self):
-        """Get the active project"""
+        """Get the active project."""
         return self.get_widget().current_active_project
 
     def get_project_filenames(self):
-        """Get the list of recent filenames of a project"""
+        """Get the list of recent filenames of a project."""
         return self.get_widget().get_project_filenames()
 
     def set_project_filenames(self, filenames):
-        """Set the list of open file names in a project"""
+        """
+        Set the list of open file names in a project.
+
+        Parameters
+        ----------
+        filenames: list of strings
+            File names to save in the project config options.
+        """
         self.get_widget().set_project_filenames(filenames)
 
     def get_active_project_path(self):
-        """Get path of the active project"""
+        """Get path of the active project."""
         return self.get_widget().get_active_project_path()
 
     def get_last_working_dir(self):
-        """Get the path of the last working directory"""
+        """Get the path of the last working directory."""
         return self.get_conf(
             'last_working_dir', section='editor', default=getcwd_or_home()
         )
 
     def is_valid_project(self, path):
-        """Check if a directory is a valid Spyder project"""
+        """
+        Check if a directory is a valid Spyder project.
+
+        Parameters
+        ----------
+        path: str
+            Filesystem path to the project.
+        """
         return self.get_widget().is_valid_project(path)
 
     def start_workspace_services(self):

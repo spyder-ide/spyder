@@ -270,19 +270,19 @@ class ProjectExplorerWidget(PluginMainWidget):
         project_types = self.get_project_types()
         if project_type_id in project_types:
             project_type_class = project_types[project_type_id]
-            project = project_type_class(
+            project_type = project_type_class(
                 root_path=root_path,
                 parent_plugin=project_type_class._PARENT_PLUGIN,
             )
 
-            created_succesfully, message = project.create_project()
+            created_succesfully, message = project_type.create_project()
             if not created_succesfully:
                 QMessageBox.warning(self, "Project creation", message)
                 shutil.rmtree(root_path, ignore_errors=True)
                 return
 
             self.sig_project_created.emit(root_path, project_type_id, packages)
-            self.open_project(path=root_path, project=project)
+            self.open_project(path=root_path, project_type=project_type)
         else:
             if not running_under_pytest():
                 QMessageBox.critical(
@@ -292,7 +292,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                       "type!").format(project_type_id)
                 )
 
-    def open_project(self, path=None, project=None, restart_console=True,
+    def open_project(self, path=None, project_type=None, restart_console=True,
                      save_previous_files=True, workdir=None):
         """Open the project located in `path`."""
         self._unmaximize()
@@ -319,9 +319,9 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         logger.debug(f'Opening project located at {path}')
 
-        if project is None:
+        if project_type is None:
             project_type_class = self._load_project_type_class(path)
-            project = project_type_class(
+            project_type = project_type_class(
                 root_path=path,
                 parent_plugin=project_type_class._PARENT_PLUGIN,
             )
@@ -347,8 +347,8 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.sig_project_closed.emit(self.current_active_project.root_path)
             self.watcher.stop()
 
-        self.current_active_project = project
-        self.latest_project = project
+        self.current_active_project = project_type
+        self.latest_project = project_type
         self._add_to_recent(path)
 
         self.set_conf('current_project_path', self.get_active_project_path())
@@ -365,7 +365,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         if restart_console:
             self.sig_restart_console_requested.emit()
 
-        open_successfully, message = project.open_project()
+        open_successfully, message = project_type.open_project()
         if not open_successfully:
             QMessageBox.warning(self, "Project open", message)
 
