@@ -85,7 +85,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         The path to the requested file.
     """
 
-    sig_project_created = Signal(str, str, object)
+    sig_project_created = Signal(str, str)
     """
     This signal is emitted to request the Projects plugin the creation of a
     project.
@@ -96,27 +96,25 @@ class ProjectExplorerWidget(PluginMainWidget):
         Location of project.
     project_type: str
         Type of project as defined by project types.
-    project_packages: object
-        Package to install. Currently not in use.
     """
 
-    sig_project_loaded = Signal(object)
+    sig_project_loaded = Signal(str)
     """
     This signal is emitted when a project is loaded.
 
     Parameters
     ----------
-    project_path: object
+    project_path: str
         Loaded project path.
     """
 
-    sig_project_closed = Signal((object,), (bool,))
+    sig_project_closed = Signal((str,), (bool,))
     """
     This signal is emitted when a project is closed.
 
     Parameters
     ----------
-    project_path: object
+    project_path: str
         Closed project path (signature 1).
     close_project: bool
         This is emitted only when closing a project but not when switching
@@ -264,8 +262,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.create_project(root_path, project_type_id=project_type)
             dlg.close()
 
-    def create_project(self, root_path, project_type_id=EmptyProject.ID,
-                       packages=None):
+    def create_project(self, root_path, project_type_id=EmptyProject.ID):
         """Create a new project."""
         project_types = self.get_project_types()
         if project_type_id in project_types:
@@ -281,7 +278,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 shutil.rmtree(root_path, ignore_errors=True)
                 return
 
-            self.sig_project_created.emit(root_path, project_type_id, packages)
+            self.sig_project_created.emit(root_path, project_type_id)
             self.open_project(path=root_path, project_type=project_type)
         else:
             if not running_under_pytest():
@@ -866,7 +863,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)
 
-    def _update_explorer(self):
+    def _update_explorer(self, _unused):
         """Update explorer tree"""
         self._setup_project(self.get_active_project_path())
 

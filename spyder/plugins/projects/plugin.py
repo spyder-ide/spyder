@@ -48,7 +48,7 @@ class Projects(SpyderDockablePlugin):
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals
-    sig_project_created = Signal(str, str, object)
+    sig_project_created = Signal(str, str)
     """
     This signal is emitted to request the Projects plugin the creation of a
     project.
@@ -59,27 +59,25 @@ class Projects(SpyderDockablePlugin):
         Location of project.
     project_type: str
         Type of project as defined by project types.
-    project_packages: object
-        Package to install. Currently not in use.
     """
 
-    sig_project_loaded = Signal(object)
+    sig_project_loaded = Signal(str)
     """
     This signal is emitted when a project is loaded.
 
     Parameters
     ----------
-    project_path: object
+    project_path: str
         Loaded project path.
     """
 
-    sig_project_closed = Signal((object,), (bool,))
+    sig_project_closed = Signal((str,), (bool,))
     """
     This signal is emitted when a project is closed.
 
     Parameters
     ----------
-    project_path: object
+    project_path: str
         Closed project path (signature 1).
     close_project: bool
         This is emitted only when closing a project but not when switching
@@ -299,8 +297,7 @@ class Projects(SpyderDockablePlugin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def create_project(self, path, project_type_id=EmptyProject.ID,
-                       packages=None):
+    def create_project(self, path, project_type_id=EmptyProject.ID):
         """
         Create a new project.
 
@@ -313,7 +310,7 @@ class Projects(SpyderDockablePlugin):
         packages: list, optional
             Package to install. Currently not in use.
         """
-        self.get_widget().create_project(path, project_type_id, packages)
+        self.get_widget().create_project(path, project_type_id)
 
     def open_project(self, path=None, project_type=None, restart_console=True,
                      save_previous_files=True, workdir=None):

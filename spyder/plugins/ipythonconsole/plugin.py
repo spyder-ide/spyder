@@ -9,7 +9,6 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-import os.path as osp
 from typing import List
 
 # Third party imports
@@ -439,10 +438,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     # ---- Private methods
     # -------------------------------------------------------------------------
-    def _on_project_loaded(self):
-        projects = self.get_plugin(Plugins.Projects)
-        self.get_widget().update_active_project_path(
-            projects.get_active_project_path())
+    def _on_project_loaded(self, path):
+        self.get_widget().update_active_project_path(path)
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
