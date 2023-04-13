@@ -138,5 +138,7 @@ jobs:
           bash -l .github/scripts/run_tests.sh || \
           bash -l .github/scripts/run_tests.sh
       - name: Coverage
-        shell: bash -l {0}
-        run: codecov
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
+          verbose: true
