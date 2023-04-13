@@ -482,9 +482,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
                       "."),
                     QMessageBox.Ok)
 
-        self.activateWindow()
-        self.raise_()
-        self.setFocus()
+        # Widget moves to back and loses focus on macOS,
+        # see spyder-ide/spyder#20808
+        if sys.platform == 'darwin':
+            self.activateWindow()
+            self.raise_()
+            self.setFocus()
+
         self.refresh()
 
     @Slot()

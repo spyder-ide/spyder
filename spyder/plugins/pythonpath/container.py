@@ -105,6 +105,8 @@ class PythonpathContainer(PluginMainContainer):
 
     def show_path_manager(self):
         """Show path manager dialog."""
+        # Do not update paths or run setup if widget is already open,
+        # see spyder-ide/spyder#20808
         if not self.path_manager_dialog.isVisible():
             # Set main attributes saved here
             self.path_manager_dialog.update_paths(
