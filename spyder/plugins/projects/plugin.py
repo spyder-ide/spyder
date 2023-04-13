@@ -100,15 +100,12 @@ class Projects(SpyderDockablePlugin):
         """Register plugin in Spyder's main window"""
         widget = self.get_widget()
         treewidget = widget.treewidget
+        self._completions = None
 
         # Emit public signals so that other plugins can connect to them
         widget.sig_project_created.connect(self.sig_project_created)
         widget.sig_project_closed.connect(self.sig_project_closed)
         widget.sig_project_loaded.connect(self.sig_project_loaded)
-
-        self.ipyconsole = None
-        self.editor = None
-        self.completions = None
 
         treewidget.sig_delete_project.connect(self.delete_project)
         treewidget.sig_redirect_stdio_requested.connect(
@@ -129,31 +126,29 @@ class Projects(SpyderDockablePlugin):
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
-        self.editor = self.get_plugin(Plugins.Editor)
+        editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        widget.sig_save_open_files_requested.connect(
-            self.editor.save_open_files)
+        editor.set_projects(self)
 
-        treewidget.sig_open_file_requested.connect(self.editor.load)
-        treewidget.sig_removed.connect(self.editor.removed)
-        treewidget.sig_tree_removed.connect(self.editor.removed_tree)
-        treewidget.sig_renamed.connect(self.editor.renamed)
-        treewidget.sig_tree_renamed.connect(self.editor.renamed_tree)
-        treewidget.sig_module_created.connect(self.editor.new)
+        treewidget.sig_open_file_requested.connect(editor.load)
+        treewidget.sig_removed.connect(editor.removed)
+        treewidget.sig_tree_removed.connect(editor.removed_tree)
+        treewidget.sig_renamed.connect(editor.renamed)
+        treewidget.sig_tree_renamed.connect(editor.renamed_tree)
+        treewidget.sig_module_created.connect(editor.new)
         treewidget.sig_file_created.connect(self._new_editor)
 
+        widget.sig_save_open_files_requested.connect(editor.save_open_files)
         widget.sig_project_loaded.connect(self._setup_editor_files)
         widget.sig_project_closed[bool].connect(self._setup_editor_files)
-
-        self.editor.set_projects(self)
         widget.sig_project_loaded.connect(self._set_path_in_editor)
         widget.sig_project_closed.connect(self._unset_path_in_editor)
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
-        self.completions = self.get_plugin(Plugins.Completions)
+        self._completions = self.get_plugin(Plugins.Completions)
         widget = self.get_widget()
 
         # TODO: This is not necessary anymore due to us starting workspace
@@ -161,7 +156,7 @@ class Projects(SpyderDockablePlugin):
         # completions.sig_language_completions_available.connect(
         #     lambda settings, language:
         #         self.start_workspace_services())
-        self.completions.sig_stop_completions.connect(
+        self._completions.sig_stop_completions.connect(
             self.stop_workspace_services)
         widget.sig_project_loaded.connect(self._add_path_to_completions)
         widget.sig_project_closed.connect(self._remove_path_from_completions)
@@ -170,13 +165,13 @@ class Projects(SpyderDockablePlugin):
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipython_console_available(self):
-        self.ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        widget.sig_restart_console_requested.connect(self.ipyconsole.restart)
+        widget.sig_restart_console_requested.connect(ipyconsole.restart)
         treewidget.sig_open_interpreter_requested.connect(
-            self.ipyconsole.create_client_from_path)
+            ipyconsole.create_client_from_path)
         treewidget.sig_run_requested.connect(self._run_file_in_ipyconsole)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
@@ -210,35 +205,32 @@ class Projects(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
-        self.editor = self.get_plugin(Plugins.Editor)
+        editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        widget.sig_save_open_files_requested.disconnect(
-            self.editor.save_open_files)
+        editor.set_projects(None)
 
-        treewidget.sig_open_file_requested.disconnect(self.editor.load)
-        treewidget.sig_removed.disconnect(self.editor.removed)
-        treewidget.sig_tree_removed.disconnect(self.editor.removed_tree)
-        treewidget.sig_renamed.disconnect(self.editor.renamed)
-        treewidget.sig_tree_renamed.disconnect(self.editor.renamed_tree)
-        treewidget.sig_module_created.disconnect(self.editor.new)
+        treewidget.sig_open_file_requested.disconnect(editor.load)
+        treewidget.sig_removed.disconnect(editor.removed)
+        treewidget.sig_tree_removed.disconnect(editor.removed_tree)
+        treewidget.sig_renamed.disconnect(editor.renamed)
+        treewidget.sig_tree_renamed.disconnect(editor.renamed_tree)
+        treewidget.sig_module_created.disconnect(editor.new)
         treewidget.sig_file_created.disconnect(self._new_editor)
 
+        widget.sig_save_open_files_requested.disconnect(editor.save_open_files)
         widget.sig_project_loaded.disconnect(self._setup_editor_files)
         widget.sig_project_closed[bool].disconnect(self._setup_editor_files)
-        self.editor.set_projects(None)
         widget.sig_project_loaded.disconnect(self._set_path_in_editor)
         widget.sig_project_closed.disconnect(self._unset_path_in_editor)
 
-        self.editor = None
-
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
-        self.completions = self.get_plugin(Plugins.Completions)
+        self._completions = self.get_plugin(Plugins.Completions)
         widget = self.get_widget()
 
-        self.completions.sig_stop_completions.disconnect(
+        self._completions.sig_stop_completions.disconnect(
             self.stop_workspace_services)
 
         widget.sig_project_loaded.disconnect(self._add_path_to_completions)
@@ -247,22 +239,18 @@ class Projects(SpyderDockablePlugin):
         widget.sig_broadcast_notification_requested.disconnect(
             self._broadcast_notification)
 
-        self.completions = None
+        self._completions = None
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
-        self.ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        widget.sig_restart_console_requested.disconnect(
-            self.ipyconsole.restart)
+        widget.sig_restart_console_requested.disconnect(ipyconsole.restart)
         treewidget.sig_open_interpreter_requested.disconnect(
-            self.ipyconsole.create_client_from_path)
+            ipyconsole.create_client_from_path)
         treewidget.sig_run_requested.disconnect(self._run_file_in_ipyconsole)
-
-        self._ipython_run_script = None
-        self.ipyconsole = None
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -426,33 +414,38 @@ class Projects(SpyderDockablePlugin):
     # ---- Private API
     # -------------------------------------------------------------------------
     def _new_editor(self, text):
-        self.editor.new(text=text)
+        editor = self.get_plugin(Plugins.Editor)
+        editor.new(text=text)
 
     def _setup_editor_files(self, __unused):
-        self.editor.setup_open_files()
+        editor = self.get_plugin(Plugins.Editor)
+        editor.setup_open_files()
 
     def _set_path_in_editor(self, path):
-        self.editor.set_current_project_path(path)
+        editor = self.get_plugin(Plugins.Editor)
+        editor.set_current_project_path(path)
 
     def _unset_path_in_editor(self, __unused):
-        self.editor.set_current_project_path()
+        editor = self.get_plugin(Plugins.Editor)
+        editor.set_current_project_path()
 
     def _add_path_to_completions(self, path):
-        self.completions.project_path_update(
+        self._completions.project_path_update(
             path,
             update_kind=WorkspaceUpdateKind.ADDITION,
             instance=self.get_widget()
         )
 
     def _remove_path_from_completions(self, path):
-        self.completions.project_path_update(
+        self._completions.project_path_update(
             path,
             update_kind=WorkspaceUpdateKind.DELETION,
             instance=self.get_widget()
         )
 
     def _run_file_in_ipyconsole(self, fname):
-        self.ipyconsole.run_script(
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.run_script(
             filename=fname,
             wdir=osp.dirname(fname),
             current_client=False,
@@ -465,12 +458,13 @@ class Projects(SpyderDockablePlugin):
             self.get_widget().show_widget()
 
     def _get_open_filenames(self):
-        if self.editor is not None:
-            return self.editor.get_open_filenames()
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is not None:
+            return editor.get_open_filenames()
 
     def _is_invalid_active_project(self):
         """Handle an invalid active project."""
         self.get_widget().is_invalid_active_project()
 
     def _broadcast_notification(self, method, params):
-        self.completions.broadcast_notification(method, params)
+        self._completions.broadcast_notification(method, params)
