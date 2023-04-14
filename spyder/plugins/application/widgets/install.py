@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 # Local imports
 from spyder import __version__
 from spyder.api.translations import _
-from spyder.config.base import is_pynsist
+from spyder.config.base import is_conda_based_app
 from spyder.utils.icon_manager import ima
 from spyder.workers.updates import WorkerDownloadInstaller
 
@@ -257,7 +257,7 @@ class UpdateInstallerDialog(QDialog):
         )
         msg_box.setWindowTitle(_("Spyder update"))
         msg_box.setAttribute(Qt.WA_ShowWithoutActivating)
-        if is_pynsist():
+        if os.name == 'nt' and is_conda_based_app():
             # Only add yes button for Windows installer
             # since it has the logic to restart Spyder
             yes_button = msg_box.addButton(QMessageBox.Yes)

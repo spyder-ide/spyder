@@ -24,7 +24,7 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
                                          is_known_type)
 
 # Local imports
-from spyder.config.base import _, is_pynsist, is_conda_based_app
+from spyder.config.base import _, is_conda_based_app
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
@@ -130,7 +130,7 @@ class CollectionsDelegate(QItemDelegate):
                     message.format(val_type=val_type, module=module))
                 return
             else:
-                if is_conda_based_app() or is_pynsist():
+                if is_conda_based_app():
                     message = _("Spyder is unable to show the variable you're"
                                 " trying to view because the module "
                                 "<tt>{module}</tt> is not supported in the "

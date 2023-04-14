@@ -12,7 +12,7 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _, is_pynsist, running_in_ci, is_conda_based_app
+from spyder.config.base import _, running_in_ci, is_conda_based_app
 from spyder.utils import programs
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -37,7 +37,7 @@ COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
-INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
+INTERVALTREE_REQVER = None if os.name == 'nt' and is_conda_based_app() else '>=3.0.2'
 IPYTHON_REQVER = ">=7.31.1,<9.0.0,!=8.8.0,!=8.9.0,!=8.10.0"
 JEDI_REQVER = '>=0.17.2,<0.19.0'
 JELLYFISH_REQVER = '>=0.7'
@@ -71,7 +71,7 @@ TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
-WATCHDOG_REQVER = None if is_pynsist() else '>=0.10.3'
+WATCHDOG_REQVER = None if os.name == 'nt' and is_conda_based_app() else '>=0.10.3'
 
 
 # Optional dependencies

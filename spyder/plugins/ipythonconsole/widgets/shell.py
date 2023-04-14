@@ -22,8 +22,7 @@ from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
 
 # Local imports
-from spyder.config.base import (
-    _, is_pynsist, is_conda_based_app, running_under_pytest)
+from spyder.config.base import _, is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.py3compat import to_text_string
 from spyder.utils.palette import QStylePalette, SpyderPalette
@@ -178,7 +177,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
-        self.show_modules_message = is_pynsist() or is_conda_based_app()
+        self.show_modules_message = is_conda_based_app()
 
     # ---- Public API ---------------------------------------------------------
     @property

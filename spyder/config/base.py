@@ -341,16 +341,6 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
-def is_pynsist():
-    """Return True if this is a pynsist installation of Spyder."""
-    base_path = osp.abspath(osp.dirname(__file__))
-    pkgs_path = osp.abspath(
-        osp.join(base_path, '..', '..', '..', 'pkgs'))
-    if os.environ.get('PYTHONPATH') is not None:
-        return pkgs_path in os.environ.get('PYTHONPATH')
-    return False
-
-
 #==============================================================================
 # Translations
 #==============================================================================
@@ -569,9 +559,6 @@ def get_spyder_umamba_path():
         # TODO: Change to CONDA_EXE when
         # conda-forge/conda-standalone-feedstock#45 is resolved
         path = os.environ.get('CONDA_PYTHON_EXE')
-    elif is_pynsist():
-        path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
-                                    'bin', 'micromamba.exe'))
     else:
         path = None
 

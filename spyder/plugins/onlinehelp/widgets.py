@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import is_pynsist
+from spyder.config.base import is_conda_based_app
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
 from spyder.widgets.browser import FrameWebView, WebViewActions
 from spyder.widgets.comboboxes import UrlComboBox
@@ -71,7 +71,8 @@ except Exception:
 
 # Needed to prevent showing a warning message regarding debugging
 # See spyder-ide/spyder#20390
-if is_pynsist():
+# ??? Do we need this?
+if is_conda_based_app():
     os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
 
 
