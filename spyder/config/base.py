@@ -541,32 +541,31 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 
 
 #==============================================================================
-# Mac application utilities
+# Conda-based installer application utilities
 #==============================================================================
-def running_in_mac_app(pyexec=sys.executable):
+def is_conda_based_app(pyexec=sys.executable):
     """
-    Check if Spyder is running as a macOS bundle app by looking for the
-    `SPYDER_APP` environment variable.
+    Check if Spyder is running from the conda-based installer by looking for
+    the `spyder-menu.json` file.
 
-    If a python executable is provided, checks if it is the same as the macOS
-    bundle app environment executable.
+    If a Python executable is provided, checks if it is the same as a
+    conda-based installer environment executable.
     """
-    # Spyder is macOS app
-    mac_app = os.environ.get('SPYDER_APP') is not None
-
-    if sys.platform == 'darwin' and mac_app and pyexec == sys.executable:
-        # executable is macOS app
-        return True
+    real_pyexec = osp.realpath(pyexec)  # pyexec may be symlink
+    if os.name == 'nt':
+        env_path = osp.dirname(real_pyexec)
     else:
-        return False
-
+        env_path = osp.dirname(osp.dirname(real_pyexec))
+    menu_path = osp.join(env_path, 'Menu', 'spyder-menu.json')
+    
+    return osp.exists(menu_path)
 
 # =============================================================================
 # Micromamba
 # =============================================================================
 def get_spyder_umamba_path():
     """Return the path to the Micromamba executable bundled with Spyder."""
-    if running_in_mac_app():
+    if is_conda_based_app():
         # TODO: Change to CONDA_EXE when
         # conda-forge/conda-standalone-feedstock#45 is resolved
         path = os.environ.get('CONDA_PYTHON_EXE')

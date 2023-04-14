@@ -17,7 +17,7 @@ from qtpy.QtCore import QTimer, Signal
 
 # Local imports
 from spyder.api.widgets.status import BaseTimerStatus
-from spyder.config.base import is_pynsist, running_in_mac_app
+from spyder.config.base import is_pynsist, is_conda_based_app
 from spyder.utils.envs import get_list_envs
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.workers import WorkerManager
@@ -114,7 +114,7 @@ class InterpreterStatus(BaseTimerStatus):
         except KeyError:
             if (
                 self.default_interpreter == path
-                and (running_in_mac_app() or is_pynsist())
+                and (is_conda_based_app() or is_pynsist())
             ):
                 name = 'internal'
             elif 'conda' in path:

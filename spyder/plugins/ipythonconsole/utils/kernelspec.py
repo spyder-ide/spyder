@@ -20,7 +20,7 @@ from jupyter_client.kernelspec import KernelSpec
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
-from spyder.config.base import (get_safe_mode, is_pynsist, running_in_mac_app,
+from spyder.config.base import (get_safe_mode, is_pynsist, is_conda_based_app,
                                 running_under_pytest)
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
@@ -234,15 +234,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # App considerations
         # ??? Do we need this?
-        if (running_in_mac_app() or is_pynsist()):
-            if default_interpreter:
-                # See spyder-ide/spyder#16927
-                # See spyder-ide/spyder#16828
-                # See spyder-ide/spyder#17552
-                env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
-            else:
-                # ??? Do we need this?
-                env_vars.pop('PYTHONHOME', None)
+        if (is_conda_based_app() or is_pynsist()) and default_interpreter:
+            # See spyder-ide/spyder#16927
+            # See spyder-ide/spyder#16828
+            # See spyder-ide/spyder#17552
+            env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
 
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.

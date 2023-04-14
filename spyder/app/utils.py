@@ -23,7 +23,7 @@ from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, running_in_mac_app,
+    DEV, get_conf_path, get_debug_level, is_conda_based_app,
     running_under_pytest)
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
@@ -312,7 +312,7 @@ def create_window(WindowClass, app, splash, options, args):
 
     # Open external files with our Mac app
     # ??? Do we need this?
-    if running_in_mac_app():
+    if sys.platform == 'darwin' and is_conda_based_app():
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
         if hasattr(app, '_pending_file_open'):

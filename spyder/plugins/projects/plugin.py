@@ -23,7 +23,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import _
-from spyder.config.base import running_in_mac_app
+from spyder.config.base import is_conda_based_app
 from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
 from spyder.plugins.projects.api import EmptyProject
@@ -269,8 +269,8 @@ class Projects(SpyderDockablePlugin):
         initial_cwd = self._main.get_initial_working_directory()
 
         if cli_options.project is not None:
-            # This doesn't work for our Mac app
-            if not running_in_mac_app():
+            # This doesn't work for our conda-based installer apps
+            if not is_conda_based_app():
                 logger.debug('Opening project from the command line')
                 project = osp.normpath(
                     osp.join(initial_cwd, cli_options.project)
