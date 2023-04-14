@@ -50,8 +50,8 @@ except:
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import (get_conf_path, running_in_mac_app,
-                                reset_config_files, running_under_pytest)
+from spyder.config.base import (get_conf_path, reset_config_files,
+                                running_under_pytest)
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_text_string
 
@@ -200,8 +200,7 @@ def main():
         return
 
     if (CONF.get('main', 'single_instance') and not options.new_instance
-            and not options.reset_config_files
-            and not running_in_mac_app()):
+            and not options.reset_config_files):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
