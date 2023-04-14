@@ -817,7 +817,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
     assert len(main_window.ipyconsole.get_clients()) == 2
     assert main_window.ipyconsole.get_widget().filenames == ['', test_file]
-    assert main_window.ipyconsole.get_widget().tabwidget.tabText(1) == 'script.py/A (Default)'
+    assert main_window.ipyconsole.get_widget().tabwidget.tabText(1) == 'script.py/A'
 
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4)
     assert nsb.editor.source_model.rowCount() == 4

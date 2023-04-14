@@ -350,15 +350,15 @@ def test_console_disambiguation(ipyconsole, qtbot):
     # Create new client and assert name without disambiguation
     ipyconsole.create_client_for_file(filename_b)
     client = ipyconsole.get_current_client()
-    assert client.get_name() == 'c.py/A (Default)'
+    assert client.get_name() == 'c.py/A'
 
     # Create new client and assert name with disambiguation
     ipyconsole.create_client_for_file(filename_d)
     client = ipyconsole.get_current_client()
-    assert client.get_name() == 'c.py - d/A (Default)'
+    assert client.get_name() == 'c.py - d/A'
     ipyconsole.get_widget().tabwidget.setCurrentIndex(1)
     client = ipyconsole.get_current_client()
-    assert client.get_name() == 'c.py - b/A (Default)'
+    assert client.get_name() == 'c.py - b/A'
 
 
 @flaky(max_runs=3)
@@ -875,7 +875,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
 
     new_client = ipyconsole.get_clients()[1]
     assert new_client.id_ == dict(
-        int_id='1', str_id='B', str_env_name='Default'
+        int_id='1', str_id='B', str_env_name=''
     )
 
 
@@ -918,7 +918,7 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
         new_shell.execute('a = 10')
 
     assert new_client.id_ == dict(
-        int_id='1', str_id='B', str_env_name='Default'
+        int_id='1', str_id='B', str_env_name=''
     )
     assert shell.get_value('a') == new_shell.get_value('a')
 
@@ -2041,7 +2041,7 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
     # Validate created consoles names and code executed
     for filename in filenames:
         basename = osp.basename(filename)
-        client_name = f'{basename}/A (Default)'
+        client_name = f'{basename}/A'
         variable_name = basename.split('.')[0]
 
         client = ipyconsole.get_client_for_file(filename)

@@ -273,7 +273,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
-        self.value = ''
         self.default_interpreter = sys.executable
 
         # Disable infowidget if requested by the user
@@ -689,26 +688,26 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         Update context menu submenu with entries for available interpreters.
         """
         self.get_envs()
-        environment_consoles_names = self.envs
-        environment_consoles = []
         self.console_environment_menu.clear_actions()
-        for item in environment_consoles_names:
-            path_to_environment = str(environment_consoles_names[item][0])
-            name = str(item)
+        for env_key, env_info in self.envs.items():
+            env_name = env_key.split()[-1]
+            path_to_interpreter, python_version = env_info
             action = self.create_action(
-                name=name,
-                text=f'{item} ({environment_consoles_names[item][1]})',
+                name=env_key,
+                text=f'{env_key} ({python_version})',
                 icon=self.create_icon('ipython_console'),
-                triggered=lambda checked, environment=name.split()[1],
-                path=path_to_environment:
+                triggered=(
+                    lambda checked, env_name=env_name,
+                    path_to_interpreter=path_to_interpreter:
                     self.create_environment_client(
-                    path_to_custom_interpreter=path, environment=environment),
+                        env_name,
+                        path_to_interpreter
+                    )
+                ),
                 overwrite=True
             )
-            environment_consoles.append(action)
-        for item in environment_consoles:
             self.add_item_to_menu(
-                item,
+                action,
                 menu=self.console_environment_menu
             )
         self.console_environment_menu._render()
@@ -1417,12 +1416,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None, environment='Default',
+                          cache=True, initial_cwd=None,
                           path_to_custom_interpreter=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
-                         str_id='A', str_env_name=environment)
+                         str_id='A')
 
         client = ClientWidget(
             self,
@@ -1438,6 +1437,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
+            forcing_custom_interpreter=path_to_custom_interpreter is not None
         )
 
         # Add client to widget
@@ -1492,16 +1492,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
             # Set full client name
             client_id = dict(int_id=master_client.id_['int_id'],
-                             str_id=chr(slave_ord + 1),
-                             str_env_name=master_client.id_['str_env_name'])
+                             str_id=chr(slave_ord + 1))
         else:
             # If we couldn't find a client with the same connection file,
             # it means this is a new master client
             self.master_clients += 1
 
             # Set full client name
-            client_id = dict(int_id=str(self.master_clients), str_id='A',
-                             str_env_name=_("Unknown"))
+            client_id = dict(int_id=str(self.master_clients), str_id='A')
 
         # Creating the client
         client = ClientWidget(
@@ -1553,11 +1551,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
 
-    def create_environment_client(self, environment='',
-                                  path_to_custom_interpreter=''):
+    def create_environment_client(
+            self, environment, path_to_custom_interpreter
+            ):
         """Force creation of Environment client."""
         self.create_new_client(
-            environment=environment,
+            given_name=environment,
             path_to_custom_interpreter=path_to_custom_interpreter
         )
 
