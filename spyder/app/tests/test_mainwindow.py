@@ -1259,7 +1259,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects._create_project(project_dir)
+        projects.create_project(project_dir)
 
     # Select notebook in the project explorer
     idx = projects.get_widget().treewidget.get_index(
@@ -1314,7 +1314,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects._create_project(project_dir)
+        projects.create_project(project_dir)
 
     # Select file in the project explorer
     idx = projects.get_widget().treewidget.get_index(

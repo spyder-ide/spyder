@@ -883,7 +883,7 @@ class ProjectExplorerTest(QWidget):
             self.directory = directory
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
-        self.explorer.setup_project(self.directory)
+        self.explorer._setup_project(self.directory)
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()
