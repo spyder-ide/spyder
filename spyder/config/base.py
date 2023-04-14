@@ -550,11 +550,10 @@ def is_conda_based_app(pyexec=sys.executable):
     
     return osp.exists(menu_path)
 
-# =============================================================================
-# Micromamba
-# =============================================================================
-def get_spyder_umamba_path():
-    """Return the path to the Micromamba executable bundled with Spyder."""
+def get_spyder_conda_path():
+    """
+    Return the path to the conda executable from the conda-based installer.
+    """
     if is_conda_based_app():
         # TODO: Change to CONDA_EXE when
         # conda-forge/conda-standalone-feedstock#45 is resolved

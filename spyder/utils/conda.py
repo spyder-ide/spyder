@@ -13,7 +13,7 @@ import os.path as osp
 import sys
 
 from spyder.utils.programs import find_program, run_program, run_shell_command
-from spyder.config.base import get_spyder_umamba_path
+from spyder.config.base import get_spyder_conda_path
 
 WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}
@@ -70,8 +70,8 @@ def get_conda_activation_script(quote=False):
 
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
-    # Use micromamba bundled with Spyder installers or find conda exe
-    standalone_exe = get_spyder_umamba_path()
+    # Use conda bundled with Spyder conda-based installers or find conda exe
+    standalone_exe = get_spyder_conda_path()
     exe = standalone_exe or find_conda()
 
     if osp.basename(exe) in ('micromamba.exe', 'conda.exe') and standalone_exe:
