@@ -121,9 +121,9 @@ class Switcher(SpyderPluginV2):
         """Set-up list widget content based on the filtering."""
         self._switcher.setup()
 
-    def set_position(self, top):
+    def set_position(self, top, parent=None):
         """Set the position of the dialog."""
-        self._switcher.set_position(top)
+        self._switcher.set_position(top, parent)
 
     # QDialog methods
     def show(self):

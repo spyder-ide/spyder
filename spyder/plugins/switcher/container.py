@@ -9,6 +9,7 @@
 
 # Third-party imports
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 # Spyder imports
 from spyder.api.translations import _
@@ -63,18 +64,25 @@ class SwitcherContainer(PluginMainContainer):
             switcher.set_search_text('')
             switcher.setup()
 
-        switcher.show()
-
-        # Note: The +8 pixel on the top makes it look better
-        # FIXME: Why is this using the toolbars menu? A: To not be on top of
-        # the toolbars.
-        # Probably toolbars should be taken into account for this 'delta' only
-        # when are visible
+        # Set position
         mainwindow = self._plugin.get_main()
-        delta_top = (mainwindow.toolbar.toolbars_menu.geometry().height() +
-                     mainwindow.menuBar().geometry().height() + 8)
+        # Note: The +8 pixel on the top makes it look better
+        default_top = (mainwindow.toolbar.toolbars_menu.geometry().height() +
+                       mainwindow.menuBar().geometry().height() + 8)
 
-        switcher.set_position(delta_top)
+        current_window = QApplication.activeWindow()
+        if current_window == mainwindow:
+            option = 'toolbars_visible'
+            section = 'toolbar'
+            if self.get_conf(option, section):
+                delta_top = default_top
+            else:
+                delta_top = mainwindow.menuBar().geometry().height() + 8
+        else:
+            delta_top = default_top
+
+        switcher.set_position(delta_top, current_window)
+        switcher.show()
 
     def open_symbolfinder(self):
         """Open symbol list management dialog box."""

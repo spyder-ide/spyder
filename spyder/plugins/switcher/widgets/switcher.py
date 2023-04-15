@@ -333,9 +333,11 @@ class Switcher(QDialog):
             switcher_height = self._MIN_HEIGHT
         self.setFixedHeight(int(switcher_height))
 
-    def set_position(self, top):
+    def set_position(self, top, parent=None):
         """Set the position of the dialog."""
-        parent = self.parent()
+        if parent is None:
+            parent = self.parent()
+
         if parent is not None:
             geo = parent.geometry()
             width = self.list.width()  # This has been set in setup

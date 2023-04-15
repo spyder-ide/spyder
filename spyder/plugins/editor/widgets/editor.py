@@ -38,7 +38,6 @@ from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.editorstack_helpers import (
     ThreadManager, FileInfo, StackHistory)
@@ -774,40 +773,6 @@ class EditorStack(QWidget):
         for other_finfo in other.data:
             self.clone_editor_from(other_finfo, set_current=True)
         self.set_stack_index(other.get_stack_index())
-
-    @Slot()
-    @Slot(str)
-    def open_switcher_dlg(self, initial_text=''):
-        """Open file list management dialog box"""
-        if not self.tabs.count():
-            return
-        if self.switcher_plugin is not None:
-            self.switcher_manager = EditorSwitcherManager(
-                self.get_plugin(),
-                self.switcher_plugin,
-                self.get_current_editor,
-                lambda: self,
-                section=self.get_plugin_title())
-
-            if self.switcher_plugin.isVisible():
-                self.switcher_plugin.hide()
-                self.switcher_plugin.clear()
-                return
-
-        if isinstance(initial_text, bool):
-            initial_text = ''
-
-        self.switcher_plugin.set_search_text(initial_text)
-        self.switcher_plugin.setup()
-        self.switcher_plugin.show()
-        # Note: the +1 pixel on the top makes it look better
-        delta_top = (self.tabs.tabBar().geometry().height() +
-                     self.fname_label.geometry().height() + 1)
-        self.switcher_plugin.set_position(delta_top)
-
-    @Slot()
-    def open_symbolfinder_dlg(self):
-        self.open_switcher_dlg(initial_text='@')
 
     def get_plugin(self):
         """Get the plugin of the parent widget."""
