@@ -18,8 +18,8 @@ import pytest
 from spyder.config.base import running_in_ci
 from spyder.config.utils import is_anaconda
 from spyder.utils.conda import (
-    add_quotes, find_conda, get_conda_activation_script, get_conda_env_path,
-    get_conda_root_prefix, get_list_conda_envs, get_list_conda_envs_cache)
+    add_quotes, find_conda, get_conda_env_path, get_conda_root_prefix,
+    get_list_conda_envs, get_list_conda_envs_cache)
 
 
 if not is_anaconda():
@@ -37,11 +37,6 @@ def test_add_quotes():
 
     output = add_quotes('/some-path/with-no-spaces')
     assert output == '/some-path/with-no-spaces'
-
-
-def test_get_conda_activation_script():
-    output = get_conda_activation_script()
-    assert os.path.exists(output)
 
 
 def test_get_conda_env_path():

@@ -25,8 +25,8 @@ from spyder.config.base import (get_safe_mode, is_conda_based_app,
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import (add_quotes, get_conda_activation_script,
-                                get_conda_env_path, is_conda_env)
+from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
+                                find_conda)
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter, is_module_installed
@@ -127,11 +127,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             if not has_spyder_kernels(pyexec):
                 raise SpyderKernelError(
                     ERROR_SPYDER_KERNEL_INSTALLED.format(
-                          pyexec,
-                          SPYDER_KERNELS_VERSION,
-                          SPYDER_KERNELS_CONDA,
-                          SPYDER_KERNELS_PIP
-                      )
+                        pyexec,
+                        SPYDER_KERNELS_VERSION,
+                        SPYDER_KERNELS_CONDA,
+                        SPYDER_KERNELS_PIP
+                    )
                 )
                 return
             if not is_python_interpreter(pyexec):
@@ -144,27 +144,21 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         is_different = is_different_interpreter(pyexec)
 
         # Command used to start kernels
-        if is_different and is_conda_env(pyexec=pyexec):
-            # If this is a conda environment we need to call an intermediate
-            # activation script to correctly activate the spyder-kernel
+        kernel_cmd = [
+            pyexec,
+            '-m', 'spyder_kernels.console',
+            '-f', '{connection_file}'
+        ]
 
-            # If changes are needed on this section make sure you also update
-            # the activation scripts at spyder/plugins/ipythonconsole/scripts/
-            kernel_cmd = [
-                get_activation_script(),  # This is bundled with Spyder
-                get_conda_activation_script(),
-                get_conda_env_path(pyexec),  # Might be external
-                pyexec,
-                '{connection_file}',
+        if is_different and is_conda_env(pyexec=pyexec):
+            # If executable is a conda environment and different from Spyder's
+            # runtime environment, we need to activate the environment to run
+            # spyder-kernels
+            kernel_cmd[:0] = [
+                find_conda(), 'run',
+                '-p', get_conda_env_path(pyexec),
             ]
-        else:
-            kernel_cmd = [
-                pyexec,
-                '-m',
-                'spyder_kernels.console',
-                '-f',
-                '{connection_file}'
-            ]
+
         logger.info('Kernel command: {}'.format(kernel_cmd))
 
         return kernel_cmd

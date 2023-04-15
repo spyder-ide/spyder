@@ -64,29 +64,6 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     return root_prefix
 
 
-def get_conda_activation_script(quote=False):
-    """
-    Return full path to conda activation script.
-
-    If `quote` is True, then quotes are added if spaces are found in the path.
-    """
-    exe = find_conda()
-
-    if exe.endswith(('micromamba.exe', 'conda.exe', 'micromamba')):
-        # For standalone conda, use the executable
-        script_path = exe
-    else:
-        # If not a standalone executable, activate is in same directory
-        script_path = osp.dirname(exe) + '/activate'
-
-    script_path = script_path.replace('\\', '/')
-
-    if quote:
-        script_path = add_quotes(script_path)
-
-    return script_path
-
-
 def get_conda_env_path(pyexec, quote=False):
     """
     Return the full path to the conda environment from give python executable.
