@@ -1362,11 +1362,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.add_dockwidget()
 
-        # Add modes to switcher
-        # TODO: 'Switcher' object has no attribute 'add_mode' 
-        # it is needed to create a public API that contains the methods 
-        # that handles the EditorSwitcherManager
-
         self.switcher_manager = EditorSwitcherManager(
             self,
             self.main.switcher,
