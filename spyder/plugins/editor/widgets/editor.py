@@ -287,7 +287,7 @@ class EditorStack(QWidget):
         self.setLayout(layout)
 
         self.menu = None
-        self.switcher_dlg = None
+        self.switcher_plugin = self.get_plugin().main.switcher
         self.switcher_manager = None
         self.tabs = None
         self.tabs_switcher = None
@@ -303,16 +303,9 @@ class EditorStack(QWidget):
 
         self.data = []
 
-        switcher_action = create_action(
-            self,
-            _("File switcher..."),
-            icon=ima.icon('filelist'),
-            triggered=self.open_switcher_dlg)
-        symbolfinder_action = create_action(
-            self,
-            _("Find symbols in file..."),
-            icon=ima.icon('symbol_find'),
-            triggered=self.open_symbolfinder_dlg)
+        switcher_action = self.switcher_plugin.get_action("file switcher")
+        symbolfinder_action = self.switcher_plugin.get_action("symbol finder")
+
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
@@ -788,30 +781,29 @@ class EditorStack(QWidget):
         """Open file list management dialog box"""
         if not self.tabs.count():
             return
-        if self.switcher_dlg is not None and self.switcher_dlg.isVisible():
-            self.switcher_dlg.hide()
-            self.switcher_dlg.clear()
-            return
-        if self.switcher_dlg is None:
-            from spyder.api.plugins import Plugins
-            self.switcher_dlg = Plugins.Switcher
+        if self.switcher_plugin is not None:
             self.switcher_manager = EditorSwitcherManager(
                 self.get_plugin(),
-                self.switcher_dlg,
+                self.switcher_plugin,
                 self.get_current_editor,
                 lambda: self,
                 section=self.get_plugin_title())
 
+            if self.switcher_plugin.isVisible():
+                self.switcher_plugin.hide()
+                self.switcher_plugin.clear()
+                return
+
         if isinstance(initial_text, bool):
             initial_text = ''
 
-        self.switcher_dlg.set_search_text(initial_text)
-        self.switcher_dlg.setup()
-        self.switcher_dlg.show()
+        self.switcher_plugin.set_search_text(initial_text)
+        self.switcher_plugin.setup()
+        self.switcher_plugin.show()
         # Note: the +1 pixel on the top makes it look better
         delta_top = (self.tabs.tabBar().geometry().height() +
                      self.fname_label.geometry().height() + 1)
-        self.switcher_dlg.set_position(delta_top)
+        self.switcher_plugin.set_position(delta_top)
 
     @Slot()
     def open_symbolfinder_dlg(self):
