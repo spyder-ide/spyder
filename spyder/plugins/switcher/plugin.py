@@ -121,6 +121,14 @@ class Switcher(SpyderPluginV2):
         """Set-up list widget content based on the filtering."""
         self._switcher.setup()
 
+    def hide(self):
+        """Hide switcher widget with QT hide method for QDialog."""
+        self._switcher.hide()
+
+    def setVisible(self, visible):
+        """Show or hide switcher widget with QT hide method for QDialog."""
+        self._switcher.setVisible(visible)
+
     # Item methods
     def current_item(self):
         """Return the current selected item in the list widget."""
