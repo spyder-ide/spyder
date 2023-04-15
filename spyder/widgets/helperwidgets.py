@@ -29,7 +29,7 @@ from qtpy.QtGui import QPixmap
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.stylesheet import DialogStyle
 
@@ -477,7 +477,14 @@ class PanelEmptyWidget(QWidget):
         self.label_empty = QLabel()
         self.label_empty.setText(self.text)
         self.label_empty.setAlignment(Qt.AlignCenter)
-        self.label_empty.setStyleSheet(f"font-size: {DialogStyle.TitleFontSize}")
+        self.label_empty.setStyleSheet(
+            f"font-size: {DialogStyle.TitleFontSize}")
+        self.label_empty2 = QLabel()
+        self.label_empty2.setText(self.text)
+        self.label_empty2.setAlignment(Qt.AlignCenter)
+        self.label_empty2.setStyleSheet(
+            f"font-size: 10pt;background-color:{SpyderPalette.COLOR_OCCURRENCE_3}")
+
         # Image
         image_path = get_image_path(self.icon_filename)
         image = QPixmap(image_path)
@@ -490,6 +497,7 @@ class PanelEmptyWidget(QWidget):
         self.image_label.setAlignment(Qt.AlignCenter)
         panel_empty_layout.addWidget(self.image_label)
         panel_empty_layout.addWidget(self.label_empty)
+        panel_empty_layout.addWidget(self.label_empty2)
 
         self.setLayout(panel_empty_layout)
 

@@ -383,10 +383,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             save_data_action = self.get_action(
                 VariableExplorerWidgetActions.SaveData)
             save_data_action.setEnabled(nsb.filename is not None)
-            if nsb.editor.source_model._data:
-                nsb.set_panel_empty(False)
-            else:
-                nsb.set_panel_empty(True)
 
         search_action = self.get_action(VariableExplorerWidgetActions.Search)
         if nsb is None:

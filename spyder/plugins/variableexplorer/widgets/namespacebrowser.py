@@ -130,6 +130,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.sig_start_spinner_requested)
             self.editor.sig_editor_shown.connect(
                 self.sig_stop_spinner_requested)
+            
 
             self.finder.sig_find_text.connect(self.do_find)
             self.finder.sig_hide_finder_requested.connect(
@@ -147,9 +148,11 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.stack_layout.addWidget(self.main_widget)
             self.stack_layout.addWidget(self.panelempty)
             self.setLayout(self.stack_layout)
+            self.editor.source_model.sig_setting_data.connect(
+                self.set_panel_empty)
 
-    def set_panel_empty(self, empty):
-        if empty:
+    def set_panel_empty(self):
+        if not self.editor.source_model.get_data():
             self.stack_layout.setCurrentWidget(self.panelempty)
         else:
             self.stack_layout.setCurrentWidget(self.main_widget)

@@ -145,7 +145,7 @@ class FindInFilesWidget(PluginMainWidget):
         # Widgets
         # Widget empty panel
         self.panelempty = PanelEmptyWidget(self)
-        self.panelempty.set_attributes('find.svg',
+        self.panelempty.set_attributes('find_empty',
                                        'You havent generated any plots yet.')
         
         self.search_text_edit = PatternComboBox(
@@ -319,12 +319,15 @@ class FindInFilesWidget(PluginMainWidget):
             self.set_max_results_action,
             menu=menu,
         )
+        self.set_panel_empty()
 
-    def update_actions(self):
+    def set_panel_empty(self):
         if self.result_browser.data:
             self.stack_layout.setCurrentWidget(self.result_browser)
         else:
             self.stack_layout.setCurrentWidget(self.panelempty)
+
+    def update_actions(self):
         self.find_action.setIcon(self.create_icon(
             'stop' if self.running else 'find'))
 
