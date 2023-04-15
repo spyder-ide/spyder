@@ -1369,7 +1369,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.switcher_manager = EditorSwitcherManager(
             self,
-            self.main.switcher.get_container().switcher,
+            self.main.switcher,
             self.get_current_editor,
             self.get_current_editorstack,
             section=self.get_plugin_title())
