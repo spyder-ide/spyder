@@ -256,6 +256,8 @@ def _definitions():
                 ),
                 "license_file": str(SPYREPO / "LICENSE.txt"),
                 "installer_type": "sh",
+                "register_python": False,
+                "initialize_by_default": False,
                 "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
@@ -276,6 +278,8 @@ def _definitions():
                 "installer_type": "pkg",
                 "welcome_image": str(DIST / "spyder_1227x600.png"),
                 "welcome_file": str(welcome_file),
+                "register_python": False,
+                "initialize_by_default": False,
                 "conclusion_text": "",
                 "readme_text": "",
             }
@@ -292,7 +296,8 @@ def _definitions():
                 "welcome_image": str(DIST / "spyder_164x314.png"),
                 "header_image": str(DIST / "spyder_150x57.png"),
                 "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
-                "register_python_default": False,
+                "register_python": False,
+                "initialize_by_default": False,
                 "default_prefix": os.path.join(
                     "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
                 ),
