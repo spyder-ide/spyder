@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import ast
 import os
 import os.path as osp
 import pickle
@@ -216,14 +217,9 @@ class ResultsTree(OneColumnTree):
             separador = ':'
             data = {}
             name = file.readline()
-            #next(file)
             for line in file:
                 key, value = line.split(separador, maxsplit=1)
-                print(key)
-                print(value)
-                import ast
                 value = ast.literal_eval(value.strip())
-                print('Hereeeeeeeeee2222!!!!!!!!!!!!')
                 print(value)
                 data["%s%s" % (key, ':')] = value
         self.set_results(name, data)
