@@ -174,7 +174,11 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         # Widget empty panel
         self.panelempty = PanelEmptyWidget(self)
         self.panelempty.set_attributes('plots',
-                                       'You havent generated any plots yet.')
+                                       'You havent generated any plots yet.',
+                                       'Run ploot generating code in the '
+                                       'Editor to see your plots appear here '
+                                       'for review and export. The plots pane'
+                                       ' supports matplotlib, plotly and __.')
         
 
         # Create the layout.

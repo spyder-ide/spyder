@@ -466,10 +466,12 @@ class PanelEmptyWidget(QWidget):
         super().__init__(parent)
         self.icon_filename = None
         self.text = None
+        self.description = None
 
-    def set_attributes(self, icon_filename, text):
+    def set_attributes(self, icon_filename, text, description):
         self.icon_filename = icon_filename
         self.text = text
+        self.description = description
         self.refresh()
 
     def refresh(self):
@@ -480,7 +482,7 @@ class PanelEmptyWidget(QWidget):
         self.label_empty.setStyleSheet(
             f"font-size: {DialogStyle.TitleFontSize}")
         self.label_empty2 = QLabel()
-        self.label_empty2.setText(self.text)
+        self.label_empty2.setText(self.description)
         self.label_empty2.setAlignment(Qt.AlignCenter)
         self.label_empty2.setStyleSheet(
             f"font-size: 10pt;background-color:{SpyderPalette.COLOR_OCCURRENCE_3}")

@@ -146,7 +146,9 @@ class FindInFilesWidget(PluginMainWidget):
         # Widget empty panel
         self.panelempty = PanelEmptyWidget(self)
         self.panelempty.set_attributes('find_empty',
-                                       'You havent generated any plots yet.')
+                                       'You havent found anything yet.',
+                                       'Find will search any directory based'
+                                       ' on your especifications')
         
         self.search_text_edit = PatternComboBox(
             self,
