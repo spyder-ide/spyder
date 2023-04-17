@@ -916,9 +916,7 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     with qtbot.waitSignal(new_shell.executed):
         new_shell.execute('a = 10')
 
-    assert new_client.id_ == dict(
-        int_id='1', str_id='B', str_env_name=''
-    )
+    assert new_client.id_ == dict(int_id='1', str_id='B')
     assert shell.get_value('a') == new_shell.get_value('a')
 
 
