@@ -874,9 +874,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     new_client = ipyconsole.get_clients()[1]
-    assert new_client.id_ == dict(
-        int_id='1', str_id='B', str_env_name=''
-    )
+    assert new_client.id_ == dict(int_id='1', str_id='B')
 
 
 @flaky(max_runs=3)
