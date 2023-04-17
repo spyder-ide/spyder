@@ -1,5 +1,25 @@
 # History of changes
 
+## Version 1.7.2 (2023/04/02)
+
+### Issues Closed
+
+* [Issue 325](https://github.com/python-lsp/python-lsp-server/issues/325) - WorkDoneProgress tokens not initialized properly by the server ([PR 328](https://github.com/python-lsp/python-lsp-server/pull/328) by [@syphar](https://github.com/syphar))
+* [Issue 260](https://github.com/python-lsp/python-lsp-server/issues/260) - yapf formatting fails when pyproject.toml is in the workspace ([PR 346](https://github.com/python-lsp/python-lsp-server/pull/346) by [@bnavigator](https://github.com/bnavigator))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 346](https://github.com/python-lsp/python-lsp-server/pull/346) - Add toml dependency for yapf and constrain yapf to be less than 0.32, by [@bnavigator](https://github.com/bnavigator) ([260](https://github.com/python-lsp/python-lsp-server/issues/260))
+* [PR 345](https://github.com/python-lsp/python-lsp-server/pull/345) - Raise upper bound of autopep8, by [@bnavigator](https://github.com/bnavigator)
+* [PR 340](https://github.com/python-lsp/python-lsp-server/pull/340) - Bump pydocstyle to 6.3, by [@bnavigator](https://github.com/bnavigator)
+* [PR 328](https://github.com/python-lsp/python-lsp-server/pull/328) - Initialize LSP progress token before using it and remove progress for sync plugins, by [@syphar](https://github.com/syphar) ([325](https://github.com/python-lsp/python-lsp-server/issues/325))
+
+In this release 4 pull requests were closed.
+
+----
+
 ## Version 1.7.1 (2023/01/17)
 
 ### Issues Closed

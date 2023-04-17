@@ -69,6 +69,7 @@ class LineNumberArea(Panel):
 
         Painting line number area
         """
+
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         font_height = self.editor.fontMetrics().height()
@@ -94,6 +95,7 @@ class LineNumberArea(Panel):
                 # The editor doesn't care about leading, so each line
                 # must be drawn independently.
                 self.draw_linenumbers_slow(painter)
+        self.paint_cell(painter)
 
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()

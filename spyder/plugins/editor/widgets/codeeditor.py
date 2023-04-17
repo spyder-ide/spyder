@@ -702,6 +702,7 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'go to definition', self.go_to_definition_from_cursor),
             ('editor', 'toggle comment', self.toggle_comment),
             ('editor', 'blockcomment', self.blockcomment),
+            ('editor', 'create_new_cell', self.create_new_cell),
             ('editor', 'unblockcomment', self.unblockcomment),
             ('editor', 'transform to uppercase', self.transform_to_uppercase),
             ('editor', 'transform to lowercase', self.transform_to_lowercase),
@@ -4237,6 +4238,27 @@ class CodeEditor(TextEditBaseWidget):
         cursor3.endEditBlock()
         return True
 
+    def create_new_cell(self):
+        firstline = '# %%' + self.get_line_separator()
+        endline = self.get_line_separator()
+        cursor = self.textCursor()
+        if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            endline = self.get_line_separator() + '# %%'
+        else:
+            start_pos = end_pos = cursor.position()
+
+        # Add cell comment or enclose current selection in cells
+        cursor.beginEditBlock()
+        cursor.setPosition(end_pos)
+        cursor.movePosition(QTextCursor.EndOfBlock)
+        cursor.insertText(endline)
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.insertText(firstline)
+        cursor.endEditBlock()
+        
     # ---- Kill ring handlers
     # Taken from Jupyter's QtConsole
     # Copyright (c) 2001-2015, IPython Development Team
@@ -5533,7 +5555,7 @@ class CodeEditor(TextEditBaseWidget):
 
             for top, line_number, block in self.visible_blocks:
                 if is_cell_header(block):
-                    painter.drawLine(4, top, self.width(), top)
+                    painter.drawLine(0, top, self.width(), top)
 
     @property
     def visible_blocks(self):

@@ -1,5 +1,29 @@
 # History of changes
 
+## Version 2.4.3 (2023-04-02)
+
+### Issues Closed
+
+* [Issue 440](https://github.com/spyder-ide/spyder-kernels/issues/440) - distutils and LooseVersion deprecation ([PR 450](https://github.com/spyder-ide/spyder-kernels/pull/450) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 452](https://github.com/spyder-ide/spyder-kernels/pull/452) - PR: Fix error when executing empty Python script, by [@rear1019](https://github.com/rear1019)
+* [PR 450](https://github.com/spyder-ide/spyder-kernels/pull/450) - PR: Remove usage of `distutils.LooseVersion`, by [@ccordoba12](https://github.com/ccordoba12) ([440](https://github.com/spyder-ide/spyder-kernels/issues/440))
+* [PR 449](https://github.com/spyder-ide/spyder-kernels/pull/449) - PR: Add support for Jupyter-client 8, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 448](https://github.com/spyder-ide/spyder-kernels/pull/448) - PR: Skip IPython versions that give buggy code completions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 442](https://github.com/spyder-ide/spyder-kernels/pull/442) - PR: Add FreeBSD to `test_user_sitepackages_in_pathlist`, by [@rhurlin](https://github.com/rhurlin)
+* [PR 434](https://github.com/spyder-ide/spyder-kernels/pull/434) - PR: Use `allow_pickle=True` when loading Numpy arrays, by [@nkleinbaer](https://github.com/nkleinbaer)
+* [PR 430](https://github.com/spyder-ide/spyder-kernels/pull/430) - PR: Inform GUI about position of exception in post mortem debugging, by [@rear1019](https://github.com/rear1019)
+
+In this release 7 pull requests were closed.
+
+
+----
+
+
 ## Version 2.4.2 (2023-01-17)
 
 ### Issues Closed
