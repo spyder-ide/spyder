@@ -93,15 +93,51 @@ class Switcher(QDialog):
       SwitcherItem:      [title description    <shortcut> section]
     """
 
-    # Dismissed switcher
+    # --- Signals
     sig_rejected = Signal()
-    # Search/Filter text changes
+    """
+    This signal is emitted when the plugin is dismissed.
+    """
+
     sig_text_changed = Signal(TEXT_TYPES[-1])
-    # Current item changed
+    """
+    This signal is emitted when the plugin search/filter text changes.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search/filter text.
+    """
+
     sig_item_changed = Signal(object)
-    # List item selected, mode and cleaned search text
-    sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1], )
+    """
+    This signal is emitted when the plugin current item changes.
+    """
+
+    sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1])
+    """
+    This signal is emitted when an item is selected from the switcher plugin
+    list.
+
+    Parameters
+    ----------
+    item: object
+        The current selected item from the switcher list (QStandardItem).
+    mode: str
+        The current selected mode (open files "", symbol "@" or line ":").
+    search_text: str
+        Cleaned search/filter text.
+    """
+
     sig_mode_selected = Signal(TEXT_TYPES[-1])
+    """
+    This signal is emitted when a mode is selected.
+
+    Parameters
+    ----------
+    mode: str
+        The selected mode (open files "", symbol "@" or line ":").
+    """
 
     _MAX_NUM_ITEMS = 15
     _MIN_WIDTH = 580
