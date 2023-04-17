@@ -504,6 +504,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.console_environment_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
             _('New console in environment'))
+        self.console_environment_menu.setStyleSheet(
+            "QMenu { menu-scrollable: 1; }"
+        )
 
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
