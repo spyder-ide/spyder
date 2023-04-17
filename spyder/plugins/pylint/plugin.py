@@ -204,8 +204,10 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             pass
 
     def _code_analysis_real_time(self, list):
-        self.start_code_analysis(list)
-        print(list)
+        if self.get_conf("real_time_analysis", True):
+            self.start_code_analysis(list=list)
+        else:
+            pass
 
     def _set_project_dir(self, value):
         widget = self.get_widget()
@@ -257,6 +259,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         If this method is called while still running it will stop the code
         analysis.
         """
+        
         editor = self.get_plugin(Plugins.Editor)
         if editor:
             if self.get_conf("save_before", True) and not editor.save():
@@ -264,8 +267,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
         if filename is None:
             filename = self.get_widget().get_filename()
-
-        self.switch_to_plugin(force_focus=True)
+        if not self.get_conf("real_time_analysis", True):
+            self.switch_to_plugin(force_focus=True)
         self.get_widget().start_code_analysis(filename, list)
 
     def stop_code_analysis(self):

@@ -119,6 +119,14 @@ class CategoryItem(QTreeWidgetItem):
         "Error": {
             'translation_string': _("Error"),
             'icon': ima.icon("error")
+        },
+        "Information": {
+            'translation_string': _("Information"),
+            'icon': ima.icon("information")
+        },
+        "Hint": {
+            'translation_string': _("Hint"),
+            'icon': ima.icon("hint")
         }
     }
 
@@ -194,6 +202,32 @@ class ResultsTree(OneColumnTree):
         self.results = results
         self.refresh()
 
+    def save_data(self, filename):
+        """Save analysis data."""
+        if len(self.results) > 0:
+            with open(filename, 'w') as f:
+                f.write("%s\n" % (self.filename))
+                for nombre, valor in self.results.items():
+                    f.write("%s %s\n" % (nombre, valor))
+
+    def load_data(self, filename):
+        """Load analysis data."""
+        with open(filename, 'r') as file:
+            separador = ':'
+            data = {}
+            name = file.readline()
+            #next(file)
+            for line in file:
+                key, value = line.split(separador, maxsplit=1)
+                print(key)
+                print(value)
+                import ast
+                value = ast.literal_eval(value.strip())
+                print('Hereeeeeeeeee2222!!!!!!!!!!!!')
+                print(value)
+                data["%s%s" % (key, ':')] = value
+        self.set_results(name, data)
+
     def refresh(self):
         title = _("Results for ") + self.filename
         self.set_title(title)
@@ -201,11 +235,14 @@ class ResultsTree(OneColumnTree):
         self.data = {}
 
         # Populating tree
+        print(self.results)
         results = (
             ("Convention", self.results["C:"]),
             ("Refactor", self.results["R:"]),
             ("Warning", self.results["W:"]),
             ("Error", self.results["E:"]),
+            ("Information", self.results["I:"]),
+            ("Hint", self.results["H:"]),
         )
 
         for category, messages in results:
@@ -496,6 +533,16 @@ class PylintWidget(PluginMainWidget):
         else:
             self.curr_filenames = []
 
+    def load_data(self):
+        filename, _selfilter = getopenfilename(
+            self,
+            _("Select file to load"),
+            getcwd_or_home(),
+            _("Analysis result") + " (*.Result)",
+        )
+        if filename:
+            self.treewidget.load_data(filename)
+
     def save_history(self):
         """Save data."""
         title = _("Save code analysis result")
@@ -550,7 +597,7 @@ class PylintWidget(PluginMainWidget):
             text=_("Load data"),
             tip=_('Load code analysis'),
             icon=self.create_icon('fileimport'),
-            triggered=self.sig_start_analysis_requested,
+            triggered=self.load_data,
         )
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
@@ -735,7 +782,7 @@ class PylintWidget(PluginMainWidget):
         If this method is called while still running it will stop the code
         analysis.
         """
-        if list is None:
+        if not self.get_conf("real_time_analysis", True):
             if self._is_running():
                 self._kill_process()
             else:
@@ -745,9 +792,34 @@ class PylintWidget(PluginMainWidget):
                 if self.filecombo.is_valid():
                     self._start()
         else:
-            pass
-
+            results = self._parse_list_real_time(filename, list)
+            self.treewidget.set_results(filename, results)
         self.update_actions()
+
+    def _parse_list_real_time(self, filename, list):
+        results = {}
+        results['C:'] = []
+        results['R:'] = []
+        results['E:'] = []
+        results['W:'] = []
+        results['I:'] = []
+        results['H:'] = []
+        for result in list:
+            code = "D100" if not result.get('code') else result['code']
+            data = (filename, result['range']['end']['line'],
+                    result['message'],
+                    code,
+                    result['source'])
+            type = result['severity']
+            if type == 1:
+                results['E:'].append(data)
+            if type == 2:
+                results['W:'].append(data)
+            if type == 3:
+                results['I:'].append(data)
+            if type == 4:
+                results['H:'].append(data)
+        return results
 
     def stop_code_analysis(self):
         """
@@ -850,6 +922,8 @@ class PylintWidget(PluginMainWidget):
                     text_prun = " (%s %s/10)" % (text_prun, previous_rate)
                     text += prevrate_style % (prevrate_color, text_prun)
 
+                results['I:'] = []
+                results['H:'] = []
                 self.treewidget.set_results(filename, results)
                 date = time.strftime("%Y-%m-%d %H:%M:%S", datetime)
                 date_text = text_style % (text_color, date)
