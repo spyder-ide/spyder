@@ -250,6 +250,36 @@ def test_cython_client(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.order(1)
+@pytest.mark.environment_client
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
+@pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
+def test_environment_client(ipyconsole, qtbot):
+    """
+    Test that when creating console for a specific environment the conda
+    environment associated with the external interpreter
+    is activated before a kernel is created for it.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+
+    # Check console name
+    client = ipyconsole.get_current_client()
+    client.get_name() == "spytest-ž 1/A"
+
+    # Get conda activation environment variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')"
+        )
+
+    expected_output = get_conda_test_env()[0].replace('\\', '/')
+    output = shell.get_value('conda_prefix').replace('\\', '/')
+    assert expected_output == output
+
+
+@flaky(max_runs=3)
 def test_tab_rename_for_slaves(ipyconsole, qtbot):
     """Test slave clients are renamed correctly."""
     cf = ipyconsole.get_current_client().connection_file

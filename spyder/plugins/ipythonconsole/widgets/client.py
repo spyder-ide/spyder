@@ -518,14 +518,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             else:
                 name = self.hostname
             # Adding id to name
-            client_id = (self.id_['int_id'] + u'/' + self.id_['str_id'])
+            client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = name + u' ' + client_id
         elif (self.given_name in ["Pylab", "SymPy", "Cython"] or
               self.forcing_custom_interpreter):
-            client_id = (self.id_['int_id'] + u'/' + self.id_['str_id'])
+            client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = self.given_name + u' ' + client_id
         else:
-            name = (self.given_name + u'/' + self.id_['str_id'])
+            name = self.given_name + u'/' + self.id_['str_id']
         return name
 
     def get_control(self):
