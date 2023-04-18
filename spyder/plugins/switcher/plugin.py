@@ -169,6 +169,10 @@ class Switcher(SpyderPluginV2):
         """Hide switcher widget with QT hide method for QDialog."""
         self._switcher.hide()
 
+    def close(self):
+        """Close switcher widget with QT close method for QDialog."""
+        self._switcher.close()
+
     def setVisible(self, visible):
         """Show or hide switcher widget with QT hide method for QDialog."""
         self._switcher.setVisible(visible)
@@ -198,6 +202,10 @@ class Switcher(SpyderPluginV2):
     def clear(self):
         """Remove all items from the list and clear the search text."""
         self._switcher.clear()
+
+    def count(self):
+        """Get the item count in the list widget."""
+        return self._switcher.count()
 
     # Mode methods
     def add_mode(self, token, description):

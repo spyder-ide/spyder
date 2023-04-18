@@ -2457,7 +2457,7 @@ def example_def_2():
 
 
 @flaky(max_runs=3)
-def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
+def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
     """
     Test that the file switcher is working as expected when called from the
     editorstack.
@@ -2472,16 +2472,15 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
     # Add a file to the editor.
     file = tmpdir.join('test_file_open_switcher_dlg.py')
-    file.write("a test file for test_edidorstack_open_switcher_dlg")
+    file.write("a test file for test_editorstack_open_switcher_dlg")
     main_window.editor.load(str(file))
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_dlg is None
-    editorstack.open_switcher_dlg()
-    assert editorstack.switcher_dlg
-    assert editorstack.switcher_dlg.isVisible()
-    assert (editorstack.switcher_dlg.count() ==
+    editorstack.switcher_plugin.get_container().open_switcher()
+    assert editorstack.switcher_plugin
+    assert editorstack.switcher_plugin.isVisible()
+    assert (editorstack.switcher_plugin.count() ==
             len(main_window.editor.get_filenames()))
 
 
@@ -2527,11 +2526,10 @@ def example_def_2():
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_dlg is None
-    editorstack.open_symbolfinder_dlg()
-    assert editorstack.switcher_dlg
-    assert editorstack.switcher_dlg.isVisible()
-    assert editorstack.switcher_dlg.count() == 2
+    editorstack.switcher_plugin.get_container().open_switcher()
+    assert editorstack.switcher_plugin
+    assert editorstack.switcher_plugin.isVisible()
+    assert editorstack.switcher_plugin.count() == 2
 
 
 @flaky(max_runs=3)
