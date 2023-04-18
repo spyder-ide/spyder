@@ -269,7 +269,7 @@ class EditorStack(QWidget):
     :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
     """
 
-    def __init__(self, parent, actions):
+    def __init__(self, parent, actions, use_switcher=True):
         QWidget.__init__(self, parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -286,10 +286,17 @@ class EditorStack(QWidget):
         self.setLayout(layout)
 
         self.menu = None
-        self.switcher_plugin = self.get_plugin().main.switcher
         self.switcher_manager = None
         self.tabs = None
         self.tabs_switcher = None
+        self.switcher_plugin = None
+
+        switcher_action = None
+        symbolfinder_action = None
+        if use_switcher:
+            self.switcher_plugin = self.get_plugin().main.switcher
+            switcher_action = self.switcher_plugin.get_action("file switcher")
+            symbolfinder_action = self.switcher_plugin.get_action("symbol finder")
 
         self.stack_history = StackHistory(self)
 
@@ -301,9 +308,6 @@ class EditorStack(QWidget):
         self.find_widget = None
 
         self.data = []
-
-        switcher_action = self.switcher_plugin.get_action("file switcher")
-        symbolfinder_action = self.switcher_plugin.get_action("symbol finder")
 
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
@@ -2970,7 +2974,8 @@ class EditorSplitter(QSplitter):
     """QSplitter for editor windows."""
 
     def __init__(self, parent, plugin, menu_actions, first=False,
-                 register_editorstack_cb=None, unregister_editorstack_cb=None):
+                 register_editorstack_cb=None, unregister_editorstack_cb=None,
+                 use_switcher=True):
         """Create a splitter for dividing an editor window into panels.
 
         Adds a new EditorStack instance to this splitter.  If it's not
@@ -3006,7 +3011,7 @@ class EditorSplitter(QSplitter):
         self.unregister_editorstack_cb = unregister_editorstack_cb
 
         self.menu_actions = menu_actions
-        self.editorstack = EditorStack(self, menu_actions)
+        self.editorstack = EditorStack(self, menu_actions, use_switcher)
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
@@ -3524,13 +3529,14 @@ class EditorPluginExample(QSplitter):
         self.editorstacks = []
         self.editorwindows = []
 
-        self.last_focused_editorstack = {} # fake
+        self.last_focused_editorstack = {}  # fake
 
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(None, self, self)
         self.outlineexplorer.edit_goto.connect(self.go_to_file)
         self.editor_splitter = EditorSplitter(self, self, menu_actions,
-                                              first=True)
+                                              first=True,
+                                              use_switcher=False)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
