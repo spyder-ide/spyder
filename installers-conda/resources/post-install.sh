@@ -38,6 +38,17 @@ fi
 echo "Creating uninstall script..."
 cat <<EOF > ${u_spy_exe}
 #!/bin/bash
+echo "You are about to uninstall Spyder."
+echo "If you proceed, aliases will be removed from ~/.bashrc (if present)"
+echo "and the following file and directory will be removed:"
+echo "  ${shortcut_path}"
+echo "  ${PREFIX}"
+echo "Do you wish to continue?"
+read -p " [yes|NO]: " confirm
+if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+    echo "Uninstall aborted."
+    exit 1
+fi
 rm -rf ${shortcut_path}
 rm -rf ${PREFIX}
 EOF
