@@ -44,7 +44,6 @@ class InterpreterStatus(BaseTimerStatus):
         self.value = ''
         self.default_interpreter = sys.executable
 
-        # ??? Do we need this?
         if os.name == 'nt' and is_conda_based_app():
             # Be sure to use 'python' executable instead of 'pythonw' since
             # no output is generated with 'pythonw'.

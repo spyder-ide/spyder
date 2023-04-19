@@ -149,7 +149,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
         """Show installation dialog or menu."""
         value = self.value.split(":")[-1].strip()
         if (
-            self.tooltip != self.BASE_TOOLTIP and value != PENDING
+            self.tooltip != self.BASE_TOOLTIP
+            and value != PENDING
             and is_conda_based_app()
         ):
             self.installer.show()

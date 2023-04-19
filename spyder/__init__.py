@@ -68,7 +68,8 @@ def get_versions(reporev=True):
     if reporev:
         from spyder.utils import vcs
         revision, branch = vcs.get_git_revision(
-            os.path.dirname(__current_directory__))
+            os.path.dirname(__current_directory__)
+        )
 
     if is_conda_based_app():
         installer = 'standalone'
