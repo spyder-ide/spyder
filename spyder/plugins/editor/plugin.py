@@ -1680,7 +1680,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
 
-        editorstack.set_help_enabled(self.get_conf('help', 'connect/editor'))
+        editorstack.set_help_enabled(
+            self.get_conf('connect/editor', section='help')
+        )
 
         hover_hints = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'enable_hover_hints'),
