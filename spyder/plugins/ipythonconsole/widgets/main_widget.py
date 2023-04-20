@@ -503,7 +503,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         self.console_environment_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
-            _('New console in environment'))
+            _('New console in environment')
+        )
         self.console_environment_menu.setStyleSheet(
             "QMenu { menu-scrollable: 1; }"
         )
@@ -562,8 +563,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             icon=self.create_icon('ipython_console'),
             triggered=self.create_cython_client,
         )
+
         self.console_environment_menu.aboutToShow.connect(
             self.update_environment_menu)
+
         for item in [
                 create_pylab_action,
                 create_sympy_action,
@@ -684,7 +687,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def update_envs(self, worker, output, error):
         """Update the list of environments in the system."""
-        self.envs.update(**output)
+        if output is not None:
+            self.envs.update(**output)
 
     def update_environment_menu(self):
         """
@@ -1336,8 +1340,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def interpreter_versions(self, path_to_custom_interpreter=None):
         """Python and IPython versions used by clients"""
-        if (self.get_conf('default', section='main_interpreter')
-           and not path_to_custom_interpreter):
+        if (
+            self.get_conf('default', section='main_interpreter')
+            and not path_to_custom_interpreter
+        ):
             from IPython.core import release
             versions = dict(
                 python_version=sys.version,
@@ -1555,9 +1561,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_new_client(is_cython=True, given_name="Cython")
 
     def create_environment_client(
-            self, environment, path_to_custom_interpreter
-            ):
-        """Force creation of Environment client."""
+        self, environment, path_to_custom_interpreter
+    ):
+        """Create a client for a Python environment."""
         self.create_new_client(
             given_name=environment,
             path_to_custom_interpreter=path_to_custom_interpreter

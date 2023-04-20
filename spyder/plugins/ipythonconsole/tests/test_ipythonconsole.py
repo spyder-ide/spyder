@@ -257,9 +257,8 @@ def test_cython_client(ipyconsole, qtbot):
 @pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_environment_client(ipyconsole, qtbot):
     """
-    Test that when creating console for a specific environment the conda
-    environment associated with the external interpreter
-    is activated before a kernel is created for it.
+    Test that when creating a console for a specific conda environment, the
+    environment is activated before a kernel is created for it.
     """
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()

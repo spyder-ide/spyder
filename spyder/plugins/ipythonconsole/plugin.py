@@ -549,7 +549,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             The default is None.
         path_to_custom_interpreter : str, optional
             Path to a custom interpreter the client should use regardless of
-            the interpreter selected in the preferences.
+            the interpreter selected in Spyder Preferences.
             The default is None.
 
         Returns

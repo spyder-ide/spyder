@@ -112,8 +112,10 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     def argv(self):
         """Command to start kernels"""
         # Python interpreter used to start kernels
-        if (self.get_conf('default', section='main_interpreter') and
-                not self.path_to_custom_interpreter):
+        if (
+            self.get_conf('default', section='main_interpreter')
+            and not self.path_to_custom_interpreter
+        ):
             pyexec = get_python_executable()
         else:
             pyexec = self.get_conf('executable', section='main_interpreter')
@@ -190,7 +192,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
-            'SPY_EXTERNAL_INTERPRETER': not default_interpreter or self.path_to_custom_interpreter,
+            'SPY_EXTERNAL_INTERPRETER': (not default_interpreter
+                or self.path_to_custom_interpreter),
             'SPY_UMR_ENABLED': self.get_conf(
                 'umr/enabled', section='main_interpreter'),
             'SPY_UMR_VERBOSE': self.get_conf(
