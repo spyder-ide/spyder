@@ -76,6 +76,16 @@ To uninstall Spyder, you need to run from the following from the command line:
 
 $ uninstall-spyder
 
+#####################
+# !!! IMPORTANT !!! #
+#####################
+
+The spyder and uninstall-spyder command-line shortcuts will only be available
+in new shell sessions. To make them available in this session you must source
+your .bashrc file
+
+$ source ~/.bashrc
+
 ###############################################################################
 
 EOF
