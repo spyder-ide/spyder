@@ -41,13 +41,13 @@ from spyder.plugins.ipythonconsole.widgets import (
     KernelConnectionDialog, PageControlWidget)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
+from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
-from spyder.utils.workers import WorkerManager
-from spyder.utils.envs import get_list_envs
 
 
 # Logging
@@ -505,9 +505,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
             _('New console in environment')
         )
-        self.console_environment_menu.setStyleSheet(
-            "QMenu { menu-scrollable: 1; }"
-        )
+        stylesheet = qstylizer.style.StyleSheet()
+        stylesheet["QMenu"]["menu-scrollable"].setValue("1")
+        self.console_environment_menu.setStyleSheet(stylesheet.toString())
 
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
