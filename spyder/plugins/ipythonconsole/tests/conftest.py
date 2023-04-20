@@ -156,6 +156,15 @@ def ipyconsole(qtbot, request, tmpdir):
     cython_client = request.node.get_closest_marker('cython_client')
     is_cython = True if cython_client else False
 
+    # Start a specific env client if requested
+    environment_client = request.node.get_closest_marker(
+        'environment_client')
+    given_name = None
+    path_to_custom_interpreter = None
+    if environment_client:
+        given_name = 'spytest-ž'
+        path_to_custom_interpreter = get_conda_test_env()[1]
+
     # Use an external interpreter if requested
     external_interpreter = request.node.get_closest_marker(
         'external_interpreter')
@@ -197,9 +206,13 @@ def ipyconsole(qtbot, request, tmpdir):
     debugger.on_ipython_console_available()
     console.on_initialize()
     console._register()
-    console.create_new_client(is_pylab=is_pylab,
-                              is_sympy=is_sympy,
-                              is_cython=is_cython)
+    console.create_new_client(
+        is_pylab=is_pylab,
+        is_sympy=is_sympy,
+        is_cython=is_cython,
+        given_name=given_name,
+        path_to_custom_interpreter=path_to_custom_interpreter
+    )
     window.setCentralWidget(console.get_widget())
 
     # Set exclamation mark to True
