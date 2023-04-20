@@ -59,7 +59,7 @@ from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
-                                                   save_bookmarks)
+                                                   update_bookmarks)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
@@ -2104,7 +2104,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         filename = osp.normpath(osp.abspath(filename))
         bookmarks = eval(bookmarks)
         old_slots = self.get_conf('bookmarks', default={})
-        new_slots = save_bookmarks(filename, bookmarks, old_slots)
+        new_slots = update_bookmarks(filename, bookmarks, old_slots)
         self.set_conf('bookmarks', new_slots)
 
     #------ File I/O

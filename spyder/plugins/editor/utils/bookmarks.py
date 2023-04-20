@@ -31,8 +31,25 @@ def load_bookmarks_without_file(filename, slots):
     return {k: v for k, v in bookmarks.items() if v[0] != filename}
 
 
-def save_bookmarks(filename, bookmarks, old_slots):
-    """Save all bookmarks from specific file to config."""
+def update_bookmarks(filename, bookmarks, old_slots):
+    """
+    Compute an updated version of all the bookmarks from a specific file.
+
+    Parameters
+    ----------
+    filename : str
+        File path that the bookmarks are related too.
+    bookmarks : dict
+        New or changed bookmarks for the file.
+    old_slots : dict
+        Base general bookmarks entries available before any changes where done.
+
+    Returns
+    -------
+    updated_slots : dict
+        Updated general bookmarks.
+
+    """
     if not osp.isfile(filename):
         return
     updated_slots = load_bookmarks_without_file(filename, old_slots)
