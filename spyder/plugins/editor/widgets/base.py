@@ -37,8 +37,8 @@ from spyder.widgets.mixins import BaseEditMixin
 
 
 class TextEditBaseWidget(
-        QPlainTextEdit, BaseEditMixin, SpyderConfigurationAccessor
-        ):
+    QPlainTextEdit, BaseEditMixin, SpyderConfigurationAccessor
+):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
     focus_in = Signal()

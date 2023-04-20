@@ -30,10 +30,10 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QListWidgetItem, QSizePolicy, QToolBar)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
-from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
@@ -100,7 +100,8 @@ class TabSwitcherWidget(QListWidget, SpyderConfigurationAccessor):
         self.config_shortcut(
             lambda: self.select_row(1),
             context='Editor',
-            name='Go to next file', parent=self
+            name='Go to next file',
+            parent=self
         )
 
     def load_data(self):
