@@ -801,6 +801,8 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def _setup_menu_actions(self):
         """Setup and update the menu actions."""
+        self.recent_project_menu.clear_actions()
+
         if self.recent_projects:
             for project in self.recent_projects:
                 if self.is_valid_project(project):
@@ -833,6 +835,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 section=RecentProjectsMenuSections.Extras)
 
         self._update_project_actions()
+        self.recent_project_menu._render()
 
     def _build_opener(self, project):
         """Build function opening passed project"""
