@@ -99,7 +99,7 @@ class Switcher(QDialog):
     This signal is emitted when the plugin is dismissed.
     """
 
-    sig_text_changed = Signal(TEXT_TYPES[-1])
+    sig_text_changed = Signal(str)
     """
     This signal is emitted when the plugin search/filter text changes.
 
@@ -114,7 +114,7 @@ class Switcher(QDialog):
     This signal is emitted when the plugin current item changes.
     """
 
-    sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1])
+    sig_item_selected = Signal(object, str, str)
     """
     This signal is emitted when an item is selected from the switcher plugin
     list.
@@ -129,7 +129,7 @@ class Switcher(QDialog):
         Cleaned search/filter text.
     """
 
-    sig_mode_selected = Signal(TEXT_TYPES[-1])
+    sig_mode_selected = Signal(str)
     """
     This signal is emitted when a mode is selected.
 

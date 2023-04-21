@@ -66,15 +66,14 @@ class SwitcherContainer(PluginMainContainer):
 
         # Set position
         mainwindow = self._plugin.get_main()
+
         # Note: The +8 pixel on the top makes it look better
         default_top = (mainwindow.toolbar.toolbars_menu.geometry().height() +
                        mainwindow.menuBar().geometry().height() + 8)
 
         current_window = QApplication.activeWindow()
         if current_window == mainwindow:
-            option = 'toolbars_visible'
-            section = 'toolbar'
-            if self.get_conf(option, section):
+            if self.get_conf('toolbars_visible', section='toolbar'):
                 delta_top = default_top
             else:
                 delta_top = mainwindow.menuBar().geometry().height() + 8

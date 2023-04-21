@@ -9,11 +9,11 @@
 Switcher Plugin.
 """
 
-# Third-party imports
-from qtpy.QtCore import Signal
-
 # Standard library imports
 import sys
+
+# Third-party imports
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.translations import _
@@ -22,7 +22,6 @@ from spyder.api.plugin_registration.decorators import (on_plugin_available,
                                                        on_plugin_teardown)
 from spyder.plugins.switcher.container import SwitcherContainer
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
-from spyder.py3compat import TEXT_TYPES
 
 
 # --- Constants
@@ -51,7 +50,7 @@ class Switcher(SpyderPluginV2):
     This signal is emitted when the plugin is dismissed.
     """
 
-    sig_text_changed = Signal(TEXT_TYPES[-1])
+    sig_text_changed = Signal(str)
     """
     This signal is emitted when the plugin search/filter text changes.
 
@@ -66,7 +65,7 @@ class Switcher(SpyderPluginV2):
     This signal is emitted when the plugin current item changes.
     """
 
-    sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1])
+    sig_item_selected = Signal(object, str, str)
     """
     This signal is emitted when an item is selected from the switcher plugin
     list.
@@ -81,7 +80,7 @@ class Switcher(SpyderPluginV2):
         Cleaned search/filter text.
     """
 
-    sig_mode_selected = Signal(TEXT_TYPES[-1])
+    sig_mode_selected = Signal(str)
     """
     This signal is emitted when a mode is selected.
 
@@ -162,11 +161,11 @@ class Switcher(SpyderPluginV2):
 
     # QDialog methods
     def show(self):
-        """Show switcher widget with QT hide method for QDialog."""
+        """Show switcher."""
         self._switcher.show()
 
     def hide(self):
-        """Hide switcher widget with QT hide method for QDialog."""
+        """Hide switcher."""
         self._switcher.hide()
 
     def close(self):
@@ -177,9 +176,8 @@ class Switcher(SpyderPluginV2):
         """Show or hide switcher widget with QT hide method for QDialog."""
         self._switcher.setVisible(visible)
 
-    def isVisible(self):
-        """Return if switcher widget is visible with QT hide method
-        for QDialog."""
+    def is_visible(self):
+        """Return if the switcher is visible."""
         return self._switcher.isVisible()
 
     # Item methods
@@ -190,13 +188,13 @@ class Switcher(SpyderPluginV2):
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
                  last_item=True):
-        """Add switcher list item."""
+        """Add a switcher list item."""
         self._switcher.add_item(icon, title, description, shortcut,
                                 section, data, tool_tip, action_item,
                                 last_item)
 
     def add_separator(self):
-        """Add separator item."""
+        """Add a separator item."""
         self._switcher.add_separator()
 
     def clear(self):
