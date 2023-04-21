@@ -2479,7 +2479,7 @@ def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
     editorstack = main_window.editor.get_current_editorstack()
     editorstack.switcher_plugin.get_container().open_switcher()
     assert editorstack.switcher_plugin
-    assert editorstack.switcher_plugin.isVisible()
+    assert editorstack.switcher_plugin.is_visible()
     assert (editorstack.switcher_plugin.count() ==
             len(main_window.editor.get_filenames()))
 
@@ -2528,7 +2528,7 @@ def example_def_2():
     editorstack = main_window.editor.get_current_editorstack()
     editorstack.switcher_plugin.get_container().open_switcher()
     assert editorstack.switcher_plugin
-    assert editorstack.switcher_plugin.isVisible()
+    assert editorstack.switcher_plugin.is_visible()
     assert editorstack.switcher_plugin.count() == 2
 
 
