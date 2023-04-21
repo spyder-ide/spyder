@@ -231,7 +231,7 @@ class EditorSwitcherManager(object):
         try:
             line_number = int(line_number)
             editorstack.go_to_line(line_number)
-            self._switcher.setVisible(visible)
+            self._switcher.set_visible(visible)
             # Closing the switcher
             if not visible:
                 self._current_line = None

@@ -165,7 +165,7 @@ class Switcher(SpyderPluginV2):
         self._switcher.hide()
 
     def close(self):
-        """Close switcher widget with QT close method for QDialog."""
+        """Close switcher widget."""
         self._switcher.close()
 
     def set_visible(self, visible):
