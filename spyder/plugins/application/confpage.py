@@ -69,8 +69,8 @@ class ApplicationConfigPage(PluginConfigPage):
                               'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
-        # ??? Should this apply to all conda-based installers?
-        if is_conda_based_app():
+        # ??? Should we allow multiple instances for macOS?
+        if sys.platform == 'darwin' and is_conda_based_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 

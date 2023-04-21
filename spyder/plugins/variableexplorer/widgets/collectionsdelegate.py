@@ -119,12 +119,6 @@ class CollectionsDelegate(QItemDelegate):
                 message = _("Spyder is unable to show the {val_type} or object"
                             " you're trying to view because <tt>{module}</tt>"
                             " is not installed. ")
-                if is_conda_based_app():
-                    message += _("Please consider using the full version of "
-                                 "the Spyder MacOS application.<br>")
-                else:
-                    message += _("Please install this package in your Spyder "
-                                 "environment.<br>")
                 QMessageBox.critical(
                     self.parent(), _("Error"),
                     message.format(val_type=val_type, module=module))
@@ -133,8 +127,8 @@ class CollectionsDelegate(QItemDelegate):
                 if is_conda_based_app():
                     message = _("Spyder is unable to show the variable you're"
                                 " trying to view because the module "
-                                "<tt>{module}</tt> is not supported in the "
-                                "Spyder Lite application.<br>")
+                                "<tt>{module}</tt> is not supported "
+                                "by Spyder.<br>")
                 else:
                     message = _("Spyder is unable to show the variable you're"
                                 " trying to view because the module "
