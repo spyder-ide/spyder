@@ -150,9 +150,11 @@ class ProjectExplorerWidget(PluginMainWidget):
         # Attributes from conf
         self.name_filters = self.get_conf('name_filters')
         self.show_hscrollbar = self.get_conf('show_hscrollbar')
-        self.recent_projects = self.get_conf('recent_projects', [])
 
         # Main attributes
+        self.recent_projects = self._get_valid_recent_projects(
+            self.get_conf('recent_projects', [])
+        )
         self._project_types = OrderedDict()
         self.current_active_project = None
         self.latest_project = None
@@ -438,6 +440,12 @@ class ProjectExplorerWidget(PluginMainWidget):
                           ).format(varpath=path, error=str(error))
                     )
 
+                # Remove path from the recent_projects list
+                try:
+                    self.recent_projects.remove(path)
+                except ValueError:
+                    pass
+
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
         self.recent_projects = []
@@ -447,7 +455,7 @@ class ProjectExplorerWidget(PluginMainWidget):
     def change_max_recent_projects(self):
         """Change max recent projects entries."""
 
-        mrf, valid = QInputDialog.getInt(
+        max_projects, valid = QInputDialog.getInt(
             self,
             _('Projects'),
             _('Maximum number of recent projects'),
@@ -457,7 +465,14 @@ class ProjectExplorerWidget(PluginMainWidget):
         )
 
         if valid:
-            self.set_conf('max_recent_projects', mrf)
+            self.set_conf('max_recent_projects', max_projects)
+
+            # This will reduce the number of projects shown in
+            # recent_projects_menu according to the new number selected by the
+            # user.
+            if max_projects < len(self.recent_projects):
+                self.recent_projects = self._get_valid_recent_projects(
+                    self.recent_projects)[:max_projects]
 
     def reopen_last_project(self):
         """
@@ -560,7 +575,10 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         Also save whether dock widget is visible if a project is open.
         """
-        self.set_conf('recent_projects', self.recent_projects)
+        self.set_conf(
+            'recent_projects',
+            self._get_valid_recent_projects(self.recent_projects)
+        )
         self.set_conf('expanded_state', self.treewidget.get_expanded_state())
         self.set_conf('scrollbar_position',
                       self.treewidget.get_scrollbar_position())
@@ -874,6 +892,21 @@ class ProjectExplorerWidget(PluginMainWidget):
     def _update_explorer(self, _unused):
         """Update explorer tree"""
         self._setup_project(self.get_active_project_path())
+
+    def _get_valid_recent_projects(self, recent_projects):
+        """
+        Get the list of valid recent projects.
+
+        Parameters
+        ----------
+        recent_projects: list
+            List of recent projects as filesystem paths.
+        """
+        valid_projects = [
+            p for p in recent_projects if self.is_valid_project(p)
+        ]
+
+        return valid_projects
 
 
 # =============================================================================
