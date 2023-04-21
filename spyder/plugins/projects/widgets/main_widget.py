@@ -12,6 +12,7 @@ import configparser
 import logging
 import os
 import os.path as osp
+import pathlib
 import shutil
 
 # Third party imports
@@ -313,6 +314,10 @@ class ProjectExplorerWidget(PluginMainWidget):
                 return
         else:
             path = encoding.to_unicode_from_fs(path)
+
+        # This makes the path have a uniform representation in all OSes. For
+        # instance, it always uses backslashes as separators on Windows.
+        path = str(pathlib.Path(path))
 
         logger.debug(f'Opening project located at {path}')
 
