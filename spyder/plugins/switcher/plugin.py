@@ -155,10 +155,6 @@ class Switcher(SpyderPluginV2):
         """Set-up list widget content based on the filtering."""
         self._switcher.setup()
 
-    def set_position(self, top, parent=None):
-        """Set the position of the dialog."""
-        self._switcher.set_position(top, parent)
-
     # QDialog methods
     def show(self):
         """Show switcher."""
@@ -172,8 +168,8 @@ class Switcher(SpyderPluginV2):
         """Close switcher widget with QT close method for QDialog."""
         self._switcher.close()
 
-    def setVisible(self, visible):
-        """Show or hide switcher widget with QT hide method for QDialog."""
+    def set_visible(self, visible):
+        """Show or hide switcher."""
         self._switcher.setVisible(visible)
 
     def is_visible(self):
