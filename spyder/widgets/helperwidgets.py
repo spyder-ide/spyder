@@ -32,6 +32,7 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.stylesheet import DialogStyle
 
+
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
@@ -112,7 +113,8 @@ class MessageCheckBox(QMessageBox):
 
 
 class HTMLDelegate(QStyledItemDelegate):
-    """With this delegate, a QListWidgetItem or a QTableItem can render HTML.
+    """
+    With this delegate, a QListWidgetItem or a QTableItem can render HTML.
 
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
@@ -153,16 +155,10 @@ class HTMLDelegate(QStyledItemDelegate):
 
         # Adjustments for the file switcher
         if hasattr(options.widget, 'files_list'):
-            if style.objectName() in ['oxygen', 'qtcurve', 'breeze']:
-                if options.widget.files_list:
-                    painter.translate(textRect.topLeft() + QPoint(4, -9))
-                else:
-                    painter.translate(textRect.topLeft())
+            if options.widget.files_list:
+                painter.translate(textRect.topLeft() + QPoint(4, 4))
             else:
-                if options.widget.files_list:
-                    painter.translate(textRect.topLeft() + QPoint(4, 4))
-                else:
-                    painter.translate(textRect.topLeft() + QPoint(2, 4))
+                painter.translate(textRect.topLeft() + QPoint(2, 4))
         else:
             painter.translate(textRect.topLeft() + QPoint(0, -3))
 
@@ -531,7 +527,7 @@ class PaneEmptyWidget(QFrame):
 
 def test_msgcheckbox():
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # noqa
     box = MessageCheckBox()
     box.setWindowTitle(_("Spyder updates"))
     box.setText("Testing checkbox")
