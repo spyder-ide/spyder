@@ -334,7 +334,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 menu=options_menu,
                 section=VariableExplorerWidgetOptionsMenuSections.Display,
             )
-
+        self.filter_variables()
         # Resize
         for item in [resize_rows_action, resize_columns_action]:
             self.add_item_to_menu(
@@ -424,7 +424,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     # ---- Public API
     # ------------------------------------------------------------------------
 
-    def change_filter_state(self):
+    def change_filter_state(self, value):
         """Handle the change of the filter state."""
         self.filter_on = not self.filter_on
         self.filter_button.setChecked(self.filter_on)
@@ -433,15 +433,10 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def filter_variables(self):
         self.exclude_private_action.setEnabled(self.filter_on)
-        #self.exclude_private_action.setChecked(self.filter_on)
         self.exclude_uppercase_action.setEnabled(self.filter_on)
-        #self.exclude_uppercase_action.setChecked(self.filter_on)
         self.exclude_capitalized_action.setEnabled(self.filter_on)
         self.exclude_unsupported_action.setEnabled(self.filter_on)
         self.exclude_callables_and_modules_action.setEnabled(self.filter_on)
-        #self.exclude_capitalized_action.setChecked(self.filter_on)
-        #self.exclude_unsupported_action.setChecked(self.filter_on)
-        #self.exclude_callables_and_modules_action.setChecked(self.filter_on)
 
     def create_new_widget(self, shellwidget):
         """Create new NamespaceBrowser."""
