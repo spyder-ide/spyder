@@ -18,6 +18,7 @@ from spyder.api.translations import _
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import is_module_installed
 
 
@@ -41,11 +42,17 @@ class VariableExplorerWidgetActions:
     ToggleExcludeCallablesAndModules = (
         'toggle_exclude_callables_and_modules_action')
     ToggleMinMax = 'toggle_minmax_action'
+    ToggleFilter = 'toggle_filter_variable_action'
+
+    # Resize
+    ResizeRowsAction = 'resize_rows_action'
+    ResizeColumnsAction = 'resize_columns_action'
 
 
 class VariableExplorerWidgetOptionsMenuSections:
     Display = 'excludes_section'
-    Highlight = 'highlight_section'
+    Highlight = 'highlight_section'    
+    Resize = 'resize_section'
 
 
 class VariableExplorerWidgetMainToolBarSections:
@@ -58,8 +65,6 @@ class VariableExplorerWidgetMenus:
 
 
 class VariableExplorerContextMenuActions:
-    ResizeRowsAction = 'resize_rows_action'
-    ResizeColumnsAction = 'resize_columns_action'
     PasteAction = 'paste_action'
     CopyAction = 'copy'
     EditAction = 'edit_action'
@@ -78,7 +83,6 @@ class VariableExplorerContextMenuSections:
     Edit = 'edit_section'
     Insert = 'insert_section'
     View = 'view_section'
-    Resize = 'resize_section'
 
 
 # =============================================================================
@@ -97,6 +101,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
+        self.filter_on = False
+
         # Widgets
         self.context_menu = None
         self.empty_context_menu = None
@@ -108,7 +114,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def setup(self):
         # ---- Options menu actions
-        exclude_private_action = self.create_action(
+        self.exclude_private_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludePrivate,
             text=_("Exclude private variables"),
             tip=_("Exclude variables that start with an underscore"),
@@ -116,7 +122,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_private',
         )
 
-        exclude_uppercase_action = self.create_action(
+        self.exclude_uppercase_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeUpperCase,
             text=_("Exclude all-uppercase variables"),
             tip=_("Exclude variables whose name is uppercase"),
@@ -124,7 +130,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_uppercase',
         )
 
-        exclude_capitalized_action = self.create_action(
+        self.exclude_capitalized_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCapitalized,
             text=_("Exclude capitalized variables"),
             tip=_("Exclude variables whose name starts with a capital "
@@ -133,7 +139,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_capitalized',
         )
 
-        exclude_unsupported_action = self.create_action(
+        self.exclude_unsupported_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeUnsupported,
             text=_("Exclude unsupported data types"),
             tip=_("Exclude references to data types that don't have "
@@ -142,7 +148,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_unsupported',
         )
 
-        exclude_callables_and_modules_action = self.create_action(
+        self.exclude_callables_and_modules_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCallablesAndModules,
             text=_("Exclude callables and modules"),
             tip=_("Exclude references to functions, modules and "
@@ -203,17 +209,25 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             triggered=self.refresh_table,
             register_shortcut=True,
         )
+        self.filter_button = self.create_action(
+            VariableExplorerWidgetActions.ToggleFilter,
+            text="",
+            icon=ima.icon('filter'),
+            toggled=self.change_filter_state,
+            option='filter_on'
+        )
+        self.filter_button.setCheckable(True)
 
         # ---- Context menu actions
         resize_rows_action = self.create_action(
-            VariableExplorerContextMenuActions.ResizeRowsAction,
+            VariableExplorerWidgetActions.ResizeRowsAction,
             text=_("Resize rows to contents"),
             icon=self.create_icon('collapse_row'),
             triggered=self.resize_rows
         )
 
         resize_columns_action = self.create_action(
-            VariableExplorerContextMenuActions.ResizeColumnsAction,
+            VariableExplorerWidgetActions.ResizeColumnsAction,
             _("Resize columns to contents"),
             icon=self.create_icon('collapse_column'),
             triggered=self.resize_columns
@@ -309,9 +323,11 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # Options menu
         options_menu = self.get_options_menu()
-        for item in [exclude_private_action, exclude_uppercase_action,
-                     exclude_capitalized_action, exclude_unsupported_action,
-                     exclude_callables_and_modules_action,
+        for item in [self.exclude_private_action,
+                     self.exclude_uppercase_action,
+                     self.exclude_capitalized_action,
+                     self.exclude_unsupported_action,
+                     self.exclude_callables_and_modules_action,
                      self.show_minmax_action]:
             self.add_item_to_menu(
                 item,
@@ -319,10 +335,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 section=VariableExplorerWidgetOptionsMenuSections.Display,
             )
 
+        # Resize
+        for item in [resize_rows_action, resize_columns_action]:
+            self.add_item_to_menu(
+                item,
+                menu=options_menu,
+                section=VariableExplorerWidgetOptionsMenuSections.Resize,
+            )
+
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
         for item in [import_data_action, save_action, save_as_action,
-                     reset_namespace_action, search_action, refresh_action]:
+                     reset_namespace_action, search_action, refresh_action,
+                     self.filter_button]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -350,18 +375,11 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             )
 
         for item in [self.view_action, self.plot_action, self.hist_action,
-                     self.imshow_action, self.show_minmax_action]:
+                     self.imshow_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
                 section=VariableExplorerContextMenuSections.View,
-            )
-
-        for item in [resize_rows_action, resize_columns_action]:
-            self.add_item_to_menu(
-                item,
-                menu=self.context_menu,
-                section=VariableExplorerContextMenuSections.Resize,
             )
 
         # ---- Context menu when the variable explorer is empty
@@ -405,6 +423,25 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     # ---- Public API
     # ------------------------------------------------------------------------
+
+    def change_filter_state(self):
+        """Handle the change of the filter state."""
+        self.filter_on = not self.filter_on
+        self.filter_button.setChecked(self.filter_on)
+        self.filter_button.setToolTip(_("Filter variables"))
+        self.filter_variables()
+
+    def filter_variables(self):
+        self.exclude_private_action.setEnabled(self.filter_on)
+        #self.exclude_private_action.setChecked(self.filter_on)
+        self.exclude_uppercase_action.setEnabled(self.filter_on)
+        #self.exclude_uppercase_action.setChecked(self.filter_on)
+        self.exclude_capitalized_action.setEnabled(self.filter_on)
+        self.exclude_unsupported_action.setEnabled(self.filter_on)
+        self.exclude_callables_and_modules_action.setEnabled(self.filter_on)
+        #self.exclude_capitalized_action.setChecked(self.filter_on)
+        #self.exclude_unsupported_action.setChecked(self.filter_on)
+        #self.exclude_callables_and_modules_action.setChecked(self.filter_on)
 
     def create_new_widget(self, shellwidget):
         """Create new NamespaceBrowser."""
@@ -557,7 +594,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         editor.save_array_action = self.save_array_action
         editor.insert_action = self.insert_action
         editor.remove_action = self.remove_action
-        editor.minmax_action = self.show_minmax_action
         editor.rename_action = self.rename_action
         editor.duplicate_action = self.duplicate_action
         editor.view_action = self.view_action
