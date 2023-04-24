@@ -13,7 +13,7 @@ import os.path as osp
 import sys
 
 from spyder.utils.programs import find_program, run_program, run_shell_command
-from spyder.config.base import get_spyder_conda_path
+from spyder.config.base import is_conda_based_app
 
 WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}
@@ -70,21 +70,14 @@ def get_conda_activation_script(quote=False):
 
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
-    # Use conda bundled with Spyder conda-based installers or find conda exe
-    standalone_exe = get_spyder_conda_path()
-    exe = standalone_exe or find_conda()
+    exe = find_conda()
 
-    if osp.basename(exe) in ('micromamba.exe', 'conda.exe') and standalone_exe:
+    if exe.endswith(('micromamba.exe', 'conda.exe', 'micromamba')):
         # For standalone conda, use the executable
         script_path = exe
     else:
-        # Conda activation script is relative to executable
-        conda_exe_root = osp.dirname(osp.dirname(exe))
-        if WINDOWS:
-            activate = 'Scripts/activate'
-        else:
-            activate = 'bin/activate'
-        script_path = osp.join(conda_exe_root, activate)
+        # If not a standalone executable, activate is in same directory
+        script_path = osp.dirname(exe) + '/activate'
 
     script_path = script_path.replace('\\', '/')
 
@@ -114,12 +107,21 @@ def get_conda_env_path(pyexec, quote=False):
 
 def find_conda():
     """Find conda executable."""
-    # First try the environment variables
-    conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+    conda = None
+
+    # First try Spyder's conda executable
+    if is_conda_based_app():
+        conda = osp.join(osp.dirname(os.environ['CONDA_EXE']), 'mamba')
+
+    # Next try the environment variables
     if conda is None:
-        # Try searching for the executable
+        conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+
+    # Next try searching for the executable
+    if conda is None:
         conda_exec = 'conda.bat' if WINDOWS else 'conda'
         conda = find_program(conda_exec)
+
     return conda
 
 

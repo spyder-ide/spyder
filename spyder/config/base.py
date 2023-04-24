@@ -550,20 +550,6 @@ def is_conda_based_app(pyexec=sys.executable):
     
     return osp.exists(menu_path)
 
-def get_spyder_conda_path():
-    """
-    Return the path to the conda executable from the conda-based installer.
-    """
-    if is_conda_based_app():
-        # TODO: Change to CONDA_EXE when
-        # conda-forge/conda-standalone-feedstock#45 is resolved
-        path = os.environ.get('CONDA_PYTHON_EXE')
-    else:
-        path = None
-
-    return path
-
-
 #==============================================================================
 # Reset config files
 #==============================================================================
