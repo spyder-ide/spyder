@@ -239,7 +239,7 @@ class FoldingPanel(Panel):
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
         painter = QPainter(self)
-
+        self.paint_cell(painter)
         if not self._display_folding and not self._key_pressed:
             if any(self.folding_status.values()):
                 for info in self.editor.visible_blocks:
@@ -248,6 +248,7 @@ class FoldingPanel(Panel):
                         line_number, top_position, block,
                         painter, mouse_hover=True)
             return
+
         # Draw background over the selected non collapsed fold region
         if self._mouse_over_line is not None:
             block = self.editor.document().findBlockByNumber(

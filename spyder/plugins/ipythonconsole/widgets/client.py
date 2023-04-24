@@ -98,7 +98,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  give_focus=True,
                  options_button=None,
                  handlers={},
-                 initial_cwd=None):
+                 initial_cwd=None,
+                 forcing_custom_interpreter=False):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
@@ -108,6 +109,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.menu_actions = menu_actions
         self.given_name = given_name
         self.initial_cwd = initial_cwd
+        self.forcing_custom_interpreter = forcing_custom_interpreter
 
         # --- Other attrs
         self.kernel_handler = None
@@ -518,7 +520,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Adding id to name
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = name + u' ' + client_id
-        elif self.given_name in ["Pylab", "SymPy", "Cython"]:
+        elif (self.given_name in ["Pylab", "SymPy", "Cython"] or
+              self.forcing_custom_interpreter):
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = self.given_name + u' ' + client_id
         else:

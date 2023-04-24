@@ -7,12 +7,9 @@ This supports the additional functionality provided by Jupyter kernel.
 # Distributed under the terms of the Modified BSD License.
 
 from collections import namedtuple
-import os.path
-import re
 from subprocess import Popen
 import sys
 import time
-from textwrap import dedent
 from warnings import warn
 
 from qtpy import QtCore, QtGui
@@ -287,7 +284,6 @@ class JupyterWidget(IPythonWidget):
         if self.include_output(msg):
             self.flush_clearoutput()
             data = msg['content']['data']
-            metadata = msg['content']['metadata']
             # In the regular JupyterWidget, we simply print the plain text
             # representation.
             if 'text/plain' in data:

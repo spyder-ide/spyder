@@ -12,7 +12,7 @@ import sys
 
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetrics, QFocusEvent, QKeySequence
+from qtpy.QtGui import QFontMetrics, QFocusEvent
 from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
@@ -20,6 +20,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
+from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
@@ -366,23 +367,13 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # take effect in textedit.
             # Fixes spyder-ide/spyder#19372
             if modifier:
-                # Build the sequence as an int.
-                # See https://stackoverflow.com/a/23919177/438386 for context.
-                # Note: We only accept Ctrl, Shift and Alt as modifiers for
-                # keyboard shortcuts in Preferences.
-                key_sequence = key
-                if ctrl:
-                    key_sequence += Qt.CTRL
-                if shift:
-                    key_sequence += Qt.SHIFT
-                if alt:
-                    key_sequence += Qt.ALT
+                key_sequence = keyevent_to_keysequence_str(event)
 
                 # Ask to save file if the user pressed the sequence for that.
                 # Fixes spyder-ide/spyder#14806
                 save_shortcut = self.get_conf(
                     'editor/save file', section='shortcuts')
-                if QKeySequence(key_sequence) == QKeySequence(save_shortcut):
+                if key_sequence == save_shortcut:
                     self.textedit.sig_save_requested.emit()
 
                     # Hiding the widget reassures users that the save operation
