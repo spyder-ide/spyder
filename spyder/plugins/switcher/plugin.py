@@ -105,13 +105,16 @@ class Switcher(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
         self._switcher = container.switcher
-        self._modes = {}
 
         self._switcher.sig_rejected.connect(self.sig_rejected)
         self._switcher.sig_text_changed.connect(self.sig_text_changed)
         self._switcher.sig_item_changed.connect(self.sig_item_changed)
         self._switcher.sig_item_selected.connect(self.sig_item_selected)
         self._switcher.sig_mode_selected.connect(self.sig_mode_selected)
+
+    def on_close(self, cancellable=True):
+        """Close switcher widget."""
+        self._switcher.close()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -155,6 +158,14 @@ class Switcher(SpyderPluginV2):
         """Set-up list widget content based on the filtering."""
         self._switcher.setup()
 
+    def open_switcher(self, symbol=False):
+        """Open switcher dialog."""
+        self.get_container().open_switcher(symbol)
+
+    def open_symbolfinder(self):
+        """Open symbol list management dialog."""
+        self.get_container().open_symbolfinder()
+
     # QDialog methods
     def show(self):
         """Show switcher."""
@@ -163,10 +174,6 @@ class Switcher(SpyderPluginV2):
     def hide(self):
         """Hide switcher."""
         self._switcher.hide()
-
-    def close(self):
-        """Close switcher widget."""
-        self._switcher.close()
 
     def set_visible(self, visible):
         """Show or hide switcher."""
