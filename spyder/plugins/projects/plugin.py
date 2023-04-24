@@ -269,16 +269,14 @@ class Projects(SpyderDockablePlugin):
         initial_cwd = self._main.get_initial_working_directory()
 
         if cli_options.project is not None:
-            # This doesn't work for our conda-based installer apps
-            if not is_conda_based_app():
-                logger.debug('Opening project from the command line')
-                project = osp.normpath(
-                    osp.join(initial_cwd, cli_options.project)
-                )
-                self.open_project(
-                    project,
-                    workdir=cli_options.working_directory
-                )
+            logger.debug('Opening project from the command line')
+            project = osp.normpath(
+                osp.join(initial_cwd, cli_options.project)
+            )
+            self.open_project(
+                project,
+                workdir=cli_options.working_directory
+            )
         else:
             logger.debug('Reopening project from last session')
             self.get_widget().reopen_last_project()
