@@ -55,7 +55,7 @@ def get_tree_elements(treewidget):
         this_tree = {node.name: []}
         parent_tree.append(this_tree)
         this_stack = [(this_tree[node.name], child)
-                        for child in node.children]
+                      for child in node.children]
         stack = this_stack + stack
     return root_tree
 
@@ -119,7 +119,7 @@ def completions_codeeditor_outline(completions_codeeditor, outlineexplorer):
 @pytest.fixture
 def editorstack(qtbot, outlineexplorer):
     def _create_editorstack(files):
-        editorstack = editor.EditorStack(None, [])
+        editorstack = editor.EditorStack(None, [], False)
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         editorstack.analysis_timer = Mock()

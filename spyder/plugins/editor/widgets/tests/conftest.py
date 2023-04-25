@@ -50,7 +50,7 @@ def codeeditor_factory():
 
 
 def editor_factory(new_file=True, text=None):
-    editorstack = EditorStack(None, [])
+    editorstack = EditorStack(None, [], False)
     editorstack.set_find_widget(FindReplace(editorstack))
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     if new_file:
