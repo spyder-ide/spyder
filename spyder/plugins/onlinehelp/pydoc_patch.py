@@ -473,6 +473,8 @@ class CustomHTMLDoc(Doc):
                           lambda t: t[1] == 'class method')
             attrs = spill('Static methods %s' % tag, attrs,
                           lambda t: t[1] == 'static method')
+            attrs = spilldescriptors("Readonly properties %s" % tag, attrs,
+                                     lambda t: t[1] == 'readonly property')
             attrs = spilldescriptors('Data descriptors %s' % tag, attrs,
                                      lambda t: t[1] == 'data descriptor')
             attrs = spilldata('Data and other attributes %s' % tag, attrs,
