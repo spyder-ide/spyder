@@ -12,6 +12,7 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
+from glob import glob
 import locale
 import os
 import os.path as osp
@@ -538,17 +539,24 @@ def is_conda_based_app(pyexec=sys.executable):
     Check if Spyder is running from the conda-based installer by looking for
     the `spyder-menu.json` file.
 
-    If a Python executable is provided, checks if it is the same as a
-    conda-based installer environment executable.
+    If a Python executable is provided, checks if it is in a conda-based
+    installer environment or the root environment thereof.
     """
     real_pyexec = osp.realpath(pyexec)  # pyexec may be symlink
     if os.name == 'nt':
         env_path = osp.dirname(real_pyexec)
     else:
         env_path = osp.dirname(osp.dirname(real_pyexec))
-    menu_path = osp.join(env_path, 'Menu', 'spyder-menu.json')
-    
-    return osp.exists(menu_path)
+
+    menu_rel_path = '/Menu/spyder-menu.json'
+    if (
+        osp.exists(env_path + menu_rel_path)
+        or glob(env_path + '/envs/*' + menu_rel_path)
+    ):
+        return True
+    else:
+        return False
+
 
 #==============================================================================
 # Reset config files

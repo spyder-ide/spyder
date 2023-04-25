@@ -55,8 +55,11 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
 
 def is_different_interpreter(pyexec):
     """Check that pyexec is a different interpreter from sys.executable."""
-    executable_validation = osp.basename(pyexec).startswith('python')
-    directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
+    # Paths may be symlinks
+    real_pyexe = osp.realpath(pyexec)
+    real_sys_exe = osp.realpath(sys.executable)
+    executable_validation = osp.basename(real_pyexe).startswith('python')
+    directory_validation = osp.dirname(real_pyexe) != osp.dirname(real_sys_exe)
     return directory_validation and executable_validation
 
 
