@@ -119,10 +119,6 @@ p.add_argument(
     "--cert-id", default=None,
     help="Apple Developer ID Application certificate common name."
 )
-p.add_argument(
-    "--lite", action="store_true",
-    help=f"Do not include packages {scientific_packages.keys()}"
-)
 args = p.parse_args()
 
 yaml = YAML()
@@ -136,6 +132,7 @@ specs = {
     "paramiko": "",
     "pyxdg": "",
 }
+specs.update(scientific_packages)
 
 if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
@@ -143,9 +140,6 @@ if SPECS.exists():
     specs.update(_specs)
 else:
     logger.info(f"Did not read specs from {SPECS}")
-
-if not args.lite:
-    specs.update(scientific_packages)
 
 for spec in args.extra_specs:
     k, *v = re.split('([<>= ]+)', spec)
