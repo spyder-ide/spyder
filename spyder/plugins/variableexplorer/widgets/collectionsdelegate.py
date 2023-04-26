@@ -128,7 +128,7 @@ class CollectionsDelegate(QItemDelegate):
                     message = _("Spyder is unable to show the variable you're"
                                 " trying to view because the module "
                                 "<tt>{module}</tt> is not supported "
-                                "by Spyder.<br>")
+                                "by Spyder's standalone application.<br>")
                 else:
                     message = _("Spyder is unable to show the variable you're"
                                 " trying to view because the module "
