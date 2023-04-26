@@ -153,6 +153,10 @@ for spec in args.extra_specs:
 OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
+WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
+HEADER_IMG_WIN = BUILD / "header_img_win.png"
+WELCOME_IMG_MAC = BUILD / "welcome_img_mac.png"
+
 
 def _generate_background_images(installer_type):
     """This requires Pillow."""
@@ -168,12 +172,12 @@ def _generate_background_images(installer_type):
     if installer_type in ("exe", "all"):
         sidebar = Image.new("RGBA", (164, 314), (0, 0, 0, 0))
         sidebar.paste(logo.resize((101, 101)), (32, 180))
-        output = BUILD / "spyder_164x314.png"
+        output = WELCOME_IMG_WIN
         sidebar.save(output, format="png")
 
         banner = Image.new("RGBA", (150, 57), (0, 0, 0, 0))
         banner.paste(logo.resize((44, 44)), (8, 6))
-        output = BUILD / "spyder_150x57.png"
+        output = HEADER_IMG_WIN
         banner.save(output, format="png")
 
     if installer_type in ("pkg", "all"):
@@ -181,7 +185,7 @@ def _generate_background_images(installer_type):
         _logo.paste(logo, mask=logo)
         background = Image.new("RGBA", (1227, 600), (0, 0, 0, 0))
         background.paste(_logo.resize((148, 148)), (95, 418))
-        output = BUILD / "spyder_1227x600.png"
+        output = WELCOME_IMG_MAC
         background.save(output, format="png")
 
 
@@ -271,7 +275,7 @@ def _definitions():
                 "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
                 "default_location_pkg": "Library",
                 "installer_type": "pkg",
-                "welcome_image": str(BUILD / "spyder_1227x600.png"),
+                "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
                 "conclusion_text": "",
                 "readme_text": "",
@@ -286,8 +290,8 @@ def _definitions():
         definitions["conda_default_channels"].append("defaults")
         definitions.update(
             {
-                "welcome_image": str(BUILD / "spyder_164x314.png"),
-                "header_image": str(BUILD / "spyder_150x57.png"),
+                "welcome_image": str(WELCOME_IMG_WIN),
+                "header_image": str(HEADER_IMG_WIN),
                 "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
                 "default_prefix": os.path.join(
                     "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
