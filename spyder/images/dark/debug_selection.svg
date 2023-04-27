@@ -7,7 +7,7 @@
    version="1.1"
    id="svg50"
    sodipodi:docname="debug_selection.svg"
-   inkscape:version="1.2 (dc2aeda, 2022-05-15)"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -38,15 +38,15 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1680"
-     inkscape:window-height="997"
+     inkscape:window-width="1896"
+     inkscape:window-height="572"
      id="namedview52"
      showgrid="false"
      inkscape:zoom="11.813498"
-     inkscape:cx="12.147122"
+     inkscape:cx="12.189446"
      inkscape:cy="12.147122"
-     inkscape:window-x="0"
-     inkscape:window-y="25"
+     inkscape:window-x="1930"
+     inkscape:window-y="34"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg50"
      inkscape:showpageshadow="2"
@@ -55,11 +55,12 @@
   <path
      fill-rule="evenodd"
      clip-rule="evenodd"
-     d="M9.29289 17.7071C9.10536 17.5196 9 17.2652 9 17V5C9 4.73478 9.10536 4.48043 9.29289 4.29289C9.48043 4.10536 9.73478 4 10 4H12V2H9.5C8.95 2 8 2.45 8 3C8 2.45 7.05 2 6.5 2H4V4H6C6.26522 4 6.51957 4.10536 6.70711 4.29289C6.89464 4.48043 7 4.73478 7 5V17C7 17.2652 6.89464 17.5196 6.70711 17.7071C6.51957 17.8946 6.26522 18 6 18H4V20H6.5C7.05 20 8 19.55 8 19C8 19.55 8.95 20 9.5 20H11V18H10C9.73478 18 9.48043 17.8946 9.29289 17.7071Z"
-     fill="#FAFAFA"
+     d="M 7.29289,17.7071 C 7.10536,17.5196 7,17.2652 7,17 V 5 C 7,4.73478 7.10536,4.48043 7.29289,4.29289 7.48043,4.10536 7.73478,4 8,4 h 2 V 2 H 7.5 C 6.95,2 6,2.45 6,3 6,2.45 5.05,2 4.5,2 H 2 V 4 H 4 C 4.26522,4 4.51957,4.10536 4.70711,4.29289 4.89464,4.48043 5,4.73478 5,5 V 17 C 5,17.2652 4.89464,17.5196 4.70711,17.7071 4.51957,17.8946 4.26522,18 4,18 H 2 v 2 H 4.5 C 5.05,20 6,19.55 6,19 c 0,0.55 0.95,1 1.5,1 H 9 V 18 H 8 C 7.73478,18 7.48043,17.8946 7.29289,17.7071 Z"
+     fill="#fafafa"
      id="path46" />
   <path
-     d="m 15.326574,13.683734 h 1.4285 v 7 h -1.4285 z m 2.3809,0 5.2381,3.5 -5.2381,3.5 z m -4.7619,0 h 1.4286 v 7 h -1.4286 z"
-     fill="#37aefe"
-     id="path12" />
+     id="path12"
+     style="fill:#37aefe;stroke-width:0.999998"
+     d="m 19.71425,15 h -1.4285 v 7 h 1.4285 z m 3.00005,0 h -1.4286 v 7 h 1.4286 z m -10.83335,0 5.2381,3.499999 L 11.88095,22 Z"
+     sodipodi:nodetypes="cccccccccccccc" />
 </svg>
