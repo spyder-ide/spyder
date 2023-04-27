@@ -21,7 +21,7 @@ from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
-                            QToolButton, QToolTip, QVBoxLayout,
+                            QTableView, QToolButton, QToolTip, QVBoxLayout,
                             QWidget, QHBoxLayout, QLabel, QFrame)
 
 # Local imports
@@ -122,6 +122,7 @@ class HTMLDelegate(QStyledItemDelegate):
     def __init__(self, parent, margin=0):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
+        self._hovered_row = -1
 
     def _prepare_text_document(self, option, index):
         # This logic must be shared between paint and sizeHint for consistency
@@ -133,12 +134,25 @@ class HTMLDelegate(QStyledItemDelegate):
         doc.setHtml(options.text)
         return options, doc
 
+    def on_hover_index_changed(self, index):
+        """
+        This can be used by a widget that inherits from HoverRowsTableView to
+        connect its sig_hover_index_changed signal to paint an entire row when
+        it's hovered.
+        """
+        self._hovered_row = index.row()
+
     def paint(self, painter, option, index):
         options, doc = self._prepare_text_document(option, index)
 
         style = (QApplication.style() if options.widget is None
                  else options.widget.style())
         options.text = ""
+
+        if index.row() == self._hovered_row:
+            painter.fillRect(
+                options.rect, QColor(QStylePalette.COLOR_BACKGROUND_3)
+            )
 
         # Note: We need to pass the options widget as an argument of
         # drawCrontol to make sure the delegate is painted with a style
@@ -523,6 +537,64 @@ class PaneEmptyWidget(QFrame):
         )
 
         self.setStyleSheet(qss.toString())
+
+
+class HoverRowsTableView(QTableView):
+    """
+    QTableView subclass that can highlight an entire row when hovered.
+
+    Notes
+    -----
+    * Classes that inherit from this one need to connect a slot to
+      sig_hover_index_changed that handles how the row is painted.
+    """
+
+    sig_hover_index_changed = Signal(object)
+    """
+    This is emitted when the index that is currently hovered has changed.
+
+    Parameters
+    ----------
+    index: object
+        QModelIndex that has changed on hover.
+    """
+
+    def __init__(self, parent):
+        QTableView.__init__(self, parent)
+
+        # For mouseMoveEvent
+        self.setMouseTracking(True)
+
+        # To remove background color for the hovered row when the mouse is not
+        # over the widget.
+        css = qstylizer.style.StyleSheet()
+        css["QTableView::item"].setValues(
+            backgroundColor=f"{QStylePalette.COLOR_BACKGROUND_1}"
+        )
+        self._stylesheet = css.toString()
+
+    # ---- Qt methods
+    def mouseMoveEvent(self, event):
+        self._inform_hover_index_changed(event)
+
+    def wheelEvent(self, event):
+        super().wheelEvent(event)
+        self._inform_hover_index_changed(event)
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self.setStyleSheet(self._stylesheet)
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.setStyleSheet("")
+
+    # ---- Private methods
+    def _inform_hover_index_changed(self, event):
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            self.sig_hover_index_changed.emit(index)
+            self.viewport().update()
 
 
 def test_msgcheckbox():
