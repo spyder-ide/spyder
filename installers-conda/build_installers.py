@@ -55,7 +55,7 @@ WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
 TARGET_PLATFORM = os.environ.get("CONSTRUCTOR_TARGET_PLATFORM")
-PY_VER = f"{sys.version_info.major}.{sys.version_info.minor}"
+PY_VER = "{v.major}.{v.minor}.{v.micro}".format(v=sys.version_info)
 
 if TARGET_PLATFORM == "osx-arm64":
     ARCH = "arm64"
@@ -128,6 +128,7 @@ indent4 = partial(indent, prefix="    ")
 SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
 
 specs = {
+    "python": "=" + PY_VER,
     "spyder": "=" + SPYVER,
     "paramiko": "",
     "pyxdg": "",
@@ -220,7 +221,7 @@ def _definitions():
         ],
         "conda_default_channels": ["conda-forge"],
         "specs": [
-            "python",
+            f"python={PY_VER}",
             "conda",
             "mamba",
             "pip",
