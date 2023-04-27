@@ -81,7 +81,7 @@ def get_versions(reporev=True):
     else:
         installer = 'pip'
 
-    return {
+    versions = {
         'spyder': __version__,
         'installer': installer,
         'python': platform.python_version(),  # "2.7.3"
@@ -93,8 +93,14 @@ def get_versions(reporev=True):
         'system': platform.system(),   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
         'revision': revision,  # '9fdf926eccce',
-        'branch': branch,  # '4.x' or master
+        'branch': branch,  # '4.x' or master,
+        'machine': platform.machine(),  # 'arm64', 'x86_64', 'AMD64', ...
+        'platform': platform.platform(aliased=True),
     }
+    if sys.platform == 'darwin':
+        versions.update(system='macOS', release=platform.mac_ver()[0])
+
+    return versions
 
 
 def get_versions_text(reporev=True):
@@ -109,5 +115,5 @@ def get_versions_text(reporev=True):
 * Python version: {versions['python']} {versions['bitness']}-bit
 * Qt version: {versions['qt']}
 * {versions['qt_api']} version: {versions['qt_api_ver']}
-* Operating System: {versions['system']} {versions['release']}
+* Operating System: {versions['platform']}
 """
