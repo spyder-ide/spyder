@@ -41,8 +41,10 @@ cat <<EOF > ${u_spy_exe}
 echo "You are about to uninstall Spyder."
 echo "If you proceed, aliases will be removed from ~/.bashrc (if present)"
 echo "and the following file and directory will be removed:"
+echo ""
 echo "  ${shortcut_path}"
 echo "  ${PREFIX}"
+echo ""
 echo "Do you wish to continue?"
 read -p " [yes|NO]: " confirm
 if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
