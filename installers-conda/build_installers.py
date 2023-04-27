@@ -149,7 +149,7 @@ for spec in args.extra_specs:
         SPYVER = v[-1]
 
 OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
-INSTALLER_DEFAULT_PATH_STEM = f"{APP}-{SPYVER}"
+INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
 
 def _generate_background_images(installer_type):
@@ -222,9 +222,7 @@ def _definitions():
         "conda_default_channels": ["conda-forge"],
         "specs": [
             f"python={PY_VER}",
-            "conda",
             "mamba",
-            "pip",
         ],
         "installer_filename": OUTPUT_FILE.name,
         "initialize_by_default": False,
@@ -232,7 +230,7 @@ def _definitions():
         "register_python": False,
         "license_file": str(RESOURCES / "bundle_license.rtf"),
         "extra_envs": {
-            f"spyder-{SPYVER}": {
+            "spyder-rt": {
                 "specs": [k + v for k, v in specs.items()],
             },
         },

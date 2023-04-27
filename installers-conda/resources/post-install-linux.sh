@@ -10,7 +10,7 @@ echo ""
 
 name_lower=${INSTALLER_NAME,,}
 shortcut_path="$HOME/.local/share/applications/${name_lower}_${name_lower}.desktop"
-spy_exe=$(echo ${PREFIX}/envs/*/bin/spyder)
+spy_exe=$(echo ${PREFIX}/envs/spyder-rt/bin/spyder)
 u_spy_exe=${PREFIX}/uninstall-spyder.sh
 
 case $SHELL in
