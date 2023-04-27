@@ -10,23 +10,52 @@ echo ""
 
 # ----
 name_lower=$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')
+spy_exe=${PREFIX}/envs/spyder-rt/bin/spyder
+u_spy_exe=${PREFIX}/uninstall-spyder.sh
 
+sed_opts=("-i")
+alias_text="alias uninstall-spyder=${u_spy_exe}"
 if [[ $OSTYPE = "darwin"* ]]; then
     shortcut_path="/Applications/Spyder.app"
     [[ ${PREFIX} = "$HOME"* ]] && shortcut_path="${HOME}${shortcut_path}"
+    sed_opts+=("", "-e")
 else
     shortcut_path="$HOME/.local/share/applications/${name_lower}_${name_lower}.desktop"
+    alias_text="alias spyder=${spy_exe}\n${alias_text}"
 fi
-
-spy_exe=${PREFIX}/envs/spyder-rt/bin/spyder
-u_spy_exe=${PREFIX}/uninstall-spyder.sh
-m1="# >>> Added by Spyder >>>"
-m2="# <<< Added by Spyder <<<"
 
 case $SHELL in
     (*"zsh") shell_init=$HOME/.zshrc ;;
     (*"bash") shell_init=$HOME/.bashrc ;;
 esac
+
+m1="# >>> Added by Spyder >>>"
+m2="# <<< Added by Spyder <<<"
+
+add_alias() (
+    if [[ ! -e $shell_init || ! -s $shell_init ]]; then
+        echo -e "$m1\n$1\n$m2" > $shell_init
+        exit 0
+    fi
+
+    # Posix compliant sed does not like semicolons.
+    # Must use newlines to work on macOS
+    sed ${sed_opts[@]} "
+    /$m1/,/$m2/{
+        h
+        /$m2/ s|.*|$m1\n$1\n$m2|
+        t
+        d
+    }
+    \${
+        x
+        /^$/{
+            s||\n$m1\n$1\n$m2|
+            H
+        }
+        x
+    }" $shell_init
+)
 
 # ----
 echo "Creating uninstall script..."
@@ -57,19 +86,14 @@ rm -rf ${PREFIX}
 
 # Remove aliases from shell startup
 if [[ -e ${shell_init} ]]; then
-	sed -i '/$m1/,/$m2/d' ${shell_init}
+    sed ${sed_opts[@]} "/$m1/,/$m2/d" ${shell_init}
 fi
 EOF
 chmod +x ${u_spy_exe}
 
 # ----
 echo "Creating aliases in $shell_init ..."
-new_text="$m1\nalias uninstall-spyder=${u_spy_exe}"
-if [[ $OSTYPE = "linux"* ]]; then
-    new_text=${new_text}"\nalias spyder=${spy_exe}"
-fi
-new_text=${new_text}"\n$m2"
-sed -i "/$m1/,/$m2/{h;/$m2/ s|.*|${new_text}|; t; d};\${x;/^$/{s||\n${new_text}|;H};x}" $shell_init
+add_alias "${alias_text}"
 
 # ----
 if [[ $OSTYPE = "linux"* ]]; then
