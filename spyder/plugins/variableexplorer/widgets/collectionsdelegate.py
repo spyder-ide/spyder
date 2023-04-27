@@ -115,10 +115,11 @@ class CollectionsDelegate(QItemDelegate):
                 if module == 'numpy':
                     val_type = 'array'
                 else:
-                    val_type = 'dataframe, series'
-                message = _("Spyder is unable to show the {val_type} or object"
-                            " you're trying to view because <tt>{module}</tt>"
-                            " is not installed. ")
+                    val_type = 'dataframe or series'
+                message = _("Spyder is unable to show the {val_type} object "
+                            "you're trying to view because <tt>{module}</tt> "
+                            "is missing. Please install that package in your "
+                            "Spyder environment to fix this problem.")
                 QMessageBox.critical(
                     self.parent(), _("Error"),
                     message.format(val_type=val_type, module=module))
