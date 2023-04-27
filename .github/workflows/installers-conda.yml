@@ -250,6 +250,8 @@ jobs:
               echo ""
               cat $app_path/Contents/MacOS/spyder-script
               echo ""
+              echo "Contents of" $HOME/Library/spyder-*/uninstall-spyder.sh :
+              cat $HOME/Library/spyder-*/uninstall-spyder.sh
           else
               echo "$app_path does not exist"
               exit 1
@@ -267,6 +269,8 @@ jobs:
               echo "Contents of $shortcut_path :"
               cat $shortcut_path
               echo ""
+              echo "Contents of" $HOME/.local/spyder-*/uninstall-spyder.sh :
+              cat $HOME/.local/spyder-*/uninstall-spyder.sh
           else
               echo "$shortcut_path does not exist"
               exit 1

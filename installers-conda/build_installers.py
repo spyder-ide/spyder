@@ -257,7 +257,7 @@ def _definitions():
                 ),
                 "license_file": str(SPYREPO / "LICENSE.txt"),
                 "installer_type": "sh",
-                "post_install": str(RESOURCES / "post-install-linux.sh"),
+                "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
 
@@ -277,6 +277,7 @@ def _definitions():
                 "installer_type": "pkg",
                 "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
+                "post_install": str(RESOURCES / "post-install.sh"),
                 "conclusion_text": "",
                 "readme_text": "",
             }
