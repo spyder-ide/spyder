@@ -47,7 +47,7 @@ echo "  ${PREFIX}"
 echo ""
 echo "Do you wish to continue?"
 read -p " [yes|NO]: " confirm
-if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+if [[ \$confirm != [yY] && \$confirm != [yY][eE][sS] ]]; then
     echo "Uninstall aborted."
     exit 1
 fi
