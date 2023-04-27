@@ -80,9 +80,9 @@ $ uninstall-spyder
 # !!! IMPORTANT !!! #
 #####################
 
-The spyder and uninstall-spyder command-line shortcuts will only be available
-in new shell sessions. To make them available in this session you must source
-your .bashrc file
+The spyder and uninstall-spyder commands will only be available in new shell
+sessions. To make them available in this session you must source your .bashrc
+file with:
 
 $ source ~/.bashrc
 
