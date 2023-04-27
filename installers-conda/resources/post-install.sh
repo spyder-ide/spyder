@@ -9,7 +9,7 @@ env | sort
 echo ""
 
 # ----
-name_lower=${INSTALLER_NAME,,}
+name_lower=$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')
 
 if [[ $OSTYPE = "darwin"* ]]; then
     shortcut_path="/Applications/Spyder.app"
