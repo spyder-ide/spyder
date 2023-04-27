@@ -43,7 +43,9 @@ import zipfile
 from ruamel.yaml import YAML
 
 # Local imports
-from build_conda_pkgs import HERE, DIST, RESOURCES, SPECS, h, get_version
+from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h, get_version
+
+DIST = HERE / "dist"
 
 logger = getLogger('BuildInstallers')
 logger.addHandler(h)
@@ -166,12 +168,12 @@ def _generate_background_images(installer_type):
     if installer_type in ("exe", "all"):
         sidebar = Image.new("RGBA", (164, 314), (0, 0, 0, 0))
         sidebar.paste(logo.resize((101, 101)), (32, 180))
-        output = DIST / "spyder_164x314.png"
+        output = BUILD / "spyder_164x314.png"
         sidebar.save(output, format="png")
 
         banner = Image.new("RGBA", (150, 57), (0, 0, 0, 0))
         banner.paste(logo.resize((44, 44)), (8, 6))
-        output = DIST / "spyder_150x57.png"
+        output = BUILD / "spyder_150x57.png"
         banner.save(output, format="png")
 
     if installer_type in ("pkg", "all"):
@@ -179,7 +181,7 @@ def _generate_background_images(installer_type):
         _logo.paste(logo, mask=logo)
         background = Image.new("RGBA", (1227, 600), (0, 0, 0, 0))
         background.paste(_logo.resize((148, 148)), (95, 418))
-        output = DIST / "spyder_1227x600.png"
+        output = BUILD / "spyder_1227x600.png"
         background.save(output, format="png")
 
 
@@ -202,7 +204,7 @@ def _get_condarc():
     )
     # the undocumented #!final comment is explained here
     # https://www.anaconda.com/blog/conda-configuration-engine-power-users
-    file = DIST / "condarc"
+    file = BUILD / "condarc"
     file.write_text(contents)
 
     return str(file)
@@ -258,7 +260,7 @@ def _definitions():
     if MACOS:
         welcome_text_tmpl = \
             (RESOURCES / "osx_pkg_welcome.rtf.tmpl").read_text()
-        welcome_file = DIST / "osx_pkg_welcome.rtf"
+        welcome_file = BUILD / "osx_pkg_welcome.rtf"
         welcome_file.write_text(
             welcome_text_tmpl.replace("__VERSION__", SPYVER))
 
@@ -269,7 +271,7 @@ def _definitions():
                 "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
                 "default_location_pkg": "Library",
                 "installer_type": "pkg",
-                "welcome_image": str(DIST / "spyder_1227x600.png"),
+                "welcome_image": str(BUILD / "spyder_1227x600.png"),
                 "welcome_file": str(welcome_file),
                 "conclusion_text": "",
                 "readme_text": "",
@@ -284,8 +286,8 @@ def _definitions():
         definitions["conda_default_channels"].append("defaults")
         definitions.update(
             {
-                "welcome_image": str(DIST / "spyder_164x314.png"),
-                "header_image": str(DIST / "spyder_150x57.png"),
+                "welcome_image": str(BUILD / "spyder_164x314.png"),
+                "header_image": str(BUILD / "spyder_150x57.png"),
                 "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
                 "default_prefix": os.path.join(
                     "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
@@ -328,7 +330,7 @@ def _constructor():
     conda_exe = os.environ.get("CONSTRUCTOR_CONDA_EXE")
     if TARGET_PLATFORM and conda_exe:
         cmd_args += ["--platform", TARGET_PLATFORM, "--conda-exe", conda_exe]
-    cmd_args.append(str(DIST))
+    cmd_args.append(str(BUILD))
 
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "strict"
@@ -337,13 +339,13 @@ def _constructor():
     logger.info("Configuration:")
     yaml.dump(definitions, sys.stdout)
 
-    yaml.dump(definitions, DIST / "construct.yaml")
+    yaml.dump(definitions, BUILD / "construct.yaml")
 
     check_call(cmd_args, env=env)
 
 
 def licenses():
-    info_path = DIST / "info.json"
+    info_path = BUILD / "info.json"
     try:
         info = json.load(info_path)
     except FileNotFoundError:
@@ -353,7 +355,7 @@ def licenses():
         )
         raise
 
-    zipname = DIST / f"licenses.{OS}-{ARCH}.zip"
+    zipname = BUILD / f"licenses.{OS}-{ARCH}.zip"
     output_zip = zipfile.ZipFile(zipname, mode="w",
                                  compression=zipfile.ZIP_DEFLATED)
     output_zip.write(info_path)
