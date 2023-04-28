@@ -81,13 +81,17 @@ if [[ \$OSTYPE = "darwin"* ]]; then
 fi
 
 # Remove shortcut and environment
+echo "Removing Spyder and environment..."
 rm -rf ${shortcut_path}
 rm -rf ${PREFIX}
 
 # Remove aliases from shell startup
 if [[ -e ${shell_init} ]]; then
+    echo "Removing shell commands..."
     sed ${sed_opts[@]} "/$m1/,/$m2/d" ${shell_init}
 fi
+
+echo "Spyder successfully uninstalled."
 EOF
 chmod +x ${u_spy_exe}
 
@@ -106,8 +110,7 @@ environments (e.g. Xfce) from the command line:
 
 $ gtk-launch spyder
 
-Spyder can also be launched from the command line for all Linux variants
-by:
+Spyder can also be launched from the command line for all Linux variants by:
 
 $ spyder
 
