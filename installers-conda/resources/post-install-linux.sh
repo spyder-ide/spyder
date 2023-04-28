@@ -69,7 +69,7 @@ by:
 
 $ spyder
 
-To uninstall Spyder, you need to run from the following from the command line:
+To uninstall Spyder, run the following from the command line:
 
 $ uninstall-spyder
 
