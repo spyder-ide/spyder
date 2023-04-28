@@ -44,7 +44,7 @@ shift $(($OPTIND - 1))
 PKG=$(cd $(dirname $1) && pwd -P)/$(basename $1)  # Resolve full path
 
 # --- Get certificate id
-CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
+CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
 [[ -z $CNAME ]] && log "Could not locate certificate ID" && exit 1
 log "Certificate ID: $CNAME"
 
@@ -54,8 +54,8 @@ notarize_args+=("--team-id" "$CNAME" "${pwd_args[@]}")
 log "Notarizing..."
 xcrun notarytool submit $PKG --wait ${notarize_args[@]} | tee temp.txt
 
-submitid=$(pcregrep -o1 "^\s*id: ([0-9a-z-]+)" temp.txt | head -1)
-status=$(pcregrep -o1 "^\s*status: (\w+$)" temp.txt)
+submitid=$(pcre2grep -o1 "^\s*id: ([0-9a-z-]+)" temp.txt | head -1)
+status=$(pcre2grep -o1 "^\s*status: (\w+$)" temp.txt)
 rm temp.txt
 
 xcrun notarytool log $submitid ${notarize_args[@]}

@@ -177,7 +177,7 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         # ensure Windows subprocess environment has SYSTEMROOT
         if kwargs.get('env') is not None:
             # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
-            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE']:
+            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE']:
                 if env_var not in map(str.upper, kwargs['env'].keys()):
                     # Add from os.environ
                     for k, v in os.environ.items():

@@ -50,11 +50,21 @@ except:
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import (get_conf_path, running_in_mac_app,
-                                reset_config_files, running_under_pytest)
+from spyder.config.base import (get_conf_path, reset_config_files,
+                                running_under_pytest, is_conda_based_app)
+from spyder.utils.conda import get_conda_root_prefix
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_text_string
 
+# Enforce correct CONDA_EXE environment variable
+# Do not rely on CONDA_PYTHON_EXE or CONDA_PREFIX in case Spyder is started
+# from the commandline
+if is_conda_based_app():
+    conda_root = get_conda_root_prefix()
+    if os.name == 'nt':
+        os.environ['CONDA_EXE'] = conda_root + r'\Scripts\conda.exe'
+    else:
+        os.environ['CONDA_EXE'] = conda_root + '/bin/conda'
 
 # Get argv
 if running_under_pytest():
@@ -200,8 +210,7 @@ def main():
         return
 
     if (CONF.get('main', 'single_instance') and not options.new_instance
-            and not options.reset_config_files
-            and not running_in_mac_app()):
+            and not options.reset_config_files):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
