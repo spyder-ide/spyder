@@ -12,13 +12,12 @@ associated widget.
 # Third-party imports
 import qstylizer.style
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
-from qtpy.QtWidgets import (
-    QAbstractItemView, QCheckBox, QHBoxLayout, QTableView, QWidget)
+from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 
 # Local imports
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.widgets.helperwidgets import HTMLDelegate
+from spyder.widgets.helperwidgets import HoverRowsTableView, HTMLDelegate
 
 
 class ElementsTableColumns:
@@ -87,11 +86,18 @@ class ElementsModel(QAbstractTableModel):
         )
 
 
-class ElementsTable(QTableView):
+class ElementsTable(HoverRowsTableView):
 
     def __init__(self, parent, elements, with_icons=False, with_widgets=False):
-        QTableView.__init__(self, parent)
+        HoverRowsTableView.__init__(self, parent)
+
+        self.elements = elements
         self.with_widgets = with_widgets
+
+        # To keep track of the current row widget (e.g. a checkbox) in order to
+        # change its background color when its row is hovered.
+        self._current_row = -1
+        self._current_row_widget = None
 
         # Set model and item delegate.
         title_font_size = self.horizontalHeader().font().pointSize() + 1
@@ -100,6 +106,13 @@ class ElementsTable(QTableView):
         )
         self.setModel(self.model)
         self.setItemDelegate(HTMLDelegate(self, margin=9))
+
+        # To paint the entire row's background color when its hovered.
+        if with_widgets:
+            self.sig_hover_index_changed.connect(self._on_hover_index_changed)
+            self.sig_hover_index_changed.connect(
+                self.itemDelegate().on_hover_index_changed
+            )
 
         # Adjust columns size
         self.resizeColumnsToContents()
@@ -123,7 +136,7 @@ class ElementsTable(QTableView):
         if with_icons:
             self.setIconSize(QSize(32, 32))
 
-        # Hide grid to only paint horizontal lines
+        # Hide grid to only paint horizontal lines with css
         self.setShowGrid(False)
 
         # Add widgets
@@ -135,6 +148,7 @@ class ElementsTable(QTableView):
 
                 container_widget = QWidget(self)
                 container_widget.setLayout(layout)
+                elements[i]['row_widget'] = container_widget
 
                 self.setIndexWidget(
                     self.model.index(i, ElementsTableColumns.Widgets),
@@ -145,17 +159,44 @@ class ElementsTable(QTableView):
         self.setSelectionMode(QAbstractItemView.NoSelection)
 
         # Set stylesheet
-        self.setStyleSheet(self._stylesheet)
+        self._set_stylesheet()
 
-    @property
-    def _stylesheet(self):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _on_hover_index_changed(self, index):
+        """Actions to take when the index that is hovered has changed."""
+        row = index.row()
+
+        if row != self._current_row:
+            self._current_row = row
+
+            # Remove background color of previous row widget
+            if self._current_row_widget is not None:
+                self._current_row_widget.setStyleSheet("")
+
+            # Set background for the new row widget
+            new_row_widget = self.elements[row]["row_widget"]
+            new_row_widget.setStyleSheet(
+                f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
+            )
+
+            # Set new current row widget
+            self._current_row_widget = new_row_widget
+
+    def _set_stylesheet(self, leave=False):
+        """Set stylesheet when entering or leaving the widget."""
         css = qstylizer.style.StyleSheet()
+        bgcolor = QStylePalette.COLOR_BACKGROUND_1 if leave else "transparent"
+
         css["QTableView::item"].setValues(
             borderBottom=f"1px solid {QStylePalette.COLOR_BACKGROUND_4}",
+            backgroundColor=bgcolor
         )
 
-        return css.toString()
+        self.setStyleSheet(css.toString())
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def showEvent(self, event):
         # Resize text column if necessary
         if self.with_widgets:
@@ -169,6 +210,25 @@ class ElementsTable(QTableView):
             )
 
         super().showEvent(event)
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+
+        # Clear background color painted on hovered row widget
+        if self._current_row_widget is not None:
+            self._current_row_widget.setStyleSheet('')
+        self._set_stylesheet(leave=True)
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+
+        # Restore background color that's going to be painted on hovered row
+        # widget
+        if self._current_row_widget is not None:
+            self._current_row_widget.setStyleSheet(
+                f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
+            )
+        self._set_stylesheet()
 
 
 def test_elements_table():
