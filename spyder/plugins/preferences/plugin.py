@@ -266,11 +266,13 @@ class Preferences(SpyderPluginV2):
     def get_name() -> str:
         return _('Preferences')
 
-    def get_description(self) -> str:
-        return _('This plugin provides access to Spyder preferences page')
+    @staticmethod
+    def get_description() -> str:
+        return _("Manage Spyder's main preferences dialog.")
 
-    def get_icon(self) -> QIcon:
-        return self.create_icon('configure')
+    @classmethod
+    def get_icon(cls) -> QIcon:
+        return cls.create_icon('configure')
 
     def on_initialize(self):
         container = self.get_container()

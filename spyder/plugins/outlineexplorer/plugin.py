@@ -33,13 +33,15 @@ class OutlineExplorer(SpyderDockablePlugin):
         """Return widget title."""
         return _('Outline Explorer')
 
-    def get_description(self) -> str:
+    @staticmethod
+    def get_description() -> str:
         """Return the description of the outline explorer widget."""
-        return _("Explore a file's functions, classes and methods")
+        return _("Explore functions, classes and methods in the current file.")
 
-    def get_icon(self):
+    @classmethod
+    def get_icon(cls):
         """Return the outline explorer icon."""
-        return self.create_icon('outline_explorer')
+        return cls.create_icon('outline_explorer')
 
     def on_initialize(self):
         if self.main:

@@ -754,7 +754,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         raise NotImplementedError('A plugin name must be defined!')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         """
         Return the plugin localized description.
 
@@ -769,7 +770,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         raise NotImplementedError('A plugin description must be defined!')
 
-    def get_icon(self):
+    @classmethod
+    def get_icon(cls):
         """
         Return the plugin associated icon.
 

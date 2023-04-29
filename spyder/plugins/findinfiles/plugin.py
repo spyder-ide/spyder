@@ -48,11 +48,13 @@ class FindInFiles(SpyderDockablePlugin):
     def get_name():
         return _("Find")
 
-    def get_description(self):
-        return _("Search for strings of text in files.")
+    @staticmethod
+    def get_description():
+        return _("Search for text patterns in files.")
 
-    def get_icon(self):
-        return self.create_icon('findf')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('findf')
 
     def on_initialize(self):
         self.create_action(

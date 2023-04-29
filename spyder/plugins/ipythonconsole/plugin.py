@@ -191,11 +191,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def get_name():
         return _('IPython console')
 
-    def get_description(self):
-        return _('IPython console')
+    @staticmethod
+    def get_description():
+        return _(
+            "Run Python files interactively in different ways (whole file, by "
+            "cells or selections)."
+        )
 
-    def get_icon(self):
-        return self.create_icon('ipython_console')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('ipython_console')
 
     def on_initialize(self):
         widget = self.get_widget()

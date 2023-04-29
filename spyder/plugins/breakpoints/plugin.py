@@ -90,11 +90,13 @@ class Breakpoints(SpyderDockablePlugin):
     def get_name():
         return _("Breakpoints")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _("Manage code breakpoints in a unified pane.")
 
-    def get_icon(self):
-        return self.create_icon('breakpoints')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('breakpoints')
 
     def on_initialize(self):
         widget = self.get_widget()

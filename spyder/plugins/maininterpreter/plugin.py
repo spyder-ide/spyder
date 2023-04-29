@@ -44,11 +44,16 @@ class MainInterpreter(SpyderPluginV2):
     def get_name():
         return _("Python interpreter")
 
-    def get_description(self):
-        return _("Main Python interpreter to open consoles.")
+    @staticmethod
+    def get_description():
+        return _(
+            "Manage default Python interpreter used by other plugins in "
+            "Spyder."
+        )
 
-    def get_icon(self):
-        return self.create_icon('python')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('python')
 
     def on_initialize(self):
         container = self.get_container()

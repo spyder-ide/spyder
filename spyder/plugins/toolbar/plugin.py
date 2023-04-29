@@ -9,8 +9,11 @@ Toolbar Plugin.
 """
 
 # Standard library imports
-from spyder.utils.qthelpers import SpyderAction
 from typing import Union, Optional
+
+# Third-party imports
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.api.plugins import SpyderPluginV2, Plugins
@@ -21,9 +24,7 @@ from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.toolbar.container import (
     ToolbarContainer, ToolbarMenus, ToolbarActions)
-
-# Third-party imports
-from qtpy.QtWidgets import QWidget
+from spyder.utils.qthelpers import SpyderAction
 
 
 class Toolbar(SpyderPluginV2):
@@ -43,11 +44,13 @@ class Toolbar(SpyderPluginV2):
     def get_name():
         return _('Toolbar')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _('Application toolbars management.')
 
-    def get_icon(self):
-        return self.create_icon('help')
+    @classmethod
+    def get_icon(cls):
+        return QIcon()
 
     def on_initialize(self):
         create_app_toolbar = self.create_application_toolbar

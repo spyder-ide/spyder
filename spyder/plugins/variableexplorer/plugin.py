@@ -39,12 +39,14 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def get_name():
         return _('Variable explorer')
 
-    def get_description(self):
-        return _('Display, explore load and save variables in the current '
-                 'namespace.')
+    @staticmethod
+    def get_description():
+        return _("Display, explore, load and save global variables generated "
+                 "after execution")
 
-    def get_icon(self):
-        return self.create_icon('dictedit')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('variable_explorer')
 
     def on_initialize(self):
         widget = self.get_widget()

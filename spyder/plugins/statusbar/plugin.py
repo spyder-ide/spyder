@@ -53,11 +53,13 @@ class StatusBar(SpyderPluginV2):
     def get_name():
         return _('Status bar')
 
-    def get_icon(self):
-        return self.create_icon('statusbar')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('statusbar')
 
-    def get_description(self):
-        return _('Provide Core user interface management')
+    @staticmethod
+    def get_description():
+        return _("Manage main window status bar.")
 
     def on_initialize(self):
         # --- Status widgets

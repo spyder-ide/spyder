@@ -157,14 +157,15 @@ class Explorer(SpyderDockablePlugin):
         """Return widget title"""
         return _("Files")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         """Return the description of the explorer widget."""
-        return _("Explore files in the computer with a tree view.")
+        return _("Explore filesystem in a tree view.")
 
-    def get_icon(self):
+    @classmethod
+    def get_icon(cls):
         """Return the explorer icon."""
-        # TODO: Find a decent icon for the explorer
-        return self.create_icon('outline_explorer')
+        return cls.create_icon('files')
 
     def on_initialize(self):
         widget = self.get_widget()

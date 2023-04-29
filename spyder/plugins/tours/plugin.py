@@ -40,11 +40,13 @@ class Tours(SpyderPluginV2):
     def get_name():
         return _("Interactive tours")
 
-    def get_description(self):
-        return _("Provide interactive tours.")
+    @staticmethod
+    def get_description():
+        return _("Provide interactive tours for the Spyder interface.")
 
-    def get_icon(self):
-        return self.create_icon('tour')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('tour')
 
     def on_initialize(self):
         self.register_tour(

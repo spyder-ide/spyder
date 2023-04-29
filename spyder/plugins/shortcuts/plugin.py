@@ -63,11 +63,13 @@ class Shortcuts(SpyderPluginV2):
     def get_name():
         return _("Keyboard shortcuts")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _("Manage application, widget and actions shortcuts.")
 
-    def get_icon(self):
-        return self.create_icon('keyboard')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('keyboard')
 
     def on_initialize(self):
         self._shortcut_data = []

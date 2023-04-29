@@ -646,9 +646,23 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         title = _('Editor')
         return title
 
-    def get_plugin_icon(self):
+    # TODO: Remove when the editor is migrated to the new API
+    get_name = get_plugin_title
+
+    @staticmethod
+    def get_description():
+        return _(
+            "Edit Python, Markdown, Cython and many other types of plain text "
+            "files."
+        )
+
+    @classmethod
+    def get_plugin_icon(cls):
         """Return widget icon."""
         return ima.icon('edit')
+
+    # TODO: Remove when the editor is migrated to the new API
+    get_icon = get_plugin_icon
 
     def get_focus_widget(self):
         """
