@@ -73,7 +73,7 @@ from spyder.app.utils import (
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
-                                get_home_dir, is_pynsist, running_in_mac_app,
+                                get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
@@ -945,7 +945,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             title = u"Spyder %s (Python %s.%s)" % (__version__,
                                                    sys.version_info[0],
                                                    sys.version_info[1])
-        elif running_in_mac_app() or is_pynsist():
+        elif is_conda_based_app():
             title = "Spyder"
         else:
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],

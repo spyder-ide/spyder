@@ -31,7 +31,7 @@ from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import get_conf_path, is_pynsist
+from spyder.config.base import get_conf_path, is_conda_based_app
 from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
@@ -58,7 +58,6 @@ SUCCESS_COLOR = SpyderPalette.COLOR_SUCCESS_1
 # is easier to use
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
-
 
 
 class PylintWidgetActions:
@@ -372,7 +371,7 @@ class PylintWidget(PluginMainWidget):
             processEnvironment.insert("USERPROFILE", user_profile)
             # Needed for Windows installations using standalone Python and pip.
             # See spyder-ide/spyder#19385
-            if not is_pynsist() and not is_anaconda():
+            if not is_conda_based_app() and not is_anaconda():
                 processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
 
         process.setProcessEnvironment(processEnvironment)

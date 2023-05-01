@@ -18,6 +18,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 # Local imports
 from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
+from spyder.config.base import is_conda_based_app
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
@@ -80,7 +81,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         )
 
         if os.name == 'nt':
-            filters = _("Executables")+" (*.exe)"
+            filters = _("Executables") + " (*.exe)"
         else:
             filters = None
 
@@ -174,12 +175,12 @@ class MainInterpreterConfigPage(PluginConfigPage):
             QMessageBox.warning(
                 self,
                 _('Warning'),
-                _("You selected a <b>Python %d</b> interpreter for the console "
-                  "but Spyder is running on <b>Python %d</b>!.<br><br>"
+                _("You selected a <b>Python %d</b> interpreter for the "
+                  "console but Spyder is running on <b>Python %d</b>!.<br><br>"
                   "Although this is possible, we recommend you to install and "
-                  "run Spyder directly with your selected interpreter, to avoid "
-                  "seeing false warnings and errors due to the incompatible "
-                  "syntax between these two Python versions."
+                  "run Spyder directly with your selected interpreter, to "
+                  "avoid seeing false warnings and errors due to the "
+                  "incompatible syntax between these two Python versions."
                   ) % (console_version, spyder_version),
                 QMessageBox.Ok,
             )
@@ -206,7 +207,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
                     if programs.is_module_installed(module_name):
                         fixed_namelist.append(module_name)
 
-                invalid = ", ".join(set(namelist)-set(fixed_namelist)-
+                invalid = ", ".join(set(namelist) - set(fixed_namelist) -
                                     set(non_ascii_namelist))
                 if invalid:
                     QMessageBox.warning(
@@ -233,7 +234,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         custom_list = self.get_option('custom_interpreters_list')
         valid_custom_list = []
         for value in custom_list:
-            if osp.isfile(value):
+            if osp.isfile(value) and not is_conda_based_app(value):
                 valid_custom_list.append(value)
 
         self.set_option('custom_interpreters_list', valid_custom_list)
