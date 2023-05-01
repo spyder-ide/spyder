@@ -172,7 +172,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.emptywidget = PanelEmptyWidget(self)
         self.emptywidget.set_attributes('projects',
                                         "You haven't opened a project yet.",
-                                        'create a new project by Projects > .'
+                                        'create a new project by: Projects > '
                                         'New project')
 
         # Watcher
