@@ -534,16 +534,8 @@ class PylintWidget(PluginMainWidget):
             getcwd_or_home(),
             _("Analysis result") + " (*.Result)",
         )
-        if filename and self.get_conf("real_time_analysis"):
+        if filename:
             self.treewidget.load_data(filename)
-        else:
-            with open(filename, 'r') as file:
-                self.output = file.read()
-                rate, previous, results = self.parse_output(self.output)
-                self._save_history()
-                self.set_data(filename,
-                              (time.localtime(), rate, previous, results))
-                self.show_data(justanalyzed=True)
 
     def save_history(self):
         """Save data."""
@@ -560,12 +552,8 @@ class PylintWidget(PluginMainWidget):
             # See spyder-ide/spyder#19633
             filename = filename + '.Result'
 
-        if filename and self.get_conf("real_time_analysis"):
+        if filename:
             self.treewidget.save_data(filename)
-        else:
-            if self.output:
-                with open(filename, 'w') as f:
-                    f.write(self.output)
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
