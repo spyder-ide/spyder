@@ -233,6 +233,8 @@ def _definitions():
         ],
         "installer_filename": OUTPUT_FILE.name,
         "initialize_by_default": False,
+        "initialize_conda": False,
+        "register_python": False,
         "license_file": str(RESOURCES / "bundle_license.rtf"),
         "extra_envs": {
             f"spyder-{SPYVER}": {
@@ -256,7 +258,7 @@ def _definitions():
                 ),
                 "license_file": str(SPYREPO / "LICENSE.txt"),
                 "installer_type": "sh",
-                "post_install": str(RESOURCES / "post-install.sh"),
+                "post_install": str(RESOURCES / "post-install-linux.sh"),
             }
         )
 
@@ -292,7 +294,6 @@ def _definitions():
                 "welcome_image": str(DIST / "spyder_164x314.png"),
                 "header_image": str(DIST / "spyder_150x57.png"),
                 "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
-                "register_python_default": False,
                 "default_prefix": os.path.join(
                     "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
                 ),
