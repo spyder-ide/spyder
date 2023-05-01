@@ -189,8 +189,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setContentsMargins(0, 0, 0, 0)
 
         self.stack_layout = layout = QStackedLayout()
-        self.stack_layout.addWidget(self.panelempty)
         self.stack_layout.addWidget(splitter)
+        self.stack_layout.addWidget(self.panelempty)
         self.setLayout(self.stack_layout)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
