@@ -806,7 +806,7 @@ class PylintWidget(PluginMainWidget):
             self.treewidget.set_results(filename, results)
         self.update_actions()
 
-    def _parse_list_real_time(self, filename, list):
+    def _parse_list_real_time(self, filename, list=[]):
         results = {}
         results['C:'] = []
         results['R:'] = []
