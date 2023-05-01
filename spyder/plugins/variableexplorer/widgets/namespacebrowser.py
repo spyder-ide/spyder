@@ -146,12 +146,12 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             layout.addWidget(self.editor)
             layout.addSpacing(1)
             layout.addWidget(self.finder)
-            self.set_panel_empty()
             self.main_widget = QWidget()
             self.main_widget.setLayout(layout)
             self.stack_layout.addWidget(self.main_widget)
             self.stack_layout.addWidget(self.panelempty)
             self.setLayout(self.stack_layout)
+            self.set_panel_empty()
             self.editor.source_model.sig_setting_data.connect(
                 self.set_panel_empty)
 
@@ -178,6 +178,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.refresh_namespacebrowser()
         try:
             self.editor.resizeRowToContents()
+            self.set_panel_empty()
         except TypeError:
             pass
 
