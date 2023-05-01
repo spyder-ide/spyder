@@ -220,7 +220,6 @@ class ResultsTree(OneColumnTree):
             for line in file:
                 key, value = line.split(separador, maxsplit=1)
                 value = ast.literal_eval(value.strip())
-                print(value)
                 data["%s%s" % (key, ':')] = value
         self.set_results(name, data)
 
@@ -231,7 +230,6 @@ class ResultsTree(OneColumnTree):
         self.data = {}
 
         # Populating tree
-        print(self.results)
         results = (
             ("Convention", self.results["C:"]),
             ("Refactor", self.results["R:"]),
@@ -565,8 +563,6 @@ class PylintWidget(PluginMainWidget):
         if filename and self.get_conf("real_time_analysis"):
             self.treewidget.save_data(filename)
         else:
-            print("Este es el output")
-            print(self.output)
             if self.output:
                 with open(filename, 'w') as f:
                     f.write(self.output)
