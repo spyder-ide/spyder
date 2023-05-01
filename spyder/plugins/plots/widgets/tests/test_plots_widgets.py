@@ -305,7 +305,7 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
 
     expected = (spacing * (nfig // 2)) + (height * (nfig // 2 - 1)) - \
                ((height_view - height) // 2)
-    if figbrowser.figcanvas.fig is None:
+    if figbrowser.figviewer.figcanvas.fig is None:
         expected = 0
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
     assert vsb.value() == expected
@@ -335,7 +335,7 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     height = scene.itemAt(0).sizeHint().height()
 
     expected = (spacing * (nfig - 1)) + (height * nfig) - height_view
-    if figbrowser.figcanvas.fig is None:
+    if figbrowser.figviewer.figcanvas.fig is None:
         expected = 0
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
     assert vsb.value() == expected
