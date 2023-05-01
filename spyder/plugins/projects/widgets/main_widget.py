@@ -55,8 +55,9 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         self.emptywidget = PanelEmptyWidget(self)
         self.emptywidget.set_attributes('projects',
-                                        'You havent opened a project yet.',
-                                        'create a new project by _____.')
+                                        "You haven't opened a project yet.",
+                                        'create a new project by Projects > .'
+                                        'New project')
         layout = QVBoxLayout()
         layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
