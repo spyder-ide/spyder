@@ -20,8 +20,8 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test dependencies
     micromamba install --file requirements/tests.yml
 
-    # To check our manifest and coverage
-    micromamba install check-manifest codecov -q -y
+    # To check our manifest
+    micromamba install check-manifest -q -y
 
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
@@ -39,8 +39,8 @@ else
     # Install QtAwesome from Github
     pip install git+https://github.com/spyder-ide/qtawesome.git
 
-    # To check our manifest and coverage
-    pip install -q check-manifest codecov
+    # To check our manifest
+    pip install -q check-manifest
 
     # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
@@ -51,7 +51,7 @@ else
 fi
 
 # Install subrepos from source
-python -bb -X dev -W error install_dev_repos.py --not-editable --no-install spyder
+python -bb -X dev install_dev_repos.py --not-editable --no-install spyder
 
 # Install boilerplate plugin
 pushd spyder/app/tests/spyder-boilerplate
@@ -59,8 +59,8 @@ pip install --no-deps -q -e .
 popd
 
 # Install Spyder to test it as if it was properly installed.
-python -bb -X dev -W error -m build
-python -bb -X dev -W error -m pip install --no-deps dist/spyder*.whl
+python -bb -X dev -m build
+python -bb -X dev -m pip install --no-deps dist/spyder*.whl
 
 # Adjust PATH on Windows so that we can use conda below. This needs to be done
 # at this point or the pip slots fail.

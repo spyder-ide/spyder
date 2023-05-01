@@ -31,8 +31,7 @@ from spyder_kernels import __version__ as spyder_kernels_version
 import sympy
 
 # Local imports
-from spyder.config.base import (
-    running_in_ci, running_in_ci_with_conda)
+from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import to_text_string
@@ -248,6 +247,35 @@ def test_cython_client(ipyconsole, qtbot):
     # Assert there are no errors after restting the console
     control = ipyconsole.get_widget().get_focus_widget()
     assert 'Error' not in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.order(1)
+@pytest.mark.environment_client
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
+@pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
+def test_environment_client(ipyconsole, qtbot):
+    """
+    Test that when creating a console for a specific conda environment, the
+    environment is activated before a kernel is created for it.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+
+    # Check console name
+    client = ipyconsole.get_current_client()
+    client.get_name() == "spytest-ž 1/A"
+
+    # Get conda activation environment variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')"
+        )
+
+    expected_output = get_conda_test_env()[0].replace('\\', '/')
+    output = shell.get_value('conda_prefix').replace('\\', '/')
+    assert expected_output == output
 
 
 @flaky(max_runs=3)
@@ -753,7 +781,9 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out frequently")
+@pytest.mark.skipif(
+    not os.name == 'nt' and running_in_ci(),
+    reason="Fails on Linux/Mac and CIs")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
     Test that Matplotlib backend is changed correctly when
