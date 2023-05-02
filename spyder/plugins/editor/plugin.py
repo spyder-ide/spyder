@@ -2102,7 +2102,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         bookmarks = eval(bookmarks)
         old_slots = self.get_conf('bookmarks', default={})
         new_slots = update_bookmarks(filename, bookmarks, old_slots)
-        self.set_conf('bookmarks', new_slots)
+        if new_slots:
+            self.set_conf('bookmarks', new_slots)
 
     #------ File I/O
     def __load_temp_file(self):
