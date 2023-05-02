@@ -1,4 +1,4 @@
-MIT License
+MIT License 
 
 Copyright (c) 2009- Spyder Project Contributors and others (see AUTHORS.txt); some source files and icons may be under other authorship/licenses (see NOTICE.txt)
 
