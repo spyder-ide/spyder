@@ -236,7 +236,7 @@ def _definitions():
         "register_python": False,
         "license_file": str(RESOURCES / "bundle_license.rtf"),
         "extra_envs": {
-            "spyder-rt": {
+            "spyder-runtime": {
                 "specs": [k + v for k, v in specs.items()],
             },
         },

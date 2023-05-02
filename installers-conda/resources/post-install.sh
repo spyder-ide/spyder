@@ -10,7 +10,7 @@ echo ""
 
 # ----
 name_lower=$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')
-spy_exe=${PREFIX}/envs/spyder-rt/bin/spyder
+spy_exe=${PREFIX}/envs/spyder-runtime/bin/spyder
 u_spy_exe=${PREFIX}/uninstall-spyder.sh
 
 sed_opts=("-i")
