@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import os.path as osp
+import platform
 import re
 import ssl
 import sys
@@ -152,8 +153,8 @@ class WorkerUpdates(QObject):
 
 class WorkerDownloadInstaller(QObject):
     """
-    Worker that donwloads standalone installers for Windows
-    and MacOS without blocking the Spyder user interface.
+    Worker that donwloads standalone installers for Windows, macOS,
+    and Linux without blocking the Spyder user interface.
     """
 
     sig_ready = Signal(str)
@@ -199,16 +200,17 @@ class WorkerDownloadInstaller(QObject):
         """Donwload latest Spyder standalone installer executable."""
         logger.debug("Downloading installer executable")
         tmpdir = tempfile.gettempdir()
-        is_full_installer = (is_module_installed('numpy') or
-                             is_module_installed('pandas'))
         if os.name == 'nt':
-            name = 'Spyder_64bit_{}.exe'.format('full' if is_full_installer
-                                                else 'lite')
-        else:
-            name = 'Spyder{}.dmg'.format('' if is_full_installer else '-Lite')
+            plat, ext = 'Windows', 'exe'
+        if sys.platform == 'darwin':
+            plat, ext = 'macOS', 'pkg'
+        if sys.platform.startswith('linux'):
+            plat, ext = 'Linux', 'sh'
+        mach = platform.machine()
+        fname = f'Spyder-{self.latest_release_version}-{plat}-{mach}.{ext}'
 
         url = ('https://github.com/spyder-ide/spyder/releases/latest/'
-               f'download/{name}')
+               f'download/{fname}')
         dir_path = osp.join(tmpdir, 'spyder', 'updates')
         os.makedirs(dir_path, exist_ok=True)
         installer_dir_path = osp.join(
@@ -219,7 +221,7 @@ class WorkerDownloadInstaller(QObject):
                 remove = osp.join(dir_path, file)
                 os.remove(remove)
 
-        installer_path = osp.join(installer_dir_path, name)
+        installer_path = osp.join(installer_dir_path, fname)
         self.installer_path = installer_path
         if not osp.isfile(installer_path):
             logger.debug(

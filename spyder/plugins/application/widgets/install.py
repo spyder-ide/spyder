@@ -9,6 +9,7 @@
 # Standard library imports
 import logging
 import os
+import sys
 import subprocess
 
 # Third-party imports
@@ -270,7 +271,12 @@ class UpdateInstallerDialog(QDialog):
 
         if msg_box.clickedButton() == yes_button:
             self._change_update_installation_status(status=INSTALLING)
-            cmd = ('start' if os.name == 'nt' else 'open')
+            if os.name == 'nt':
+                cmd = 'start'
+            elif sys.platform == 'darwin':
+                cmd = 'open'
+            else:
+                cmd = 'gnome-terminal -- sh'
             if self.installer_path:
                 subprocess.Popen(
                     ' '.join([cmd, self.installer_path]),
