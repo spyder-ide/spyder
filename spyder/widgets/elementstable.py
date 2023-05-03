@@ -99,13 +99,16 @@ class ElementsTable(HoverRowsTableView):
         self._current_row = -1
         self._current_row_widget = None
 
+        # To do adjustments when the widget is shown only once
+        self._is_shown = False
+
         # Set model and item delegate.
         title_font_size = self.horizontalHeader().font().pointSize() + 1
         self.model = ElementsModel(
             self, elements, title_font_size, with_icons, with_widgets
         )
         self.setModel(self.model)
-        self.setItemDelegate(HTMLDelegate(self, margin=9))
+        self.setItemDelegate(HTMLDelegate(self, margin=9, wrap_text=True))
 
         # To paint the entire row's background color when its hovered.
         if with_widgets:
@@ -114,19 +117,20 @@ class ElementsTable(HoverRowsTableView):
                 self.itemDelegate().on_hover_index_changed
             )
 
-        # Adjust columns size
-        self.resizeColumnsToContents()
-
         if with_widgets:
+            # Adjust columns size. This is necessary for the next step
+            self.resizeColumnsToContents()
+
             # Get the width that Qt gives to the widgets column, so that we can
-            # resize the text column afterwards.
+            # resize the text column afterwards by substracting this value from
+            # the horizontal header width.
+            # Note: We add 15 pixels to the Qt width so that the widgets are
+            # not so close to the right border of the table, which doesn't look
+            # good.
             self._widget_column_width = self.horizontalHeader().sectionSize(
-                ElementsTableColumns.Widgets)
+                ElementsTableColumns.Widgets) + 15
 
         self.horizontalHeader().setStretchLastSection(True)
-
-        # Adjust rows size
-        self.resizeRowsToContents()
 
         # Hide headers
         self.horizontalHeader().hide()
@@ -190,15 +194,17 @@ class ElementsTable(HoverRowsTableView):
 
         css["QTableView::item"].setValues(
             borderBottom=f"1px solid {QStylePalette.COLOR_BACKGROUND_4}",
+            paddingLeft="5px",
             backgroundColor=bgcolor
         )
 
         self.setStyleSheet(css.toString())
 
-    # ---- Qt methods
-    # -------------------------------------------------------------------------
-    def showEvent(self, event):
-        # Resize text column if necessary
+    def _adjust_columns_and_rows_size(self):
+        """
+        This is necessary to make the table look good at different sizes.
+        """
+        # Resize text column so that the widgets one always has the same width
         if self.with_widgets:
             text_column_width = (
                 self.horizontalHeader().size().width() -
@@ -208,6 +214,19 @@ class ElementsTable(HoverRowsTableView):
             self.horizontalHeader().resizeSection(
                 ElementsTableColumns.Text, text_column_width
             )
+
+        # Resize rows. This is done because wrapping text in HTMLDelegate
+        # changes row heights in unpredictable ways.
+        self.resizeRowsToContents()
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        if not self._is_shown:
+            self._adjust_columns_and_rows_size()
+
+            # To not run the adjustments above every time the widget is shown
+            self._is_shown = True
 
         super().showEvent(event)
 
@@ -223,12 +242,15 @@ class ElementsTable(HoverRowsTableView):
         super().enterEvent(event)
 
         # Restore background color that's going to be painted on hovered row
-        # widget
         if self._current_row_widget is not None:
             self._current_row_widget.setStyleSheet(
                 f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
             )
         self._set_stylesheet()
+
+    def resizeEvent(self, event):
+        self._adjust_columns_and_rows_size()
+        super().resizeEvent(event)
 
 
 def test_elements_table():

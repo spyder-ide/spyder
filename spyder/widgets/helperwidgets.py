@@ -119,9 +119,10 @@ class HTMLDelegate(QStyledItemDelegate):
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
 
-    def __init__(self, parent, margin=0):
+    def __init__(self, parent, margin=0, wrap_text=False):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
+        self._wrap_text = wrap_text
         self._hovered_row = -1
 
     def _prepare_text_document(self, option, index):
@@ -132,6 +133,12 @@ class HTMLDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         doc.setDocumentMargin(self._margin)
         doc.setHtml(options.text)
+        if self._wrap_text:
+            # The -25 here is used to avoid the text to go totally up to the
+            # right border of the widget that contains the delegate, which
+            # doesn't look good.
+            doc.setTextWidth(option.rect.width() - 25)
+
         return options, doc
 
     def on_hover_index_changed(self, index):
