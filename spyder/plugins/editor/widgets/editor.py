@@ -301,6 +301,9 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.tabs_switcher = None
         self.switcher_plugin = None
 
+        if self.get_plugin().main.switcher is None:
+            use_switcher = False
+
         switcher_action = None
         symbolfinder_action = None
         if use_switcher:
