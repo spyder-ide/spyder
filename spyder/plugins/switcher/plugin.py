@@ -90,6 +90,16 @@ class Switcher(SpyderPluginV2):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
+    sig_open_file_requested = Signal(str)
+    """
+    This signal is emitted when a file is requested to be opened.
+
+    Parameters
+    ----------
+    directory: str
+        The path to the requested file.
+    """
+
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
     @staticmethod
