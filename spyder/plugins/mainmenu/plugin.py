@@ -62,9 +62,9 @@ class MainMenu(SpyderPluginV2):
         # work on Mac. Remove the 'dynamic' kwarg when migrating a menu!
         create_app_menu = self.create_application_menu
         create_app_menu(ApplicationMenus.File, _("&File"))
-        create_app_menu(ApplicationMenus.Edit, _("&Edit"), dynamic=False)
-        create_app_menu(ApplicationMenus.Search, _("&Search"), dynamic=False)
-        create_app_menu(ApplicationMenus.Source, _("Sour&ce"), dynamic=False)
+        create_app_menu(ApplicationMenus.Edit, _("&Edit"))
+        create_app_menu(ApplicationMenus.Search, _("&Search"))
+        create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
         create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
         create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
         if self.is_plugin_enabled(Plugins.IPythonConsole):
@@ -242,28 +242,15 @@ class MainMenu(SpyderPluginV2):
             raise SpyderAPIError('A menu only accepts items objects of type '
                                  'SpyderAction or SpyderMenu')
 
-        # TODO: For now just add the item to the bottom for non-migrated menus.
-        #       Temporal solution while migration is complete
-        app_menu_actions = {
-            ApplicationMenus.Edit: self._main.edit_menu_actions,
-            ApplicationMenus.Search: self._main.search_menu_actions,
-            ApplicationMenus.Source: self._main.source_menu_actions,
-        }
-
-        if menu_id in app_menu_actions:
-            actions = app_menu_actions[menu_id]
-            actions.append(MENU_SEPARATOR)
-            actions.append(item)
+        if menu_id not in self._APPLICATION_MENUS:
+            pending_menu_items = self._ITEM_QUEUE.get(menu_id, [])
+            pending_menu_items.append((item, section, before,
+                                       before_section))
+            self._ITEM_QUEUE[menu_id] = pending_menu_items
         else:
-            if menu_id not in self._APPLICATION_MENUS:
-                pending_menu_items = self._ITEM_QUEUE.get(menu_id, [])
-                pending_menu_items.append((item, section, before,
-                                           before_section))
-                self._ITEM_QUEUE[menu_id] = pending_menu_items
-            else:
-                menu = self.get_application_menu(menu_id)
-                menu.add_action(item, section=section, before=before,
-                                before_section=before_section, omit_id=omit_id)
+            menu = self.get_application_menu(menu_id)
+            menu.add_action(item, section=section, before=before,
+                            before_section=before_section, omit_id=omit_id)
 
     def remove_application_menu(self, menu_id: str):
         """
@@ -293,45 +280,8 @@ class MainMenu(SpyderPluginV2):
         if menu_id not in self._APPLICATION_MENUS:
             raise SpyderAPIError('{} is not a valid menu_id'.format(menu_id))
 
-        # TODO: For now just add the item to the bottom for non-migrated menus.
-        #       Temporal solution while migration is complete
-        app_menu_actions = {
-            ApplicationMenus.Edit: (
-                self._main.edit_menu_actions, self._main.edit_menu),
-            ApplicationMenus.Search: (
-                self._main.search_menu_actions, self._main.search_menu),
-            ApplicationMenus.Source: (
-                self._main.source_menu_actions, self._main.source_menu),
-        }
-
-        app_menus = {
-            ApplicationMenus.Edit: self._main.edit_menu,
-            ApplicationMenus.Search: self._main.search_menu,
-            ApplicationMenus.Source: self._main.source_menu,
-        }
-
         menu = self.get_application_menu(menu_id)
-
-        if menu_id in app_menu_actions:
-            actions = app_menu_actions[menu_id]  # type: list
-            menu = app_menus[menu_id]
-            position = None
-            for i, action in enumerate(actions):
-                this_item_id = None
-                if (isinstance(action, SpyderAction) or
-                        hasattr(action, 'action_id')):
-                    this_item_id = action.action_id
-                elif (isinstance(action, SpyderMenu) or
-                        hasattr(action, 'menu_id')):
-                    this_item_id = action.menu_id
-                if this_item_id is not None and this_item_id == item_id:
-                    position = i
-                    break
-            if position is not None:
-                actions.pop(position)
-                menu.remove_action(item_id)
-        else:
-            menu.remove_action(item_id)
+        menu.remove_action(item_id)
 
     def get_application_menu(self, menu_id: str) -> SpyderMenu:
         """

@@ -24,8 +24,8 @@ import time
 import logging
 
 # Third party imports
+from packaging.version import parse
 import pkg_resources
-from pkg_resources import parse_version
 import psutil
 
 # Local imports
@@ -917,8 +917,8 @@ def check_version_range(module_version, version_range):
     """
     Check if a module's version lies in `version_range`.
     """
-    if ';' in version_range:
-        versions = version_range.split(';')
+    if ',' in version_range:
+        versions = version_range.split(',')
     else:
         versions = [version_range]
 
@@ -929,10 +929,13 @@ def check_version_range(module_version, version_range):
         symb = _ver[:match.start()]
         if not symb:
             symb = '='
-        assert symb in ('>=', '>', '=', '<', '<='),\
-            "Invalid version condition '%s'" % symb
+
+        if symb not in ['>=', '>', '=', '<', '<=', '!=']:
+            raise RuntimeError(f"Invalid version condition '{symb}'")
+
         ver = _ver[match.start():]
         output = output and check_version(module_version, ver, symb)
+
     return output
 
 
@@ -954,15 +957,17 @@ def check_version(actver, version, cmp_op):
 
     try:
         if cmp_op == '>':
-            return parse_version(actver) > parse_version(version)
+            return parse(actver) > parse(version)
         elif cmp_op == '>=':
-            return parse_version(actver) >= parse_version(version)
+            return parse(actver) >= parse(version)
         elif cmp_op == '=':
-            return parse_version(actver) == parse_version(version)
+            return parse(actver) == parse(version)
         elif cmp_op == '<':
-            return parse_version(actver) < parse_version(version)
+            return parse(actver) < parse(version)
         elif cmp_op == '<=':
-            return parse_version(actver) <= parse_version(version)
+            return parse(actver) <= parse(version)
+        elif cmp_op == '!=':
+            return parse(actver) != parse(version)
         else:
             return False
     except TypeError:

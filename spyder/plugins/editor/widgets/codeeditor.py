@@ -27,11 +27,11 @@ import re
 import sre_constants
 import sys
 import textwrap
-from pkg_resources import parse_version
 
 # Third party imports
 from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
+from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QEvent, QEventLoop, QRegExp, Qt, QTimer, QThread,
@@ -49,7 +49,6 @@ from three_merge import merge
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
-from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
@@ -121,6 +120,8 @@ def schedule_request(req=None, method=None, requires_response=True):
 @class_register
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
+
+    CONF_SECTION = 'editor'
 
     LANGUAGES = {
         'Python': (sh.PythonSH, '#'),
@@ -288,7 +289,7 @@ class CodeEditor(TextEditBaseWidget):
         self.current_project_path = None
 
         # Caret (text cursor)
-        self.setCursorWidth(CONF.get('main', 'cursor/width'))
+        self.setCursorWidth(self.get_conf('cursor/width', section='main'))
 
         self.text_helper = TextHelper(self)
 
@@ -699,6 +700,7 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'go to definition', self.go_to_definition_from_cursor),
             ('editor', 'toggle comment', self.toggle_comment),
             ('editor', 'blockcomment', self.blockcomment),
+            ('editor', 'create_new_cell', self.create_new_cell),
             ('editor', 'unblockcomment', self.unblockcomment),
             ('editor', 'transform to uppercase', self.transform_to_uppercase),
             ('editor', 'transform to lowercase', self.transform_to_lowercase),
@@ -742,7 +744,7 @@ class CodeEditor(TextEditBaseWidget):
         shortcuts = []
         for context, name, callback in shortcut_context_name_callbacks:
             shortcuts.append(
-                CONF.config_shortcut(
+                self.config_shortcut(
                     callback, context=context, name=name, parent=self))
         return shortcuts
 
@@ -1080,16 +1082,6 @@ class CodeEditor(TextEditBaseWidget):
             additional_msg = "cloned editor"
         else:
             additional_msg = ""
-
-            # We need to be sure that this signal is disconnected before
-            # calling document_did_open below because that method creates a
-            # unique connection for it and this method is called every time the
-            # server is restarted.
-            try:
-                self._timer_sync_symbols_and_folding.timeout.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-
             self.document_did_open()
 
         logger.debug(u"Completion services available for {0}: {1}".format(
@@ -1152,6 +1144,16 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
+
+        # We need to be sure that this signal is disconnected before trying to
+        # connect it below.
+        # Note: It can already be connected when the user requires a server
+        # restart or when the server failed to start.
+        # Fixes spyder-ide/spyder#20679
+        try:
+            self._timer_sync_symbols_and_folding.timeout.disconnect()
+        except (TypeError, RuntimeError):
+            pass
 
         # The connect is performed here instead of in __init__() because
         # notify_close() may have been called (which disconnects the signal).
@@ -4233,6 +4235,27 @@ class CodeEditor(TextEditBaseWidget):
         cursor3.endEditBlock()
         return True
 
+    def create_new_cell(self):
+        firstline = '# %%' + self.get_line_separator()
+        endline = self.get_line_separator()
+        cursor = self.textCursor()
+        if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            endline = self.get_line_separator() + '# %%'
+        else:
+            start_pos = end_pos = cursor.position()
+
+        # Add cell comment or enclose current selection in cells
+        cursor.beginEditBlock()
+        cursor.setPosition(end_pos)
+        cursor.movePosition(QTextCursor.EndOfBlock)
+        cursor.insertText(endline)
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.insertText(firstline)
+        cursor.endEditBlock()
+        
     # ---- Kill ring handlers
     # Taken from Jupyter's QtConsole
     # Copyright (c) 2001-2015, IPython Development Team
@@ -4495,27 +4518,27 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(
             self, _("Undo"), icon=ima.icon('undo'),
-            shortcut=CONF.get_shortcut('editor', 'undo'), triggered=self.undo)
+            shortcut=self.get_shortcut('undo'), triggered=self.undo)
         self.redo_action = create_action(
             self, _("Redo"), icon=ima.icon('redo'),
-            shortcut=CONF.get_shortcut('editor', 'redo'), triggered=self.redo)
+            shortcut=self.get_shortcut('redo'), triggered=self.redo)
         self.cut_action = create_action(
             self, _("Cut"), icon=ima.icon('editcut'),
-            shortcut=CONF.get_shortcut('editor', 'cut'), triggered=self.cut)
+            shortcut=self.get_shortcut('cut'), triggered=self.cut)
         self.copy_action = create_action(
             self, _("Copy"), icon=ima.icon('editcopy'),
-            shortcut=CONF.get_shortcut('editor', 'copy'), triggered=self.copy)
+            shortcut=self.get_shortcut('copy'), triggered=self.copy)
         self.paste_action = create_action(
             self, _("Paste"), icon=ima.icon('editpaste'),
-            shortcut=CONF.get_shortcut('editor', 'paste'),
+            shortcut=self.get_shortcut('paste'),
             triggered=self.paste)
         selectall_action = create_action(
             self, _("Select All"), icon=ima.icon('selectall'),
-            shortcut=CONF.get_shortcut('editor', 'select all'),
+            shortcut=self.get_shortcut('select all'),
             triggered=self.selectAll)
         toggle_comment_action = create_action(
             self, _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
-            shortcut=CONF.get_shortcut('editor', 'toggle comment'),
+            shortcut=self.get_shortcut('toggle comment'),
             triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(
             self, _("Clear all ouput"), icon=ima.icon('ipython_console'),
@@ -4525,13 +4548,13 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.convert_notebook)
         self.gotodef_action = create_action(
             self, _("Go to definition"),
-            shortcut=CONF.get_shortcut('editor', 'go to definition'),
+            shortcut=self.get_shortcut('go to definition'),
             triggered=self.go_to_definition_from_cursor)
 
         self.inspect_current_object_action = create_action(
             self, _("Inspect current object"),
             icon=ima.icon('MessageBoxInformation'),
-            shortcut=CONF.get_shortcut('editor', 'inspect current object'),
+            shortcut=self.get_shortcut('inspect current object'),
             triggered=self.sig_show_object_info)
 
         # Run actions
@@ -4553,20 +4576,20 @@ class CodeEditor(TextEditBaseWidget):
         writer = self.writer_docstring
         self.docstring_action = create_action(
             self, _("Generate docstring"),
-            shortcut=CONF.get_shortcut('editor', 'docstring'),
+            shortcut=self.get_shortcut('docstring'),
             triggered=writer.write_docstring_at_first_line_of_function)
 
         # Document formatting
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            ''
+            default='',
+            section='completions',
         )
         self.format_action = create_action(
             self,
             _('Format file or selection with {0}').format(
                 formatter.capitalize()),
-            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            shortcut=self.get_shortcut('autoformatting'),
             triggered=self.format_document_or_range)
 
         self.format_action.setEnabled(False)
@@ -4653,8 +4676,10 @@ class CodeEditor(TextEditBaseWidget):
             # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
             # See spyder-ide/spyder#12663 and
             # https://bugreports.qt.io/browse/QTBUG-35861
-            if (parse_version(QT_VERSION) < parse_version('5.15')
-                    or os.name == 'nt' or sys.platform == 'darwin'):
+            if (
+                parse(QT_VERSION) < parse('5.15')
+                or os.name == 'nt' or sys.platform == 'darwin'
+            ):
                 cursor = self.textCursor()
                 cursor.setPosition(cursor.position())
                 self.setTextCursor(cursor)
@@ -5411,10 +5436,10 @@ class CodeEditor(TextEditBaseWidget):
                                              nbformat is not None)
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            ''
+            default='',
+            section='completions'
         )
         self.format_action.setText(_(
             'Format file or selection with {0}').format(
@@ -5527,7 +5552,7 @@ class CodeEditor(TextEditBaseWidget):
 
             for top, line_number, block in self.visible_blocks:
                 if is_cell_header(block):
-                    painter.drawLine(4, top, self.width(), top)
+                    painter.drawLine(0, top, self.width(), top)
 
     @property
     def visible_blocks(self):
