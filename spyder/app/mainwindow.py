@@ -717,30 +717,47 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         all_plugins = external_plugins.copy()
         all_plugins.update(internal_plugins.copy())
 
-        # Determine 'enable' config for the plugins that have it
+        # Determine 'enable' config for plugins that have it.
         enabled_plugins = {}
         registry_internal_plugins = {}
         registry_external_plugins = {}
+
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
-            # Disable panes that use web widgets (currently Help and Online
+            # Disable plugins that use web widgets (currently Help and Online
             # Help) if the user asks for it.
             # See spyder-ide/spyder#16518
             if self._cli_options.no_web_widgets:
                 if "help" in plugin_name:
                     continue
+
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
                 else plugin_name)
+
             if plugin_name in internal_plugins:
                 registry_internal_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+                enable_option = "enable"
+                enable_section = plugin_main_attribute_name
             else:
                 registry_external_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+
+                # This is a workaround to allow disabling external plugins.
+                # Because of the way the current config implementation works,
+                # an external plugin config option (e.g. 'enable') can only be
+                # read after the plugin is loaded. But here we're trying to
+                # decide if the plugin should be loaded if it's enabled. So,
+                # for now we read (and save, see the config page associated to
+                # PLUGIN_REGISTRY) that option in our internal config options.
+                # See spyder-ide/spyder#17464 for more details.
+                enable_option = f"{plugin_main_attribute_name}/enable"
+                enable_section = PLUGIN_REGISTRY._external_plugins_conf_section
+
             try:
-                if self.get_conf("enable", section=plugin_main_attribute_name):
+                if self.get_conf(enable_option, section=enable_section):
                     enabled_plugins[plugin_name] = plugin
                     PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):

@@ -12,7 +12,6 @@ from qtpy.QtWidgets import QVBoxLayout, QLabel
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.widgets.elementstable import ElementsTable
 
 
@@ -41,7 +40,8 @@ class PluginsConfigPage(PluginConfigPage):
                 # Do not list core plugins that can not be disabled
                 continue
 
-            plugin_state = CONF.get(conf_section_name, 'enable', True)
+            plugin_state = self.get_option(
+                'enable', section=conf_section_name, default=True)
             cb = newcb('', 'enable', default=True, section=conf_section_name,
                        restart=True)
 
@@ -57,33 +57,33 @@ class PluginsConfigPage(PluginConfigPage):
             self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
 
         # ------------------ External plugins ---------------------------------
-        # Temporal fix to avoid disabling external plugins.
-        # For more info see spyder-ide/spyder#17464
-        show_external_plugins = False
+        for plugin_name in self.plugin.all_external_plugins:
+            (conf_section_name,
+             PluginClass) = self.plugin.all_external_plugins[plugin_name]
 
-        if show_external_plugins:
-            for plugin_name in self.plugin.all_external_plugins:
-                (conf_section_name,
-                 PluginClass) = self.plugin.all_external_plugins[plugin_name]
+            if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
+                # Do not list external plugins that can not be disabled
+                continue
 
-                if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
-                    # Do not list external plugins that can not be disabled
-                    continue
+            plugin_state = self.get_option(
+                f'{conf_section_name}/enable',
+                section=self.plugin._external_plugins_conf_section,
+                default=True
+            )
+            cb = newcb('', f'{conf_section_name}/enable', default=True,
+                       section=self.plugin._external_plugins_conf_section,
+                       restart=True)
 
-                plugin_state = CONF.get(conf_section_name, 'enable', True)
-                cb = newcb('', 'enable', default=True,
-                           section=conf_section_name, restart=True)
-
-                plugin_elements.append(
-                    dict(
-                        title=PluginClass.get_name(),
-                        description=PluginClass.get_description(),
-                        icon=PluginClass.get_icon(),
-                        widget=cb
-                    )
+            plugin_elements.append(
+                dict(
+                    title=PluginClass.get_name(),
+                    description=PluginClass.get_description(),
+                    icon=PluginClass.get_icon(),
+                    widget=cb
                 )
+            )
 
-                self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
+            self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
 
         # Build plugins table
         plugins_table = ElementsTable(
