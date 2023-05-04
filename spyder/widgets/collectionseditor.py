@@ -402,6 +402,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        if role == Qt.ToolTipRole:
+            return value
         if index.column() == 4 and role == Qt.DisplayRole:
             # TODO: Check the effect of not hiding the column
             # Treating search scores as a table column simplifies the
