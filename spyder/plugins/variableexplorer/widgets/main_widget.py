@@ -114,7 +114,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def setup(self):
         # ---- Options menu actions
-        exclude_private_action = self.create_action(
+        self.exclude_private_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludePrivate,
             text=_("Exclude private variables"),
             tip=_("Exclude variables that start with an underscore"),
@@ -122,7 +122,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             initial=self.get_conf('exclude_private'),
         )
 
-        exclude_uppercase_action = self.create_action(
+        self.exclude_uppercase_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeUpperCase,
             text=_("Exclude all-uppercase variables"),
             tip=_("Exclude variables whose name is uppercase"),
@@ -130,7 +130,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             initial=self.get_conf('exclude_uppercase'),
         )
 
-        exclude_capitalized_action = self.create_action(
+        self.exclude_capitalized_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCapitalized,
             text=_("Exclude capitalized variables"),
             tip=_("Exclude variables whose name starts with a capital "
@@ -139,7 +139,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             initial=self.get_conf('exclude_capitalized'),
         )
 
-        exclude_unsupported_action = self.create_action(
+        self.exclude_unsupported_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeUnsupported,
             text=_("Exclude unsupported data types"),
             tip=_("Exclude references to data types that don't have "
@@ -148,7 +148,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             initial=self.get_conf('exclude_unsupported'),
         )
 
-        exclude_callables_and_modules_action = self.create_action(
+        self.exclude_callables_and_modules_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCallablesAndModules,
             text=_("Exclude callables and modules"),
             tip=_("Exclude references to functions, modules and "
