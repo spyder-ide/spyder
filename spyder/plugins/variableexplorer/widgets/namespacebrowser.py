@@ -73,12 +73,13 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
-        self.panelempty = PanelEmptyWidget(self)
-        self.panelempty.set_attributes('variable-explorer',
-                                       "You haven't defined any variables yet.",
-                                       'Run code with variable in the Editor '
-                                       'see them listed here for review and '
-                                       'editing.')
+        self.panelempty = PanelEmptyWidget(
+            self,
+            "variable-explorer",
+            _("You haven't defined any variables yet."),
+            _("Run code with variables in the Editor to see them "
+              "listed here for review and editing.")
+        )
 
     def toggle_finder(self, show):
         """Show and hide the finder."""
