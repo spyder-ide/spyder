@@ -462,19 +462,14 @@ def test_msgcheckbox():
 class PanelEmptyWidget(QWidget):
     """Update progress installation widget."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, icon_filename, text, description):
         super().__init__(parent)
-        self.icon_filename = None
-        self.text = None
-        self.description = None
-
-    def set_attributes(self, icon_filename, text, description):
+        # Setup attributes
         self.icon_filename = icon_filename
         self.text = text
         self.description = description
-        self.refresh()
 
-    def refresh(self):
+        # Setup layout
         panel_empty_layout = QVBoxLayout()
         self.label_empty = QLabel()
         self.label_empty.setText(self.text)

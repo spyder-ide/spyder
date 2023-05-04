@@ -133,7 +133,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.sig_start_spinner_requested)
             self.editor.sig_editor_shown.connect(
                 self.sig_stop_spinner_requested)
-            
 
             self.finder.sig_find_text.connect(self.do_find)
             self.finder.sig_hide_finder_requested.connect(

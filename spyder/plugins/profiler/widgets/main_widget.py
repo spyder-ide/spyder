@@ -174,12 +174,13 @@ class ProfilerWidget(PluginMainWidget):
         self.filecombo = PythonModulesComboBox(
             self, id_=ProfilerWidgetMainToolbarItems.FileCombo)
         self.datatree = ProfilerDataTree(self)
-        self.panelempty = PanelEmptyWidget(self)
-        self.panelempty.set_attributes('code-profiler',
-                                       "You haven't profiled any code yet.",
-                                       'Profile your code to find the run '
-                                       'time and number of calls for every '
-                                       'function and method called in a file.')
+        self.panelempty = PanelEmptyWidget(
+            self,
+            "code-profiler",
+            _("You haven't profiled any code yet."),
+            _("Profile your code to find the run time and number of calls "
+              "for every function and method called in a file.")
+        )
         self.datelabel = QLabel()
         self.datelabel.ID = ProfilerWidgetInformationToolbarItems.DateLabel
 

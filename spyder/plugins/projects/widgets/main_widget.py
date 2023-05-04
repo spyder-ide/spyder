@@ -169,11 +169,12 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        self.emptywidget = PanelEmptyWidget(self)
-        self.emptywidget.set_attributes('projects',
-                                        "You haven't opened a project yet.",
-                                        'create a new project by: Projects > '
-                                        'New project')
+        self.emptywidget = PanelEmptyWidget(
+            self,
+            "projects",
+            _("You haven't opened a project yet."),
+            _("To create a new project go to: Projects > New project")
+        )
 
         # Watcher
         self.watcher = WorkspaceWatcher(self)

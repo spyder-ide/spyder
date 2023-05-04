@@ -383,7 +383,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             save_data_action = self.get_action(
                 VariableExplorerWidgetActions.SaveData)
             save_data_action.setEnabled(nsb.filename is not None)
-
         search_action = self.get_action(VariableExplorerWidgetActions.Search)
         if nsb is None:
             checked = False
