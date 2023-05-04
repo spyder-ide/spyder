@@ -646,6 +646,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 data=path,
                 last_item=is_last_item
             )
+        self.get_plugin()._switcher.set_current_row(0)
 
     def handle_switcher_selection(self, item, mode, search_text):
         """

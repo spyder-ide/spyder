@@ -200,7 +200,10 @@ class Switcher(QDialog):
     def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
         item.set_width(self._ITEM_WIDTH)
-        self.model.appendRow(item)
+        if item._section == "Editor":
+            self.model.insertRow(0, item)
+        else:
+            self.model.appendRow(item)
         if last_item:
             # Only set the current row to the first item when the added item is
             # the last one in order to prevent performance issues when

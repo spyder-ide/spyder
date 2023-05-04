@@ -84,7 +84,12 @@ class EditorSwitcherManager(object):
                          for data in editorstack.data]
         short_paths = shorten_paths(paths, save_statuses)
 
-        for idx, data in enumerate(editorstack.data):
+        # As editor open files are inserted at the position 0
+        # the list needs to be reversed so they show in order
+        editor_list = editorstack.data.copy()
+        editor_list.reverse()
+
+        for idx, data in enumerate(editor_list):
             path = data.filename
             title = osp.basename(path)
             icon = get_file_icon(path)
@@ -94,13 +99,14 @@ class EditorSwitcherManager(object):
                 path = short_paths[idx]
             else:
                 path = osp.dirname(data.filename.lower())
-            last_item = idx + 1 == len(editorstack.data)
+            last_item = (idx + 1 == len(editor_list))
             self._switcher.add_item(title=title,
                                     description=path,
                                     icon=icon,
                                     section=self._section,
                                     data=data,
                                     last_item=last_item)
+        self._switcher.set_current_row(0)
 
     def create_line_switcher(self):
         """Populate switcher with line info."""
