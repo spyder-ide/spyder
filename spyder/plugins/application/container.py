@@ -11,6 +11,7 @@ Holds references for base actions in the Application of Spyder.
 """
 
 # Standard library imports
+import logging
 import os
 import subprocess
 import sys
@@ -39,6 +40,9 @@ from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.workers.updates import WorkerUpdates
+
+# Logger setup
+logger = logging.getLogger(__name__)
 
 
 class ApplicationPluginMenus:
@@ -380,6 +384,7 @@ class ApplicationContainer(PluginMainContainer):
     @Slot()
     def check_updates(self, startup=False):
         """Check for spyder updates on github releases using a QThread."""
+        logger.debug(f"Checking for updates. startup = {startup}.")
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
         if self.application_update_status:

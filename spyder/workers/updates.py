@@ -66,6 +66,7 @@ class WorkerUpdates(QObject):
         Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
         """
         # Don't perform any check for development versions
+        logger.debug("Checking releases for available updates.")
         if 'dev' in self.version:
             return (False, self.latest_release)
 
@@ -77,9 +78,12 @@ class WorkerUpdates(QObject):
                         if not is_stable_version(r) or r in self.version]
 
         latest_release = releases[-1]
+        update_available = check_version(self.version, latest_release, '<')
 
-        return (check_version(self.version, latest_release, '<'),
-                latest_release)
+        logger.debug(f"Update available: {update_available}")
+        logger.debug(f"Latest release: {latest_release}")
+
+        return update_available, latest_release
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
@@ -99,6 +103,7 @@ class WorkerUpdates(QObject):
 
         error_msg = None
 
+        logger.debug(f"Starting WorkerUpdates. Getting releases from {self.url}.")
         try:
             if hasattr(ssl, '_create_unverified_context'):
                 # Fix for spyder-ide/spyder#2685.
@@ -233,6 +238,7 @@ class WorkerDownloadInstaller(QObject):
 
     def start(self):
         """Main method of the WorkerDownloadInstaller worker."""
+        logger.debug("Starting WorkerDownloadInstaller.")
         error_msg = None
         try:
             self._download_installer()
