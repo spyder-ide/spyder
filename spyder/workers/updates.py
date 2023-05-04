@@ -18,17 +18,24 @@ from urllib.request import urlopen, urlretrieve
 from urllib.error import URLError, HTTPError
 
 # Third party imports
+from packaging.version import parse
 from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_stable_version
+from spyder.config.base import _, is_stable_version, is_conda_based_app
 from spyder.py3compat import is_text_string
-from spyder.config.utils import is_anaconda
-from spyder.utils.programs import check_version, is_module_installed
+from spyder.utils.programs import check_version
 
 # Logger setup
 logger = logging.getLogger(__name__)
+
+context = {}
+if hasattr(ssl, '_create_unverified_context'):
+    # Fix for spyder-ide/spyder#2685.
+    # [Works only with Python >=2.7.9]
+    # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
+    context = {'context': ssl._create_unverified_context()}
 
 
 class UpdateDownloadCancelledException(Exception):
@@ -45,30 +52,26 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent, startup, version="", releases=None):
+    def __init__(self, parent, startup, version=""):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
-        self.latest_release = None
         self.startup = startup
-        self.releases = releases
+        self.releases = []
 
         if not version:
             self.version = __version__
         else:
             self.version = version
 
-    def check_update_available(self):
-        """Checks if there is an update available.
+        self.update_available = None
+        self.latest_release = None
+        self.update_from_github = True
 
-        It takes as parameters the current version of Spyder and a list of
-        valid cleaned releases in chronological order.
-        Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
-        """
+    def check_update_available(self):
+        """Checks if there is an update available from releases."""
         # Don't perform any check for development versions
         logger.debug("Checking releases for available updates.")
-        if 'dev' in self.version:
-            return (False, self.latest_release)
 
         # Filter releases
         if is_stable_version(self.version):
@@ -80,79 +83,87 @@ class WorkerUpdates(QObject):
                         if not is_stable_version(r) or r in self.version]
 
         # If releases is empty, default to current version
-        latest_release = releases[-1] if releases else self.version
-        update_available = check_version(self.version, latest_release, '<')
+        self.latest_release = releases[-1] if releases else self.version
 
-        logger.debug(f"Update available: {update_available}")
-        logger.debug(f"Latest release: {latest_release}")
+        self.update_available = check_version(self.version,
+                                              self.latest_release, '<')
+        if 'dev' in self.version:
+            self.update_available = False
 
-        return update_available, latest_release
+        logger.debug(f"Update available: {self.update_available}")
+        logger.debug(f"Latest release: {self.latest_release}")
+
+    def get_releases(self):
+        if self.update_from_github:
+            # Get releases from GitHub
+            url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+        else:
+            # Get releases from conda
+            url = 'https://repo.anaconda.com/pkgs/main'
+            if os.name == 'nt':
+                url += '/win-64/repodata.json'
+            elif sys.platform == 'darwin':
+                url += '/osx-64/repodata.json'
+            else:
+                url += '/linux-64/repodata.json'
+
+        logger.debug(f"Getting releases from {url}.")
+
+        page = urlopen(url, **context)
+        try:
+            data = page.read()
+
+            # Needed step for python3 compatibility
+            if not is_text_string(data):
+                data = data.decode()
+            data = json.loads(data)
+
+            if self.update_from_github:
+                self.releases = [item['tag_name'].replace('v', '')
+                                 for item in data]
+                self.releases = list(reversed(self.releases))
+            else:
+                self.releases = []
+                for item in data['packages']:
+                    if ('spyder' in item and
+                            not re.search(r'spyder-[a-zA-Z]', item)):
+                        self.releases.append(item.split('-')[1])
+        except Exception:
+            self.error = _('Unable to retrieve information.')
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
-        if is_anaconda():
-            self.url = 'https://repo.anaconda.com/pkgs/main'
-            if os.name == 'nt':
-                self.url += '/win-64/repodata.json'
-            elif sys.platform == 'darwin':
-                self.url += '/osx-64/repodata.json'
-            else:
-                self.url += '/linux-64/repodata.json'
-        else:
-            self.url = ('https://api.github.com/repos/'
-                        'spyder-ide/spyder/releases')
+        logger.debug("Starting WorkerUpdates.")
+
         self.update_available = False
         self.latest_release = __version__
+        self.error = None
 
-        error_msg = None
-
-        logger.debug(f"Starting WorkerUpdates. Getting releases from {self.url}.")
         try:
-            if hasattr(ssl, '_create_unverified_context'):
-                # Fix for spyder-ide/spyder#2685.
-                # [Works only with Python >=2.7.9]
-                # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
-                context = ssl._create_unverified_context()
-                page = urlopen(self.url, context=context)
-            else:
-                page = urlopen(self.url)
-            try:
-                data = page.read()
-
-                # Needed step for python3 compatibility
-                if not is_text_string(data):
-                    data = data.decode()
-                data = json.loads(data)
-
-                if is_anaconda():
-                    if self.releases is None:
-                        self.releases = []
-                        for item in data['packages']:
-                            if ('spyder' in item and
-                                    not re.search(r'spyder-[a-zA-Z]', item)):
-                                self.releases.append(item.split('-')[1])
-                    result = self.check_update_available()
-                else:
-                    if self.releases is None:
-                        self.releases = [item['tag_name'].replace('v', '')
-                                         for item in data]
-                        self.releases = list(reversed(self.releases))
-
-                result = self.check_update_available()
-                self.update_available, self.latest_release = result
-            except Exception:
-                error_msg = _('Unable to retrieve information.')
+            # First check major version update for conda-based app
+            self.update_from_github = True
+            self.get_releases()
+            self.check_update_available()
+            current_major = parse(self.version).major
+            latest_major = parse(self.latest_release).major
+            download = is_conda_based_app() and current_major < latest_major
+            if self.update_available and not download:
+                # Check for available update from conda
+                self.update_from_github = False
+                self.get_releases()
+                self.check_update_available()
         except HTTPError:
-            error_msg = _('Unable to retrieve information.')
+            self.error = _('Unable to retrieve information.')
         except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>Make '
-                          'sure the connection is working properly.')
+            self.error = _('Unable to connect to the internet. <br><br>Make '
+                           'sure the connection is working properly.')
         except Exception:
-            error_msg = _('Unable to check for updates.')
+            self.error = _('Unable to check for updates.')
 
-        # Don't show dialog when starting up spyder and an error occur
-        if not (self.startup and error_msg is not None):
-            self.error = error_msg
+        if self.error:
+            logger.info(self.error)
+
+        if not self.startup or self.error is None:
             try:
                 self.sig_ready.emit()
             except RuntimeError:
@@ -247,7 +258,7 @@ class WorkerDownloadInstaller(QObject):
             self._download_installer()
         except UpdateDownloadCancelledException:
             if self.installer_path:
-               os.remove(self.installer_path)
+                os.remove(self.installer_path)
             return
         except HTTPError:
             error_msg = _('Unable to retrieve installer information.')
