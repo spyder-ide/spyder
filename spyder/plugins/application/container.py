@@ -404,6 +404,9 @@ class ApplicationContainer(PluginMainContainer):
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)
+        if self.application_update_status:
+            self.thread_updates.started.connect(
+                self.application_update_status.set_status_checking)
         self.thread_updates.started.connect(self.worker_updates.start)
 
         # Delay starting this check to avoid blocking the main window
@@ -413,9 +416,14 @@ class ApplicationContainer(PluginMainContainer):
             self.updates_timer = QTimer(self)
             self.updates_timer.setInterval(60000)
             self.updates_timer.setSingleShot(True)
+            if self.application_update_status:
+                self.application_update_status.blockSignals(True)
+                self.updates_timer.timeout.connect(
+                    lambda: self.application_update_status.blockSignals(False))
             self.updates_timer.timeout.connect(self.thread_updates.start)
             self.updates_timer.start()
         else:
+            # Otherwise, start immediately
             self.thread_updates.start()
 
     @Slot(str)
