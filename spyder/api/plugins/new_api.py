@@ -686,15 +686,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         return ima.icon(name)
 
     @classmethod
-    def get_font(cls, rich_text=False):
+    def get_font(cls, font_type='plain'):
         """
         Return plain or rich text font used in Spyder.
 
         Parameters
         ----------
-        rich_text: bool
-            Return rich text font (i.e. the one used in the Help pane)
-            or plain text one (i.e. the one used in the Editor).
+        font_type: str, optional
+            There are three types of font types in Spyder: 'rich', which is
+            used in the Help pane; 'plain', used in the Editor and IPython
+            console; and `application`, used by the entire Spyder app.
+            The default is 'plain'.
 
         Returns
         -------
@@ -708,12 +710,15 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         default one. That can be controlled by using FONT_SIZE_DELTA or
         RICH_FONT_SIZE_DELTA (declared in `SpyderPlugin`).
         """
-        if rich_text:
+        if font_type == 'rich':
             option = 'rich_font'
             font_size_delta = cls.RICH_FONT_SIZE_DELTA
-        else:
+        elif font_type == 'plain':
             option = 'font'
             font_size_delta = cls.FONT_SIZE_DELTA
+        else:
+            option = 'app_font'
+            font_size_delta = 0
 
         return get_font(option=option, font_size_delta=font_size_delta)
 
