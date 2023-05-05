@@ -38,6 +38,10 @@ add_alias() (
         exit 0
     fi
 
+    # Remove old-style markers, if present; discard after EXPERIMENTAL
+    # installer attrition.
+    sed ${sed_opts[@]} "/# <<<< Added by Spyder <<<</,/# >>>> Added by Spyder >>>>/d" $shell_init
+
     # Posix compliant sed does not like semicolons.
     # Must use newlines to work on macOS
     sed ${sed_opts[@]} "
