@@ -30,6 +30,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
@@ -100,12 +101,7 @@ def qapplication(translate=True, test_time=3):
     test_time: Time to maintain open the application when testing. It's given
     in seconds
     """
-    if sys.platform == "darwin":
-        SpyderApplication = MacApplication
-    else:
-        SpyderApplication = QApplication
-
-    app = SpyderApplication.instance()
+    app = QApplication.instance()
     if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
@@ -761,22 +757,22 @@ class QInputDialogMultiline(QDialog):
         cancel_button.clicked.connect(self.reject)
 
 
-# =============================================================================
-# Only for macOS
-# =============================================================================
-class MacApplication(QApplication):
-    """Subclass to be able to open external files with our Mac app"""
+class SpyderApplication(QApplication, SpyderConfigurationAccessor):
+    """Subclass with several adjustments for Spyder."""
+
     sig_open_external_file = Signal(str)
 
     def __init__(self, *args):
         QApplication.__init__(self, *args)
+
         self._never_shown = True
         self._has_started = False
         self._pending_file_open = []
         self._original_handlers = {}
 
     def event(self, event):
-        if event.type() == QEvent.FileOpen:
+
+        if sys.platform == 'darwin' and event.type() == QEvent.FileOpen:
             fname = str(event.file())
             if sys.argv and sys.argv[0] == fname:
                 # Ignore requests to open own script
@@ -786,7 +782,27 @@ class MacApplication(QApplication):
                 self.sig_open_external_file.emit(fname)
             else:
                 self._pending_file_open.append(fname)
+
         return QApplication.event(self, event)
+
+    def set_font(self):
+        """Set font for the entire application."""
+        family = self.get_conf('app_font/family', section='appearance')
+        size = self.get_conf('app_font/size', section='appearance')
+
+        # This should only happen the first time Spyder starts. So, we get and
+        # set the default font used by the OS.
+        if not family and not size:
+            family = self.font().family()
+            size = self.font().pointSize()
+
+            self.set_conf('app_font/family', family, section='appearance')
+            self.set_conf('app_font/size', size, section='appearance')
+
+        font = self.font()
+        font.setFamily(family)
+        font.setPointSize(size)
+        self.setFont(font)
 
 
 def restore_launchservices():

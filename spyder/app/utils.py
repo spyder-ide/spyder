@@ -223,9 +223,12 @@ def create_application():
     # Our QApplication
     app = qapplication()
 
-    # --- Set application icon
+    # ---- Set icon
     app_icon = QIcon(get_image_path("spyder"))
     app.setWindowIcon(app_icon)
+
+    # ---- Set font
+    app.set_font()
 
     # Required for correct icon on GNOME/Wayland:
     if hasattr(app, 'setDesktopFileName'):

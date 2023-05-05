@@ -30,7 +30,15 @@ APPEARANCE = {
     'rich_font/size': SMALL if (LINUX or WIN) else MEDIUM,
     'rich_font/italic': False,
     'rich_font/bold': False,
+    # We select the app font from the operating system the first time Spyder
+    # starts, so we don't need to set it here
+    'app_font/family': '',
+    'app_font/size': 0,
+    'app_font/italic': False,
+    'app_font/bold': False,
+    # UI theme
     'ui_theme': 'automatic',
+    # Syntax highlighting theme names
     'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
               'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
               'solarized/dark', 'inkpot', 'minimal', 'nightlion',
