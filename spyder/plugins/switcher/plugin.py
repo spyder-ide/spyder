@@ -100,6 +100,16 @@ class Switcher(SpyderPluginV2):
         The path to the requested file.
     """
 
+    sig_search_text_available = Signal(str)
+    """
+    This signal is emitted when the user stops typing the search/filter text.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search/filter text.
+    """
+
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
     @staticmethod
@@ -121,6 +131,8 @@ class Switcher(SpyderPluginV2):
         self._switcher.sig_item_changed.connect(self.sig_item_changed)
         self._switcher.sig_item_selected.connect(self.sig_item_selected)
         self._switcher.sig_mode_selected.connect(self.sig_mode_selected)
+        self._switcher.sig_search_text_available.connect(
+            self.sig_search_text_available)
 
     def on_close(self, cancellable=True):
         """Close switcher widget."""

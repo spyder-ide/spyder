@@ -614,11 +614,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         if mode != '':
             return
 
-        project_path = self.get_active_project_path()
-        if project_path is None:
+        paths = self._execute_fzf_subprocess()
+        if paths == []:
             return
-
-        paths = self._execute_fzf_subprocess(project_path)
         # the paths that are opened in the editor need to be excluded because
         # they are shown already in the switcher in the "editor" section.
         open_files = self.get_plugin()._get_open_filenames()
@@ -654,6 +652,13 @@ class ProjectExplorerWidget(PluginMainWidget):
         If the selected item is not in the section of the switcher that
         corresponds to this plugin, then ignore it. Otherwise, switch to
         selected item in notebook plugin and hide the switcher.
+        ----------
+        item: object
+            The current selected item from the switcher list (QStandardItem).
+        mode: str
+            The current selected mode (open files "", symbol "@" or line ":").
+        search_text: str
+            Cleaned search/filter text.
         """
 
         if item.get_section() != self.get_title():
@@ -665,8 +670,22 @@ class ProjectExplorerWidget(PluginMainWidget):
         switcher.sig_open_file_requested.emit(filename)
         switcher.hide()
 
+    def handle_switcher_results(self, search_text):
+        """
+        Handle user typing in switcher to filter result.
+        Load switcher results when a search text is typed for projects.
+        Parameters
+        ----------
+        text: str
+            The current search text in the switcher dialog box.
+        """
+        switcher = self.get_plugin()._switcher
+
     # fzf helper method
-    def _execute_fzf_subprocess(self, project_path, search_text=""):
+    def _execute_fzf_subprocess(self, search_text=""):
+        project_path = self.get_active_project_path()
+        if project_path is None:
+            return []
         # command = fzf --filter <search_str>
         cmd_list = ["fzf", "--filter", search_text]
         shell = False

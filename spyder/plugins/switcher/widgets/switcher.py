@@ -139,6 +139,16 @@ class Switcher(QDialog):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
+    sig_search_text_available = Signal(str)
+    """
+    This signal is emitted when the user stops typing the search/filter text.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search/filter text.
+    """
+
     _MAX_NUM_ITEMS = 15
     _MIN_WIDTH = 580
     _MIN_HEIGHT = 200
@@ -294,6 +304,9 @@ class Switcher(QDialog):
                 self.sig_mode_selected.emit(key)
                 return
 
+        search_text = clean_string(search_text)
+        self.sig_search_text_available.emit(search_text)
+
         # Filter by text
         titles = []
         for row in range(self.model.rowCount()):
@@ -304,7 +317,6 @@ class Switcher(QDialog):
                 title = ''
             titles.append(title)
 
-        search_text = clean_string(search_text)
         scores = get_search_scores(to_text_string(search_text),
                                    titles, template=u"<b>{0}</b>")
 

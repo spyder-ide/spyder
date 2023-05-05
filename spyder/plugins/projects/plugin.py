@@ -212,6 +212,8 @@ class Projects(SpyderDockablePlugin):
         self._switcher.sig_mode_selected.connect(self.handle_switcher_modes)
         self._switcher.sig_item_selected.connect(
             self.handle_switcher_selection)
+        self._switcher.sig_search_text_available.connect(
+            self.handle_switcher_results)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -271,10 +273,15 @@ class Projects(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Switcher)
     def on_switcher_teardown(self):
+        # Disconnect from switcher
+        # main.switcher is none if switcher plugin is not available
+        # this may result in a crash. todo: validate if none
+        # print(self._switcher)
         self._switcher.sig_mode_selected.disconnect(self.handle_switcher_modes)
-        # self._switcher.sig_item_selected.connect(
-        #     self.handle_switcher_selection)
-        # self._switcher = None
+        self._switcher.sig_item_selected.disconnect(
+            self.handle_switcher_selection)
+        self._switcher.sig_search_text_available.disconnect(
+            self.handle_switcher_results)
 
     def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -457,6 +464,17 @@ class Projects(SpyderDockablePlugin):
             Cleaned search/filter text.
         """
         self.get_widget().handle_switcher_selection(item, mode, search_text)
+
+    def handle_switcher_results(self, search_text):
+        """
+        Handle user typing in switcher to filter result.
+        Load switcher results when a search text is typed for projects.
+        Parameters
+        ----------
+        text: str
+            The current search text in the switcher dialog box.
+        """
+        self.get_widget().handle_switcher_results(search_text)
 
     # ---- Private API
     # -------------------------------------------------------------------------
