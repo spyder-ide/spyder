@@ -52,11 +52,10 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent, startup, version=""):
+    def __init__(self, parent, version=""):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
-        self.startup = startup
         self.releases = []
 
         if not version:
@@ -70,7 +69,6 @@ class WorkerUpdates(QObject):
 
     def check_update_available(self):
         """Checks if there is an update available from releases."""
-        # Don't perform any check for development versions
         logger.debug("Checking releases for available updates.")
 
         # Filter releases
@@ -87,8 +85,6 @@ class WorkerUpdates(QObject):
 
         self.update_available = check_version(self.version,
                                               self.latest_release, '<')
-        if 'dev' in self.version:
-            self.update_available = False
 
         logger.debug(f"Update available: {self.update_available}")
         logger.debug(f"Latest release: {self.latest_release}")
@@ -163,11 +159,10 @@ class WorkerUpdates(QObject):
         if self.error:
             logger.info(self.error)
 
-        if not self.startup or self.error is None:
-            try:
-                self.sig_ready.emit()
-            except RuntimeError:
-                pass
+        try:
+            self.sig_ready.emit()
+        except RuntimeError:
+            pass
 
 
 class WorkerDownloadInstaller(QObject):

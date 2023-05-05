@@ -259,16 +259,28 @@ class ApplicationContainer(PluginMainContainer):
     def _check_updates_ready(self):
         """Show results of the Spyder update checking process."""
 
-        # `feedback` = False is used on startup, so only positive feedback is
-        # given. `feedback` = True is used when after startup (when using the
-        # menu action, and gives feeback if updates are, or are not found.
-        feedback = self.give_updates_feedback
-
         # Get results from worker
         update_available = self.worker_updates.update_available
         latest_release = self.worker_updates.latest_release
         update_from_github = self.worker_updates.update_from_github
         error_msg = self.worker_updates.error
+
+        # give_updates_feedback = False is used on startup, so only positive
+        # feedback is given. give_updates_feedback = True is used after startup
+        # when using the menu action, and gives feeback if updates are, or are
+        # not found.
+        if (
+            not self.give_updates_feedback and    # startup and...
+            ('dev' in self.worker_updates.version  # current version is dev
+             or error_msg is not None             # or there is an error
+             or not update_available)             # or no updates available
+        ):
+            # Just set status and return
+            if self.application_update_status:
+                self.application_update_status.set_no_status()
+            self.check_updates_action.setDisabled(False)
+            self.give_updates_feedback = True
+            return
 
         url_i = 'https://docs.spyder-ide.org/current/installation.html'
 
@@ -363,13 +375,9 @@ class ApplicationContainer(PluginMainContainer):
 
                 box.setText(msg)
                 box.exec_()
-
-        elif feedback:
+        else:
             box.setText(_("Spyder is up to date."))
             box.exec_()
-            if self.application_update_status:
-                self.application_update_status.set_no_status()
-        else:
             if self.application_update_status:
                 self.application_update_status.set_no_status()
 
@@ -377,9 +385,6 @@ class ApplicationContainer(PluginMainContainer):
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)
-
-        # Provide feeback when clicking menu if check on startup is on
-        self.give_updates_feedback = True
 
     @Slot()
     def check_updates(self, startup=False):
@@ -395,7 +400,7 @@ class ApplicationContainer(PluginMainContainer):
             self.thread_updates.wait()
 
         self.thread_updates = QThread(None)
-        self.worker_updates = WorkerUpdates(self, startup=startup)
+        self.worker_updates = WorkerUpdates(self)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)
