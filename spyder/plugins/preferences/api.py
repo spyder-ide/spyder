@@ -312,20 +312,18 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             fontbox.setCurrentFont(font)
             sizebox.setValue(font.pointSize())
 
-            if option is None:
-                property = 'plugin_font'
-            else:
-                property = option
+            fontbox.currentIndexChanged.connect(
+                lambda _foo, opt=option: self.has_been_modified(None, opt))
+            sizebox.valueChanged.connect(
+                lambda _foo, opt=option: self.has_been_modified(None, opt))
 
-            fontbox.currentIndexChanged.connect(lambda _foo, opt=property:
-                                                self.has_been_modified(
-                                                    self.CONF_SECTION, opt))
-            sizebox.valueChanged.connect(lambda _foo, opt=property:
-                                         self.has_been_modified(
-                                             self.CONF_SECTION, opt))
+            if fontbox.restart_required:
+                self.restart_options[option] = fontbox.label_text
+
+            if sizebox.restart_required:
+                self.restart_options[option] = sizebox.label_text
 
         for clayout, (sec, option, default) in list(self.coloredits.items()):
-            property = to_qvariant(option)
             edit = clayout.lineedit
             btn = clayout.colorbtn
             edit.setText(self.get_option(option, default, section=sec))
@@ -419,7 +417,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                 section=sec, recursive_notification=False)
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            if (self.CONF_SECTION, option) in self.changed_options:
+            if option in self.changed_options:
                 font = fontbox.currentFont()
                 font.setPointSize(sizebox.value())
                 self.set_font(font, option)
@@ -788,14 +786,18 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_fontgroup(self, option=None, text=None, title=None,
-                         tip=None, fontfilters=None, without_group=False):
+                         tip=None, fontfilters=None, without_group=False,
+                         restart=False):
         """Option=None -> setting plugin font"""
 
         if title:
             fontlabel = QLabel(title)
         else:
             fontlabel = QLabel(_("Font"))
+
         fontbox = QFontComboBox()
+        fontbox.restart_required = restart
+        fontbox.label_text = _("{} font").format(title)
 
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
@@ -803,9 +805,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         sizelabel = QLabel("  " + _("Size"))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
-        self.fontboxes[(fontbox, sizebox)] = option
-        layout = QHBoxLayout()
+        sizebox.restart_required = restart
+        sizebox.label_text = _("{} font size").format(title)
 
+        self.fontboxes[(fontbox, sizebox)] = option
+
+        layout = QHBoxLayout()
         for subwidget in (fontlabel, fontbox, sizelabel, sizebox):
             layout.addWidget(subwidget)
         layout.addStretch(1)

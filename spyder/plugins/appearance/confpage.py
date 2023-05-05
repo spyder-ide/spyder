@@ -116,7 +116,14 @@ class AppearanceConfigPage(PluginConfigPage):
             title=_("Rich text"),
             without_group=True)
 
-        # Fonts layouts
+        self.app_font = self.create_fontgroup(
+            option='app_font',
+            title=_("Application"),
+            fontfilters=QFontComboBox.ProportionalFonts,
+            restart=True,
+            without_group=True)
+
+        # Fonts layout
         fonts_layout = QGridLayout(fonts_group)
         fonts_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
         fonts_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
@@ -126,6 +133,11 @@ class AppearanceConfigPage(PluginConfigPage):
         fonts_layout.addWidget(self.rich_text_font.fontbox, 1, 1)
         fonts_layout.addWidget(self.rich_text_font.sizelabel, 1, 2)
         fonts_layout.addWidget(self.rich_text_font.sizebox, 1, 3)
+        fonts_layout.addWidget(self.app_font.fontlabel, 2, 0)
+        fonts_layout.addWidget(self.app_font.fontbox, 2, 1)
+        fonts_layout.addWidget(self.app_font.sizelabel, 2, 2)
+        fonts_layout.addWidget(self.app_font.sizebox, 2, 3)
+
         fonts_layout.setRowStretch(fonts_layout.rowCount(), 1)
 
         # Left options layout
@@ -172,11 +184,14 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def set_font(self, font, option):
         """Set global font used in Spyder."""
-        # Update fonts in all plugins
         set_font(font, option=option)
-        plugins = self.main.widgetlist + self.main.thirdparty_plugins
-        for plugin in plugins:
-            plugin.update_font()
+
+        # The app font can't be set in place. Instead, it requires a restart
+        if option != 'app_font':
+            # Update fonts for all plugins
+            plugins = self.main.widgetlist + self.main.thirdparty_plugins
+            for plugin in plugins:
+                plugin.update_font()
 
     def apply_settings(self):
         ui_theme = self.get_option('ui_theme')
