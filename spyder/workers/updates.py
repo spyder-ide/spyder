@@ -23,7 +23,8 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_stable_version, is_conda_based_app
+from spyder.config.base import (_, is_stable_version, is_conda_based_app,
+                                running_under_pytest)
 from spyder.py3compat import is_text_string
 from spyder.utils.programs import check_version
 
@@ -52,16 +53,12 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent, version=""):
+    def __init__(self, parent):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
         self.releases = []
-
-        if not version:
-            self.version = __version__
-        else:
-            self.version = version
+        self.version = __version__
 
         self.update_available = None
         self.latest_release = None
@@ -114,6 +111,10 @@ class WorkerUpdates(QObject):
                 data = data.decode()
             data = json.loads(data)
 
+            if running_under_pytest() and self.releases:
+                # If releases set in pytest, don't overwrite
+                return
+
             if self.update_from_github:
                 self.releases = [item['tag_name'].replace('v', '')
                                  for item in data]
@@ -132,7 +133,7 @@ class WorkerUpdates(QObject):
         logger.debug("Starting WorkerUpdates.")
 
         self.update_available = False
-        self.latest_release = __version__
+        self.latest_release = self.version
         self.error = None
 
         try:
