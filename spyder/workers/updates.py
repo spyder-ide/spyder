@@ -11,6 +11,7 @@ import os
 import os.path as osp
 import platform
 import re
+import shutil
 import ssl
 import sys
 import tempfile
@@ -223,8 +224,7 @@ class WorkerDownloadInstaller(QObject):
         os.makedirs(installer_dir_path, exist_ok=True)
         for file in os.listdir(dir_path):
             if file not in [__version__, self.latest_release_version]:
-                remove = osp.join(dir_path, file)
-                os.remove(remove)
+                shutil.rmtree(osp.join(dir_path, file))
 
         installer_path = osp.join(installer_dir_path, fname)
         self.installer_path = installer_path
