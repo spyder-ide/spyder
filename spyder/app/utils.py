@@ -195,9 +195,6 @@ def create_splash_screen():
         pm = pm.copy(0, 0, 500, 400)
 
         splash = QSplashScreen(pm)
-        splash_font = splash.font()
-        splash_font.setPixelSize(14)
-        splash.setFont(splash_font)
     else:
         splash = None
 

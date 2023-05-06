@@ -179,6 +179,7 @@ def main():
     # -------------------------------------------------------------------------
     # Start Qt Splash to inform the user of the current status
     app = qapplication()
+    app.set_font()
     restarter = Restarter()
 
     APP_ICON = QIcon(get_image_path("spyder"))
