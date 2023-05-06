@@ -146,7 +146,8 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_loaded.connect(self._set_path_in_editor)
         widget.sig_project_closed.connect(self._unset_path_in_editor)
 
-        self._switcher.sig_open_file_requested.connect(editor.load)
+        if self._switcher:
+            self._switcher.sig_open_file_requested.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
