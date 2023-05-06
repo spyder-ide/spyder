@@ -96,8 +96,7 @@ class ApplicationContainer(PluginMainContainer):
         self.current_dpi = None
         self.dpi_messagebox = None
 
-        # Keep track of the downloaded installer executable for updates
-        self.installer_path = None
+        self.install_on_close = False
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -116,7 +115,7 @@ class ApplicationContainer(PluginMainContainer):
             (self.application_update_status.sig_check_for_updates_requested
              .connect(self.check_updates))
             (self.application_update_status.sig_install_on_close_requested
-                 .connect(self.set_installer_path))
+                 .connect(self.set_install_on_close))
             self.application_update_status.set_no_status()
         self.give_updates_feedback = False
         self.thread_updates = None
@@ -238,9 +237,8 @@ class ApplicationContainer(PluginMainContainer):
             self.dependencies_thread.wait()
 
         # Run installer after Spyder is closed
-        if self.installer_path:
-            self.application_update_status.installer.install(
-                self.installer_path)
+        if self.install_on_close:
+            self.application_update_status.install()
 
     @Slot()
     def show_about(self):
@@ -308,6 +306,9 @@ class ApplicationContainer(PluginMainContainer):
             box.set_check_visible(False)
             box.exec_()
         elif update_available:
+            self.application_update_status.save_latest_release(
+                latest_release, update_from_github)
+
             # Update using our installers
             box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             box.setDefaultButton(QMessageBox.Yes)
@@ -334,8 +335,12 @@ class ApplicationContainer(PluginMainContainer):
             box.setText(msg)
             box.exec_()
             if box.result() == QMessageBox.Yes:
-                self.application_update_status.start_installation(
-                    latest_release=latest_release)
+                if update_from_github:
+                    # Start download
+                    self.application_update_status.start_installation()
+                else:
+                    # Confirm installation
+                    self.application_update_status.confirm_installation()
 
             # Manual update
             if box.result() == QMessageBox.No and not is_conda_based_app():
@@ -426,10 +431,10 @@ class ApplicationContainer(PluginMainContainer):
             # Otherwise, start immediately
             self.thread_updates.start()
 
-    @Slot(str)
-    def set_installer_path(self, installer_path):
-        """Set installer executable path to be run when closing."""
-        self.installer_path = installer_path
+    @Slot(bool)
+    def set_install_on_close(self, install_on_close):
+        """Set whether installer should be run when closing."""
+        self.install_on_close = install_on_close
 
     # ---- Dependencies
     # -------------------------------------------------------------------------

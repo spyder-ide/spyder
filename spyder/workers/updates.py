@@ -172,15 +172,8 @@ class WorkerDownloadInstaller(QObject):
     and Linux without blocking the Spyder user interface.
     """
 
-    sig_ready = Signal(str)
-    """
-    Signal to inform that the worker has finished successfully.
-
-    Parameters
-    ----------
-    installer_path: str
-        Path where the downloaded installer is located.
-    """
+    sig_ready = Signal()
+    """Signal to inform that the worker has finished successfully."""
 
     sig_download_progress = Signal(int, int)
     """
@@ -265,6 +258,6 @@ class WorkerDownloadInstaller(QObject):
             error_msg = _('Unable to download the installer.')
         self.error = error_msg
         try:
-            self.sig_ready.emit(self.installer_path)
+            self.sig_ready.emit()
         except RuntimeError:
             pass

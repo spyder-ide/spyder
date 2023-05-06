@@ -41,14 +41,14 @@ class ApplicationUpdateStatus(StatusBarWidget):
     Signal to request checking for updates.
     """
 
-    sig_install_on_close_requested = Signal(str)
+    sig_install_on_close_requested = Signal(bool)
     """
     Signal to request running the downloaded installer on close.
 
     Parameters
     ----------
-    installer_path: str
-        Path to instal
+    install_on_close: bool
+        Whether to install on close.
     """
 
     CUSTOM_WIDGET_CLASS = QLabel
@@ -120,8 +120,17 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def get_icon(self):
         return ima.icon('spyder_about')
 
-    def start_installation(self, latest_release):
-        self.installer.start_installation(latest_release)
+    def save_latest_release(self, latest_release, update_from_github):
+        self.installer.save_latest_release(latest_release, update_from_github)
+
+    def start_installation(self):
+        self.installer.start_installation()
+
+    def confirm_installation(self):
+        self.installer.confirm_installation()
+
+    def install(self):
+        self.installer.install()
 
     def set_download_progress(self, current_value, total):
         percentage_progress = 0
@@ -131,7 +140,6 @@ class ApplicationUpdateStatus(StatusBarWidget):
 
     def set_status_pending(self, latest_release):
         self.set_value(PENDING)
-        self.installer.save_latest_release(latest_release)
 
     def set_status_checking(self):
         self.set_value(CHECKING)

@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 from spyder import __version__
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
+from spyder.utils.conda import find_conda
 from spyder.utils.icon_manager import ima
 from spyder.workers.updates import WorkerDownloadInstaller
 
@@ -135,14 +136,14 @@ class UpdateInstallerDialog(QDialog):
         Latest release version detected.
     """
 
-    sig_install_on_close_requested = Signal(str)
+    sig_install_on_close_requested = Signal(bool)
     """
     Signal to request running the downloaded installer on close.
 
     Parameters
     ----------
-    installer_path: str
-        Path to the installer executable.
+    install_on_close: bool
+        Whether to install on close.
     """
 
     def __init__(self, parent):
@@ -150,13 +151,14 @@ class UpdateInstallerDialog(QDialog):
         self.status = NO_STATUS
         self.download_thread = None
         self.download_worker = None
+        self.latest_release = None
+        self.update_from_github = None
         self.installer_path = None
 
         super().__init__(parent)
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
         self._installation_widget = UpdateInstallation(self)
-        self.latest_release_version = ""
 
         # Layout
         installer_layout = QVBoxLayout()
@@ -190,18 +192,20 @@ class UpdateInstallerDialog(QDialog):
         self._installation_widget.setVisible(True)
         self.adjustSize()
 
-    def save_latest_release(self, latest_release_version):
-        self.latest_release_version = latest_release_version
+    def save_latest_release(self, latest_release, update_from_github):
+        self.latest_release = latest_release
+        self.update_from_github = update_from_github
 
-    def start_installation(self, latest_release_version):
+    def start_installation(self):
         """Start downloading the update and set downloading status."""
-        self.latest_release_version = latest_release_version
         self.cancelled = False
         self._change_update_installation_status(
             status=DOWNLOADING_INSTALLER)
         self.download_thread = QThread(None)
         self.download_worker = WorkerDownloadInstaller(
-            self, self.latest_release_version)
+            self, self.latest_release)
+        self.download_worker.sig_ready.connect(
+            lambda: self._change_update_installation_status(DOWNLOAD_FINISHED))
         self.download_worker.sig_ready.connect(self.confirm_installation)
         self.download_worker.sig_ready.connect(self.download_thread.quit)
         self.download_worker.sig_download_progress.connect(
@@ -239,18 +243,22 @@ class UpdateInstallerDialog(QDialog):
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         reply.exec_()
         if reply.result() == QMessageBox.Yes:
-            self.start_installation(self.latest_release_version)
+            self.start_installation()
         else:
             self._change_update_installation_status(status=PENDING)
 
-    def confirm_installation(self, installer_path):
+    def confirm_installation(self):
         """
         Ask users if they want to proceed with the installer execution.
         """
         if self.cancelled:
             return
-        self._change_update_installation_status(status=DOWNLOAD_FINISHED)
-        self.installer_path = installer_path
+
+        self.installer_path = None
+        # Get data from WorkerDownload
+        if self.download_worker:
+            self.installer_path = self.download_worker.installer_path
+
         msg_box = QMessageBox(
             icon=QMessageBox.Question,
             text=_("Would you like to proceed with the installation?<br><br>"),
@@ -271,27 +279,40 @@ class UpdateInstallerDialog(QDialog):
 
         if msg_box.clickedButton() == yes_button:
             self._change_update_installation_status(status=INSTALLING)
-            self.install(installer_path)
+            self.install()
             self._change_update_installation_status(status=PENDING)
         elif msg_box.clickedButton() == after_closing_button:
-            self.sig_install_on_close_requested.emit(self.installer_path)
+            self.sig_install_on_close_requested.emit(True)
             self._change_update_installation_status(status=PENDING)
         else:
             self._change_update_installation_status(status=PENDING)
 
-    def install(self, installer_path):
-        """Install from downloaded installer."""
-        if os.name == 'nt':
-            cmd = 'start'
-        elif sys.platform == 'darwin':
-            cmd = 'open'
-        else:
-            cmd = 'gnome-terminal --window -- sh'
-        if os.path.exists(installer_path):
-            subprocess.Popen(
-                ' '.join([cmd, installer_path]),
-                shell=True
-            )
+    def install(self):
+        """Install from downloaded installer or update through conda."""
+        if (
+            self.update_from_github
+            and self.installer_path is not None
+            and os.path.exists(self.installer_path)
+        ):
+            # TODO: Close Spyder
+            # TODO: Uninstall existing version
+            # Run downloaded installer
+            if os.name == 'nt':
+                cmd = 'start'
+            elif sys.platform == 'darwin':
+                cmd = 'open'
+            else:
+                cmd = 'gnome-terminal --window -- sh'
+            subprocess.Popen(' '.join([cmd, self.installer_path]), shell=True)
+        elif (
+            not self.update_from_github
+            and self.latest_release is not None
+        ):
+            # Update with conda
+            # TODO: Restart Spyder
+            cmd = [find_conda(), 'install', '-p', sys.prefix,
+                   f'spyder={self.latest_release}']
+            subprocess.Popen(' '.join(cmd), shell=True)
 
     def finish_installation(self):
         """Handle finished installation."""
@@ -317,7 +338,7 @@ class UpdateInstallerDialog(QDialog):
         elif status == FINISHED or status == PENDING:
             self.finish_installation()
         self.sig_installation_status.emit(
-            self.status, self.latest_release_version)
+            self.status, self.latest_release)
 
     def _cancel_download(self):
         self._change_update_installation_status(status=CANCELLED)
