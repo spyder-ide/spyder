@@ -197,10 +197,10 @@ APP_STYLESHEET = AppStylesheet()
 class ApplicationToolbarStylesheet(SpyderStyleSheet):
     """Stylesheet for application toolbars."""
 
-    BUTTON_WIDTH = '2.7em'
-    BUTTON_HEIGHT = '2.7em'
-    BUTTON_MARGIN_LEFT = '0.25em'
-    BUTTON_MARGIN_RIGHT = '0.25em'
+    BUTTON_WIDTH = '47px'
+    BUTTON_HEIGHT = '47px'
+    BUTTON_MARGIN_LEFT = '3px'
+    BUTTON_MARGIN_RIGHT = '3px'
 
     def set_stylesheet(self):
         css = self._stylesheet
@@ -238,14 +238,15 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
 class PanesToolbarStyleSheet(SpyderStyleSheet):
     """Stylesheet for pane toolbars."""
 
-    BUTTON_WIDTH = '2.2em'
-    BUTTON_HEIGHT = '2.2em'
+    # These values make buttons to be displayed at 44px according to Gammaray
+    BUTTON_WIDTH = '37px'
+    BUTTON_HEIGHT = '37px'
 
     def set_stylesheet(self):
         css = self._stylesheet
 
         css.QToolBar.setValues(
-            spacing='0.3em'
+            spacing='4px'
         )
 
         css.QToolButton.setValues(
@@ -271,9 +272,7 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     """Stylesheet for pane tabbars"""
 
-    # TODO: This needs to be changed to 1.0em when the IPython console
-    # and the Editor are migrated.
-    TOP_MARGIN = '0.8em'
+    TOP_MARGIN = '15px'
 
     def set_stylesheet(self):
         super().set_stylesheet()
@@ -335,14 +334,14 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # center it. But a bigger negative padding-bottom crops it even
         # more.
         css['QTabBar::close-button'].setValues(
-            paddingBottom='-5px' if MAC else '-6px',
+            paddingBottom='-6px' if MAC else '-7px',
         )
 
         # Set style for scroller buttons
         css['QTabBar#pane-tabbar QToolButton'].setValues(
             background=QStylePalette.COLOR_BACKGROUND_1,
             borderRadius='0px',
-            borderRight=f'0.3em solid {QStylePalette.COLOR_BACKGROUND_1}'
+            borderRight=f'5px solid {QStylePalette.COLOR_BACKGROUND_1}'
         )
 
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
@@ -357,7 +356,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # This makes one button huge and the other very small in PyQt 5.9
         if not OLD_PYQT:
             css['QTabBar::scroller'].setValues(
-                width='4.0em',
+                width='67px',
             )
 
         # Remove border between selected tab and pane below

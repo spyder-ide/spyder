@@ -315,7 +315,6 @@ class HistoryWidget(PluginMainWidget):
         css = tabs_stylesheet.get_stylesheet()
 
         css['QTabBar::tab'].setValues(
-            marginTop='1.0em',
             padding='4px'
         )
 

@@ -400,7 +400,7 @@ class ShortcutEditor(QDialog):
             icon = QIcon()
         elif conflicts:
             warning = SEQUENCE_CONFLICT
-            template = '<p style="margin-bottom: 0.3em">{0}</p>{1}{2}'
+            template = '<p style="margin-bottom: 5px">{0}</p>{1}{2}'
             tip_title = _('This key sequence conflicts with:')
             tip_body = ''
             for s in conflicts:
