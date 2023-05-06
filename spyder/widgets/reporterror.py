@@ -59,7 +59,8 @@ class DescriptionWidget(SimpleCodeEditor):
         # Header
         self.header = (
             "### What steps will reproduce the problem?\n\n"
-            "<!--- You can use Markdown here --->\n\n")
+            "<!--- You can use Markdown here --->\n\n"
+        )
         self.set_text(self.header)
 
         self.move_cursor(len(self.header))
@@ -147,7 +148,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         else:
             title = _("Spyder has encountered an internal problem!")
         self.main_label = QLabel(
-            _("<h3>{title}</h3>"
+            _("<h4>{title}</h4>"
               "Before reporting this problem, <i>please</i> consult our "
               "comprehensive "
               "<b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> "
@@ -159,8 +160,6 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
                        project_url=__project_url__))
         self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
-        self.main_label.setAlignment(Qt.AlignJustify)
-        self.main_label.setStyleSheet('font-size: 12px;')
 
         # Issue title
         self.title = QLineEdit()
@@ -184,11 +183,12 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
               "clear way to reproduce them will be closed.")
         )
         self.steps_text.setWordWrap(True)
-        self.steps_text.setAlignment(Qt.AlignJustify)
-        self.steps_text.setStyleSheet('font-size: 12px;')
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
+        input_description_layout = QHBoxLayout()
+        input_description_layout.addWidget(self.input_description)
+        input_description_layout.setContentsMargins(4, 0, 0, 0)
 
         # Only allow to submit to Github if we have a long enough description
         self.input_description.textChanged.connect(self._contents_changed)
@@ -213,6 +213,10 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         # Checkbox to include IPython console environment
         self.include_env = QCheckBox(_("Include IPython console environment"))
+        self.include_env.hide()
+        include_env_layout = QHBoxLayout()
+        include_env_layout.addWidget(self.include_env)
+        include_env_layout.setContentsMargins(2, 0, 0, 0)
 
         # Dialog buttons
         gh_icon = ima.icon('github')
@@ -233,22 +237,22 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
         buttons_layout.addWidget(self.submit_btn)
         buttons_layout.addWidget(self.details_btn)
         buttons_layout.addWidget(self.close_btn)
+        buttons_layout.setContentsMargins(4, 0, 0, 0)
 
         # Main layout
         layout = QVBoxLayout()
         layout.addWidget(self.main_label)
-        layout.addSpacing(20)
+        layout.addSpacing(15)
         layout.addLayout(form_layout)
         layout.addWidget(self.title_chars_label)
-        layout.addSpacing(12)
+        layout.addSpacing(15)
         layout.addWidget(steps_header)
         layout.addSpacing(-1)
         layout.addWidget(self.steps_text)
         layout.addSpacing(1)
-        layout.addWidget(self.input_description)
+        layout.addLayout(input_description_layout)
         layout.addWidget(self.details)
         layout.addWidget(self.desc_chars_label)
-        layout.addSpacing(15)
 
         if not self.is_report:
             layout.addWidget(self.dismiss_box)
@@ -258,14 +262,19 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
             not is_conda_based_app()
             or not self.get_conf('default', section='main_interpreter')
         ):
-            layout.addWidget(self.include_env)
+            self.include_env.show()
             layout.addSpacing(15)
+            layout.addLayout(include_env_layout)
+            layout.addSpacing(5)
+        else:
+            layout.addSpacing(5)
 
         layout.addLayout(buttons_layout)
-        layout.setContentsMargins(25, 20, 25, 10)
+        layout.setContentsMargins(25, 20, 29, 10)
         self.setLayout(layout)
 
-        self.resize(570, 600)
+        self.resize(600, 650)
+        self.setMinimumWidth(600)
         self.title.setFocus()
 
         # Set Tab key focus order
