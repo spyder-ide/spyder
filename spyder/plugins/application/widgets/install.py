@@ -266,9 +266,8 @@ class UpdateInstallerDialog(QDialog):
         )
         msg_box.setWindowTitle(_("Spyder update"))
         msg_box.setAttribute(Qt.WA_ShowWithoutActivating)
-        if os.name == 'nt' and is_conda_based_app():
-            # Only add yes button for Windows installer
-            # since it has the logic to restart Spyder
+        if is_conda_based_app():
+            # Only add yes button for conda-based installers
             yes_button = msg_box.addButton(QMessageBox.Yes)
         else:
             yes_button = None
