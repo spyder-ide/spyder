@@ -275,9 +275,6 @@ class Projects(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Switcher)
     def on_switcher_teardown(self):
         # Disconnect from switcher
-        # main.switcher is none if switcher plugin is not available
-        # this may result in a crash. todo: validate if none
-        # print(self._switcher)
         self._switcher.sig_mode_selected.disconnect(self.handle_switcher_modes)
         self._switcher.sig_item_selected.disconnect(
             self.handle_switcher_selection)

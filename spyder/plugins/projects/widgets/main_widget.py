@@ -40,6 +40,7 @@ from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
 from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
+from spyder.plugins.switcher.widgets.item import SwitcherItem
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
 
@@ -631,7 +632,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         for i, (path, short_path) in enumerate(zip(paths, short_paths)):
             title = osp.basename(path)
             icon = get_file_icon(path)
-            description = osp.dirname(path).lower()
+            description = osp.dirname(path)
             if len(path) > 75:
                 description = short_path
             is_last_item = (i+1 == len(paths))
@@ -680,6 +681,35 @@ class ProjectExplorerWidget(PluginMainWidget):
             The current search text in the switcher dialog box.
         """
         switcher = self.get_plugin()._switcher
+        paths = self._execute_fzf_subprocess(search_text)
+
+        for row in range(switcher.get_model().rowCount()):
+            item = switcher.get_model().item(row)
+            if isinstance(item, SwitcherItem):
+                if (item._data._filename.lower() in paths):
+                    paths.remove(item._data._filename.lower())
+
+        is_unsaved = [False] * len(paths)
+        short_paths = shorten_paths(paths, is_unsaved)
+        section = self.get_title()
+
+        for i, (path, short_path) in enumerate(zip(paths, short_paths)):
+            title = osp.basename(path)
+            icon = get_file_icon(path)
+            description = osp.dirname(path).lower()
+            if len(path) > 75:
+                description = short_path
+            is_last_item = (i+1 == len(paths))
+
+            switcher.add_item(
+                title=title,
+                description=description,
+                icon=icon,
+                section=section,
+                data=path,
+                last_item=is_last_item,
+                score=100
+            )
 
     # fzf helper method
     def _execute_fzf_subprocess(self, search_text=""):
@@ -698,14 +728,13 @@ class ProjectExplorerWidget(PluginMainWidget):
                                           stderr=subprocess.STDOUT)
             relative_path_list = out.decode('UTF-8').strip().split("\n")
             # List of tuples with the absolute path
-            result_list = [os.path.join(project_path, path)
+            result_list = [os.path.join(project_path, path).lower()
                            for path in relative_path_list]
             # Limit the number of results to 500
             if (len(result_list) > 500):
                 result_list = result_list[:500]
             return result_list
-        except subprocess.CalledProcessError as e:
-            print(e)
+        except subprocess.CalledProcessError:
             return []
 
     # ---- Public API for the LSP

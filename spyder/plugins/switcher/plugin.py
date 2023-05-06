@@ -188,6 +188,10 @@ class Switcher(SpyderPluginV2):
         """Open symbol list management dialog."""
         self.get_container().open_symbolfinder()
 
+    def get_model(self):
+        """Get the QStandardItemModel object."""
+        return self._switcher.get_model()
+
     # QDialog methods
     def show(self):
         """Show switcher."""
@@ -212,11 +216,11 @@ class Switcher(SpyderPluginV2):
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True):
+                 last_item=True, score=None):
         """Add a switcher list item."""
         self._switcher.add_item(icon, title, description, shortcut,
                                 section, data, tool_tip, action_item,
-                                last_item)
+                                last_item, score)
 
     def set_current_row(self, row):
         """Set the current selected row in the switcher."""
