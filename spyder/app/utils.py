@@ -181,22 +181,48 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
         print(msg_string)  # spyder: test-skip
 
 
-def create_splash_screen():
-    """Create splash screen."""
+def create_splash_screen(use_previous_factor=False):
+    """
+    Create splash screen.
+
+    Parameters
+    ----------
+    use_previous_factor: bool, optional
+        Use previous scale factor when creating the splash screen. This is used
+        when restarting Spyder, so the screen looks as expected. Default is
+        False.
+    """
     if not running_under_pytest():
         # This is a good size for the splash screen image at a scale factor of
         # 1. It corresponds to 75 ppi and preserves its aspect ratio.
         width = 526
         height = 432
 
+        # This allows us to use the previous scale factor for the splash screen
+        # shown when Spyder is restarted. Otherwise, it appears pixelated.
+        previous_factor = float(
+            CONF.get('main', 'prev_high_dpi_custom_scale_factors', 1)
+        )
+
         # We need to increase the image size according to the scale factor to
         # be displayed correctly.
         # See https://falsinsoft.blogspot.com/2016/04/
         # qt-snippet-render-svg-to-qpixmap-for.html for details.
         if CONF.get('main', 'high_dpi_custom_scale_factor'):
-            factor = float(CONF.get('main', 'high_dpi_custom_scale_factors'))
+            if not use_previous_factor:
+                factor = float(
+                    CONF.get('main', 'high_dpi_custom_scale_factors')
+                )
+            else:
+                factor = previous_factor
         else:
-            factor = 1
+            if not use_previous_factor:
+                factor = 1
+            else:
+                factor = previous_factor
+
+        # Save scale factor for restarts.
+        CONF.set('main', 'prev_high_dpi_custom_scale_factors', factor)
 
         image = QImage(
             int(width * factor), int(height * factor),
@@ -208,8 +234,8 @@ def create_splash_screen():
         renderer.render(painter)
         painter.end()
 
-        # This is also necessary for scale factors greater than 1.
-        if CONF.get('main', 'high_dpi_custom_scale_factor'):
+        # This is also necessary to make the image look good.
+        if factor > 1.0:
             image.setDevicePixelRatio(factor)
 
         pm = QPixmap.fromImage(image)

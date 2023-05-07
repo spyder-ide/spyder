@@ -91,7 +91,7 @@ class Restarter(QWidget):
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = create_splash_screen()
+        self.splash = create_splash_screen(use_previous_factor=True)
 
         # Widget setup
         self.setVisible(False)
