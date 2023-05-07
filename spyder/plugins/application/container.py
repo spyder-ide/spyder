@@ -13,7 +13,6 @@ Holds references for base actions in the Application of Spyder.
 # Standard library imports
 import logging
 import os
-import subprocess
 import sys
 import glob
 
@@ -239,9 +238,9 @@ class ApplicationContainer(PluginMainContainer):
             self.dependencies_thread.wait()
 
         # Run installer after Spyder is closed
-        cmd = ('start' if os.name == 'nt' else 'open')
         if self.installer_path:
-            subprocess.Popen(' '.join([cmd, self.installer_path]), shell=True)
+            self.application_update_status.installer.install(
+                self.installer_path)
 
     @Slot()
     def show_about(self):
@@ -268,6 +267,7 @@ class ApplicationContainer(PluginMainContainer):
         # Get results from worker
         update_available = self.worker_updates.update_available
         latest_release = self.worker_updates.latest_release
+        update_from_github = self.worker_updates.update_from_github
         error_msg = self.worker_updates.error
 
         url_i = 'https://docs.spyder-ide.org/current/installation.html'

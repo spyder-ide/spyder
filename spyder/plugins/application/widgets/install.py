@@ -271,23 +271,27 @@ class UpdateInstallerDialog(QDialog):
 
         if msg_box.clickedButton() == yes_button:
             self._change_update_installation_status(status=INSTALLING)
-            if os.name == 'nt':
-                cmd = 'start'
-            elif sys.platform == 'darwin':
-                cmd = 'open'
-            else:
-                cmd = 'gnome-terminal -- sh'
-            if self.installer_path:
-                subprocess.Popen(
-                    ' '.join([cmd, self.installer_path]),
-                    shell=True
-                )
+            self.install(installer_path)
             self._change_update_installation_status(status=PENDING)
         elif msg_box.clickedButton() == after_closing_button:
             self.sig_install_on_close_requested.emit(self.installer_path)
             self._change_update_installation_status(status=PENDING)
         else:
             self._change_update_installation_status(status=PENDING)
+
+    def install(self, installer_path):
+        """Install from downloaded installer."""
+        if os.name == 'nt':
+            cmd = 'start'
+        elif sys.platform == 'darwin':
+            cmd = 'open'
+        else:
+            cmd = 'gnome-terminal --window -- sh'
+        if os.path.exists(installer_path):
+            subprocess.Popen(
+                ' '.join([cmd, installer_path]),
+                shell=True
+            )
 
     def finish_installation(self):
         """Handle finished installation."""
