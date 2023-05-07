@@ -184,15 +184,36 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 def create_splash_screen():
     """Create splash screen."""
     if not running_under_pytest():
-        image = QImage(500, 400, QImage.Format_ARGB32_Premultiplied)
+        # This is a good size for the splash screen image at a scale factor of
+        # 1. It corresponds to 75 ppi and preserves its aspect ratio.
+        width = 526
+        height = 432
+
+        # We need to increase the image size according to the scale factor to
+        # be displayed correctly.
+        # See https://falsinsoft.blogspot.com/2016/04/
+        # qt-snippet-render-svg-to-qpixmap-for.html for details.
+        if CONF.get('main', 'high_dpi_custom_scale_factor'):
+            factor = float(CONF.get('main', 'high_dpi_custom_scale_factors'))
+        else:
+            factor = 1
+
+        image = QImage(
+            int(width * factor), int(height * factor),
+            QImage.Format_ARGB32_Premultiplied
+        )
         image.fill(0)
         painter = QPainter(image)
         renderer = QSvgRenderer(get_image_path('splash'))
         renderer.render(painter)
         painter.end()
 
+        # This is also necessary for scale factors greater than 1.
+        if CONF.get('main', 'high_dpi_custom_scale_factor'):
+            image.setDevicePixelRatio(factor)
+
         pm = QPixmap.fromImage(image)
-        pm = pm.copy(0, 0, 500, 400)
+        pm = pm.copy(0, 0, int(width * factor), int(height * factor))
 
         splash = QSplashScreen(pm)
     else:
