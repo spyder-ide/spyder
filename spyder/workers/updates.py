@@ -213,7 +213,7 @@ class WorkerDownloadInstaller(QObject):
             plat, ext = 'macOS', 'pkg'
         if sys.platform.startswith('linux'):
             plat, ext = 'Linux', 'sh'
-        mach = platform.machine()
+        mach = platform.machine().lower().replace("amd64", "x86_64")
         fname = f'Spyder-{self.latest_release_version}-{plat}-{mach}.{ext}'
 
         url = ('https://github.com/spyder-ide/spyder/releases/latest/'
