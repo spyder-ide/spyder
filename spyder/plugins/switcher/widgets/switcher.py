@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
 from spyder.plugins.switcher.widgets.item import (
     SwitcherItem, SwitcherSeparatorItem)
-from spyder.py3compat import TEXT_TYPES, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.utils.stringmatching import get_search_scores
@@ -93,15 +93,51 @@ class Switcher(QDialog):
       SwitcherItem:      [title description    <shortcut> section]
     """
 
-    # Dismissed switcher
+    # --- Signals
     sig_rejected = Signal()
-    # Search/Filter text changes
-    sig_text_changed = Signal(TEXT_TYPES[-1])
-    # Current item changed
+    """
+    This signal is emitted when the plugin is dismissed.
+    """
+
+    sig_text_changed = Signal(str)
+    """
+    This signal is emitted when the plugin search/filter text changes.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search/filter text.
+    """
+
     sig_item_changed = Signal(object)
-    # List item selected, mode and cleaned search text
-    sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1], )
-    sig_mode_selected = Signal(TEXT_TYPES[-1])
+    """
+    This signal is emitted when the plugin current item changes.
+    """
+
+    sig_item_selected = Signal(object, str, str)
+    """
+    This signal is emitted when an item is selected from the switcher plugin
+    list.
+
+    Parameters
+    ----------
+    item: object
+        The current selected item from the switcher list (QStandardItem).
+    mode: str
+        The current selected mode (open files "", symbol "@" or line ":").
+    search_text: str
+        Cleaned search/filter text.
+    """
+
+    sig_mode_selected = Signal(str)
+    """
+    This signal is emitted when a mode is selected.
+
+    Parameters
+    ----------
+    mode: str
+        The selected mode (open files "", symbol "@" or line ":").
+    """
 
     _MAX_NUM_ITEMS = 15
     _MIN_WIDTH = 580
@@ -333,9 +369,11 @@ class Switcher(QDialog):
             switcher_height = self._MIN_HEIGHT
         self.setFixedHeight(int(switcher_height))
 
-    def set_position(self, top):
+    def set_position(self, top, parent=None):
         """Set the position of the dialog."""
-        parent = self.parent()
+        if parent is None:
+            parent = self.parent()
+
         if parent is not None:
             geo = parent.geometry()
             width = self.list.width()  # This has been set in setup

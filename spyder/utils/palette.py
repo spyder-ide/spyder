@@ -65,7 +65,7 @@ class SpyderPaletteDark:
     COLOR_HIGHLIGHT_3 = Blue.B30
     COLOR_HIGHLIGHT_4 = Blue.B50
 
-    # Colors for ocurrences from find widget
+    # Colors for occurrences from find widget
     COLOR_OCCURRENCE_1 = Gray.B10
     COLOR_OCCURRENCE_2 = Gray.B20
     COLOR_OCCURRENCE_3 = Gray.B30
@@ -122,7 +122,7 @@ class SpyderPaletteLight:
     COLOR_HIGHLIGHT_3 = Blue.B120
     COLOR_HIGHLIGHT_4 = Blue.B110
 
-    # Colors for ocurrences from find widget
+    # Colors for occurrences from find widget
     COLOR_OCCURRENCE_1 = Gray.B120
     COLOR_OCCURRENCE_2 = Gray.B110
     COLOR_OCCURRENCE_3 = Gray.B100

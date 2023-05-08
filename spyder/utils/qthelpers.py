@@ -30,7 +30,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import running_in_mac_app
+from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
@@ -41,7 +41,7 @@ from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
 # Third party imports
-if sys.platform == "darwin" and not running_in_mac_app():
+if sys.platform == "darwin" and not is_conda_based_app():
     import applaunchservices as als
 
 
@@ -115,7 +115,7 @@ def qapplication(translate=True, test_time=3):
         app.setApplicationName('Spyder')
 
     if (sys.platform == "darwin"
-            and not running_in_mac_app()
+            and not is_conda_based_app()
             and CONF.get('main', 'mac_open_file', False)):
         # Register app if setting is set
         register_app_launchservices()

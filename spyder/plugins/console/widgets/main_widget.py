@@ -349,7 +349,7 @@ class ConsoleWidget(PluginMainWidget):
     @Slot(dict)
     def handle_exception(self, error_data, sender=None):
         """
-        Exception ocurred in the internal console.
+        Exception occurred in the internal console.
 
         Show a QDialog or the internal console to warn the user.
 
