@@ -305,6 +305,7 @@ class ApplicationContainer(PluginMainContainer):
             box.setText(error_msg)
             box.set_check_visible(False)
             box.exec_()
+            self.application_update_status.set_no_status()
         elif update_available:
             self.application_update_status.save_latest_release(
                 latest_release, update_from_github)

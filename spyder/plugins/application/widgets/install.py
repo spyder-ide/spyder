@@ -96,9 +96,10 @@ class UpdateInstallation(QWidget):
 
     def update_installation_status(self, status, latest_version):
         """Update installation status (downloading, installing, finished)."""
-        self._progress_label.setText(status)
-        self.install_info.setText(INSTALL_INFO_MESSAGES[status].format(
-            version=latest_version))
+        if status in INSTALL_INFO_MESSAGES:
+            self._progress_label.setText(status)
+            self.install_info.setText(INSTALL_INFO_MESSAGES[status].format(
+                version=latest_version))
         if status == INSTALLING:
             self._progress_bar.setRange(0, 0)
             self.cancel_button.setEnabled(False)
@@ -259,6 +260,7 @@ class UpdateInstallerDialog(QDialog):
         if self.download_worker:
             if self.download_worker.error:
                 # If download error, do not proceed with install
+                self._change_update_installation_status(NO_STATUS)
                 return
             self.installer_path = self.download_worker.installer_path
 
