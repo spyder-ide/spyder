@@ -283,19 +283,20 @@ class ResultsTree(OneColumnTree):
                 else:
                     parent = title_item
 
+                message_string = "{lineno}: {message} - "
+
                 if len(msg_id) > 1:
                     if not message_name:
-                        message_string = "{msg_id} "
+                        message_string += "{msg_id}"
                     else:
-                        message_string = "{msg_id} ({message_name}) "
+                        message_string += "{msg_id} ({message_name})"
 
-                message_string += "line {lineno}: {message}"
                 message_string = message_string.format(
                     msg_id=msg_id, message_name=message_name,
                     lineno=lineno, message=message)
                 msg_item = QTreeWidgetItem(
                     parent, [message_string], QTreeWidgetItem.Type)
-                msg_item.setIcon(0, ima.icon("arrow"))
+                #msg_item.setIcon(0, ima.icon("arrow"))
                 self.data[id(msg_item)] = (modname, lineno)
 
 
