@@ -148,16 +148,16 @@ class WorkerUpdates(QObject):
                 self.update_from_github = False
                 self.get_releases()
                 self.check_update_available()
-        except HTTPError:
+        except HTTPError as exc:
+            logger.debug(exc, stack_info=True)
             self.error = _('Unable to retrieve information.')
-        except URLError:
+        except URLError as exc:
+            logger.debug(exc, stack_info=True)
             self.error = _('Unable to connect to the internet. <br><br>Make '
                            'sure the connection is working properly.')
-        except Exception:
+        except Exception as exc:
+            logger.debug(exc, stack_info=True)
             self.error = _('Unable to check for updates.')
-
-        if self.error:
-            logger.info(self.error)
 
         try:
             self.sig_ready.emit()
@@ -247,12 +247,15 @@ class WorkerDownloadInstaller(QObject):
             if self.installer_path:
                 os.remove(self.installer_path)
             return
-        except HTTPError:
+        except HTTPError as exc:
+            logger.debug(exc, stack_info=True)
             error_msg = _('Unable to retrieve installer information.')
-        except URLError:
+        except URLError as exc:
+            logger.debug(exc, stack_info=True)
             error_msg = _('Unable to connect to the internet. <br><br>'
                           'Make sure the connection is working properly.')
-        except Exception:
+        except Exception as exc:
+            logger.debug(exc, stack_info=True)
             error_msg = _('Unable to download the installer.')
         self.error = error_msg
 
