@@ -257,6 +257,9 @@ class UpdateInstallerDialog(QDialog):
         self.installer_path = None
         # Get data from WorkerDownload
         if self.download_worker:
+            if self.download_worker.error:
+                # If download error, do not proceed with install
+                return
             self.installer_path = self.download_worker.installer_path
 
         msg_box = QMessageBox(
