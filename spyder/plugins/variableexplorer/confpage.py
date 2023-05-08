@@ -13,16 +13,21 @@ from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 from spyder.config.base import _
 from spyder.api.preferences import PluginConfigPage
 
+
 class VariableExplorerConfigPage(PluginConfigPage):
 
     def setup_page(self):
         filter_group = QGroupBox(_("Filter"))
         filter_data = [
-            ('exclude_private', _("Exclude private references")),
-            ('exclude_capitalized', _("Exclude capitalized references")),
-            ('exclude_uppercase', _("Exclude all-uppercase references")),
-            ('exclude_unsupported', _("Exclude unsupported data types")),
-            ('exclude_callables_and_modules',
+            ('exclude_private_preferences',
+             _("Exclude private references")),
+            ('exclude_capitalized_preferences',
+             _("Exclude capitalized references")),
+            ('exclude_uppercase_preferences',
+             _("Exclude all-uppercase references")),
+            ('exclude_unsupported_preferences',
+             _("Exclude unsupported data types")),
+            ('exclude_callables_and_modules_preferences',
              _("Exclude callables and modules"))
         ]
         filter_boxes = [self.create_checkbox(text, option)

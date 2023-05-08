@@ -126,7 +126,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             text=_("Exclude private variables"),
             tip=_("Exclude variables that start with an underscore"),
             toggled=True,
-            initial=self.get_conf('exclude_private'),
+            option='exclude_private',
+            initial=self.get_conf('exclude_private_preferences'),
         )
 
         self.exclude_uppercase_action = self.create_action(
@@ -134,7 +135,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             text=_("Exclude all-uppercase variables"),
             tip=_("Exclude variables whose name is uppercase"),
             toggled=True,
-            initial=self.get_conf('exclude_uppercase'),
+            option='exclude_uppercase',
+            initial=self.get_conf('exclude_uppercase_preferences'),
         )
 
         self.exclude_capitalized_action = self.create_action(
@@ -143,7 +145,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Exclude variables whose name starts with a capital "
                   "letter"),
             toggled=True,
-            initial=self.get_conf('exclude_capitalized'),
+            option='exclude_capitalized',
+            initial=self.get_conf('exclude_capitalized_preferences'),
         )
 
         self.exclude_unsupported_action = self.create_action(
@@ -152,7 +155,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Exclude references to data types that don't have "
                   "an specialized viewer or can't be edited."),
             toggled=True,
-            initial=self.get_conf('exclude_unsupported'),
+            option='exclude_unsupported',
+            initial=self.get_conf('exclude_unsupported_preferences'),
         )
 
         self.exclude_callables_and_modules_action = self.create_action(
@@ -161,7 +165,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Exclude references to functions, modules and "
                   "any other callable."),
             toggled=True,
-            initial=self.get_conf('exclude_callables_and_modules')
+            option='exclude_callables_and_modules',
+            initial=self.get_conf('exclude_callables_and_modules_preferences')
         )
 
         self.show_minmax_action = self.create_action(
