@@ -2534,6 +2534,64 @@ def example_def_2():
 
 
 @flaky(max_runs=3)
+def test_switcher_project_files(main_window, qtbot, tmpdir):
+    """Test the number of items in the switcher when a project is active."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    switcher = main_window.switcher
+    switcher_widget = switcher._switcher
+    projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Create a temp project directory
+    project_dir = to_text_string(tmpdir.mkdir('test'))
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects.create_project(project_dir)
+
+    # Create four empty files in the project dir
+    for i in range(3):
+        main_window.editor.new("test_file"+str(i)+".py")
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+
+    # Assert that the number of items in the switcher is correct
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Close all files opened in editorstack
+    main_window.editor.close_all_files()
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Select file in the project explorer
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'test_file0.py'))
+    projects.get_widget().treewidget.setCurrentIndex(idx)
+
+    # Press Enter there
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
+
+
+@flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="Times out sometimes on macOS")
 def test_run_static_code_analysis(main_window, qtbot):
