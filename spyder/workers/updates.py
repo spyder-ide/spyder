@@ -235,7 +235,7 @@ class WorkerDownloadInstaller(QObject):
             urlretrieve(
                 url, installer_path, reporthook=self._progress_reporter)
         else:
-            self._progress_reporter(1, 1)
+            self._progress_reporter(1, 1, 1)
 
     def start(self):
         """Main method of the WorkerDownloadInstaller worker."""
