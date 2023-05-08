@@ -47,7 +47,19 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
         return self.create_icon('dictedit')
 
     def on_initialize(self):
-        pass
+        widget = self.get_widget()
+        widget.sig_open_preferences_requested.connect(
+            self._open_interpreter_preferences
+        )
+
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the variable explorer section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name(self.NAME)
+        dlg.set_current_index(index)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):

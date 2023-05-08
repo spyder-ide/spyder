@@ -402,7 +402,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
-        if role == Qt.ToolTipRole:
+        if role == Qt.ToolTipRole and index.column() == 3:
+            return value['view']
+        elif role == Qt.ToolTipRole:
             return value
         if index.column() == 4 and role == Qt.DisplayRole:
             # TODO: Check the effect of not hiding the column

@@ -9,7 +9,7 @@ Variable Explorer Main Plugin Widget.
 """
 
 # Third party imports
-from qtpy.QtCore import QTimer, Slot
+from qtpy.QtCore import QTimer, Slot, Signal
 from qtpy.QtWidgets import QAction
 
 # Local imports
@@ -77,12 +77,14 @@ class VariableExplorerContextMenuActions:
     RenameAction = 'rename_action'
     DuplicateAction = 'duplicate_action'
     ViewAction = 'view_action'
+    EditFiltersAction = 'edit_filters_action'
 
 
 class VariableExplorerContextMenuSections:
     Edit = 'edit_section'
     Insert = 'insert_section'
     View = 'view_section'
+    Filter = 'Filter_section'
 
 
 # =============================================================================
@@ -97,6 +99,11 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     # Other class constants
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
     SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
+
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the main interpreter preferences.
+    """
 
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
@@ -293,6 +300,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             triggered=self.insert_item
         )
 
+        self.edit_filters = self.create_action(
+            VariableExplorerContextMenuActions.EditFiltersAction,
+            _("Edit filters"),
+            icon=self.create_icon('filter'),
+            triggered=self.sig_open_preferences_requested
+        )
+
         self.remove_action = self.create_action(
             VariableExplorerContextMenuActions.RemoveAction,
             _("Remove"),
@@ -374,6 +388,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 section=VariableExplorerContextMenuSections.Insert,
             )
 
+        for item in [self.edit_filters]:
+            self.add_item_to_menu(
+                item,
+                menu=self.context_menu,
+                section=VariableExplorerContextMenuSections.Filter,
+            )
+        
         for item in [self.view_action, self.plot_action, self.hist_action,
                      self.imshow_action]:
             self.add_item_to_menu(
