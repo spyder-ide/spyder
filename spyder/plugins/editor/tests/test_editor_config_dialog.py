@@ -28,6 +28,7 @@ class MainWindowMock(QMainWindow):
     ipyconsole = Mock()
     mainmenu = Mock()
     sig_setup_finished = Mock()
+    switcher = Mock()
 
 
 @pytest.mark.parametrize(

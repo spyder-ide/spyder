@@ -38,7 +38,6 @@ from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.switcher.manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.editorstack_helpers import (
     ThreadManager, FileInfo, StackHistory)
@@ -280,7 +279,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
     """
 
-    def __init__(self, parent, actions):
+    def __init__(self, parent, actions, use_switcher=True):
         QWidget.__init__(self, parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -297,10 +296,17 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.setLayout(layout)
 
         self.menu = None
-        self.switcher_dlg = None
         self.switcher_manager = None
         self.tabs = None
         self.tabs_switcher = None
+        self.switcher_plugin = None
+
+        switcher_action = None
+        symbolfinder_action = None
+        if use_switcher:
+            self.switcher_plugin = self.get_plugin().main.switcher
+            switcher_action = self.switcher_plugin.get_action("file switcher")
+            symbolfinder_action = self.switcher_plugin.get_action("symbol finder")
 
         self.stack_history = StackHistory(self)
 
@@ -313,16 +319,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         self.data = []
 
-        switcher_action = create_action(
-            self,
-            _("File switcher..."),
-            icon=ima.icon('filelist'),
-            triggered=self.open_switcher_dlg)
-        symbolfinder_action = create_action(
-            self,
-            _("Find symbols in file..."),
-            icon=ima.icon('symbol_find'),
-            triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
@@ -791,41 +787,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         for other_finfo in other.data:
             self.clone_editor_from(other_finfo, set_current=True)
         self.set_stack_index(other.get_stack_index())
-
-    @Slot()
-    @Slot(str)
-    def open_switcher_dlg(self, initial_text=''):
-        """Open file list management dialog box"""
-        if not self.tabs.count():
-            return
-        if self.switcher_dlg is not None and self.switcher_dlg.isVisible():
-            self.switcher_dlg.hide()
-            self.switcher_dlg.clear()
-            return
-        if self.switcher_dlg is None:
-            from spyder.plugins.switcher.widgets.switcher import Switcher
-            self.switcher_dlg = Switcher(self)
-            self.switcher_manager = EditorSwitcherManager(
-                self.get_plugin(),
-                self.switcher_dlg,
-                self.get_current_editor,
-                lambda: self,
-                section=self.get_plugin_title())
-
-        if isinstance(initial_text, bool):
-            initial_text = ''
-
-        self.switcher_dlg.set_search_text(initial_text)
-        self.switcher_dlg.setup()
-        self.switcher_dlg.show()
-        # Note: the +1 pixel on the top makes it look better
-        delta_top = (self.tabs.tabBar().geometry().height() +
-                     self.fname_label.geometry().height() + 1)
-        self.switcher_dlg.set_position(delta_top)
-
-    @Slot()
-    def open_symbolfinder_dlg(self):
-        self.open_switcher_dlg(initial_text='@')
 
     def get_plugin(self):
         """Get the plugin of the parent widget."""
@@ -3003,7 +2964,8 @@ class EditorSplitter(QSplitter):
     """QSplitter for editor windows."""
 
     def __init__(self, parent, plugin, menu_actions, first=False,
-                 register_editorstack_cb=None, unregister_editorstack_cb=None):
+                 register_editorstack_cb=None, unregister_editorstack_cb=None,
+                 use_switcher=True):
         """Create a splitter for dividing an editor window into panels.
 
         Adds a new EditorStack instance to this splitter.  If it's not
@@ -3039,7 +3001,7 @@ class EditorSplitter(QSplitter):
         self.unregister_editorstack_cb = unregister_editorstack_cb
 
         self.menu_actions = menu_actions
-        self.editorstack = EditorStack(self, menu_actions)
+        self.editorstack = EditorStack(self, menu_actions, use_switcher)
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
@@ -3559,13 +3521,14 @@ class EditorPluginExample(QSplitter):
         self.editorstacks = []
         self.editorwindows = []
 
-        self.last_focused_editorstack = {} # fake
+        self.last_focused_editorstack = {}  # fake
 
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(None, self, self)
         self.outlineexplorer.edit_goto.connect(self.go_to_file)
         self.editor_splitter = EditorSplitter(self, self, menu_actions,
-                                              first=True)
+                                              first=True,
+                                              use_switcher=False)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
