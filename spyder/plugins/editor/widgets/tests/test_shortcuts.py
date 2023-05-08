@@ -32,7 +32,7 @@ def editor_bot(qtbot):
     Set up EditorStack with CodeEditors containing some Python code.
     The cursor is at the empty line below the code.
     """
-    editorstack = EditorStack(None, [])
+    editorstack = EditorStack(None, [], False)
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.close_action.setEnabled(False)

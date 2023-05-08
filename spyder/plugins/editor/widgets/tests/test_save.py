@@ -47,7 +47,7 @@ def add_files(editorstack):
 # ---- Qt Test Fixtures
 @pytest.fixture
 def base_editor_bot(qtbot):
-    editor_stack = editor.EditorStack(None, [])
+    editor_stack = editor.EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot

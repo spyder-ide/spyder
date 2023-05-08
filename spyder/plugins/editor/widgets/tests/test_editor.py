@@ -36,7 +36,7 @@ HERE = osp.abspath(osp.dirname(__file__))
 # =============================================================================
 @pytest.fixture
 def base_editor_bot(qtbot):
-    editor_stack = EditorStack(None, [])
+    editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack

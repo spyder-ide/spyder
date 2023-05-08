@@ -12,6 +12,7 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
+from glob import glob
 import locale
 import os
 import os.path as osp
@@ -341,16 +342,6 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
-def is_pynsist():
-    """Return True if this is a pynsist installation of Spyder."""
-    base_path = osp.abspath(osp.dirname(__file__))
-    pkgs_path = osp.abspath(
-        osp.join(base_path, '..', '..', '..', 'pkgs'))
-    if os.environ.get('PYTHONPATH') is not None:
-        return pkgs_path in os.environ.get('PYTHONPATH')
-    return False
-
-
 #==============================================================================
 # Translations
 #==============================================================================
@@ -541,42 +532,30 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 
 
 #==============================================================================
-# Mac application utilities
+# Conda-based installer application utilities
 #==============================================================================
-def running_in_mac_app(pyexec=sys.executable):
+def is_conda_based_app(pyexec=sys.executable):
     """
-    Check if Spyder is running as a macOS bundle app by looking for the
-    `SPYDER_APP` environment variable.
+    Check if Spyder is running from the conda-based installer by looking for
+    the `spyder-menu.json` file.
 
-    If a python executable is provided, checks if it is the same as the macOS
-    bundle app environment executable.
+    If a Python executable is provided, checks if it is in a conda-based
+    installer environment or the root environment thereof.
     """
-    # Spyder is macOS app
-    mac_app = os.environ.get('SPYDER_APP') is not None
+    real_pyexec = osp.realpath(pyexec)  # pyexec may be symlink
+    if os.name == 'nt':
+        env_path = osp.dirname(real_pyexec)
+    else:
+        env_path = osp.dirname(osp.dirname(real_pyexec))
 
-    if sys.platform == 'darwin' and mac_app and pyexec == sys.executable:
-        # executable is macOS app
+    menu_rel_path = '/Menu/spyder-menu.json'
+    if (
+        osp.exists(env_path + menu_rel_path)
+        or glob(env_path + '/envs/*' + menu_rel_path)
+    ):
         return True
     else:
         return False
-
-
-# =============================================================================
-# Micromamba
-# =============================================================================
-def get_spyder_umamba_path():
-    """Return the path to the Micromamba executable bundled with Spyder."""
-    if running_in_mac_app():
-        # TODO: Change to CONDA_EXE when
-        # conda-forge/conda-standalone-feedstock#45 is resolved
-        path = os.environ.get('CONDA_PYTHON_EXE')
-    elif is_pynsist():
-        path = osp.abspath(osp.join(osp.dirname(osp.dirname(__file__)),
-                                    'bin', 'micromamba.exe'))
-    else:
-        path = None
-
-    return path
 
 
 #==============================================================================

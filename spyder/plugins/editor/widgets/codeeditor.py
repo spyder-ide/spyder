@@ -49,7 +49,6 @@ from three_merge import merge
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
-from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
@@ -121,6 +120,8 @@ def schedule_request(req=None, method=None, requires_response=True):
 @class_register
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
+
+    CONF_SECTION = 'editor'
 
     LANGUAGES = {
         'Python': (sh.PythonSH, '#'),
@@ -291,7 +292,7 @@ class CodeEditor(TextEditBaseWidget):
         self.current_project_path = None
 
         # Caret (text cursor)
-        self.setCursorWidth(CONF.get('main', 'cursor/width'))
+        self.setCursorWidth(self.get_conf('cursor/width', section='main'))
 
         self.text_helper = TextHelper(self)
 
@@ -746,7 +747,7 @@ class CodeEditor(TextEditBaseWidget):
         shortcuts = []
         for context, name, callback in shortcut_context_name_callbacks:
             shortcuts.append(
-                CONF.config_shortcut(
+                self.config_shortcut(
                     callback, context=context, name=name, parent=self))
         return shortcuts
 
@@ -4521,27 +4522,27 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(
             self, _("Undo"), icon=ima.icon('undo'),
-            shortcut=CONF.get_shortcut('editor', 'undo'), triggered=self.undo)
+            shortcut=self.get_shortcut('undo'), triggered=self.undo)
         self.redo_action = create_action(
             self, _("Redo"), icon=ima.icon('redo'),
-            shortcut=CONF.get_shortcut('editor', 'redo'), triggered=self.redo)
+            shortcut=self.get_shortcut('redo'), triggered=self.redo)
         self.cut_action = create_action(
             self, _("Cut"), icon=ima.icon('editcut'),
-            shortcut=CONF.get_shortcut('editor', 'cut'), triggered=self.cut)
+            shortcut=self.get_shortcut('cut'), triggered=self.cut)
         self.copy_action = create_action(
             self, _("Copy"), icon=ima.icon('editcopy'),
-            shortcut=CONF.get_shortcut('editor', 'copy'), triggered=self.copy)
+            shortcut=self.get_shortcut('copy'), triggered=self.copy)
         self.paste_action = create_action(
             self, _("Paste"), icon=ima.icon('editpaste'),
-            shortcut=CONF.get_shortcut('editor', 'paste'),
+            shortcut=self.get_shortcut('paste'),
             triggered=self.paste)
         selectall_action = create_action(
             self, _("Select All"), icon=ima.icon('selectall'),
-            shortcut=CONF.get_shortcut('editor', 'select all'),
+            shortcut=self.get_shortcut('select all'),
             triggered=self.selectAll)
         toggle_comment_action = create_action(
             self, _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
-            shortcut=CONF.get_shortcut('editor', 'toggle comment'),
+            shortcut=self.get_shortcut('toggle comment'),
             triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(
             self, _("Clear all ouput"), icon=ima.icon('ipython_console'),
@@ -4551,13 +4552,13 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.convert_notebook)
         self.gotodef_action = create_action(
             self, _("Go to definition"),
-            shortcut=CONF.get_shortcut('editor', 'go to definition'),
+            shortcut=self.get_shortcut('go to definition'),
             triggered=self.go_to_definition_from_cursor)
 
         self.inspect_current_object_action = create_action(
             self, _("Inspect current object"),
             icon=ima.icon('MessageBoxInformation'),
-            shortcut=CONF.get_shortcut('editor', 'inspect current object'),
+            shortcut=self.get_shortcut('inspect current object'),
             triggered=self.sig_show_object_info)
 
         # Run actions
@@ -4579,20 +4580,20 @@ class CodeEditor(TextEditBaseWidget):
         writer = self.writer_docstring
         self.docstring_action = create_action(
             self, _("Generate docstring"),
-            shortcut=CONF.get_shortcut('editor', 'docstring'),
+            shortcut=self.get_shortcut('docstring'),
             triggered=writer.write_docstring_at_first_line_of_function)
 
         # Document formatting
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            ''
+            default='',
+            section='completions',
         )
         self.format_action = create_action(
             self,
             _('Format file or selection with {0}').format(
                 formatter.capitalize()),
-            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            shortcut=self.get_shortcut('autoformatting'),
             triggered=self.format_document_or_range)
 
         self.format_action.setEnabled(False)
@@ -5439,10 +5440,10 @@ class CodeEditor(TextEditBaseWidget):
                                              nbformat is not None)
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            ''
+            default='',
+            section='completions'
         )
         self.format_action.setText(_(
             'Format file or selection with {0}').format(

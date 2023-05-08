@@ -162,15 +162,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install pcregrep
-        if: runner.os == 'macOS'
-        run: |
-          if [[ -z "$(which pcregrep)" ]]; then
-              brew install pcre
-          else
-              echo "$(which pcregrep) already installed."
-          fi
-
       - name: Setup Build Environment
         uses: mamba-org/provision-with-micromamba@main
         with:
@@ -225,7 +216,7 @@ jobs:
         if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
         run: |
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
+          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
           echo "CNAME=$CNAME" >> $GITHUB_ENV
 
           _codesign=$(which codesign)

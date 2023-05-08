@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions_text)
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.config.base import _, is_pynsist, running_in_mac_app
+from spyder.config.base import _, is_conda_based_app
 from spyder.config.gui import get_font
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 from spyder.utils.conda import is_conda_env, get_conda_env_path, find_conda
@@ -255,7 +255,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         # Only provide checkbox if not an installer default interpreter
         if (
-            not (is_pynsist() or running_in_mac_app())
+            not is_conda_based_app()
             or not self.get_conf('default', section='main_interpreter')
         ):
             layout.addWidget(self.include_env)

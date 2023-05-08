@@ -9,7 +9,6 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-import os.path as osp
 from typing import List
 
 # Third party imports
@@ -439,10 +438,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     # ---- Private methods
     # -------------------------------------------------------------------------
-    def _on_project_loaded(self):
-        projects = self.get_plugin(Plugins.Projects)
-        self.get_widget().update_active_project_path(
-            projects.get_active_project_path())
+    def _on_project_loaded(self, path):
+        self.get_widget().update_active_project_path(path)
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
@@ -523,7 +520,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.get_widget().rename_client_tab(client, given_name)
 
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None):
+                          is_pylab=False, is_sympy=False, given_name=None,
+                          path_to_custom_interpreter=None):
         """
         Create a new client.
 
@@ -546,6 +544,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         given_name : str, optional
             Initial name displayed in the tab of the client.
             The default is None.
+        path_to_custom_interpreter : str, optional
+            Path to a custom interpreter the client should use regardless of
+            the interpreter selected in Spyder Preferences.
+            The default is None.
 
         Returns
         -------
@@ -557,7 +559,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             is_cython=is_cython,
             is_pylab=is_pylab,
             is_sympy=is_sympy,
-            given_name=given_name)
+            given_name=given_name,
+            path_to_custom_interpreter=path_to_custom_interpreter)
 
     def create_client_for_file(self, filename, is_cython=False):
         """

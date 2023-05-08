@@ -379,7 +379,7 @@ class DataFrameModel(QAbstractTableModel):
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:
                 return _("It is not possible to display this value because\n"
-                         "an error ocurred while trying to do it")
+                         "an error occurred while trying to do it")
         return to_qvariant()
 
     def recalculate_index(self):
