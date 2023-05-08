@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QVBoxLayout, QWidget)
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
-                                running_in_mac_app, save_lang_conf)
+                                is_conda_based_app, save_lang_conf)
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string
 
@@ -69,7 +69,8 @@ class ApplicationConfigPage(PluginConfigPage):
                               'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
-        if running_in_mac_app():
+        # ??? Should we allow multiple instances for macOS?
+        if sys.platform == 'darwin' and is_conda_based_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
@@ -135,7 +136,7 @@ class ApplicationConfigPage(PluginConfigPage):
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
-        if sys.platform == "darwin" and not running_in_mac_app():
+        if sys.platform == "darwin" and not is_conda_based_app():
             # To open files from Finder directly in Spyder.
             from spyder.utils.qthelpers import (register_app_launchservices,
                                                 restore_launchservices)
@@ -224,7 +225,7 @@ class ApplicationConfigPage(PluginConfigPage):
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
-        if sys.platform == "darwin" and not running_in_mac_app():
+        if sys.platform == "darwin" and not is_conda_based_app():
             interface_tab = self.create_tab(screen_resolution_group,
                                             interface_group, macOS_group)
         else:

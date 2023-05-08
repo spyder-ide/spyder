@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QMenu, QLabel
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import is_pynsist, running_in_mac_app
+from spyder.config.base import is_conda_based_app
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
     PENDING, CHECKING)
@@ -148,12 +148,13 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def show_installation_dialog_or_menu(self):
         """Show installation dialog or menu."""
         value = self.value.split(":")[-1].strip()
-        if ((not self.tooltip == self.BASE_TOOLTIP
-            and not value == PENDING)
-                and (is_pynsist() or running_in_mac_app())):
+        if (
+            self.tooltip != self.BASE_TOOLTIP
+            and value != PENDING
+            and is_conda_based_app()
+        ):
             self.installer.show()
-        elif (value == PENDING and
-              (is_pynsist() or running_in_mac_app())):
+        elif value == PENDING and is_conda_based_app():
             self.installer.continue_installation()
         elif value == NO_STATUS:
             self.menu.clear()

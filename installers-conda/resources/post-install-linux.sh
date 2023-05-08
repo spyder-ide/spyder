@@ -33,6 +33,19 @@ fi
 echo "Creating uninstall script..."
 cat <<EOF > ${u_spy_exe}
 #!/bin/bash
+echo "You are about to uninstall Spyder."
+echo "If you proceed, aliases will be removed from ~/.bashrc (if present)"
+echo "and the following file and directory will be removed:"
+echo ""
+echo "  ${shortcut_path}"
+echo "  ${PREFIX}"
+echo ""
+echo "Do you wish to continue?"
+read -p " [yes|NO]: " confirm
+if [[ \$confirm != [yY] && \$confirm != [yY][eE][sS] ]]; then
+    echo "Uninstall aborted."
+    exit 1
+fi
 rm -rf ${shortcut_path}
 rm -rf ${PREFIX}
 EOF
@@ -56,9 +69,19 @@ by:
 
 $ spyder
 
-To uninstall Spyder, you need to run from the following from the command line:
+To uninstall Spyder, run the following from the command line:
 
 $ uninstall-spyder
+
+#####################
+# !!! IMPORTANT !!! #
+#####################
+
+The spyder and uninstall-spyder commands will only be available in new shell
+sessions. To make them available in this session you must source your .bashrc
+file with:
+
+$ source ~/.bashrc
 
 ###############################################################################
 
