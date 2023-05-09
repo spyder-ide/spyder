@@ -175,7 +175,7 @@ class UpdateInstallerDialog(QDialog):
         self._installation_widget.ok_button.clicked.connect(
             self.close_installer)
         self._installation_widget.cancel_button.clicked.connect(
-            self.cancel_installation)
+            self.cancel_download)
 
         # Show installation widget
         self.setup()
@@ -215,7 +215,7 @@ class UpdateInstallerDialog(QDialog):
         self.download_thread.started.connect(self.download_worker.start)
         self.download_thread.start()
 
-    def cancel_installation(self):
+    def cancel_download(self):
         """Cancel the installation in progress."""
         reply = QMessageBox.critical(
             self._parent, 'Spyder',
