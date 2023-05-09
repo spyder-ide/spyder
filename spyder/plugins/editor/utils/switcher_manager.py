@@ -78,16 +78,16 @@ class EditorSwitcherManager(object):
             _('Start typing the name of an open file'))
 
         editorstack = self._editorstack()
-        paths = [data.filename.lower()
-                 for data in editorstack.data]
-        save_statuses = [data.newly_created
-                         for data in editorstack.data]
-        short_paths = shorten_paths(paths, save_statuses)
-
         # As editor open files are inserted at the position 0
         # the list needs to be reversed so they show in order
         editor_list = editorstack.data.copy()
         editor_list.reverse()
+
+        paths = [data.filename.lower()
+                 for data in editor_list]
+        save_statuses = [data.newly_created
+                         for data in editor_list]
+        short_paths = shorten_paths(paths, save_statuses)
 
         for idx, data in enumerate(editor_list):
             path = data.filename
