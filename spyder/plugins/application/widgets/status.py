@@ -129,8 +129,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def confirm_installation(self):
         self.installer.confirm_installation()
 
-    def install(self):
-        self.installer.install()
+    def start_installation(self):
+        self.installer.start_installation()
 
     def set_download_progress(self, current_value, total):
         percentage_progress = 0

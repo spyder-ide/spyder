@@ -238,7 +238,7 @@ class ApplicationContainer(PluginMainContainer):
 
         # Run installer after Spyder is closed
         if self.install_on_close:
-            self.application_update_status.install()
+            self.application_update_status.start_installation()
 
     @Slot()
     def show_about(self):

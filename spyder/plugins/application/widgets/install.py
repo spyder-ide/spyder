@@ -283,7 +283,7 @@ class UpdateInstallerDialog(QDialog):
 
         if msg_box.clickedButton() == yes_button:
             self._change_update_installation_status(status=INSTALLING)
-            self.install()
+            self.start_installation()
             self._change_update_installation_status(status=PENDING)
         elif msg_box.clickedButton() == after_closing_button:
             self.sig_install_on_close_requested.emit(True)
@@ -291,7 +291,7 @@ class UpdateInstallerDialog(QDialog):
         else:
             self._change_update_installation_status(status=PENDING)
 
-    def install(self):
+    def start_installation(self):
         """Install from downloaded installer or update through conda."""
         if (
             self.update_from_github
