@@ -338,7 +338,7 @@ class ApplicationContainer(PluginMainContainer):
             if box.result() == QMessageBox.Yes:
                 if update_from_github:
                     # Start download
-                    self.application_update_status.start_installation()
+                    self.application_update_status.start_download()
                 else:
                     # Confirm installation
                     self.application_update_status.confirm_installation()

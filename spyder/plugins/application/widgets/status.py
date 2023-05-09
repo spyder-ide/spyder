@@ -123,8 +123,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def save_latest_release(self, latest_release, update_from_github):
         self.installer.save_latest_release(latest_release, update_from_github)
 
-    def start_installation(self):
-        self.installer.start_installation()
+    def start_download(self):
+        self.installer.start_download()
 
     def confirm_installation(self):
         self.installer.confirm_installation()

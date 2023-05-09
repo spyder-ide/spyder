@@ -197,7 +197,7 @@ class UpdateInstallerDialog(QDialog):
         self.latest_release = latest_release
         self.update_from_github = update_from_github
 
-    def start_installation(self):
+    def start_download(self):
         """Start downloading the update and set downloading status."""
         self.cancelled = False
         self._change_update_installation_status(
@@ -244,7 +244,7 @@ class UpdateInstallerDialog(QDialog):
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         reply.exec_()
         if reply.result() == QMessageBox.Yes:
-            self.start_installation()
+            self.start_download()
         else:
             self._change_update_installation_status(status=PENDING)
 
