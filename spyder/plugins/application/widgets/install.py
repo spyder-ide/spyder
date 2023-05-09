@@ -50,7 +50,7 @@ INSTALL_INFO_MESSAGES = {
 }
 
 
-class UpdateInstallation(QWidget):
+class UpdateDownload(QWidget):
     """Update progress installation widget."""
 
     def __init__(self, parent):
@@ -159,22 +159,22 @@ class UpdateInstallerDialog(QDialog):
         super().__init__(parent)
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
-        self._installation_widget = UpdateInstallation(self)
+        self._download_widget = UpdateDownload(self)
 
         # Layout
         installer_layout = QVBoxLayout()
-        installer_layout.addWidget(self._installation_widget)
+        installer_layout.addWidget(self._download_widget)
         self.setLayout(installer_layout)
 
         # Signals
         self.sig_download_progress.connect(
-            self._installation_widget.update_installation_progress)
+            self._download_widget.update_installation_progress)
         self.sig_installation_status.connect(
-            self._installation_widget.update_installation_status)
+            self._download_widget.update_installation_status)
 
-        self._installation_widget.ok_button.clicked.connect(
+        self._download_widget.ok_button.clicked.connect(
             self.close_installer)
-        self._installation_widget.cancel_button.clicked.connect(
+        self._download_widget.cancel_button.clicked.connect(
             self.cancel_download)
 
         # Show installation widget
@@ -182,15 +182,14 @@ class UpdateInstallerDialog(QDialog):
 
     def reject(self):
         """Reimplemented Qt method."""
-        on_installation_widget = self._installation_widget.isVisible()
-        if on_installation_widget:
+        if self._download_widget.isVisible():
             self.close_installer()
         else:
             super().reject()
 
     def setup(self):
         """Setup visibility of widgets."""
-        self._installation_widget.setVisible(True)
+        self._download_widget.setVisible(True)
         self.adjustSize()
 
     def save_latest_release(self, latest_release, update_from_github):
