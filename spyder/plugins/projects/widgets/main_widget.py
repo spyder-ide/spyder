@@ -622,8 +622,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         # they are shown already in the switcher in the "editor" section.
         open_files = self.get_plugin()._get_open_filenames()
         for file in open_files:
-            if file in paths:
-                paths.remove(file)
+            normalized_path = osp.normpath(file).lower()
+            if normalized_path in paths:
+                paths.remove(normalized_path)
 
         is_unsaved = [False] * len(paths)
         short_paths = shorten_paths(paths, is_unsaved)
@@ -728,8 +729,9 @@ class ProjectExplorerWidget(PluginMainWidget):
                                           stderr=subprocess.STDOUT)
             relative_path_list = out.decode('UTF-8').strip().split("\n")
             # List of tuples with the absolute path
-            result_list = [os.path.join(project_path, path).lower()
-                           for path in relative_path_list]
+            result_list = [
+                osp.normpath(os.path.join(project_path, path)).lower()
+                for path in relative_path_list]
             # Limit the number of results to 500
             if (len(result_list) > 500):
                 result_list = result_list[:500]
