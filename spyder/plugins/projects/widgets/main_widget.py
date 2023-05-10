@@ -652,7 +652,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         Handle user selecting item in switcher.
         If the selected item is not in the section of the switcher that
         corresponds to this plugin, then ignore it. Otherwise, switch to
-        selected item in notebook plugin and hide the switcher.
+        selected project file and hide the switcher.
         ----------
         item: object
             The current selected item from the switcher list (QStandardItem).
