@@ -199,13 +199,13 @@ class UpdateInstallerDialog(QDialog):
     def start_download(self):
         """Start downloading the update and set downloading status."""
         self.cancelled = False
-        self._change_update_installation_status(
+        self._change_update_download_status(
             status=DOWNLOADING_INSTALLER)
         self.download_thread = QThread(None)
         self.download_worker = WorkerDownloadInstaller(
             self, self.latest_release)
         self.download_worker.sig_ready.connect(
-            lambda: self._change_update_installation_status(DOWNLOAD_FINISHED))
+            lambda: self._change_update_download_status(DOWNLOAD_FINISHED))
         self.download_worker.sig_ready.connect(self.confirm_installation)
         self.download_worker.sig_ready.connect(self.download_thread.quit)
         self.download_worker.sig_download_progress.connect(
@@ -245,7 +245,7 @@ class UpdateInstallerDialog(QDialog):
         if reply.result() == QMessageBox.Yes:
             self.start_download()
         else:
-            self._change_update_installation_status(status=PENDING)
+            self._change_update_download_status(status=PENDING)
 
     def confirm_installation(self):
         """
@@ -259,7 +259,7 @@ class UpdateInstallerDialog(QDialog):
         if self.download_worker:
             if self.download_worker.error:
                 # If download error, do not proceed with install
-                self._change_update_installation_status(NO_STATUS)
+                self._change_update_download_status(NO_STATUS)
                 return
             self.installer_path = self.download_worker.installer_path
 
@@ -281,14 +281,14 @@ class UpdateInstallerDialog(QDialog):
         msg_box.exec_()
 
         if msg_box.clickedButton() == yes_button:
-            self._change_update_installation_status(status=INSTALLING)
+            self._change_update_download_status(status=INSTALLING)
             self.start_installation()
-            self._change_update_installation_status(status=PENDING)
+            self._change_update_download_status(status=PENDING)
         elif msg_box.clickedButton() == after_closing_button:
             self.sig_install_on_close_requested.emit(True)
-            self._change_update_installation_status(status=PENDING)
+            self._change_update_download_status(status=PENDING)
         else:
-            self._change_update_installation_status(status=PENDING)
+            self._change_update_download_status(status=PENDING)
 
     def start_installation(self):
         """Install from downloaded installer or update through conda."""
@@ -332,7 +332,7 @@ class UpdateInstallerDialog(QDialog):
         else:
             self.hide()
 
-    def _change_update_installation_status(self, status=NO_STATUS):
+    def _change_update_download_status(self, status=NO_STATUS):
         """Set the installation status."""
         logger.debug(f"Installation status: {status}")
         self.status = status
@@ -344,8 +344,8 @@ class UpdateInstallerDialog(QDialog):
             self.status, self.latest_release)
 
     def _cancel_download(self):
-        self._change_update_installation_status(status=CANCELLED)
+        self._change_update_download_status(status=CANCELLED)
         self.download_worker.cancelled = True
         self.download_thread.quit()
         self.download_thread.wait()
-        self._change_update_installation_status(status=PENDING)
+        self._change_update_download_status(status=PENDING)
