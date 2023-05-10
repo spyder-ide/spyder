@@ -147,7 +147,7 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed.connect(self._unset_path_in_editor)
 
         if self._switcher:
-            self._switcher.sig_open_file_requested.connect(editor.load)
+            widget.sig_open_file_requested.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -238,7 +238,7 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_loaded.disconnect(self._set_path_in_editor)
         widget.sig_project_closed.disconnect(self._unset_path_in_editor)
 
-        self._switcher.sig_open_file_requested.disconnect(editor.load)
+        widget.sig_open_file_requested.disconnect(editor.load)
 
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
@@ -463,7 +463,7 @@ class Projects(SpyderDockablePlugin):
         """
         self.get_widget().handle_switcher_selection(item, mode, search_text)
 
-    def handle_switcher_results(self, search_text):
+    def handle_switcher_results(self, search_text, items_data):
         """
         Handle user typing in switcher to filter result.
         Load switcher results when a search text is typed for projects.
@@ -471,8 +471,10 @@ class Projects(SpyderDockablePlugin):
         ----------
         text: str
             The current search text in the switcher dialog box.
+        items_data: list
+            List of items shown in the switcher.
         """
-        self.get_widget().handle_switcher_results(search_text)
+        self.get_widget().handle_switcher_results(search_text, items_data)
 
     # ---- Private API
     # -------------------------------------------------------------------------

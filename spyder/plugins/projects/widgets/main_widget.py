@@ -40,7 +40,6 @@ from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
 from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
-from spyder.plugins.switcher.widgets.item import SwitcherItem
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
 
@@ -668,11 +667,10 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         # Open file in editor
         filename = item.get_data()
-        switcher = self.get_plugin()._switcher
-        switcher.sig_open_file_requested.emit(filename)
-        switcher.hide()
+        self.sig_open_file_requested.emit(filename)
+        self.get_plugin()._switcher.hide()
 
-    def handle_switcher_results(self, search_text):
+    def handle_switcher_results(self, search_text, items_data):
         """
         Handle user typing in switcher to filter result.
         Load switcher results when a search text is typed for projects.
@@ -680,15 +678,15 @@ class ProjectExplorerWidget(PluginMainWidget):
         ----------
         text: str
             The current search text in the switcher dialog box.
+        items_data: list
+            List of items shown in the switcher.
         """
         switcher = self.get_plugin()._switcher
         paths = self._execute_fzf_subprocess(search_text)
 
-        for row in range(switcher.get_model().rowCount()):
-            item = switcher.get_model().item(row)
-            if isinstance(item, SwitcherItem):
-                if (item._data._filename.lower() in paths):
-                    paths.remove(item._data._filename.lower())
+        for sw_path in items_data:
+            if (sw_path in paths):
+                paths.remove(sw_path)
 
         is_unsaved = [False] * len(paths)
         short_paths = shorten_paths(paths, is_unsaved)
@@ -714,6 +712,14 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     # fzf helper method
     def _execute_fzf_subprocess(self, search_text=""):
+        """
+        Execute fzf subprocess to get the list of files in the current
+        project filtering by the search_text.
+        Parameters
+        ----------
+        search_text: str
+            The current search text in the switcher dialog box.
+        """
         project_path = self.get_active_project_path()
         if project_path is None:
             return []

@@ -139,7 +139,7 @@ class Switcher(QDialog):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
-    sig_search_text_available = Signal(str)
+    sig_search_text_available = Signal(str, list)
     """
     This signal is emitted when the user stops typing the search/filter text.
 
@@ -147,6 +147,8 @@ class Switcher(QDialog):
     ----------
     search_text: str
         The current search/filter text.
+    items_data: list
+        List of items shown in the switcher.
     """
 
     _MAX_NUM_ITEMS = 15
@@ -315,11 +317,13 @@ class Switcher(QDialog):
 
         # Filter by text
         titles = []
+        items_data = []
         for row in range(self.model.rowCount()-1, -1, -1):
             # As we are removing items from the model, we need to iterate
             # backwards so that the indexes are not affected
             item = self.model.item(row)
             if isinstance(item, SwitcherItem):
+                items_data.append(item._data._filename.lower())
                 if item._section == "Projects":
                     self.model.removeRow(row)
                     continue
@@ -339,7 +343,7 @@ class Switcher(QDialog):
                 item.set_rich_title(rich_title)
             item.set_score(score_value)
 
-        self.sig_search_text_available.emit(search_text)
+        self.sig_search_text_available.emit(search_text, items_data)
         self.proxy.set_filter_by_score(True)
 
         self.setup_sections()
