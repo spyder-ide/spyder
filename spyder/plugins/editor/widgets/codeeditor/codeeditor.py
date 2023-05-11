@@ -61,7 +61,7 @@ from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-from spyder.plugins.editor.widgets.lsp import LSPMixin
+from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.py3compat import to_text_string, is_string
