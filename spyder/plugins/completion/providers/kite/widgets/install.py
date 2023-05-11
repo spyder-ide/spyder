@@ -321,7 +321,7 @@ class KiteInstallerDialog(QDialog):
         QMessageBox.critical(
             self._parent,
             _('Kite installation error'),
-            _("<b>An error ocurred while installing Kite!</b><br><br>"
+            _("<b>An error occurred while installing Kite!</b><br><br>"
               "Please try to "
               "<a href=\"{kite_url}\">install it manually</a> or "
               "<a href=\"{kite_contact}\">contact Kite</a> for help")
