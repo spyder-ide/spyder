@@ -8,7 +8,7 @@
 
 
 # Third party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex
+from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex, QTimer
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,
@@ -167,6 +167,7 @@ class Switcher(QDialog):
         self._item_separator_styles = item_separator_styles
 
         # Widgets
+        self.timer = QTimer()
         self.edit = QLineEdit(self)
         self.list = QListView(self)
         self.model = QStandardItemModel(self.list)
@@ -174,6 +175,9 @@ class Switcher(QDialog):
         self.filter = KeyPressFilter()
 
         # Widgets setup
+        self.timer.setInterval(300)
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.setup)
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
 #        self.setMinimumHeight(self._MIN_HEIGHT)
@@ -199,8 +203,8 @@ class Switcher(QDialog):
         self.filter.sig_up_key_pressed.connect(self.previous_row)
         self.filter.sig_down_key_pressed.connect(self.next_row)
         self.filter.sig_enter_key_pressed.connect(self.enter)
-        self.edit.textChanged.connect(self.setup)
         self.edit.textChanged.connect(self.sig_text_changed)
+        self.edit.textChanged.connect(lambda: self.timer.start())
         self.edit.returnPressed.connect(self.enter)
         self.list.clicked.connect(self.enter)
         self.list.clicked.connect(self.edit.setFocus)
