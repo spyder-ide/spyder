@@ -444,7 +444,17 @@ class Projects(SpyderDockablePlugin):
         mode: str
             The selected mode (open files "", symbol "@" or line ":").
         """
-        self.get_widget().handle_switcher_modes("")
+        items = self.get_widget().handle_switcher_modes("")
+        for (title, description, icon, section, path, is_last_item) in items:
+            self._switcher.add_item(
+                title=title,
+                description=description,
+                icon=icon,
+                section=section,
+                data=path,
+                last_item=is_last_item
+            )
+        self._switcher.set_current_row(0)
 
     def handle_switcher_selection(self, item, mode, search_text):
         """
@@ -462,6 +472,7 @@ class Projects(SpyderDockablePlugin):
             Cleaned search/filter text.
         """
         self.get_widget().handle_switcher_selection(item, mode, search_text)
+        self._switcher.hide()
 
     def handle_switcher_results(self, search_text, items_data):
         """
@@ -474,7 +485,21 @@ class Projects(SpyderDockablePlugin):
         items_data: list
             List of items shown in the switcher.
         """
-        self.get_widget().handle_switcher_results(search_text, items_data)
+        items = self.get_widget().handle_switcher_results(search_text,
+                                                          items_data)
+        for (title, description, icon, section, path, is_last_item) in items:
+            print()
+            print(search_text)
+            print("-----")
+            self._switcher.add_item(
+                title=title,
+                description=description,
+                icon=icon,
+                section=section,
+                data=path,
+                last_item=is_last_item,
+                score=100
+            )
 
     # ---- Private API
     # -------------------------------------------------------------------------

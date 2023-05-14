@@ -611,12 +611,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         mode: str
             The selected mode (open files "", symbol "@" or line ":").
         """
-        if mode != '':
-            return
-
         paths = self._execute_fzf_subprocess()
         if paths == []:
-            return
+            return []
         # the paths that are opened in the editor need to be excluded because
         # they are shown already in the switcher in the "editor" section.
         open_files = self.get_plugin()._get_open_filenames()
@@ -629,6 +626,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         short_paths = shorten_paths(paths, is_unsaved)
         section = self.get_title()
 
+        items = []
         for i, (path, short_path) in enumerate(zip(paths, short_paths)):
             title = osp.basename(path)
             icon = get_file_icon(path)
@@ -637,15 +635,10 @@ class ProjectExplorerWidget(PluginMainWidget):
                 description = short_path
             is_last_item = (i+1 == len(paths))
 
-            self.get_plugin()._switcher.add_item(
-                title=title,
-                description=description,
-                icon=icon,
-                section=section,
-                data=path,
-                last_item=is_last_item
-            )
-        self.get_plugin()._switcher.set_current_row(0)
+            item_tuple = (title, description, icon,
+                          section, path, is_last_item)
+            items.append(item_tuple)
+        return items
 
     def handle_switcher_selection(self, item, mode, search_text):
         """
@@ -666,9 +659,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             return
 
         # Open file in editor
-        filename = item.get_data()
-        self.sig_open_file_requested.emit(filename)
-        self.get_plugin()._switcher.hide()
+        self.sig_open_file_requested.emit(item.get_data())
 
     def handle_switcher_results(self, search_text, items_data):
         """
@@ -681,17 +672,19 @@ class ProjectExplorerWidget(PluginMainWidget):
         items_data: list
             List of items shown in the switcher.
         """
-        switcher = self.get_plugin()._switcher
         paths = self._execute_fzf_subprocess(search_text)
-
         for sw_path in items_data:
             if (sw_path in paths):
+                print("deleted:")
+                print(sw_path)
+                print()
                 paths.remove(sw_path)
 
         is_unsaved = [False] * len(paths)
         short_paths = shorten_paths(paths, is_unsaved)
         section = self.get_title()
 
+        items = []
         for i, (path, short_path) in enumerate(zip(paths, short_paths)):
             title = osp.basename(path)
             icon = get_file_icon(path)
@@ -700,15 +693,10 @@ class ProjectExplorerWidget(PluginMainWidget):
                 description = short_path
             is_last_item = (i+1 == len(paths))
 
-            switcher.add_item(
-                title=title,
-                description=description,
-                icon=icon,
-                section=section,
-                data=path,
-                last_item=is_last_item,
-                score=100
-            )
+            item_tuple = (title, description, icon,
+                          section, path, is_last_item)
+            items.append(item_tuple)
+        return items
 
     # fzf helper method
     def _execute_fzf_subprocess(self, search_text=""):
