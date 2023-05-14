@@ -180,10 +180,6 @@ class Switcher(SpyderPluginV2):
         """Open symbol list management dialog."""
         self.get_container().open_symbolfinder()
 
-    def get_model(self):
-        """Get the QStandardItemModel object."""
-        return self._switcher.get_model()
-
     # QDialog methods
     def show(self):
         """Show switcher."""

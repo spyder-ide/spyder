@@ -212,9 +212,7 @@ class Switcher(QDialog):
     def _add_item(self, item, last_item=True, score=None):
         """Perform common actions when adding items."""
         if score is not None:
-            print(item._title, score)
             item.set_score(score)
-            print()
         item.set_width(self._ITEM_WIDTH)
         if isinstance(item, SwitcherItem):
             if item._section == "Editor":
@@ -254,10 +252,6 @@ class Switcher(QDialog):
     def get_mode(self):
         """Get the current mode the switcher is in."""
         return self._mode_on
-
-    def get_model(self):
-        """Get the QStandardItemModel object."""
-        return self.model
 
     def remove_mode(self, token):
         """Remove mode by token key."""
@@ -330,7 +324,8 @@ class Switcher(QDialog):
                     continue
                 else:
                     title = item.get_title()
-                    items_data.append(item._data._filename.lower())
+                    if item._data is not None:
+                        items_data.append(item._data._filename.lower())
             else:
                 title = ''
             titles.insert(0, title)

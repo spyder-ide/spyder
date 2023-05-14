@@ -600,16 +600,12 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.raise_()
         self.update()
 
-    def handle_switcher_modes(self, mode):
+    def handle_switcher_modes(self):
         """
         Populate switcher with files in active project.
+
         List the file names of the current active project with their
-        directories in the switcher. Only handle file mode, where
-        `mode` is empty string.
-        Parameters
-        ----------
-        mode: str
-            The selected mode (open files "", symbol "@" or line ":").
+        directories in the switcher.
         """
         paths = self._execute_fzf_subprocess()
         if paths == []:
@@ -643,9 +639,12 @@ class ProjectExplorerWidget(PluginMainWidget):
     def handle_switcher_selection(self, item, mode, search_text):
         """
         Handle user selecting item in switcher.
+
         If the selected item is not in the section of the switcher that
         corresponds to this plugin, then ignore it. Otherwise, switch to
         selected project file and hide the switcher.
+
+        Parameters
         ----------
         item: object
             The current selected item from the switcher list (QStandardItem).
@@ -663,7 +662,8 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def handle_switcher_results(self, search_text, items_data):
         """
-        Handle user typing in switcher to filter result.
+        Handle user typing in switcher to filter results.
+
         Load switcher results when a search text is typed for projects.
         Parameters
         ----------
@@ -675,9 +675,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         paths = self._execute_fzf_subprocess(search_text)
         for sw_path in items_data:
             if (sw_path in paths):
-                print("deleted:")
-                print(sw_path)
-                print()
                 paths.remove(sw_path)
 
         is_unsaved = [False] * len(paths)
