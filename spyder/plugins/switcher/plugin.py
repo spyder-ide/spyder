@@ -99,7 +99,7 @@ class Switcher(SpyderPluginV2):
     search_text: str
         The current search/filter text.
     items_data: list
-            List of items shown in the switcher.
+        List of items shown in the switcher.
     """
 
     # --- SpyderPluginV2 API

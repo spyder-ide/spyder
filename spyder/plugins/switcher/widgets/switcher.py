@@ -320,7 +320,7 @@ class Switcher(QDialog):
         # Filter by text
         titles = []
         items_data = []
-        for row in range(self.model.rowCount()-1, -1, -1):
+        for row in range(self.model.rowCount() - 1, -1, -1):
             # As we are removing items from the model, we need to iterate
             # backwards so that the indexes are not affected
             item = self.model.item(row)

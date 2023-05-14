@@ -78,8 +78,9 @@ class EditorSwitcherManager(object):
             _('Start typing the name of an open file'))
 
         editorstack = self._editorstack()
-        # As editor open files are inserted at the position 0
-        # the list needs to be reversed so they show in order
+
+        # Since editor open files are inserted at position 0, the
+        # list needs to be reversed so they're shown in order.
         editor_list = editorstack.data.copy()
         editor_list.reverse()
 

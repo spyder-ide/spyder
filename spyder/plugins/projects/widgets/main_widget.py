@@ -730,7 +730,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             if (len(result_list) > 500):
                 result_list = result_list[:500]
             return result_list
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             return []
 
     # ---- Public API for the LSP

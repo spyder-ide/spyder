@@ -209,7 +209,7 @@ class Projects(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Switcher)
     def on_switcher_available(self):
         # Connect to switcher
-        self._switcher = self.main.switcher
+        self._switcher = self.get_plugin(Plugins.Switcher)
         self._switcher.sig_mode_selected.connect(self.handle_switcher_modes)
         self._switcher.sig_item_selected.connect(
             self.handle_switcher_selection)
@@ -237,7 +237,6 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed[bool].disconnect(self._setup_editor_files)
         widget.sig_project_loaded.disconnect(self._set_path_in_editor)
         widget.sig_project_closed.disconnect(self._unset_path_in_editor)
-
         widget.sig_open_file_requested.disconnect(editor.load)
 
     @on_plugin_teardown(plugin=Plugins.Completions)
@@ -436,9 +435,11 @@ class Projects(SpyderDockablePlugin):
     def handle_switcher_modes(self, mode):
         """
         Populate switcher with files in active project.
+
         List the file names of the current active project with their
-        directories in the switcher. Only handle file mode, where
-        `mode` is empty string.
+        directories in the switcher. It only handles the files mode, i.e.
+        an empty string.
+
         Parameters
         ----------
         mode: str
@@ -456,12 +457,14 @@ class Projects(SpyderDockablePlugin):
             )
         self._switcher.set_current_row(0)
 
-    def handle_switcher_selection(self, item, mode, search_text):
+    def _handle_switcher_selection(self, item, mode, search_text):
         """
         Handle user selecting item in switcher.
+
         If the selected item is not in the section of the switcher that
         corresponds to this plugin, then ignore it. Otherwise, switch to
         selected project file and hide the switcher.
+
         Parameters
         ----------
         item: object
@@ -474,9 +477,10 @@ class Projects(SpyderDockablePlugin):
         self.get_widget().handle_switcher_selection(item, mode, search_text)
         self._switcher.hide()
 
-    def handle_switcher_results(self, search_text, items_data):
+    def _handle_switcher_results(self, search_text, items_data):
         """
-        Handle user typing in switcher to filter result.
+        Handle user typing in switcher to filter results.
+
         Load switcher results when a search text is typed for projects.
         Parameters
         ----------
