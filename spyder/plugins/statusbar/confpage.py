@@ -26,14 +26,14 @@ class StatusBarConfigPage(PluginConfigPage):
                            tip=self.plugin.mem_status.toolTip())
         memory_spin = self.create_spinbox("", _(" ms"), 'memory_usage/timeout',
                                           min_=100, max_=1000000, step=100)
-        memory_box.toggled.connect(memory_spin.setEnabled)
+        memory_box.checkbox.toggled.connect(memory_spin.setEnabled)
         memory_spin.setEnabled(self.get_option('memory_usage/enable'))
 
         cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
                         tip=self.plugin.cpu_status.toolTip())
         cpu_spin = self.create_spinbox("", _(" ms"), 'cpu_usage/timeout',
                                        min_=100, max_=1000000, step=100)
-        cpu_box.toggled.connect(cpu_spin.setEnabled)
+        cpu_box.checkbox.toggled.connect(cpu_spin.setEnabled)
         cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
 
         clock_box = newcb(_("Show clock"), 'clock/enable')

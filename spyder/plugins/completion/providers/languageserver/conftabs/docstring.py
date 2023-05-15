@@ -108,7 +108,7 @@ class DocstringConfigTab(SpyderPreferencesTab):
         docstring_style_g_widget = QWidget()
         docstring_style_g_widget.setLayout(docstring_style_g_layout)
         docstring_style_g_widget.setEnabled(self.get_option('pydocstyle'))
-        self.docstring_style_check.toggled.connect(
+        self.docstring_style_check.checkbox.toggled.connect(
             docstring_style_g_widget.setEnabled)
 
         # Docstring style layout

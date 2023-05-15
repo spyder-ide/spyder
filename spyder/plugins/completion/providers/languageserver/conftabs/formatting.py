@@ -92,7 +92,7 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         code_style_g_widget = QWidget()
         code_style_g_widget.setLayout(code_style_g_layout)
         code_style_g_widget.setEnabled(self.get_option('pycodestyle'))
-        self.code_style_check.toggled.connect(code_style_g_widget.setEnabled)
+        self.code_style_check.checkbox.toggled.connect(code_style_g_widget.setEnabled)
 
         # Code style layout
         code_style_group = QGroupBox(_("Code style"))

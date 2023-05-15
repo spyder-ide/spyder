@@ -94,7 +94,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                   "plotting libraries different to Matplotlib or to develop\n"
                   "GUIs with Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
+        pylab_box.checkbox.toggled.connect(autoload_pylab_box.setEnabled)
 
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
@@ -131,7 +131,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(backend_group.setEnabled)
+        pylab_box.checkbox.toggled.connect(backend_group.setEnabled)
 
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
@@ -186,7 +186,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_v_layout.addLayout(inline_h_layout)
         inline_group.setLayout(inline_v_layout)
         inline_group.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(inline_group.setEnabled)
+        pylab_box.checkbox.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
         # Run lines Group
@@ -215,7 +215,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            'startup/use_run_file', False)
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
-        file_radio.toggled.connect(run_file_browser.setEnabled)
+        file_radio.checkbox.toggled.connect(run_file_browser.setEnabled)
 
         run_file_layout = QVBoxLayout()
         run_file_layout.addWidget(run_file_label)

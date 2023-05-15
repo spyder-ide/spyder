@@ -25,7 +25,9 @@ class VariableExplorerConfigPage(PluginConfigPage):
             ('exclude_callables_and_modules',
              _("Exclude callables and modules"))
         ]
-        filter_boxes = [self.create_checkbox(text, option)
+        filter_boxes = [self.create_checkbox(
+            text, option,
+            help_info='Excludes variables that fit the description')
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))

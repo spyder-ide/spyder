@@ -74,7 +74,7 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 3, 0)
         self.clo_edit = QLineEdit()
-        self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
+        self.clo_cb.checkbox.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 3, 1)
 

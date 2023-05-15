@@ -102,8 +102,8 @@ class ApplicationConfigPage(PluginConfigPage):
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
                                           default=0, min_=0, max_=30)
-        margin_box.toggled.connect(margin_spin.spinbox.setEnabled)
-        margin_box.toggled.connect(margin_spin.slabel.setEnabled)
+        margin_box.checkbox.toggled.connect(margin_spin.spinbox.setEnabled)
+        margin_box.checkbox.toggled.connect(margin_spin.slabel.setEnabled)
         margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))
         margin_spin.slabel.setEnabled(self.get_option('use_custom_margin'))
 
@@ -114,8 +114,8 @@ class ApplicationConfigPage(PluginConfigPage):
             'custom_cursor_blinking',
             default=QApplication.cursorFlashTime(),
             min_=0, max_=5000, step=100)
-        cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
-        cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
+        cursor_box.checkbox.toggled.connect(cursor_spin.spinbox.setEnabled)
+        cursor_box.checkbox.toggled.connect(cursor_spin.slabel.setEnabled)
         cursor_spin.spinbox.setEnabled(
             self.get_option('use_custom_cursor_blinking'))
         cursor_spin.slabel.setEnabled(
@@ -207,9 +207,9 @@ class ApplicationConfigPage(PluginConfigPage):
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
 
-        normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
-        auto_scale_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
-        custom_scaling_radio.toggled.connect(
+        normal_radio.radiobutton.toggled.connect(self.custom_scaling_edit.setDisabled)
+        auto_scale_radio.radiobutton.toggled.connect(self.custom_scaling_edit.setDisabled)
+        custom_scaling_radio.radiobutton.toggled.connect(
             self.custom_scaling_edit.setEnabled)
 
         # Layout Screen resolution

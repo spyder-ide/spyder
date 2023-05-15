@@ -78,7 +78,7 @@ class CompletionConfigPage(PluginConfigPage):
             completions_after_characters.plabel.setEnabled(state)
             completions_after_characters.spinbox.setEnabled(state)
 
-        automatic_completion_box.toggled.connect(
+        automatic_completion_box.checkbox.toggled.connect(
             disable_completion_after_characters)
 
         layout = QVBoxLayout()
