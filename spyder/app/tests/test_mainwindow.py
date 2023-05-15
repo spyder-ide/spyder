@@ -2528,6 +2528,7 @@ def example_def_2():
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
     editorstack.switcher_plugin.open_symbolfinder()
+    qtbot.wait(500)
     assert editorstack.switcher_plugin
     assert editorstack.switcher_plugin.is_visible()
     assert editorstack.switcher_plugin.count() == 2
