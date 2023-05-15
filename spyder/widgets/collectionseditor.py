@@ -924,6 +924,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             event.accept()
 
+    def mouseMoveEvent(self, event):
+        """Change cursor shape."""
+        self.setCursor(Qt.PointingHandCursor)
+
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""
         if event.key() == Qt.Key_Delete:
