@@ -2432,7 +2432,7 @@ def example_def_2():
     for search_text, expected_path in zip(search_texts, expected_paths):
         switcher.open_switcher()
         qtbot.keyClicks(switcher_widget.edit, search_text)
-        qtbot.wait(200)
+        qtbot.wait(500)
         assert switcher_widget.count() == bool(expected_path)
         switcher.on_close()
 
@@ -2452,7 +2452,7 @@ def example_def_2():
 
     switcher.open_switcher()
     qtbot.keyClicks(switcher_widget.edit, '@')
-    qtbot.wait(200)
+    qtbot.wait(500)
     assert switcher_widget.count() == 2
     switcher.on_close()
 
