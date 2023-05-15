@@ -427,9 +427,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             self.changed_options.add((section, option))
 
-    def add_help_info_label(self, layout, help_info):
-        image_path = get_image_path('help')
-        image = QPixmap(image_path)
+    def add_help_info_label(self, layout, help_info):        
         help_label = QLabel()
         help_label.setPixmap(ima.icon('help').pixmap(QSize(16, 16)))
         help_label.setToolTip(help_info)
