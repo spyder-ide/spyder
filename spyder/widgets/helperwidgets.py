@@ -510,6 +510,7 @@ class PanelEmptyWidget(QFrame):
         panel_empty_layout.addWidget(image_label)
         panel_empty_layout.addWidget(text_label)
         panel_empty_layout.addWidget(description_label)
+        #panel_empty_layout.
         panel_empty_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(panel_empty_layout)
 
@@ -534,7 +535,7 @@ class PanelEmptyWidget(QFrame):
         qss = qstylizer.style.StyleSheet()
         qss.QFrame.setValues(
             border=f'1px solid {border_color}',
-            margin='0px 1px 0px 1px',
+            margin='5px 1px 0px 1px',
             padding='0px 0px 1px 0px',
             borderRadius='3px'
         )
