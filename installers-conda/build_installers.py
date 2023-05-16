@@ -43,7 +43,9 @@ import zipfile
 from ruamel.yaml import YAML
 
 # Local imports
-from build_conda_pkgs import HERE, DIST, RESOURCES, SPECS, h, get_version
+from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h, get_version
+
+DIST = HERE / "dist"
 
 logger = getLogger('BuildInstallers')
 logger.addHandler(h)
@@ -55,7 +57,7 @@ WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
 TARGET_PLATFORM = os.environ.get("CONSTRUCTOR_TARGET_PLATFORM")
-PY_VER = f"{sys.version_info.major}.{sys.version_info.minor}"
+PY_VER = "{v.major}.{v.minor}.{v.micro}".format(v=sys.version_info)
 
 if TARGET_PLATFORM == "osx-arm64":
     ARCH = "arm64"
@@ -119,10 +121,6 @@ p.add_argument(
     "--cert-id", default=None,
     help="Apple Developer ID Application certificate common name."
 )
-p.add_argument(
-    "--lite", action="store_true",
-    help=f"Do not include packages {scientific_packages.keys()}"
-)
 args = p.parse_args()
 
 yaml = YAML()
@@ -132,10 +130,12 @@ indent4 = partial(indent, prefix="    ")
 SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
 
 specs = {
+    "python": "=" + PY_VER,
     "spyder": "=" + SPYVER,
     "paramiko": "",
     "pyxdg": "",
 }
+specs.update(scientific_packages)
 
 if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
@@ -144,9 +144,6 @@ if SPECS.exists():
 else:
     logger.info(f"Did not read specs from {SPECS}")
 
-if not args.lite:
-    specs.update(scientific_packages)
-
 for spec in args.extra_specs:
     k, *v = re.split('([<>= ]+)', spec)
     specs[k] = "".join(v).strip()
@@ -154,7 +151,11 @@ for spec in args.extra_specs:
         SPYVER = v[-1]
 
 OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
-INSTALLER_DEFAULT_PATH_STEM = f"{APP}-{SPYVER}"
+INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
+
+WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
+HEADER_IMG_WIN = BUILD / "header_img_win.png"
+WELCOME_IMG_MAC = BUILD / "welcome_img_mac.png"
 
 
 def _generate_background_images(installer_type):
@@ -171,12 +172,12 @@ def _generate_background_images(installer_type):
     if installer_type in ("exe", "all"):
         sidebar = Image.new("RGBA", (164, 314), (0, 0, 0, 0))
         sidebar.paste(logo.resize((101, 101)), (32, 180))
-        output = DIST / "spyder_164x314.png"
+        output = WELCOME_IMG_WIN
         sidebar.save(output, format="png")
 
         banner = Image.new("RGBA", (150, 57), (0, 0, 0, 0))
         banner.paste(logo.resize((44, 44)), (8, 6))
-        output = DIST / "spyder_150x57.png"
+        output = HEADER_IMG_WIN
         banner.save(output, format="png")
 
     if installer_type in ("pkg", "all"):
@@ -184,7 +185,7 @@ def _generate_background_images(installer_type):
         _logo.paste(logo, mask=logo)
         background = Image.new("RGBA", (1227, 600), (0, 0, 0, 0))
         background.paste(_logo.resize((148, 148)), (95, 418))
-        output = DIST / "spyder_1227x600.png"
+        output = WELCOME_IMG_MAC
         background.save(output, format="png")
 
 
@@ -207,7 +208,7 @@ def _get_condarc():
     )
     # the undocumented #!final comment is explained here
     # https://www.anaconda.com/blog/conda-configuration-engine-power-users
-    file = DIST / "condarc"
+    file = BUILD / "condarc"
     file.write_text(contents)
 
     return str(file)
@@ -226,10 +227,8 @@ def _definitions():
         ],
         "conda_default_channels": ["conda-forge"],
         "specs": [
-            "python",
-            "conda",
+            f"python={PY_VER}",
             "mamba",
-            "pip",
         ],
         "installer_filename": OUTPUT_FILE.name,
         "initialize_by_default": False,
@@ -237,7 +236,7 @@ def _definitions():
         "register_python": False,
         "license_file": str(RESOURCES / "bundle_license.rtf"),
         "extra_envs": {
-            f"spyder-{SPYVER}": {
+            "spyder-runtime": {
                 "specs": [k + v for k, v in specs.items()],
             },
         },
@@ -258,14 +257,14 @@ def _definitions():
                 ),
                 "license_file": str(SPYREPO / "LICENSE.txt"),
                 "installer_type": "sh",
-                "post_install": str(RESOURCES / "post-install-linux.sh"),
+                "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
 
     if MACOS:
         welcome_text_tmpl = \
             (RESOURCES / "osx_pkg_welcome.rtf.tmpl").read_text()
-        welcome_file = DIST / "osx_pkg_welcome.rtf"
+        welcome_file = BUILD / "osx_pkg_welcome.rtf"
         welcome_file.write_text(
             welcome_text_tmpl.replace("__VERSION__", SPYVER))
 
@@ -276,8 +275,9 @@ def _definitions():
                 "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
                 "default_location_pkg": "Library",
                 "installer_type": "pkg",
-                "welcome_image": str(DIST / "spyder_1227x600.png"),
+                "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
+                "post_install": str(RESOURCES / "post-install.sh"),
                 "conclusion_text": "",
                 "readme_text": "",
             }
@@ -291,8 +291,8 @@ def _definitions():
         definitions["conda_default_channels"].append("defaults")
         definitions.update(
             {
-                "welcome_image": str(DIST / "spyder_164x314.png"),
-                "header_image": str(DIST / "spyder_150x57.png"),
+                "welcome_image": str(WELCOME_IMG_WIN),
+                "header_image": str(HEADER_IMG_WIN),
                 "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
                 "default_prefix": os.path.join(
                     "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
@@ -335,7 +335,7 @@ def _constructor():
     conda_exe = os.environ.get("CONSTRUCTOR_CONDA_EXE")
     if TARGET_PLATFORM and conda_exe:
         cmd_args += ["--platform", TARGET_PLATFORM, "--conda-exe", conda_exe]
-    cmd_args.append(str(DIST))
+    cmd_args.append(str(BUILD))
 
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "strict"
@@ -344,13 +344,13 @@ def _constructor():
     logger.info("Configuration:")
     yaml.dump(definitions, sys.stdout)
 
-    yaml.dump(definitions, DIST / "construct.yaml")
+    yaml.dump(definitions, BUILD / "construct.yaml")
 
     check_call(cmd_args, env=env)
 
 
 def licenses():
-    info_path = DIST / "info.json"
+    info_path = BUILD / "info.json"
     try:
         info = json.load(info_path)
     except FileNotFoundError:
@@ -360,7 +360,7 @@ def licenses():
         )
         raise
 
-    zipname = DIST / f"licenses.{OS}-{ARCH}.zip"
+    zipname = BUILD / f"licenses.{OS}-{ARCH}.zip"
     output_zip = zipfile.ZipFile(zipname, mode="w",
                                  compression=zipfile.ZIP_DEFLATED)
     output_zip.write(info_path)
