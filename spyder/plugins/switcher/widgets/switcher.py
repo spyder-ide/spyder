@@ -141,12 +141,12 @@ class Switcher(QDialog):
 
     sig_search_text_available = Signal(str, list)
     """
-    This signal is emitted when the user stops typing the search/filter text.
+    This signal is emitted when the user stops typing in the filter line edit.
 
     Parameters
     ----------
     search_text: str
-        The current search/filter text.
+        The current search text.
     items_data: list
         List of items shown in the switcher.
     """
@@ -178,6 +178,7 @@ class Switcher(QDialog):
         self.timer.setInterval(300)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.setup)
+
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
 #        self.setMinimumHeight(self._MIN_HEIGHT)
@@ -217,6 +218,7 @@ class Switcher(QDialog):
         """Perform common actions when adding items."""
         if score is not None:
             item.set_score(score)
+
         item.set_width(self._ITEM_WIDTH)
         if isinstance(item, SwitcherItem):
             if item._section == "Editor":
@@ -225,6 +227,7 @@ class Switcher(QDialog):
                 self.model.appendRow(item)
         else:
             self.model.appendRow(item)
+
         if last_item:
             # Only set the current row to the first item when the added item is
             # the last one in order to prevent performance issues when

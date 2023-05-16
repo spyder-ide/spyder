@@ -695,11 +695,11 @@ class ProjectExplorerWidget(PluginMainWidget):
             items.append(item_tuple)
         return items
 
-    # fzf helper method
     def _execute_fzf_subprocess(self, search_text=""):
         """
         Execute fzf subprocess to get the list of files in the current
-        project filtering by the search_text.
+        project filtered by `search_text`.
+
         Parameters
         ----------
         search_text: str
