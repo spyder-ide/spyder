@@ -695,41 +695,6 @@ class ProjectExplorerWidget(PluginMainWidget):
             items.append(item_tuple)
         return items
 
-    def _execute_fzf_subprocess(self, search_text=""):
-        """
-        Execute fzf subprocess to get the list of files in the current
-        project filtered by `search_text`.
-
-        Parameters
-        ----------
-        search_text: str
-            The current search text in the switcher dialog box.
-        """
-        project_path = self.get_active_project_path()
-        if project_path is None:
-            return []
-        # command = fzf --filter <search_str>
-        cmd_list = ["fzf", "--filter", search_text]
-        shell = False
-        env = os.environ.copy()
-        startupinfo = subprocess.STARTUPINFO()
-        try:
-            out = subprocess.check_output(cmd_list, cwd=project_path,
-                                          shell=shell, env=env,
-                                          startupinfo=startupinfo,
-                                          stderr=subprocess.STDOUT)
-            relative_path_list = out.decode('UTF-8').strip().split("\n")
-            # List of tuples with the absolute path
-            result_list = [
-                osp.normpath(os.path.join(project_path, path)).lower()
-                for path in relative_path_list]
-            # Limit the number of results to 500
-            if (len(result_list) > 500):
-                result_list = result_list[:500]
-            return result_list
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return []
-
     # ---- Public API for the LSP
     # -------------------------------------------------------------------------
     def start_workspace_services(self):
@@ -1039,6 +1004,41 @@ class ProjectExplorerWidget(PluginMainWidget):
         ]
 
         return valid_projects
+
+    def _execute_fzf_subprocess(self, search_text=""):
+        """
+        Execute fzf subprocess to get the list of files in the current
+        project filtered by `search_text`.
+
+        Parameters
+        ----------
+        search_text: str
+            The current search text in the switcher dialog box.
+        """
+        project_path = self.get_active_project_path()
+        if project_path is None:
+            return []
+        # command = fzf --filter <search_str>
+        cmd_list = ["fzf", "--filter", search_text]
+        shell = False
+        env = os.environ.copy()
+        startupinfo = subprocess.STARTUPINFO()
+        try:
+            out = subprocess.check_output(cmd_list, cwd=project_path,
+                                          shell=shell, env=env,
+                                          startupinfo=startupinfo,
+                                          stderr=subprocess.STDOUT)
+            relative_path_list = out.decode('UTF-8').strip().split("\n")
+            # List of tuples with the absolute path
+            result_list = [
+                osp.normpath(os.path.join(project_path, path)).lower()
+                for path in relative_path_list]
+            # Limit the number of results to 500
+            if (len(result_list) > 500):
+                result_list = result_list[:500]
+            return result_list
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return []
 
 
 # =============================================================================
