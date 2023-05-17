@@ -47,6 +47,7 @@ from spyder.plugins.editor.panels.utils import (
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils import sourcecode
 
+
 logger = logging.getLogger(__name__)
 
 # Regexp to detect noqa inline comments.
@@ -212,7 +213,7 @@ class LSPMixin:
         # Clear pending requests
         self._pending_server_requests = []
 
-    # ---- LSP: Basic methods
+    # ---- Basic methods
     # -------------------------------------------------------------------------
     @Slot(str, dict)
     def handle_response(self, method, params):
@@ -249,7 +250,7 @@ class LSPMixin:
             # gives the info we need from users.
             logger.error("%", 1, stack_info=True)
 
-    # ---- LSP: Configuration and start/stop
+    # ---- Configuration and start/stop
     # -------------------------------------------------------------------------
     def start_completion_services(self):
         """Start completion services for this instance."""
@@ -376,7 +377,7 @@ class LSPMixin:
         }
         return params
 
-    # ---- LSP: Symbols
+    # ---- Symbols
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
@@ -411,7 +412,7 @@ class LSPMixin:
         finally:
             self.symbols_in_sync = True
 
-    # ---- LSP: Linting and didChange
+    # ---- Linting and didChange
     # -------------------------------------------------------------------------
     def _schedule_document_did_change(self):
         """Schedule a document update."""
@@ -643,7 +644,7 @@ class LSPMixin:
                     )
                 block.setUserData(data)
 
-    # ---- LSP: Completion
+    # ---- Completion
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
@@ -791,7 +792,7 @@ class LSPMixin:
                 "Error when handling completion item resolution"
             )
 
-    # ---- LSP: Signature Hints
+    # ---- Signature Hints
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self):
@@ -850,7 +851,7 @@ class LSPMixin:
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
-    # ---- LSP: Hover/Cursor
+    # ---- Hover/Cursor
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
     def request_cursor_event(self):
@@ -915,7 +916,7 @@ class LSPMixin:
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
-    # ---- LSP: Go To Definition
+    # ---- Go To Definition
     # -------------------------------------------------------------------------
     @Slot()
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_DEFINITION)
@@ -963,7 +964,7 @@ class LSPMixin:
                 "Error when processing go to definition"
             )
 
-    # ---- LSP: Document/Selection formatting
+    # ---- Document/Selection formatting
     # -------------------------------------------------------------------------
     def format_document_or_range(self):
         """Format current document or selected text."""
@@ -1191,7 +1192,7 @@ class LSPMixin:
                 self.setTextCursor(cursor)
                 self.centerCursor()
 
-    # ---- LSP: Code folding
+    # ---- Code folding
     # -------------------------------------------------------------------------
     def compute_whitespace(self, line):
         tab_size = self.tab_stop_width_spaces
@@ -1287,7 +1288,7 @@ class LSPMixin:
             line, column = self.get_cursor_line_column()
             self.update_whitespace_count(line, column)
 
-    # ---- LSP: Save/close file
+    # ---- Save/close file
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
                       requires_response=False)

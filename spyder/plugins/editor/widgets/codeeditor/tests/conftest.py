@@ -7,7 +7,8 @@
 """
 Testing utilities for the CodeEditor to be used with pytest.
 """
-# Stdlib imports
+
+# Standard library imports
 import os
 import os.path as osp
 from unittest.mock import Mock
