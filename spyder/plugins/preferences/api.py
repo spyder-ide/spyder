@@ -301,14 +301,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     self.restart_options[(sec, option)] = combobox.label_text
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            if "rich" in option.lower():
-                font_type = 'rich'
-            elif "app" in option.lower():
-                font_type = 'application'
-            else:
-                font_type = 'plain'
-
-            font = self.get_font(font_type)
+            font = self.get_font(option)
             fontbox.setCurrentFont(font)
             sizebox.setValue(font.pointSize())
 

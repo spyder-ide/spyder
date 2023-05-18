@@ -33,6 +33,7 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.app.cli_options import get_options
+from spyder.config.fonts import SpyderFontType
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima
@@ -686,17 +687,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         return ima.icon(name)
 
     @classmethod
-    def get_font(cls, font_type='plain'):
+    def get_font(cls, font_type=SpyderFontType.Plain):
         """
         Return plain or rich text font used in Spyder.
 
         Parameters
         ----------
         font_type: str, optional
-            There are three types of font types in Spyder: 'rich', which is
-            used in the Help pane; 'plain', used in the Editor and IPython
-            console; and `application`, used by the entire Spyder app.
-            The default is 'plain'.
+            There are three types of font types in Spyder: SpyderFontType.Rich,
+            which is used in the Help and Online Help panes;
+            SpyderFontType.Plain, used in the Editor, IPython console, History,
+            etc; and SpyderFontType.Application, used by the entire Spyder app.
+            The default is SpyderFontType.Plain.
 
         Returns
         -------
@@ -705,22 +707,21 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        All plugins in Spyder use the same, global font. This is a convenience
+        All plugins in Spyder use the same, global fonts. This is a convenience
         method in case some plugins want to use a delta size based on the
         default one. That can be controlled by using FONT_SIZE_DELTA or
         RICH_FONT_SIZE_DELTA (declared in `SpyderPlugin`).
         """
-        if font_type == 'rich':
-            option = 'rich_font'
+        if font_type == SpyderFontType.Rich:
             font_size_delta = cls.RICH_FONT_SIZE_DELTA
-        elif font_type == 'plain':
-            option = 'font'
+        elif font_type == SpyderFontType.Plain:
             font_size_delta = cls.FONT_SIZE_DELTA
-        else:
-            option = 'app_font'
+        elif font_type == SpyderFontType.Application:
             font_size_delta = 0
+        else:
+            raise SpyderAPIError("Unrecognized font type")
 
-        return get_font(option=option, font_size_delta=font_size_delta)
+        return get_font(option=font_type, font_size_delta=font_size_delta)
 
     def get_command_line_options(self):
         """

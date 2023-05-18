@@ -15,6 +15,25 @@ from spyder.config.utils import is_ubuntu
 
 
 #==============================================================================
+# Enums
+#==============================================================================
+class SpyderFontType:
+    """
+    Font types used in Spyder plugins and the entire application.
+
+    Notes
+    -----
+    * This enum is meant to be used to get the QFont object corresponding to
+      each type.
+    * The names associated to the values in this enum depend on historical
+      reasons that go back to Spyder 2 and are not easy to change now.
+    """
+    Plain = 'font'
+    Rich = 'rich_font'
+    Application = 'app_font'
+
+
+#==============================================================================
 # Main fonts
 #==============================================================================
 # Rich text fonts

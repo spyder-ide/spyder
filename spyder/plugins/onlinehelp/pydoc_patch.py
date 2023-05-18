@@ -6,6 +6,7 @@
 # (see spyder/__init__.py for details)
 
 """PyDoc patch"""
+
 # Standard libray
 import builtins
 import io
@@ -13,21 +14,21 @@ import inspect
 import os
 import pkgutil
 import platform
+from pydoc import (
+    classname, classify_class_attrs, describe, Doc, format_exception_only,
+    Helper, HTMLRepr, _is_bound_method, ModuleScanner, locate, replace,
+    visiblename, isdata, getdoc, deque, _split_list)
 import re
 import sys
 import tokenize
 import warnings
 
-
 # Local imports
 from spyder.config.base import _, DEV
+from spyder.config.fonts import SpyderFontType
 from spyder.config.gui import is_dark_interface, get_font
 from spyder.py3compat import to_text_string
 
-from pydoc import (
-    classname, classify_class_attrs, describe, Doc, format_exception_only,
-    Helper, HTMLRepr, _is_bound_method, ModuleScanner, locate, replace,
-    visiblename, isdata, getdoc, deque, _split_list)
 
 class CustomHTMLDoc(Doc):
     """
@@ -631,8 +632,8 @@ def _url_handler(url, content_type="text/html"):
 
         def page(self, title, contents):
             """Format an HTML page."""
-            rich_text_font = get_font(option="rich_font").family()
-            plain_text_font = get_font(option="font").family()
+            rich_text_font = get_font(option=SpyderFontType.Rich).family()
+            plain_text_font = get_font(option=SpyderFontType.Plain).family()
 
             if is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"

@@ -25,6 +25,7 @@ from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
 
 # Local imports
+from spyder.config.fonts import SpyderFontType
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
@@ -62,7 +63,8 @@ def get_family(families):
 
 FONT_CACHE = {}
 
-def get_font(section='appearance', option='font', font_size_delta=0):
+def get_font(section='appearance', option=SpyderFontType.Plain,
+             font_size_delta=0):
     """Get console font properties depending on OS and user options"""
     font = FONT_CACHE.get((section, option))
 

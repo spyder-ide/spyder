@@ -19,6 +19,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
+from spyder.config.fonts import SpyderFontType
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
@@ -425,7 +426,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font()
-        rich_font = self.get_font(font_type='rich')
+        rich_font = self.get_font(font_type=SpyderFontType.Rich)
         self.get_widget().update_font(font, rich_font)
 
     def on_close(self, cancelable=False):
