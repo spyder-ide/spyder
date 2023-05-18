@@ -173,7 +173,8 @@ class ProjectExplorerWidget(PluginMainWidget):
             self,
             "projects",
             _("You haven't opened a project yet."),
-            _("To create a new project go to: Projects > New project")
+            _("To create a new project go to the menu entry Projects > "
+              "New project")
         )
 
         # Watcher

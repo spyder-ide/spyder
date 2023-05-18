@@ -77,8 +77,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self,
             "variable-explorer",
             _("You haven't defined any variables yet."),
-            _("Run code with variables in the Editor to see them "
-              "listed here for review and editing.")
+            _("Run code with variables in the Editor or IPython console to "
+              "see them listed here for exploration and editing.")
         )
 
     def toggle_finder(self, show):
@@ -146,6 +146,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             layout.addWidget(self.editor)
             layout.addSpacing(1)
             layout.addWidget(self.finder)
+
             self.main_widget = QWidget()
             self.main_widget.setLayout(layout)
             self.stack_layout.addWidget(self.main_widget)

@@ -224,6 +224,7 @@ class PlotsWidget(ShellConnectMainWidget):
             figviewer = widget.figviewer
             thumbnails_sb = widget.thumbnails_sb
             value = figviewer.figcanvas.fig is not None
+
             if value:
                 widget.set_panel_empty(False)
             else:

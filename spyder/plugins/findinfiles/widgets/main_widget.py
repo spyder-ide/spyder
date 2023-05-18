@@ -143,11 +143,10 @@ class FindInFilesWidget(PluginMainWidget):
             path_history = [path_history]
 
         # Widgets
-        # Widget empty panel
         self.panelempty = PanelEmptyWidget(
             self,
             "find_empty",
-            _("You haven't found anything yet."),
+            _("You haven't searched for anything yet."),
             _("Find will search any directory based on your specifications")
         )
         

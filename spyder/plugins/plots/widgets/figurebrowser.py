@@ -176,9 +176,9 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             self,
             "plots",
             _("You haven't generated any plots yet."),
-            _("Run plot generating code in the Editor to see your plots "
-              "appear here for review and export. "
-              "The plots pane supports matplotlib.")
+            _("Run plot generating code in the Editor or IPython console to "
+              "see your plots appear here. This pane only supports Matplotlib "
+              "plots".)
         )
         
 
@@ -189,12 +189,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
 
-        self.stack_layout = layout = QStackedLayout()
+        self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(splitter)
         self.stack_layout.addWidget(self.panelempty)
         self.setLayout(self.stack_layout)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self.stack_layout.setContentsMargins(0, 0, 0, 0)
+        self.stack_layout.setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)
 
     def _update_zoom_value(self, value):

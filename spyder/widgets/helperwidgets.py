@@ -459,8 +459,8 @@ def test_msgcheckbox():
     box.exec_()
 
 
-class PanelEmptyWidget(QFrame):
-    """Widget to show a panel/plugin functionality description."""
+class PaneEmptyWidget(QFrame):
+    """Widget to show a pane/plugin functionality description."""
 
     def __init__(self, parent, icon_filename, text, description):
         super().__init__(parent)
@@ -476,9 +476,7 @@ class PanelEmptyWidget(QFrame):
         image_label.setPixmap(image)
         image_label.setAlignment(Qt.AlignCenter)
         image_label_qss = qstylizer.style.StyleSheet()
-        image_label_qss.QLabel.setValues(
-            border="0px"
-        )
+        image_label_qss.QLabel.setValues(border="0px")
         image_label.setStyleSheet(image_label_qss.toString())
 
         # Main text
@@ -510,7 +508,6 @@ class PanelEmptyWidget(QFrame):
         panel_empty_layout.addWidget(image_label)
         panel_empty_layout.addWidget(text_label)
         panel_empty_layout.addWidget(description_label)
-        #panel_empty_layout.
         panel_empty_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(panel_empty_layout)
 

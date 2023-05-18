@@ -179,13 +179,13 @@ class ProfilerWidget(PluginMainWidget):
             "code-profiler",
             _("You haven't profiled any code yet."),
             _("Profile your code to find the run time and number of calls "
-              "for every function and method called in a file.")
+              "for every function and method called on it.")
         )
         self.datelabel = QLabel()
         self.datelabel.ID = ProfilerWidgetInformationToolbarItems.DateLabel
 
         # Layout
-        self.stack_layout = layout = QStackedLayout()
+        self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(self.panelempty)
         self.stack_layout.addWidget(self.datatree)
         self.setLayout(self.stack_layout)
