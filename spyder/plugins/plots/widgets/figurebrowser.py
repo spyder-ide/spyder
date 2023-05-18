@@ -30,7 +30,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
-from spyder.widgets.helperwidgets import PanelEmptyWidget
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # TODO:
@@ -172,7 +172,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             self.sig_redirect_stdio_requested)
 
         # Widget empty panel
-        self.panelempty = PanelEmptyWidget(
+        self.panelempty = PaneEmptyWidget(
             self,
             "plots",
             _("You haven't generated any plots yet."),

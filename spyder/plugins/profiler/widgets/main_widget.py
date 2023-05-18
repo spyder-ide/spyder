@@ -43,7 +43,7 @@ from spyder.utils.palette import SpyderPalette, QStylePalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
 from spyder.widgets.comboboxes import PythonModulesComboBox
-from spyder.widgets.helperwidgets import PanelEmptyWidget
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # Logging
@@ -174,7 +174,7 @@ class ProfilerWidget(PluginMainWidget):
         self.filecombo = PythonModulesComboBox(
             self, id_=ProfilerWidgetMainToolbarItems.FileCombo)
         self.datatree = ProfilerDataTree(self)
-        self.panelempty = PanelEmptyWidget(
+        self.panelempty = PaneEmptyWidget(
             self,
             "code-profiler",
             _("You haven't profiled any code yet."),

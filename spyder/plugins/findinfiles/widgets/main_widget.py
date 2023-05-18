@@ -25,7 +25,7 @@ from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import PatternComboBox
-from spyder.widgets.helperwidgets import PanelEmptyWidget
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # ---- Constants
@@ -143,7 +143,7 @@ class FindInFilesWidget(PluginMainWidget):
             path_history = [path_history]
 
         # Widgets
-        self.panelempty = PanelEmptyWidget(
+        self.panelempty = PaneEmptyWidget(
             self,
             "find_empty",
             _("You haven't searched for anything yet."),

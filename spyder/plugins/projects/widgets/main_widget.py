@@ -38,7 +38,7 @@ from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
-from spyder.widgets.helperwidgets import PanelEmptyWidget
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
 
@@ -169,7 +169,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        self.emptywidget = PanelEmptyWidget(
+        self.emptywidget = PaneEmptyWidget(
             self,
             "projects",
             _("You haven't opened a project yet."),
