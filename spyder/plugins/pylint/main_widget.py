@@ -42,7 +42,7 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
-from spyder.widgets.helperwidgets import PanelEmptyWidget
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # --- Constants
@@ -316,7 +316,7 @@ class PylintWidget(PluginMainWidget):
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
         self.treewidget = ResultsTree(self)
-        self.panelempty = PanelEmptyWidget(
+        self.panelempty = PaneEmptyWidget(
             self,
             "code-analysis",
             _("You haven't analyzed any code yet."),

@@ -36,7 +36,7 @@ from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
-from spyder.widgets.helperwidgets import FinderWidget, PanelEmptyWidget
+from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
 
 
 # Constants
@@ -73,7 +73,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
-        self.panelempty = PanelEmptyWidget(
+        self.panelempty = PaneEmptyWidget(
             self,
             "variable-explorer",
             _("You haven't defined any variables yet."),
