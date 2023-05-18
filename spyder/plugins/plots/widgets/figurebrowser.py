@@ -178,9 +178,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             _("You haven't generated any plots yet."),
             _("Run plot generating code in the Editor or IPython console to "
               "see your plots appear here. This pane only supports Matplotlib "
-              "plots".)
+              "plots.")
         )
-        
 
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
