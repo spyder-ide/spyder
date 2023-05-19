@@ -112,6 +112,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         else:
             kernel_cmd = [
                 pyexec,
+                '-Xfrozen_modules=off',
                 '-m',
                 'spyder_kernels.console',
                 '-f',
