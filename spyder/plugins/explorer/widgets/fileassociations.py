@@ -147,7 +147,10 @@ class ApplicationsDialog(QDialog):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
         if applications is None:
-            apps = get_installed_applications()
+            try:
+                apps = get_installed_applications()
+            except PermissionError:
+                apps = []
         else:
             apps = applications
 
