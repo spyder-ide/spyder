@@ -20,11 +20,10 @@ from difflib import SequenceMatcher
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QBrush, QColor
-from spyder_kernels.utils.nsview import is_editable_type
 
 # Local imports
+from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _
-from spyder.config.gui import get_font
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
@@ -45,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 # The main window inherits from a Qt class, therefore it has many
 # ancestors public methods and attributes.
-class TreeModel(QAbstractItemModel):
+class TreeModel(QAbstractItemModel, SpyderFontsMixin):
     """
     Model that provides an interface to an objectree
     that is build of TreeItems.
@@ -70,11 +69,13 @@ class TreeModel(QAbstractItemModel):
         self._attr_cols = attr_cols
 
         # Font for members (non-functions)
-        self.regular_font = regular_font if regular_font else get_font()
+        self.regular_font = regular_font if regular_font else self.get_font()
+
         # Font for __special_attributes__
-        self.special_attribute_font = (special_attribute_font
-                                       if special_attribute_font
-                                       else get_font())
+        self.special_attribute_font = (
+            special_attribute_font if special_attribute_font
+            else self.get_font()
+        )
         self.special_attribute_font.setItalic(False)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))

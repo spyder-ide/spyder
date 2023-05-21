@@ -14,10 +14,12 @@ from typing import Any, Union, Optional
 import warnings
 
 # Third-party imports
+from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QAction, QWidget
 
 # Local imports
-from spyder.config.gui import Shortcut
+from spyder.config.fonts import SpyderFontType
+from spyder.config.gui import get_font, Shortcut
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
 from spyder.config.user import NoDefault
@@ -350,3 +352,27 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
                 method(option, value)
             else:
                 method(value)
+
+
+class SpyderFontsMixin:
+    """Mixin to get the different Spyder font types from our config system."""
+
+    @classmethod
+    def get_font(
+        cls,
+        font_type: Optional[str] = SpyderFontType.Plain,
+        font_size_delta: Optional[int] = 0
+    ) -> QFont:
+        """
+        Get a font type as a QFont object.
+
+        Parameters
+        ----------
+        font_type: str, optional
+            A Spyder font type. This must be one of the `SpyderFontType` enum
+            values. The default is `SpyderFontType.Plain`.
+        font_size_delta: int, optional
+            Small increase or decrease over the default font size. The default
+            is 0.
+        """
+        return get_font(option=font_type, font_size_delta=font_size_delta)

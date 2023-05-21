@@ -43,11 +43,11 @@ from spyder_kernels.utils.nsview import (
 )
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.config.mixins import (
+    SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_text_string,
                               is_type_text_string)
 from spyder.utils.icon_manager import ima
@@ -128,7 +128,7 @@ class ProxyObject(object):
                 raise
 
 
-class ReadOnlyCollectionsModel(QAbstractTableModel):
+class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
     """CollectionsEditor Read-Only Table Model"""
 
     sig_setting_data = Signal()
@@ -440,7 +440,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return to_qvariant(
+                self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+            )
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):

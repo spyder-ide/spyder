@@ -13,19 +13,18 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
-                            QVBoxLayout)
+from qtpy.QtWidgets import QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout
 
 # Local import
+from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _
-from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_binary_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 
-class TextEditor(BaseDialog):
+class TextEditor(BaseDialog, SpyderFontsMixin):
     """Array Editor Dialog"""
     def __init__(self, text, title='', font=None, parent=None, readonly=False):
         super().__init__(parent)
@@ -56,7 +55,7 @@ class TextEditor(BaseDialog):
         self.edit.textChanged.connect(self.text_changed)
         self.edit.setPlainText(text)
         if font is None:
-            font = get_font()
+            font = self.get_font()
         self.edit.setFont(font)
         self.layout.addWidget(self.edit)
 

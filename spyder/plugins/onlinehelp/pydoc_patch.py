@@ -24,9 +24,10 @@ import tokenize
 import warnings
 
 # Local imports
+from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _, DEV
 from spyder.config.fonts import SpyderFontType
-from spyder.config.gui import is_dark_interface, get_font
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
 
 
@@ -628,12 +629,14 @@ def _url_handler(url, content_type="text/html"):
 
     See https://github.com/python/cpython/blob/master/Lib/pydoc.py
     """
-    class _HTMLDoc(CustomHTMLDoc):
+    class _HTMLDoc(CustomHTMLDoc, SpyderFontsMixin):
 
         def page(self, title, contents):
             """Format an HTML page."""
-            rich_text_font = get_font(option=SpyderFontType.Rich).family()
-            plain_text_font = get_font(option=SpyderFontType.Plain).family()
+            rich_text_font = self.get_font(
+                font_type=SpyderFontType.Rich).family()
+            plain_text_font = self.get_font(
+                font_type=SpyderFontType.Plain).family()
 
             if is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"

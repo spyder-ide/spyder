@@ -50,10 +50,10 @@ from qtpy.QtWidgets import (
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.config.mixins import (
+    SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
@@ -108,7 +108,7 @@ def global_max(col_vals, index):
     return max(max_col), min(min_col)
 
 
-class DataFrameModel(QAbstractTableModel):
+class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
     """
     DataFrame Table Model.
 
@@ -375,7 +375,9 @@ class DataFrameModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return to_qvariant(
+                self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+            )
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:
                 return _("It is not possible to display this value because\n"

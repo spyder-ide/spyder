@@ -22,9 +22,9 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions_text)
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.config.mixins import (
+    SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.config.base import _, is_conda_based_app
-from spyder.config.gui import get_font
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 from spyder.utils.conda import is_conda_env, get_conda_env_path, find_conda
 from spyder.utils.icon_manager import ima
@@ -41,7 +41,7 @@ TITLE_MIN_CHARS = 15
 DESC_MIN_CHARS = 50
 
 
-class DescriptionWidget(SimpleCodeEditor):
+class DescriptionWidget(SimpleCodeEditor, SpyderFontsMixin):
     """Widget to enter error description."""
 
     def __init__(self, parent=None):
@@ -50,7 +50,7 @@ class DescriptionWidget(SimpleCodeEditor):
         # Editor options
         self.setup_editor(
             language='md',
-            font=get_font(),
+            font=self.get_font(),
             wrap=True,
             linenumbers=False,
             highlight_current_line=False,
@@ -124,7 +124,7 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
         self.setReadOnly(True)
 
 
-class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
+class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
     """Custom error dialog for error reporting."""
 
     def __init__(self, parent=None, is_report=False):
@@ -195,7 +195,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
 
         # Widget to show errors
         self.details = ShowErrorWidget(self)
-        self.details.set_pythonshell_font(get_font())
+        self.details.set_pythonshell_font(self.get_font())
         self.details.hide()
 
         self.description_minimum_length = DESC_MIN_CHARS
