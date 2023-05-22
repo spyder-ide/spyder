@@ -17,6 +17,7 @@ from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.gui import OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
@@ -31,9 +32,10 @@ WIN = os.name == 'nt'
 class SpyderStyleSheet:
     """Base class for Spyder stylesheets."""
 
-    def __init__(self):
+    def __init__(self, set_stylesheet=True):
         self._stylesheet = qstylizer.style.StyleSheet()
-        self.set_stylesheet()
+        if set_stylesheet:
+            self.set_stylesheet()
 
     def get_stylesheet(self):
         return self._stylesheet
@@ -66,19 +68,25 @@ class SpyderStyleSheet:
 # =============================================================================
 # ---- Application stylesheet
 # =============================================================================
-class AppStylesheet(SpyderStyleSheet):
+class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
     """
     Class to build and access the stylesheet we use in the entire
     application.
     """
 
     def __init__(self):
-        super().__init__()
+        # Don't create the stylesheet here so that Spyder gets the app font
+        # from the system when it starts for the first time. This also allows
+        # us to display the splash screen more quickly because the stylesheet
+        # is computed only it's going to be applied to the app, not when this
+        # object is imported.
+        super().__init__(set_stylesheet=False)
         self._stylesheet_as_string = None
 
     def to_string(self):
         "Save stylesheet as a string for quick access."
         if self._stylesheet_as_string is None:
+            self.set_stylesheet()
             self._stylesheet_as_string = self._stylesheet.toString()
         return self._stylesheet_as_string
 
@@ -96,6 +104,10 @@ class AppStylesheet(SpyderStyleSheet):
     def _customize_stylesheet(self):
         """Apply our customizations to the stylesheet."""
         css = self._stylesheet
+
+        # App font properties
+        font_family = self.get_conf('app_font/family', section='appearance')
+        font_size = int(self.get_conf('app_font/size', section='appearance'))
 
         # Remove padding and border for QStackedWidget (used in Plots
         # and the Variable Explorer)
@@ -135,11 +147,9 @@ class AppStylesheet(SpyderStyleSheet):
 
         # Set menu item properties
         css["QMenu::item"].setValues(
-            height='1.4em',
-            fontSize='0.7em',
+            height='1.6em',
             padding='4px 24px 4px 8px',
-            # TODO: This requires a fix in qstylizer
-            # iconSize='0.8em'
+            fontFamily=font_family,
         )
 
         if OLD_PYQT:
@@ -187,6 +197,14 @@ class AppStylesheet(SpyderStyleSheet):
         css["QDialogButtonBox QPushButton:!default"].setValues(
             padding='3px 0px 3px 0px',
         )
+
+        # Set font for widgets that don't inherit it from the application
+        for widget in ['QToolTip', 'QDialog', 'QListView',
+                       'QHeaderView::section', 'QTableView']:
+            css[f'{widget}'].setValues(
+                fontFamily=font_family,
+                fontSize=f'{font_size}pt'
+            )
 
 
 APP_STYLESHEET = AppStylesheet()
