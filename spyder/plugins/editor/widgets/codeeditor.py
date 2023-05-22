@@ -1063,6 +1063,14 @@ class CodeEditor(TextEditBaseWidget):
 
         self.set_strip_mode(strip_mode)
 
+    def update_classfuncdropdown(self, symbols):
+        symbols = [] if symbols is None else symbols
+
+        if self.classfuncdropdown.isVisible():
+            self.classfuncdropdown.update_data(symbols)
+        else:
+            self.classfuncdropdown.set_data(symbols)
+
     # ---- LSP: Basic methods
     # -------------------------------------------------------------------------
     @Slot(str, dict)
@@ -1228,12 +1236,8 @@ class CodeEditor(TextEditBaseWidget):
         """Handle symbols response."""
         try:
             symbols = params['params']
-            symbols = [] if symbols is None else symbols
 
-            if self.classfuncdropdown.isVisible():
-                self.classfuncdropdown.update_data(symbols)
-            else:
-                self.classfuncdropdown.set_data(symbols)
+            self.update_classfuncdropdown(symbols)
 
             if self.oe_proxy is not None:
                 self.oe_proxy.update_outline_info(symbols)
