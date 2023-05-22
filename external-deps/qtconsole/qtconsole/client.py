@@ -45,6 +45,10 @@ class QtZMQSocketChannel(ThreadedZMQSocketChannel, SuperQObject):
         # Emit the generic signal.
         self.message_received.emit(msg)
 
+    def closed(self):
+        """Check if the channel is closed."""
+        return self.stream is None or self.stream.closed()
+
 
 class QtKernelClient(QtKernelClientMixin, ThreadedKernelClient):
     """ A KernelClient that provides signals and slots.

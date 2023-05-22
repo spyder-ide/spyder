@@ -37,7 +37,7 @@ def run_pytest(run_slow=False, extra_args=None):
 
     if CI:
         # Show coverage
-        pytest_args += ['--cov=spyder', '--no-cov-on-fail']
+        pytest_args += ['--cov=spyder', '--no-cov-on-fail', '--cov-report=xml']
 
         # To display nice tests resume in Azure's web page
         if os.environ.get('AZURE', None) is not None:

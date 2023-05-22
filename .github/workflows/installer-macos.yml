@@ -33,24 +33,25 @@ env:
 jobs:
   matrix_prep:
     name: Determine Build Matrix
-    runs-on: macos-11
+    runs-on: ubuntu-latest
     outputs:
       build_type: ${{ steps.set-matrix.outputs.build_type }}
     steps:
     - id: set-matrix
       run: |
         if [[ ${GITHUB_EVENT_NAME} == 'release' || ${IS_PRE} == 'true' ]]; then
-            build_type=$(echo "['Full', 'Lite']")
+            build_type="'Full', 'Lite'"
         else
-            build_type=$(echo "['Full']")
+            build_type="'Full'"
         fi
-        echo "::set-output name=build_type::{'build_type':$(echo $build_type)}"
+        echo "build_type=[${build_type}]" >> $GITHUB_OUTPUT
   build:
     name: macOS App Bundle
     runs-on: macos-11
     needs: matrix_prep
     strategy:
-      matrix: ${{fromJson(needs.matrix_prep.outputs.build_type)}}
+      matrix:
+        build_type: ${{fromJson(needs.matrix_prep.outputs.build_type)}}
     defaults:
       run:
         shell: bash -l {0}
@@ -85,7 +86,7 @@ jobs:
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
-          ${pythonLocation}/bin/python -m pip install -U pip setuptools
+          ${pythonLocation}/bin/python -m pip install -U pip setuptools wheel
           ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
