@@ -34,6 +34,7 @@ from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.findreplace import FindReplace
 
+
 # ---- Base constants for assets
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
@@ -116,6 +117,7 @@ def outlineexplorer(qtbot):
     outlineexplorer.show()
 
     return outlineexplorer
+
 
 # ---- Fixtures for CodeEditor class
 def codeeditor_factory():
