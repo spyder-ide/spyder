@@ -112,6 +112,9 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         else:
             kernel_cmd = [
                 pyexec,
+                # This is necessary to avoid a spurious message on Windows.
+                # Fixes spyder-ide/spyder#20800.
+                '-Xfrozen_modules=off',
                 '-m',
                 'spyder_kernels.console',
                 '-f',
