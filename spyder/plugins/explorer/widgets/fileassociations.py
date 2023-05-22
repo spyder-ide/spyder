@@ -147,7 +147,13 @@ class ApplicationsDialog(QDialog):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
         if applications is None:
-            apps = get_installed_applications()
+            # This is necessary to avoid an error on Windows for non-admin
+            # accounts.
+            # Fixes spyder-ide/spyder#20907
+            try:
+                apps = get_installed_applications()
+            except PermissionError:
+                apps = []
         else:
             apps = applications
 
