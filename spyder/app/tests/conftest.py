@@ -297,6 +297,8 @@ def main_window(request, tmpdir, qtbot):
     # Set exclamation mark to True
     CONF.set('ipython_console', 'pdb_use_exclamation_mark', True)
 
+    CONF.set('editor', 'show_class_func_dropdown', True)
+
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
     use_introspection = request.node.get_closest_marker('use_introspection')
