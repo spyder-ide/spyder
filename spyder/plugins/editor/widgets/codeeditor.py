@@ -243,6 +243,8 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    sig_code_folding_info = Signal(tuple)
+
     # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
     # a URI is found, this signal is emitted
     sig_uri_found = Signal(str)
@@ -511,7 +513,6 @@ class CodeEditor(TextEditBaseWidget):
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread(None)
-        self.update_folding_thread.finished.connect(self.finish_code_folding)
 
         # Completions hint
         self.completions_hint = True
@@ -579,7 +580,6 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters = []
         self.completion_args = None
         self.folding_supported = False
-        self._folding_info = None
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
@@ -602,7 +602,6 @@ class CodeEditor(TextEditBaseWidget):
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
-        self.patch = []
         self.leading_whitespaces = {}
 
         # Some events should not be triggered during undo/redo
@@ -1037,19 +1036,20 @@ class CodeEditor(TextEditBaseWidget):
             # This is required for the line number area
             self.setFont(font)
 
-            # Needed to show indent guides for splited editor panels
-            # See spyder-ide/spyder#10900
-            self.patch = cloned_from.patch
-
             # Clone text and other properties
             self.set_as_clone(cloned_from)
 
+            cloned_from.sig_code_folding_info.connect(self.apply_code_folding)
+
             # Refresh panels
             self.panels.refresh()
-        elif font is not None:
-            self.set_font(font, color_scheme)
-        elif color_scheme is not None:
-            self.set_color_scheme(color_scheme)
+        else:
+            if font is not None:
+                self.set_font(font, color_scheme)
+            if color_scheme is not None:
+                self.set_color_scheme(color_scheme)
+
+            self.sig_code_folding_info.connect(self.apply_code_folding)
 
         # Set tab spacing after font is set
         self.set_tab_stop_width_spaces(tab_stop_width_spaces)
@@ -1277,14 +1277,14 @@ class CodeEditor(TextEditBaseWidget):
 
         self.text_version += 1
 
-        self.patch = self.differ.patch_make(self.previous_text, text)
+        patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
         cursor = self.textCursor()
         params = {
             'file': self.filename,
             'version': self.text_version,
             'text': text,
-            'diff': self.patch,
+            'diff': patch,
             'offset': cursor.position(),
             'selection_start': cursor.selectionStart(),
             'selection_end': cursor.selectionEnd(),
@@ -2091,8 +2091,8 @@ class CodeEditor(TextEditBaseWidget):
                 extended_ranges, folding_panel.current_tree,
                 folding_panel.root)
 
-            folding_info = collect_folding_regions(root)
-            self._folding_info = (current_tree, root, *folding_info)
+            folding_info = (current_tree, root, *collect_folding_regions(root))
+            self.sig_code_folding_info.emit(folding_info)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -2100,18 +2100,18 @@ class CodeEditor(TextEditBaseWidget):
         except Exception:
             self.log_lsp_handle_errors("Error when processing folding")
 
-    def finish_code_folding(self):
+    def apply_code_folding(self, folding_info):
         """Finish processing code folding."""
         folding_panel = self.panels.get(FoldingPanel)
 
         # Check if we actually have folding info to update before trying to do
         # it.
         # Fixes spyder-ide/spyder#19514
-        if self._folding_info is not None:
-            folding_panel.update_folding(self._folding_info)
+        if folding_info is not None:
+            folding_panel.update_folding(folding_info)
 
         # Update indent guides, which depend on folding
-        if self.indent_guides._enabled and len(self.patch) > 0:
+        if self.indent_guides._enabled:
             line, column = self.get_cursor_line_column()
             self.update_whitespace_count(line, column)
 
