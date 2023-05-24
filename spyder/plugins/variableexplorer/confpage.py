@@ -13,6 +13,7 @@ from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 from spyder.config.base import _
 from spyder.api.preferences import PluginConfigPage
 
+
 class VariableExplorerConfigPage(PluginConfigPage):
 
     def setup_page(self):
@@ -26,8 +27,8 @@ class VariableExplorerConfigPage(PluginConfigPage):
              _("Exclude callables and modules"))
         ]
         filter_boxes = [self.create_checkbox(
-            text, option,
-            help_info='Excludes variables that fit the description')
+            text, option, help_info=True,
+            tip='Excludes variables that fit the description')
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))
