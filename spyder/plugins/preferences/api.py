@@ -429,7 +429,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def add_help_info_label(self, layout, help_info):
         help_label = QLabel()
-        image = ima.icon('help').pixmap(QSize(20, 20))
+        image = ima.icon('help_gray').pixmap(QSize(20, 20))
         help_label.setPixmap(image)
         help_label.setFixedWidth(23)
         help_label.setFixedHeight(23)

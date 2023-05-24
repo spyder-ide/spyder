@@ -60,7 +60,8 @@ class ApplicationConfigPage(PluginConfigPage):
                                     'single_instance',
                                     tip=_("Set this to open external<br> "
                                           "Python files in an already running "
-                                          "instance (Requires a restart)"))
+                                          "instance (Requires a restart)"),
+                                    help_info=True)
 
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
         popup_console_box = newcb(_("Show internal Spyder errors to report "
@@ -187,6 +188,7 @@ class ApplicationConfigPage(PluginConfigPage):
                                 'high_dpi_scaling',
                                 button_group=screen_resolution_bg,
                                 tip=_("Set this for high DPI displays"),
+                                help_info=True,
                                 restart=True)
 
         custom_scaling_radio = self.create_radiobutton(

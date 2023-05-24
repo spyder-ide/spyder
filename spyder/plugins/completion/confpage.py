@@ -38,7 +38,8 @@ class CompletionConfigPage(PluginConfigPage):
             _("Time to wait for all providers to return (ms):"), None,
             'completions_wait_for_ms', min_=0, max_=10000, step=10,
             tip=_("Beyond this timeout the first available provider "
-                  "will be returned"))
+                  "will be returned"),
+            help_info=True)
         completion_hint_box = newcb(
             _("Show completion details"),
             'completions_hint',
@@ -50,7 +51,7 @@ class CompletionConfigPage(PluginConfigPage):
         completions_after_characters = self.create_spinbox(
             _("Show automatic completions after characters entered:"), None,
             'automatic_completions_after_chars', min_=1, step=1,
-            tip=_("Default is 1"), section='editor')
+            tip=_("Default is 1"), section='editor', help_info=True)
         code_snippets_box = newcb(
             _("Enable code snippets"), 'enable_code_snippets')
         completions_hint_after_idle = self.create_spinbox(
