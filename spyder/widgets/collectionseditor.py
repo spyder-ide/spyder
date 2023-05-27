@@ -197,6 +197,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
+
         if not isinstance(self._data, ProxyObject):
             if len(self.keys) > 1:
                 elements = _("elements")
@@ -206,17 +207,21 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         else:
             data_type = get_type_string(data)
             self.title += data_type
+
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
+
         self.sig_setting_data.emit()
         self.set_size_and_type()
+
         if len(self.keys):
             # Needed to update search scores when
             # adding values to the namespace
             self.update_search_letters()
+
         self.reset()
 
     def set_size_and_type(self, start=None, stop=None):
@@ -620,6 +625,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.horizontalHeader().sig_user_resized_section.connect(
             self.user_resize_columns)
 
+        # There is no need for us to show this header because we're not using
+        # it to show any information on it.
+        self.verticalHeader().hide()
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -965,6 +974,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.sig_files_dropped.emit(urls)
         else:
             event.ignore()
+
+    def showEvent(self, event):
+        """Resize columns when the widget is shown."""
+        self.adjust_columns()
+        super().showEvent(event)
 
     def _deselect_index(self, index):
         """
