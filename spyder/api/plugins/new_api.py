@@ -149,7 +149,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
     # Control the font size relative to the global fonts defined in Spyder
     FONT_SIZE_DELTA = 0
-    RICH_FONT_SIZE_DELTA = 0
+    APP_FONT_SIZE_DELTA = 0
 
     # Define context to store actions, toolbars, toolbuttons and menus.
     CONTEXT_NAME = None
@@ -694,10 +694,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         Parameters
         ----------
         font_type: str, optional
-            There are three types of font types in Spyder: SpyderFontType.Rich,
-            which is used in the Help and Online Help panes;
-            SpyderFontType.Plain, used in the Editor, IPython console, History,
-            etc; and SpyderFontType.Application, used by the entire Spyder app.
+            There are two types of font types in Spyder: SpyderFontType.Plain,
+            used in the Editor, IPython console, History, etc; and
+            SpyderFontType.Application, used by the entire Spyder app.
             The default is SpyderFontType.Plain.
 
         Returns
@@ -710,14 +709,12 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         All plugins in Spyder use the same, global fonts. This is a convenience
         method in case some plugins want to use a delta size based on the
         default one. That can be controlled by using FONT_SIZE_DELTA or
-        RICH_FONT_SIZE_DELTA (declared in `SpyderPlugin`).
+        APP_FONT_SIZE_DELTA.
         """
-        if font_type == SpyderFontType.Rich:
-            font_size_delta = cls.RICH_FONT_SIZE_DELTA
-        elif font_type == SpyderFontType.Plain:
+        if font_type == SpyderFontType.Plain:
             font_size_delta = cls.FONT_SIZE_DELTA
         elif font_type == SpyderFontType.Application:
-            font_size_delta = 0
+            font_size_delta = cls.APP_FONT_SIZE_DELTA
         else:
             raise SpyderAPIError("Unrecognized font type")
 

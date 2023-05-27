@@ -111,11 +111,6 @@ class AppearanceConfigPage(PluginConfigPage):
             fontfilters=QFontComboBox.MonospacedFonts,
             without_group=True)
 
-        self.rich_text_font = self.create_fontgroup(
-            option='rich_font',
-            title=_("Rich text"),
-            without_group=True)
-
         self.app_font = self.create_fontgroup(
             option='app_font',
             title=_("Application"),
@@ -129,10 +124,6 @@ class AppearanceConfigPage(PluginConfigPage):
         fonts_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
         fonts_layout.addWidget(self.plain_text_font.sizelabel, 0, 2)
         fonts_layout.addWidget(self.plain_text_font.sizebox, 0, 3)
-        fonts_layout.addWidget(self.rich_text_font.fontlabel, 1, 0)
-        fonts_layout.addWidget(self.rich_text_font.fontbox, 1, 1)
-        fonts_layout.addWidget(self.rich_text_font.sizelabel, 1, 2)
-        fonts_layout.addWidget(self.rich_text_font.sizebox, 1, 3)
         fonts_layout.addWidget(self.app_font.fontlabel, 2, 0)
         fonts_layout.addWidget(self.app_font.fontbox, 2, 1)
         fonts_layout.addWidget(self.app_font.sizelabel, 2, 2)

@@ -29,20 +29,12 @@ class SpyderFontType:
       reasons that go back to Spyder 2 and are not easy to change now.
     """
     Plain = 'font'
-    Rich = 'rich_font'
     Application = 'app_font'
 
 
 #==============================================================================
 # Main fonts
 #==============================================================================
-# Rich text fonts
-SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
-              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
-              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
-
-# Plan text fonts
 MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas',
              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
              'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
@@ -58,7 +50,6 @@ elif os.name == 'nt':
     BIG = MEDIUM = 10
     SMALL = 9
 elif is_ubuntu():
-    SANS_SERIF = ['Ubuntu'] + SANS_SERIF
     MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
     BIG = MEDIUM = 11
     SMALL = 10

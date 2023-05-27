@@ -47,8 +47,12 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
 
     def __init__(self):
         super().__init__()
-        self.rich_font = self.get_font(font_type=SpyderFontType.Rich)
+        self.app_font = self.get_font(font_type=SpyderFontType.Application)
         self.plain_font = self.get_font(font_type=SpyderFontType.Plain)
+
+        # The increased value used below is necessary to make the font size on
+        # this plugin match the one used in the rest of the app.
+        self.app_font_size = self.app_font.pointSize() + 2
 
     def page(self, title, contents):
         """Format an HTML page."""
@@ -76,7 +80,7 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
 <tr>
 <td colspan="3">
 {}</td></tr>
-    '''.format(css_class, self.rich_font.pointSize(), title)
+    '''.format(css_class, self.app_font_size, title)
 
         if prelude:
             result = result + '''
@@ -116,7 +120,7 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
         return (
             '<table style="width:100%; font-size: {}pt">'
             '<tr>{}</tr></table>'
-        ).format(self.rich_font.pointSize(), result)
+        ).format(self.app_font_size, result)
 
     def grey(self, text):
         """Grey span."""
@@ -667,7 +671,7 @@ def _url_handler(url, content_type="text/html"):
 
             code_style = (
                 '<style>code {{font-family: "{}"; font-size: {}pt}}</style>'
-            ).format(self.plain_font.family(), self.rich_font.pointSize())
+            ).format(self.plain_font.family(), self.app_font_size)
 
             html_page = '''\
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -676,8 +680,8 @@ def _url_handler(url, content_type="text/html"):
 {}{}</head><body style="clear: both; font-family: '{}'; font-size: {}pt">
 {}<div style="clear:both;padding-top:.7em;">{}</div>
 </body></html>'''.format(
-    title, css_link, code_style, self.rich_font.family(),
-    self.rich_font.pointSize(), html_navbar(), contents)
+    title, css_link, code_style, self.app_font.family(),
+    self.app_font_size, html_navbar(), contents)
 
             return html_page
 

@@ -11,7 +11,7 @@ Spyder appearance configuration
 import os
 import sys
 
-from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
+from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 
 WIN = os.name == 'nt'
@@ -26,10 +26,6 @@ APPEARANCE = {
     'font/size': MEDIUM,
     'font/italic': False,
     'font/bold': False,
-    'rich_font/family': SANS_SERIF,
-    'rich_font/size': SMALL if (LINUX or WIN) else MEDIUM,
-    'rich_font/italic': False,
-    'rich_font/bold': False,
     # We select the app font from the operating system the first time Spyder
     # starts, so we don't need to set it here
     'app_font/family': '',

@@ -426,8 +426,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font()
-        rich_font = self.get_font(font_type=SpyderFontType.Rich)
-        self.get_widget().update_font(font, rich_font)
+        app_font = self.get_font(font_type=SpyderFontType.Application)
+        self.get_widget().update_font(font, app_font)
 
     def on_close(self, cancelable=False):
         """Perform actions when plugin is closed"""
