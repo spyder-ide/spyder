@@ -107,29 +107,42 @@ class AppearanceConfigPage(PluginConfigPage):
         # Fonts widgets
         self.plain_text_font = self.create_fontgroup(
             option='font',
-            title=_("Plain text"),
+            title=_("Monospace"),
             fontfilters=QFontComboBox.MonospacedFonts,
             without_group=True)
 
         self.app_font = self.create_fontgroup(
             option='app_font',
-            title=_("Application"),
+            title=_("Interface"),
             fontfilters=QFontComboBox.ProportionalFonts,
             restart=True,
             without_group=True)
 
-        # Fonts layout
-        fonts_layout = QGridLayout(fonts_group)
-        fonts_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
-        fonts_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
-        fonts_layout.addWidget(self.plain_text_font.sizelabel, 0, 2)
-        fonts_layout.addWidget(self.plain_text_font.sizebox, 0, 3)
-        fonts_layout.addWidget(self.app_font.fontlabel, 2, 0)
-        fonts_layout.addWidget(self.app_font.fontbox, 2, 1)
-        fonts_layout.addWidget(self.app_font.sizelabel, 2, 2)
-        fonts_layout.addWidget(self.app_font.sizebox, 2, 3)
+        # System font checkbox
+        system_font_checkbox = self.create_checkbox(
+            _("Use the system default interface font"),
+            'use_system_font',
+            restart=True
+        )
 
-        fonts_layout.setRowStretch(fonts_layout.rowCount(), 1)
+        # Fonts layout
+        fonts_grid_layout = QGridLayout()
+        fonts_grid_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
+        fonts_grid_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
+        fonts_grid_layout.addWidget(self.plain_text_font.sizelabel, 0, 2)
+        fonts_grid_layout.addWidget(self.plain_text_font.sizebox, 0, 3)
+        fonts_grid_layout.addWidget(self.app_font.fontlabel, 2, 0)
+        fonts_grid_layout.addWidget(self.app_font.fontbox, 2, 1)
+        fonts_grid_layout.addWidget(self.app_font.sizelabel, 2, 2)
+        fonts_grid_layout.addWidget(self.app_font.sizebox, 2, 3)
+        fonts_grid_layout.setRowStretch(fonts_grid_layout.rowCount(), 1)
+
+        fonts_layout = QVBoxLayout()
+        fonts_layout.addLayout(fonts_grid_layout)
+        fonts_layout.addSpacing(5)
+        fonts_layout.addWidget(system_font_checkbox)
+
+        fonts_group.setLayout(fonts_layout)
 
         # Left options layout
         options_layout = QVBoxLayout()
@@ -149,7 +162,14 @@ class AppearanceConfigPage(PluginConfigPage):
         combined_layout.setColumnStretch(1, 100)
         combined_layout.addLayout(options_layout, 0, 0)
         combined_layout.addWidget(preview_group, 0, 1)
-        self.setLayout(combined_layout)
+
+        # Final layout
+        # Note: This is necessary to prevent the layout from growing downward
+        # indefinitely.
+        final_layout = QVBoxLayout()
+        final_layout.addLayout(combined_layout)
+        final_layout.addStretch()
+        self.setLayout(final_layout)
 
         # Signals and slots
         create_button.clicked.connect(self.create_new_scheme)
@@ -158,6 +178,7 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button.clicked.connect(self.delete_scheme)
         self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
+        system_font_checkbox.stateChanged.connect(self.update_app_font_group)
 
         # Setup
         for name in names:
@@ -166,6 +187,7 @@ class AppearanceConfigPage(PluginConfigPage):
         for name in custom_names:
             self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
 
+        self.update_app_font_group(system_font_checkbox.isChecked())
         self.update_combobox()
         self.update_preview()
 
@@ -318,6 +340,17 @@ class AppearanceConfigPage(PluginConfigPage):
         )
         self.preview_editor.set_language('Python')
         self.preview_editor.set_text(text)
+
+    def update_app_font_group(self, state):
+        """Update app font group enabled state."""
+        subwidgets = ['fontlabel', 'sizelabel', 'fontbox', 'sizebox']
+
+        if state:
+            for widget in subwidgets:
+                getattr(self.app_font, widget).setEnabled(False)
+        else:
+            for widget in subwidgets:
+                getattr(self.app_font, widget).setEnabled(True)
 
     # Actions
     # -------------------------------------------------------------------------

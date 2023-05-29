@@ -32,6 +32,7 @@ APPEARANCE = {
     'app_font/size': 0,
     'app_font/italic': False,
     'app_font/bold': False,
+    'use_system_font': True,
     # UI theme
     'ui_theme': 'automatic',
     # Syntax highlighting theme names

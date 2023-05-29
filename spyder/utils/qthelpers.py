@@ -787,17 +787,16 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor):
 
     def set_font(self):
         """Set font for the entire application."""
-        family = self.get_conf('app_font/family', section='appearance')
-        size = self.get_conf('app_font/size', section='appearance')
-
-        # This should only happen the first time Spyder starts. So, we get and
-        # set the default font used by the OS.
-        if not family and not size:
+        # This selects the system font by default
+        if self.get_conf('use_system_font', section='appearance'):
             family = self.font().family()
             size = self.font().pointSize()
 
             self.set_conf('app_font/family', family, section='appearance')
             self.set_conf('app_font/size', size, section='appearance')
+        else:
+            family = self.get_conf('app_font/family', section='appearance')
+            size = self.get_conf('app_font/size', section='appearance')
 
         font = self.font()
         font.setFamily(family)
