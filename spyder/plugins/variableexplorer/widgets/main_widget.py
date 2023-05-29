@@ -102,7 +102,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     sig_open_preferences_requested = Signal()
     """
-    Signal to open the main interpreter preferences.
+    Signal to open the variable explorer preferences.
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
