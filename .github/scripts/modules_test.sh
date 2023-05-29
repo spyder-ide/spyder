@@ -136,6 +136,9 @@ for f in spyder/*/*/*/*/*.py; do
     if [[ $f == spyder/plugins/variableexplorer/widgets/objectexplorer/__init__.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/editor/widgets/codeeditor/__init__.py ]]; then
+        continue
+    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1
