@@ -305,6 +305,7 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
 
     expected = (spacing * (nfig // 2)) + (height * (nfig // 2 - 1)) - \
                ((height_view - height) // 2)
+
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
     assert vsb.value() == expected
 

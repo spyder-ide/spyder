@@ -17,7 +17,8 @@ from qtpy import PYQT5
 from qtpy.QtCore import (
     QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegExpValidator, QTextDocument, )
+                        QPainter, QRegExpValidator, QTextDocument, QImage)
+from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
@@ -467,13 +468,19 @@ class PaneEmptyWidget(QFrame):
         # Setup widgets
         # Image
         image_path = get_image_path(icon_filename)
-        image = QPixmap(image_path)
+        image_size = QPixmap(image_path)
         image_label = QLabel(self)
-        image_height = int(image.height())
-        image_width = int(image.width())
-        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                             Qt.SmoothTransformation)
-        image_label.setPixmap(image)
+        image = QImage(400, 300, QImage.Format_ARGB32_Premultiplied)
+        image.fill(0)
+        painter = QPainter(image)
+        renderer = QSvgRenderer(get_image_path(icon_filename))
+        renderer.render(painter)
+        painter.end()
+
+        pm = QPixmap.fromImage(image)
+        pm = pm.copy(0, 0, 400, 300)
+
+        image_label.setPixmap(pm)
         image_label.setAlignment(Qt.AlignCenter)
         image_label_qss = qstylizer.style.StyleSheet()
         image_label_qss.QLabel.setValues(border="0px")
