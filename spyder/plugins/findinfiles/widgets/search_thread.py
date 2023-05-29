@@ -263,10 +263,13 @@ class SearchThread(QThread):
                             found = line.find(text, found + 1)
                             if found > -1:
                                 break
-
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
+
+        # Process any pending results
+        if self.is_file and self.partial_results:
+            self.process_results()
 
         self.completed = True
 
