@@ -44,7 +44,7 @@ class Help(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = HelpConfigPage
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
-    FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
+    MONOSPACE_FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Signals
@@ -178,7 +178,7 @@ class Help(SpyderDockablePlugin):
     def update_font(self):
         color_scheme = self.get_color_scheme()
         font = self.get_font()
-        rich_font = self.get_font(font_type=SpyderFontType.Application)
+        rich_font = self.get_font(font_type=SpyderFontType.Interface)
 
         widget = self.get_widget()
         widget.set_plain_text_font(font, color_scheme=color_scheme)

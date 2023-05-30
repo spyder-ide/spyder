@@ -360,7 +360,7 @@ class SpyderFontsMixin:
     @classmethod
     def get_font(
         cls,
-        font_type: Optional[str] = SpyderFontType.Plain,
+        font_type: Optional[str] = SpyderFontType.Monospace,
         font_size_delta: Optional[int] = 0
     ) -> QFont:
         """
@@ -370,7 +370,7 @@ class SpyderFontsMixin:
         ----------
         font_type: str, optional
             A Spyder font type. This must be one of the `SpyderFontType` enum
-            values. The default is `SpyderFontType.Plain`.
+            values. The default is `SpyderFontType.Monospace`.
         font_size_delta: int, optional
             Small increase or decrease over the default font size. The default
             is 0.

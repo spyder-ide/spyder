@@ -28,8 +28,8 @@ class SpyderFontType:
     * The names associated to the values in this enum depend on historical
       reasons that go back to Spyder 2 and are not easy to change now.
     """
-    Plain = 'font'
-    Application = 'app_font'
+    Monospace = 'font'
+    Interface = 'app_font'
 
 
 #==============================================================================

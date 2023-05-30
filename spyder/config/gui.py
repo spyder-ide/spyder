@@ -63,7 +63,7 @@ def get_family(families):
 
 FONT_CACHE = {}
 
-def get_font(section='appearance', option=SpyderFontType.Plain,
+def get_font(section='appearance', option=SpyderFontType.Monospace,
              font_size_delta=0):
     """Get console font properties depending on OS and user options"""
     font = FONT_CACHE.get((section, option))

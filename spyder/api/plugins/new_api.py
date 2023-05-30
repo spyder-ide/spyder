@@ -148,8 +148,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     IMG_PATH = None
 
     # Control the font size relative to the global fonts defined in Spyder
-    FONT_SIZE_DELTA = 0
-    APP_FONT_SIZE_DELTA = 0
+    MONOSPACE_FONT_SIZE_DELTA = 0
+    INTERFACE_FONT_SIZE_DELTA = 0
 
     # Define context to store actions, toolbars, toolbuttons and menus.
     CONTEXT_NAME = None
@@ -687,17 +687,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         return ima.icon(name)
 
     @classmethod
-    def get_font(cls, font_type=SpyderFontType.Plain):
+    def get_font(cls, font_type=SpyderFontType.Monospace):
         """
         Return plain or rich text font used in Spyder.
 
         Parameters
         ----------
         font_type: str, optional
-            There are two types of font types in Spyder: SpyderFontType.Plain,
-            used in the Editor, IPython console, History, etc; and
-            SpyderFontType.Application, used by the entire Spyder app.
-            The default is SpyderFontType.Plain.
+            There are two types of font types in Spyder:
+            SpyderFontType.Monospace, used in the Editor, IPython console,
+            History, etc; and SpyderFontType.Interface, used by the entire
+            Spyder app. The default is SpyderFontType.Monospace.
 
         Returns
         -------
@@ -708,13 +708,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         -----
         All plugins in Spyder use the same, global fonts. This is a convenience
         method in case some plugins want to use a delta size based on the
-        default one. That can be controlled by using FONT_SIZE_DELTA or
-        APP_FONT_SIZE_DELTA.
+        default one. That can be controlled by using MONOSPACE_FONT_SIZE_DELTA
+        or INTERFACE_FONT_SIZE_DELTA.
         """
-        if font_type == SpyderFontType.Plain:
-            font_size_delta = cls.FONT_SIZE_DELTA
-        elif font_type == SpyderFontType.Application:
-            font_size_delta = cls.APP_FONT_SIZE_DELTA
+        if font_type == SpyderFontType.Monospace:
+            font_size_delta = cls.MONOSPACE_FONT_SIZE_DELTA
+        elif font_type == SpyderFontType.Interface:
+            font_size_delta = cls.INTERFACE_FONT_SIZE_DELTA
         else:
             raise SpyderAPIError("Unrecognized font type")
 

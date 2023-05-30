@@ -60,7 +60,7 @@ class MainMenu(SpyderPluginV2):
 
         # Set main menu font for Windows and Linux
         if not sys.platform == 'darwin':
-            app_font = self.get_font(font_type=SpyderFontType.Application)
+            app_font = self.get_font(font_type=SpyderFontType.Interface)
             self.main.menuBar().setFont(app_font)
 
         # Create Application menus using plugin public API
