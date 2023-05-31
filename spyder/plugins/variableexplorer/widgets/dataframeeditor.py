@@ -53,7 +53,7 @@ from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 from spyder.api.config.mixins import (
     SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.fonts import SpyderFontType
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
@@ -378,7 +378,7 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
             return to_qvariant(
-                self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                self.get_font(SpyderFontType.MonospaceInterface)
             )
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:

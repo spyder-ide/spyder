@@ -21,18 +21,23 @@ LINUX = sys.platform.startswith('linux')
 APPEARANCE = {
     'css_path': CSS_PATH,
     'icon_theme': 'spyder 3',
-    # Global Spyder fonts
+    # This is our monospace font
     'font/family': MONOSPACE,
     'font/size': MEDIUM,
     'font/italic': False,
     'font/bold': False,
-    # We select the app font from the operating system the first time Spyder
-    # starts, so we don't need to set it here
+    # We set the app font used in the system when time Spyder starts, so we
+    # don't need to do it here.
     'app_font/family': '',
     'app_font/size': 0,
     'app_font/italic': False,
     'app_font/bold': False,
     'use_system_font': True,
+    # We set these values at startup too.
+    'monospace_app_font/family': '',
+    'monospace_app_font/size': 0,
+    'monospace_app_font/italic': False,
+    'monospace_app_font/bold': False,
     # UI theme
     'ui_theme': 'automatic',
     # Syntax highlighting theme names

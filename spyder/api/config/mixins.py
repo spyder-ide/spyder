@@ -18,7 +18,6 @@ from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QAction, QWidget
 
 # Local imports
-from spyder.config.fonts import SpyderFontType
 from spyder.config.gui import get_font, Shortcut
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
@@ -360,7 +359,7 @@ class SpyderFontsMixin:
     @classmethod
     def get_font(
         cls,
-        font_type: Optional[str] = SpyderFontType.Monospace,
+        font_type: str,
         font_size_delta: Optional[int] = 0
     ) -> QFont:
         """
@@ -368,9 +367,9 @@ class SpyderFontsMixin:
 
         Parameters
         ----------
-        font_type: str, optional
+        font_type: str
             A Spyder font type. This must be one of the `SpyderFontType` enum
-            values. The default is `SpyderFontType.Monospace`.
+            values.
         font_size_delta: int, optional
             Small increase or decrease over the default font size. The default
             is 0.

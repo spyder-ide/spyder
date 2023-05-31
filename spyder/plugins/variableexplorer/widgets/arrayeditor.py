@@ -33,7 +33,7 @@ from spyder_kernels.utils.lazymodules import numpy as np
 # Local imports
 from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.fonts import SpyderFontType
 from spyder.config.manager import CONF
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
@@ -308,7 +308,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
                 return to_qvariant()
         elif role == Qt.FontRole:
             return to_qvariant(
-                self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                self.get_font(SpyderFontType.MonospaceInterface)
             )
         return to_qvariant()
 
@@ -406,7 +406,7 @@ class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
         elif value is not np.ma.masked:
             editor = QLineEdit(parent)
             editor.setFont(
-                self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                self.get_font(SpyderFontType.MonospaceInterface)
             )
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):

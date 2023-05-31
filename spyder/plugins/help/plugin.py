@@ -21,7 +21,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.config.base import get_conf_path
-from spyder.config.fonts import DEFAULT_SMALL_DELTA, SpyderFontType
+from spyder.config.fonts import SpyderFontType
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
 
@@ -44,7 +44,6 @@ class Help(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = HelpConfigPage
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
-    MONOSPACE_FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Signals
@@ -177,8 +176,8 @@ class Help(SpyderDockablePlugin):
 
     def update_font(self):
         color_scheme = self.get_color_scheme()
-        font = self.get_font()
-        rich_font = self.get_font(font_type=SpyderFontType.Interface)
+        font = self.get_font(SpyderFontType.Monospace)
+        rich_font = self.get_font(SpyderFontType.Interface)
 
         widget = self.get_widget()
         widget.set_plain_text_font(font, color_scheme=color_scheme)

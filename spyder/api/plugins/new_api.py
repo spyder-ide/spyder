@@ -687,17 +687,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         return ima.icon(name)
 
     @classmethod
-    def get_font(cls, font_type=SpyderFontType.Monospace):
+    def get_font(cls, font_type):
         """
         Return plain or rich text font used in Spyder.
 
         Parameters
         ----------
-        font_type: str, optional
-            There are two types of font types in Spyder:
+        font_type: str
+            There are three types of font types in Spyder:
             SpyderFontType.Monospace, used in the Editor, IPython console,
-            History, etc; and SpyderFontType.Interface, used by the entire
-            Spyder app. The default is SpyderFontType.Monospace.
+            History, etc; SpyderFontType.Interface, used by the entire
+            Spyder app; and SpyderFontType.MonospaceInterface, used by the
+            Variable Explorer.
 
         Returns
         -------

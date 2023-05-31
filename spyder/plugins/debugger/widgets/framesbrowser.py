@@ -26,6 +26,7 @@ from qtpy.QtWidgets import (
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import (
     SpyderConfigurationAccessor, SpyderFontsMixin)
+from spyder.config.fonts import SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
 from spyder.widgets.helperwidgets import FinderWidget
@@ -463,7 +464,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
 
     def __init__(self, parent, color_scheme):
         super().__init__(parent)
-        self.font = self.get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.threads = None
         self.color_scheme = color_scheme

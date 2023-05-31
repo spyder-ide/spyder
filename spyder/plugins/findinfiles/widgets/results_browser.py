@@ -19,6 +19,7 @@ from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
 # Local imports
 from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.api.translations import _
+from spyder.config.fonts import SpyderFontType
 from spyder.plugins.findinfiles.widgets.search_thread import (
     ELLIPSIS, MAX_RESULT_LENGTH)
 from spyder.utils import icon_manager as ima
@@ -189,7 +190,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         self.error_flag = None
         self.completed = None
         self.sorting = {}
-        self.font = self.get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.files = None
         self.root_items = None
@@ -241,7 +242,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
             self.activated(item)
 
     def clear_title(self, search_text):
-        self.font = self.get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.clear()
         self.setSortingEnabled(False)
         self.num_files = 0

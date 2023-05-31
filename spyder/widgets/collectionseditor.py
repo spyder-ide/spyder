@@ -47,7 +47,7 @@ from spyder.api.config.mixins import (
     SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.fonts import SpyderFontType
 from spyder.py3compat import (is_binary_string, to_text_string,
                               is_type_text_string)
 from spyder.utils.icon_manager import ima
@@ -446,7 +446,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
             return to_qvariant(
-                self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                self.get_font(SpyderFontType.MonospaceInterface)
             )
         return to_qvariant()
 

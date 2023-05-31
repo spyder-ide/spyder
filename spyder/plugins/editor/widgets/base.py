@@ -25,6 +25,7 @@ from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 # Local imports
 from spyder.api.config.mixins import (
     SpyderConfigurationAccessor, SpyderFontsMixin)
+from spyder.config.fonts import SpyderFontType
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
@@ -125,7 +126,7 @@ class TextEditBaseWidget(
 
     def setup_completion(self):
         size = self.get_conf('completion/size', section='main')
-        font = self.get_font()
+        font = self.get_font(SpyderFontType.MonospaceInterface)
         self.completion_widget.setup_appearance(size, font)
 
     def set_indent_chars(self, indent_chars):

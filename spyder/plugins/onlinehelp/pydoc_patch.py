@@ -47,8 +47,8 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
 
     def __init__(self):
         super().__init__()
-        self.app_font = self.get_font(font_type=SpyderFontType.Interface)
-        self.plain_font = self.get_font(font_type=SpyderFontType.Monospace)
+        self.app_font = self.get_font(SpyderFontType.Interface)
+        self.plain_font = self.get_font(SpyderFontType.Monospace)
 
         # The increased value used below is necessary to make the font size on
         # this plugin match the one used in the rest of the app.

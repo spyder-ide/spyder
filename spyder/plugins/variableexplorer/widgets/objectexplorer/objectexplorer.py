@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
 from spyder.api.config.mixins import (
     SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.fonts import SpyderFontType
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
@@ -407,7 +407,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
             self.editor.setPlainText(data)
             self.editor.setWordWrapMode(attr_details.line_wrap)
             self.editor.setup_editor(
-                font=self.get_font(font_size_delta=DEFAULT_SMALL_DELTA),
+                font=self.get_font(SpyderFontType.MonospaceInterface),
                 show_blanks=False,
                 color_scheme=CONF.get('appearance', 'selected'),
                 scroll_past_end=False,

@@ -26,7 +26,7 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
 # Local imports
 from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _, is_conda_based_app
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.fonts import SpyderFontType
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
@@ -230,7 +230,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
                 editor.setFont(
-                    self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                    self.get_font(SpyderFontType.MonospaceInterface)
                 )
                 self.sig_editor_shown.emit()
                 return editor
@@ -252,7 +252,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             else:
                 editor = QLineEdit(parent=parent)
                 editor.setFont(
-                    self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                    self.get_font(SpyderFontType.MonospaceInterface)
                 )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
@@ -515,7 +515,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
                 editor.setFont(
-                    self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                    self.get_font(SpyderFontType.MonospaceInterface)
                 )
                 return editor
         # TextEditor for a long string
@@ -535,7 +535,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
             else:
                 editor = QLineEdit(parent=parent)
                 editor.setFont(
-                    self.get_font(font_size_delta=DEFAULT_SMALL_DELTA)
+                    self.get_font(SpyderFontType.MonospaceInterface)
                 )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's

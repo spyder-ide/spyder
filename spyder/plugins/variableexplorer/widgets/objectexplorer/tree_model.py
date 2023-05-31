@@ -24,6 +24,7 @@ from qtpy.QtGui import QBrush, QColor
 # Local imports
 from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _
+from spyder.config.fonts import SpyderFontType
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
@@ -53,9 +54,7 @@ class TreeModel(QAbstractItemModel, SpyderFontsMixin):
                  obj,
                  obj_name='',
                  attr_cols=None,
-                 parent=None,
-                 regular_font=None,
-                 special_attribute_font=None):
+                 parent=None):
         """
         Constructor
 
@@ -69,14 +68,12 @@ class TreeModel(QAbstractItemModel, SpyderFontsMixin):
         self._attr_cols = attr_cols
 
         # Font for members (non-functions)
-        self.regular_font = regular_font if regular_font else self.get_font()
+        self.regular_font = self.get_font(SpyderFontType.MonospaceInterface)
 
-        # Font for __special_attributes__
-        self.special_attribute_font = (
-            special_attribute_font if special_attribute_font
-            else self.get_font()
-        )
-        self.special_attribute_font.setItalic(False)
+        # Font for __special_attributes__ (in case we want to change it in the
+        # future).
+        self.special_attribute_font = self.get_font(
+            SpyderFontType.MonospaceInterface)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))
         self.callable_color = QBrush(

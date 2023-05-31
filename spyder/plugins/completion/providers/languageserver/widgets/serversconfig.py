@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
 # Local imports
 from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _
+from spyder.config.fonts import SpyderFontType
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
 from spyder.utils.programs import find_program
@@ -208,7 +209,7 @@ class LSPServerEditor(QDialog, SpyderFontsMixin):
             color_scheme=get_option('selected', section='appearance'),
             wrap=False,
             highlight_current_line=True,
-            font=self.get_font()
+            font=self.get_font(SpyderFontType.MonospaceInterface)
         )
         self.conf_input.set_language('json')
         self.conf_input.setToolTip(_('Additional LSP server configuration '

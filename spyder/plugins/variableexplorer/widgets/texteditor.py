@@ -18,6 +18,7 @@ from qtpy.QtWidgets import QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout
 # Local import
 from spyder.api.config.mixins import SpyderFontsMixin
 from spyder.config.base import _
+from spyder.config.fonts import SpyderFontType
 from spyder.py3compat import (is_binary_string, to_binary_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
@@ -26,7 +27,7 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 class TextEditor(BaseDialog, SpyderFontsMixin):
     """Array Editor Dialog"""
-    def __init__(self, text, title='', font=None, parent=None, readonly=False):
+    def __init__(self, text, title='', parent=None, readonly=False):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -54,8 +55,7 @@ class TextEditor(BaseDialog, SpyderFontsMixin):
         self.edit.setReadOnly(readonly)
         self.edit.textChanged.connect(self.text_changed)
         self.edit.setPlainText(text)
-        if font is None:
-            font = self.get_font()
+        font = self.get_font(SpyderFontType.MonospaceInterface)
         self.edit.setFont(font)
         self.layout.addWidget(self.edit)
 

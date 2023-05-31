@@ -425,8 +425,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_font()
-        app_font = self.get_font(font_type=SpyderFontType.Interface)
+        font = self.get_font(SpyderFontType.Monospace)
+        app_font = self.get_font(SpyderFontType.Interface)
         self.get_widget().update_font(font, app_font)
 
     def on_close(self, cancelable=False):

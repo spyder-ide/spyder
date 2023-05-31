@@ -27,9 +27,15 @@ class SpyderFontType:
       each type.
     * The names associated to the values in this enum depend on historical
       reasons that go back to Spyder 2 and are not easy to change now.
+    * Monospace is the font used used in the Editor, IPython console and
+      History; Interface is used by the entire Spyder app; and
+      MonospaceInterface is used, for instance, by the Variable Explorer and
+      corresponds to Monospace font resized to look good against the
+      Interface one.
     """
     Monospace = 'font'
     Interface = 'app_font'
+    MonospaceInterface = 'monospace_app_font'
 
 
 #==============================================================================
@@ -56,6 +62,3 @@ elif is_ubuntu():
 else:
     BIG = 10
     MEDIUM = SMALL = 9
-
-DEFAULT_SMALL_DELTA = SMALL - MEDIUM
-DEFAULT_LARGE_DELTA = SMALL - BIG

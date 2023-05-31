@@ -23,15 +23,18 @@ from urllib.parse import unquote
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, QUrl, Signal, Slot)
-from qtpy.QtGui import QDesktopServices, QKeyEvent, QKeySequence, QPixmap
+from qtpy.QtGui import (
+    QDesktopServices, QFontMetrics, QKeyEvent, QKeySequence, QPixmap)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
                             QProxyStyle, QPushButton, QStyle,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.config.mixins import (
+    SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.config.base import is_conda_based_app
+from spyder.config.gui import SpyderFontType
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
@@ -757,7 +760,8 @@ class QInputDialogMultiline(QDialog):
         cancel_button.clicked.connect(self.reject)
 
 
-class SpyderApplication(QApplication, SpyderConfigurationAccessor):
+class SpyderApplication(QApplication, SpyderConfigurationAccessor,
+                        SpyderFontsMixin):
     """Subclass with several adjustments for Spyder."""
 
     sig_open_external_file = Signal(str)
@@ -801,7 +805,29 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor):
         font = self.font()
         font.setFamily(family)
         font.setPointSize(size)
+
+        self.set_monospace_font_size(font)
         self.setFont(font)
+
+    def set_monospace_font_size(self, font):
+        """Set monospace interface font in our config system."""
+        x_height = QFontMetrics(font).xHeight()
+        size = font.pointSize()
+        plain_font = self.get_font(SpyderFontType.Monospace)
+        plain_font.setPointSize(size)
+
+        # Select a size that matches the app font one, so that the UI looks
+        # consistent.
+        while QFontMetrics(plain_font).xHeight() != x_height:
+            if QFontMetrics(plain_font).xHeight() > x_height:
+                size -= 1
+            else:
+                size += 1
+            plain_font.setPointSize(size)
+
+        self.set_conf('monospace_app_font/family', plain_font.family(),
+                      section='appearance')
+        self.set_conf('monospace_app_font/size', size, section='appearance')
 
 
 def restore_launchservices():

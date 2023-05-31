@@ -25,6 +25,7 @@ from spyder import (__project_url__, __trouble_url__, dependencies,
 from spyder.api.config.mixins import (
     SpyderConfigurationAccessor, SpyderFontsMixin)
 from spyder.config.base import _, is_conda_based_app
+from spyder.config.fonts import SpyderFontType
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 from spyder.utils.conda import is_conda_env, get_conda_env_path, find_conda
 from spyder.utils.icon_manager import ima
@@ -50,7 +51,7 @@ class DescriptionWidget(SimpleCodeEditor, SpyderFontsMixin):
         # Editor options
         self.setup_editor(
             language='md',
-            font=self.get_font(),
+            font=self.get_font(SpyderFontType.MonospaceInterface),
             wrap=True,
             linenumbers=False,
             highlight_current_line=False,
@@ -195,7 +196,9 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
 
         # Widget to show errors
         self.details = ShowErrorWidget(self)
-        self.details.set_pythonshell_font(self.get_font())
+        self.details.set_pythonshell_font(
+            self.get_font(SpyderFontType.MonospaceInterface)
+        )
         self.details.hide()
 
         self.description_minimum_length = DESC_MIN_CHARS
