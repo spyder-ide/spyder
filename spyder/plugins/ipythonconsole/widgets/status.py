@@ -5,18 +5,21 @@
 # (see spyder/__init__.py for details)
 
 """Status bar widgets."""
-# Local imports
-from spyder.config.base import _
-from spyder.config.manager import CONF
-from spyder.api.widgets.status import StatusBarWidget
+
+# Third-party imports
 from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
+
+# Local imports
 from spyder.api.shellconnect.mixins import ShellConnectMixin
+from spyder.api.widgets.status import StatusBarWidget
+from spyder.config.base import _
 
 
 class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
-    """Status bar widget for current matplotlib mode."""
+    """Status bar widget for current Matplotlib backend."""
 
     ID = "matplotlib_status"
+    CONF_SECTION = 'ipython_console'
 
     def __init__(self, parent):
         super(MatplotlibStatus, self).__init__(
@@ -24,6 +27,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         self._gui = None
         self._shellwidget_dict = {}
         self._current_id = None
+
         # Signals
         self.sig_clicked.connect(self.toggle_matplotlib)
 
@@ -32,7 +36,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         return _("Click to toggle interactive or inline plotting")
 
     def toggle_matplotlib(self):
-        """Toggle matplotlib ineractive."""
+        """Toggle matplotlib interactive backend."""
         if self._current_id is None:
             return
         backend = "inline" if self._gui != "inline" else "auto"
@@ -49,6 +53,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             shellwidget_id = self._current_id
             if shellwidget_id is None:
                 return
+
         if shellwidget_id in self._shellwidget_dict:
             self._shellwidget_dict[shellwidget_id]["gui"] = gui
             if shellwidget_id == self._current_id:
@@ -68,14 +73,16 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",
             lambda gui, sid=id(shellwidget):
-                self.update_matplotlib_gui(gui, sid))
+                self.update_matplotlib_gui(gui, sid)
+        )
         backend = MPL_BACKENDS_FROM_SPYDER[
-            str(CONF.get('ipython_console', 'pylab/backend'))]
+            str(self.get_conf.get('pylab/backend'))
+        ]
         swid = id(shellwidget)
         self._shellwidget_dict[swid] = {
             "gui": backend,
             "widget": shellwidget,
-            }
+        }
         self.set_shellwidget(shellwidget)
 
     def set_shellwidget(self, shellwidget):
