@@ -129,6 +129,7 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         self._format_spec = format_spec
         self.complex_intran = None
         self.display_error_idxs = []
+        self._font = self.get_font(SpyderFontType.MonospaceInterface)
 
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
@@ -376,9 +377,7 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(
-                self.get_font(SpyderFontType.MonospaceInterface)
-            )
+            return self._font
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:
                 return _("It is not possible to display this value because\n"
@@ -673,9 +672,9 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         clipboard.setText(contents)
 
 
-class DataFrameHeaderModel(QAbstractTableModel):
+class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
     """
-    This class is the model for the header or index of the DataFrameEditor.
+    This class is the model for the header and index of the DataFrameEditor.
 
     Taken from gtabview project (Header4ExtModel).
     For more information please see:
@@ -684,7 +683,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
 
     COLUMN_INDEX = -1  # Makes reference to the index of the table.
 
-    def __init__(self, model, axis):
+    def __init__(self, model, axis, use_monospace_font=False):
         """
         Header constructor.
 
@@ -692,9 +691,12 @@ class DataFrameHeaderModel(QAbstractTableModel):
         to acknowledge if is for the header (horizontal - 0) or for the
         index (vertical - 1) and the palette is the set of colors to use.
         """
-        super(DataFrameHeaderModel, self).__init__()
+        super().__init__()
         self.model = model
         self.axis = axis
+        self.use_monospace_font = use_monospace_font
+        self._font = self.get_font(SpyderFontType.MonospaceInterface)
+
         self.total_rows = self.model.shape[0]
         self.total_cols = self.model.shape[1]
         size = self.total_rows * self.total_cols
@@ -796,14 +798,24 @@ class DataFrameHeaderModel(QAbstractTableModel):
 
         This is used when a header has levels.
         """
-        if not index.isValid() or \
-           index.row() >= self._shape[0] or \
-           index.column() >= self._shape[1]:
+        if (
+            not index.isValid()
+            or index.row() >= self._shape[0]
+            or index.column() >= self._shape[1]
+        ):
             return None
-        row, col = ((index.row(), index.column()) if self.axis == 0
-                    else (index.column(), index.row()))
+
+        row, col = (
+            (index.row(), index.column()) if self.axis == 0
+            else (index.column(), index.row())
+        )
+
+        if self.use_monospace_font and role == Qt.FontRole:
+            return self._font
+
         if role != Qt.DisplayRole:
             return None
+
         if self.axis == 0 and self._shape[0] <= 1:
             return None
 
@@ -819,7 +831,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
         return header
 
 
-class DataFrameLevelModel(QAbstractTableModel):
+class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
     """
     Data Frame level class.
 
@@ -832,11 +844,11 @@ class DataFrameLevelModel(QAbstractTableModel):
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
 
-    def __init__(self, model, font):
-        super(DataFrameLevelModel, self).__init__()
+    def __init__(self, model):
+        super().__init__()
         self.model = model
         self._background = QColor(QStylePalette.COLOR_BACKGROUND_2)
-        self._font = font
+        self._font = self.get_font(SpyderFontType.Interface)
 
     def rowCount(self, index=None):
         """Get number of rows (number of levels for the header)."""
@@ -1174,10 +1186,16 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         # Asociate the models (level, vertical index and horizontal header)
         # with its corresponding view.
-        self._reset_model(self.table_level, DataFrameLevelModel(
-            model,self.font()))
+        self._reset_model(self.table_level, DataFrameLevelModel(model))
         self._reset_model(self.table_header, DataFrameHeaderModel(model, 0))
-        self._reset_model(self.table_index, DataFrameHeaderModel(model, 1))
+
+        # We use our monospace font for the index so that it matches the one
+        # used for the data and things look consistent.
+        # Fixes issue spyder-ide/spyder#20960
+        self._reset_model(
+            self.table_index,
+            DataFrameHeaderModel(model, 1, use_monospace_font=True)
+        )
 
         # Needs to be called after setting all table models
         if relayout:
