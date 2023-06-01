@@ -22,9 +22,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
                             QSpinBox, QTableView, QVBoxLayout)
 
 # Local imports
-from spyder.api.config.mixins import SpyderFontsMixin
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.fonts import SpyderFontType
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
 from spyder.utils.programs import find_program

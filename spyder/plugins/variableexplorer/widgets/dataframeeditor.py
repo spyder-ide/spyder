@@ -50,10 +50,9 @@ from qtpy.QtWidgets import (
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
-from spyder.api.config.mixins import (
-    SpyderConfigurationAccessor, SpyderFontsMixin)
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
-from spyder.config.fonts import SpyderFontType
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima

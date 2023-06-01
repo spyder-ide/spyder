@@ -22,10 +22,9 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 # Local imports
 from spyder import (__project_url__, __trouble_url__, dependencies,
                     get_versions_text)
-from spyder.api.config.mixins import (
-    SpyderConfigurationAccessor, SpyderFontsMixin)
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _, is_conda_based_app
-from spyder.config.fonts import SpyderFontType
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 from spyder.utils.conda import is_conda_env, get_conda_env_path, find_conda
 from spyder.utils.icon_manager import ima

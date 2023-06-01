@@ -21,10 +21,9 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.config.mixins import (
-    SpyderConfigurationAccessor, SpyderFontsMixin)
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
-from spyder.config.fonts import SpyderFontType
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (

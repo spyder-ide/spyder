@@ -31,10 +31,9 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.config.mixins import (
-    SpyderConfigurationAccessor, SpyderFontsMixin)
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import is_conda_based_app
-from spyder.config.gui import SpyderFontType
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima

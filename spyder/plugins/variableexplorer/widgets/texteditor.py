@@ -16,9 +16,8 @@ from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout
 
 # Local import
-from spyder.api.config.mixins import SpyderFontsMixin
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.fonts import SpyderFontType
 from spyder.py3compat import (is_binary_string, to_binary_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima

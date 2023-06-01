@@ -31,9 +31,8 @@ from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
 
 # Local imports
-from spyder.api.config.mixins import SpyderFontsMixin
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.fonts import SpyderFontType
 from spyder.config.manager import CONF
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
