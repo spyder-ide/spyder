@@ -79,9 +79,17 @@ class FileMatchItem(QTreeWidgetItem):
 
         # Get relative dirname according to the path we're searching in.
         dirname = osp.dirname(filename)
-        rel_dirname = dirname.split(path)[1]
-        if rel_dirname.startswith(osp.sep):
-            rel_dirname = rel_dirname[1:]
+
+        # Catch errors when it's not possible to get the relative directory
+        # name. This happens when the user is searching in a single file.
+        # Fixes spyder-ide/spyder#17443 and spyder-ide/spyder#20964
+        try:
+            rel_dirname = dirname.split(path)[1]
+            if rel_dirname.startswith(osp.sep):
+                rel_dirname = rel_dirname[1:]
+        except IndexError:
+            rel_dirname = dirname
+
         self.rel_dirname = rel_dirname
 
         title = (
@@ -257,18 +265,13 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            # Catch any error while creating file items.
-            # Fixes spyder-ide/spyder#17443
-            try:
-                item = FileMatchItem(
-                    self,
-                    self.path,
-                    filename,
-                    self.sorting,
-                    self.text_color
-                )
-            except Exception:
-                return
+            item = FileMatchItem(
+                self,
+                self.path,
+                filename,
+                self.sorting,
+                self.text_color
+            )
 
             self.files[filename] = item
 

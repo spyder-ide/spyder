@@ -31,8 +31,7 @@ from spyder_kernels import __version__ as spyder_kernels_version
 import sympy
 
 # Local imports
-from spyder.config.base import (
-    running_in_ci, running_in_ci_with_conda)
+from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import to_text_string
@@ -248,6 +247,35 @@ def test_cython_client(ipyconsole, qtbot):
     # Assert there are no errors after restting the console
     control = ipyconsole.get_widget().get_focus_widget()
     assert 'Error' not in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.order(1)
+@pytest.mark.environment_client
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
+@pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
+def test_environment_client(ipyconsole, qtbot):
+    """
+    Test that when creating a console for a specific conda environment, the
+    environment is activated before a kernel is created for it.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+
+    # Check console name
+    client = ipyconsole.get_current_client()
+    client.get_name() == "spytest-ž 1/A"
+
+    # Get conda activation environment variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')"
+        )
+
+    expected_output = get_conda_test_env()[0].replace('\\', '/')
+    output = shell.get_value('conda_prefix').replace('\\', '/')
+    assert expected_output == output
 
 
 @flaky(max_runs=3)
@@ -753,7 +781,9 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out frequently")
+@pytest.mark.skipif(
+    not os.name == 'nt' and running_in_ci(),
+    reason="Fails on Linux/Mac and CIs")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
     Test that Matplotlib backend is changed correctly when
@@ -1028,8 +1058,11 @@ def test_startup_working_directory(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux.")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'), reason="Only works on Linux")
+@pytest.mark.skipif(
+    parse('8.7.0') < parse(ipy_release.version) < parse('8.11.0'),
+    reason="Fails for IPython 8.8.0, 8.9.0 and 8.10.0")
 def test_console_complete(ipyconsole, qtbot, tmpdir):
     """Test code completions in the console."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1044,7 +1077,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
         except KeyError:
             return False
 
-    # test complete with one result
+    # Test completions with one result
     with qtbot.waitSignal(shell.executed):
         shell.execute('cbs = 1')
     qtbot.waitUntil(lambda: check_value('cbs', 1))
@@ -1056,7 +1089,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs',
                     timeout=6000)
 
-    # test complete with several result
+    # Test completions with several results
     with qtbot.waitSignal(shell.executed):
         shell.execute('cbba = 1')
     qtbot.waitUntil(lambda: check_value('cbba', 1))
@@ -1068,12 +1101,24 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
+    # Check that we don't get repeated text after completing the expression
+    # below.
+    # This is a regression test for issue spyder-ide/spyder#20393
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import pandas as pd')
+
+    qtbot.keyClicks(control, 'test = pd.conc')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.wait(500)
+    completed_text = control.toPlainText().splitlines()[-1].split(':')[-1]
+    assert completed_text.strip() == 'test = pd.concat'
+
     # Enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
     # Test complete in debug mode
-    # check abs is completed twice (as the cursor moves)
+    # Check abs is completed twice (as the cursor moves)
     qtbot.keyClicks(control, 'ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abs')
@@ -1148,10 +1193,12 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     # Check we can use custom complete for pdb
     test_file = tmpdir.join('test.py')
     test_file.write('stuff\n')
+
     # Set a breakpoint in the new file
     qtbot.keyClicks(control, '!b ' + str(test_file) + ':1')
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(control, Qt.Key_Enter)
+
     # Check we can complete the breakpoint number
     qtbot.keyClicks(control, '!ignore ')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1484,18 +1531,20 @@ def test_recursive_pdb(ipyconsole, qtbot):
         shell.execute("%debug print()")
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("abab = 10")
-    # Check that we can't use magic twice
+    # Check that we can use magic to enter recursive debugger
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("%debug print()")
-    assert "Please don't use '%debug'" in control.toPlainText()
+    assert "(IPdb [1]):" in control.toPlainText()
     # Check we can enter the recursive debugger twice
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "(IPdb [1]):" in control.toPlainText()
+    assert "((IPdb [1])):" in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "((IPdb [1])):" in control.toPlainText()
-    # quit one layer
+    assert "(((IPdb [1]))):" in control.toPlainText()
+    # Quit two layers
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!quit")
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
     assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
@@ -1507,7 +1556,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[4]:"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[3]:"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1647,7 +1696,7 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
 
     # Run file
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"runfile(filename=r'{str(file)}')")
+        shell.execute(f"%runfile {repr(str(file))}")
 
     # Assert we entered debugging after the print statement
     qtbot.wait(5000)
@@ -1755,7 +1804,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
     # Run file
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"debugfile(filename=r'{str(file)}')")
+        shell.execute(f"%debugfile {repr(str(file))}")
 
     # steps 4 times
     for i in range(4):

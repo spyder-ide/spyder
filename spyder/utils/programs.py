@@ -24,8 +24,8 @@ import time
 import logging
 
 # Third party imports
+from packaging.version import parse
 import pkg_resources
-from pkg_resources import parse_version
 import psutil
 
 # Local imports
@@ -177,7 +177,7 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         # ensure Windows subprocess environment has SYSTEMROOT
         if kwargs.get('env') is not None:
             # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
-            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE']:
+            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE']:
                 if env_var not in map(str.upper, kwargs['env'].keys()):
                     # Add from os.environ
                     for k, v in os.environ.items():
@@ -917,8 +917,8 @@ def check_version_range(module_version, version_range):
     """
     Check if a module's version lies in `version_range`.
     """
-    if ';' in version_range:
-        versions = version_range.split(';')
+    if ',' in version_range:
+        versions = version_range.split(',')
     else:
         versions = [version_range]
 
@@ -929,10 +929,13 @@ def check_version_range(module_version, version_range):
         symb = _ver[:match.start()]
         if not symb:
             symb = '='
-        assert symb in ('>=', '>', '=', '<', '<='),\
-            "Invalid version condition '%s'" % symb
+
+        if symb not in ['>=', '>', '=', '<', '<=', '!=']:
+            raise RuntimeError(f"Invalid version condition '{symb}'")
+
         ver = _ver[match.start():]
         output = output and check_version(module_version, ver, symb)
+
     return output
 
 
@@ -954,15 +957,17 @@ def check_version(actver, version, cmp_op):
 
     try:
         if cmp_op == '>':
-            return parse_version(actver) > parse_version(version)
+            return parse(actver) > parse(version)
         elif cmp_op == '>=':
-            return parse_version(actver) >= parse_version(version)
+            return parse(actver) >= parse(version)
         elif cmp_op == '=':
-            return parse_version(actver) == parse_version(version)
+            return parse(actver) == parse(version)
         elif cmp_op == '<':
-            return parse_version(actver) < parse_version(version)
+            return parse(actver) < parse(version)
         elif cmp_op == '<=':
-            return parse_version(actver) <= parse_version(version)
+            return parse(actver) <= parse(version)
+        elif cmp_op == '!=':
+            return parse(actver) != parse(version)
         else:
             return False
     except TypeError:
@@ -999,8 +1004,8 @@ def is_module_installed(module_name, version=None, interpreter=None,
     consistent with ``version``. The module must have an attribute named
     '__version__' or 'VERSION'.
 
-    version may start with =, >=, > or < to specify the exact requirement ;
-    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
+    ``version`` may start with =, >=, > or < to specify the exact requirement;
+    multiple conditions may be separated by ',' (e.g. '>=0.13,<1.0')
 
     If ``interpreter`` is not None, checks if a module is installed with a
     given ``version`` in the ``interpreter``'s environment. Otherwise checks

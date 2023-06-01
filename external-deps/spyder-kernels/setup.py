@@ -38,9 +38,8 @@ def get_version(module='spyder_kernels'):
 REQUIREMENTS = [
     'cloudpickle',
     'ipykernel>=6.16.1,<7',
-    'ipython>=7.31.1,<9',
-    'jupyter-client>=7.4.9,<8',
-    'packaging',
+    'ipython>=7.31.1,<9,!=8.8.0,!=8.9.0,!=8.10.0',
+    'jupyter-client>=7.4.9,<9',
     'pyzmq>=22.1.0',
     'wurlitzer>=1.0.3;platform_system!="Windows"',
     'pyxdg>=0.26;platform_system=="Linux"',
@@ -61,6 +60,8 @@ TEST_REQUIREMENTS = [
     'xarray',
     'pillow',
     'django',
+    'h5py',
+    'pydicom'
 ]
 
 setup(

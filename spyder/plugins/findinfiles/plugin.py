@@ -17,7 +17,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
-from spyder.plugins.mainmenu.api import ApplicationMenus
+from spyder.plugins.mainmenu.api import ApplicationMenus, SearchMenuSections
 from spyder.utils.misc import getcwd_or_home
 
 
@@ -89,6 +89,7 @@ class FindInFiles(SpyderDockablePlugin):
         mainmenu.add_item_to_application_menu(
             findinfiles_action,
             menu_id=ApplicationMenus.Search,
+            section=SearchMenuSections.FindInFiles
         )
 
     @on_plugin_teardown(plugin=Plugins.Editor)

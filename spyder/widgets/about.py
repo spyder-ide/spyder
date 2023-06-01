@@ -75,7 +75,7 @@ class AboutDialog(QDialog):
             Python {versions['python']} {versions['bitness']}-bit |
             Qt {versions['qt']} |
             {versions['qt_api']} {versions['qt_api_ver']} |
-            {versions['system']} {versions['release']}
+            {versions['system']} {versions['release']} ({versions['machine']})
             </p>
             <br> <br>
             <a href="{project_url}">GitHub</a> | <a href="{twitter_url}">

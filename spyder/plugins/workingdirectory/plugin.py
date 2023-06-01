@@ -116,7 +116,7 @@ class WorkingDirectory(SpyderPluginV2):
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.connect(self._project_loaded)
-        projects.sig_project_closed[object].connect(self._project_closed)
+        projects.sig_project_closed[str].connect(self._project_closed)
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
@@ -153,7 +153,7 @@ class WorkingDirectory(SpyderPluginV2):
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._project_loaded)
-        projects.sig_project_closed[object].disconnect(self._project_closed)
+        projects.sig_project_closed[str].disconnect(self._project_closed)
 
     # --- Public API
     # ------------------------------------------------------------------------

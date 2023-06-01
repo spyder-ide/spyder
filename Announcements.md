@@ -1,28 +1,36 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.4.2 is released!
+**Subject**: [ANN] Spyder 5.4.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.4.2** has been released and is available for
+I'm pleased to announce that Spyder **5.4.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two weeks and six days after version 5.4.1 and it contains the
+This release comes ten weeks and six days after version 5.4.2 and it contains the
 following new features and important fixes:
 
-* Improvements to the experimental conda-based Linux installer (shortcut icon, improvements to execute the installer script)
-* Fix issues detected with PyZMQ 25
-* Fix dot completions and improve support for files and directories completions
-* Fix getting current user enviroment variables
-* Fix cursor position restauration after autoformat when saving files
-* Fix error when reverting unexisting files
-* Improvements to the workflows to build conda-based installers
-* Fix some issues related with Python 3.11 compatibility
+* Add support for QDarkstyle 3.1
+* Add support for Jupyter-client 8
+* Add mambaforge and miniforge when searching for conda environments
+* Fix IPython Console completions, traceback handling and other issues to better support IPython 8.x
+* Fix compatibility issues with PyZMQ 25.x
+* Add warning message before loading .spydata files
+* Fix web based widgets display by adding the `--no-sandbox` argument for `QtApplication`
+* Fix copy and paste shortcuts for the Files and Projects explorer panes
+* Fix Windows standalone installer restart mechanism
+* Fix keyring backends for the Mac standalone installer
+* Fix Editor issues related with handling LSP server failed starts
+* Fix Editor issues related with restoring previous session and file changes outside Spyder
+* Fix PYTHONPATH manager showing extra paths and other related errors
+* Fix update available notification with pip based installations
+* Fix some UX/UI issues for the find replace widget when the Editor has a small width
+* Removal of Python 2 related code
 
-In this release we fixed 12 issues and merged 16 pull requests that amount
-to more than 67 commits. For a full list of fixes, please see our
+In this release we fixed 29 issues and merged 47 pull requests that amount
+to more than 173 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -92,7 +100,7 @@ Enjoy!
 # Major release to others
 
 **Note**: Leave this free of Markdown because it could go to mailing lists that
-don't support hmtl.
+don't support html.
 
 **Subject**: [ANN] Spyder 4.0 is released!
 

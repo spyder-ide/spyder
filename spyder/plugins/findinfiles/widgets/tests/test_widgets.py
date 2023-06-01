@@ -649,5 +649,25 @@ def test_max_results(findinfiles, qtbot):
     findinfiles.set_max_results(1000)
 
 
+@flaky(max_runs=5)
+def test_find_in_single_file(findinfiles, qtbot):
+    """
+    Test that find in files works for a single file.
+
+    This a regression test for issues spyder-ide/spyder#17443 and
+    spyder-ide/spyder#20964.
+    """
+    findinfiles.set_search_text("spam")
+    findinfiles.set_file_path(osp.join(LOCATION, "data", 'spam.txt'))
+    findinfiles.path_selection_combo.setCurrentIndex(FILE_PATH)
+
+    with qtbot.waitSignal(findinfiles.sig_finished):
+        findinfiles.find()
+
+    matches = process_search_results(findinfiles.result_browser.data)
+    assert list(matches.keys()) == ['spam.txt']
+    assert expected_results()['spam.txt'] == matches['spam.txt']
+
+
 if __name__ == "__main__":
     pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])

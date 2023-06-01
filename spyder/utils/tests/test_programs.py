@@ -186,17 +186,18 @@ def test_check_version():
 def test_is_module_installed():
     """Test if a module with the proper version is installed"""
     assert is_module_installed('qtconsole', '>=4.5')
-    assert not is_module_installed('IPython', '>=1.0;<3.0')
+    assert not is_module_installed('IPython', '>=1.0,<3.0')
     assert is_module_installed('jedi', '>=0.7.0')
     assert not is_module_installed('foo')
     assert not is_module_installed('foo1', '>=1.2.0')
+    assert is_module_installed('IPython', '!=3.0')
 
 
 def test_is_module_installed_with_custom_interpreter():
     """Test if a module with the proper version is installed"""
     current = sys.executable
     assert is_module_installed('qtconsole', '>=4.5', interpreter=current)
-    assert not is_module_installed('IPython', '>=1.0;<3.0', interpreter=current)
+    assert not is_module_installed('IPython', '>=1.0,<3.0', interpreter=current)
     assert is_module_installed('cloudpickle', '>=0.5.0', interpreter=current)
 
 

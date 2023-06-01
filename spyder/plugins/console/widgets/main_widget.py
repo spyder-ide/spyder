@@ -349,7 +349,7 @@ class ConsoleWidget(PluginMainWidget):
     @Slot(dict)
     def handle_exception(self, error_data, sender=None):
         """
-        Exception ocurred in the internal console.
+        Exception occurred in the internal console.
 
         Show a QDialog or the internal console to warn the user.
 
@@ -519,7 +519,8 @@ class ConsoleWidget(PluginMainWidget):
         logger.debug("Running script with %s", args)
         filename = osp.abspath(filename)
         rbs = remove_backslashes
-        command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
+        command = '%runfile {} --args {}'.format(
+            repr(rbs(filename)), repr(rbs(args)))
 
         self.change_visibility(True, True)
 

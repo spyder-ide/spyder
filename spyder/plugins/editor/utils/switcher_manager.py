@@ -15,7 +15,7 @@ import os.path as osp
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
-from spyder.utils.switcher import shorten_paths, get_file_icon
+from spyder.plugins.switcher.utils import shorten_paths, get_file_icon
 from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 
 
@@ -32,7 +32,7 @@ class EditorSwitcherManager(object):
     LINE_MODE = ':'
     FILES_MODE = ''
 
-    def __init__(self, plugin, switcher_instance, get_codeeditor,
+    def __init__(self, plugin, switcher_plugin, get_codeeditor,
                  get_editorstack, section=_("Editor")):
         """
         'get_codeeditor' and 'get_editorstack' params should be callables
@@ -42,7 +42,7 @@ class EditorSwitcherManager(object):
             current_editorstack = get_editorstack()
         """
         self._plugin = plugin
-        self._switcher = switcher_instance
+        self._switcher = switcher_plugin
         self._editor = get_codeeditor
         self._editorstack = get_editorstack
         self._section = section
@@ -231,7 +231,7 @@ class EditorSwitcherManager(object):
         try:
             line_number = int(line_number)
             editorstack.go_to_line(line_number)
-            self._switcher.setVisible(visible)
+            self._switcher.set_visible(visible)
             # Closing the switcher
             if not visible:
                 self._current_line = None
