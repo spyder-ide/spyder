@@ -345,6 +345,7 @@ class IconManager():
             # --- Status bar --------------------------------------------------------
             'code_fork':               [('mdi.source-fork',), {'color': self.MAIN_FG_COLOR}],
             'statusbar':               [('mdi.dock-bottom',), {'color': self.MAIN_FG_COLOR}],
+            'matplotlib':              [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
             # --- Plugin registry ---------------------------------------------------
             'plugins':                 [('mdi.puzzle',), {'color': self.MAIN_FG_COLOR}],
             # --- Print preview dialog ----------------------------------------------

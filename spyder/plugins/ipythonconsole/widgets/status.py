@@ -66,7 +66,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             text = gui
         else:
             text = "interactive"
-        self.set_value(_("Matplotlib: {}").format(text))
+        self.set_value(_("{}").format(text))
 
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
@@ -76,7 +76,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
                 self.update_matplotlib_gui(gui, sid)
         )
         backend = MPL_BACKENDS_FROM_SPYDER[
-            str(self.get_conf.get('pylab/backend'))
+            str(self.get_conf('pylab/backend'))
         ]
         swid = id(shellwidget)
         self._shellwidget_dict[swid] = {
@@ -100,3 +100,6 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
             del self._shellwidget_dict[shellwidget_id]
+    
+    def get_icon(self):
+        return self.create_icon('matplotlib')
