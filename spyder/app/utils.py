@@ -272,7 +272,11 @@ def create_application():
     app.setWindowIcon(app_icon)
 
     # ---- Set font
-    app.set_font()
+    # The try/except is necessary to run the main window tests on their own.
+    try:
+        app.set_font()
+    except AttributeError:
+        pass
 
     # Required for correct icon on GNOME/Wayland:
     if hasattr(app, 'setDesktopFileName'):
