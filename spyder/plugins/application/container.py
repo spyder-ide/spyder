@@ -116,6 +116,8 @@ class ApplicationContainer(PluginMainContainer):
              .connect(self.check_updates))
             (self.application_update_status.sig_install_on_close_requested
                  .connect(self.set_install_on_close))
+            self.application_update_status.sig_quit_requested.connect(
+                self.sig_quit_requested)
             self.application_update_status.set_no_status()
         self.give_updates_feedback = False
         self.thread_updates = None

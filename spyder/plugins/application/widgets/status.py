@@ -51,6 +51,11 @@ class ApplicationUpdateStatus(StatusBarWidget):
         Whether to install on close.
     """
 
+    sig_quit_requested = Signal()
+    """
+    This signal can be emitted to request the main application to quit.
+    """
+
     CUSTOM_WIDGET_CLASS = QLabel
 
     def __init__(self, parent):
@@ -78,6 +83,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
             self.set_value)
         self.installer.sig_install_on_close_requested.connect(
             self.sig_install_on_close_requested)
+        self.installer.sig_quit_requested.connect(self.sig_quit_requested)
 
     def set_value(self, value):
         """Return update installation state."""

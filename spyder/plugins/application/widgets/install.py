@@ -147,6 +147,11 @@ class UpdateInstallerDialog(QDialog):
         Whether to install on close.
     """
 
+    sig_quit_requested = Signal()
+    """
+    This signal can be emitted to request the main application to quit.
+    """
+
     def __init__(self, parent):
         self.cancelled = False
         self.status = NO_STATUS
@@ -281,9 +286,8 @@ class UpdateInstallerDialog(QDialog):
         msg_box.exec_()
 
         if msg_box.clickedButton() == yes_button:
-            self._change_update_download_status(status=INSTALLING)
-            self.start_installation()
-            self._change_update_download_status(status=PENDING)
+            self.sig_install_on_close_requested.emit(True)
+            self.sig_quit_requested.emit()
         elif msg_box.clickedButton() == after_closing_button:
             self.sig_install_on_close_requested.emit(True)
             self._change_update_download_status(status=PENDING)
