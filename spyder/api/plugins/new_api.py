@@ -714,7 +714,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         if font_type == SpyderFontType.Monospace:
             font_size_delta = cls.MONOSPACE_FONT_SIZE_DELTA
-        elif font_type == SpyderFontType.Interface:
+        elif font_type in [SpyderFontType.Interface,
+                           SpyderFontType.MonospaceInterface]:
             font_size_delta = cls.INTERFACE_FONT_SIZE_DELTA
         else:
             raise SpyderAPIError("Unrecognized font type")
