@@ -150,6 +150,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             height='1.6em',
             padding='4px 24px 4px 8px',
             fontFamily=font_family,
+            fontSize=f'{font_size}pt'
         )
 
         if OLD_PYQT:
@@ -199,7 +200,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         )
 
         # Set font for widgets that don't inherit it from the application
-        for widget in ['QToolTip', 'QDialog', 'QListView',
+        for widget in ['QToolTip', 'QDialog', 'QListView', 'QTreeView',
                        'QHeaderView::section', 'QTableView']:
             css[f'{widget}'].setValues(
                 fontFamily=font_family,

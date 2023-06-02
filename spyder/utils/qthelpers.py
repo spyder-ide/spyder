@@ -817,16 +817,29 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
 
         # Select a size that matches the app font one, so that the UI looks
         # consistent.
-        while QFontMetrics(plain_font).xHeight() != x_height:
+        monospace_size = size
+        while (
+            QFontMetrics(plain_font).xHeight() != x_height
+            and ((size - 4) < monospace_size < (size + 4))
+        ):
             if QFontMetrics(plain_font).xHeight() > x_height:
-                size -= 1
+                monospace_size -= 1
             else:
-                size += 1
-            plain_font.setPointSize(size)
+                monospace_size += 1
+            plain_font.setPointSize(monospace_size)
+
+        # There are some fonts (e.g. MS Serif) for which it seems that Qt
+        # can't detect their xHeight's as expected. So, we check below
+        # if the monospace font size ends up being too big or too small after
+        # the above xHeight comparison and set it to the interface size if
+        # that's the case.
+        if not ((size - 4) < monospace_size < (size + 4)):
+            monospace_size = size
 
         self.set_conf('monospace_app_font/family', plain_font.family(),
                       section='appearance')
-        self.set_conf('monospace_app_font/size', size, section='appearance')
+        self.set_conf('monospace_app_font/size', monospace_size,
+                      section='appearance')
 
 
 def restore_launchservices():

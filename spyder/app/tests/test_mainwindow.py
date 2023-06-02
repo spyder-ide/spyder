@@ -49,7 +49,7 @@ from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
     generate_run_parameters, find_desired_tab_in_window, LOCATION,
-    open_file_in_editor, preferences_dialog_helper, PY37, read_asset_file,
+    open_file_in_editor, preferences_dialog_helper, read_asset_file,
     reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
