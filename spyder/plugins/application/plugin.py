@@ -138,7 +138,8 @@ class Application(SpyderPluginV2):
         self.report_action.setVisible(False)
 
     def on_close(self, _unused=True):
-        self.get_container().on_close()
+        # The container is closed directly in the plugin registry
+        pass
 
     def on_mainwindow_visible(self):
         """Actions after the mainwindow in visible."""
