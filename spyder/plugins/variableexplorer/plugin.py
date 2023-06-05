@@ -49,11 +49,11 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def on_initialize(self):
         widget = self.get_widget()
         widget.sig_open_preferences_requested.connect(
-            self._open_interpreter_preferences
+            self._open_preferences
         )
 
-    def _open_interpreter_preferences(self):
-        """Open the Preferences dialog in the variable explorer section."""
+    def _open_preferences(self):
+        """Open the Preferences dialog in the Variable Explorer section."""
         self._main.show_preferences()
         preferences = self._main.preferences
         container = preferences.get_container()

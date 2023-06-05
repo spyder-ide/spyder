@@ -108,7 +108,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
-        self.filter_on = False
+        self.filter_on = True
 
         # Widgets
         self.context_menu = None
@@ -221,6 +221,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             triggered=self.refresh_table,
             register_shortcut=True,
         )
+
         self.filter_button = self.create_action(
             VariableExplorerWidgetActions.ToggleFilter,
             text="",
@@ -353,7 +354,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 menu=options_menu,
                 section=VariableExplorerWidgetOptionsMenuSections.Display,
             )
+
         self.filter_variables()
+
         # Resize
         for item in [resize_rows_action, resize_columns_action]:
             self.add_item_to_menu(
