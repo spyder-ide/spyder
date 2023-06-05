@@ -442,9 +442,6 @@ class IconManager():
                 # Load custom icons
                 icon = QIcon(self.get_icon(name))
                 return icon if icon is not None else QIcon()
-        elif theme == 'spyder 2':
-            icon = self.get_icon(name, resample=resample)
-            return icon if icon is not None else QIcon()
 
     def get_icon_by_extension_or_type(self, fname, scale_factor):
         """Return the icon depending on the file extension"""
