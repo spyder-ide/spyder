@@ -1454,9 +1454,7 @@ def main(options, args):
         QMessageBox.information(
             None, "Spyder",
             "Spyder was unable to load the <i>Spyder 3</i> "
-            "icon theme. That's why it's going to fallback to the "
-            "theme used in Spyder 2.<br><br>"
-            "For that, please close this window and start Spyder again."
+            "icon theme.Please close this window and start Spyder again."
         )
         CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
