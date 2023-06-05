@@ -435,6 +435,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         help_label.setFixedHeight(23)
         help_label.setToolTip(help_info)
         layout.addWidget(help_label)
+        layout.addStretch(1)
         return layout
 
     def create_checkbox(self, text, option, default=NoDefault,
