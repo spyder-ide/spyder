@@ -196,7 +196,7 @@ class IconManager():
             'arredit':                 [('mdi.table-edit',), {'color': self.MAIN_FG_COLOR}],
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
             'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
-            'plot':                    [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
+            'plot':                    [('mdi.chart-bar',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
@@ -345,7 +345,6 @@ class IconManager():
             # --- Status bar --------------------------------------------------------
             'code_fork':               [('mdi.source-fork',), {'color': self.MAIN_FG_COLOR}],
             'statusbar':               [('mdi.dock-bottom',), {'color': self.MAIN_FG_COLOR}],
-            'matplotlib':              [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
             # --- Plugin registry ---------------------------------------------------
             'plugins':                 [('mdi.puzzle',), {'color': self.MAIN_FG_COLOR}],
             # --- Print preview dialog ----------------------------------------------

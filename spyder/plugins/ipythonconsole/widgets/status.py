@@ -105,4 +105,4 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             del self._shellwidget_dict[shellwidget_id]
     
     def get_icon(self):
-        return self.create_icon('matplotlib')
+        return self.create_icon('plot')
