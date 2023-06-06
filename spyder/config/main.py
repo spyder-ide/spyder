@@ -172,11 +172,6 @@ DEFAULTS = [
               'dataframe_format': '.6g',  # No percent sign to avoid problems
                                           # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
-              'exclude_private_preferences': True,
-              'exclude_uppercase_preferences': False,
-              'exclude_capitalized_preferences': False,
-              'exclude_unsupported_preferences': False,
-              'exclude_callables_and_modules_preferences': True,
               'exclude_private': True,
               'exclude_uppercase': False,
               'exclude_capitalized': False,
@@ -186,7 +181,7 @@ DEFAULTS = [
               'minmax': False,
               'show_callable_attributes': True,
               'show_special_attributes': False,
-              'filter_on': False
+              'filter_on': True
              }),
             ('debugger',
              {
