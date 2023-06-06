@@ -6,9 +6,6 @@
 
 """Status bar widgets."""
 
-# Third-party imports
-from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
-
 # Local imports
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.widgets.status import StatusBarWidget
@@ -70,6 +67,12 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
+        # Leave this import here so that we avoid importing Matplotlib (which
+        # is imported by matplotlib_inline unconditionally) before the main
+        # window is visible. We do this because Matplotlib takes a long time
+        # to be imported, so it makes Spyder appear slow to start to users.
+        from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
+
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",
             lambda gui, sid=id(shellwidget):
