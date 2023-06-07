@@ -1816,7 +1816,15 @@ class EditorStack(QWidget):
         yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
-            finfo = self.data[index]
+
+            # Prevent error when trying to remove several unsaved files from
+            # Projects or Files.
+            # Fixes spyder-ide/spyder#20998
+            try:
+                finfo = self.data[index]
+            except IndexError:
+                return False
+
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(index):
                     return False
