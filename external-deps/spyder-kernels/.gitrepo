@@ -1,7 +1,7 @@
 ; DO NOT EDIT (unless you know what you are doing)
 ;
 ; This subdirectory is a git "subrepo", and this file is maintained by the
-; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
@@ -9,4 +9,4 @@
 	commit = ab2133911ddcc69769aba8bd8a88bab220422674
 	parent = 3225c654dadac1bbca3ba10a5561099deca617e7
 	method = merge
-	cmdver = 0.4.3
+	cmdver = 0.4.5
