@@ -6,6 +6,8 @@
 
 """Appearance entry in Preferences."""
 
+import sys
+
 from qtconsole.styles import dark_color
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import (QFontComboBox, QGridLayout, QGroupBox, QMessageBox,
@@ -119,10 +121,17 @@ class AppearanceConfigPage(PluginConfigPage):
             without_group=True)
 
         # System font checkbox
+        if sys.platform == 'darwin':
+            system_font_tip = _("Changing the interface font does not work "
+                                "reliably on macOS")
+        else:
+            system_font_tip = None
+
         system_font_checkbox = self.create_checkbox(
             _("Use the system default interface font"),
             'use_system_font',
-            restart=True
+            restart=True,
+            tip=system_font_tip
         )
 
         # Fonts layout
@@ -187,6 +196,8 @@ class AppearanceConfigPage(PluginConfigPage):
         for name in custom_names:
             self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
 
+        if sys.platform == 'darwin':
+            system_font_checkbox.setEnabled(False)
         self.update_app_font_group(system_font_checkbox.isChecked())
         self.update_combobox()
         self.update_preview()
