@@ -353,7 +353,7 @@ def test_get_type_string():
     assert get_type_string(series) == 'Series'
 
     index = pd.Index([1, 2, 3])
-    assert get_type_string(index) == 'Int64Index'
+    assert get_type_string(index) in ['Int64Index', 'Index']
 
     # PIL images
     img = PIL.Image.new('RGB', (256,256))
