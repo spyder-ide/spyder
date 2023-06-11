@@ -60,12 +60,16 @@ class SpyderKernelManager(QtKernelManager):
             children.append(parent)
 
         for child_process in children:
-            # This is necessary to avoid an error when restarting the
-            # kernel that started a PyQt5 application in the background.
+            # This is necessary to avoid an error when restarting the kernel
+            # that started a PyQt5 application in the background. It also fixes
+            # a problem when some of the kernel children are not available
+            # anymore, probably because they were removed by the OS before this
+            # method is able to run.
+            # Fixes spyder-ide/spyder#21012
             # Fixes spyder-ide/spyder#13999
             try:
                 child_process.send_signal(sig)
-            except psutil.AccessDenied:
+            except (psutil.AccessDenied, psutil.NoSuchProcess):
                 return ([], [])
 
         gone, alive = psutil.wait_procs(
