@@ -19,6 +19,7 @@ import sys
 # Third-party imports
 from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
+from qtpy import PYSIDE2
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -189,7 +190,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.clients_hearbeat[language].stop()
                     self.clients_hearbeat[language].setParent(None)
                     del self.clients_hearbeat[language]
-                    client['instance'].disconnect()
+                    if PYSIDE2:
+                        client['instance'].disconnect(None, None, None)
+                    else:
+                        client['instance'].disconnect()
                     client['instance'].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
@@ -371,7 +375,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.start_completion_services_for_language(language)
 
 
-    @Slot(str)
     def report_server_error(self, error):
         """Report server errors in our error report dialog."""
         error_data = dict(
@@ -664,7 +667,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             if language_client['status'] == self.RUNNING:
                 logger.info("Stopping LSP client for {}...".format(language))
                 try:
-                    language_client['instance'].disconnect()
+                    if PYSIDE2:
+                        language_client['instance'].disconnect(None, None, None)
+                    else:
+                        language_client['instance'].disconnect()
                 except TypeError:
                     pass
                 try:
