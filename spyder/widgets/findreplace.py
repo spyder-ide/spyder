@@ -192,7 +192,7 @@ class FindReplace(QWidget):
         search_layout.addSpacerItem(QSpacerItem(10, 0))
         search_layout.addWidget(self.number_matches_text)
         search_layout.addSpacerItem(
-            QSpacerItem(6, 0, hPolicy=QSizePolicy.Expanding)
+            QSpacerItem(6, 0, QSizePolicy.Expanding)
         )
 
         glayout.addLayout(search_layout, 0, 1)

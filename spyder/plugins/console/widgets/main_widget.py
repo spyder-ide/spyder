@@ -23,6 +23,7 @@ import sys
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QAction, QInputDialog, QLineEdit, QVBoxLayout
+from qtpy import PYSIDE2
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -465,7 +466,10 @@ class ConsoleWidget(PluginMainWidget):
         if self.error_dlg.dismiss_box.isChecked():
             self.dismiss_error = True
 
-        self.error_dlg.disconnect()
+        if PYSIDE2:
+            self.error_dlg.disconnect(None, None, None)
+        else:
+            self.error_dlg.disconnect()
         self.error_dlg = None
 
     @Slot()
