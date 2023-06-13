@@ -56,16 +56,10 @@ class AppearanceConfigPage(PluginConfigPage):
         )
         self.ui_combobox = ui_theme_combo.combobox
 
-        themes = ['Spyder 3']
-        icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
-        icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
-                                           'icon_theme', restart=True)
 
         theme_comboboxes_layout = QGridLayout()
         theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
         theme_comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
-        theme_comboboxes_layout.addWidget(icons_combo.label, 1, 0)
-        theme_comboboxes_layout.addWidget(icons_combo.combobox, 1, 1)
 
         theme_layout = QVBoxLayout()
         theme_layout.addLayout(theme_comboboxes_layout)
