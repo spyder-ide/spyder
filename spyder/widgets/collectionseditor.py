@@ -976,6 +976,12 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
     def showEvent(self, event):
         """Resize columns when the widget is shown."""
+        # This is probably the best we can do to adjust the columns width to
+        # their header contents at startup. However, it doesn't work for all
+        # fonts and font sizes and perhaps it depends on the user's screen dpi
+        # as well. See the discussion in
+        # https://github.com/spyder-ide/spyder/pull/20933#issuecomment-1585474443
+        # and the comments below for more details.
         self.adjust_columns()
         super().showEvent(event)
 
