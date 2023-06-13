@@ -87,10 +87,10 @@ class DlgGitHubLogin(QDialog):
         token_layout.addSpacerItem(QSpacerItem(0, 8))
         token_layout.addWidget(token_lbl_msg)
         token_layout.addSpacerItem(
-            QSpacerItem(0, 50, vPolicy=QSizePolicy.Expanding))
+            QSpacerItem(0, 50, QSizePolicy.Minimum, QSizePolicy.Expanding))
         token_layout.addLayout(token_form_layout)
         token_layout.addSpacerItem(
-            QSpacerItem(0, 50, vPolicy=QSizePolicy.Expanding))
+            QSpacerItem(0, 50, QSizePolicy.Minimum, QSizePolicy.Expanding))
         token_auth.setLayout(token_layout)
         self.tabs.addTab(token_auth, _("Access Token"))
 

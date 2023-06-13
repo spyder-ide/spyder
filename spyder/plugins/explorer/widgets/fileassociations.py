@@ -449,7 +449,7 @@ class FileAssociationsWidget(QWidget):
     @Slot()
     def add_association(self, value=None):
         """Add extension file association."""
-        if value is None:
+        if value is None or isinstance(value, bool):
             text, ok_pressed = '', False
             self._dlg_input.set_text('')
 

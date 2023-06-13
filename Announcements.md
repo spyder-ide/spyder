@@ -100,7 +100,7 @@ Enjoy!
 # Major release to others
 
 **Note**: Leave this free of Markdown because it could go to mailing lists that
-don't support hmtl.
+don't support html.
 
 **Subject**: [ANN] Spyder 4.0 is released!
 
