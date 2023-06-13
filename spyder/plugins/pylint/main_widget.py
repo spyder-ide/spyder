@@ -316,7 +316,7 @@ class PylintWidget(PluginMainWidget):
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
         self.treewidget = ResultsTree(self)
-        self.panelempty = PaneEmptyWidget(
+        self.paneempty = PaneEmptyWidget(
             self,
             "code-analysis",
             _("You haven't analyzed any code yet."),
@@ -342,7 +342,7 @@ class PylintWidget(PluginMainWidget):
 
         # Layout
         self.stack_layout = layout = QStackedLayout()
-        self.stack_layout.addWidget(self.panelempty)
+        self.stack_layout.addWidget(self.paneempty)
         self.stack_layout.addWidget(self.treewidget)
         self.setLayout(self.stack_layout)
 
@@ -790,7 +790,7 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
-            self.stack_layout.setCurrentWidget(self.panelempty)
+            self.stack_layout.setCurrentWidget(self.paneempty)
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:

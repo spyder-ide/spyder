@@ -226,9 +226,9 @@ class PlotsWidget(ShellConnectMainWidget):
             value = figviewer.figcanvas.fig is not None
 
             if value:
-                widget.set_panel_empty(False)
+                widget.set_pane_empty(False)
             else:
-                widget.set_panel_empty(True)
+                widget.set_pane_empty(True)
         else:
             pass
         for __, action in self.get_actions().items():

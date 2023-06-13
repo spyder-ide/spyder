@@ -250,7 +250,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 menu=menu,
                 section=ProjectExplorerOptionsMenuSections.Main)
             
-    def set_panel_empty(self):
+    def set_pane_empty(self):
         self.treewidget.hide()
         self.emptywidget.show()
         

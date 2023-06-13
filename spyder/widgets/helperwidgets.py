@@ -17,14 +17,14 @@ from qtpy import PYQT5
 from qtpy.QtCore import (
     QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegExpValidator, QTextDocument, QImage)
+                        QPainter, QRegExpValidator, QTextDocument, QImage,
+                        QPixmap)
 from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
                             QToolButton, QToolTip, QVBoxLayout,
                             QWidget, QHBoxLayout, QLabel, QFrame)
-from qtpy.QtGui import QPixmap
 
 # Local imports
 from spyder.config.base import _
@@ -465,7 +465,6 @@ class PaneEmptyWidget(QFrame):
 
     def __init__(self, parent, icon_filename, text, description):
         super().__init__(parent)
-        # Setup widgets
         # Image
         image_path = get_image_path(icon_filename)
         image_size = QPixmap(image_path)
@@ -511,12 +510,12 @@ class PaneEmptyWidget(QFrame):
         description_label.setStyleSheet(description_label_qss.toString())
 
         # Setup layout
-        panel_empty_layout = QVBoxLayout()
-        panel_empty_layout.addWidget(image_label)
-        panel_empty_layout.addWidget(text_label)
-        panel_empty_layout.addWidget(description_label)
-        panel_empty_layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(panel_empty_layout)
+        pane_empty_layout = QVBoxLayout()
+        pane_empty_layout.addWidget(image_label)
+        pane_empty_layout.addWidget(text_label)
+        pane_empty_layout.addWidget(description_label)
+        pane_empty_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(pane_empty_layout)
 
         # Setup border style
         self.setFocusPolicy(Qt.StrongFocus)

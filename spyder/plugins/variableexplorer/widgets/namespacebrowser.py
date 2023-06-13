@@ -73,7 +73,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
-        self.panelempty = PaneEmptyWidget(
+        self.paneempty = PaneEmptyWidget(
             self,
             "variable-explorer",
             _("You haven't defined any variables yet."),
@@ -150,15 +150,15 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.main_widget = QWidget()
             self.main_widget.setLayout(layout)
             self.stack_layout.addWidget(self.main_widget)
-            self.stack_layout.addWidget(self.panelempty)
+            self.stack_layout.addWidget(self.paneempty)
             self.setLayout(self.stack_layout)
-            self.set_panel_empty()
+            self.set_pane_empty()
             self.editor.source_model.sig_setting_data.connect(
-                self.set_panel_empty)
+                self.set_pane_empty)
 
-    def set_panel_empty(self):
+    def set_pane_empty(self):
         if not self.editor.source_model.get_data():
-            self.stack_layout.setCurrentWidget(self.panelempty)
+            self.stack_layout.setCurrentWidget(self.paneempty)
         else:
             self.stack_layout.setCurrentWidget(self.main_widget)
 
@@ -179,7 +179,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.refresh_namespacebrowser()
         try:
             self.editor.resizeRowToContents()
-            self.set_panel_empty()
+            self.set_pane_empty()
         except TypeError:
             pass
 

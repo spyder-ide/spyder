@@ -171,8 +171,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
 
-        # Widget empty panel
-        self.panelempty = PaneEmptyWidget(
+        # Widget empty pane
+        self.paneempty = PaneEmptyWidget(
             self,
             "plots",
             _("You haven't generated any plots yet."),
@@ -190,7 +190,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
 
         self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(splitter)
-        self.stack_layout.addWidget(self.panelempty)
+        self.stack_layout.addWidget(self.paneempty)
         self.setLayout(self.stack_layout)
         self.stack_layout.setContentsMargins(0, 0, 0, 0)
         self.stack_layout.setSpacing(0)
@@ -218,9 +218,9 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             elif option == 'save_dir':
                 self.thumbnails_sb.save_dir = value
 
-    def set_panel_empty(self, empty):
+    def set_pane_empty(self, empty):
         if empty:
-            self.stack_layout.setCurrentWidget(self.panelempty)
+            self.stack_layout.setCurrentWidget(self.paneempty)
         else:
             self.stack_layout.setCurrentWidget(self.splitter)
 
