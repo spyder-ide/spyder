@@ -38,7 +38,7 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget)
+    KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.envs import get_list_envs
@@ -353,6 +353,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Needed to start Spyder in Windows with Python 3.8
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
+
+        # Create MatplotlibStatus
+        self.matplotlib_status = MatplotlibStatus(self)
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()

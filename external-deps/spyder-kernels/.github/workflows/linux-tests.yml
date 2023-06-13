@@ -66,6 +66,7 @@ jobs:
           xvfb-run --auto-servernum pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
           xvfb-run --auto-servernum pytest spyder_kernels --color=yes --cov=spyder_kernels -vv
       - name: Upload coverage to Codecov
-        if: matrix.PYTHON_VERSION == '3.8'
-        shell: bash -l {0}
-        run: codecov -t 02fa9892-fa7f-4cf8-ac3c-d54143ddc933
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: false
+          verbose: true

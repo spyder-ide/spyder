@@ -105,7 +105,8 @@ def _config_shortcut(action, context, name, keystr, parent):
     The data contained in this tuple will be registered in our shortcuts
     preferences page.
     """
-    qsc = QShortcut(QKeySequence(keystr), parent, action)
+    qsc = QShortcut(QKeySequence(keystr), parent)
+    qsc.activated.connect(action)
     qsc.setContext(Qt.WidgetWithChildrenShortcut)
     sc = Shortcut(data=(qsc, context, name))
     return sc
