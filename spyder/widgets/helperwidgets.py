@@ -447,19 +447,6 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
             return True
 
 
-def test_msgcheckbox():
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication()
-    box = MessageCheckBox()
-    box.setWindowTitle(_("Spyder updates"))
-    box.setText("Testing checkbox")
-    box.set_checkbox_text("Check for updates on startup?")
-    box.setStandardButtons(QMessageBox.Ok)
-    box.setDefaultButton(QMessageBox.Ok)
-    box.setIcon(QMessageBox.Information)
-    box.exec_()
-
-
 class PaneEmptyWidget(QFrame):
     """Widget to show a pane/plugin functionality description."""
 
@@ -467,19 +454,15 @@ class PaneEmptyWidget(QFrame):
         super().__init__(parent)
         # Image
         image_path = get_image_path(icon_filename)
-        image_size = QPixmap(image_path)
+        image = QPixmap(image_path)
+        image_height = int(image.height() * 0.8)
+        image_width = int(image.width() * 0.8)
+        image = image.scaled(
+            image_width, image_height,
+            Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
         image_label = QLabel(self)
-        image = QImage(400, 300, QImage.Format_ARGB32_Premultiplied)
-        image.fill(0)
-        painter = QPainter(image)
-        renderer = QSvgRenderer(get_image_path(icon_filename))
-        renderer.render(painter)
-        painter.end()
-
-        pm = QPixmap.fromImage(image)
-        pm = pm.copy(0, 0, 400, 300)
-
-        image_label.setPixmap(pm)
+        image_label.setPixmap(image)
         image_label.setAlignment(Qt.AlignCenter)
         image_label_qss = qstylizer.style.StyleSheet()
         image_label_qss.QLabel.setValues(border="0px")
@@ -491,7 +474,7 @@ class PaneEmptyWidget(QFrame):
         text_label.setWordWrap(True)
         text_label_qss = qstylizer.style.StyleSheet()
         text_label_qss.QLabel.setValues(
-            fontSize=DialogStyle.TitleFontSize,
+            fontSize=DialogStyle.ContentFontSize,
             border="0px"
         )
         text_label.setStyleSheet(text_label_qss.toString())
@@ -514,6 +497,7 @@ class PaneEmptyWidget(QFrame):
         pane_empty_layout.addWidget(image_label)
         pane_empty_layout.addWidget(text_label)
         pane_empty_layout.addWidget(description_label)
+        pane_empty_layout.addStretch(1)
         pane_empty_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(pane_empty_layout)
 
@@ -544,6 +528,20 @@ class PaneEmptyWidget(QFrame):
         )
 
         self.setStyleSheet(qss.toString())
+
+
+def test_msgcheckbox():
+    from spyder.utils.qthelpers import qapplication
+    app = qapplication()
+    box = MessageCheckBox()
+    box.setWindowTitle(_("Spyder updates"))
+    box.setText("Testing checkbox")
+    box.set_checkbox_text("Check for updates on startup?")
+    box.setStandardButtons(QMessageBox.Ok)
+    box.setDefaultButton(QMessageBox.Ok)
+    box.setIcon(QMessageBox.Information)
+    box.exec_()
+
 
 if __name__ == '__main__':
     test_msgcheckbox()
