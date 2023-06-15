@@ -4960,10 +4960,10 @@ class CodeEditor(TextEditBaseWidget):
         # Correctly handle completions when Backspace key is pressed.
         # We should not show the widget if deleting a space before a word.
         if key == Qt.Key_Backspace:
-            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
             prev_text = to_text_string(cursor.selectedText())
-            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.setPosition(pos, QTextCursor.KeepAnchor)
             prev_char = cursor.selectedText()
             if prev_text == '' or prev_char in (u'\u2029', ' ', '\t'):
@@ -4971,7 +4971,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Text might be after a dot '.'
         if text == '':
-            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
             if text != '.':
