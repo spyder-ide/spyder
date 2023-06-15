@@ -1,4 +1,5 @@
 channels:
+- conda-forge/label/spyder_kernels_rc
 - conda-forge
 dependencies:
 # We can not refer to an environment.yml file from another
