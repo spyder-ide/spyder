@@ -297,8 +297,6 @@ def main_window(request, tmpdir, qtbot):
     # Set exclamation mark to True
     CONF.set('ipython_console', 'pdb_use_exclamation_mark', True)
 
-    CONF.set('editor', 'show_class_func_dropdown', True)
-
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
     use_introspection = request.node.get_closest_marker('use_introspection')
@@ -330,8 +328,10 @@ def main_window(request, tmpdir, qtbot):
     preload_complex_project = request.node.get_closest_marker(
         'preload_complex_project')
     if preload_complex_project:
+        CONF.set('editor', 'show_class_func_dropdown', True)
         create_complex_project(tmpdir)
     else:
+        CONF.set('editor', 'show_class_func_dropdown', False)
         if not preload_project:
             CONF.set('project_explorer', 'current_project_path', None)
 

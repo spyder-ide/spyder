@@ -2682,7 +2682,7 @@ class EditorStack(QWidget):
             cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
                 editor.oe_proxy.update_outline_info)
             cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
-                editor.update_classfuncdropdown)
+                editor._update_classfuncdropdown)
             cloned_from.oe_proxy.sig_start_outline_spinner.connect(
                 editor.oe_proxy.emit_request_in_progress)
 

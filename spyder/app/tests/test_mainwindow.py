@@ -4237,10 +4237,13 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # one function + two methods + "<None>" entry
     assert editor_2.classfuncdropdown.method_cb.count() == 4
     assert editor_1.classfuncdropdown._data == editor_2.classfuncdropdown._data
+
     def get_cb_list(cb):
         return [cb.itemText(i) for i in range(cb.count())]
-    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == get_cb_list(editor_2.classfuncdropdown.class_cb)
-    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == get_cb_list(editor_2.classfuncdropdown.method_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.class_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.method_cb)
 
     # Check that class/function selector of cloned editor is updated
     with qtbot.waitSignal(editor_2.oe_proxy.sig_outline_explorer_data_changed,
@@ -4252,10 +4255,10 @@ def test_update_outline(main_window, qtbot, tmpdir):
     # one function + "<None>" entry
     assert editor_2.classfuncdropdown.method_cb.count() == 2
     assert editor_1.classfuncdropdown._data == editor_2.classfuncdropdown._data
-    def get_cb_list(cb):
-        return [cb.itemText(i) for i in range(cb.count())]
-    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == get_cb_list(editor_2.classfuncdropdown.class_cb)
-    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == get_cb_list(editor_2.classfuncdropdown.method_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.class_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.method_cb)
 
     # Hide outline from view
     outline_explorer.toggle_view_action.setChecked(False)
