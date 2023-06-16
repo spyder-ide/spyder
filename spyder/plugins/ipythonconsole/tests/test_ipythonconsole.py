@@ -2033,7 +2033,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
     control = client.get_control()
     qtbot.waitUntil(
         lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
-    assert "conda install spyder" in control.toPlainText()
+    assert "pip install spyder" in control.toPlainText()
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):
