@@ -526,7 +526,7 @@ class CodeEditor(TextEditBaseWidget):
         self.format_on_save = False
         self.format_eventloop = QEventLoop(None)
         self.format_timer = QTimer(self)
-        self.__line_number_before_format = 0
+        self.__cursor_position_before_format = 0
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -1808,7 +1808,7 @@ class CodeEditor(TextEditBaseWidget):
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):
         """Format current document."""
-        self.__line_number_before_format = self.textCursor().blockNumber()
+        self.__cursor_position_before_format = self.textCursor().position()
 
         if not self.formatting_enabled:
             return
@@ -1843,7 +1843,7 @@ class CodeEditor(TextEditBaseWidget):
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def format_document_range(self):
         """Format selected text."""
-        self.__line_number_before_format = self.textCursor().blockNumber()
+        self.__cursor_position_before_format = self.textCursor().position()
 
         if not self.range_formatting_enabled or not self.has_selected_text():
             return
@@ -2008,14 +2008,13 @@ class CodeEditor(TextEditBaseWidget):
 
             # Restore previous cursor line and center it.
             # Fixes spyder-ide/spyder#19958
-            if self.__line_number_before_format < self.blockCount():
+            # Use QTextCursor.(position | setPosition) to restore the cursor
+            # position to be able to do it with any wrap mode
+            # Fixes spyder-ide/spyder#20852
+            if self.__cursor_position_before_format:
                 self.moveCursor(QTextCursor.Start)
                 cursor = self.textCursor()
-                cursor.movePosition(
-                    QTextCursor.Down,
-                    QTextCursor.MoveAnchor,
-                    self.__line_number_before_format
-                )
+                cursor.setPosition(self.__cursor_position_before_format)
                 self.setTextCursor(cursor)
                 self.centerCursor()
 
