@@ -54,24 +54,30 @@ def get_user_environment_variables():
     env_var : dict
         Key-value pairs of environment variables.
     """
-    try:
-        if os.name == 'nt':
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
-            num_values = winreg.QueryInfoKey(key)[1]
-            env_var = dict(
-                [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
-            )
-        else:
-            shell = os.environ.get("SHELL", "/bin/bash")
+    env_var = {}
+    if os.name == 'nt':
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+        num_values = winreg.QueryInfoKey(key)[1]
+        env_var = dict(
+            [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
+        )
+    else:
+        shell = os.environ.get("SHELL", "/bin/bash")
+        # -l and -i flags are mutually exclusive. To source both interactive
+        # and login startup files, run each flag in sequence.
+        for flag in ['-l', '-i']:
             cmd = (
-                f"{shell} -l -c"
-                f""" "{sys.executable} -c 'import os; print(dict(os.environ))'" """
+                f"{shell} {flag} -c "
+                f"\"{sys.executable} -c "
+                "'import os; print(dict(os.environ))'\""
             )
-            proc = run_shell_command(cmd, env={}, text=True)
-            stdout, stderr = proc.communicate()
-            env_var = eval(stdout, None)
-    except Exception:
-        return {}
+            proc = run_shell_command(cmd, env=env_var, text=True)
+            try:
+                # In case of hangs, use a timeout
+                stdout, stderr = proc.communicate(timeout=1)
+                env_var = eval(stdout, None)
+            except TimeoutError:
+                pass
 
     return env_var
 
