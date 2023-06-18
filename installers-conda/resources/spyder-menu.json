@@ -7,13 +7,12 @@
             "name": "Spyder",
             "description": "Scientific PYthon Development EnviRonment",
             "icon": "{{ MENU_DIR }}/spyder.{{ ICON_EXT }}",
-            "activate": true,
+            "activate": false,
             "terminal": false,
             "platforms": {
                 "win": {
                     "desktop": true,
-                    "precommand": "set SPY_BRANCH=__SPY_BRANCH__\nset SPY_COMMIT=__SPY_COMMIT__",
-                    "command": ["spyder", "%*"]
+                    "command": ["{{ PREFIX }}/pythonw.exe", "{{ PREFIX }}/Scripts/spyder-script.py"]
                 },
                 "linux": {
                     "Categories": [
