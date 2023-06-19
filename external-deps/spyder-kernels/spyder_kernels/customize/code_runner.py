@@ -309,7 +309,16 @@ class SpyderCodeRunner(Magics):
     @contextmanager
     def _profile_exec(self):
         """Get an exec function for profiling."""
-        with tempfile.TemporaryDirectory() as tempdir:
+        tmp_dir = None
+        if sys.platform.startswith('linux'):
+            # Do not use /tmp for temporary files
+            try:
+                from xdg.BaseDirectory import xdg_data_home
+                tmp_dir = xdg_data_home
+                os.makedirs(tmp_dir, exist_ok=True)
+            except Exception:
+                tmp_dir = None
+        with tempfile.TemporaryDirectory(dir=tmp_dir) as tempdir:
             # Reset the tracing function in case we are debugging
             trace_fun = sys.gettrace()
             sys.settrace(None)
