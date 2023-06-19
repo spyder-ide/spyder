@@ -103,6 +103,9 @@ class SpyderPdb(ipyPdb):
         # Keep track of interrupting state to avoid several interruptions
         self.interrupting = False
 
+        # Should the frontend force go to the current line?
+        self._request_where = False
+
         # Turn off IPython's debugger skip funcionality by default because
         # it makes our debugger quite slow. It's also important to remark
         # that this functionality doesn't do anything on its own. Users
