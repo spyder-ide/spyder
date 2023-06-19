@@ -8,5 +8,6 @@
 	branch = variableExplorerKernels
 	commit = db201a8aa9a6a5d2bb3d147ae475a43b6baa11e9
 	parent = f6ca198b485a77eae3a985002e97fe57d70b477c
+
 	method = merge
 	cmdver = 0.4.6
