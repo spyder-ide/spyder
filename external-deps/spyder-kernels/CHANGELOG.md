@@ -1,5 +1,72 @@
 # History of changes
 
+## Version 3.0.0b1 (2023-06-14)
+
+### Issues Closed
+
+* [Issue 425](https://github.com/spyder-ide/spyder-kernels/issues/425) - Possible minor issues related to post mortem debugging ([PR 444](https://github.com/spyder-ide/spyder-kernels/pull/444) by [@impact27](https://github.com/impact27))
+* [Issue 340](https://github.com/spyder-ide/spyder-kernels/issues/340) - Drop support for Python 2 ([PR 341](https://github.com/spyder-ide/spyder-kernels/pull/341) by [@impact27](https://github.com/impact27))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 456](https://github.com/spyder-ide/spyder-kernels/pull/456) - PR: Remove unnecessary code for old IPykernel versions in our tests, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 453](https://github.com/spyder-ide/spyder-kernels/pull/453) - PR: Move code that loads and saves HDF5 and DICOM files from Spyder, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 447](https://github.com/spyder-ide/spyder-kernels/pull/447) - PR: Create magics for run|debug file|cell, by [@impact27](https://github.com/impact27)
+* [PR 446](https://github.com/spyder-ide/spyder-kernels/pull/446) - PR: Make call to interrupt children processes work for IPykernel greater than 6.21.2, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 444](https://github.com/spyder-ide/spyder-kernels/pull/444) - PR: Fix post mortem for debugging, by [@impact27](https://github.com/impact27) ([425](https://github.com/spyder-ide/spyder-kernels/issues/425))
+* [PR 443](https://github.com/spyder-ide/spyder-kernels/pull/443) - PR: Fix small typo in Readme, by [@davidbrochart](https://github.com/davidbrochart)
+* [PR 437](https://github.com/spyder-ide/spyder-kernels/pull/437) - PR: Remove imports from __future__, by [@oscargus](https://github.com/oscargus)
+* [PR 421](https://github.com/spyder-ide/spyder-kernels/pull/421) - PR: Update variable explorer from the kernel, by [@impact27](https://github.com/impact27)
+* [PR 417](https://github.com/spyder-ide/spyder-kernels/pull/417) - PR: Fix error in `globalsfilter`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 412](https://github.com/spyder-ide/spyder-kernels/pull/412) - PR: Use temporary file for faulthandler and make sure iopub is open for comms, by [@impact27](https://github.com/impact27)
+* [PR 409](https://github.com/spyder-ide/spyder-kernels/pull/409) - PR: Add Python executable as part of kernel info, by [@impact27](https://github.com/impact27)
+* [PR 408](https://github.com/spyder-ide/spyder-kernels/pull/408) - PR: Expose package version in SpyderShell, by [@impact27](https://github.com/impact27)
+* [PR 403](https://github.com/spyder-ide/spyder-kernels/pull/403) - PR: Make debugger faster by avoiding unnecessary comm messages, by [@impact27](https://github.com/impact27)
+* [PR 401](https://github.com/spyder-ide/spyder-kernels/pull/401) - PR: Wait for connection file to be written, by [@impact27](https://github.com/impact27)
+* [PR 400](https://github.com/spyder-ide/spyder-kernels/pull/400) - PR: Use `execute_interactive` to print errors during tests, by [@impact27](https://github.com/impact27)
+* [PR 397](https://github.com/spyder-ide/spyder-kernels/pull/397) - PR: Remove Python 2 code introduced when merging PR #395, by [@impact27](https://github.com/impact27)
+* [PR 396](https://github.com/spyder-ide/spyder-kernels/pull/396) - PR: Add handlers to interrupt executions and enter the debugger after that, by [@impact27](https://github.com/impact27)
+* [PR 390](https://github.com/spyder-ide/spyder-kernels/pull/390) - PR: Filter comm socket thread, by [@impact27](https://github.com/impact27)
+* [PR 387](https://github.com/spyder-ide/spyder-kernels/pull/387) - PR: Minor changes to finish the migration to Python 3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 366](https://github.com/spyder-ide/spyder-kernels/pull/366) - PR: Print warning when using `global` in an empty namespace, by [@impact27](https://github.com/impact27)
+* [PR 341](https://github.com/spyder-ide/spyder-kernels/pull/341) - PR: Drop support for Python 2, by [@impact27](https://github.com/impact27) ([340](https://github.com/spyder-ide/spyder-kernels/issues/340))
+* [PR 339](https://github.com/spyder-ide/spyder-kernels/pull/339) - PR: Use control channel for comms, by [@impact27](https://github.com/impact27)
+* [PR 286](https://github.com/spyder-ide/spyder-kernels/pull/286) - PR: Improve and refactor the way we run and debug code, by [@impact27](https://github.com/impact27)
+* [PR 257](https://github.com/spyder-ide/spyder-kernels/pull/257) - PR: Notify frontend of Matplotlib backend change, by [@impact27](https://github.com/impact27)
+* [PR 171](https://github.com/spyder-ide/spyder-kernels/pull/171) - PR: Publish Pdb stack frames to Spyder, by [@impact27](https://github.com/impact27)
+
+In this release 25 pull requests were closed.
+
+
+----
+
+
+## Version 2.4.3 (2023-04-02)
+
+### Issues Closed
+
+* [Issue 440](https://github.com/spyder-ide/spyder-kernels/issues/440) - distutils and LooseVersion deprecation ([PR 450](https://github.com/spyder-ide/spyder-kernels/pull/450) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 452](https://github.com/spyder-ide/spyder-kernels/pull/452) - PR: Fix error when executing empty Python script, by [@rear1019](https://github.com/rear1019)
+* [PR 450](https://github.com/spyder-ide/spyder-kernels/pull/450) - PR: Remove usage of `distutils.LooseVersion`, by [@ccordoba12](https://github.com/ccordoba12) ([440](https://github.com/spyder-ide/spyder-kernels/issues/440))
+* [PR 449](https://github.com/spyder-ide/spyder-kernels/pull/449) - PR: Add support for Jupyter-client 8, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 448](https://github.com/spyder-ide/spyder-kernels/pull/448) - PR: Skip IPython versions that give buggy code completions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 442](https://github.com/spyder-ide/spyder-kernels/pull/442) - PR: Add FreeBSD to `test_user_sitepackages_in_pathlist`, by [@rhurlin](https://github.com/rhurlin)
+* [PR 434](https://github.com/spyder-ide/spyder-kernels/pull/434) - PR: Use `allow_pickle=True` when loading Numpy arrays, by [@nkleinbaer](https://github.com/nkleinbaer)
+* [PR 430](https://github.com/spyder-ide/spyder-kernels/pull/430) - PR: Inform GUI about position of exception in post mortem debugging, by [@rear1019](https://github.com/rear1019)
+
+In this release 7 pull requests were closed.
+
+
+----
+
+
 ## Version 2.4.2 (2023-01-17)
 
 ### Issues Closed

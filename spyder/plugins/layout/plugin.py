@@ -23,7 +23,7 @@ from spyder.api.plugins import (
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.layout.container import (
@@ -37,9 +37,6 @@ from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
 from spyder.py3compat import qbytearray_to_str  # FIXME:
 
-
-# Localization
-_ = get_translation("spyder")
 
 # For logging
 logger = logging.getLogger(__name__)

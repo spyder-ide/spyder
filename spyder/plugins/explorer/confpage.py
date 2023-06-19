@@ -12,13 +12,10 @@ from qtpy.QtWidgets import (QTabWidget, QVBoxLayout, QWidget, QGroupBox,
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.fileassociations import (
     FileAssociationsWidget)
-
-# Localization
-_ = get_translation("spyder")
 
 
 class ExplorerConfigPage(PluginConfigPage):

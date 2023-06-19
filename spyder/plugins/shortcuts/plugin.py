@@ -23,14 +23,11 @@ from qtpy.QtWidgets import QAction, QShortcut
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.shortcuts.confpage import ShortcutsConfigPage
 from spyder.plugins.shortcuts.widgets.summary import ShortcutsSummaryDialog
 from spyder.utils.qthelpers import add_shortcut_to_tooltip, SpyderAction
-
-# Localization
-_ = get_translation('spyder')
 
 
 class ShortcutActions:
@@ -74,6 +71,7 @@ class Shortcuts(SpyderPluginV2):
 
     def on_initialize(self):
         self._shortcut_data = []
+        self._shortcut_sequences = set({})
         self.create_action(
             ShortcutActions.ShortcutSummaryAction,
             text=_("Shortcuts Summary"),
@@ -178,6 +176,10 @@ class Shortcuts(SpyderPluginV2):
                 shortcut_sequence = ''
 
             if shortcut_sequence:
+                if shortcut_sequence in self._shortcut_sequences:
+                    continue
+
+                self._shortcut_sequences |= {shortcut_sequence}
                 keyseq = QKeySequence(shortcut_sequence)
             else:
                 # Needed to remove old sequences that were cleared.
@@ -187,20 +189,28 @@ class Shortcuts(SpyderPluginV2):
             # Do not register shortcuts for the toggle view action.
             # The shortcut will be displayed only on the menus and handled by
             # about to show/hide signals.
-            if (name.startswith('switch to')
-                    and isinstance(qobject, SpyderAction)):
+            if (
+                name.startswith('switch to')
+                and isinstance(qobject, SpyderAction)
+            ):
                 keyseq = QKeySequence()
 
             try:
                 if isinstance(qobject, QAction):
-                    if (sys.platform == 'darwin'
-                            and qobject._shown_shortcut == 'missing'):
-                        qobject._shown_shortcut = keyseq
-                    else:
-                        qobject.setShortcut(keyseq)
+                    # Avoid adding more than one shortcut per action
+                    # TODO: we need to change how shortcuts are registered to
+                    # remove this patch
+                    if qobject.shortcuts() == []:
+                        if (
+                            sys.platform == 'darwin'
+                            and qobject._shown_shortcut == 'missing'
+                        ):
+                            qobject._shown_shortcut = keyseq
+                        else:
+                            qobject.setShortcut(keyseq)
 
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
+                        if add_shortcut_to_tip:
+                            add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
             except RuntimeError:

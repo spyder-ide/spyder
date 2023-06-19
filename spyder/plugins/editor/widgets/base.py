@@ -23,8 +23,8 @@ from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
 from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.gui import get_font
-from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
@@ -36,7 +36,9 @@ from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 
 
-class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
+class TextEditBaseWidget(
+    QPlainTextEdit, BaseEditMixin, SpyderConfigurationAccessor
+):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
     focus_in = Signal()
@@ -121,7 +123,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self._current_line_block = None
 
     def setup_completion(self):
-        size = CONF.get('main', 'completion/size')
+        size = self.get_conf('completion/size', section='main')
         font = get_font()
         self.completion_widget.setup_appearance(size, font)
 
@@ -509,13 +511,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         return []
 
     def get_selection_as_executable_code(self, cursor=None):
-        """Return selected text as a processed text,
-        to be executable in a Python/IPython interpreter"""
+        """Get selected text in a way that allows other plugins executed it."""
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
 
         line_from, line_to = self.get_selection_bounds(cursor)
+        line_col_from, line_col_to = self.get_selection_start_end(cursor)
+        line_from_off, line_to_off = self.get_selection_offsets(cursor)
+
         text = self.get_selected_text(cursor)
         if not text:
             return
@@ -562,7 +566,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
 
-        return leading_lines_str + ls.join(lines)
+        return (
+            leading_lines_str + ls.join(lines),
+            (line_from_off, line_to_off),
+            (line_col_from, line_col_to)
+        )
 
     def get_cell_as_executable_code(self, cursor=None):
         """Return cell contents as executable code."""
@@ -577,10 +585,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if not is_cell_header(block) and start > 0:
             block = self.document().findBlock(start - 1)
         # Get text
-        text = self.get_selection_as_executable_code(cursor)
+        text, off_pos, col_pos = self.get_selection_as_executable_code(cursor)
         if text is not None:
             text = ls * line_from + text
-        return text, block
+        return text, block, off_pos, col_pos
 
     def select_current_cell(self, cursor=None):
         """

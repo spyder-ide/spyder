@@ -137,13 +137,14 @@ class SpyderToolbarMixin:
     """
 
     def add_item_to_toolbar(self, action_or_widget, toolbar, section=None,
-                            before=None):
+                            before=None, before_section=None):
         """
         If you provide a `before` action, the action will be placed before this
         one, so the section option will be ignored, since the action will now
         be placed in the same section as the `before` action.
         """
-        toolbar.add_item(action_or_widget, section=section, before=before)
+        toolbar.add_item(action_or_widget, section=section, before=before,
+                         before_section=before_section)
 
     def create_stretcher(self, id_=None):
         """

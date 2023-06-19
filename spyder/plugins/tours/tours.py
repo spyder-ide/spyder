@@ -10,12 +10,10 @@
 import sys
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.tours.api import SpyderWidgets as sw
 from spyder import __docs_url__
 
-# Localization
-_ = get_translation('spyder')
 
 # Constants
 QTCONSOLE_LINK = "https://qtconsole.readthedocs.io/en/stable/index.html"

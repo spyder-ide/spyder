@@ -18,12 +18,12 @@ import re
 import sre_constants
 import sys
 import textwrap
-from pkg_resources import parse_version
 
 # Third party imports
+from packaging.version import parse
 from qtpy import QT_VERSION
-from qtpy.QtCore import QPoint, QRegularExpression, Qt
-from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
+from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
+from qtpy.QtGui import QDesktopServices, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
@@ -1118,6 +1118,18 @@ class BaseEditMixin(object):
         cursor.select(QTextCursor.BlockUnderCursor)
         return to_text_string(cursor.selectedText())
 
+    def get_current_line_bounds(self):
+        """Return the (line, column) bounds for the current line."""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return self.get_selection_start_end(cursor)
+
+    def get_current_line_offsets(self):
+        """Return the start and end offset positions for the current line."""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return self.get_selection_offsets()
+
     def get_current_line_to_cursor(self):
         """Return text from prompt to cursor."""
         return self.get_text(self.current_prompt_pos, 'cursor')
@@ -1176,6 +1188,13 @@ class BaseEditMixin(object):
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
 
+    def get_selection_offsets(self, cursor=None):
+        """Return selection start and end offset positions."""
+        if cursor is None:
+            cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        return start, end
+
     #------Text selection
     def has_selected_text(self):
         """Returns True if some text is selected."""
@@ -1200,8 +1219,10 @@ class BaseEditMixin(object):
         # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
         # See spyder-ide/spyder#12663 and
         # https://bugreports.qt.io/browse/QTBUG-35861
-        if (parse_version(QT_VERSION) < parse_version('5.15')
-                or os.name == 'nt' or sys.platform == 'darwin'):
+        if (
+            parse(QT_VERSION) < parse('5.15')
+            or os.name == 'nt' or sys.platform == 'darwin'
+        ):
             cursor = self.textCursor()
             cursor.setPosition(cursor.position())
             self.setTextCursor(cursor)
@@ -1415,7 +1436,7 @@ class BaseEditMixin(object):
 
 
 class TracebackLinksMixin(object):
-    """ """
+    """Mixin to make file names in tracebacks and anchors clickable."""
     QT_CLASS = None
 
     # This signal emits a parsed error traceback text so we can then
@@ -1424,29 +1445,39 @@ class TracebackLinksMixin(object):
 
     def __init__(self):
         self.__cursor_changed = False
+        self.anchor = None
         self.setMouseTracking(True)
 
     #------Mouse events
     def mouseReleaseEvent(self, event):
-        """Go to error"""
+        """Go to error or link in anchor."""
         self.QT_CLASS.mouseReleaseEvent(self, event)
         text = self.get_line_at(event.pos())
+
         if get_error_match(text) and not self.has_selected_text():
             if self.sig_go_to_error_requested is not None:
                 self.sig_go_to_error_requested.emit(text)
+        elif self.anchor:
+            QDesktopServices.openUrl(QUrl(self.anchor))
+            QApplication.restoreOverrideCursor()
+            self.anchor = None
 
     def mouseMoveEvent(self, event):
-        """Show Pointing Hand Cursor on error messages"""
+        """Show pointing hand cursor on error messages and anchors."""
         text = self.get_line_at(event.pos())
-        if get_error_match(text):
+        self.anchor = self.anchorAt(event.pos())
+
+        if get_error_match(text) or self.anchor:
             if not self.__cursor_changed:
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                QApplication.setOverrideCursor(Qt.PointingHandCursor)
                 self.__cursor_changed = True
             event.accept()
             return
+
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
+
         self.QT_CLASS.mouseMoveEvent(self, event)
 
     def leaveEvent(self, event):
@@ -1454,6 +1485,7 @@ class TracebackLinksMixin(object):
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
+
         self.QT_CLASS.leaveEvent(self, event)
 
 

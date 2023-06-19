@@ -10,10 +10,8 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout
 
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerTreeWidget
-
-_ = get_translation('spyder')
 
 
 # ---- Enums

@@ -244,6 +244,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
+        self.headers.clear()
+        self.project_header = None
+        self.user_header = None
+        self.system_header = None
 
         # Project path
         if self.project_path:
@@ -477,6 +481,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
                       "please go to <tt>Preferences > Main interpreter</tt>"
                       "."),
                     QMessageBox.Ok)
+
+        # Widget moves to back and loses focus on macOS,
+        # see spyder-ide/spyder#20808
+        if sys.platform == 'darwin':
+            self.activateWindow()
+            self.raise_()
+            self.setFocus()
 
         self.refresh()
 

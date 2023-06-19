@@ -14,14 +14,11 @@ from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
 from spyder.utils.programs import is_module_installed
-
-# Localization
-_ = get_translation('spyder')
 
 
 # =============================================================================

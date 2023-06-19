@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QApplication, QLabel, QMessageBox, QTreeWidget,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_conf_path
@@ -44,8 +44,6 @@ from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
 from spyder.widgets.comboboxes import PythonModulesComboBox
 
-# Localization
-_ = get_translation('spyder')
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -535,6 +533,7 @@ class ProfilerWidget(PluginMainWidget):
             proc_env.insert(k, v)
         proc_env.insert("PYTHONIOENCODING", "utf8")
         proc_env.remove('PYTHONPATH')
+        proc_env.remove('PYTHONEXECUTABLE') # needed on macOS to set sys.path correctly
         if self.pythonpath is not None:
             logger.debug(f"Pass Pythonpath {self.pythonpath} to process")
             proc_env.insert('PYTHONPATH', os.pathsep.join(self.pythonpath))

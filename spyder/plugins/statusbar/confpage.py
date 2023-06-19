@@ -10,11 +10,8 @@ Status bar entry in Preferences.
 
 from qtpy.QtWidgets import QGridLayout, QGroupBox, QVBoxLayout
 
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
-
-
-_ = get_translation('spyder')
 
 
 class StatusBarConfigPage(PluginConfigPage):

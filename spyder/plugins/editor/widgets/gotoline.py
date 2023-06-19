@@ -9,11 +9,7 @@ from qtpy.QtGui import QIntValidator
 from qtpy.QtWidgets import (QDialog, QLabel, QLineEdit, QGridLayout,
                             QDialogButtonBox, QVBoxLayout, QHBoxLayout)
 
-from spyder.api.translations import get_translation
-
-
-# Translations
-_ = get_translation('spyder')
+from spyder.api.translations import _
 
 
 class GoToLineDialog(QDialog):

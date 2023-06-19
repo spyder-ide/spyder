@@ -11,13 +11,9 @@
 import psutil
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.status import BaseTimerStatus
 from spyder.utils.system import memory_usage
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class MemoryStatus(BaseTimerStatus):

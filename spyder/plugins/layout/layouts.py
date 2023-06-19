@@ -10,12 +10,8 @@ Default layout definitions.
 
 # Local imports
 from spyder.api.plugins import Plugins
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.layout.api import BaseGridLayoutType
-
-
-# Localization
-_ = get_translation("spyder")
 
 
 class DefaultLayouts:
