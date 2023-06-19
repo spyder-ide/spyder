@@ -16,7 +16,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
-from spyder.plugins.mainmenu.api import ApplicationMenus, DebugMenuSections
+from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import ProfilerWidget
 from spyder.api.shellconnect.mixins import ShellConnectMixin
@@ -124,9 +124,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_menu={
-                "menu": ApplicationMenus.Debug,
-                "section": DebugMenuSections.StartDebug,
-                "before_section": DebugMenuSections.ControlDebug
+                "menu": ApplicationMenus.Run,
+                "section": RunMenuSections.Profile,
             },
             add_to_toolbar=ApplicationToolbars.Profile
         )
@@ -140,9 +139,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_menu={
-                "menu": ApplicationMenus.Debug,
-                "section": DebugMenuSections.StartDebug,
-                "before_section": DebugMenuSections.ControlDebug
+                "menu": ApplicationMenus.Run,
+                "section": RunMenuSections.Profile,
             },
             add_to_toolbar=ApplicationToolbars.Profile
         )
@@ -156,9 +154,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_menu={
-                "menu": ApplicationMenus.Debug,
-                "section": DebugMenuSections.StartDebug,
-                "before_section": DebugMenuSections.ControlDebug
+                "menu": ApplicationMenus.Run,
+                "section": RunMenuSections.Profile,
             },
             add_to_toolbar=ApplicationToolbars.Profile
         )

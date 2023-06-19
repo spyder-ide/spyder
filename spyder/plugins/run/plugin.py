@@ -87,6 +87,7 @@ class Run(SpyderPluginV2):
     def on_initialize(self):
         self.pending_toolbar_actions = []
         self.pending_menu_actions = []
+        self.main_menu_ready = False
         self.pending_shortcut_actions = []
         self.all_run_actions = {}
         self.menu_actions = set({})
@@ -119,6 +120,8 @@ class Run(SpyderPluginV2):
                 RunMenuSections.Run,
                 before_section=RunMenuSections.RunExtras
             )
+        
+        self.main_menu_ready = True
 
         while self.pending_menu_actions != []:
             action, menu_id, menu_section, before_section = (
@@ -499,7 +502,7 @@ class Run(SpyderPluginV2):
                 before_section = add_to_menu.get('before_section', None)
 
             main_menu = self.get_plugin(Plugins.MainMenu)
-            if main_menu:
+            if self.main_menu_ready and main_menu:
                 main_menu.add_item_to_application_menu(
                     action, menu_id, menu_section,
                     before_section=before_section
@@ -684,7 +687,7 @@ class Run(SpyderPluginV2):
                 before_section = add_to_menu.get('before_section', None)
 
             main_menu = self.get_plugin(Plugins.MainMenu)
-            if main_menu:
+            if self.main_menu_ready and main_menu:
                 main_menu.add_item_to_application_menu(
                     action, menu_id, menu_section,
                     before_section=before_section
