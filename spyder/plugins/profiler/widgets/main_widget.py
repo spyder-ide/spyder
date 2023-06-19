@@ -255,6 +255,35 @@ class ProfilerWidget(ShellConnectMainWidget):
         toggle_tree_action.setChecked(inverted_tree)
         toggle_builtins_action.setChecked(ignore_builtins)
 
+        tree_empty = True
+        can_redo = False
+        can_undo = False
+        widget = self.current_widget()
+        if widget is not None:
+            tree_empty = widget.data_tree.profdata is None
+            can_undo = len(widget.data_tree.history) > 1
+            can_redo = len(widget.data_tree.redo_history) > 0
+
+        for action_name in [
+            ProfilerWidgetActions.Collapse,
+            ProfilerWidgetActions.Expand,
+            ProfilerWidgetActions.ToggleTreeDirection,
+            ProfilerWidgetActions.ToggleBuiltins,
+            ProfilerWidgetActions.Home,
+            ProfilerWidgetActions.SlowLocal,
+            ProfilerWidgetActions.SaveData,
+            ProfilerWidgetActions.Search
+        ]:
+            action = self.get_action(action_name)
+            action.setEnabled(not tree_empty)
+
+        undo_action = self.get_action(ProfilerWidgetActions.Undo)
+        redo_action = self.get_action(ProfilerWidgetActions.Redo)
+
+        undo_action.setEnabled(can_undo)
+        redo_action.setEnabled(can_redo)
+
+
     # --- Public API
     # ------------------------------------------------------------------------
     def home_tree(self):
@@ -356,6 +385,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             widget.data_tree.compare(filename)
             widget.data_tree.home_tree()
             self.clear_action.setEnabled(True)
+            self.update_actions()
 
     def clear(self):
         """Clear data in tree."""
@@ -365,12 +395,14 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.data_tree.compare(None)
         widget.data_tree.home_tree()
         self.clear_action.setEnabled(False)
+        self.update_actions()
 
     def create_new_widget(self, shellwidget):
         """Create new profiler widget."""
         widget = ProfilerSubWidget(self)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_display_requested.connect(self.display_request)
+        widget.sig_refresh.connect(self.update_actions)
         widget.set_context_menu(self.context_menu)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
 
@@ -382,8 +414,8 @@ class ProfilerWidget(ShellConnectMainWidget):
 
     def close_widget(self, widget):
         """Close profiler widget."""
-        widget.sig_edit_goto_requested.disconnect(
-            self.sig_edit_goto_requested)
+        widget.sig_edit_goto_requested.disconnect(self.sig_edit_goto_requested)
+        widget.sig_refresh.disconnect(self.update_actions)
         widget.sig_display_requested.disconnect(self.display_request)
         widget.sig_hide_finder_requested.disconnect(self.hide_finder)
 
@@ -403,6 +435,7 @@ class ProfilerWidget(ShellConnectMainWidget):
 
         Only display if this is the current widget.
         """
+        self.update_actions()
         if (
             self.current_widget() is widget
             and self.get_conf("switch_to_plugin")

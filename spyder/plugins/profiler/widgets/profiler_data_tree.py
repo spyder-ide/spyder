@@ -66,6 +66,7 @@ class ProfilerSubWidget(QWidget, SpyderWidgetMixin):
     sig_edit_goto_requested = Signal(str, int, str)
     sig_display_requested = Signal(object)
     sig_hide_finder_requested = Signal()
+    sig_refresh = Signal()
 
     def __init__(self, parent=None):
         if PYQT5:
@@ -103,6 +104,7 @@ class ProfilerSubWidget(QWidget, SpyderWidgetMixin):
         self.data_tree = ProfilerDataTree(self)
         self.data_tree.sig_edit_goto_requested.connect(
             self.sig_edit_goto_requested)
+        self.data_tree.sig_refresh.connect(self.sig_refresh)
 
         self.finder = FinderWidget(self)
         self.finder.sig_find_text.connect(self.do_find)
@@ -348,6 +350,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
 
     # Signals
     sig_edit_goto_requested = Signal(str, int, str)
+    sig_refresh = Signal()
 
     def __init__(self, parent=None):
         if PYQT5:
@@ -619,6 +622,8 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 # Only expand if not too many children are shown
                 self.change_view(1)
             self.resizeColumnToContents(0)
+        
+        self.sig_refresh.emit()
 
     def populate_tree(self, parentItem, children_list):
         """
