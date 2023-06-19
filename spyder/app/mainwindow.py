@@ -43,12 +43,11 @@ requirements.check_qt()
 #==============================================================================
 # Third-party imports
 #==============================================================================
-from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
-                            QShortcut, QStyleFactory)
+from qtpy.QtWidgets import (QApplication, QMainWindow, QMessageBox, QShortcut,
+                            QStyleFactory)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -65,7 +64,6 @@ from qtawesome.iconic_font import FontError
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import __version__
-from spyder import dependencies
 from spyder.app.find_plugins import (
     find_external_plugins, find_internal_plugins)
 from spyder.app.utils import (
@@ -75,21 +73,19 @@ from spyder.app.utils import (
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
-                                get_home_dir, is_pynsist, running_in_mac_app,
+                                get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
-from spyder.otherplugins import get_spyderplugins_mods
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
-                                    qapplication, start_file)
+from spyder.utils.qthelpers import file_uri, qapplication, start_file
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
@@ -222,12 +218,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             'projects': Plugins.Projects,
             'findinfiles': Plugins.Find,
             'layouts': Plugins.Layout,
+            'switcher': Plugins.Switcher,
         }
 
         self.thirdparty_plugins = []
-
-        # File switcher
-        self.switcher = None
 
         # Preferences
         self.prefs_dialog_size = None
@@ -703,10 +697,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-        # Switcher instance
-        logger.info("Loading switcher...")
-        self.create_switcher()
-
         # Load and register internal and external plugins
         external_plugins = find_external_plugins()
         internal_plugins = find_internal_plugins()
@@ -775,80 +765,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                     print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
 
-        self.set_splash(_("Loading old third-party plugins..."))
-        for mod in get_spyderplugins_mods():
-            try:
-                plugin = PLUGIN_REGISTRY.register_plugin(self, mod,
-                                                         external=True)
-                if plugin.check_compatibility()[0]:
-                    if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
-                        self.preferences.register_plugin_preferences(plugin)
-
-                    if not hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
-                        self.thirdparty_plugins.append(plugin)
-
-                    # Add to dependencies dialog
-                    module = mod.__name__
-                    name = module.replace('_', '-')
-                    if plugin.DESCRIPTION:
-                        description = plugin.DESCRIPTION
-                    else:
-                        description = plugin.get_plugin_title()
-
-                    dependencies.add(module, name, description,
-                                     '', None, kind=dependencies.PLUGIN)
-            except TypeError:
-                # Fixes spyder-ide/spyder#13977
-                pass
-            except Exception as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
-                traceback.print_exc(file=STDERR)
-
         # Set window title
         self.set_window_title()
-
-        # Menus
-        # TODO: Remove when all menus are migrated to use the Main Menu Plugin
-        logger.info("Creating Menus...")
-        from spyder.plugins.mainmenu.api import (
-            ApplicationMenus, FileMenuSections
-        )
-        mainmenu = self.mainmenu
-
-        # Switcher shortcuts
-        self.file_switcher_action = create_action(
-            self,
-            _('File switcher...'),
-            icon=ima.icon('filelist'),
-            tip=_('Fast switch between files'),
-            triggered=self.open_switcher,
-            context=Qt.ApplicationShortcut,
-            id_='file_switcher'
-        )
-        self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher")
-        self.symbol_finder_action = create_action(
-            self, _('Symbol finder...'),
-            icon=ima.icon('symbol_find'),
-            tip=_('Fast symbol search in file'),
-            triggered=self.open_symbolfinder,
-            context=Qt.ApplicationShortcut,
-            id_='symbol_finder'
-        )
-        self.register_shortcut(self.symbol_finder_action, context="_",
-                               name="symbol finder", add_shortcut_to_tip=True)
-
-        switcher_actions = [
-            self.file_switcher_action,
-            self.symbol_finder_action
-        ]
-        for switcher_action in switcher_actions:
-            mainmenu.add_item_to_application_menu(
-                switcher_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Switcher,
-                before_section=FileMenuSections.Restart
-            )
         self.set_splash("")
 
         # Toolbars
@@ -933,6 +851,12 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if self.splash is not None:
             self.splash.hide()
 
+        # To avoid regressions. We shouldn't have loaded the modules below at
+        # this point.
+        if DEV is not None:
+            assert 'pandas' not in sys.modules
+            assert 'matplotlib' not in sys.modules
+
         # Call on_mainwindow_visible for all plugins, except Layout because it
         # needs to be called first (see above).
         for plugin_name in PLUGIN_REGISTRY:
@@ -972,12 +896,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
-
-        # To avoid regressions. We shouldn't have loaded the modules
-        # below at this point.
-        if DEV is not None:
-            assert 'pandas' not in sys.modules
-            assert 'matplotlib' not in sys.modules
 
         # Restore undocked plugins
         self.restore_undocked_plugins()
@@ -1027,7 +945,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             title = u"Spyder %s (Python %s.%s)" % (__version__,
                                                    sys.version_info[0],
                                                    sys.version_info[1])
-        elif running_in_mac_app() or is_pynsist():
+        elif is_conda_based_app():
             title = "Spyder"
         else:
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
@@ -1135,66 +1053,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def free_memory(self):
         """Free memory after event."""
         gc.collect()
-
-    def show_shortcuts(self, menu):
-        """Show action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(action._shown_shortcut)
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.show_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_shortcuts(self, menu):
-        """Hide action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(QKeySequence())
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.hide_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_options_menus(self):
-        """Hide options menu when menubar is pressed in macOS."""
-        for plugin in self.widgetlist + self.thirdparty_plugins:
-            if plugin.CONF_SECTION == 'editor':
-                editorstack = self.editor.get_current_editorstack()
-                editorstack.menu.hide()
-            else:
-                try:
-                    # New API
-                    plugin.options_menu.hide()
-                except AttributeError:
-                    # Old API
-                    plugin._options_menu.hide()
-
-    def get_focus_widget_properties(self):
-        """Get properties of focus widget
-        Returns tuple (widget, properties) where properties is a tuple of
-        booleans: (is_console, not_readonly, readwrite_editor)"""
-        from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-        from spyder.plugins.ipythonconsole.widgets import ControlWidget
-        widget = QApplication.focusWidget()
-
-        textedit_properties = None
-        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
-            console = isinstance(widget, ControlWidget)
-            not_readonly = not widget.isReadOnly()
-            readwrite_editor = not_readonly and not console
-            textedit_properties = (console, not_readonly, readwrite_editor)
-        return widget, textedit_properties
 
     def set_splash(self, message):
         """Set splash message"""
@@ -1475,43 +1333,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Wrapper to handle plugins request to restart Spyder."""
         self.application.restart(
             reset=reset, close_immediately=close_immediately)
-
-    # ---- Global Switcher
-    # -------------------------------------------------------------------------
-    def open_switcher(self, symbol=False):
-        """Open switcher dialog box."""
-        if self.switcher is not None and self.switcher.isVisible():
-            self.switcher.clear()
-            self.switcher.hide()
-            return
-        if symbol:
-            self.switcher.set_search_text('@')
-        else:
-            self.switcher.set_search_text('')
-            self.switcher.setup()
-        self.switcher.show()
-
-        # Note: The +6 pixel on the top makes it look better
-        # FIXME: Why is this using the toolbars menu? A: To not be on top of
-        # the toolbars.
-        # Probably toolbars should be taken into account for this 'delta' only
-        # when are visible
-        delta_top = (self.toolbar.toolbars_menu.geometry().height() +
-                     self.menuBar().geometry().height() + 6)
-
-        self.switcher.set_position(delta_top)
-
-    def open_symbolfinder(self):
-        """Open symbol list management dialog box."""
-        self.open_switcher(symbol=True)
-
-    def create_switcher(self):
-        """Create switcher dialog instance."""
-        if self.switcher is None:
-            from spyder.widgets.switcher import Switcher
-            self.switcher = Switcher(self)
-
-        return self.switcher
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):

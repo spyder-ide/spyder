@@ -177,7 +177,7 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         # ensure Windows subprocess environment has SYSTEMROOT
         if kwargs.get('env') is not None:
             # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
-            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE']:
+            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE']:
                 if env_var not in map(str.upper, kwargs['env'].keys()):
                     # Add from os.environ
                     for k, v in os.environ.items():
@@ -1004,8 +1004,8 @@ def is_module_installed(module_name, version=None, interpreter=None,
     consistent with ``version``. The module must have an attribute named
     '__version__' or 'VERSION'.
 
-    version may start with =, >=, > or < to specify the exact requirement ;
-    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
+    ``version`` may start with =, >=, > or < to specify the exact requirement;
+    multiple conditions may be separated by ',' (e.g. '>=0.13,<1.0')
 
     If ``interpreter`` is not None, checks if a module is installed with a
     given ``version`` in the ``interpreter``'s environment. Otherwise checks

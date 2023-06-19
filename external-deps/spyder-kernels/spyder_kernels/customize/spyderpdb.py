@@ -103,6 +103,15 @@ class SpyderPdb(ipyPdb):
         # Keep track of interrupting state to avoid several interruptions
         self.interrupting = False
 
+        # Turn off IPython's debugger skip funcionality by default because
+        # it makes our debugger quite slow. It's also important to remark
+        # that this functionality doesn't do anything on its own. Users
+        # need to mark what frames they want to skip for it to be useful.
+        # So, we hope that knowledgeable users will find that they need to
+        # enable it in Spyder.
+        # Fixes spyder-ide/spyder#20639.
+        self._predicates["debuggerskip"] = False
+
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
         """Print pdb warning for exclamation mark."""

@@ -14,7 +14,9 @@ import math
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, QPointF
-from qtpy.QtGui import QPainter, QColor, QStaticText, QFontMetricsF
+from qtpy.QtGui import (
+    QColor, QFontMetricsF, QPainter, QStaticText, QTextOption
+)
 
 # Local imports
 from spyder.utils.icon_manager import ima
@@ -69,6 +71,7 @@ class LineNumberArea(Panel):
 
         Painting line number area
         """
+
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         font_height = self.editor.fontMetrics().height()
@@ -88,12 +91,16 @@ class LineNumberArea(Panel):
         if self._margin:
             font = self.editor.font()
             fm = QFontMetricsF(font)
-            if fm.leading() == 0:
+            if (
+                fm.leading() == 0
+                and self.editor.lineWrapMode() == QTextOption.NoWrap
+            ):
                 self.draw_linenumbers(painter)
             else:
-                # The editor doesn't care about leading, so each line
-                # must be drawn independently.
+                # The editor doesn't care about leading or the text is being
+                # wrapped, so each line must be drawn independently.
                 self.draw_linenumbers_slow(painter)
+        self.paint_cell(painter)
 
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()
@@ -201,7 +208,8 @@ class LineNumberArea(Panel):
         """
         Slower way (2x) to draw line numbers.
 
-        This is necessary for some fonts.
+        This is necessary for some fonts and when the wrap lines option
+        is active.
         """
         font = self.editor.font()
         font_height = self.editor.fontMetrics().height()

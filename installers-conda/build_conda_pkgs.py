@@ -13,7 +13,6 @@ from configparser import ConfigParser
 from datetime import timedelta
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
-from shutil import copy
 from subprocess import check_call
 from textwrap import dedent
 from time import time
@@ -31,18 +30,18 @@ logger.addHandler(h)
 logger.setLevel('INFO')
 
 HERE = Path(__file__).parent
-DIST = HERE / "dist"
+BUILD = HERE / "build"
 RESOURCES = HERE / "resources"
 EXTDEPS = HERE.parent / "external-deps"
-SPECS = DIST / "specs.yaml"
+SPECS = BUILD / "specs.yaml"
 REQUIREMENTS = HERE.parent / "requirements"
 REQ_MAIN = REQUIREMENTS / 'main.yml'
 REQ_WINDOWS = REQUIREMENTS / 'windows.yml'
 REQ_MAC = REQUIREMENTS / 'macos.yml'
 REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
-DIST.mkdir(exist_ok=True)
-SPYPATCHFILE = DIST / "installers-conda.patch"
+BUILD.mkdir(exist_ok=True)
+SPYPATCHFILE = BUILD / "installers-conda.patch"
 
 
 class BuildCondaPkg:
@@ -61,8 +60,8 @@ class BuildCondaPkg:
 
         self.debug = debug
 
-        self._bld_src = DIST / self.name
-        self._fdstk_path = DIST / self.feedstock.split("/")[-1]
+        self._bld_src = BUILD / self.name
+        self._fdstk_path = BUILD / self.feedstock.split("/")[-1]
 
         self._get_source(shallow=shallow)
         self._get_version()
@@ -203,13 +202,13 @@ class SpyderCondaPkg(BuildCondaPkg):
     def _patch_source(self):
         self.logger.info("Creating Spyder menu file...")
         _menufile = RESOURCES / "spyder-menu.json"
-        menufile = DIST / "spyder-menu.json"
+        self.menufile = BUILD / "spyder-menu.json"
         commit, branch = self.repo.head.commit.name_rev.split()
         text = _menufile.read_text()
         text = text.replace("__PKG_VERSION__", self.version)
         text = text.replace("__SPY_BRANCH__", branch)
         text = text.replace("__SPY_COMMIT__", commit[:8])
-        menufile.write_text(text)
+        self.menufile.write_text(text)
 
     def _patch_meta(self, meta):
         # Remove osx_is_app
@@ -250,22 +249,25 @@ class SpyderCondaPkg(BuildCondaPkg):
     def _patch_build_script(self):
         self.logger.info("Patching build script...")
 
+        rel_menufile = self.menufile.relative_to(HERE.parent)
+
         if os.name == 'posix':
+            logomark = "branding/logo/logomark/spyder-logomark-background.png"
             file = self._fdstk_path / "recipe" / "build.sh"
             text = file.read_text()
             text += dedent(
-                """
+                f"""
                 # Create the Menu directory
-                mkdir -p "${PREFIX}/Menu"
+                mkdir -p "${{PREFIX}}/Menu"
 
                 # Copy menu.json template
-                cp "${SRC_DIR}/installers-conda/dist/spyder-menu.json" "${PREFIX}/Menu/spyder-menu.json"
+                cp "${{SRC_DIR}}/{rel_menufile}" "${{PREFIX}}/Menu/spyder-menu.json"
 
                 # Copy application icons
                 if [[ $OSTYPE == "darwin"* ]]; then
-                    cp "${SRC_DIR}/img_src/spyder.icns" "${PREFIX}/Menu/spyder.icns"
+                    cp "${{SRC_DIR}}/img_src/spyder.icns" "${{PREFIX}}/Menu/spyder.icns"
                 else
-                    cp "${SRC_DIR}/branding/logo/logomark/spyder-logomark-background.png" "${PREFIX}/Menu/spyder.png"
+                    cp "${{SRC_DIR}}/{logomark}" "${{PREFIX}}/Menu/spyder.png"
                 fi
                 """
             )
@@ -275,7 +277,7 @@ class SpyderCondaPkg(BuildCondaPkg):
             text = file.read_text()
             text = text.replace(
                 r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
-                r"copy %SRC_DIR%\installers-conda\dist\spyder-menu.json %MENU_DIR%\spyder-menu.json"
+                fr"copy %SRC_DIR%\{rel_menufile} %MENU_DIR%\spyder-menu.json"
             )
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         file.write_text(text)

@@ -132,16 +132,11 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             icon=self.create_icon("pylint"),
             shortcut_context='pylint',
             register_shortcut=True,
-            add_to_menu=True
+            add_to_menu={
+                "menu": ApplicationMenus.Source,
+                "section": SourceMenuSections.CodeAnalysis
+            }
         )
-
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        if mainmenu:
-            mainmenu.add_item_to_application_menu(
-                self.run_action,
-                menu_id=ApplicationMenus.Source,
-                section=SourceMenuSections.CodeAnalysis
-            )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -163,16 +158,6 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._set_project_dir)
         projects.sig_project_closed.disconnect(self._unset_project_dir)
-
-    @on_plugin_teardown(plugin=Plugins.MainMenu)
-    def on_main_menu_teardown(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-
-        if self.run_action is not None:
-            mainmenu.remove_item_from_application_menu(
-                self.run_action.name,
-                menu_id=ApplicationMenus.Source
-            )
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
@@ -253,7 +238,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             if self.get_conf("save_before", True) and not editor.save():
                 return
 
-        if filename is None:
+        if filename is None or isinstance(filename, bool):
             filename = self.get_widget().get_filename()
 
         self.switch_to_plugin(force_focus=True)
