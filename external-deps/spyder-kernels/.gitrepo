@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/jsbautista/spyder-kernels.git
 	branch = variableExplorerKernels
-	commit = db201a8aa9a6a5d2bb3d147ae475a43b6baa11e9
-	parent = f6ca198b485a77eae3a985002e97fe57d70b477c
+	commit = fd7a942a49376aa05006907314dab37b93f66c2f
+	parent = b1fba8238daa714e2607c043277fadb04b58ad03
 	method = merge
 	cmdver = 0.4.6
