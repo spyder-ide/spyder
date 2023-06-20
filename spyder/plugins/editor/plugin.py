@@ -2676,7 +2676,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 
             for editorstack in self.editorstacks:
                 if (
-                    editorstack_id_str is not None and
+                    editorstack_id_str is None or
                     str(id(editorstack)) != editorstack_id_str
                 ):
                     editorstack.rename_in_data(

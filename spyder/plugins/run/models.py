@@ -240,6 +240,8 @@ class RunConfigurationListModel(QAbstractListModel):
         item = self.run_configurations.pop(uuid)
         self.metadata_index = dict(enumerate(self.run_configurations))
         self.inverted_index = {v: k for k, v in self.metadata_index.items()}
+        if self.current_configuration not in self.inverted_index:
+            self.current_configuration = None
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
         return item
@@ -257,6 +259,8 @@ class RunConfigurationListModel(QAbstractListModel):
         self.run_configurations[uuid] = metadata
         self.metadata_index[len(self.metadata_index)] = uuid
         self.inverted_index[uuid] = len(self.inverted_index)
+        if self.current_configuration is None:
+            self.current_configuration = uuid
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
 
