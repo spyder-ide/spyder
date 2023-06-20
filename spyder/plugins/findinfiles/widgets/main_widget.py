@@ -11,7 +11,7 @@ import re
 
 # Third party imports
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel, QStackedLayout
+from qtpy.QtWidgets import QInputDialog, QLabel, QStackedLayout
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -143,7 +143,7 @@ class FindInFilesWidget(PluginMainWidget):
             path_history = [path_history]
 
         # Widgets
-        self.paneempty = PaneEmptyWidget(
+        self.pane_empty = PaneEmptyWidget(
             self,
             "find_empty",
             _("You haven't searched for anything yet."),
@@ -196,7 +196,7 @@ class FindInFilesWidget(PluginMainWidget):
         # Layout
         self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(self.result_browser)
-        self.stack_layout.addWidget(self.paneempty)
+        self.stack_layout.addWidget(self.pane_empty)
         self.setLayout(self.stack_layout)
 
         # Signals
@@ -327,7 +327,7 @@ class FindInFilesWidget(PluginMainWidget):
         if self.result_browser.data:
             self.stack_layout.setCurrentWidget(self.result_browser)
         else:
-            self.stack_layout.setCurrentWidget(self.paneempty)
+            self.stack_layout.setCurrentWidget(self.pane_empty)
 
     def update_actions(self):
         self.find_action.setIcon(self.create_icon(

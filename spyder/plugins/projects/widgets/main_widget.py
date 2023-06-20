@@ -169,7 +169,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        self.emptywidget = PaneEmptyWidget(
+        self.pane_empty = PaneEmptyWidget(
             self,
             "projects",
             _("You haven't opened a project yet."),
@@ -186,7 +186,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         # Layout
         layout = QVBoxLayout()
-        layout.addWidget(self.emptywidget)
+        layout.addWidget(self.pane_empty)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
         self.setMinimumWidth(200)
@@ -252,7 +252,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             
     def set_pane_empty(self):
         self.treewidget.hide()
-        self.emptywidget.show()
+        self.pane_empty.show()
         
 
     def update_actions(self):
@@ -761,11 +761,11 @@ class ProjectExplorerWidget(PluginMainWidget):
     def _clear(self):
         """Show an empty view"""
         self.treewidget.hide()
-        self.emptywidget.show()
+        self.pane_empty.show()
 
     def _setup_project(self, directory):
         """Setup project"""
-        self.emptywidget.hide()
+        self.pane_empty.hide()
         self.treewidget.show()
 
         # Setup the directory shown by the tree

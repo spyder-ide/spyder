@@ -73,7 +73,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
-        self.paneempty = PaneEmptyWidget(
+        self.pane_empty = PaneEmptyWidget(
             self,
             "variable-explorer",
             _("You haven't defined any variables yet."),
@@ -147,10 +147,10 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             layout.addSpacing(1)
             layout.addWidget(self.finder)
 
-            self.main_widget = QWidget()
-            self.main_widget.setLayout(layout)
-            self.stack_layout.addWidget(self.main_widget)
-            self.stack_layout.addWidget(self.paneempty)
+            self.table_widget = QWidget(self)
+            self.table_widget.setLayout(layout)
+            self.stack_layout.addWidget(self.table_widget)
+            self.stack_layout.addWidget(self.pane_empty)
             self.setLayout(self.stack_layout)
             self.set_pane_empty()
             self.editor.source_model.sig_setting_data.connect(
@@ -158,9 +158,9 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def set_pane_empty(self):
         if not self.editor.source_model.get_data():
-            self.stack_layout.setCurrentWidget(self.paneempty)
+            self.stack_layout.setCurrentWidget(self.pane_empty)
         else:
-            self.stack_layout.setCurrentWidget(self.main_widget)
+            self.stack_layout.setCurrentWidget(self.table_widget)
 
     def get_view_settings(self):
         """Return dict editor view settings"""

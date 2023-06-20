@@ -172,7 +172,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             self.sig_redirect_stdio_requested)
 
         # Widget empty pane
-        self.paneempty = PaneEmptyWidget(
+        self.pane_empty = PaneEmptyWidget(
             self,
             "plots",
             _("You haven't generated any plots yet."),
@@ -190,7 +190,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
 
         self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(splitter)
-        self.stack_layout.addWidget(self.paneempty)
+        self.stack_layout.addWidget(self.pane_empty)
         self.setLayout(self.stack_layout)
         self.stack_layout.setContentsMargins(0, 0, 0, 0)
         self.stack_layout.setSpacing(0)
@@ -220,7 +220,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
 
     def set_pane_empty(self, empty):
         if empty:
-            self.stack_layout.setCurrentWidget(self.paneempty)
+            self.stack_layout.setCurrentWidget(self.pane_empty)
         else:
             self.stack_layout.setCurrentWidget(self.splitter)
 

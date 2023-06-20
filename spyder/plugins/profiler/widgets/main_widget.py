@@ -174,7 +174,7 @@ class ProfilerWidget(PluginMainWidget):
         self.filecombo = PythonModulesComboBox(
             self, id_=ProfilerWidgetMainToolbarItems.FileCombo)
         self.datatree = ProfilerDataTree(self)
-        self.paneempty = PaneEmptyWidget(
+        self.pane_empty = PaneEmptyWidget(
             self,
             "code-profiler",
             _("You haven't profiled any code yet."),
@@ -186,7 +186,7 @@ class ProfilerWidget(PluginMainWidget):
 
         # Layout
         self.stack_layout = QStackedLayout()
-        self.stack_layout.addWidget(self.paneempty)
+        self.stack_layout.addWidget(self.pane_empty)
         self.stack_layout.addWidget(self.datatree)
         self.setLayout(self.stack_layout)
 
