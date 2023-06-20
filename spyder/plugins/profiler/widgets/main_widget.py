@@ -100,7 +100,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         return _('Profiler')
 
     def setup(self):
-        self.collapse_action = self.create_action(
+        collapse_action = self.create_action(
             ProfilerWidgetActions.Collapse,
             text=_('Collapse'),
             tip=_('Collapse one level up'),
@@ -108,7 +108,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             triggered=lambda x=None: self.current_widget(
                 ).data_tree.change_view(-1),
         )
-        self.expand_action = self.create_action(
+        expand_action = self.create_action(
             ProfilerWidgetActions.Expand,
             text=_('Expand'),
             tip=_('Expand one level down'),
@@ -116,56 +116,55 @@ class ProfilerWidget(ShellConnectMainWidget):
             triggered=lambda x=None: self.current_widget(
                 ).data_tree.change_view(1),
         )
-        self.home_action = self.create_action(
+        home_action = self.create_action(
             ProfilerWidgetActions.Home,
             text=_("Reset tree"),
             tip=_('Go back to full tree'),
             icon=self.create_icon('home'),
             triggered=self.home_tree,
         )
-        self.toggle_tree_action = self.create_action(
+        toggle_tree_action = self.create_action(
             ProfilerWidgetActions.ToggleTreeDirection,
             text=_("Switch tree direction"),
             tip=_('Switch tree direction between callers and callees'),
             icon=self.create_icon('swap'),
             toggled=self.toggle_tree,
         )
-        self.slow_local_action = self.create_action(
+        slow_local_action = self.create_action(
             ProfilerWidgetActions.SlowLocal,
             text=_("Show items with large local time"),
             tip=_('Show items with large local time'),
             icon=self.create_icon('slow'),
             triggered=self.slow_local_tree,
         )
-        self.toggle_builtins_action = self.create_action(
+        toggle_builtins_action = self.create_action(
             ProfilerWidgetActions.ToggleBuiltins,
             text=_("Hide builtins"),
             tip=_('Hide builtins'),
             icon=self.create_icon('hide'),
             toggled=self.toggle_builtins,
         )
-        self.save_action = self.create_action(
+        save_action = self.create_action(
             ProfilerWidgetActions.SaveData,
             text=_("Save data"),
             tip=_('Save profiling data'),
             icon=self.create_icon('filesave'),
             triggered=self.save_data,
         )
-        self.load_action = self.create_action(
+        load_action = self.create_action(
             ProfilerWidgetActions.LoadData,
             text=_("Load data"),
             tip=_('Load profiling data for comparison'),
             icon=self.create_icon('fileimport'),
             triggered=self.load_data,
         )
-        self.clear_action = self.create_action(
+        clear_action = self.create_action(
             ProfilerWidgetActions.Clear,
             text=_("Clear comparison"),
             tip=_("Clear comparison"),
             icon=self.create_icon('editdelete'),
             triggered=self.clear,
         )
-        self.clear_action.setEnabled(False)
         search_action = self.create_action(
             ProfilerWidgetActions.Search,
             text=_("Search"),
@@ -190,20 +189,20 @@ class ProfilerWidget(ShellConnectMainWidget):
         main_toolbar = self.get_main_toolbar()
 
         for item in [
-                self.home_action,
+                home_action,
                 undo_action,
                 redo_action,
-                self.collapse_action,
-                self.expand_action,
-                self.toggle_tree_action,
-                self.toggle_builtins_action,
-                self.slow_local_action,
+                collapse_action,
+                expand_action,
+                toggle_tree_action,
+                toggle_builtins_action,
+                slow_local_action,
                 search_action,
                 self.create_stretcher(
                     id_=ProfilerWidgetInformationToolbarItems.Stretcher),
-                self.save_action,
-                self.load_action,
-                self.clear_action
+                save_action,
+                load_action,
+                clear_action
                 ]:
             self.add_item_to_toolbar(
                 item,
@@ -258,11 +257,13 @@ class ProfilerWidget(ShellConnectMainWidget):
         tree_empty = True
         can_redo = False
         can_undo = False
+        can_clear = False
         widget = self.current_widget()
         if widget is not None:
             tree_empty = widget.data_tree.profdata is None
             can_undo = len(widget.data_tree.history) > 1
             can_redo = len(widget.data_tree.redo_history) > 0
+            can_clear = widget.data_tree.compare_data is not None
 
         for action_name in [
             ProfilerWidgetActions.Collapse,
@@ -282,6 +283,9 @@ class ProfilerWidget(ShellConnectMainWidget):
 
         undo_action.setEnabled(can_undo)
         redo_action.setEnabled(can_redo)
+        
+        clear_action = self.get_action(ProfilerWidgetActions.Clear)
+        clear_action.setEnabled(can_clear)
 
 
     # --- Public API
@@ -336,8 +340,11 @@ class ProfilerWidget(ShellConnectMainWidget):
         if widget is None:
             return
         widget.data_tree.show_selected()
-        if not self.toggle_tree_action.isChecked():
-            self.toggle_tree_action.setChecked(True)
+
+        toggle_tree_action = self.get_action(
+            ProfilerWidgetActions.ToggleTreeDirection)
+        if not toggle_tree_action.isChecked():
+            toggle_tree_action.setChecked(True)
 
     def show_callees(self):
         """Invert tree."""
@@ -345,8 +352,11 @@ class ProfilerWidget(ShellConnectMainWidget):
         if widget is None:
             return
         widget.data_tree.show_selected()
-        if self.toggle_tree_action.isChecked():
-            self.toggle_tree_action.setChecked(False)
+    
+        toggle_tree_action = self.get_action(
+            ProfilerWidgetActions.ToggleTreeDirection)
+        if toggle_tree_action.isChecked():
+            toggle_tree_action.setChecked(False)
 
     def save_data(self):
         """Save data."""
@@ -384,7 +394,6 @@ class ProfilerWidget(ShellConnectMainWidget):
         if filename:
             widget.data_tree.compare(filename)
             widget.data_tree.home_tree()
-            self.clear_action.setEnabled(True)
             self.update_actions()
 
     def clear(self):
@@ -394,7 +403,6 @@ class ProfilerWidget(ShellConnectMainWidget):
             return
         widget.data_tree.compare(None)
         widget.data_tree.home_tree()
-        self.clear_action.setEnabled(False)
         self.update_actions()
 
     def create_new_widget(self, shellwidget):
