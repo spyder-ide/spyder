@@ -512,6 +512,22 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run = self.main.get_plugin(Plugins.Run, error=False)
         if run is not None:
             run.deregister_run_configuration_metadata(file_id)
+    
+    def change_register_file_run_metadata(self, old_filename, new_filename):
+        """Change the register name"""
+        is_selected = False
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run is not None:
+            is_selected = (
+                run.get_currently_selected_configuration() 
+                == self.id_per_file[old_filename])
+        self.deregister_file_run_metadata(old_filename)
+        self.register_file_run_metadata(new_filename)
+        
+        if is_selected:
+            run.switch_focused_run_configuration(
+                self.id_per_file[new_filename])
+        
 
     @Slot(dict)
     def report_open_file(self, options):
@@ -2671,9 +2687,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         filename = osp.abspath(to_text_string(source))
         index = self.get_filename_index(filename)
         if index is not None or editorstack_id_str is not None:
-            self.deregister_file_run_metadata(filename)
-            self.register_file_run_metadata(dest)
-                
+            self.change_register_file_run_metadata(filename, dest)
+
             for editorstack in self.editorstacks:
                 if (
                     editorstack_id_str is None or

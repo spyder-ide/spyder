@@ -259,8 +259,6 @@ class RunConfigurationListModel(QAbstractListModel):
         self.run_configurations[uuid] = metadata
         self.metadata_index[len(self.metadata_index)] = uuid
         self.inverted_index[uuid] = len(self.inverted_index)
-        if self.current_configuration is None:
-            self.current_configuration = uuid
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
 
