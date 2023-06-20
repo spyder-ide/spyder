@@ -520,7 +520,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if run is not None:
             is_selected = (
                 run.get_currently_selected_configuration() 
-                == self.id_per_file[old_filename])
+                == self.id_per_file.get(old_filename, None)
+            )
         self.deregister_file_run_metadata(old_filename)
         self.register_file_run_metadata(new_filename)
         
