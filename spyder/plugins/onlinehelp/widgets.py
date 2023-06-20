@@ -9,7 +9,6 @@ PyDoc widget.
 """
 
 # Standard library imports
-import os
 import os.path as osp
 import pydoc
 import sys
@@ -23,7 +22,6 @@ from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import is_pynsist
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
 from spyder.widgets.browser import FrameWebView, WebViewActions
 from spyder.widgets.comboboxes import UrlComboBox
@@ -68,11 +66,6 @@ try:
     pydoc.safeimport = spyder_safeimport
 except Exception:
     pass
-
-# Needed to prevent showing a warning message regarding debugging
-# See spyder-ide/spyder#20390
-if is_pynsist():
-    os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
 
 
 class PydocServer(QThread):

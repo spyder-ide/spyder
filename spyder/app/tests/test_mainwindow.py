@@ -1259,7 +1259,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects._create_project(project_dir)
+        projects.create_project(project_dir)
 
     # Select notebook in the project explorer
     idx = projects.get_widget().treewidget.get_index(
@@ -1314,7 +1314,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects._create_project(project_dir)
+        projects.create_project(project_dir)
 
     # Select file in the project explorer
     idx = projects.get_widget().treewidget.get_index(
@@ -2392,7 +2392,8 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
-    switcher = main_window.switcher.get_container().switcher
+    switcher = main_window.switcher
+    switcher_widget = switcher._switcher
 
     # Assert that the full path of a file is shown in the switcher
     file_a = tmpdir.join('test_file_a.py')
@@ -2405,11 +2406,11 @@ def example_def_2():
 ''')
     main_window.editor.load(str(file_a))
 
-    main_window.switcher.get_container().open_switcher()
-    switcher_paths = [switcher.model.item(item_idx).get_description()
-                      for item_idx in range(switcher.model.rowCount())]
+    switcher.open_switcher()
+    switcher_paths = [switcher_widget.model.item(item_idx).get_description()
+                      for item_idx in range(switcher_widget.model.rowCount())]
     assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 75
-    switcher.close()
+    switcher.on_close()
 
     # Assert that long paths are shortened in the switcher
     dir_b = tmpdir
@@ -2419,21 +2420,21 @@ def example_def_2():
     file_b.write('bar\n')
     main_window.editor.load(str(file_b))
 
-    main_window.switcher.get_container().open_switcher()
-    file_b_text = switcher.model.item(
-        switcher.model.rowCount() - 1).get_description()
+    switcher.open_switcher()
+    file_b_text = switcher_widget.model.item(
+        switcher_widget.model.rowCount() - 1).get_description()
     assert '...' in file_b_text
-    switcher.close()
+    switcher.on_close()
 
     # Assert search works correctly
     search_texts = ['test_file_a', 'file_b', 'foo_spam']
     expected_paths = [file_a, file_b, None]
     for search_text, expected_path in zip(search_texts, expected_paths):
-        main_window.switcher.get_container().open_switcher()
-        qtbot.keyClicks(switcher.edit, search_text)
+        switcher.open_switcher()
+        qtbot.keyClicks(switcher_widget.edit, search_text)
         qtbot.wait(200)
-        assert switcher.count() == bool(expected_path)
-        switcher.close()
+        assert switcher_widget.count() == bool(expected_path)
+        switcher.on_close()
 
     # Assert symbol switcher works
     main_window.editor.set_current_filename(str(file_a))
@@ -2449,15 +2450,15 @@ def example_def_2():
 
     qtbot.wait(9000)
 
-    main_window.switcher.get_container().open_switcher()
-    qtbot.keyClicks(switcher.edit, '@')
+    switcher.open_switcher()
+    qtbot.keyClicks(switcher_widget.edit, '@')
     qtbot.wait(200)
-    assert switcher.count() == 2
-    switcher.close()
+    assert switcher_widget.count() == 2
+    switcher.on_close()
 
 
 @flaky(max_runs=3)
-def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
+def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
     """
     Test that the file switcher is working as expected when called from the
     editorstack.
@@ -2472,16 +2473,15 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
     # Add a file to the editor.
     file = tmpdir.join('test_file_open_switcher_dlg.py')
-    file.write("a test file for test_edidorstack_open_switcher_dlg")
+    file.write("a test file for test_editorstack_open_switcher_dlg")
     main_window.editor.load(str(file))
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_dlg is None
-    editorstack.open_switcher_dlg()
-    assert editorstack.switcher_dlg
-    assert editorstack.switcher_dlg.isVisible()
-    assert (editorstack.switcher_dlg.count() ==
+    editorstack.switcher_plugin.open_switcher()
+    assert editorstack.switcher_plugin
+    assert editorstack.switcher_plugin.is_visible()
+    assert (editorstack.switcher_plugin.count() ==
             len(main_window.editor.get_filenames()))
 
 
@@ -2527,11 +2527,10 @@ def example_def_2():
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_dlg is None
-    editorstack.open_symbolfinder_dlg()
-    assert editorstack.switcher_dlg
-    assert editorstack.switcher_dlg.isVisible()
-    assert editorstack.switcher_dlg.count() == 2
+    editorstack.switcher_plugin.open_symbolfinder()
+    assert editorstack.switcher_plugin
+    assert editorstack.switcher_plugin.is_visible()
+    assert editorstack.switcher_plugin.count() == 2
 
 
 @flaky(max_runs=3)

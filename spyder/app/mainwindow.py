@@ -73,7 +73,7 @@ from spyder.app.utils import (
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
-                                get_home_dir, is_pynsist, running_in_mac_app,
+                                get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
@@ -851,6 +851,12 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if self.splash is not None:
             self.splash.hide()
 
+        # To avoid regressions. We shouldn't have loaded the modules below at
+        # this point.
+        if DEV is not None:
+            assert 'pandas' not in sys.modules
+            assert 'matplotlib' not in sys.modules
+
         # Call on_mainwindow_visible for all plugins, except Layout because it
         # needs to be called first (see above).
         for plugin_name in PLUGIN_REGISTRY:
@@ -890,12 +896,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
-
-        # To avoid regressions. We shouldn't have loaded the modules
-        # below at this point.
-        if DEV is not None:
-            assert 'pandas' not in sys.modules
-            assert 'matplotlib' not in sys.modules
 
         # Restore undocked plugins
         self.restore_undocked_plugins()
@@ -945,7 +945,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             title = u"Spyder %s (Python %s.%s)" % (__version__,
                                                    sys.version_info[0],
                                                    sys.version_info[1])
-        elif running_in_mac_app() or is_pynsist():
+        elif is_conda_based_app():
             title = "Spyder"
         else:
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
@@ -1053,66 +1053,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def free_memory(self):
         """Free memory after event."""
         gc.collect()
-
-    def show_shortcuts(self, menu):
-        """Show action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(action._shown_shortcut)
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.show_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_shortcuts(self, menu):
-        """Hide action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(QKeySequence())
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.hide_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_options_menus(self):
-        """Hide options menu when menubar is pressed in macOS."""
-        for plugin in self.widgetlist + self.thirdparty_plugins:
-            if plugin.CONF_SECTION == 'editor':
-                editorstack = self.editor.get_current_editorstack()
-                editorstack.menu.hide()
-            else:
-                try:
-                    # New API
-                    plugin.options_menu.hide()
-                except AttributeError:
-                    # Old API
-                    plugin._options_menu.hide()
-
-    def get_focus_widget_properties(self):
-        """Get properties of focus widget
-        Returns tuple (widget, properties) where properties is a tuple of
-        booleans: (is_console, not_readonly, readwrite_editor)"""
-        from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-        from spyder.plugins.ipythonconsole.widgets import ControlWidget
-        widget = QApplication.focusWidget()
-
-        textedit_properties = None
-        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
-            console = isinstance(widget, ControlWidget)
-            not_readonly = not widget.isReadOnly()
-            readwrite_editor = not_readonly and not console
-            textedit_properties = (console, not_readonly, readwrite_editor)
-        return widget, textedit_properties
 
     def set_splash(self, message):
         """Set splash message"""

@@ -28,7 +28,8 @@ import psutil
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, is_pynsist, running_under_pytest)
+    DEV, get_conf_path, get_debug_level, is_conda_based_app,
+    running_under_pytest)
 from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
@@ -280,7 +281,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 # that directory.
                 # Fixes spyder-ide/spyder#17661
                 if (
-                    not (is_anaconda() or is_pynsist())
+                    not (is_anaconda() or is_conda_based_app())
                     and "APPDATA" in os.environ
                 ):
                     env.insert("APPDATA", os.environ["APPDATA"])

@@ -19,23 +19,19 @@ Editor widget based on QtGui.QPlainTextEdit
 # Standard library imports
 from unicodedata import category
 import logging
-import functools
 import os
 import os.path as osp
-import random
 import re
 import sre_constants
 import sys
 import textwrap
 
 # Third party imports
-from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
 from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (QEvent, QEventLoop, QRegExp, Qt, QTimer, QThread,
-                         QUrl, Signal, Slot)
+from qtpy.QtCore import QEvent, QRegExp, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
@@ -43,13 +39,11 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
 from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
                             QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
-from three_merge import merge
 
 
 # Local imports
 from spyder.api.panel import Panel
-from spyder.config.base import _, get_debug_level, running_under_pytest
-from spyder.config.manager import CONF
+from spyder.config.base import _, running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
@@ -57,9 +51,7 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.api import (CompletionRequestTypes,
-                                           TextDocumentSyncKind,
-                                           DiagnosticSeverity)
+from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.editor.panels import (
     ClassFunctionDropdown, EdgeLine, FoldingPanel, IndentationGuide,
     LineNumberArea, PanelsManager, ScrollFlagArea)
@@ -67,12 +59,9 @@ from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 get_file_language)
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.editor.panels.utils import (
-    merge_folding, collect_folding_regions)
-from spyder.plugins.completion.decorators import (
-    request, handles, class_register)
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
+from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.py3compat import to_text_string, is_string
@@ -96,31 +85,10 @@ except Exception:
 logger = logging.getLogger(__name__)
 
 
-# Regexp to detect noqa inline comments.
-NOQA_INLINE_REGEXP = re.compile(r"#?noqa", re.IGNORECASE)
-
-
-def schedule_request(req=None, method=None, requires_response=True):
-    """Call function req and then emit its results to the completion server."""
-    if req is None:
-        return functools.partial(schedule_request, method=method,
-                                 requires_response=requires_response)
-
-    @functools.wraps(req)
-    def wrapper(self, *args, **kwargs):
-        params = req(self, *args, **kwargs)
-        if params is not None and self.completions_available:
-            self._pending_server_requests.append(
-                (method, params, requires_response))
-            self._server_requests_timer.setInterval(
-                self.LSP_REQUESTS_SHORT_DELAY)
-            self._server_requests_timer.start()
-    return wrapper
-
-
-@class_register
-class CodeEditor(TextEditBaseWidget):
+class CodeEditor(LSPMixin, TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
+
+    CONF_SECTION = 'editor'
 
     LANGUAGES = {
         'Python': (sh.PythonSH, '#'),
@@ -150,20 +118,6 @@ class CodeEditor(TextEditBaseWidget):
     # changed is detected in the vertical scrollbar or when releasing
     # the up/down arrow keys.
     UPDATE_DECORATIONS_TIMEOUT = 500  # milliseconds
-
-    # Timeouts (in milliseconds) to sychronize symbols and folding after
-    # linting results arrive, according to the number of lines in the file.
-    SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS = {
-        # Lines: Timeout
-        500: 600,
-        1500: 800,
-        2500: 1000,
-        6500: 1500
-    }
-
-    # Timeout (in milliseconds) to send pending requests to LSP server
-    LSP_REQUESTS_SHORT_DELAY = 50
-    LSP_REQUESTS_LONG_DELAY = 300
 
     # Custom signal to be emitted upon completion of the editor's paintEvent
     painted = Signal(QPaintEvent)
@@ -209,25 +163,6 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
 
-    # -- LSP signals
-    #: Signal emitted when an LSP request is sent to the LSP manager
-    sig_perform_completion_request = Signal(str, str, dict)
-
-    #: Signal emitted when a response is received from the completion plugin
-    # For now it's only used on tests, but it could be used to track
-    # and profile completion diagnostics.
-    completions_response_signal = Signal(str, object)
-
-    #: Signal to display object information on the Help plugin
-    sig_display_object_info = Signal(str, bool)
-
-    #: Signal only used for tests
-    # TODO: Remove it!
-    sig_signature_invoked = Signal(dict)
-
-    #: Signal emitted when processing code analysis warnings is finished
-    sig_process_code_analysis = Signal()
-
     # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
     # a URI is found, this signal is emitted
     sig_uri_found = Signal(str)
@@ -267,12 +202,6 @@ class CodeEditor(TextEditBaseWidget):
     # Used to indicate that an undo operation will take place
     sig_redo = Signal()
 
-    # Used to start the status spinner in the editor
-    sig_start_operation_in_progress = Signal()
-
-    # Used to start the status spinner in the editor
-    sig_stop_operation_in_progress = Signal()
-
     # Used to signal font change
     sig_font_changed = Signal()
 
@@ -280,7 +209,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_save_requested = Signal()
 
     def __init__(self, parent=None):
-        TextEditBaseWidget.__init__(self, parent)
+        super().__init__(parent=parent)
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -288,7 +217,7 @@ class CodeEditor(TextEditBaseWidget):
         self.current_project_path = None
 
         # Caret (text cursor)
-        self.setCursorWidth(CONF.get('main', 'cursor/width'))
+        self.setCursorWidth(self.get_conf('cursor/width', section='main'))
 
         self.text_helper = TextHelper(self)
 
@@ -320,14 +249,6 @@ class CodeEditor(TextEditBaseWidget):
             self._set_completions_hint_idle)
         self.completion_widget.sig_completion_hint.connect(
             self.show_hint_for_completion)
-
-        # Request symbols and folding after a timeout.
-        # See: process_diagnostics
-        # Connecting the timeout signal is performed in document_did_open()
-        self._timer_sync_symbols_and_folding = QTimer(self)
-        self._timer_sync_symbols_and_folding.setSingleShot(True)
-        self.blockCountChanged.connect(
-            self.set_sync_symbols_and_folding_timeout)
 
         # Goto uri
         self._last_hover_pattern_key = None
@@ -456,14 +377,8 @@ class CodeEditor(TextEditBaseWidget):
         self.verticalScrollBar().valueChanged.connect(
             lambda value: self.update_decorations_timer.start())
 
-        # LSP
+        # QTextEdit + LSPMixin
         self.textChanged.connect(self._schedule_document_did_change)
-        self._pending_server_requests = []
-        self._server_requests_timer = QTimer(self)
-        self._server_requests_timer.setSingleShot(True)
-        self._server_requests_timer.setInterval(self.LSP_REQUESTS_SHORT_DELAY)
-        self._server_requests_timer.timeout.connect(
-            self._process_server_requests)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -487,11 +402,6 @@ class CodeEditor(TextEditBaseWidget):
         self.automatic_completions = True
         self.automatic_completions_after_chars = 3
 
-        # Code Folding
-        self.code_folding = True
-        self.update_folding_thread = QThread(None)
-        self.update_folding_thread.finished.connect(self.finish_code_folding)
-
         # Completions hint
         self.completions_hint = True
         self.completions_hint_after_ms = 500
@@ -500,12 +410,6 @@ class CodeEditor(TextEditBaseWidget):
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
-
-        # Autoformat on save
-        self.format_on_save = False
-        self.format_eventloop = QEventLoop(None)
-        self.format_timer = QTimer(self)
-        self.__line_number_before_format = 0
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -523,9 +427,6 @@ class CodeEditor(TextEditBaseWidget):
         self.__visible_blocks = []  # Visible blocks, update with repaint
         self.painted.connect(self._draw_editor_cell_divider)
 
-        # Outline explorer
-        self.oe_proxy = None
-
         # Line stripping
         self.last_change_position = None
         self.last_position = None
@@ -536,53 +437,11 @@ class CodeEditor(TextEditBaseWidget):
         # Hover hints
         self.hover_hints_enabled = None
 
-        # Language Server
-        self.filename = None
-        self.completions_available = False
-        self.text_version = 0
-        self.save_include_text = True
-        self.open_close_notifications = True
-        self.sync_mode = TextDocumentSyncKind.FULL
-        self.will_save_notify = False
-        self.will_save_until_notify = False
-        self.enable_hover = True
-        self.auto_completion_characters = []
-        self.resolve_completions_enabled = False
-        self.signature_completion_characters = []
-        self.go_to_definition_enabled = False
-        self.find_references_enabled = False
-        self.highlight_enabled = False
-        self.formatting_enabled = False
-        self.range_formatting_enabled = False
-        self.document_symbols_enabled = False
-        self.formatting_characters = []
-        self.completion_args = None
-        self.folding_supported = False
-        self._folding_info = None
-        self.is_cloned = False
-        self.operation_in_progress = False
-        self.formatting_in_progress = False
-        self.symbols_in_sync = False
-        self.folding_in_sync = False
-
-        # Diagnostics
-        self.update_diagnostics_thread = QThread(None)
-        self.update_diagnostics_thread.run = self.set_errors
-        self.update_diagnostics_thread.finished.connect(
-            self.finish_code_analysis)
-        self._diagnostics = []
-
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(SnippetsExtension())
         self.editor_extensions.add(CloseBracketsExtension())
-
-        # Text diffs across versions
-        self.differ = diff_match_patch()
-        self.previous_text = ''
-        self.patch = []
-        self.leading_whitespaces = {}
 
         # Some events should not be triggered during undo/redo
         # such as line stripping
@@ -593,23 +452,6 @@ class CodeEditor(TextEditBaseWidget):
         self._rehighlight_timer = QTimer(self)
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
-
-    # ---- Helper private methods
-    # -------------------------------------------------------------------------
-    def _process_server_requests(self):
-        """Process server requests."""
-        # Check if the document needs to be updated
-        if self._document_server_needs_update:
-            self.document_did_change()
-            self.do_automatic_completions()
-            self._document_server_needs_update = False
-
-        # Send pending requests
-        for method, params, requires_response in self._pending_server_requests:
-            self.emit_request(method, params, requires_response)
-
-        # Clear pending requests
-        self._pending_server_requests = []
 
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
@@ -699,6 +541,7 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'go to definition', self.go_to_definition_from_cursor),
             ('editor', 'toggle comment', self.toggle_comment),
             ('editor', 'blockcomment', self.blockcomment),
+            ('editor', 'create_new_cell', self.create_new_cell),
             ('editor', 'unblockcomment', self.unblockcomment),
             ('editor', 'transform to uppercase', self.transform_to_uppercase),
             ('editor', 'transform to lowercase', self.transform_to_lowercase),
@@ -742,7 +585,7 @@ class CodeEditor(TextEditBaseWidget):
         shortcuts = []
         for context, name, callback in shortcut_context_name_callbacks:
             shortcuts.append(
-                CONF.config_shortcut(
+                self.config_shortcut(
                     callback, context=context, name=name, parent=self))
         return shortcuts
 
@@ -1033,1100 +876,6 @@ class CodeEditor(TextEditBaseWidget):
                                           and self.is_python_like())
 
         self.set_strip_mode(strip_mode)
-
-    # ---- LSP: Basic methods
-    # -------------------------------------------------------------------------
-    @Slot(str, dict)
-    def handle_response(self, method, params):
-        if method in self.handler_registry:
-            handler_name = self.handler_registry[method]
-            handler = getattr(self, handler_name)
-            handler(params)
-            # This signal is only used on tests.
-            # It could be used to track and profile LSP diagnostics.
-            self.completions_response_signal.emit(method, params)
-
-    def emit_request(self, method, params, requires_response):
-        """Send request to LSP manager."""
-        params['requires_response'] = requires_response
-        params['response_instance'] = self
-        self.sig_perform_completion_request.emit(
-            self.language.lower(), method, params)
-
-    def log_lsp_handle_errors(self, message):
-        """
-        Log errors when handling LSP responses.
-
-        This works when debugging is on or off.
-        """
-        if get_debug_level() > 0:
-            # We log the error normally when running on debug mode.
-            logger.error(message, exc_info=True)
-        else:
-            # We need this because logger.error activates our error
-            # report dialog but it doesn't show the entire traceback
-            # there. So we intentionally leave an error in this call
-            # to get the entire stack info generated by it, which
-            # gives the info we need from users.
-            logger.error('%', 1, stack_info=True)
-
-    # ---- LSP: Configuration and start/stop
-    # -------------------------------------------------------------------------
-    def start_completion_services(self):
-        """Start completion services for this instance."""
-        self.completions_available = True
-
-        if self.is_cloned:
-            additional_msg = "cloned editor"
-        else:
-            additional_msg = ""
-            self.document_did_open()
-
-        logger.debug(u"Completion services available for {0}: {1}".format(
-            additional_msg, self.filename))
-
-    def register_completion_capabilities(self, capabilities):
-        """
-        Register completion server capabilities.
-
-        Parameters
-        ----------
-        capabilities: dict
-            Capabilities supported by a language server.
-        """
-        sync_options = capabilities['textDocumentSync']
-        completion_options = capabilities['completionProvider']
-        signature_options = capabilities['signatureHelpProvider']
-        range_formatting_options = (
-            capabilities['documentOnTypeFormattingProvider'])
-        self.open_close_notifications = sync_options.get('openClose', False)
-        self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
-        self.will_save_notify = sync_options.get('willSave', False)
-        self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
-                                                       False)
-        self.save_include_text = sync_options['save']['includeText']
-        self.enable_hover = capabilities['hoverProvider']
-        self.folding_supported = capabilities.get(
-            'foldingRangeProvider', False)
-        self.auto_completion_characters = (
-            completion_options['triggerCharacters'])
-        self.resolve_completions_enabled = (
-            completion_options.get('resolveProvider', False))
-        self.signature_completion_characters = (
-            signature_options['triggerCharacters'] + ['='])  # FIXME:
-        self.go_to_definition_enabled = capabilities['definitionProvider']
-        self.find_references_enabled = capabilities['referencesProvider']
-        self.highlight_enabled = capabilities['documentHighlightProvider']
-        self.formatting_enabled = capabilities['documentFormattingProvider']
-        self.range_formatting_enabled = (
-            capabilities['documentRangeFormattingProvider'])
-        self.document_symbols_enabled = (
-            capabilities['documentSymbolProvider']
-        )
-        self.formatting_characters.append(
-            range_formatting_options['firstTriggerCharacter'])
-        self.formatting_characters += (
-            range_formatting_options.get('moreTriggerCharacter', []))
-
-        if self.formatting_enabled:
-            self.format_action.setEnabled(True)
-            self.sig_refresh_formatting.emit(True)
-
-        self.completions_available = True
-
-    def stop_completion_services(self):
-        logger.debug('Stopping completion services for %s' % self.filename)
-        self.completions_available = False
-
-    @request(method=CompletionRequestTypes.DOCUMENT_DID_OPEN,
-             requires_response=False)
-    def document_did_open(self):
-        """Send textDocument/didOpen request to the server."""
-
-        # We need to be sure that this signal is disconnected before trying to
-        # connect it below.
-        # Note: It can already be connected when the user requires a server
-        # restart or when the server failed to start.
-        # Fixes spyder-ide/spyder#20679
-        try:
-            self._timer_sync_symbols_and_folding.timeout.disconnect()
-        except (TypeError, RuntimeError):
-            pass
-
-        # The connect is performed here instead of in __init__() because
-        # notify_close() may have been called (which disconnects the signal).
-        # Qt.UniqueConnection is used to avoid duplicate signal-slot
-        # connections (just in case).
-        #
-        # Note: PyQt5 throws if the signal is not unique (= already connected).
-        # It is an error if this happens because as per LSP specification
-        # `didOpen` “must not be sent more than once without a corresponding
-        # close notification send before”.
-        self._timer_sync_symbols_and_folding.timeout.connect(
-            self.sync_symbols_and_folding, Qt.UniqueConnection)
-
-        cursor = self.textCursor()
-        text = self.get_text_with_eol()
-        if self.is_ipython():
-            # Send valid python text to LSP as it doesn't support IPython
-            text = self.ipython_to_python(text)
-        params = {
-            'file': self.filename,
-            'language': self.language,
-            'version': self.text_version,
-            'text': text,
-            'codeeditor': self,
-            'offset': cursor.position(),
-            'selection_start': cursor.selectionStart(),
-            'selection_end': cursor.selectionEnd(),
-        }
-        return params
-
-    # ---- LSP: Symbols
-    # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_SYMBOL)
-    def request_symbols(self):
-        """Request document symbols."""
-        if not self.document_symbols_enabled:
-            return
-        if self.oe_proxy is not None:
-            self.oe_proxy.emit_request_in_progress()
-        params = {'file': self.filename}
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_SYMBOL)
-    def process_symbols(self, params):
-        """Handle symbols response."""
-        try:
-            symbols = params['params']
-            symbols = [] if symbols is None else symbols
-
-            if self.classfuncdropdown.isVisible():
-                self.classfuncdropdown.update_data(symbols)
-            else:
-                self.classfuncdropdown.set_data(symbols)
-
-            if self.oe_proxy is not None:
-                self.oe_proxy.update_outline_info(symbols)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing symbols")
-        finally:
-            self.symbols_in_sync = True
-
-    # ---- LSP: Linting and didChange
-    # -------------------------------------------------------------------------
-    def _schedule_document_did_change(self):
-        """Schedule a document update."""
-        self._document_server_needs_update = True
-        self._server_requests_timer.setInterval(self.LSP_REQUESTS_LONG_DELAY)
-        self._server_requests_timer.start()
-
-    @request(
-        method=CompletionRequestTypes.DOCUMENT_DID_CHANGE,
-        requires_response=False)
-    def document_did_change(self):
-        """Send textDocument/didChange request to the server."""
-        # Cancel formatting
-        self.formatting_in_progress = False
-        self.symbols_in_sync = False
-        self.folding_in_sync = False
-
-        # Don't send request for cloned editors because it's not necessary.
-        # The original file should send the request.
-        if self.is_cloned:
-            return
-
-        # Get text
-        text = self.get_text_with_eol()
-        if self.is_ipython():
-            # Send valid python text to LSP
-            text = self.ipython_to_python(text)
-
-        self.text_version += 1
-
-        self.patch = self.differ.patch_make(self.previous_text, text)
-        self.previous_text = text
-        cursor = self.textCursor()
-        params = {
-            'file': self.filename,
-            'version': self.text_version,
-            'text': text,
-            'diff': self.patch,
-            'offset': cursor.position(),
-            'selection_start': cursor.selectionStart(),
-            'selection_end': cursor.selectionEnd(),
-        }
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
-    def process_diagnostics(self, params):
-        """Handle linting response."""
-        # The LSP spec doesn't require that folding and symbols
-        # are treated in the same way as linting, i.e. to be
-        # recomputed on didChange, didOpen and didSave. However,
-        # we think that's necessary to maintain accurate folding
-        # and symbols all the time. Therefore, we decided to call
-        # those requests here, but after a certain timeout to
-        # avoid performance issues.
-        self._timer_sync_symbols_and_folding.start()
-
-        # Process results (runs in a thread)
-        self.process_code_analysis(params['params'])
-
-    def set_sync_symbols_and_folding_timeout(self):
-        """
-        Set timeout to sync symbols and folding according to the file
-        size.
-        """
-        current_lines = self.get_line_count()
-        timeout = None
-
-        for lines in self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS.keys():
-            if (current_lines // lines) == 0:
-                timeout = self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS[lines]
-                break
-
-        if not timeout:
-            timeouts = self.SYNC_SYMBOLS_AND_FOLDING_TIMEOUTS.values()
-            timeout = list(timeouts)[-1]
-
-        # Add a random number so that several files are not synced at the same
-        # time.
-        self._timer_sync_symbols_and_folding.setInterval(
-            timeout + random.randint(-100, 100))
-
-    def sync_symbols_and_folding(self):
-        """
-        Synchronize symbols and folding after linting results arrive.
-        """
-        if not self.folding_in_sync:
-            self.request_folding()
-        if not self.symbols_in_sync:
-            self.request_symbols()
-
-    def process_code_analysis(self, diagnostics):
-        """Process code analysis results in a thread."""
-        self.cleanup_code_analysis()
-        self._diagnostics = diagnostics
-
-        # Process diagnostics in a thread to improve performance.
-        self.update_diagnostics_thread.start()
-
-    def cleanup_code_analysis(self):
-        """Remove all code analysis markers"""
-        self.setUpdatesEnabled(False)
-        self.clear_extra_selections('code_analysis_highlight')
-        self.clear_extra_selections('code_analysis_underline')
-        for data in self.blockuserdata_list():
-            data.code_analysis = []
-
-        self.setUpdatesEnabled(True)
-        # When the new code analysis results are empty, it is necessary
-        # to update manually the scrollflag and linenumber areas (otherwise,
-        # the old flags will still be displayed):
-        self.sig_flags_changed.emit()
-        self.linenumberarea.update()
-
-    def set_errors(self):
-        """Set errors and warnings in the line number area."""
-        try:
-            self._process_code_analysis(underline=False)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing linting")
-
-    def underline_errors(self):
-        """Underline errors and warnings."""
-        try:
-            # Clear current selections before painting the new ones.
-            # This prevents accumulating them when moving around in or editing
-            # the file, which generated a memory leakage and sluggishness
-            # after some time.
-            self.clear_extra_selections('code_analysis_underline')
-            self._process_code_analysis(underline=True)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing linting")
-
-    def finish_code_analysis(self):
-        """Finish processing code analysis results."""
-        self.linenumberarea.update()
-        if self.underline_errors_enabled:
-            self.underline_errors()
-        self.sig_process_code_analysis.emit()
-        self.sig_flags_changed.emit()
-
-    def errors_present(self):
-        """
-        Return True if there are errors or warnings present in the file.
-        """
-        return bool(len(self._diagnostics))
-
-    def _process_code_analysis(self, underline):
-        """
-        Process all code analysis results.
-
-        Parameters
-        ----------
-        underline: bool
-            Determines if errors and warnings are going to be set in
-            the line number area or underlined. It's better to separate
-            these two processes for perfomance reasons. That's because
-            setting errors can be done in a thread whereas underlining
-            them can't.
-        """
-        document = self.document()
-        if underline:
-            first_block, last_block = self.get_buffer_block_numbers()
-
-        for diagnostic in self._diagnostics:
-            if self.is_ipython() and (
-                    diagnostic["message"] == "undefined name 'get_ipython'"):
-                # get_ipython is defined in IPython files
-                continue
-            source = diagnostic.get('source', '')
-            msg_range = diagnostic['range']
-            start = msg_range['start']
-            end = msg_range['end']
-            code = diagnostic.get('code', 'E')
-            message = diagnostic['message']
-            severity = diagnostic.get(
-                'severity', DiagnosticSeverity.ERROR)
-
-            block = document.findBlockByNumber(start['line'])
-            text = block.text()
-
-            # Skip messages according to certain criteria.
-            # This one works for any programming language
-            if 'analysis:ignore' in text:
-                continue
-
-            # This only works for Python.
-            if self.language == 'Python':
-                if NOQA_INLINE_REGEXP.search(text) is not None:
-                    continue
-
-            data = block.userData()
-            if not data:
-                data = BlockUserData(self)
-
-            if underline:
-                block_nb = block.blockNumber()
-                if first_block <= block_nb <= last_block:
-                    error = severity == DiagnosticSeverity.ERROR
-                    color = self.error_color if error else self.warning_color
-                    color = QColor(color)
-                    color.setAlpha(255)
-                    block.color = color
-
-                    data.selection_start = start
-                    data.selection_end = end
-
-                    self.highlight_selection('code_analysis_underline',
-                                             data._selection(),
-                                             underline_color=block.color)
-            else:
-                # Don't append messages to data for cloned editors to avoid
-                # showing them twice or more times on hover.
-                # Fixes spyder-ide/spyder#15618
-                if not self.is_cloned:
-                    data.code_analysis.append(
-                        (source, code, severity, message)
-                    )
-                block.setUserData(data)
-
-    # ---- LSP: Completion
-    # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
-    def do_completion(self, automatic=False):
-        """Trigger completion."""
-        cursor = self.textCursor()
-        current_word = self.get_current_word(
-            completion=True,
-            valid_python_variable=False
-        )
-
-        params = {
-            'file': self.filename,
-            'line': cursor.blockNumber(),
-            'column': cursor.columnNumber(),
-            'offset': cursor.position(),
-            'selection_start': cursor.selectionStart(),
-            'selection_end': cursor.selectionEnd(),
-            'current_word': current_word
-        }
-        self.completion_args = (self.textCursor().position(), automatic)
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_COMPLETION)
-    def process_completion(self, params):
-        """Handle completion response."""
-        args = self.completion_args
-        if args is None:
-            # This should not happen
-            return
-        self.completion_args = None
-        position, automatic = args
-
-        start_cursor = self.textCursor()
-        start_cursor.movePosition(QTextCursor.StartOfBlock)
-        line_text = self.get_text(start_cursor.position(), 'eol')
-        leading_whitespace = self.compute_whitespace(line_text)
-        indentation_whitespace = ' ' * leading_whitespace
-        eol_char = self.get_line_separator()
-
-        try:
-            completions = params['params']
-            completions = (
-                [] if completions is None else
-                [completion for completion in completions
-                 if completion.get('insertText')
-                 or completion.get('textEdit', {}).get('newText')]
-            )
-            prefix = self.get_current_word(
-                completion=True, valid_python_variable=False)
-
-            if (
-                len(completions) == 1 and
-                completions[0].get('insertText') == prefix and
-                not completions[0].get('textEdit', {}).get('newText')
-            ):
-                completions.pop()
-
-            replace_end = self.textCursor().position()
-            under_cursor = self.get_current_word_and_position(completion=True)
-            if under_cursor:
-                word, replace_start = under_cursor
-            else:
-                word = ''
-                replace_start = replace_end
-            first_letter = ''
-            if len(word) > 0:
-                first_letter = word[0]
-
-            def sort_key(completion):
-                if 'textEdit' in completion:
-                    text_insertion = completion['textEdit']['newText']
-                else:
-                    text_insertion = completion['insertText']
-
-                first_insert_letter = text_insertion[0]
-                case_mismatch = (
-                    (first_letter.isupper() and first_insert_letter.islower())
-                    or
-                    (first_letter.islower() and first_insert_letter.isupper())
-                )
-
-                # False < True, so case matches go first
-                return (case_mismatch, completion['sortText'])
-
-            completion_list = sorted(completions, key=sort_key)
-
-            # Allow for textEdit completions to be filtered by Spyder
-            # if on-the-fly completions are disabled, only if the
-            # textEdit range matches the word under the cursor.
-            for completion in completion_list:
-                if 'textEdit' in completion:
-                    c_replace_start = completion['textEdit']['range']['start']
-                    c_replace_end = completion['textEdit']['range']['end']
-
-                    if (
-                        c_replace_start == replace_start and
-                        c_replace_end == replace_end
-                    ):
-                        insert_text = completion['textEdit']['newText']
-                        completion['filterText'] = insert_text
-                        completion['insertText'] = insert_text
-                        del completion['textEdit']
-
-                if 'insertText' in completion:
-                    insert_text = completion['insertText']
-                    insert_text_lines = insert_text.splitlines()
-                    reindented_text = [insert_text_lines[0]]
-                    for insert_line in insert_text_lines[1:]:
-                        insert_line = indentation_whitespace + insert_line
-                        reindented_text.append(insert_line)
-                    reindented_text = eol_char.join(reindented_text)
-                    completion['insertText'] = reindented_text
-
-            self.completion_widget.show_list(
-                completion_list, position, automatic)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors('Error when processing completions')
-
-    @schedule_request(method=CompletionRequestTypes.COMPLETION_RESOLVE)
-    def resolve_completion_item(self, item):
-        return {
-            'file': self.filename,
-            'completion_item': item
-        }
-
-    @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
-    def handle_completion_item_resolution(self, response):
-        try:
-            response = response['params']
-
-            if not response:
-                return
-
-            self.completion_widget.augment_completion_info(response)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors(
-                "Error when handling completion item resolution")
-
-    # ---- LSP: Signature Hints
-    # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
-    def request_signature(self):
-        """Ask for signature."""
-        line, column = self.get_cursor_line_column()
-        offset = self.get_position('cursor')
-        params = {
-            'file': self.filename,
-            'line': line,
-            'column': column,
-            'offset': offset
-        }
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
-    def process_signatures(self, params):
-        """Handle signature response."""
-        try:
-            signature_params = params['params']
-
-            if (signature_params is not None and
-                    'activeParameter' in signature_params):
-                self.sig_signature_invoked.emit(signature_params)
-                signature_data = signature_params['signatures']
-                documentation = signature_data['documentation']
-
-                if isinstance(documentation, dict):
-                    documentation = documentation['value']
-
-                # The language server returns encoded text with
-                # spaces defined as `\xa0`
-                documentation = documentation.replace(u'\xa0', ' ')
-
-                parameter_idx = signature_params['activeParameter']
-                parameters = signature_data['parameters']
-                parameter = None
-                if len(parameters) > 0 and parameter_idx < len(parameters):
-                    parameter_data = parameters[parameter_idx]
-                    parameter = parameter_data['label']
-
-                signature = signature_data['label']
-
-                # This method is part of spyder/widgets/mixins
-                self.show_calltip(
-                    signature=signature,
-                    parameter=parameter,
-                    language=self.language,
-                    documentation=documentation,
-                )
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing signature")
-
-    # ---- LSP: Hover/Cursor
-    # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
-    def request_cursor_event(self):
-        text = self.get_text_with_eol()
-        cursor = self.textCursor()
-        params = {
-            'file': self.filename,
-            'version': self.text_version,
-            'text': text,
-            'offset': cursor.position(),
-            'selection_start': cursor.selectionStart(),
-            'selection_end': cursor.selectionEnd(),
-        }
-        return params
-
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_HOVER)
-    def request_hover(self, line, col, offset, show_hint=True, clicked=True):
-        """Request hover information."""
-        params = {
-            'file': self.filename,
-            'line': line,
-            'column': col,
-            'offset': offset
-        }
-        self._show_hint = show_hint
-        self._request_hover_clicked = clicked
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_HOVER)
-    def handle_hover_response(self, contents):
-        """Handle hover response."""
-        if running_under_pytest():
-            from unittest.mock import Mock
-
-            # On some tests this is returning a Mock
-            if isinstance(contents, Mock):
-                return
-
-        try:
-            content = contents['params']
-
-            # - Don't display hover if there's no content to display.
-            # - Prevent spurious errors when a client returns a list.
-            if not content or isinstance(content, list):
-                return
-
-            self.sig_display_object_info.emit(
-                content,
-                self._request_hover_clicked
-            )
-            if content is not None and self._show_hint and self._last_point:
-                # This is located in spyder/widgets/mixins.py
-                word = self._last_hover_word
-                content = content.replace(u'\xa0', ' ')
-                self.show_hint(content, inspect_word=word,
-                               at_point=self._last_point)
-                self._last_point = None
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing hover")
-
-    # ---- LSP: Go To Definition
-    # -------------------------------------------------------------------------
-    @Slot()
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DEFINITION)
-    def go_to_definition_from_cursor(self, cursor=None):
-        """Go to definition from cursor instance (QTextCursor)."""
-        if (not self.go_to_definition_enabled or
-                self.in_comment_or_string()):
-            return
-
-        if cursor is None:
-            cursor = self.textCursor()
-
-        text = to_text_string(cursor.selectedText())
-
-        if len(text) == 0:
-            cursor.select(QTextCursor.WordUnderCursor)
-            text = to_text_string(cursor.selectedText())
-
-        if text is not None:
-            line, column = self.get_cursor_line_column()
-            params = {
-                'file': self.filename,
-                'line': line,
-                'column': column
-            }
-            return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_DEFINITION)
-    def handle_go_to_definition(self, position):
-        """Handle go to definition response."""
-        try:
-            position = position['params']
-            if position is not None:
-                def_range = position['range']
-                start = def_range['start']
-                if self.filename == position['file']:
-                    self.go_to_line(start['line'] + 1,
-                                    start['character'],
-                                    None,
-                                    word=None)
-                else:
-                    self.go_to_definition.emit(position['file'],
-                                               start['line'] + 1,
-                                               start['character'])
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors(
-                "Error when processing go to definition")
-
-    # ---- LSP: Document/Selection formatting
-    # -------------------------------------------------------------------------
-    def format_document_or_range(self):
-        """Format current document or selected text."""
-        if self.has_selected_text() and self.range_formatting_enabled:
-            self.format_document_range()
-        else:
-            self.format_document()
-
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
-    def format_document(self):
-        """Format current document."""
-        self.__line_number_before_format = self.textCursor().blockNumber()
-
-        if not self.formatting_enabled:
-            return
-        if self.formatting_in_progress:
-            # Already waiting for a formatting
-            return
-
-        using_spaces = self.indent_chars != '\t'
-        tab_size = (len(self.indent_chars) if using_spaces else
-                    self.tab_stop_width_spaces)
-        params = {
-            'file': self.filename,
-            'options': {
-                'tab_size': tab_size,
-                'insert_spaces': using_spaces,
-                'trim_trailing_whitespace': self.remove_trailing_spaces,
-                'insert_final_new_line': self.add_newline,
-                'trim_final_new_lines': self.remove_trailing_newlines
-            }
-        }
-
-        # Sets the document into read-only and updates its corresponding
-        # tab name to display the filename into parenthesis
-        self.setReadOnly(True)
-        self.document().setModified(True)
-        self.sig_start_operation_in_progress.emit()
-        self.operation_in_progress = True
-        self.formatting_in_progress = True
-
-        return params
-
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
-    def format_document_range(self):
-        """Format selected text."""
-        self.__line_number_before_format = self.textCursor().blockNumber()
-
-        if not self.range_formatting_enabled or not self.has_selected_text():
-            return
-        if self.formatting_in_progress:
-            # Already waiting for a formatting
-            return
-
-        start, end = self.get_selection_start_end()
-        start_line, start_col = start
-        end_line, end_col = end
-        using_spaces = self.indent_chars != '\t'
-        tab_size = (len(self.indent_chars) if using_spaces else
-                    self.tab_stop_width_spaces)
-
-        fmt_range = {
-            'start': {
-                'line': start_line,
-                'character': start_col
-            },
-            'end': {
-                'line': end_line,
-                'character': end_col
-            }
-        }
-        params = {
-            'file': self.filename,
-            'range': fmt_range,
-            'options': {
-                'tab_size': tab_size,
-                'insert_spaces': using_spaces,
-                'trim_trailing_whitespace': self.remove_trailing_spaces,
-                'insert_final_new_line': self.add_newline,
-                'trim_final_new_lines': self.remove_trailing_newlines
-            }
-        }
-
-        # Sets the document into read-only and updates its corresponding
-        # tab name to display the filename into parenthesis
-        self.setReadOnly(True)
-        self.document().setModified(True)
-        self.sig_start_operation_in_progress.emit()
-        self.operation_in_progress = True
-        self.formatting_in_progress = True
-
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
-    def handle_document_formatting(self, edits):
-        """Handle document formatting response."""
-        try:
-            if self.formatting_in_progress:
-                self._apply_document_edits(edits)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing document "
-                                       "formatting")
-        finally:
-            # Remove read-only parenthesis and highlight document modification
-            self.setReadOnly(False)
-            self.document().setModified(False)
-            self.document().setModified(True)
-            self.sig_stop_operation_in_progress.emit()
-            self.operation_in_progress = False
-            self.formatting_in_progress = False
-
-    @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
-    def handle_document_range_formatting(self, edits):
-        """Handle document range formatting response."""
-        try:
-            if self.formatting_in_progress:
-                self._apply_document_edits(edits)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing document "
-                                       "selection formatting")
-        finally:
-            # Remove read-only parenthesis and highlight document modification
-            self.setReadOnly(False)
-            self.document().setModified(False)
-            self.document().setModified(True)
-            self.sig_stop_operation_in_progress.emit()
-            self.operation_in_progress = False
-            self.formatting_in_progress = False
-
-    def _apply_document_edits(self, edits):
-        """Apply a set of atomic document edits to the current editor text."""
-        edits = edits['params']
-        if edits is None:
-            return
-
-        # We need to use here toPlainText (which returns text with '\n'
-        # for eols) and not get_text_with_eol, so that applying the
-        # text edits that come from the LSP in the way implemented below
-        # works as expected. That's because we assume eol chars of length
-        # one in our algorithm.
-        # Fixes spyder-ide/spyder#16180
-        text = self.toPlainText()
-
-        text_tokens = list(text)
-        merged_text = None
-        for edit in edits:
-            edit_range = edit['range']
-            repl_text = edit['newText']
-            start, end = edit_range['start'], edit_range['end']
-            start_line, start_col = start['line'], start['character']
-            end_line, end_col = end['line'], end['character']
-
-            start_pos = self.get_position_line_number(start_line, start_col)
-            end_pos = self.get_position_line_number(end_line, end_col)
-
-            # Replace repl_text eols for '\n' to match the ones used in
-            # `text`.
-            repl_eol = sourcecode.get_eol_chars(repl_text)
-            if repl_eol is not None and repl_eol != '\n':
-                repl_text = repl_text.replace(repl_eol, '\n')
-
-            text_tokens = list(text_tokens)
-            this_edit = list(repl_text)
-
-            if end_line == self.document().blockCount():
-                end_pos = self.get_position('eof')
-                end_pos += 1
-
-            if (end_pos == len(text_tokens) and
-                    text_tokens[end_pos - 1] == '\n'):
-                end_pos += 1
-
-            this_edition = (text_tokens[:max(start_pos - 1, 0)] +
-                            this_edit +
-                            text_tokens[end_pos - 1:])
-
-            text_edit = ''.join(this_edition)
-            if merged_text is None:
-                merged_text = text_edit
-            else:
-                merged_text = merge(text_edit, merged_text, text)
-
-        if merged_text is not None:
-            # Restore eol chars after applying edits.
-            merged_text = merged_text.replace('\n', self.get_line_separator())
-            cursor = self.textCursor()
-
-            # Begin text insertion
-            cursor.beginEditBlock()
-
-            # Select current text
-            cursor.movePosition(QTextCursor.Start)
-            cursor.movePosition(QTextCursor.End,
-                                QTextCursor.KeepAnchor)
-
-            # Insert formatted text in place of the previous one
-            cursor.insertText(merged_text)
-
-            # End text insertion
-            cursor.endEditBlock()
-
-            # Restore previous cursor line and center it.
-            # Fixes spyder-ide/spyder#19958
-            if self.__line_number_before_format < self.blockCount():
-                self.moveCursor(QTextCursor.Start)
-                cursor = self.textCursor()
-                cursor.movePosition(
-                    QTextCursor.Down,
-                    QTextCursor.MoveAnchor,
-                    self.__line_number_before_format
-                )
-                self.setTextCursor(cursor)
-                self.centerCursor()
-
-    # ---- LSP: Code folding
-    # -------------------------------------------------------------------------
-    def compute_whitespace(self, line):
-        tab_size = self.tab_stop_width_spaces
-        whitespace_regex = re.compile(r'(\s+).*')
-        whitespace_match = whitespace_regex.match(line)
-        total_whitespace = 0
-        if whitespace_match is not None:
-            whitespace_chars = whitespace_match.group(1)
-            whitespace_chars = whitespace_chars.replace(
-                '\t', tab_size * ' ')
-            total_whitespace = len(whitespace_chars)
-        return total_whitespace
-
-    def update_whitespace_count(self, line, column):
-        self.leading_whitespaces = {}
-        lines = to_text_string(self.toPlainText()).splitlines()
-        for i, text in enumerate(lines):
-            total_whitespace = self.compute_whitespace(text)
-            self.leading_whitespaces[i] = total_whitespace
-
-    def cleanup_folding(self):
-        """Cleanup folding pane."""
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.folding_regions = {}
-
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
-    def request_folding(self):
-        """Request folding."""
-        if not self.folding_supported or not self.code_folding:
-            return
-        params = {'file': self.filename}
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
-    def handle_folding_range(self, response):
-        """Handle folding response."""
-        ranges = response['params']
-        if ranges is None:
-            return
-
-        # Compute extended_ranges here because get_text_region ends up
-        # calling paintEvent and that method can't be called in a
-        # thread due to Qt restrictions.
-        try:
-            extended_ranges = []
-            for start, end in ranges:
-                text_region = self.get_text_region(start, end)
-                extended_ranges.append((start, end, text_region))
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing folding")
-        finally:
-            self.folding_in_sync = True
-
-        # Update folding in a thread
-        self.update_folding_thread.run = functools.partial(
-            self.update_and_merge_folding, extended_ranges)
-        self.update_folding_thread.start()
-
-    def update_and_merge_folding(self, extended_ranges):
-        """Update and merge new folding information."""
-        try:
-            folding_panel = self.panels.get(FoldingPanel)
-
-            current_tree, root = merge_folding(
-                extended_ranges, folding_panel.current_tree,
-                folding_panel.root)
-
-            folding_info = collect_folding_regions(root)
-            self._folding_info = (current_tree, root, *folding_info)
-        except RuntimeError:
-            # This is triggered when a codeeditor instance was removed
-            # before the response can be processed.
-            return
-        except Exception:
-            self.log_lsp_handle_errors("Error when processing folding")
-
-    def finish_code_folding(self):
-        """Finish processing code folding."""
-        folding_panel = self.panels.get(FoldingPanel)
-
-        # Check if we actually have folding info to update before trying to do
-        # it.
-        # Fixes spyder-ide/spyder#19514
-        if self._folding_info is not None:
-            folding_panel.update_folding(self._folding_info)
-
-        # Update indent guides, which depend on folding
-        if self.indent_guides._enabled and len(self.patch) > 0:
-            line, column = self.get_cursor_line_column()
-            self.update_whitespace_count(line, column)
-
-    # ---- LSP: Save/close file
-    # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
-                      requires_response=False)
-    def notify_save(self):
-        """Send save request."""
-        params = {'file': self.filename}
-        if self.save_include_text:
-            params['text'] = self.get_text_with_eol()
-        return params
-
-    @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
-             requires_response=False)
-    def notify_close(self):
-        """Send close request."""
-        self._pending_server_requests = []
-
-        # This is necessary to prevent an error when closing the file.
-        # Fixes spyder-ide/spyder#20071
-        try:
-            self._server_requests_timer.stop()
-        except RuntimeError:
-            pass
-
-        if self.completions_available:
-            # This is necessary to prevent an error in our tests.
-            try:
-                # Servers can send an empty publishDiagnostics reply to clear
-                # diagnostics after they receive a didClose request. Since
-                # we also ask for symbols and folding when processing
-                # diagnostics, we need to prevent it from happening
-                # before sending that request here.
-                self._timer_sync_symbols_and_folding.timeout.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-
-            params = {
-                'file': self.filename,
-                'codeeditor': self
-            }
-            return params
 
     # ---- Debug panel
     # -------------------------------------------------------------------------
@@ -4233,6 +2982,27 @@ class CodeEditor(TextEditBaseWidget):
         cursor3.endEditBlock()
         return True
 
+    def create_new_cell(self):
+        firstline = '# %%' + self.get_line_separator()
+        endline = self.get_line_separator()
+        cursor = self.textCursor()
+        if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            endline = self.get_line_separator() + '# %%'
+        else:
+            start_pos = end_pos = cursor.position()
+
+        # Add cell comment or enclose current selection in cells
+        cursor.beginEditBlock()
+        cursor.setPosition(end_pos)
+        cursor.movePosition(QTextCursor.EndOfBlock)
+        cursor.insertText(endline)
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.insertText(firstline)
+        cursor.endEditBlock()
+        
     # ---- Kill ring handlers
     # Taken from Jupyter's QtConsole
     # Copyright (c) 2001-2015, IPython Development Team
@@ -4495,27 +3265,27 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(
             self, _("Undo"), icon=ima.icon('undo'),
-            shortcut=CONF.get_shortcut('editor', 'undo'), triggered=self.undo)
+            shortcut=self.get_shortcut('undo'), triggered=self.undo)
         self.redo_action = create_action(
             self, _("Redo"), icon=ima.icon('redo'),
-            shortcut=CONF.get_shortcut('editor', 'redo'), triggered=self.redo)
+            shortcut=self.get_shortcut('redo'), triggered=self.redo)
         self.cut_action = create_action(
             self, _("Cut"), icon=ima.icon('editcut'),
-            shortcut=CONF.get_shortcut('editor', 'cut'), triggered=self.cut)
+            shortcut=self.get_shortcut('cut'), triggered=self.cut)
         self.copy_action = create_action(
             self, _("Copy"), icon=ima.icon('editcopy'),
-            shortcut=CONF.get_shortcut('editor', 'copy'), triggered=self.copy)
+            shortcut=self.get_shortcut('copy'), triggered=self.copy)
         self.paste_action = create_action(
             self, _("Paste"), icon=ima.icon('editpaste'),
-            shortcut=CONF.get_shortcut('editor', 'paste'),
+            shortcut=self.get_shortcut('paste'),
             triggered=self.paste)
         selectall_action = create_action(
             self, _("Select All"), icon=ima.icon('selectall'),
-            shortcut=CONF.get_shortcut('editor', 'select all'),
+            shortcut=self.get_shortcut('select all'),
             triggered=self.selectAll)
         toggle_comment_action = create_action(
             self, _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
-            shortcut=CONF.get_shortcut('editor', 'toggle comment'),
+            shortcut=self.get_shortcut('toggle comment'),
             triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(
             self, _("Clear all ouput"), icon=ima.icon('ipython_console'),
@@ -4525,13 +3295,13 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.convert_notebook)
         self.gotodef_action = create_action(
             self, _("Go to definition"),
-            shortcut=CONF.get_shortcut('editor', 'go to definition'),
+            shortcut=self.get_shortcut('go to definition'),
             triggered=self.go_to_definition_from_cursor)
 
         self.inspect_current_object_action = create_action(
             self, _("Inspect current object"),
             icon=ima.icon('MessageBoxInformation'),
-            shortcut=CONF.get_shortcut('editor', 'inspect current object'),
+            shortcut=self.get_shortcut('inspect current object'),
             triggered=self.sig_show_object_info)
 
         # Run actions
@@ -4553,20 +3323,20 @@ class CodeEditor(TextEditBaseWidget):
         writer = self.writer_docstring
         self.docstring_action = create_action(
             self, _("Generate docstring"),
-            shortcut=CONF.get_shortcut('editor', 'docstring'),
+            shortcut=self.get_shortcut('docstring'),
             triggered=writer.write_docstring_at_first_line_of_function)
 
         # Document formatting
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            ''
+            default='',
+            section='completions',
         )
         self.format_action = create_action(
             self,
             _('Format file or selection with {0}').format(
                 formatter.capitalize()),
-            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            shortcut=self.get_shortcut('autoformatting'),
             triggered=self.format_document_or_range)
 
         self.format_action.setEnabled(False)
@@ -4902,10 +3672,10 @@ class CodeEditor(TextEditBaseWidget):
         # Correctly handle completions when Backspace key is pressed.
         # We should not show the widget if deleting a space before a word.
         if key == Qt.Key_Backspace:
-            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
             prev_text = to_text_string(cursor.selectedText())
-            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.setPosition(pos, QTextCursor.KeepAnchor)
             prev_char = cursor.selectedText()
             if prev_text == '' or prev_char in (u'\u2029', ' ', '\t'):
@@ -4913,7 +3683,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Text might be after a dot '.'
         if text == '':
-            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
             if text != '.':
@@ -5413,10 +4183,10 @@ class CodeEditor(TextEditBaseWidget):
                                              nbformat is not None)
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
 
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            ''
+            default='',
+            section='completions'
         )
         self.format_action.setText(_(
             'Format file or selection with {0}').format(
@@ -5529,7 +4299,7 @@ class CodeEditor(TextEditBaseWidget):
 
             for top, line_number, block in self.visible_blocks:
                 if is_cell_header(block):
-                    painter.drawLine(4, top, self.width(), top)
+                    painter.drawLine(0, top, self.width(), top)
 
     @property
     def visible_blocks(self):

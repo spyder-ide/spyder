@@ -38,11 +38,13 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget)
+    KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
+from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
@@ -64,6 +66,7 @@ class IPythonConsoleWidgetActions:
     CreateCythonClient = 'create cython client'
     CreateSymPyClient = 'create cympy client'
     CreatePyLabClient = 'create pylab client'
+    CreateNewClientEnvironment = 'create environment client'
 
     # Current console actions
     ClearConsole = 'Clear shell'
@@ -94,6 +97,7 @@ class IPythonConsoleWidgetActions:
 class IPythonConsoleWidgetOptionsMenus:
     SpecialConsoles = 'special_consoles_submenu'
     Documentation = 'documentation_submenu'
+    EnvironmentConsoles = 'environment_consoles_submenu'
 
 
 class IPythonConsoleWidgetOptionsMenuSections:
@@ -268,6 +272,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.interrupt_action = None
         self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
+        self.envs = {}
+        self.default_interpreter = sys.executable
 
         # Disable infowidget if requested by the user
         self.enable_infowidget = True
@@ -348,8 +354,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
+        # Create MatplotlibStatus
+        self.matplotlib_status = MatplotlibStatus(self)
+
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
+
+        # Worker to compute envs in a thread
+        self._worker_manager = WorkerManager(max_threads=1)
+
+        # Update the list of envs at startup
+        self.get_envs()
 
     def on_close(self):
         self.mainwindow_close = True
@@ -488,12 +503,22 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # --- Setting options menu
         options_menu = self.get_options_menu()
+
+        self.console_environment_menu = self.create_menu(
+            IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
+            _('New console in environment')
+        )
+        stylesheet = qstylizer.style.StyleSheet()
+        stylesheet["QMenu"]["menu-scrollable"].setValue("1")
+        self.console_environment_menu.setStyleSheet(stylesheet.toString())
+
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
-            _('Special consoles'))
+            _('New special console'))
 
         for item in [
                 self.create_client_action,
+                self.console_environment_menu,
                 self.special_console_menu,
                 self.connect_to_kernel_action]:
             self.add_item_to_menu(
@@ -542,6 +567,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=self.create_cython_client,
         )
 
+        self.console_environment_menu.aboutToShow.connect(
+            self.update_environment_menu)
+
         for item in [
                 create_pylab_action,
                 create_sympy_action,
@@ -579,6 +607,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         for item in [
                 self.create_client_action,
+                self.console_environment_menu,
                 self.special_console_menu,
                 self.connect_to_kernel_action]:
             self.add_item_to_menu(
@@ -649,6 +678,49 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self.env_action.setEnabled(not error_or_loading)
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
+
+    def get_envs(self):
+        """
+        Get the list of environments/interpreters in a worker.
+        """
+        self._worker_manager.terminate_all()
+        worker = self._worker_manager.create_python_worker(get_list_envs)
+        worker.sig_finished.connect(self.update_envs)
+        worker.start()
+
+    def update_envs(self, worker, output, error):
+        """Update the list of environments in the system."""
+        if output is not None:
+            self.envs.update(**output)
+
+    def update_environment_menu(self):
+        """
+        Update context menu submenu with entries for available interpreters.
+        """
+        self.get_envs()
+        self.console_environment_menu.clear_actions()
+        for env_key, env_info in self.envs.items():
+            env_name = env_key.split()[-1]
+            path_to_interpreter, python_version = env_info
+            action = self.create_action(
+                name=env_key,
+                text=f'{env_key} ({python_version})',
+                icon=self.create_icon('ipython_console'),
+                triggered=(
+                    lambda checked, env_name=env_name,
+                    path_to_interpreter=path_to_interpreter:
+                    self.create_environment_client(
+                        env_name,
+                        path_to_interpreter
+                    )
+                ),
+                overwrite=True
+            )
+            self.add_item_to_menu(
+                action,
+                menu=self.console_environment_menu
+            )
+        self.console_environment_menu._render()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -1269,9 +1341,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         cfg._merge(spy_cfg)
         return cfg
 
-    def interpreter_versions(self):
+    def interpreter_versions(self, path_to_custom_interpreter=None):
         """Python and IPython versions used by clients"""
-        if self.get_conf('default', section='main_interpreter'):
+        if (
+            self.get_conf('default', section='main_interpreter')
+            and not path_to_custom_interpreter
+        ):
             from IPython.core import release
             versions = dict(
                 python_version=sys.version,
@@ -1281,6 +1356,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             import subprocess
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
+            if path_to_custom_interpreter:
+                pyexec = path_to_custom_interpreter
             py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
             ipy_cmd = (
                 u'%s -c "import IPython.core.release as r; print(r.version)"'
@@ -1346,11 +1423,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
+    @Slot(bool, str, str)
     @Slot(bool, bool)
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None):
+                          cache=True, initial_cwd=None,
+                          path_to_custom_interpreter=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
@@ -1363,12 +1442,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             additional_options=self.additional_options(
                     is_pylab=is_pylab,
                     is_sympy=is_sympy),
-            interpreter_versions=self.interpreter_versions(),
+            interpreter_versions=self.interpreter_versions(
+                path_to_custom_interpreter),
             context_menu_actions=self.context_menu_actions,
             given_name=given_name,
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
+            forcing_custom_interpreter=path_to_custom_interpreter is not None
         )
 
         # Add client to widget
@@ -1380,7 +1461,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         kernel_spec = SpyderKernelSpec(
             is_cython=is_cython,
             is_pylab=is_pylab,
-            is_sympy=is_sympy
+            is_sympy=is_sympy,
+            path_to_custom_interpreter=path_to_custom_interpreter
         )
 
         try:
@@ -1480,6 +1562,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def create_cython_client(self):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
+
+    def create_environment_client(
+        self, environment, path_to_custom_interpreter
+    ):
+        """Create a client for a Python environment."""
+        self.create_new_client(
+            given_name=environment,
+            path_to_custom_interpreter=path_to_custom_interpreter
+        )
 
     @Slot(str)
     def create_client_from_path(self, path):

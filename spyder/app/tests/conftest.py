@@ -477,8 +477,8 @@ def main_window(request, tmpdir, qtbot):
                     for editorwindow in window.editor.editorwindows:
                         editorwindow.close()
                     editorstack = window.editor.get_current_editorstack()
-                    if editorstack.switcher_dlg:
-                        editorstack.switcher_dlg.close()
+                    if editorstack.switcher_plugin:
+                        editorstack.switcher_plugin.on_close()
 
                     window.projects.close_project()
 

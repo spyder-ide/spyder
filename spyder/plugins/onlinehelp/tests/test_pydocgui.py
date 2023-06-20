@@ -43,16 +43,9 @@ def pydocbrowser(qtbot):
 @pytest.mark.order(1)
 @pytest.mark.parametrize(
     "lib",
-    [('str', 'class str', [0, 1]), ('numpy.testing', 'numpy.testing', [5, 10])]
-)
-@pytest.mark.skipif(
-    (sys.platform == 'darwin' or
-     NumpyVersion(np.__version__) < NumpyVersion('1.21.0')),
-    reason="Fails on Mac and older versions of Numpy"
-)
-@pytest.mark.skipif(
-    sys.platform.startswith('linux') or os.name == 'nt' and running_in_ci(),
-    reason="Stalls CI frequenly on Linux and Windows"
+    [('str', 'class str', [1, 2]),
+     ('numpy.testing', 'numpy.testing', [5, 10]),
+     ('numpy.finfo', 'numpy.finfo', [1, 5])]
 )
 def test_get_pydoc(pydocbrowser, qtbot, lib):
     """
