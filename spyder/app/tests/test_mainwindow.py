@@ -6384,6 +6384,40 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     assert "801" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "\\.ipy" in control.toPlainText()
+    
+    # Create an untiliteled file
+    main_window.editor.new()
+    
+    assert "untitled" in main_window.editor.get_current_filename()
+    
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text("print(20 + 780)")
+    
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+
+    assert "800" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "untitled" in control.toPlainText()
+    
+    # save in a new folder
+    code_editor.set_text("print(19 + 780)")
+    
+    with tempfile.TemporaryDirectory() as td:
+    
+        editorstack = main_window.editor.get_current_editorstack()
+        editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
+        main_window.editor.save()
+        
+        
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+    
+        assert "799" in control.toPlainText()
+        assert "error" not in control.toPlainText()
+        assert "fn.ipy" in control.toPlainText()
+        main_window.editor.close_file()
+    
 
 
 if __name__ == "__main__":
