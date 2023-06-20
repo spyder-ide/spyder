@@ -1737,8 +1737,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.sig_close_file.connect(self.remove_file_cursor_history)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
-        editorstack.file_renamed_in_data.connect(
-                                      self.file_renamed_in_data_in_editorstack)
+        editorstack.file_renamed_in_data.connect(self.renamed)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
@@ -1824,14 +1823,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.file_saved_in_other_editorstack(original_filename,
                                                             filename)
-
-    @Slot(str, str, str)
-    def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            original_filename, filename):
-        """A file was renamed in data in editorstack, this notifies others"""
-        for editorstack in self.editorstacks:
-            if str(id(editorstack)) != editorstack_id_str:
-                editorstack.rename_in_data(original_filename, filename)
 
     #------ Handling editor windows
     def setup_other_windows(self):
@@ -2667,7 +2658,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if osp.abspath(fname).startswith(dirname):
                 self.close_file_from_name(fname)
 
-    def renamed(self, source, dest):
+    @Slot(str, str)
+    @Slot(str, str, str)
+    def renamed(self, source, dest, editorstack_id_str=None):
         """
         Propagate file rename to editor stacks and autosave component.
 
@@ -2677,13 +2670,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         filename = osp.abspath(to_text_string(source))
         index = self.get_filename_index(filename)
-        if index is not None:
+        if index is not None or editorstack_id_str is not None:
             self.deregister_file_run_metadata(filename)
             self.register_file_run_metadata(dest)
                 
             for editorstack in self.editorstacks:
-                editorstack.rename_in_data(filename,
-                                           new_filename=to_text_string(dest))
+                if (
+                    editorstack_id_str is not None and
+                    str(id(editorstack)) != editorstack_id_str
+                ):
+                    editorstack.rename_in_data(
+                        filename, new_filename=to_text_string(dest))
             self.editorstacks[0].autosave.file_renamed(
                 filename, to_text_string(dest))
 
