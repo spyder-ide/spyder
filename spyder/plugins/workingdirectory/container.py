@@ -91,7 +91,7 @@ class WorkingDirectoryComboBox(PathComboBox):
             hide_status()
         super().focusOutEvent(event)
 
-    # --- Own methods
+    # ---- Own methods
     def valid_text(self):
         """Get valid version of current text."""
         directory = self.currentText()
@@ -110,13 +110,13 @@ class WorkingDirectoryComboBox(PathComboBox):
             directory = osp.abspath(directory)
 
             # If the directory is actually a file, open containing directory
-            if os.path.isfile(directory):
-                file = os.path.basename(directory)
-                directory = os.path.dirname(directory)
+            if osp.isfile(directory):
+                file = osp.basename(directory)
+                directory = osp.dirname(directory)
 
             # If the directory name is malformed, open parent directory
-            if not os.path.isdir(directory):
-                directory = os.path.dirname(directory)
+            if not osp.isdir(directory):
+                directory = osp.dirname(directory)
 
             if self.is_valid(directory):
                 return directory, file, line_number
