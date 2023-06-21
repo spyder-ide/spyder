@@ -63,7 +63,7 @@ from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
-from spyder.plugins.profiler.main_widget import ProfilerWidgetActions
+from spyder.plugins.profiler.widgets.main_widget import ProfilerWidgetActions
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
     RunExecutionParameters, ExtendedRunExecutionParameters, WorkingDirOpts,
