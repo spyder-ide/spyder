@@ -494,11 +494,12 @@ class PaneEmptyWidget(QFrame):
 
         # Setup layout
         pane_empty_layout = QVBoxLayout()
+        pane_empty_layout.addStretch(1)
         pane_empty_layout.addWidget(image_label)
         pane_empty_layout.addWidget(text_label)
         pane_empty_layout.addWidget(description_label)
-        pane_empty_layout.addStretch(1)
-        pane_empty_layout.setContentsMargins(0, 0, 0, 0)
+        pane_empty_layout.addStretch(2)
+        pane_empty_layout.setContentsMargins(10, 0, 10, 8)
         self.setLayout(pane_empty_layout)
 
         # Setup border style

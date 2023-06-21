@@ -147,7 +147,7 @@ class FindInFilesWidget(PluginMainWidget):
             self,
             "find_empty",
             _("You haven't searched for anything yet."),
-            _("Find will search any directory based on your specifications")
+            _("Here you can search the content of text files in any directory")
         )
         
         self.search_text_edit = PatternComboBox(

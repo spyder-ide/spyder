@@ -21,8 +21,8 @@ from qtpy import PYQT5
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QInputDialog,
-                            QMessageBox, QVBoxLayout, QStackedLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QInputDialog, QMessageBox,
+                            QVBoxLayout, QStackedLayout, QWidget)
 from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
