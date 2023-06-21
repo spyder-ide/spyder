@@ -22,15 +22,12 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
     APP_TOOLBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
 
-
-# Translations
-_ = get_translation('spyder')
 
 # Generic type annotations
 ToolbarItem = Union[SpyderAction, QWidget]

@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
     RunExecutionParameters, ExtendedRunExecutionParameters,
@@ -30,8 +30,6 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
 
 
-# Localization
-_ = get_translation("spyder")
 
 # Main constants
 RUN_DEFAULT_CONFIG = _("Run file with default configuration")

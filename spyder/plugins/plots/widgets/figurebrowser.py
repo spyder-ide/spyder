@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
                             QVBoxLayout, QWidget)
 
 # Local library imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
@@ -34,10 +34,6 @@ from spyder.utils.palette import QStylePalette
 
 # TODO:
 # - [ ] Generalize style updates, handle dark_interface with widget option
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 def save_figure_tofile(fig, fmt, fname):

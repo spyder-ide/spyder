@@ -13,7 +13,7 @@ import os.path as osp
 
 from qtpy.QtCore import Signal
 
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import get_conf_path
 from spyder.plugins.pythonpath.utils import get_system_pythonpath
@@ -21,8 +21,7 @@ from spyder.plugins.pythonpath.widgets.pathmanager import PathManager
 from spyder.utils import encoding
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 
@@ -106,13 +105,16 @@ class PythonpathContainer(PluginMainContainer):
 
     def show_path_manager(self):
         """Show path manager dialog."""
-        # Set main attributes saved here
-        self.path_manager_dialog.update_paths(
-            self.path, self.not_active_path, get_system_pythonpath()
-        )
+        # Do not update paths or run setup if widget is already open,
+        # see spyder-ide/spyder#20808
+        if not self.path_manager_dialog.isVisible():
+            # Set main attributes saved here
+            self.path_manager_dialog.update_paths(
+                self.path, self.not_active_path, get_system_pythonpath()
+            )
 
-        # Setup its contents again
-        self.path_manager_dialog.setup()
+            # Setup its contents again
+            self.path_manager_dialog.setup()
 
         # Show and give it focus
         self.path_manager_dialog.show()

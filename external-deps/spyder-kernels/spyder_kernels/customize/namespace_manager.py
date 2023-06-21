@@ -9,8 +9,6 @@ import os.path
 import types
 import sys
 
-from IPython.core.getipython import get_ipython
-
 
 def new_main_mod(filename, modname):
     """
@@ -39,49 +37,53 @@ class NamespaceManager:
     current_namespace is True, or a new namespace.
     """
 
-    def __init__(self, filename, namespace=None, current_namespace=False,
-                 file_code=None, stack_depth=1):
+    def __init__(
+        self,
+        shell,
+        filename,
+        current_namespace=False,
+        file_code=None,
+        context_locals=None,
+        context_globals=None,
+    ):
+        self.shell = shell
         self.filename = filename
-        self.ns_globals = namespace
+        self.ns_globals = None
         self.ns_locals = None
         self.current_namespace = current_namespace
         self._previous_filename = None
         self._previous_main = None
-        self._previous_running_namespace = None
         self._reset_main = False
         self._file_code = file_code
-        ipython_shell = get_ipython()
-        self.context_globals = ipython_shell.get_global_scope(stack_depth + 1)
-        self.context_locals = ipython_shell.get_local_scope(stack_depth + 1)
+        if context_globals is None:
+            context_globals = shell.user_ns
+        self.context_globals = context_globals
+        self.context_locals = context_locals
 
     def __enter__(self):
         """
         Prepare the namespace.
         """
         # Save previous __file__
-        ipython_shell = get_ipython()
-        if self.ns_globals is None:
-            if self.current_namespace:
-                self.ns_globals = self.context_globals
-                self.ns_locals = self.context_locals
-                if '__file__' in self.ns_globals:
-                    self._previous_filename = self.ns_globals['__file__']
-                self.ns_globals['__file__'] = self.filename
-            else:
-                main_mod = new_main_mod(self.filename, '__main__')
-                self.ns_globals = main_mod.__dict__
-                self.ns_locals = None
-                # Needed to allow pickle to reference main
-                if '__main__' in sys.modules:
-                    self._previous_main = sys.modules['__main__']
-                sys.modules['__main__'] = main_mod
-                self._reset_main = True
+        if self.current_namespace:
+            self.ns_globals = self.context_globals
+            self.ns_locals = self.context_locals
+            if '__file__' in self.ns_globals:
+                self._previous_filename = self.ns_globals['__file__']
+            self.ns_globals['__file__'] = self.filename
+        else:
+            main_mod = new_main_mod(self.filename, '__main__')
+            self.ns_globals = main_mod.__dict__
+            self.ns_locals = None
+
+            # Needed to allow pickle to reference main
+            if '__main__' in sys.modules:
+                self._previous_main = sys.modules['__main__']
+            sys.modules['__main__'] = main_mod
+            self._reset_main = True
 
         # Save current namespace for access by variable explorer
-        self._previous_running_namespace = (
-            ipython_shell.kernel._running_namespace)
-        ipython_shell.kernel._running_namespace = (
-            self.ns_globals, self.ns_locals)
+        self.shell.add_namespace_manager(self)
 
         if (self._file_code is not None
                 and isinstance(self._file_code, bytes)):
@@ -103,18 +105,17 @@ class NamespaceManager:
         """
         Reset the namespace.
         """
-        ipython_shell = get_ipython()
-        ipython_shell.kernel._running_namespace = (
-            self._previous_running_namespace)
+        self.shell.remove_namespace_manager(self)
         if self._previous_filename:
             self.ns_globals['__file__'] = self._previous_filename
         elif '__file__' in self.ns_globals:
             self.ns_globals.pop('__file__')
 
         if not self.current_namespace:
-            self.context_globals.update(self.ns_globals)
-            if self.context_locals and self.ns_locals:
-                self.context_locals.update(self.ns_locals)
+            if self.context_locals is not None:
+                self.context_locals.update(self.ns_globals)
+            else:
+                self.context_globals.update(self.ns_globals)
 
         if self._previous_main:
             sys.modules['__main__'] = self._previous_main

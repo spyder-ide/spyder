@@ -209,7 +209,7 @@ install_requires = [
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
-    'ipython>=7.31.1,<9.0.0',
+    'ipython>=7.31.1,<9.0.0,!=8.8.0,!=8.9.0,!=8.10.0,!=8.11.0,!=8.12.0,!=8.12.1',
     'jedi>=0.17.2,<0.19.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
@@ -224,23 +224,23 @@ install_requires = [
     'psutil>=5.3',
     'pygments>=2.0',
     'pylint>=2.5.0,<3.0',
-    'pylint-venv>=2.1.1',
-    'python-lsp-black>=1.2.0',
+    'pylint-venv>=3.0.2',
+    'python-lsp-black>=1.2.0,<3.0.0',
     'pyls-spyder>=0.4.0',
     'pyqt5<5.16',
     'pyqtwebengine<5.16',
-    'python-lsp-server[all]>=1.7.1,<1.8.0',
+    'python-lsp-server[all]>=1.7.2,<1.8.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=22.1.0',
-    'qdarkstyle>=3.0.2,<3.1.0',
+    'qdarkstyle>=3.0.2,<3.2.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.2.1',
-    'qtconsole>=5.4.0,<5.5.0',
+    'qtconsole>=5.4.2,<5.5.0',
     'qtpy>=2.1.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=2.4.2,<2.5.0',
+    'spyder-kernels>=3.0.0b1,<3.0.0b2',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -251,9 +251,9 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.7.1,<1.9.0')
-    install_requires.append('qtconsole>=5.4.0,<5.6.0')
-    install_requires.append('spyder-kernels>=2.4.2,<3.1.0')
+    install_requires.append('python-lsp-server[all]>=1.7.2,<1.9.0')
+    install_requires.append('qtconsole>=5.4.2,<5.6.0')
+    install_requires.append('spyder-kernels>=3.0.0b1,<3.1.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],
@@ -306,6 +306,7 @@ spyder_plugins_entry_points = [
     'run = spyder.plugins.run.plugin:Run',
     'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
     'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
+    'switcher = spyder.plugins.switcher.plugin:Switcher',
     'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
     'tours = spyder.plugins.tours.plugin:Tours',
     'variable_explorer = spyder.plugins.variableexplorer.plugin:VariableExplorer',

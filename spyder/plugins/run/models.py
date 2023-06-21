@@ -15,16 +15,12 @@ from qtpy.QtCore import (Qt, Signal, QAbstractListModel, QModelIndex,
                          QAbstractTableModel)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.run.api import (
     StoredRunExecutorParameters, RunContext, RunConfigurationMetadata,
     SupportedExecutionRunConfiguration, RunParameterFlags,
     StoredRunConfigurationExecutor, ExtendedRunExecutionParameters,
     RunExecutionParameters, WorkingDirOpts, WorkingDirSource)
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class RunExecutorListModel(QAbstractListModel):

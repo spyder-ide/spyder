@@ -18,16 +18,13 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import get_conf_path
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
 from spyder.plugins.workingdirectory.container import (
     WorkingDirectoryContainer)
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
-
-# Localization
-_ = get_translation('spyder')
 
 
 class WorkingDirectory(SpyderPluginV2):
@@ -119,7 +116,7 @@ class WorkingDirectory(SpyderPluginV2):
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.connect(self._project_loaded)
-        projects.sig_project_closed[object].connect(self._project_closed)
+        projects.sig_project_closed[str].connect(self._project_closed)
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
@@ -156,7 +153,7 @@ class WorkingDirectory(SpyderPluginV2):
     def on_projects_teardown(self):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._project_loaded)
-        projects.sig_project_closed[object].disconnect(self._project_closed)
+        projects.sig_project_closed[str].disconnect(self._project_closed)
 
     # --- Public API
     # ------------------------------------------------------------------------

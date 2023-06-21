@@ -20,7 +20,7 @@ from qtpy.QtCore import QObject, QThread, Signal, Slot
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
     SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
@@ -30,15 +30,11 @@ from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.utils.programs import check_version_range
 
-
 if os.name == "nt":
     ssh_tunnel = zmqtunnel.paramiko_tunnel
 else:
     ssh_tunnel = openssh_tunnel
 
-
-# Localization
-_ = get_translation("spyder")
 
 PERMISSION_ERROR_MSG = _(
     "The directory {} is not writable and it is required to create IPython "

@@ -13,14 +13,11 @@ from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.config.gui import get_color_scheme
 from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
-
-# Localization
-_ = get_translation('spyder')
 
 
 # =============================================================================

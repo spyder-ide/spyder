@@ -18,8 +18,9 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.profiler.api import ProfilerPyConfiguration
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (
@@ -29,10 +30,6 @@ from spyder.plugins.profiler.widgets.run_conf import (
 from spyder.plugins.run.api import (
     RunExecutor, run_execute, RunContext, RunConfiguration,
     ExtendedRunExecutionParameters, PossibleRunResult)
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class Profiler(SpyderDockablePlugin, RunExecutor):
@@ -112,7 +109,10 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
                 icon=self.create_icon('profiler'),
                 shortcut_context='profiler',
                 register_shortcut=True,
-                add_to_menu=True
+                add_to_menu={
+                    "menu": ApplicationMenus.Run,
+                    "section": RunMenuSections.RunInExecutors
+                }
             )
 
     @on_plugin_teardown(plugin=Plugins.Editor)

@@ -18,11 +18,7 @@ from qtpy.QtWidgets import QGridLayout, QPlainTextEdit, QWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.translations import get_translation
-
-
-# Localization
-_ = get_translation("spyder")
+from spyder.api.translations import _
 
 
 class BaseGridLayoutType:

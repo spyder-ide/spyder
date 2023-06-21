@@ -20,16 +20,13 @@ from qtpy import PYSIDE2
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.registries import TOOLBAR_REGISTRY
 
-
-# Localization
-_ = get_translation('spyder')
 
 # Type annotations
 ToolbarItem = Union[SpyderAction, QWidget]

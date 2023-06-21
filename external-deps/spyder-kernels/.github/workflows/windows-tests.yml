@@ -22,6 +22,7 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'windows'
+      USE_CONDA: 'true'
     strategy:
       fail-fast: false 
       matrix:
@@ -57,6 +58,11 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
-          pytest spyder_kernels --color=yes --cov=spyder_kernels -x -vv || \
-          pytest spyder_kernels --cov=spyder_kernels -x -vv
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
+          pytest spyder_kernels --cov=spyder_kernels -vv
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: false
+          verbose: true

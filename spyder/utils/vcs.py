@@ -117,8 +117,8 @@ def get_git_revision(repopath):
     """
     Return Git revision for the repository located at repopath
 
-    Result is a tuple (latest commit hash, branch), with None values on
-    error
+    Result is a tuple (latest commit hash, branch), falling back to
+    SPY_COMMIT and SPY_BRANCH environment variables, if present, else None.
     """
     try:
         git = programs.find_git()
@@ -143,7 +143,7 @@ def get_git_revision(repopath):
         return commit, branch
     except (subprocess.CalledProcessError, AssertionError, AttributeError,
             OSError):
-        return None, None
+        return os.environ.get('SPY_COMMIT'), os.environ.get('SPY_BRANCH')
 
 
 def get_git_refs(repopath):

@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.findinfiles.widgets.results_browser import (
     ON, ResultsBrowser)
@@ -25,10 +25,6 @@ from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import PatternComboBox
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # ---- Constants
@@ -466,7 +462,7 @@ class FindInFilesWidget(PluginMainWidget):
             if self.search_thread.isRunning():
                 if ignore_results:
                     self.search_thread.sig_finished.disconnect(
-                        self.search_complete)
+                        self._handle_search_complete)
                 self.search_thread.stop()
                 self.search_thread.wait()
 

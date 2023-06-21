@@ -9,7 +9,6 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
-import os.path as osp
 from typing import List
 
 # Third party imports
@@ -19,7 +18,7 @@ from qtpy.QtCore import Signal, Slot
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
@@ -31,9 +30,6 @@ from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunConfiguration,
     ExtendedRunExecutionParameters, RunResult, run_execute)
 from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
-
-# Localization
-_ = get_translation('spyder')
 
 
 class IPythonConsole(SpyderDockablePlugin, RunExecutor):
@@ -48,7 +44,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run,
                 Plugins.Projects, Plugins.PythonpathManager,
-                Plugins.WorkingDirectory]
+                Plugins.WorkingDirectory, Plugins.StatusBar]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -204,7 +200,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
-        widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
         widget.sig_history_requested.connect(self.sig_history_requested)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -219,8 +214,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_help_requested.connect(self.sig_help_requested)
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
-
-        self.sig_focus_changed.connect(self.main.plugin_focus_changed)
 
         # Run configurations
         self.cython_editor_run_configuration = {
@@ -291,6 +284,22 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
         ]
+
+    @on_plugin_available(plugin=Plugins.StatusBar)
+    def on_statusbar_available(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        matplotlib_status = self.get_widget().matplotlib_status
+        statusbar.add_status_widget(matplotlib_status)
+        matplotlib_status.register_ipythonconsole(self)
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        matplotlib_status = self.get_widget().matplotlib_status
+        matplotlib_status.unregister_ipythonconsole(self)
+        statusbar.remove_status_widget(matplotlib_status.ID)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -445,10 +454,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     # ---- Private methods
     # -------------------------------------------------------------------------
-    def _on_project_loaded(self):
-        projects = self.get_plugin(Plugins.Projects)
-        self.get_widget().update_active_project_path(
-            projects.get_active_project_path())
+    def _on_project_loaded(self, path):
+        self.get_widget().update_active_project_path(path)
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
@@ -529,7 +536,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.get_widget().rename_client_tab(client, given_name)
 
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None):
+                          is_pylab=False, is_sympy=False, given_name=None,
+                          path_to_custom_interpreter=None):
         """
         Create a new client.
 
@@ -552,6 +560,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         given_name : str, optional
             Initial name displayed in the tab of the client.
             The default is None.
+        path_to_custom_interpreter : str, optional
+            Path to a custom interpreter the client should use regardless of
+            the interpreter selected in Spyder Preferences.
+            The default is None.
 
         Returns
         -------
@@ -563,7 +575,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             is_cython=is_cython,
             is_pylab=is_pylab,
             is_sympy=is_sympy,
-            given_name=given_name)
+            given_name=given_name,
+            path_to_custom_interpreter=path_to_custom_interpreter)
 
     def create_client_for_file(self, filename, is_cython=False):
         """
@@ -650,10 +663,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         clear_variables = params['clear_namespace']
         console_namespace = params['console_namespace']
         run_method = params.get('run_method', 'runfile')
-
-        # Escape single and double quotes in fname and dirname.
-        # Fixes spyder-ide/spyder#2158.
-        filename = filename.replace("'", r"\'").replace('"', r'\"')
 
         self.run_script(
             filename,

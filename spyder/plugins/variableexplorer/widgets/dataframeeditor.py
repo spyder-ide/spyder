@@ -37,14 +37,16 @@ import io
 from time import perf_counter
 
 # Third party imports
+from packaging.version import parse
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
-                         QItemSelectionModel, QEvent)
+from qtpy.QtCore import (
+    QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, Qt, Signal,
+    Slot)
 from qtpy.QtGui import QColor, QCursor
-from qtpy.QtWidgets import (QApplication, QCheckBox, QGridLayout, QHBoxLayout,
-                            QInputDialog, QLineEdit, QMenu, QMessageBox,
-                            QPushButton, QTableView, QScrollBar, QTableWidget,
-                            QFrame, QItemDelegate)
+from qtpy.QtWidgets import (
+    QApplication, QCheckBox, QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
+    QMenu, QMessageBox, QPushButton, QTableView, QScrollBar, QTableWidget,
+    QFrame, QItemDelegate)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -242,7 +244,7 @@ class DataFrameModel(QAbstractTableModel):
         if self.df.shape[0] == 0: # If no rows to compute max/min then return
             return
         self.max_min_col = []
-        for __, col in self.df.iteritems():
+        for __, col in self.df.items():
             # This is necessary to catch an error in Pandas when computing
             # the maximum of a column.
             # Fixes spyder-ide/spyder#17145
@@ -377,7 +379,7 @@ class DataFrameModel(QAbstractTableModel):
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:
                 return _("It is not possible to display this value because\n"
-                         "an error ocurred while trying to do it")
+                         "an error occurred while trying to do it")
         return to_qvariant()
 
     def recalculate_index(self):
@@ -1384,7 +1386,11 @@ def test_edit(data, title="", parent=None):
 def test():
     """DataFrame editor test"""
     from numpy import nan
-    from pandas.util.testing import assert_frame_equal, assert_series_equal
+
+    if parse(pd.__version__) >= parse('2.0.0'):
+        from pandas.testing import assert_frame_equal, assert_series_equal
+    else:
+        from pandas.util.testing import assert_frame_equal, assert_series_equal
 
     app = qapplication()                  # analysis:ignore
 

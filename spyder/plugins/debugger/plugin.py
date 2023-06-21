@@ -18,7 +18,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.shellconnect.mixins import ShellConnectMixin
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
@@ -35,10 +35,6 @@ from spyder.plugins.run.api import (
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
-
-
-# Localization
-_ = get_translation("spyder")
 
 
 class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
@@ -542,7 +538,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
 
         run_input: CellRun = input['run_input']
         if run_input['copy']:
-            console.run_selection("%%debug\n" + run_input['cell'])
+            code = run_input['cell']
+            if not code.strip():
+                # Empty cell
+                return
+            console.run_selection("%%debug\n" + code)
             return
 
         exec_params = conf['params']
@@ -566,7 +566,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
             return
 
         run_input: SelectionRun = input['run_input']
-        run_input['selection'] = "%%debug\n" + run_input['selection']
+        code = run_input['selection']
+        if not code.strip():
+            # No selection
+            return
+
+        run_input['selection'] = "%%debug\n" + code
 
         console.exec_selection(input, conf)
 

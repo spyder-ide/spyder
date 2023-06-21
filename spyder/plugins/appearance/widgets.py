@@ -10,11 +10,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
                             QHBoxLayout, QVBoxLayout, QWidget)
 
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils import syntaxhighlighters
-
-# Localization
-_ = get_translation('spyder')
 
 
 class SchemeEditor(QDialog):
