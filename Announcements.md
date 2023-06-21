@@ -169,7 +169,7 @@ For a more complete list of changes, please see our
 
 You can easily install this alpha if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge spyder=6.0.0a1
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0a1
 
 Or you can use pip with this command:
 

@@ -20,7 +20,7 @@
 * Restore ability to load Hdf5 and Dicom files through the Variable Explorer
   (this was working in Spyder 4 and before).
 
-## New API features
+### New API features
 
 * Generalize Run plugin to support generic inputs and executors. This allows
   plugins to declare what kind of inputs (i.e. file, cell or selection) they
