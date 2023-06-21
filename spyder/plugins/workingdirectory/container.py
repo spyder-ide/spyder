@@ -17,7 +17,7 @@ import re
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Signal, Slot
-from qtpy.QtWidgets import QSizePolicy, QWidget, QComboBox
+from qtpy.QtWidgets import QSizePolicy, QWidget
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
