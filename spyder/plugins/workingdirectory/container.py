@@ -89,7 +89,7 @@ class WorkingDirectoryComboBox(PathComboBox):
         hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
         if hide_status:
             hide_status()
-        super().focusOutEvent(self, event)
+        super().focusOutEvent(event)
 
     # --- Own methods
     def valid_text(self):
