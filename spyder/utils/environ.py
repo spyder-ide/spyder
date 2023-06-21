@@ -63,21 +63,17 @@ def get_user_environment_variables():
         )
     else:
         shell = os.environ.get("SHELL", "/bin/bash")
-        # -l and -i flags are mutually exclusive. To source both interactive
-        # and login startup files, run each flag in sequence.
-        for flag in ['-l', '-i']:
-            cmd = (
-                f"{shell} {flag} -c "
-                f"\"{sys.executable} -c "
-                "'import os; print(dict(os.environ))'\""
-            )
-            proc = run_shell_command(cmd, env=env_var, text=True)
-            try:
-                # In case of hangs, use a timeout
-                stdout, stderr = proc.communicate(timeout=1)
-                env_var = eval(stdout, None)
-            except TimeoutError:
-                pass
+        # -i flag causes Spyder to hang, so ~/.bashrc cannot be sourced
+        cmd = (
+            f"{shell} -l -c \"{sys.executable} -c "
+            "'import os; print(dict(os.environ))'\""
+        )
+        proc = run_shell_command(cmd, env={}, text=True)
+        try:
+            stdout, stderr = proc.communicate()
+            env_var = eval(stdout, None)
+        except Exception:
+            pass
 
     return env_var
 
