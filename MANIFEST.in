@@ -5,6 +5,7 @@ include img_src/oxygen_icon_set/*
 include MANIFEST.in
 include README.md
 include LICENSE.txt
+include changelogs/Spyder-5.md
 include changelogs/Spyder-6.md
 include AUTHORS.txt
 include NOTICE.txt
