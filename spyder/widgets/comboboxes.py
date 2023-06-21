@@ -309,11 +309,8 @@ class PathComboBox(EditableComboBox):
     def _complete_options(self):
         """Find available completion options."""
         text = to_text_string(self.currentText())
-        glob_opts = glob.glob(text + "*")
-        opts = sorted(
-            [os.path.normcase(opt) for opt in glob_opts if osp.isdir(opt)])
-        opts += sorted(
-            [os.path.normcase(opt) for opt in glob_opts if opt not in opts])
+        opts = glob.glob(text + "*")
+        opts = sorted([opt for opt in opts if osp.isdir(opt)])
 
         completer = QCompleter(opts, self)
         qss = str(APP_STYLESHEET)
@@ -330,10 +327,7 @@ class PathComboBox(EditableComboBox):
         if len(opts) == 0:
             return
         if len(opts) == 1:
-            path = opts[0]
-            if osp.isdir(path):
-                path += os.sep
-            self.set_current_text(path)
+            self.set_current_text(opts[0] + os.sep)
             self.hide_completer()
         else:
             self.set_current_text(os.path.commonprefix(opts))
