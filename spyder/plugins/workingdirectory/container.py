@@ -90,7 +90,7 @@ class WorkingDirectoryComboBox(PathComboBox):
         hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
         if hide_status:
             hide_status()
-        QComboBox.focusOutEvent(self, event)
+        super().focusOutEvent(self, event)
 
     # --- Own methods
     def valid_text(self):
@@ -98,6 +98,7 @@ class WorkingDirectoryComboBox(PathComboBox):
         directory = self.currentText()
         file = None
         line_number = None
+
         if directory:
             match = re.fullmatch(r"(?:(\d+):)?(.+)", directory[::-1])
             if match:
@@ -105,8 +106,10 @@ class WorkingDirectoryComboBox(PathComboBox):
                 if line_number:
                     line_number = int(line_number[::-1])
                 directory = directory[::-1]
+
             directory = osp.abspath(directory)
-            # It the directory is a file, open containing directory
+
+            # If the directory is actually a file, open containing directory
             if os.path.isfile(directory):
                 file = os.path.basename(directory)
                 directory = os.path.dirname(directory)
@@ -114,8 +117,10 @@ class WorkingDirectoryComboBox(PathComboBox):
             # If the directory name is malformed, open parent directory
             if not os.path.isdir(directory):
                 directory = os.path.dirname(directory)
+
             if self.is_valid(directory):
                 return directory, file, line_number
+
         return self.selected_text, file, line_number
 
     def add_current_text_if_valid(self):
@@ -129,7 +134,8 @@ class WorkingDirectoryComboBox(PathComboBox):
             return True
 
 
-# --- Container
+# ---- Container
+# ----------------------------------------------------------------------------
 class WorkingDirectorySpacer(QWidget):
     ID = 'working_directory_spacer'
 
