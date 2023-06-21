@@ -10,8 +10,6 @@
 Tests for the dataframe editor.
 """
 
-from __future__ import division
-
 # Standard library imports
 import os
 import sys
@@ -19,13 +17,15 @@ from datetime import datetime
 from unittest.mock import Mock, ANY
 
 # Third party imports
-from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
-                    MultiIndex, CategoricalIndex, Series)
+from flaky import flaky
+import numpy
+from packaging.version import parse
+from pandas import (
+    __version__ as pandas_version, DataFrame, date_range, read_csv, concat,
+    Index, RangeIndex, MultiIndex, CategoricalIndex, Series)
+import pytest
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
-import numpy
-import pytest
-from flaky import flaky
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -64,17 +64,27 @@ def data_index(dfi, i, j, role=Qt.DisplayRole):
     return dfi.data(dfi.createIndex(i, j), role)
 
 def generate_pandas_indexes():
-    """ Creates a dictionary of many possible pandas indexes """
-    return {
-        'Index': Index(list('ABCDEFGHIJKLMNOPQRST')),
+    """Creates a dictionary of many possible pandas indexes."""
+    # Float64Index was removed in Pandas 2.0
+    if parse(pandas_version) >= parse('2.0.0'):
+        float_index = 'Index'
+    else:
+        float_index = 'Float64Index'
+
+    indexes = {
         'RangeIndex': RangeIndex(0, 20),
-        'Float64Index': Index([i/10 for i in range(20)]),
+        float_index: Index([i/10 for i in range(20)]),
         'DatetimeIndex': date_range(start='2017-01-01', periods=20, freq='D'),
         'MultiIndex': MultiIndex.from_product(
             [list('ABCDEFGHIJ'), ('foo', 'bar')], names=['first', 'second']),
         'CategoricalIndex': CategoricalIndex(list('abcaadaccbbacabacccb'),
                                              categories=['a', 'b', 'c']),
-        }
+    }
+
+    if parse(pandas_version) < parse('2.0.0'):
+        indexes['Index'] = Index(list('ABCDEFGHIJKLMNOPQRST'))
+
+    return indexes
 
 
 # =============================================================================
@@ -350,40 +360,39 @@ def test_dataframemodel_get_bgcolor_with_missings():
 
 def test_dataframemodel_with_format_percent_d_and_nan():
     """
-    Test DataFrameModel with format `%d` and dataframe containing NaN
+    Test DataFrameModel with format `d` and dataframe containing NaN
 
     Regression test for spyder-ide/spyder#4139.
     """
     np_array = numpy.zeros(2)
     np_array[1] = numpy.nan
     dataframe = DataFrame(np_array)
-    dfm = DataFrameModel(dataframe, format='%d')
+    dfm = DataFrameModel(dataframe, format_spec='d')
     assert data(dfm, 0, 0) == '0'
     assert data(dfm, 1, 0) == 'nan'
 
 def test_change_format(qtbot, monkeypatch):
     mockQInputDialog = Mock()
-    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('%10.3e', True)
+    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('10.3e', True)
     monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor.QInputDialog', mockQInputDialog)
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     editor.change_format()
-    assert editor.dataModel._format == '%10.3e'
+    assert editor.dataModel._format_spec == '10.3e'
     assert editor.get_conf('dataframe_format') == '10.3e'
     editor.set_conf('dataframe_format', '.6g')
 
-def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch):
-    mockQInputDialog = Mock()
-    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('xxx%f', True)
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor'
-                        '.QInputDialog', mockQInputDialog)
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor'
-                        '.QMessageBox.critical', Mock())
-    df = DataFrame([[0]])
-    editor = DataFrameEditor(None)
-    editor.setup_and_check(df)
-    editor.change_format()
+
+def test_dataframemodel_with_format_thousands():
+    """
+    Check that format can include thousands separator.
+
+    Regression test for spyder-ide/spyder#14518.
+    """
+    dataframe = DataFrame([10000.1])
+    dfm = DataFrameModel(dataframe, format_spec=',.2f')
+    assert data(dfm, 0, 0) == '10,000.10'
 
 
 def test_dataframeeditor_with_various_indexes():
@@ -397,7 +406,7 @@ def test_dataframeeditor_with_various_indexes():
         assert header.headerData(0, Qt.Horizontal,
                                  Qt.DisplayRole) == "0"
 
-        if rng_name == "Index":
+        if rng_name == "Index" and parse(pandas_version) < parse('2.0.0'):
             assert data(dfm, 0, 0) == 'A'
             assert data(dfm, 1, 0) == 'B'
             assert data(dfm, 2, 0) == 'C'
@@ -407,7 +416,7 @@ def test_dataframeeditor_with_various_indexes():
             assert data(dfm, 1, 0) == '1'
             assert data(dfm, 2, 0) == '2'
             assert data(dfm, 19, 0) == '19'
-        elif rng_name == "Float64Index":
+        elif rng_name in ["Float64Index", "Index"]:
             assert data(dfm, 0, 0) == '0'
             assert data(dfm, 1, 0) == '0.1'
             assert data(dfm, 2, 0) == '0.2'
@@ -648,7 +657,7 @@ def test_dataframemodel_set_data_bool(monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    test_params = [numpy.bool_, numpy.bool, bool]
+    test_params = [numpy.bool_, bool]
     test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
     expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
 
@@ -676,7 +685,7 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    test_params = [numpy.bool_, numpy.bool, bool]
+    test_params = [numpy.bool_, bool]
     test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
     expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
 

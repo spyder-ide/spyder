@@ -4,10 +4,17 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Outline explorer editor server"""
+"""Outline explorer editor proxy."""
+
+# Standard library imports
+import logging
 
 # Local imports
 from spyder.plugins.outlineexplorer.api import OutlineExplorerProxy
+
+
+# Logging
+logger = logging.getLogger(__name__)
 
 
 class OutlineExplorerProxyEditor(OutlineExplorerProxy):
@@ -26,8 +33,12 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         self.is_tree_updated = False
 
     def update_outline_info(self, info):
+        logger.debug(
+            f"Updating info for proxy {id(self)} of file {self.fname}"
+        )
         self.sig_outline_explorer_data_changed.emit(info)
         self.info = info
+        self.is_tree_updated = False
 
     def emit_request_in_progress(self):
         self.sig_start_outline_spinner.emit()

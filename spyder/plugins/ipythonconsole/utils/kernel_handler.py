@@ -20,7 +20,7 @@ from qtpy.QtCore import QObject, QThread, Signal, Slot
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
     SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
@@ -30,15 +30,11 @@ from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.utils.programs import check_version_range
 
-
 if os.name == "nt":
     ssh_tunnel = zmqtunnel.paramiko_tunnel
 else:
     ssh_tunnel = openssh_tunnel
 
-
-# Localization
-_ = get_translation("spyder")
 
 PERMISSION_ERROR_MSG = _(
     "The directory {} is not writable and it is required to create IPython "
@@ -137,6 +133,14 @@ class KernelHandler(QObject):
     The kernel raised an error while connecting.
     """
 
+    _shutdown_thread_list = []
+    """List of running shutdown threads"""
+
+    _shutdown_thread_list_lock = Lock()
+    """
+    Lock to add threads to _shutdown_thread_list or clear that list.
+    """
+
     def __init__(
         self,
         connection_file,
@@ -165,7 +169,6 @@ class KernelHandler(QObject):
             self.handle_comm_ready)
 
         # Internal
-        self._shutdown_thread = None
         self._shutdown_lock = Lock()
         self._stdout_thread = None
         self._stderr_thread = None
@@ -489,7 +492,6 @@ class KernelHandler(QObject):
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
         self.close_comm()
-
         if shutdown_kernel and self.kernel_manager is not None:
             km = self.kernel_manager
             km.stop_restarter()
@@ -503,7 +505,8 @@ class KernelHandler(QObject):
                 shutdown_thread.run = self._thread_shutdown_kernel
                 shutdown_thread.start()
                 shutdown_thread.finished.connect(self.after_shutdown)
-                self._shutdown_thread = shutdown_thread
+                with self._shutdown_thread_list_lock:
+                    self._shutdown_thread_list.append(shutdown_thread)
 
         if (
             self.kernel_client is not None
@@ -515,7 +518,6 @@ class KernelHandler(QObject):
         """Cleanup after shutdown"""
         self.close_std_threads()
         self.kernel_comm.remove(only_closing=True)
-        self._shutdown_thread = None
 
     def _thread_shutdown_kernel(self):
         """Shutdown kernel."""
@@ -531,18 +533,19 @@ class KernelHandler(QObject):
             # kernel was externally killed
             pass
 
-    def wait_shutdown_thread(self):
+    @classmethod
+    def wait_all_shutdown_threads(cls):
         """Wait shutdown thread."""
-        thread = self._shutdown_thread
-        if thread is None:
-            return
-        if thread.isRunning():
-            try:
-                thread.kernel_manager._kill_kernel()
-            except Exception:
-                pass
-            thread.quit()
-            thread.wait()
+        with cls._shutdown_thread_list_lock:
+            for thread in cls._shutdown_thread_list:
+                if thread.isRunning():
+                    try:
+                        thread.kernel_manager._kill_kernel()
+                    except Exception:
+                        pass
+                    thread.quit()
+                    thread.wait()
+            cls._shutdown_thread_list = []
 
     def copy(self):
         """Copy kernel."""

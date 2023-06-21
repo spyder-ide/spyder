@@ -32,6 +32,7 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.jedi_definition.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_definition.follow_imports` | `boolean` | The goto call will follow imports. | `true` |
 | `pylsp.plugins.jedi_definition.follow_builtin_imports` | `boolean` | If follow_imports is True will decide if it follow builtin imports. | `true` |
+| `pylsp.plugins.jedi_definition.follow_builtin_definitions` | `boolean` | Follow builtin and extension definitions to stubs. | `true` |
 | `pylsp.plugins.jedi_hover.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_references.enabled` | `boolean` | Enable or disable the plugin. | `true` |
 | `pylsp.plugins.jedi_signature_help.enabled` | `boolean` | Enable or disable the plugin. | `true` |

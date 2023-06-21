@@ -27,7 +27,6 @@ from spyder.plugins.completion.providers.languageserver.transport.tcp.producer i
     TCPLanguageServerClient)
 from spyder.plugins.completion.providers.languageserver.transport.stdio.producer import (
     StdioLanguageServerClient)
-from spyder.py3compat import getcwd
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ parser.add_argument('--server-log-file',
                     default=None,
                     help="Log file to register ls-server activity")
 parser.add_argument('--folder',
-                    default=getcwd(),
+                    default=os.getcwd(),
                     help="Initial current working directory used to "
                          "initialize ls-server")
 parser.add_argument('--external-server',

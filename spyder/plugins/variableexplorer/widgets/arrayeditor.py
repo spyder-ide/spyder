@@ -14,7 +14,7 @@ NumPy Array Editor Dialog based on Qt
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
+import io
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -35,55 +35,54 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
-from spyder.py3compat import (io, is_binary_string, is_string,
-                              is_text_string, PY3, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import (is_binary_string, is_string, is_text_string,
+                              to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
-# Note: string and unicode data types will be formatted with '%s' (see below)
+# Note: string and unicode data types will be formatted with 's' (see below)
 SUPPORTED_FORMATS = {
-    'single': '%.6g',
-    'double': '%.6g',
-    'float_': '%.6g',
-    'longfloat': '%.6g',
-    'float16': '%.6g',
-    'float32': '%.6g',
-    'float64': '%.6g',
-    'float96': '%.6g',
-    'float128': '%.6g',
-    'csingle': '%r',
-    'complex_': '%r',
-    'clongfloat': '%r',
-    'complex64': '%r',
-    'complex128': '%r',
-    'complex192': '%r',
-    'complex256': '%r',
-    'byte': '%d',
-    'bytes8': '%s',
-    'short': '%d',
-    'intc': '%d',
-    'int_': '%d',
-    'longlong': '%d',
-    'intp': '%d',
-    'int8': '%d',
-    'int16': '%d',
-    'int32': '%d',
-    'int64': '%d',
-    'ubyte': '%d',
-    'ushort': '%d',
-    'uintc': '%d',
-    'uint': '%d',
-    'ulonglong': '%d',
-    'uintp': '%d',
-    'uint8': '%d',
-    'uint16': '%d',
-    'uint32': '%d',
-    'uint64': '%d',
-    'bool_': '%r',
-    'bool8': '%r',
-    'bool': '%r',
+    'single': '.6g',
+    'double': '.6g',
+    'float_': '.6g',
+    'longfloat': '.6g',
+    'float16': '.6g',
+    'float32': '.6g',
+    'float64': '.6g',
+    'float96': '.6g',
+    'float128': '.6g',
+    'csingle': '.6g',
+    'complex_': '.6g',
+    'clongfloat': '.6g',
+    'complex64': '.6g',
+    'complex128': '.6g',
+    'complex192': '.6g',
+    'complex256': '.6g',
+    'byte': 'd',
+    'bytes8': 's',
+    'short': 'd',
+    'intc': 'd',
+    'int_': 'd',
+    'longlong': 'd',
+    'intp': 'd',
+    'int8': 'd',
+    'int16': 'd',
+    'int32': 'd',
+    'int64': 'd',
+    'ubyte': 'd',
+    'ushort': 'd',
+    'uintc': 'd',
+    'uint': 'd',
+    'ulonglong': 'd',
+    'uintp': 'd',
+    'uint8': 'd',
+    'uint16': 'd',
+    'uint32': 'd',
+    'uint64': 'd',
+    'bool_': '',
+    'bool8': '',
+    'bool': '',
 }
 
 
@@ -121,7 +120,7 @@ class ArrayModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, data, format="%.6g", xlabels=None, ylabels=None,
+    def __init__(self, data, format_spec=".6g", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
@@ -146,7 +145,7 @@ class ArrayModel(QAbstractTableModel):
         self.alp = .6 # Alpha-channel
 
         self._data = data
-        self._format = format
+        self._format_spec = format_spec
 
         self.total_rows = self._data.shape[0]
         self.total_cols = self._data.shape[1]
@@ -193,18 +192,18 @@ class ArrayModel(QAbstractTableModel):
             else:
                 self.cols_loaded = self.total_cols
 
-    def get_format(self):
+    def get_format_spec(self):
         """Return current format"""
-        # Avoid accessing the private attribute _format from outside
-        return self._format
+        # Avoid accessing the private attribute _format_spec from outside
+        return self._format_spec
 
     def get_data(self):
         """Return data"""
         return self._data
 
-    def set_format(self, format):
+    def set_format_spec(self, format_spec):
         """Change display format"""
-        self._format = format
+        self._format_spec = format_spec
         self.reset()
 
     def columnCount(self, qindex=QModelIndex()):
@@ -289,7 +288,8 @@ class ArrayModel(QAbstractTableModel):
                     return value_to_display(value)
                 else:
                     try:
-                        return to_qvariant(self._format % value)
+                        format_spec = self._format_spec
+                        return to_qvariant(format(value, format_spec))
                     except TypeError:
                         self.readonly = True
                         return repr(value)
@@ -347,7 +347,8 @@ class ArrayModel(QAbstractTableModel):
             return False
 
         # Add change to self.changes
-        self.changes[(i, j)] = val
+        # Use self.test_array to convert to correct dtype
+        self.changes[(i, j)] = self.test_array[0]
         self.dataChanged.emit(index, index)
 
         if not is_string(val):
@@ -558,13 +559,11 @@ class ArrayView(QTableView):
             row_max = self.model().total_rows-1
 
         _data = self.model().get_data()
-        if PY3:
-            output = io.BytesIO()
-        else:
-            output = io.StringIO()
+        output = io.BytesIO()
         try:
+            fmt = '%' + self.model().get_format_spec()
             np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t', fmt=self.model().get_format())
+                       delimiter='\t', fmt=fmt)
         except:
             QMessageBox.warning(self, _("Warning"),
                                 _("It was not possible to copy values for "
@@ -596,8 +595,8 @@ class ArrayEditorWidget(QWidget):
             self.old_data_shape = self.data.shape
             self.data.shape = (1, 1)
 
-        format = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
-        self.model = ArrayModel(self.data, format=format, xlabels=xlabels,
+        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, 's')
+        self.model = ArrayModel(self.data, format_spec=format_spec, xlabels=xlabels,
                                 ylabels=ylabels, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
 
@@ -620,18 +619,18 @@ class ArrayEditorWidget(QWidget):
     @Slot()
     def change_format(self):
         """Change display format"""
-        format, valid = QInputDialog.getText(self, _( 'Format'),
+        format_spec, valid = QInputDialog.getText(self, _( 'Format'),
                                  _( "Float formatting"),
-                                 QLineEdit.Normal, self.model.get_format())
+                                 QLineEdit.Normal, self.model.get_format_spec())
         if valid:
-            format = str(format)
+            format_spec = str(format_spec)
             try:
-                format % 1.1
+                format(1.1, format_spec)
             except:
                 QMessageBox.critical(self, _("Error"),
-                                     _("Format (%s) is incorrect") % format)
+                                     _("Format (%s) is incorrect") % format_spec)
                 return
-            self.model.set_format(format)
+            self.model.set_format_spec(format_spec)
 
 
 class ArrayEditor(BaseDialog):
@@ -663,8 +662,15 @@ class ArrayEditor(BaseDialog):
         """
         self.data = data
         readonly = readonly or not self.data.flags.writeable
-        is_record_array = data.dtype.names is not None
         is_masked_array = isinstance(data, np.ma.MaskedArray)
+
+        # This is necessary in case users subclass ndarray and set the dtype
+        # to an object that is not an actual dtype.
+        # Fixes spyder-ide/spyder#20462
+        if hasattr(data.dtype, 'names'):
+            is_record_array = data.dtype.names is not None
+        else:
+            is_record_array = False
 
         if data.ndim > 3:
             self.error(_("Arrays with more than 3 dimensions are not "
@@ -679,7 +685,14 @@ class ArrayEditor(BaseDialog):
                          "number"))
             return False
         if not is_record_array:
-            dtn = data.dtype.name
+            # This is necessary in case users subclass ndarray and set the
+            # dtype to an object that is not an actual dtype.
+            # Fixes spyder-ide/spyder#20462
+            if hasattr(data.dtype, 'name'):
+                dtn = data.dtype.name
+            else:
+                dtn = 'Unknown'
+
             if dtn == 'object':
                 # If the array doesn't have shape, we can't display it
                 if data.shape == ():
@@ -691,7 +704,7 @@ class ArrayEditor(BaseDialog):
                 self.readonly = readonly = True
             elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
                     and not dtn.startswith('unicode')):
-                arr = _("%s arrays") % data.dtype.name
+                arr = _("%s arrays") % dtn
                 self.error(_("%s are currently not supported") % arr)
                 return False
 

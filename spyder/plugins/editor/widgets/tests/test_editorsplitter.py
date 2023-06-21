@@ -27,7 +27,7 @@ from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
 # ---- Qt Test Fixtures
 
 def editor_stack():
-    editor_stack = EditorStack(None, [])
+    editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack
@@ -388,7 +388,6 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
                                              (False, 'foo.py', [1, 1, 1])]
 
 
-@pytest.mark.slow
 @pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Makes other tests fail on Windows")

@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QSizePolicy, QWidget, QComboBox
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.config.base import get_home_dir
@@ -30,8 +30,7 @@ from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 from spyder.widgets.comboboxes import PathComboBox
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 

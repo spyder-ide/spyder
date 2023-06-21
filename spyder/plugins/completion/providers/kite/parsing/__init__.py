@@ -8,9 +8,6 @@
 import logging
 import re
 
-# Local imports
-from spyder.py3compat import PY2
-
 
 ident_re = r'[a-zA-Z_][a-zA-Z0-9_]*'
 dotted_path_re = r'{ident}(?:\.{ident})*'.format(ident=ident_re)
@@ -45,9 +42,6 @@ def find_returning_function_path(text, cursor, line_start='\n'):
     name = expr.split('.', 1)[0]
     if not re.match(ident_full_re, name):
         return None
-
-    if PY2:
-        line_start = line_start.encode('utf-8')
 
     assign_re = r'{line_start}\s*{name}\s*=\s*({dotted_path})\('.format(
         line_start=re.escape(line_start),

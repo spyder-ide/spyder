@@ -19,13 +19,14 @@ from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.translations import get_translation
-from spyder.config.base import (get_safe_mode, is_pynsist, running_in_mac_app,
+from spyder.api.translations import _
+from spyder.config.base import (get_safe_mode, is_conda_based_app,
                                 running_under_pytest)
 from spyder.plugins.ipythonconsole import (
-    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SpyderKernelError)
-from spyder.utils.conda import (add_quotes, get_conda_activation_script,
-                                get_conda_env_path, is_conda_env)
+    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
+    SpyderKernelError)
+from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
+                                find_conda)
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter, is_module_installed
@@ -33,33 +34,32 @@ from spyder.utils.programs import is_python_interpreter, is_module_installed
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
-
-
-# Localization
-_ = get_translation('spyder')
-
 ERROR_SPYDER_KERNEL_INSTALLED = _(
     "The Python environment or installation whose interpreter is located at"
     "<pre>"
     "    <tt>{0}</tt>"
     "</pre>"
-    "doesn't have the <tt>spyder-kernels</tt> module installed. Without this "
-    "module is not possible for Spyder to create a console for you.<br><br>"
+    "doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. "
+    "Without this module and specific version is not possible for Spyder to "
+    "create a console for you.<br><br>"
     "You can install it by activating your environment (if necessary) and "
-    "running in a system terminal:"
+    "then running in a system terminal:"
     "<pre>"
-    "    <tt>{1}</tt>"
+    "    <tt>{2}</tt>"
     "</pre>"
     "or"
     "<pre>"
-    "    <tt>{2}</tt>"
+    "    <tt>{3}</tt>"
     "</pre>")
 
 
 def is_different_interpreter(pyexec):
     """Check that pyexec is a different interpreter from sys.executable."""
-    executable_validation = osp.basename(pyexec).startswith('python')
-    directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
+    # Paths may be symlinks
+    real_pyexe = osp.realpath(pyexec)
+    real_sys_exe = osp.realpath(sys.executable)
+    executable_validation = osp.basename(real_pyexe).startswith('python')
+    directory_validation = osp.dirname(real_pyexe) != osp.dirname(real_sys_exe)
     return directory_validation and executable_validation
 
 
@@ -87,6 +87,7 @@ def has_spyder_kernels(pyexec):
     """Check if env has spyder kernels."""
     return is_module_installed(
         'spyder_kernels',
+        version=SPYDER_KERNELS_VERSION,
         interpreter=pyexec)
 
 
@@ -99,12 +100,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     CONF_SECTION = 'ipython_console'
 
     def __init__(self, is_cython=False, is_pylab=False,
-                 is_sympy=False, **kwargs):
+                 is_sympy=False, path_to_custom_interpreter=None,
+                 **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
         self.is_pylab = is_pylab
         self.is_sympy = is_sympy
-
+        self.path_to_custom_interpreter = path_to_custom_interpreter
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
         self.resource_dir = ''
@@ -113,17 +115,23 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     def argv(self):
         """Command to start kernels"""
         # Python interpreter used to start kernels
-        if self.get_conf('default', section='main_interpreter'):
+        if (
+            self.get_conf('default', section='main_interpreter')
+            and not self.path_to_custom_interpreter
+        ):
             pyexec = get_python_executable()
         else:
             pyexec = self.get_conf('executable', section='main_interpreter')
+            if self.path_to_custom_interpreter:
+                pyexec = self.path_to_custom_interpreter
             if not has_spyder_kernels(pyexec):
                 raise SpyderKernelError(
                     ERROR_SPYDER_KERNEL_INSTALLED.format(
-                          pyexec,
-                          SPYDER_KERNELS_CONDA,
-                          SPYDER_KERNELS_PIP
-                      )
+                        pyexec,
+                        SPYDER_KERNELS_VERSION,
+                        SPYDER_KERNELS_CONDA,
+                        SPYDER_KERNELS_PIP
+                    )
                 )
                 return
             if not is_python_interpreter(pyexec):
@@ -136,27 +144,24 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         is_different = is_different_interpreter(pyexec)
 
         # Command used to start kernels
-        if is_different and is_conda_env(pyexec=pyexec):
-            # If this is a conda environment we need to call an intermediate
-            # activation script to correctly activate the spyder-kernel
+        kernel_cmd = [
+            pyexec,
+            # This is necessary to avoid a spurious message on Windows.
+            # Fixes spyder-ide/spyder#20800.
+            '-Xfrozen_modules=off',
+            '-m', 'spyder_kernels.console',
+            '-f', '{connection_file}'
+        ]
 
-            # If changes are needed on this section make sure you also update
-            # the activation scripts at spyder/plugins/ipythonconsole/scripts/
-            kernel_cmd = [
-                get_activation_script(),  # This is bundled with Spyder
-                get_conda_activation_script(),
-                get_conda_env_path(pyexec),  # Might be external
-                pyexec,
-                '{connection_file}',
+        if is_different and is_conda_env(pyexec=pyexec):
+            # If executable is a conda environment and different from Spyder's
+            # runtime environment, we need to activate the environment to run
+            # spyder-kernels
+            kernel_cmd[:0] = [
+                find_conda(), 'run',
+                '-p', get_conda_env_path(pyexec),
             ]
-        else:
-            kernel_cmd = [
-                pyexec,
-                '-m',
-                'spyder_kernels.console',
-                '-f',
-                '{connection_file}'
-            ]
+
         logger.info('Kernel command: {}'.format(kernel_cmd))
 
         return kernel_cmd
@@ -187,7 +192,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
-            'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
+            'SPY_EXTERNAL_INTERPRETER': (not default_interpreter
+                or self.path_to_custom_interpreter),
             'SPY_UMR_ENABLED': self.get_conf(
                 'umr/enabled', section='main_interpreter'),
             'SPY_UMR_VERBOSE': self.get_conf(
@@ -227,14 +233,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             env_vars['SPY_RUN_CYTHON'] = True
 
         # App considerations
-        if (running_in_mac_app() or is_pynsist()):
-            if default_interpreter:
-                # See spyder-ide/spyder#16927
-                # See spyder-ide/spyder#16828
-                # See spyder-ide/spyder#17552
-                env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
-            else:
-                env_vars.pop('PYTHONHOME', None)
+        # ??? Do we need this?
+        if is_conda_based_app() and default_interpreter:
+            # See spyder-ide/spyder#16927
+            # See spyder-ide/spyder#16828
+            # See spyder-ide/spyder#17552
+            env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
 
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.

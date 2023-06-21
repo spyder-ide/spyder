@@ -1,6 +1,6 @@
 name: spy-inst
 channels:
-  - napari/label/bundle_tools
+  - napari/label/bundle_tools_2
   - conda-forge
 dependencies:
   - boa

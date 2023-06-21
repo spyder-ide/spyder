@@ -11,13 +11,9 @@ from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QToolBar
 from qtpy.QtPrintSupport import QPrinter, QPrintPreviewDialog
 
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
-
-
-# Translations
-_ = get_translation('spyder')
 
 
 # TODO: Implement header and footer support

@@ -33,7 +33,7 @@ def test_conda_interpreter_status(status_bar, qtbot):
     plugin.add_status_widget(w)
 
     name_base = 'conda: base'
-    name_test = 'conda: test'
+    name_test = 'conda: jedi-test-env'
 
     # Wait until envs are computed
     qtbot.wait(4000)
@@ -47,7 +47,7 @@ def test_conda_interpreter_status(status_bar, qtbot):
     # Update to the foo conda environment
     path_foo, version = w.envs[name_test]
     w.update_interpreter(path_foo)
-    expected = 'conda: test ({})'.format(version)
+    expected = 'conda: jedi-test-env ({})'.format(version)
     assert expected == w._get_env_info(path_foo)
 
 

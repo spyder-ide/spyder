@@ -194,6 +194,11 @@ DEFAULTS = [
               'pdb_stop_first_line': True,
               'breakpoints_panel': True,
              }),
+            ('run',
+             {
+              'save_all_before_run': True,
+              'run_cell_copy': False,
+             }),
             ('plots',
              {
               'mute_inline_plotting': True,
@@ -247,9 +252,6 @@ DEFAULTS = [
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
               'max_recent_files': 20,
-              'save_all_before_run': True,
-              'focus_to_editor': True,
-              'run_cell_copy': False,
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
@@ -373,8 +375,7 @@ DEFAULTS = [
              }),
             ('shortcuts',
              {
-              # ---- Global ----
-              # -- In app/spyder.py
+              # -- Application --
               '_/close pane': "Shift+Ctrl+F4",
               '_/lock unlock panes': "Shift+Ctrl+F5",
               '_/use next layout': "Shift+Alt+PgDown",
@@ -386,13 +387,10 @@ DEFAULTS = [
               '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
-              # -- In plugins/editor
-              '_/file switcher': 'Ctrl+P',
-              '_/symbol finder': 'Ctrl+Alt+P',
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
-              # -- In plugins/init
+              # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
@@ -406,15 +404,15 @@ DEFAULTS = [
               '_/switch to plots': "Ctrl+Shift+J" if MAC else "Ctrl+Shift+G",
               '_/switch to pylint': "Ctrl+Shift+C",
               '_/switch to profiler': "Ctrl+Shift+R",
-              # -- In widgets/findreplace.py
+              '_/switch to breakpoints': "Ctrl+Shift+B",
+              # -- Find/replace --
               'find_replace/find text': "Ctrl+F",
               'find_replace/find next': "Ctrl+G" if MAC else "F3",
               'find_replace/find previous': (
                   "Ctrl+Shift+G" if MAC else "Shift+F3"),
               'find_replace/replace text': "Ctrl+R",
               'find_replace/hide find and replace': "Escape",
-              # ---- Editor ----
-              # -- In widgets/sourcecode/codeeditor.py
+              # -- Editor --
               'editor/code completion': CTRL+'+Space',
               'editor/duplicate line up': (
                   "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
@@ -430,6 +428,7 @@ DEFAULTS = [
               'editor/go to new line': "Ctrl+Shift+Return",
               'editor/go to definition': "F3" if MAC else "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
+              'editor/create_new_cell': "Ctrl+2",
               'editor/blockcomment': "Ctrl+4",
               'editor/unblockcomment': "Ctrl+5",
               'editor/start of line': "Meta+A",
@@ -455,11 +454,7 @@ DEFAULTS = [
               'editor/paste': 'Ctrl+V',
               'editor/delete': 'Del',
               'editor/select all': "Ctrl+A",
-              # -- In widgets/editor.py
               'editor/inspect current object': 'Ctrl+I',
-              'editor/run selection': "F9",
-              'editor/run to line': 'Shift+F9',
-              'editor/run from line': CTRL + '+F9',
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': CTRL + '+Shift+Tab',
               'editor/go to next file': CTRL + '+Tab',
@@ -485,26 +480,30 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
+              'editor/run selection and advance': "F9",
+              'editor/run selection up to line': 'Shift+F9',
+              'editor/run selection from line': CTRL + '+F9',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
-              'editor/re-run last cell': 'Alt+Return',
+              'editor/re-run cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
               'editor/autoformatting': "Ctrl+Alt+I",
               'editor/show in external file explorer': '',
-              # -- In Breakpoints
-              '_/switch to breakpoints': "Ctrl+Shift+B",
-              # ---- Consoles (in widgets/shell) ----
+              # -- Internal console --
               'console/inspect current object': "Ctrl+I",
               'console/clear shell': "Ctrl+L",
               'console/clear line': "Shift+Escape",
-              # ---- In Pylint ----
-              'pylint/run analysis': "F8",
-              # ---- In Profiler ----
-              'profiler/run profiler': "F10",
-              # ---- In widgets/ipythonconsole/shell.py ----
+              # -- Pylint --
+              'pylint/run file in pylint': "F8",
+              # -- Profiler --
+              'profiler/run file in profiler': "F10",
+              # -- Switcher --
+              'switcher/file switcher': 'Ctrl+P',
+              'switcher/symbol finder': 'Ctrl+Alt+P',
+              # -- IPython console --
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
               'ipython_console/restart kernel': "Ctrl+.",
@@ -513,20 +512,19 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              # ---- In widgets/arraybuider.py ----
+              # -- Array buider --
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
-              # ---- In widgets/variableexplorer/arrayeditor.py ----
+              # -- Variable explorer --
               'variable_explorer/copy': 'Ctrl+C',
-              # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
-              # ---- In widgets/debugger/framesbrowser.py ----
+              # -- Debugger --
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
-              'debugger/debug file': "Ctrl+F5",
-              'debugger/debug cell': 'Alt+Shift+Return',
-              'debugger/debug selection': '',
+              'debugger/run file in debugger': "Ctrl+F5",
+              'debugger/run cell in debugger': 'Alt+Shift+Return',
+              'debugger/run selection in debugger': '',
               'debugger/next': "Ctrl+F10",
               'debugger/continue': "Ctrl+F12",
               'debugger/step': "Ctrl+F11",
@@ -534,7 +532,7 @@ DEFAULTS = [
               'debugger/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
-              # ---- In widgets/plots/figurebrowser.py ----
+              # -- Plots --
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
@@ -544,12 +542,17 @@ DEFAULTS = [
               'plots/close all': 'Ctrl+Shift+W',
               'plots/zoom in': "Ctrl++",
               'plots/zoom out': "Ctrl+-",
-              # ---- In widgets/explorer ----
+              # -- Files --
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
-              'explorer/copy absolute path': 'Ctrl+Alt+C',
-              'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
-              # ---- In plugins/findinfiles/plugin ----
+              'explorer/copy absolute path': 'Alt+Shift+C',
+              'explorer/copy relative path': 'Alt+Shift+D',
+              # -- Projects --
+              'project_explorer/copy file': 'Ctrl+C',
+              'project_explorer/paste file': 'Ctrl+V',
+              'project_explorer/copy absolute path': 'Alt+Shift+C',
+              'project_explorer/copy relative path': 'Alt+Shift+D',
+              # -- Find --
               'find_in_files/find in files': 'Alt+Shift+F',
               }),
             ('appearance', APPEARANCE),
@@ -586,6 +589,7 @@ NAME_MAP = {
             'layout_settings',
             'recent_files',
             'splitter_state',
+            'file_uuids'
             ]
          ),
         ('explorer', [
@@ -628,6 +632,8 @@ NAME_MAP = {
             'configurations',
             'defaultconfiguration',
             'default/wdir/fixed_directory',
+            'last_used_parameters',
+            'parameters'
           ]
          ),
         ('workingdir', [
@@ -653,4 +659,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '75.0.0'
+CONF_VERSION = '77.0.0'

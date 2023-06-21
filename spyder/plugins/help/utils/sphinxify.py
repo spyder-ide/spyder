@@ -24,6 +24,7 @@ part of the `SageMath <https://www.sagemath.org/>`_ system.
 import codecs
 import os
 import os.path as osp
+import pathlib
 import shutil
 import sys
 from tempfile import mkdtemp
@@ -38,13 +39,8 @@ from sphinx.application import Sphinx
 # Local imports
 from spyder.config.base import (_, get_module_data_path,
                                 get_module_source_path)
-from spyder.py3compat import PY2
 from spyder.utils import encoding
 
-if PY2:
-    import pathlib2 as pathlib
-else:
-    import pathlib
 
 #-----------------------------------------------------------------------------
 # Globals and constants

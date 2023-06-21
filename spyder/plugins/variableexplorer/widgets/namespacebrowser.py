@@ -29,7 +29,7 @@ from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
 from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
@@ -38,9 +38,6 @@ from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
 from spyder.widgets.helperwidgets import FinderWidget
 
-
-# Localization
-_ = get_translation('spyder')
 
 # Constants
 VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
@@ -163,6 +160,22 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         except TypeError:
             pass
 
+    @Slot(dict)
+    def update_view(self, kernel_state):
+        """
+        Update namespace view and other properties from a new kernel state.
+        
+        Parameters
+        ----------
+        kernel_state: dict
+            A new kernel state. The structure of this dictionary is defined in
+            the `SpyderKernel.get_state` method of Spyder-kernels.
+        """
+        if "namespace_view" in kernel_state:
+            self.process_remote_view(kernel_state.pop("namespace_view"))
+        if "var_properties" in kernel_state:
+            self.set_var_properties(kernel_state.pop("var_properties"))
+
     def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
         if not self.shellwidget.spyder_kernel_ready:
@@ -228,13 +241,32 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.filename = remove_backslashes(self.filename)
             extension = osp.splitext(self.filename)[1].lower()
 
+            if extension == '.spydata':
+                buttons = QMessageBox.Yes | QMessageBox.Cancel
+                answer = QMessageBox.warning(
+                    self,
+                    title,
+                    _("<b>Warning: %s files can contain malicious code!</b>"
+                      "<br><br>"
+                      "Do not continue unless this file is from a trusted "
+                      "source. Would you like to import it "
+                      "anyway?") % extension,
+                    buttons
+                )
+
+                if answer == QMessageBox.Cancel:
+                    return
             if extension not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
-                answer = QMessageBox.question(self, title,
-                            _("<b>Unsupported file extension '%s'</b><br><br>"
-                              "Would you like to import it anyway "
-                              "(by selecting a known file format)?"
-                              ) % extension, buttons)
+                answer = QMessageBox.question(
+                    self,
+                    title,
+                    _("<b>Unsupported file extension '%s'</b>"
+                      "<br><br>"
+                      "Would you like to import it anyway by selecting a "
+                      "known file format?") % extension,
+                    buttons
+                )
                 if answer == QMessageBox.Cancel:
                     return
                 formats = list(iofunctions.load_extensions.keys())

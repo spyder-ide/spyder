@@ -39,7 +39,6 @@ from qtpy.QtCore import QTimer
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
-from spyder.py3compat import PY2
 from spyder.utils.programs import is_spyder_process
 
 
@@ -286,10 +285,7 @@ class AutosaveForStack(object):
         pidfile_name = osp.join(autosave_dir, 'pid{}.txt'.format(my_pid))
         if self.name_mapping:
             with open(pidfile_name, 'w') as pidfile:
-                if PY2:
-                    pidfile.write(repr(self.name_mapping))
-                else:
-                    pidfile.write(ascii(self.name_mapping))
+                pidfile.write(ascii(self.name_mapping))
         else:
             try:
                 os.remove(pidfile_name)
@@ -373,6 +369,7 @@ class AutosaveForStack(object):
         finfo = self.stack.data[index]
         if finfo.newly_created:
             return
+
         orig_filename = finfo.filename
         try:
             orig_hash = self.file_hashes[orig_filename]
@@ -381,8 +378,9 @@ class AutosaveForStack(object):
             # In this case, use an impossible value for the hash, so that
             # contents of buffer are considered different from contents of
             # original file.
-            logger.error('KeyError when retrieving hash of %s', orig_filename)
+            logger.debug('KeyError when retrieving hash of %s', orig_filename)
             orig_hash = None
+
         new_hash = self.stack.compute_hash(finfo)
         if orig_filename in self.name_mapping:
             autosave_filename = self.name_mapping[orig_filename]

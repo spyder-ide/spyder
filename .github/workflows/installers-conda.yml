@@ -9,24 +9,62 @@ on:
       - '**.py'
       - '**.sh'
       - '!**.md'
-      - '!installers/**'
-      - '!.github/workflows/installer-win.yml'
-      - '!.github/workflows/installer-macos.yml'
 
   release:
     types:
       - created
 
+  workflow_dispatch:
+    inputs:
+      pre:
+        description: 'Build as release candidate'
+        required: false
+        default: true
+        type: boolean
+      ssh:
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
+      mac:
+        description: 'Build macOS installer'
+        required: false
+        default: true
+        type: boolean
+      linux:
+        description: 'Build Linux installer'
+        required: false
+        default: true
+        type: boolean
+      win:
+        description: 'Build Windows installer'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: installers-conda-${{ github.ref }}
+  cancel-in-progress: true
+
 name: Create conda-based installers for Windows, macOS, and Linux
 
+env:
+  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
+  IS_RELEASE: ${{ github.event_name == 'release' }}
+  IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
+  BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
+  BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
+  BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
+
 jobs:
-  build-noarch-conda-pkgs:
+  build-noarch-pkgs:
     name: Build ${{ matrix.pkg }}
     runs-on: ubuntu-latest
-    if: github.event_name != 'release'
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     strategy:
       matrix:
-        pkg: ["python-lsp-server", "qdarkstyle", "qtconsole"]
+        pkg: ["python-lsp-server", "qtconsole"]
         python-version: ["3.9"]
     defaults:
       run:
@@ -68,20 +106,25 @@ jobs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
       include: ${{ steps.build-matrix.outputs.include }}
       python_version: ${{ steps.build-matrix.outputs.python_version }}
-    steps:
-    - id: build-matrix
-      run: |
-        target_platform="'osx-64', 'linux-64'"
-        include="\
-        {'os': 'macos-11', 'target-platform': 'osx-64'},\
-        {'os': 'ubuntu-latest', 'target-platform': 'linux-64'}\
-        "
-        python_version="'3.9'"
 
-        if [[ ${GITHUB_EVENT_NAME} != 'release' ]]; then
-            target_platform=$target_platform", 'win-64'"
-            include=$include",{'os': 'windows-latest', 'target-platform': 'win-64'}"
+    steps:
+    - name: Determine Build Matrix
+      id: build-matrix
+      run: |
+        if [[ $BUILD_MAC == "true" ]]; then
+            target_platform="'osx-64'"
+            include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
         fi
+        if [[ $BUILD_LNX == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
+            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64'}"
+        fi
+        if [[ $BUILD_WIN == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'win-64'"
+            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        fi
+
+        python_version="'3.9'"
 
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
@@ -92,8 +135,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs:
       - build-matrix
-      - build-noarch-conda-pkgs
-    if: ${{ ! failure() }}
+      - build-noarch-pkgs
+    if: ${{ ! failure() && ! cancelled() }}
     strategy:
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
@@ -110,7 +153,9 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
-      STATUS: ${{ needs.build-noarch-conda-pkgs.result }}
+      BNP_STATUS: ${{ needs.build-noarch-pkgs.result }}
+      MAT_STATUS: ${{ needs.build-matrix.result }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -122,6 +167,8 @@ jobs:
         with:
           environment-file: installers-conda/build-environment.yml
           extra-specs: python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-env: true
 
       - name: Env Variables
         run: |
@@ -134,10 +181,10 @@ jobs:
           [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
           [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
 
-          env
+          env | sort
 
       - name: Download Local Conda Packages
-        if: github.event_name != 'release'
+        if: needs.build-noarch-pkgs.result == 'success'
         uses: actions/download-artifact@v3
         with:
           path: ${{ env.ARTIFACTS_PATH }}
@@ -160,16 +207,16 @@ jobs:
       - name: Build ${{ matrix.target-platform }} conda packages
         run: |
           pkgs=("spyder")
-          if [[ $GITHUB_EVENT_NAME != "release" ]]; then
+          if [[ $IS_STANDARD_PR == "true" ]]; then
               pkgs+=("spyder-kernels")
           fi
           python build_conda_pkgs.py --build ${pkgs[@]}
 
       - name: Create Keychain
-        if: github.event_name == 'release' && runner.os == 'macOS'
+        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
         run: |
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
+          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
           echo "CNAME=$CNAME" >> $GITHUB_ENV
 
           _codesign=$(which codesign)
@@ -183,48 +230,112 @@ jobs:
         run: |
           [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
           python build_installers.py ${args[@]}
-          PKG_FILE=$(python build_installers.py --artifact-name)
-          PKG_NAME=$(basename $PKG_FILE)
-          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+          PKG_PATH=$(python build_installers.py --artifact-name)
+          PKG_NAME=$(basename $PKG_PATH)
+          PKG_GLOB=${PKG_PATH%.*}
+          PKG_BASE_NAME=${PKG_NAME%.*}
+          echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo "PKG_GLOB=$PKG_GLOB" >> $GITHUB_ENV
+          echo "PKG_BASE_NAME=$PKG_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Test Application Bundle
+      - name: Test macOS Installer
         if: runner.os == 'macOS'
         run: |
-          installer -dumplog -pkg $PKG_FILE -target CurrentUserHomeDirectory 2>&1
+          # Stream install.log to stdout to view all log messages.
+          tail -F /var/log/install.log & tail_id=$!
+          trap "kill -s TERM $tail_id" EXIT
+
+          installer -pkg $PKG_PATH -target CurrentUserHomeDirectory >/dev/null
+
           app_path=$HOME/Applications/Spyder.app
           if [[ -e "$app_path" ]]; then
+              echo "\nContents of $app_path/Contents/MacOS:"
               ls -al $app_path/Contents/MacOS
+              echo -e "\nContents of $app_path/Contents/Info.plist:"
               cat $app_path/Contents/Info.plist
-              echo ""
+              echo -e "\nContents of $app_path/Contents/MacOS/spyder-script:"
+              cat $app_path/Contents/MacOS/spyder-script
+              echo -e "\n\nContents of" $HOME/Library/spyder-*/uninstall-spyder.sh :
+              cat $HOME/Library/spyder-*/uninstall-spyder.sh
           else
               echo "$app_path does not exist"
+              exit 1
           fi
 
-      - name: Notarize package installer
-        if: github.event_name == 'release' && runner.os == 'macOS'
-        run: ./notarize.sh -p $APPLICATION_PWD $PKG_FILE
+      - name: Test Linux Installer
+        if: runner.os == 'Linux'
+        run: |
+          $PKG_PATH -b
+
+          shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
+          if [[ -e $shortcut_path ]]; then
+              echo "\nContents of" $HOME/.local/spyder-* :
+              ls -al $HOME/.local/spyder-*
+              echo -e "\nContents of ${shortcut_path}:"
+              cat $shortcut_path
+              echo -e "\nContents of" $HOME/.local/spyder-*/uninstall-spyder.sh :
+              cat $HOME/.local/spyder-*/uninstall-spyder.sh
+          else
+              echo "$shortcut_path does not exist"
+              exit 1
+          fi
+
+      - name: Test Windows Installer
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
+
+          set "shortcut_path=%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
+          if exist "%shortcut_path%" (
+              echo "Spyder installed successfully"
+          ) else (
+              echo "Spyder NOT installed successfully"
+              EXIT /B 1
+          )
+          EXIT /B %ERRORLEVEL%
+
+      - name: Notarize or Compute Checksum
+        if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
+        run: |
+          # Skip notarization for now because our Apple ID is expired.
+          if [[ $RUNNER_OS == "skip" ]]; then
+              ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
+          else
+              cd $(dirname $PKG_PATH)
+              echo $(sha256sum $PKG_NAME) > "${PKG_GLOB}-sha256sum.txt"
+          fi
+
+      - name: Setup Remote SSH Connection
+        # Notes:
+        # 1. This only works for conda, probably because it has the necessary
+        #    MSYS2 packages to create the connection.
+        # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
+        #    usage.
+        if: failure() && env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 45
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        if: env.IS_RELEASE == 'false'
+        uses: actions/upload-artifact@v3
         with:
-          path: ${{ env.PKG_FILE }}
-          name: ${{ env.PKG_NAME }}
+          path: ${{ env.PKG_GLOB }}*
+          name: ${{ env.PKG_BASE_NAME }}
 
       - name: Get Release
-        if: github.event_name == 'release'
+        if: env.IS_RELEASE == 'true'
+        uses: bruceadams/get-release@v1.3.2
         id: get_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        uses: bruceadams/get-release@v1.2.0
 
       - name: Upload Release Asset
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
+        if: env.IS_RELEASE == 'true'
+        uses: shogo82148/actions-upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.PKG_FILE }}
-          asset_name: ${{ env.PKG_NAME }}
-          asset_content_type: application/octet-stream
+          asset_path: ${{ env.PKG_GLOB }}*

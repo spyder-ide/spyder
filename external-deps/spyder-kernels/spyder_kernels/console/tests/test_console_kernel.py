@@ -11,6 +11,7 @@ Tests for the console kernel.
 
 # Standard library imports
 import ast
+import asyncio
 import os
 import os.path as osp
 from textwrap import dedent
@@ -23,7 +24,6 @@ import uuid
 from collections import namedtuple
 
 # Test imports
-import ipykernel
 import pytest
 from flaky import flaky
 from jupyter_core import paths
@@ -37,19 +37,24 @@ from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.commbase import CommBase
 
-# For ipykernel 6
-try:
-    import asyncio
-except ImportError:
-    pass
-
 # =============================================================================
-# Constants
+# Constants and utility functions
 # =============================================================================
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
-IPYKERNEL_6 = ipykernel.__version__[0] >= '6'
 TIMEOUT = 15
 SETUP_TIMEOUT = 60
+
+# We declare this constant immediately before the test, as determining
+# that TURTLE_ACTIVE is True will briefly pop up a window, similar to the
+# windows that will pop up during the test itself.
+TURTLE_ACTIVE = False
+try:
+    import turtle
+    turtle.Screen()
+    turtle.bye()
+    TURTLE_ACTIVE = True
+except:
+    pass
 
 
 @contextmanager
@@ -227,10 +232,7 @@ def kernel(request):
 
     # Teardown
     def reset_kernel():
-        if IPYKERNEL_6:
-            asyncio.run(kernel.do_execute('reset -f', True))
-        else:
-            kernel.do_execute('reset -f', True)
+        asyncio.run(kernel.do_execute('reset -f', True))
     request.addfinalizer(reset_kernel)
 
     return kernel
@@ -275,10 +277,7 @@ def test_get_namespace_view(kernel):
     """
     Test the namespace view of the kernel.
     """
-    if IPYKERNEL_6:
-        execute = asyncio.run(kernel.do_execute('a = 1', True))
-    else:
-        execute = kernel.do_execute('a = 1', True)
+    execute = asyncio.run(kernel.do_execute('a = 1', True))
 
     nsview = repr(kernel.get_namespace_view())
     assert "'a':" in nsview
@@ -293,10 +292,7 @@ def test_get_var_properties(kernel):
     """
     Test the properties fo the variables in the namespace.
     """
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute('a = 1', True))
-    else:
-        kernel.do_execute('a = 1', True)
+    asyncio.run(kernel.do_execute('a = 1', True))
 
     var_properties = repr(kernel.get_var_properties())
     assert "'a'" in var_properties
@@ -314,10 +310,7 @@ def test_get_var_properties(kernel):
 def test_get_value(kernel):
     """Test getting the value of a variable."""
     name = 'a'
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute("a = 124", True))
-    else:
-        kernel.do_execute("a = 124", True)
+    asyncio.run(kernel.do_execute("a = 124", True))
 
     # Check data type send
     assert kernel.get_value(name) == 124
@@ -326,10 +319,7 @@ def test_get_value(kernel):
 def test_set_value(kernel):
     """Test setting the value of a variable."""
     name = 'a'
-    if IPYKERNEL_6:
-         asyncio.run(kernel.do_execute('a = 0', True))
-    else:
-        kernel.do_execute('a = 0', True)
+    asyncio.run(kernel.do_execute('a = 0', True))
     value = 10
     kernel.set_value(name, value)
     log_text = get_log_text(kernel)
@@ -343,10 +333,7 @@ def test_set_value(kernel):
 def test_remove_value(kernel):
     """Test the removal of a variable."""
     name = 'a'
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute('a = 1', True))
-    else:
-        kernel.do_execute('a = 1', True)
+    asyncio.run(kernel.do_execute('a = 1', True))
 
     var_properties = repr(kernel.get_var_properties())
     assert "'a'" in var_properties
@@ -368,10 +355,7 @@ def test_copy_value(kernel):
     """Test the copy of a variable."""
     orig_name = 'a'
     new_name = 'b'
-    if IPYKERNEL_6:
-         asyncio.run(kernel.do_execute('a = 1', True))
-    else:
-        kernel.do_execute('a = 1', True)
+    asyncio.run(kernel.do_execute('a = 1', True))
 
     var_properties = repr(kernel.get_var_properties())
     assert "'a'" in var_properties
@@ -407,11 +391,7 @@ def test_load_npz_data(kernel, load):
     namespace_file = osp.join(FILES_PATH, 'load_data.npz')
     extention = '.npz'
     overwrite, execute, variables = load
-
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute(execute, True))
-    else:
-        kernel.do_execute(execute, True)
+    asyncio.run(kernel.do_execute(execute, True))
 
     kernel.load_data(namespace_file, extention, overwrite=overwrite)
     for var, value in variables.items():
@@ -439,11 +419,7 @@ def test_load_data(kernel):
 def test_save_namespace(kernel):
     """Test saving the namespace into filename."""
     namespace_file = osp.join(FILES_PATH, 'save_data.spydata')
-
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute('b = 1', True))
-    else:
-        kernel.do_execute('b = 1', True)
+    asyncio.run(kernel.do_execute('b = 1', True))
 
     kernel.save_namespace(namespace_file)
     assert osp.isfile(namespace_file)
@@ -487,11 +463,7 @@ libc.printf(('Hello from C\\n').encode('utf8'))
 
     # With Wurlitzer we have the expected output
     kernel._load_wurlitzer()
-
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute(code, True))
-    else:
-        kernel.do_execute(code, True)
+    asyncio.run(kernel.do_execute(code, True))
     captured = capsys.readouterr()
     assert captured.out == "Hello from C\n"
 
@@ -547,7 +519,7 @@ if __name__ == '__main__':
 
         # Run code
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
         client.inspect('result')
@@ -591,7 +563,7 @@ if __name__ == '__main__':
 
         # Run code
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `result` variable is defined
         client.inspect('result')
@@ -604,6 +576,12 @@ if __name__ == '__main__':
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
+@pytest.mark.skipif(
+    os.environ.get('USE_CONDA') != 'true',
+    reason="Doesn't work with pip packages")
 def test_dask_multiprocessing(tmpdir):
     """
     Test that dask multiprocessing works.
@@ -630,10 +608,10 @@ if __name__=='__main__':
 
         # Run code two times
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `x` variable is defined
         client.inspect('x')
@@ -672,8 +650,8 @@ def test_runfile(tmpdir):
         u.write(code)
 
         # Run code file `d` to define `result` even after an error
-        client.execute_interactive("runfile(r'{}', current_namespace=False)"
-                                  .format(str(d)), timeout=TIMEOUT)
+        client.execute_interactive(
+            "%runfile {}".format(repr(str(d))), timeout=TIMEOUT)
 
         # Verify that `result` is defined in the current namespace
         client.inspect('result')
@@ -684,8 +662,8 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` without current namespace
-        client.execute_interactive("runfile(r'{}', current_namespace=False)"
-                                  .format(str(u)), timeout=TIMEOUT)
+        client.execute_interactive(
+            "%runfile {}".format(repr(str(u))), timeout=TIMEOUT)
 
         # Verify that the variable `result2` is defined
         client.inspect('result2')
@@ -696,8 +674,8 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` with current namespace
-        msg = client.execute_interactive("runfile(r'{}', current_namespace=True)"
-                                        .format(str(u)), timeout=TIMEOUT)
+        msg = client.execute_interactive("%runfile {} --current-namespace"
+                                        .format(repr(str(u))), timeout=TIMEOUT)
         content = msg['content']
 
         # Verify that the variable `result3` is defined
@@ -718,6 +696,9 @@ def test_runfile(tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
 def test_np_threshold(kernel):
     """Test that setting Numpy threshold doesn't make the Variable Explorer slow."""
 
@@ -781,21 +762,10 @@ f = np.get_printoptions()['formatter']
         assert "{'float_kind': <built-in method format of str object" in content
 
 
-# We declare this constant immediately before the test, as determining
-# that TURTLE_ACTIVE is True will briefly pop up a window, similar to the
-# windows that will pop up during the test itself.
-TURTLE_ACTIVE = False
-try:
-    import turtle
-    turtle.Screen()
-    turtle.bye()
-    TURTLE_ACTIVE = True
-except:
-    pass
-
 @flaky(max_runs=3)
-@pytest.mark.skipif(not TURTLE_ACTIVE,
-                    reason="Doesn't work on non-interactive settings or Python installations without Tk")
+@pytest.mark.skipif(
+    not TURTLE_ACTIVE,
+    reason="Doesn't work on non-interactive settings or Python without Tk")
 def test_turtle_launch(tmpdir):
     """Test turtle scripts running in the same kernel."""
     # Command to start the kernel
@@ -828,7 +798,7 @@ turtle.bye()
 
         # Run code
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `tess` variable is defined
         client.inspect('tess')
@@ -846,7 +816,7 @@ turtle.bye()
 
         # Run code again
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT)
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT)
 
         # Verify that the `a` variable is defined
         client.inspect('a')
@@ -882,10 +852,7 @@ def test_do_complete(kernel):
     """
     Check do complete works in normal and debugging mode.
     """
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute('abba = 1', True))
-    else:
-        kernel.do_execute('abba = 1', True)
+    asyncio.run(kernel.do_execute('abba = 1', True))
     assert kernel.get_value('abba') == 1
     match = kernel.do_complete('ab', 2)
     assert 'abba' in match['matches']
@@ -894,7 +861,7 @@ def test_do_complete(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.completenames = lambda *ignore: ['baba']
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
     match = kernel.do_complete('ba', 2)
     assert 'baba' in match['matches']
     pdb_obj.curframe = None
@@ -908,17 +875,11 @@ def test_callables_and_modules(kernel, exclude_callables_and_modules,
     Tests that callables and modules are in the namespace view only
     when the right options are passed to the kernel.
     """
-    if IPYKERNEL_6:
-        asyncio.run(kernel.do_execute('import numpy', True))
-        asyncio.run(kernel.do_execute('a = 10', True))
-        asyncio.run(kernel.do_execute('def f(x): return x', True))
-    else:
-        kernel.do_execute('import numpy', True)
-        kernel.do_execute('a = 10', True)
-        kernel.do_execute('def f(x): return x', True)
+    asyncio.run(kernel.do_execute('import numpy', True))
+    asyncio.run(kernel.do_execute('a = 10', True))
+    asyncio.run(kernel.do_execute('def f(x): return x', True))
 
     settings = kernel.namespace_view_settings
-
     settings['exclude_callables_and_modules'] = exclude_callables_and_modules
     settings['exclude_unsupported'] = exclude_unsupported
     nsview = kernel.get_namespace_view()
@@ -952,7 +913,7 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local variable.
     kernel.shell.pdb_session.default('zz = 10')
@@ -978,7 +939,7 @@ def test_comprehensions_with_locals_in_pdb_2(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local variable.
     kernel.shell.pdb_session.default('aa = [1, 2]')
@@ -1004,7 +965,7 @@ def test_namespaces_in_pdb(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Check adding something to globals works
     pdb_obj.default("globals()['test2'] = 0")
@@ -1047,7 +1008,7 @@ def test_functions_with_locals_in_pdb(kernel):
     Frame = namedtuple("Frame", ["f_globals"])
     pdb_obj.curframe = Frame(f_globals=kernel.shell.user_ns)
     pdb_obj.curframe_locals = kernel.shell.user_ns
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local function.
     kernel.shell.pdb_session.default(
@@ -1079,7 +1040,7 @@ def test_functions_with_locals_in_pdb_2(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local function.
     kernel.shell.pdb_session.default(
@@ -1116,7 +1077,7 @@ def test_locals_globals_in_pdb(kernel):
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
-    kernel.shell._pdb_obj_stack = [pdb_obj]
+    kernel.shell._namespace_stack = [pdb_obj]
 
     assert kernel.get_value('a') == 1
 
@@ -1153,11 +1114,12 @@ def test_locals_globals_in_pdb(kernel):
 @flaky(max_runs=3)
 @pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt5'])
 @pytest.mark.skipif(
-    not bool(os.environ.get('USE_CONDA')),
+    os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages")
 @pytest.mark.skipif(
     sys.version_info[:2] < (3, 9),
     reason="Too flaky in Python 3.7/8 and doesn't work in older versions")
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
 def test_get_interactive_backend(backend):
     """
     Test that we correctly get the interactive backend set in the kernel.
@@ -1221,13 +1183,13 @@ def test_global_message(tmpdir):
                     found = True
 
         # Run code in current namespace
-        client.execute_interactive("runfile(r'{}', current_namespace=True)".format(
-            str(p)), timeout=TIMEOUT, output_hook=check_found)
+        client.execute_interactive("%runfile {} --current-namespace".format(
+            repr(str(p))), timeout=TIMEOUT, output_hook=check_found)
         assert not found
 
         # Run code in empty namespace
         client.execute_interactive(
-            "runfile(r'{}')".format(str(p)), timeout=TIMEOUT,
+            "%runfile {}".format(repr(str(p))), timeout=TIMEOUT,
             output_hook=check_found)
 
         assert found
@@ -1247,7 +1209,7 @@ def test_debug_namespace(tmpdir):
         d.write('def func():\n    bb = "hello"\n    breakpoint()\nfunc()')
 
         # Run code file `d`
-        msg_id = client.execute("runfile(r'{}')".format(str(d)))
+        msg_id = client.execute("%runfile {}".format(repr(str(d))))
 
         # make sure that 'bb' returns 'hello'
         client.get_stdin_msg(timeout=TIMEOUT)

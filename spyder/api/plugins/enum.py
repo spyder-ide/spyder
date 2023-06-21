@@ -20,6 +20,7 @@ class Plugins:
     Debugger = 'debugger'
     Editor = 'editor'
     Explorer = 'explorer'
+    ExternalConsole = 'external_console'
     Find = 'find_in_files'
     Help = 'help'
     History = 'historylog'
@@ -38,6 +39,7 @@ class Plugins:
     Run = 'run'
     Shortcuts = 'shortcuts'
     StatusBar = 'statusbar'
+    Switcher = 'switcher'
     Toolbar = "toolbar"
     Tours = 'tours'
     VariableExplorer = 'variable_explorer'

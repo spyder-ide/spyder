@@ -22,11 +22,10 @@ from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
 
 # Local imports
-from spyder.config.base import (
-    _, is_pynsist, running_in_mac_app, running_under_pytest)
-from spyder.config.gui import get_color_scheme
+from spyder.config.base import _, is_conda_based_app, running_under_pytest
+from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.py3compat import to_text_string
-from spyder.utils.palette import SpyderPalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
@@ -126,6 +125,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # To request restart
     sig_restart_kernel = Signal()
 
+    sig_kernel_state_arrived = Signal(dict)
+    """
+    A new kernel state, which needs to be processed.
+
+    Parameters
+    ----------
+    state: dict
+        Kernel state. The structure of this dictionary is defined in the
+        `SpyderKernel.get_state` method of Spyder-kernels.
+    """
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  handlers, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -158,6 +168,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'set_debug_state': self.set_debug_state,
             'do_where': self.do_where,
             'pdb_input': self.pdb_input,
+            'update_state': self.update_state,
         })
         self.kernel_comm_handlers = handlers
 
@@ -166,7 +177,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
-        self.show_modules_message = is_pynsist() or running_in_mac_app()
+        self.show_modules_message = is_conda_based_app()
 
     # ---- Public API ---------------------------------------------------------
     @property
@@ -179,7 +190,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def spyder_kernel_ready(self):
         """
         Check if Spyder kernel is ready.
-        
+
         Notes
         -----
         This is used for our tests.
@@ -282,7 +293,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.shutting_down:
             return
         self.shutting_down = True
-        self.kernel_handler.close(shutdown_kernel)
+        if self.kernel_handler is not None:
+            self.kernel_handler.close(shutdown_kernel)
         super().shutdown()
 
     def reset_kernel_state(self):
@@ -339,7 +351,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not self._init_kernel_setup:
             # Only do this setup once
             self._init_kernel_setup = True
-            
+
             # For errors
             self.kernel_handler.kernel_comm.sig_exception_occurred.connect(
                 self.sig_exception_occurred)
@@ -393,12 +405,26 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
         self._execute_queue = []
+
         if self.spyder_kernel_ready:
             self._reading = False
-            self.call_kernel(interrupt=True).raise_interrupt_signal()
+
+            # Check if there is a kernel that can be interrupted before trying
+            # to do it.
+            # Fixes spyder-ide/spyder#20212
+            if self.kernel_manager and self.kernel_manager.has_kernel:
+                self.call_kernel(interrupt=True).raise_interrupt_signal()
+            else:
+                self._append_html(
+                    _("<br><br>The kernel appears to be dead, so it can't be "
+                      "interrupted. Please open a new console to keep "
+                      "working.<br>")
+                )
         else:
-            self._append_plain_text(
-                'Cannot interrupt a non-Spyder kernel I did not start.\n')
+            self._append_html(
+                _("<br><br>It is not possible to interrupt a non-Spyder "
+                  "kernel I did not start.<br>")
+            )
 
     def execute(self, source=None, hidden=False, interactive=False):
         """
@@ -470,24 +496,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         return self._cwd
 
-    def update_cwd(self):
+    def update_state(self, state):
         """
-        Update working directory in Spyder after getting its value from the
-        kernel.
+        New state received from kernel.
         """
-        if not self.spyder_kernel_ready:
-            # Frontend sends first
-            return
-        self.call_kernel(callback=self.on_getting_cwd).get_cwd()
-
-    def on_getting_cwd(self, cwd):
-        """
-        If necessary, notify that the working directory was changed to other
-        plugins.
-        """
-        if cwd != self._cwd:
+        cwd = state.pop("cwd", None)
+        if cwd and self._cwd and cwd != self._cwd:
+            # Only set it if self._cwd is already set
             self._cwd = cwd
             self.sig_working_directory_changed.emit(self._cwd)
+
+        if state:
+            self.sig_kernel_state_arrived.emit(state)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
@@ -631,7 +651,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if sympy_o:
             lines = """
 These commands were executed:
->>> from __future__ import division
 >>> from sympy import *
 >>> x, y, z, t = symbols('x y z t')
 >>> k, m, n = symbols('k m n', integer=True)
@@ -748,7 +767,6 @@ the sympy module (e.g. plot)
                     self.silent_execute("from pylab import *")
                 if kernel_env.get('SPY_SYMPY_O') == 'True':
                     sympy_init = """
-                        from __future__ import division
                         from sympy import *
                         x, y, z, t = symbols('x y z t')
                         k, m, n = symbols('k m n', integer=True)
@@ -882,7 +900,7 @@ the sympy module (e.g. plot)
             Type of message to be showm. Possible values are
             'warning' and 'error'.
         """
-        # The message is displayed in a table with a single cell.
+        # The message is displayed in a table with a header and a single cell.
         table_properties = (
             "border='0.5'" +
             "width='90%'" +
@@ -894,14 +912,27 @@ the sympy module (e.g. plot)
             header = _("Error")
             bgcolor = SpyderPalette.COLOR_ERROR_2
         else:
-            header = _("Warning")
+            header = _("Important")
             bgcolor = SpyderPalette.COLOR_WARN_1
 
+        # This makes the header text have good contrast against its background
+        # for the light theme.
+        if is_dark_interface():
+            font_color = QStylePalette.COLOR_TEXT_1
+        else:
+            font_color = 'white'
+
         self._append_html(
-            f"<div align='center'><table {table_properties}>" +
-            f"<tr><th bgcolor='{bgcolor}'>{header}</th></tr>" +
-            "<tr><td>" + html + "</td></tr>" +
-            "</table></div>",
+            f"<div align='center'>"
+            f"<table {table_properties}>"
+            # Header
+            f"<tr><th bgcolor='{bgcolor}'><font color='{font_color}'>"
+            f"{header}"
+            f"</th></tr>"
+            # Cell with html message
+            f"<tr><td>{html}</td></tr>"
+            f"</table>"
+            f"</div>",
             before_prompt=before_prompt
         )
 

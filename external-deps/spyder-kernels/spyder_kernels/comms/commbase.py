@@ -50,8 +50,6 @@ The messages exchanged are:
                 'call_name': The function name (mostly for debugging)
                 }
 """
-from __future__ import print_function
-
 import cloudpickle
 import pickle
 import logging

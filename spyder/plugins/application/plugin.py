@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.widgets.menus import MENU_SEPARATOR
@@ -33,9 +33,6 @@ from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.utils.qthelpers import add_actions
-
-# Localization
-_ = get_translation('spyder')
 
 
 class Application(SpyderPluginV2):

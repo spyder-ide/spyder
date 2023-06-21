@@ -19,13 +19,10 @@ from qtpy.QtCore import Slot
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
 from spyder.plugins.maininterpreter.container import MainInterpreterContainer
 from spyder.utils.misc import get_python_executable
-
-# Localization
-_ = get_translation('spyder')
 
 
 class MainInterpreter(SpyderPluginV2):
@@ -102,6 +99,14 @@ class MainInterpreter(SpyderPluginV2):
     @property
     def interpreter_status(self):
         return self.get_container().interpreter_status
+
+    def set_custom_interpreter(self, interpreter):
+        """Set given interpreter as the current selected one."""
+        self._add_to_custom_interpreters(interpreter)
+        self.set_conf("default", False)
+        self.set_conf("custom", True)
+        self.set_conf("custom_interpreter", interpreter)
+        self.set_conf("executable", interpreter)
 
     # ---- Private API
     def _open_interpreter_preferences(self):

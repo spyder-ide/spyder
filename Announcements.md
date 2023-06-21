@@ -1,36 +1,36 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.4.0 is released!
+**Subject**: [ANN] Spyder 5.4.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.4.0** has been released and is available for
+I'm pleased to announce that Spyder **5.4.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes nine weeks and four days after version 5.3.3 and it contains the
+This release comes ten weeks and six days after version 5.4.2 and it contains the
 following new features and important fixes:
 
-* New UI/UX elements to update standalone installers with options to download and install a new version if available.
-* New experimental conda-based standalone installers for MacOS and Linux (available on the GitHub release page with the `EXPERIMENTAL-` prefix)
-* Now the Code Analysis/Pylint plugin uses the current custom interpreter/environment if set
-* Option to show user environment variables extended to all operative systems (previously available only for Windows)
-* Improve Outline Explorer plugin performance and fix updating process when it becomes visible
-* Improvements to colors on the dependencies dialog and IPython console
-* Fix IPython console issues on the Matplotlib TkInter backend with debugging and an increase of CPU and memory usage while in an idle state
-* Fix IPython console memory leak when using the Matplotlib Qt ackend
-* Fix IPython console `input()` issue on MacOS
-* Fix IPython console kernel error regarding environment path as unexpected argument
-* Fix Spyder 3 icon theme load on Windows with untrusted fonts security restrictions
-* Fix the `Autoformat files on save` functionality to not hang with non-Python files
-* Some fixes for cell execution on Python 3.11
-* Some fixes to shortcuts (Switch to Editor, Find Next, Find Previous)
-* Some fixes to improve compatibility with PySide2
-* Some fixes to prevent blurry SVG icons
+* Add support for QDarkstyle 3.1
+* Add support for Jupyter-client 8
+* Add mambaforge and miniforge when searching for conda environments
+* Fix IPython Console completions, traceback handling and other issues to better support IPython 8.x
+* Fix compatibility issues with PyZMQ 25.x
+* Add warning message before loading .spydata files
+* Fix web based widgets display by adding the `--no-sandbox` argument for `QtApplication`
+* Fix copy and paste shortcuts for the Files and Projects explorer panes
+* Fix Windows standalone installer restart mechanism
+* Fix keyring backends for the Mac standalone installer
+* Fix Editor issues related with handling LSP server failed starts
+* Fix Editor issues related with restoring previous session and file changes outside Spyder
+* Fix PYTHONPATH manager showing extra paths and other related errors
+* Fix update available notification with pip based installations
+* Fix some UX/UI issues for the find replace widget when the Editor has a small width
+* Removal of Python 2 related code
 
-In this release we fixed 48 issues and merged 59 pull requests that amount
-to more than 292 commits. For a full list of fixes, please see our
+In this release we fixed 29 issues and merged 47 pull requests that amount
+to more than 173 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -100,7 +100,7 @@ Enjoy!
 # Major release to others
 
 **Note**: Leave this free of Markdown because it could go to mailing lists that
-don't support hmtl.
+don't support html.
 
 **Subject**: [ANN] Spyder 4.0 is released!
 
@@ -124,89 +124,52 @@ scientific computing and software development.
 ----
 
 
-# Beta release
+# Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 4.0 third release candidate
+**Subject**: [ANN] Spyder 6.0 alpha1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the third release candidate of our next major version: Spyder **4.0**.
+I'm pleased to announce the first alpha of our next major version: Spyder **6.0**.
 
-We've been working on this version for more than three years now and as far as we know
-it's working very well. There are still several bugs to squash but we encourage all
-people who like the bleeding edge to give it a try. This beta version is released
-one week after Spyder 4.0 rc2 and it includes more than 130 commits.
+We've been working on this version for more than one year now and it's working
+relatively well. There are still several bugs to squash but we encourage all
+people who like the bleeding edge to give it a try. This alpha version includes
+more than 960 commits over our latest stable version (5.4.3).
 
-Spyder 4.0 comes with several interesting and exciting new features. The most
-important ones are:
+Spyder 6.0 comes with the following interesting new features and fixes:
 
-- Main Window
-    * Dark theme for the entire application.
-    * A new Plots pane to browse all inline figures generated by the
-      IPython console.
-    * Rename the following panes:
-        - `Static code analysis` to `Code Analysis`
-        - `File explorer` to `Files`
-        - `Find in files` to `Find`
-        - `History log` to `History`
-        - `Project explorer` to `Project`
-    * Create a separate window when undocking all panes.
-    * Show current conda environment (if any) in the status bar.
+- New features
+    * New installers for Windows, Linux and macOS based on Conda and Conda-forge.
+    * Add a Debugger pane to explore the stack frame of the current debugging
+      session.
+    * Add a button to the Debugger pane to pause the current code execution and
+      enter the debugger afterwards.
+    * Add submenu to the `Consoles` menu to start a new console for a specific
+      Conda or Pyenv environment.
+    * Show Matplotlib backend state in status bar.
+    * Make kernel restarts be much faster for the current interpreter.
+    * Turn `runfile`, `debugfile`, `runcell` and related commands to IPython magics.
 
-- Editor
-    * Code folding.
-    * Indentation guides.
-    * A class/method/function lookup panel. This can be shown in the menu
-      `Source > Show selector for classes and functions`.
-    * Autosave functionality to recover unsaved files after a crash.
-    * Optional integration with the [Kite](https://kite.com/) completion
-      engine.
-    * Code completion and linting are provided by the Python Language Server.
+- Important fixes
+    * Restore ability to load Hdf5 and Dicom files through the Variable Explorer
+      (this was working in Spyder 4 and before).
 
-- IPython Console
-    * Run files in an empty namespace.
-    * Open dedicated consoles for Pylab, Sympy and Cython.
-    * Run cells through a new function called `runcell`.
-    * Run cells by name.
-
-- Debugger
-    * Code completion.
-    * Execute multi-line statements.
-    * Syntax highlighting.
-    * Permanent history.
-    * `runfile` and `runcell` can be called when the debugger is active.
-    * Debug cells with `Alt+Shift+Return`.
-
-- Variable Explorer
-    * New viewer to inspect any Python object in a tree-like representation.
-    * Filter variables by name or type.
-    * MultiIndex support in the Dataframe viewer.
-    * Support for all Pandas indexes.
-    * Support for sets.
-    * Support for Numpy object arrays.
-    * Restore the ability to refresh it while code is being executed.
-
-- Files
-    * Associate external applications to open specific file extensions.
-    * Context menu action to open files externally.
-    * Multi-select functionality with `Ctrl/Shift + mouse click`.
-    * Copy/paste files and their absolute or relative paths.
-    * Use special icons for different file types.
-
-- Outline
-    * Show cells grouped in sections.
-    * Add default name to all cells.
-
+- New API features
+    * Generalize Run plugin to support generic inputs and executors. This allows
+      plugins to declare what kind of inputs (i.e. file, cell or selection) they
+      can execute and how they will display the result.
+    * Add a new plugin for the files and symbols switcher.
+    * Declare a proper API for the Projects plugin.
 
 For a more complete list of changes, please see our
-[changelog](https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog)
+[changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
 
-You can easily install this beta if you use Anaconda by running:
+You can easily install this alpha if you use conda by running:
 
-    conda update qt pyqt
-    conda install -c spyder-ide spyder=4.0.0rc3
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0a1
 
 Or you can use pip with this command:
 

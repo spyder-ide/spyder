@@ -13,14 +13,10 @@ from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
 import qstylizer.style
 
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import PanesToolbarStyleSheet
-
-
-# For translations
-_ = get_translation('spyder')
 
 
 # =============================================================================

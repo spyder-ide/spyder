@@ -12,7 +12,7 @@ import sys
 
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetrics, QFocusEvent, QKeySequence
+from qtpy.QtGui import QFontMetrics, QFocusEvent
 from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
@@ -20,6 +20,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
+from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
@@ -339,8 +340,10 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
-        elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End) and not modifier:
+        elif (
+            key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown)
+            and not modifier
+        ):
             self.textedit._completions_hint_idle = True
             if key == Qt.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
@@ -348,6 +351,12 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                 self.setCurrentRow(0)
             else:
                 QListWidget.keyPressEvent(self, event)
+        elif key in (Qt.Key_Home, Qt.Key_End):
+            # This allows users to easily move to the beginning/end of the
+            # current line when this widget is visible.
+            # Fixes spyder-ide/spyder#19989
+            self.hide()
+            self.textedit.keyPressEvent(event)
         elif key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)
@@ -358,24 +367,18 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # take effect in textedit.
             # Fixes spyder-ide/spyder#19372
             if modifier:
-                # Build the sequence as an int.
-                # See https://stackoverflow.com/a/23919177/438386 for context.
-                # Note: We only accept Ctrl, Shift and Alt as modifiers for
-                # keyboard shortcuts in Preferences.
-                key_sequence = key
-                if ctrl:
-                    key_sequence += Qt.CTRL
-                if shift:
-                    key_sequence += Qt.SHIFT
-                if alt:
-                    key_sequence += Qt.ALT
+                key_sequence = keyevent_to_keysequence_str(event)
 
                 # Ask to save file if the user pressed the sequence for that.
                 # Fixes spyder-ide/spyder#14806
                 save_shortcut = self.get_conf(
                     'editor/save file', section='shortcuts')
-                if QKeySequence(key_sequence) == QKeySequence(save_shortcut):
+                if key_sequence == save_shortcut:
                     self.textedit.sig_save_requested.emit()
+
+                    # Hiding the widget reassures users that the save operation
+                    # took place.
+                    self.hide()
 
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)

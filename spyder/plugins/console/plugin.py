@@ -19,14 +19,12 @@ from qtpy.QtGui import QIcon
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import DEV
 from spyder.plugins.console.widgets.main_widget import (
     ConsoleWidget, ConsoleWidgetActions)
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
 
-# Localization
-_ = get_translation('spyder')
 
 # Logging
 logger = logging.getLogger(__name__)

@@ -21,10 +21,11 @@ PYFLAKES_ERROR_MESSAGES = (
 
 
 @hookimpl
-def pylsp_lint(document):
-    reporter = PyflakesDiagnosticReport(document.lines)
-    pyflakes_api.check(document.source.encode('utf-8'), document.path, reporter=reporter)
-    return reporter.diagnostics
+def pylsp_lint(workspace, document):
+    with workspace.report_progress("lint: pyflakes"):
+        reporter = PyflakesDiagnosticReport(document.lines)
+        pyflakes_api.check(document.source.encode('utf-8'), document.path, reporter=reporter)
+        return reporter.diagnostics
 
 
 class PyflakesDiagnosticReport:

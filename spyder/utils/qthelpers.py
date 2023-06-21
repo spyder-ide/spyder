@@ -7,6 +7,7 @@
 """Qt utilities."""
 
 # Standard library imports
+import configparser
 import functools
 from math import pi
 import logging
@@ -15,6 +16,8 @@ import os.path as osp
 import re
 import sys
 import types
+from urllib.parse import unquote
+
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -27,9 +30,9 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import running_in_mac_app
+from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
-from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
@@ -38,13 +41,8 @@ from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
 # Third party imports
-if sys.platform == "darwin" and not running_in_mac_app():
+if sys.platform == "darwin" and not is_conda_based_app():
     import applaunchservices as als
-
-if PY2:
-    from urllib import unquote
-else:
-    from urllib.parse import unquote
 
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -111,13 +109,13 @@ def qapplication(translate=True, test_time=3):
     if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
-        app = SpyderApplication(['Spyder'])
+        app = SpyderApplication(['Spyder', '--no-sandbox'])
 
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
 
     if (sys.platform == "darwin"
-            and not running_in_mac_app()
+            and not is_conda_based_app()
             and CONF.get('main', 'mac_open_file', False)):
         # Register app if setting is set
         register_app_launchservices()
@@ -166,6 +164,35 @@ def keybinding(attr):
     """Return keybinding"""
     ks = getattr(QKeySequence, attr)
     return from_qvariant(QKeySequence.keyBindings(ks)[0], str)
+
+
+def keyevent_to_keysequence_str(event):
+    """Get key sequence corresponding to a key event as a string."""
+    try:
+        # See https://stackoverflow.com/a/20656496/438386 for context
+        return QKeySequence(event.modifiers() | event.key()).toString()
+    except TypeError:
+        # This error appears in old PyQt versions (e.g. 5.12) which are
+        # running under Python 3.10+. In that case, we need to build the
+        # key sequence as an int.
+        # See https://stackoverflow.com/a/23919177/438386 for context.
+        key = event.key()
+        alt = event.modifiers() & Qt.AltModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
+        meta = event.modifiers() & Qt.MetaModifier
+
+        key_sequence = key
+        if ctrl:
+            key_sequence += Qt.CTRL
+        if shift:
+            key_sequence += Qt.SHIFT
+        if alt:
+            key_sequence += Qt.ALT
+        if meta:
+            key_sequence += Qt.META
+
+        return QKeySequence(key_sequence).toString()
 
 
 def _process_mime_path(path, extlist):

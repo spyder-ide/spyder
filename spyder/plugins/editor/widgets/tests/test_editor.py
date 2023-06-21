@@ -19,12 +19,13 @@ import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
+from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import get_conf_path, running_in_ci
 from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
-from spyder.py3compat import PY2
 
 
 HERE = osp.abspath(osp.dirname(__file__))
@@ -35,7 +36,7 @@ HERE = osp.abspath(osp.dirname(__file__))
 # =============================================================================
 @pytest.fixture
 def base_editor_bot(qtbot):
-    editor_stack = EditorStack(None, [])
+    editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack
@@ -63,17 +64,36 @@ def editor_bot(base_editor_bot, mocker, qtbot):
 
 @pytest.fixture
 def editor_find_replace_bot(base_editor_bot, qtbot):
+    # Widget to show together the editor stack and findreplace ones together
+    widget = QWidget()
+    qtbot.addWidget(widget)
+    widget.setStyleSheet(str(APP_STYLESHEET))
+
+    # Widget's layout
+    layout = QVBoxLayout()
+    widget.setLayout(layout)
+
     editor_stack = base_editor_bot
+    layout.addWidget(editor_stack)
+    widget.editor_stack = editor_stack
+
     text = ('spam bacon\n'
             'spam sausage\n'
             'spam egg')
     finfo = editor_stack.new('spam.py', 'utf-8', text)
+    widget.editor = finfo.editor
+
     find_replace = FindReplace(editor_stack, enable_replace=True)
     editor_stack.set_find_widget(find_replace)
     find_replace.set_editor(finfo.editor)
-    qtbot.addWidget(editor_stack)
-    qtbot.addWidget(find_replace)
-    return editor_stack, finfo.editor, find_replace
+    widget.find_replace = find_replace
+    layout.addWidget(find_replace)
+
+    # Resize widget and show
+    widget.resize(900, 360)
+    widget.show()
+
+    return widget
 
 
 @pytest.fixture
@@ -89,59 +109,32 @@ def editor_cells_bot(base_editor_bot, qtbot):
             '# 3 cell\n'
             '# print(3)\n')
     finfo = editor_stack.new('cells.py', 'utf-8', text)
-    find_replace = FindReplace(editor_stack, enable_replace=True)
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor
-
-
-@pytest.fixture
-def editor_folding_bot(base_editor_bot, qtbot):
-    """
-    Setup CodeEditor with some text useful for folding related tests.
-    """
-    editor_stack = base_editor_bot
-    text = ('# dummy test file\n'
-            'class a():\n'  # fold-block level-0
-            '    self.b = 1\n'
-            '    print(self.b)\n'
-            '    def c():\n'
-            '        print(1)\n'
-            '        return\n'
-            '        \n'
-            )
-    finfo = editor_stack.new('foo.py', 'utf-8', text)
-
-    find_replace = FindReplace(editor_stack, enable_replace=True)
-    editor_stack.set_find_widget(find_replace)
-    find_replace.set_editor(finfo.editor)
-    qtbot.addWidget(editor_stack)
-    qtbot.addWidget(find_replace)
-    return editor_stack, finfo.editor, find_replace
 
 
 # =============================================================================
 # ---- Tests
 # =============================================================================
-def test_find_number_matches(setup_editor):
+def test_find_number_matches(editor_find_replace_bot):
     """Test for number matches in find/replace."""
-    editor_stack, editor = setup_editor
-    editor_stack.find_widget.case_button.setChecked(True)
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
+    finder.case_button.setChecked(True)
     text = ' test \nTEST \nTest \ntesT '
     editor.set_text(text)
 
-    editor_stack.find_widget.search_text.add_text('test')
-    editor_stack.find_widget.find(changed=False, forward=True,
-                                  rehighlight=False,
-                                  multiline_replace_check=False)
-    editor_text = editor_stack.find_widget.number_matches_text.text()
+    finder.search_text.add_text('test')
+    finder.find(changed=False, forward=True, rehighlight=False,
+                multiline_replace_check=False)
+    editor_text = finder.number_matches_text.text()
     assert editor_text == '1 of 1'
 
-    editor_stack.find_widget.search_text.add_text('fail')
-    editor_stack.find_widget.find(changed=False, forward=True,
-                                  rehighlight=False,
-                                  multiline_replace_check=False)
-    editor_text = editor_stack.find_widget.number_matches_text.text()
-    assert editor_text == 'no matches'
+    finder.search_text.add_text('fail')
+    finder.find(changed=False, forward=True, rehighlight=False,
+                multiline_replace_check=False)
+    assert not finder.number_matches_text.isVisible()
 
 
 def test_move_current_line_up(editor_bot):
@@ -297,10 +290,10 @@ def test_run_top_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(1) # line number is one based
     editor.move_cursor(3)
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'a = 1'
+    text, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
+    assert text == 'a = 1'
+
     # check cursor moves to start of next line; note line number is zero based
     assert editor.get_cursor_line_column() == (1, 0)
 
@@ -308,25 +301,24 @@ def test_run_top_line(editor_bot, qtbot):
 def test_run_last_nonempty_line(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(4)
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'x = 2'
+    text, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
+    assert text == 'x = 2'
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
 
 def test_run_empty_line_in_middle(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.go_to_line(3)
-    with qtbot.assertNotEmitted(editor_stack.exec_in_extconsole):
-        editor_stack.run_selection()
+    _, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
     assert editor.get_cursor_line_column() == (3, 0) # check cursor moves down
 
 
 def test_run_last_line_when_empty(editor_bot, qtbot):
     editor_stack, editor = editor_bot
-    with qtbot.assertNotEmitted(editor_stack.exec_in_extconsole):
-        editor_stack.run_selection()
+    _, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
     # check cursor doesn't move
     assert editor.get_cursor_line_column() == (4, 0)
 
@@ -335,39 +327,42 @@ def test_run_last_line_when_nonempty(editor_bot, qtbot):
     editor_stack, editor = editor_bot
     editor.stdkey_backspace() # delete empty line at end
     old_text = editor.toPlainText()
-    with qtbot.waitSignal(editor_stack.exec_in_extconsole) as blocker:
-        editor_stack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == 'x = 2'
+    text, _, _, _ = editor_stack.get_selection()
+    editor_stack.advance_line()
+    assert text == 'x = 2'
     expected_new_text = old_text + editor.get_line_separator()
     # check blank line got added
     assert editor.toPlainText() == expected_new_text
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
 
-def test_find_replace_case_sensitive(setup_editor):
-    editor_stack, editor = setup_editor
-    editor_stack.find_widget.case_button.setChecked(True)
+def test_find_replace_case_sensitive(editor_find_replace_bot):
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
+    finder.show(hide_replace=False)
+    finder.case_button.setChecked(True)
     text = ' test \nTEST \nTest \ntesT '
     editor.set_text(text)
-    editor_stack.find_widget.search_text.add_text('test')
-    editor_stack.find_widget.replace_text.add_text('pass')
-    editor_stack.find_widget.replace_find()
-    editor_stack.find_widget.replace_find()
-    editor_stack.find_widget.replace_find()
-    editor_stack.find_widget.replace_find()
+    finder.search_text.add_text('test')
+    finder.replace_text.add_text('pass')
+    finder.replace_find()
+    finder.replace_find()
+    finder.replace_find()
+    finder.replace_find()
     editor_text = editor.toPlainText()
     assert editor_text == ' pass \nTEST \nTest \ntesT '
 
 
 def test_replace_current_selected_line(editor_find_replace_bot, qtbot):
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     expected_new_text = ('ham bacon\n'
                          'spam sausage\n'
                          'spam egg')
-    old_text = editor.toPlainText()
-    finder.show()
-    finder.show_replace()
+
+    finder.show(hide_replace=False)
     qtbot.keyClicks(finder.search_text, 'spam')
     qtbot.keyClicks(finder.replace_text, 'ham')
     qtbot.keyPress(finder.replace_text, Qt.Key_Return)
@@ -377,42 +372,48 @@ def test_replace_current_selected_line(editor_find_replace_bot, qtbot):
 @pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails in Linux")
 def test_replace_enter_press(editor_find_replace_bot, qtbot):
     """Test advance forward pressing Enter, and backwards with Shift+Enter."""
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     text = '  \nspam \nspam \nspam '
     editor.set_text(text)
-    finder.show()
-
     finder.search_text.add_text('spam')
+    finder.search_text.lineEdit().setFocus()
 
     # search forward
-    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return)
     assert editor.get_cursor_line_column() == (1,4)
 
-    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return)
     assert editor.get_cursor_line_column() == (2,4)
 
-    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return)
     assert editor.get_cursor_line_column() == (3,4)
 
     # search backwards
-    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return,
+                   modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (2,4)
 
-    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return,
+                   modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (1,4)
 
-    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(finder.search_text.lineEdit(), Qt.Key_Return,
+                   modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (3,4)
 
 
 def test_replace_plain_regex(editor_find_replace_bot, qtbot):
     """Test that regex reserved characters are displayed as plain text."""
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     expected_new_text = ('.\\[()]*test bacon\n'
                          'spam sausage\n'
                          'spam egg')
-    finder.show()
-    finder.show_replace()
+    finder.show(hide_replace=False)
+
     qtbot.keyClicks(finder.search_text, 'spam')
     qtbot.keyClicks(finder.replace_text, r'.\[()]*test')
     qtbot.keyPress(finder.replace_text, Qt.Key_Return)
@@ -421,10 +422,11 @@ def test_replace_plain_regex(editor_find_replace_bot, qtbot):
 
 def test_replace_invalid_regex(editor_find_replace_bot, qtbot):
     """Assert that replacing an invalid regexp does nothing."""
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     old_text = editor.toPlainText()
-    finder.show()
-    finder.show_replace()
+    finder.show(hide_replace=False)
 
     # Test with invalid search_text and valid replace_text
     qtbot.keyClicks(finder.search_text, '\\')
@@ -453,15 +455,16 @@ def test_replace_invalid_regex(editor_find_replace_bot, qtbot):
 
 
 def test_replace_honouring_case(editor_find_replace_bot, qtbot):
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     expected_new_text = ('Spam bacon\n'
                          'Spam sausage\n'
                          'Spam egg\n'
                          'Spam potatoes')
     qtbot.keyClicks(editor, 'SpaM potatoes')
 
-    finder.show()
-    finder.show_replace()
+    finder.show(hide_replace=False)
     qtbot.keyClicks(finder.search_text, 'Spa[a-z]')
     qtbot.keyClicks(finder.replace_text, 'Spam')
 
@@ -479,15 +482,16 @@ def test_replace_honouring_case(editor_find_replace_bot, qtbot):
 
 
 def test_selection_escape_characters(editor_find_replace_bot, qtbot):
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     expected_new_text = ('spam bacon\n'
                          'spam sausage\n'
                          'spam egg\n'
                          '\\n \\t some escape characters')
     qtbot.keyClicks(editor, '\\n \\t escape characters')
 
-    finder.show()
-    finder.show_replace()
+    finder.show(hide_replace=False)
     qtbot.keyClicks(finder.search_text, 'escape')
     qtbot.keyClicks(finder.replace_text, 'some escape')
 
@@ -498,13 +502,16 @@ def test_selection_escape_characters(editor_find_replace_bot, qtbot):
 
     # Replace
     finder.replace_find_selection()
+
     # Test that selection is correct
     assert cursor.selection().toPlainText() == "\\n \\t some escape characters"
     assert editor.toPlainText() == expected_new_text
 
 
 def test_selection_backslash(editor_find_replace_bot, qtbot):
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     expected_new_text = ('spam bacon\n'
                          'spam sausage\n'
                          'spam egg\n'
@@ -512,8 +519,7 @@ def test_selection_backslash(editor_find_replace_bot, qtbot):
     text_to_add = 'a = r"\\leeft\\{" + "\\\\}\\\\right\\n"'
     qtbot.keyClicks(editor, text_to_add)
 
-    finder.show()
-    finder.show_replace()
+    finder.show(hide_replace=False)
     qtbot.keyClicks(finder.search_text, 'leeft')
     qtbot.keyClicks(finder.replace_text, 'left')
 
@@ -552,7 +558,6 @@ def test_advance_cell(editor_cells_bot):
     assert editor.get_cursor_line_column() == (6, 0)
 
 
-@pytest.mark.skipif(PY2, reason="Python2 does not support unicode very well")
 def test_get_current_word(base_editor_bot, qtbot):
     """Test getting selected valid python word."""
     editor_stack = base_editor_bot
@@ -604,11 +609,11 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot,
     Regression test for spyder-ide/spyder#3674.
     Mock test—more isolated but less flimsy.
     """
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     text = '  \nspam \nspam \nspam '
     editor.set_text(text)
-    finder.show()
-    finder.show_replace()
 
     finder.focusNextChild = MagicMock(name="focusNextChild")
     qtbot.keyPress(finder.search_text, Qt.Key_Tab)
@@ -625,11 +630,12 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
     Regression test for spyder-ide/spyder#3674.
     "Real world" test—more comprehensive but potentially less robust.
     """
-    editor_stack, editor, finder = editor_find_replace_bot
+    editor = editor_find_replace_bot.editor
+    finder = editor_find_replace_bot.find_replace
+
     text = '  \nspam \nspam \nspam '
     editor.set_text(text)
-    editor_stack.show()
-    finder.show_replace()
+    finder.show(hide_replace=False)
 
     qtbot.wait(100)
     finder.search_text.setFocus()
@@ -647,14 +653,43 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
 def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     """Check that text in the find box is copied to the replace box on tab
     keypress. Regression test spyder-ide/spyder#4482."""
-    editor_stack, editor, finder = editor_find_replace_bot
-    finder.show()
-    finder.show_replace()
+    finder = editor_find_replace_bot.find_replace
+
+    finder.show(hide_replace=False)
     finder.search_text.setFocus()
     finder.search_text.set_current_text('This is some test text!')
     qtbot.wait(500)
     qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     assert finder.replace_text.currentText() == 'This is some test text!'
+
+
+def test_update_matches_in_find_replace(editor_find_replace_bot, qtbot):
+    """
+    Check that the total number of matches in the FindReplace widget is updated
+    when switching files.
+    """
+    editor_stack = editor_find_replace_bot.editor_stack
+    finder = editor_find_replace_bot.find_replace
+
+    # Search for "spam" in current file
+    finder.show(hide_replace=False)
+    finder.search_text.setFocus()
+    finder.search_text.set_current_text('spam')
+    qtbot.wait(500)
+    qtbot.keyClick(finder.search_text, Qt.Key_Return)
+
+    # Open a new file and only write "spam" on it
+    editor_stack.new('foo.py', 'utf-8', 'spam')
+
+    # Focus new file and check the number of matches was updated
+    editor_stack.set_stack_index(1)
+    assert finder.number_matches_text.text() == '1 matches'
+    qtbot.wait(500)
+
+    # Focus initial file and check the number of matches was updated
+    editor_stack.set_stack_index(0)
+    qtbot.wait(500)
+    assert finder.number_matches_text.text() == '3 matches'
 
 
 def test_autosave_all(editor_bot, mocker):
