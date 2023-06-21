@@ -100,6 +100,7 @@ class WorkingDirectoryComboBox(PathComboBox):
         line_number = None
 
         if directory:
+            # Search for path/to/file.py:10 where 10 is the line number
             match = re.fullmatch(r"(?:(\d+):)?(.+)", directory[::-1])
             if match:
                 line_number, directory = match.groups()
