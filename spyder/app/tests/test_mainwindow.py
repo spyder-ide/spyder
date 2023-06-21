@@ -63,6 +63,7 @@ from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
+from spyder.plugins.profiler.main_widget import ProfilerWidgetActions
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
     RunExecutionParameters, ExtendedRunExecutionParameters, WorkingDirOpts,
@@ -5177,12 +5178,15 @@ def test_profiler(main_window, qtbot, tmpdir):
     item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
     assert item == sleep_str
 
+    toggle_tree_action = profile_tree.get_action(
+        ProfilerWidgetActions.ToggleTreeDirection)
+    
     # Make sure the ordering methods don't reveal the root element.
-    profile_tree.toggle_tree_action.setChecked(True)
+    toggle_tree_action.setChecked(True)
     assert len(profile_tree.current_widget().data_tree.get_items(0)) == 1
     item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
     assert item == sleep_str
-    profile_tree.toggle_tree_action.setChecked(False)
+    toggle_tree_action.setChecked(False)
     assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
     item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
     assert item == sleep_str
@@ -5232,7 +5236,7 @@ def test_profiler(main_window, qtbot, tmpdir):
         shell.execute("%profilefile " + repr(to_text_string(p)))
     qtbot.wait(1000)
     # Check callee tree
-    profile_tree.toggle_tree_action.setChecked(False)
+    toggle_tree_action.setChecked(False)
     assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
     values = ["f", sleep_str, "g"]
     for item, val in zip(
@@ -5240,7 +5244,7 @@ def test_profiler(main_window, qtbot, tmpdir):
         assert val == item.item_key[2]
 
     # Check caller tree
-    profile_tree.toggle_tree_action.setChecked(True)
+    toggle_tree_action.setChecked(True)
     assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
     values = [sleep_str, "f", "g"]
     for item, val in zip(
