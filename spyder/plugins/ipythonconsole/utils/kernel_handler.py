@@ -101,6 +101,8 @@ class KernelHandler(QObject):
     """
     The kernel raised an error while connecting.
     """
+    
+    sig_remote_close = Signal(dict)
 
     def __init__(
         self,
@@ -111,7 +113,6 @@ class KernelHandler(QObject):
         hostname=None,
         sshkey=None,
         password=None,
-        socket=None,
     ):
         super().__init__()
         # Connection Informations
@@ -124,15 +125,6 @@ class KernelHandler(QObject):
         self.password = password
         self.kernel_error_message = None
         self.connection_state = KernelConnectionState.Connecting
-        
-        # socket
-        self._socket_waiting = False
-        self.socket = socket  # For closing
-        self._notifier = None
-        if socket is not None:
-            self._notifier = QSocketNotifier(self.socket.getsockopt(zmq.FD),
-                                             QSocketNotifier.Read, self)
-            self._notifier.activated.connect(self._socket_activity)
 
         # Comm
         self.kernel_comm = KernelComm()
@@ -152,11 +144,6 @@ class KernelHandler(QObject):
 
     def connect(self):
         """Connect to shellwidget."""
-        if self.kernel_spec is not None:
-            print("Send open_kernel")
-            self._socket_waiting = True
-            self.socket.send_pyobj(["open_kernel", self.kernel_spec])
-            
         self._shellwidget_connected = True
         # Emit signal in case the connection is already made
         if self.connection_state in [
@@ -173,37 +160,6 @@ class KernelHandler(QObject):
         # if self._init_stdout:
         #     self.sig_stdout.emit(self._init_stdout)
         # self._init_stdout = None
-    
-    def _socket_activity(self):
-        if not self._socket_waiting:
-            return
-        self._socket_waiting = False
-        print("Got Notified")
-        #  Wait for next request from client
-        message = self.socket.recv_pyobj()
-        print(message)
-        cmd = message[0]
-        if cmd == "new_kernel":
-            cmd, self.connection_file, self.connection_info = message
-            if self.connection_file == "error":
-                print(self.connection_info)
-            self.kernel_client = SpyderKernelClient()
-            self.kernel_client.load_connection_info(self.connection_info)
-            self.kernel_client = self.tunnel_kernel_client(
-                self.kernel_client,
-                self.hostname,
-                self.sshkey,
-                self.password
-                )
-
-            # Increase time (in seconds) to detect if a kernel is alive.
-            # See spyder-ide/spyder#3444.
-            self.kernel_client.hb_channel.time_to_dead = 25.0
-            
-            # Start kernel
-            # self.connect_std_pipes()
-            self.kernel_client.start_channels()
-            self.check_kernel_info()
         
 
     def check_kernel_info(self):
@@ -314,8 +270,7 @@ class KernelHandler(QObject):
     @classmethod
     def new_from_spec(
             cls, kernel_spec, connection_file=None, connection_info=None,
-            hostname=None, sshkey=None, password=None,
-            socket=None
+            hostname=None, sshkey=None, password=None
     ):
         """
         Create a new kernel.
@@ -326,8 +281,7 @@ class KernelHandler(QObject):
             known_spyder_kernel=True,
             hostname=hostname,
             sshkey=sshkey,
-            password=password,
-            socket=socket,
+            password=password
         )
 
     @classmethod
@@ -402,9 +356,7 @@ class KernelHandler(QObject):
         self.close_comm()
 
         if shutdown_kernel and self.kernel_spec is not None:
-            self.socket.send_pyobj(["close_kernel", self.connection_file])
-            # Wait for confirmation
-            self.socket.recv_pyobj()
+            self.sig_remote_close.emit(self.connection_file)
 
         if (
             self.kernel_client is not None
@@ -481,3 +433,29 @@ class KernelHandler(QObject):
         self.kernel_comm.remove()
         self.connection_state = KernelConnectionState.Connecting
         self.kernel_comm.open_comm(self.kernel_client)
+
+    def set_connection(self, connection_file, connection_info,
+                       hostname, sshkey, password):
+        self.connection_file = connection_file
+        self.connection_info = connection_info
+        self.hostname = hostname
+        self.sshkey = sshkey
+        self.password = password
+        
+        self.kernel_client = SpyderKernelClient()
+        self.kernel_client.load_connection_info(self.connection_info)
+        self.kernel_client = self.tunnel_kernel_client(
+            self.kernel_client,
+            self.hostname,
+            self.sshkey,
+            self.password
+            )
+    
+        # Increase time (in seconds) to detect if a kernel is alive.
+        # See spyder-ide/spyder#3444.
+        self.kernel_client.hb_channel.time_to_dead = 25.0
+        
+        # Start kernel
+        # self.connect_std_pipes()
+        self.kernel_client.start_channels()
+        self.check_kernel_info()

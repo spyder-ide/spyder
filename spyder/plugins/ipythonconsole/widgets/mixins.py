@@ -10,8 +10,9 @@ IPython Console mixins.
 import zmq
 import sys
 import os
+import queue
 
-from qtpy.QtCore import QProcess
+from qtpy.QtCore import QProcess, QSocketNotifier
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
@@ -31,6 +32,9 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         super().__init__()
         self.context = zmq.Context()
         self.on_kernel_server_conf_changed()
+        self.kernel_handler_waitlist = []
+        self.request_queue = queue.Queue()
+        self._notifier = None
 
     @on_conf_change(
         option=[
@@ -130,6 +134,11 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
     def connect_socket(self, hostname):
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(f"tcp://{hostname}")
+        self._notifier = QSocketNotifier(
+            self.socket.getsockopt(zmq.FD),
+            QSocketNotifier.Read, self
+        )
+        self._notifier.activated.connect(self._socket_activity)
 
     def new_kernel(self, kernel_spec):
         """Get a new kernel"""
@@ -138,10 +147,63 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,
-            socket=self.socket,
         )
-
+        
+        kernel_handler.sig_remote_close.connect(self.request_close)
+        self.kernel_handler_waitlist.append(kernel_handler)
+        
+        
+        self.send_request(["open_kernel", kernel_spec])
+        
         return kernel_handler
+    
+    def request_close(self, connection_file):
+        self.send_request(["close_kernel", connection_file])
+    
+    def send_request(self, request):
+        
+        if self.socket.getsockopt(zmq.EVENTS) & zmq.POLLOUT:
+            print("send", request)
+            self.socket.send_pyobj(request)
+        else:
+            print("queue", request)
+            self.request_queue.put(request)
+        
+    def _socket_activity(self):
+        if not self.socket.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+            return
+        print("Got Activity")
+        self._notifier.setEnabled(False)
+        #  Wait for next request from client
+        message = self.socket.recv_pyobj()
+        print(message)
+        cmd = message[0]
+        if cmd == "new_kernel":
+            cmd, connection_file, connection_info = message
+            
+            if connection_file == "error":
+                print(connection_info)
+            
+            if len(self.kernel_handler_waitlist) == 0:
+                print("WTF???")
+            
+            kernel_handler = self.kernel_handler_waitlist.pop(0)
+            kernel_handler.set_connection(
+                connection_file, connection_info,
+                self.hostname,
+                self.sshkey,
+                self.password)
+            
+        self._notifier.setEnabled(True)
+        # This is necessary for some reason.
+        # Otherwise the socket only works twice !
+        self.socket.getsockopt(zmq.EVENTS)
+        
+        try:
+            request = self.request_queue.get_nowait()
+            self.send_request(request)
+        except queue.Empty:
+            pass
 
 
 class CachedKernelMixin:
