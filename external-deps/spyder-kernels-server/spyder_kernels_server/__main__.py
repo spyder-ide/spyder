@@ -39,7 +39,6 @@ class Server(QObject):
         self._notifier.setEnabled(False)
         #  Wait for next request from client
         message = self.socket.recv_pyobj()
-        print(message)
         cmd = message[0]
         if cmd == "shutdown":
             self.socket.send_pyobj(["shutting_down"])
@@ -61,7 +60,6 @@ class Server(QObject):
             try:
                 self.kernel_server.close_kernel(message[1])
             except Exception:
-                print("Nope")
                 pass
         self._notifier.setEnabled(True)
         
@@ -72,7 +70,6 @@ class Server(QObject):
 
 
 if __name__ == '__main__':
-    print(os.getpid())
     app = QCoreApplication(sys.argv)
     w = Server()
     sys.exit(app.exec_())
