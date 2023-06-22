@@ -133,15 +133,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
 
     def new_kernel(self, kernel_spec):
         """Get a new kernel"""
-        self.socket.send_pyobj(["open_kernel", kernel_spec])
-        cmd, connection_file, connection_info = self.socket.recv_pyobj()
-        if connection_file == "error":
-            raise connection_info
-
         kernel_handler = KernelHandler.new_from_spec(
             kernel_spec=kernel_spec,
-            connection_file=connection_file,
-            connection_info=connection_info,
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,

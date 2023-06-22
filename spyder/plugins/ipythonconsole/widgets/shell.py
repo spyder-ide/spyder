@@ -203,10 +203,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect to the kernel using our handler."""
         # Kernel client
-        kernel_client = kernel_handler.kernel_client
-        kernel_client.stopped_channels.connect(self.notify_deleted)
-        self.kernel_client = kernel_client
-
         self.kernel_handler = kernel_handler
 
         if first_connect:
@@ -271,6 +267,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
         ):
+            self.kernel_client = self.kernel_handler.kernel_client
+            self.kernel_client.stopped_channels.connect(self.notify_deleted)
             self.setup_spyder_kernel()
             return
 
