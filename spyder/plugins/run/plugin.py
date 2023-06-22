@@ -262,9 +262,7 @@ class Run(SpyderPluginV2):
         self.get_container().register_run_configuration_metadata(
             provider, metadata)
         
-    def get_currently_selected_configuration(
-        self
-    ):
+    def get_currently_selected_configuration(self):
         """
         Get currently selected configuration
         """

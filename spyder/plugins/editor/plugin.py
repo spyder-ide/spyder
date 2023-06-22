@@ -514,7 +514,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             run.deregister_run_configuration_metadata(file_id)
     
     def change_register_file_run_metadata(self, old_filename, new_filename):
-        """Change the register name"""
+        """Change the register name."""
         is_selected = False
         run = self.main.get_plugin(Plugins.Run, error=False)
         if run is not None:

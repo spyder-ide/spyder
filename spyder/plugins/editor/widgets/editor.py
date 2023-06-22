@@ -3547,7 +3547,8 @@ class EditorPluginExample(QSplitter):
     # to show how to use the file_saved signal (see above).
     @Slot(str, str, str)
     def file_renamed_in_data_in_editorstack(
-            self, original_filename, filename, editorstack_id_str):
+        self, original_filename, filename, editorstack_id_str
+    ):
         """A file was renamed in data in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:

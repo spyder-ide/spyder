@@ -6333,7 +6333,7 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
 
 @pytest.mark.skipif(
     os.name == 'nt',
-    reason="No quotes in windows filepath"
+    reason="No quotes on Windows file paths"
 )
 def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     """
@@ -6371,7 +6371,7 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
 
     # Make sure this works with ipy and renamed files too
 
-    # Rename the file to ipython and send the signal
+    # Rename the file to IPython and emit the signal for that
     rename_file(path, path[:-2] + "ipy")
     explorer = main_window.get_plugin(Plugins.Explorer)
     explorer.sig_file_renamed.emit(path, path[:-2] + "ipy")
@@ -6385,7 +6385,7 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     assert "error" not in control.toPlainText()
     assert "\\.ipy" in control.toPlainText()
     
-    # Create an untiliteled file
+    # Create an untitled file
     main_window.editor.new()
     
     assert "untitled" in main_window.editor.get_current_filename()
@@ -6400,7 +6400,7 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     assert "error" not in control.toPlainText()
     assert "untitled" in control.toPlainText()
     
-    # save in a new folder
+    # Save file in a new folder
     code_editor.set_text("print(19 + 780)")
     
     with tempfile.TemporaryDirectory() as td:
@@ -6408,8 +6408,6 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
         editorstack = main_window.editor.get_current_editorstack()
         editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
         main_window.editor.save()
-        
-        
         with qtbot.waitSignal(shell.executed):
             qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
     
