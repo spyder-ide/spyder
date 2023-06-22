@@ -106,7 +106,7 @@ class KernelHandler(QObject):
 
     def __init__(
         self,
-        connection_file,
+        connection_file=None,
         kernel_spec=None,
         kernel_client=None,
         known_spyder_kernel=False,
@@ -269,14 +269,12 @@ class KernelHandler(QObject):
 
     @classmethod
     def new_from_spec(
-            cls, kernel_spec, connection_file=None, connection_info=None,
-            hostname=None, sshkey=None, password=None
+            cls, kernel_spec, hostname=None, sshkey=None, password=None
     ):
         """
         Create a new kernel.
         """
         return cls(
-            connection_file=connection_file,
             kernel_spec=kernel_spec,
             known_spyder_kernel=True,
             hostname=hostname,

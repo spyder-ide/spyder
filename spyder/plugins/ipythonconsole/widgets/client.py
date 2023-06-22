@@ -540,7 +540,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def shutdown(self, is_last_client):
         """Shutdown connection and kernel if needed."""
-        return
         self.dialog_manager.close_all()
         shutdown_kernel = (
             is_last_client and not self.shellwidget.is_external_kernel
