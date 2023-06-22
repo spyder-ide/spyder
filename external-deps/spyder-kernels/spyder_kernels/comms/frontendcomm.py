@@ -130,11 +130,10 @@ class FrontendComm(CommBase):
         """
         Send comm message to frontend to check if the iopub channel is ready
         """
-        with self.comm_lock:
-            if len(self._pending_comms) == 0:
-                return
-            for comm in self._pending_comms.values():
-                self._notify_comm_ready(comm)
+        if len(self._pending_comms) == 0:
+            return
+        for comm in self._pending_comms.values():
+            self._notify_comm_ready(comm)
         self.kernel.io_loop.call_later(1, self._check_comm_reply)
 
     def _notify_comm_ready(self, comm):
@@ -146,8 +145,7 @@ class FrontendComm(CommBase):
 
     def _comm_ready_callback(self, ret):
         """A comm has replied, so process all cached messages related to it."""
-        with self.comm_lock:
-            comm = self._pending_comms.pop(self.calling_comm_id, None)
+        comm = self._pending_comms.pop(self.calling_comm_id, None)
         if not comm:
             return
         # Cached messages for that comm
@@ -181,8 +179,7 @@ class FrontendComm(CommBase):
 
         # IOPub might not be connected yet, keep sending messages until a
         # reply is received.
-        with self.comm_lock:
-            self._pending_comms[comm.comm_id] = comm
+        self._pending_comms[comm.comm_id] = comm
         self._notify_comm_ready(comm)
         self.kernel.io_loop.call_later(.3, self._check_comm_reply)
 
