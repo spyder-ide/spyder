@@ -26,90 +26,83 @@ else:
     ssh_tunnel = openssh_tunnel
 
 
+KERNEL_SERVER_OPTIONS = [
+    'kernel_server/external_server',
+    'kernel_server/use_ssh',
+    'kernel_server/host',
+    'kernel_server/port',
+    'kernel_server/username',
+    'kernel_server/password_auth',
+    'kernel_server/keyfile_auth',
+    'kernel_server/password',
+    'kernel_server/keyfile',
+    'kernel_server/passphrase',
+]
+
 class KernelConnectorMixin(SpyderConfigurationObserver):
     """Needs https://github.com/jupyter/jupyter_client/pull/835"""
     def __init__(self):
         super().__init__()
-        self.context = zmq.Context()
-        self.on_kernel_server_conf_changed()
+        self.options = None
         self.kernel_handler_waitlist = []
         self.request_queue = queue.Queue()
-        self._notifier = None
+        self.context = zmq.Context()
+
+        self.on_kernel_server_conf_changed()
 
     @on_conf_change(
-        option=[
-            'kernel_server/external_server',
-            'kernel_server/use_ssh',
-            'kernel_server/host',
-            'kernel_server/port',
-            'kernel_server/username',
-            'kernel_server/password_auth',
-            'kernel_server/keyfile_auth',
-            'kernel_server/password',
-            'kernel_server/keyfile',
-            'kernel_server/passphrase',
-        ],
+        option=KERNEL_SERVER_OPTIONS,
         section='main_interpreter'
     )
     def on_kernel_server_conf_changed(self, option=None, value=None):
         """Start server"""
+        options = {
+            option: self.get_conf(
+                option=option,
+                section='main_interpreter')
+            for option in KERNEL_SERVER_OPTIONS
+        }
+        if self.options == options:
+            return
+        
+        self.options = options
         self.hostname = None
         self.sshkey = None
         self.password = None
 
-        is_remote = self.get_conf(
-            option='kernel_server/external_server',
-            section='main_interpreter')
+        is_remote = options['kernel_server/external_server']
 
         if not is_remote:
             self.start_local_server()
             return
         # Remote server
 
-        remote_port = int(self.get_conf(
-            option='kernel_server/port',
-            section='main_interpreter'))
+        remote_port = int(options['kernel_server/port'])
         if not remote_port:
             remote_port = 22
-        remote_ip = self.get_conf(
-            option='kernel_server/host',
-            section='main_interpreter')
+        remote_ip = options['kernel_server/host']
 
 
-        is_ssh = self.get_conf(
-            option='kernel_server/use_ssh',
-            section='main_interpreter')
+        is_ssh = options['kernel_server/use_ssh']
 
         if not is_ssh:
             self.connect_socket(f"{remote_ip}:{remote_port}")
             return
 
-        username = self.get_conf(
-            option='kernel_server/username',
-            section='main_interpreter')
+        username = options['kernel_server/username']
 
         self.hostname = f"{username}@{remote_ip}:{remote_port}"
 
         # Now we deal with ssh
-        uses_password = self.get_conf(
-            option='kernel_server/password_auth',
-            section='main_interpreter')
-        uses_keyfile = self.get_conf(
-            option='kernel_server/keyfile_auth',
-            section='main_interpreter')
+        uses_password = options['kernel_server/password_auth']
+        uses_keyfile = options['kernel_server/keyfile_auth']
 
         if uses_password:
-            self.password = self.get_conf(
-                option='kernel_server/password',
-                section='main_interpreter')
+            self.password = options['kernel_server/password']
             self.sshkey = None
         elif uses_keyfile:
-            self.password = self.get_conf(
-                option='kernel_server/passphrase',
-                section='main_interpreter')
-            self.sshkey = self.get_conf(
-                option='kernel_server/keyfile',
-                section='main_interpreter')
+            self.password = options['kernel_server/passphrase']
+            self.sshkey = options['kernel_server/keyfile']
         else:
             raise NotImplementedError("This should not be possible.")
 

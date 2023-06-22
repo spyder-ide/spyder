@@ -102,7 +102,7 @@ class KernelHandler(QObject):
     The kernel raised an error while connecting.
     """
     
-    sig_remote_close = Signal(dict)
+    sig_remote_close = Signal(str)
 
     def __init__(
         self,
