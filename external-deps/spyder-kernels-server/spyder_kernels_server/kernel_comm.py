@@ -10,6 +10,7 @@ In addition to the remote_call mechanism implemented in CommBase:
 """
 from contextlib import contextmanager
 import logging
+import os
 import pickle
 
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
@@ -18,6 +19,17 @@ from spyder_kernels.comms.commbase import CommBase
 
 logger = logging.getLogger(__name__)
 TIMEOUT_KERNEL_START = 30
+
+
+def get_debug_level():
+    debug_env = os.environ.get('SPYDER_DEBUG', '')
+    if not debug_env.isdigit():
+        debug_env = bool(debug_env)
+    return int(debug_env)
+
+
+def running_under_pytest():
+    return bool(os.environ.get('SPYDER_PYTEST'))
 
 
 class KernelComm(CommBase, QObject):
@@ -70,6 +82,9 @@ class KernelComm(CommBase, QObject):
     def _set_call_return_value(self, call_dict, data, is_error=False):
         """Override to use the comm_channel for all replies."""
         with self.comm_channel_manager(self.calling_comm_id, False):
+            if is_error and (get_debug_level() or running_under_pytest()):
+                # Disable error muting when debugging or testing
+                call_dict['settings']['display_error'] = True
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 

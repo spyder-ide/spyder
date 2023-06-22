@@ -101,14 +101,6 @@ class KernelHandler(QObject):
     The kernel raised an error while connecting.
     """
 
-    _shutdown_thread_list = []
-    """List of running shutdown threads"""
-
-    _shutdown_thread_list_lock = Lock()
-    """
-    Lock to add threads to _shutdown_thread_list or clear that list.
-    """
-
     def __init__(
         self,
         connection_file,
