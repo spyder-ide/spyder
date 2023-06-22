@@ -33,7 +33,7 @@ m1="# >>> Added by Spyder >>>"
 m2="# <<< Added by Spyder <<<"
 
 add_alias() (
-    if [[ ! -e $shell_init || ! -s $shell_init ]]; then
+    if [[ ! -f "$shell_init" || ! -s "$shell_init" ]]; then
         echo -e "$m1\n$1\n$m2" > $shell_init
         exit 0
     fi
@@ -84,24 +84,26 @@ if [[ \$OSTYPE = "darwin"* ]]; then
     osascript -e 'quit app "Spyder.app"' 2> /dev/null
 fi
 
+# Remove aliases from shell startup
+if [[ -f "$shell_init" ]]; then
+    echo "Removing shell commands..."
+    sed ${sed_opts[@]} "/$m1/,/$m2/d" $shell_init
+fi
+
 # Remove shortcut and environment
 echo "Removing Spyder and environment..."
 rm -rf ${shortcut_path}
 rm -rf ${PREFIX}
 
-# Remove aliases from shell startup
-if [[ -e ${shell_init} ]]; then
-    echo "Removing shell commands..."
-    sed ${sed_opts[@]} "/$m1/,/$m2/d" ${shell_init}
-fi
-
 echo "Spyder successfully uninstalled."
 EOF
-chmod +x ${u_spy_exe}
+chmod u+x ${u_spy_exe}
 
 # ----
-echo "Creating aliases in $shell_init ..."
-add_alias "${alias_text}"
+if [[ -n "$shell_init" ]]; then
+    echo "Creating aliases in $shell_init ..."
+    add_alias "$alias_text"
+fi
 
 # ----
 if [[ $OSTYPE = "linux"* ]]; then
