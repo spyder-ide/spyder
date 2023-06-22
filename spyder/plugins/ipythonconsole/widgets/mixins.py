@@ -156,16 +156,13 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
     def send_request(self, request):
         
         if self.socket.getsockopt(zmq.EVENTS) & zmq.POLLOUT:
-            print("send", request)
             self.socket.send_pyobj(request)
         else:
-            print("queue", request)
             self.request_queue.put(request)
         
     def _socket_activity(self):
         if not self.socket.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             return
-        print("Got Activity")
         self._notifier.setEnabled(False)
         #  Wait for next request from client
         message = self.socket.recv_pyobj()
@@ -174,18 +171,21 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         if cmd == "new_kernel":
             cmd, connection_file, connection_info = message
             
-            if connection_file == "error":
-                print(connection_info)
-            
             if len(self.kernel_handler_waitlist) == 0:
-                print("WTF???")
+                # This should not happen :/
+                self._notifier.setEnabled(True)
+                self.socket.getsockopt(zmq.EVENTS)
+                return
             
             kernel_handler = self.kernel_handler_waitlist.pop(0)
-            kernel_handler.set_connection(
-                connection_file, connection_info,
-                self.hostname,
-                self.sshkey,
-                self.password)
+            if connection_file == "error":
+                kernel_handler.sig_fault.emit(connection_info)
+            else:
+                kernel_handler.set_connection(
+                    connection_file, connection_info,
+                    self.hostname,
+                    self.sshkey,
+                    self.password)
             
         self._notifier.setEnabled(True)
         # This is necessary for some reason.
