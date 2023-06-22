@@ -19,7 +19,7 @@
                         "Graphics",
                         "Science"
                     ],
-                    "command": ["spyder", "$@"],
+                    "command": ["{{ PREFIX }}/bin/spyder", "$@"],
                     "StartupWMClass": "Spyder"
                 },
                 "osx": {
