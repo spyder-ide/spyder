@@ -1738,9 +1738,6 @@ class IPythonConsoleWidget(
             client.close_client(is_last_client)
             open_clients.remove(client)
 
-        # Wait for all KernelHandler threads to shutdown.
-        KernelHandler.wait_all_shutdown_threads()
-
         # Close cached kernel
         self.close_cached_kernel()
         self.filenames = []
