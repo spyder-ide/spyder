@@ -159,20 +159,6 @@ def amend_user_shell_init(text="", restore=False):
     init_file.write_text(_script.rstrip() + "\n")
 
 
-def clean_env(env_vars):
-    """
-    Remove non-ascii entries from a dictionary of environments variables.
-
-    The values will be converted to strings or bytes (on Python 2). If an
-    exception is raised, an empty string will be used.
-    """
-    new_env_vars = env_vars.copy()
-    for key, var in env_vars.items():
-        new_env_vars[key] = str(var)
-
-    return new_env_vars
-
-
 class RemoteEnvDialog(CollectionsEditor):
     """Remote process environment variables dialog."""
 

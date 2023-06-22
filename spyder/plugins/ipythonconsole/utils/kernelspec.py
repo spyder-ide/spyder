@@ -27,7 +27,6 @@ from spyder.plugins.ipythonconsole import (
     SpyderKernelError)
 from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
                                 find_conda)
-from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter, is_module_installed
 
@@ -51,6 +50,20 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
     "<pre>"
     "    <tt>{3}</tt>"
     "</pre>")
+
+
+def clean_env(env_vars):
+    """
+    Remove non-ascii entries from a dictionary of environments variables.
+
+    The values will be converted to strings or bytes (on Python 2). If an
+    exception is raised, an empty string will be used.
+    """
+    new_env_vars = env_vars.copy()
+    for key, var in env_vars.items():
+        new_env_vars[key] = str(var)
+
+    return new_env_vars
 
 
 def is_different_interpreter(pyexec):
