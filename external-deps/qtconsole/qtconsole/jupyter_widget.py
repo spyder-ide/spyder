@@ -369,6 +369,9 @@ class JupyterWidget(IPythonWidget):
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
+            if self.kernel_client is None:
+                # Not connected yet
+                return
             if self._prompt_requested:
                 # Already asked for prompt, avoid multiple prompts.
                 return
