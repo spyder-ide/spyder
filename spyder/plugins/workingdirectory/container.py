@@ -12,6 +12,7 @@ Working Directory widget.
 import logging
 import os
 import os.path as osp
+import re
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -57,6 +58,9 @@ class WorkingDirectoryToolbar(ApplicationToolbar):
 
 
 class WorkingDirectoryComboBox(PathComboBox):
+    """Working directory combo box."""
+
+    edit_goto = Signal(str, int, str)
 
     def __init__(self, parent):
         super().__init__(
@@ -77,7 +81,61 @@ class WorkingDirectoryComboBox(PathComboBox):
         """Set current path as the tooltip of the widget on hover."""
         self.setToolTip(self.currentText())
 
+    def focusOutEvent(self, event):
+        """Handle focus out event restoring the last valid selected path."""
+        if self.add_current_text_if_valid():
+            self.selected()
+            self.hide_completer()
+        hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
+        if hide_status:
+            hide_status()
+        super().focusOutEvent(event)
 
+    # ---- Own methods
+    def valid_text(self):
+        """Get valid version of current text."""
+        directory = self.currentText()
+        file = None
+        line_number = None
+
+        if directory:
+            # Search for path/to/file.py:10 where 10 is the line number
+            match = re.fullmatch(r"(?:(\d+):)?(.+)", directory[::-1])
+            if match:
+                line_number, directory = match.groups()
+                if line_number:
+                    line_number = int(line_number[::-1])
+                directory = directory[::-1]
+
+            directory = osp.abspath(directory)
+
+            # If the directory is actually a file, open containing directory
+            if osp.isfile(directory):
+                file = osp.basename(directory)
+                directory = osp.dirname(directory)
+
+            # If the directory name is malformed, open parent directory
+            if not osp.isdir(directory):
+                directory = osp.dirname(directory)
+
+            if self.is_valid(directory):
+                return directory, file, line_number
+
+        return self.selected_text, file, line_number
+
+    def add_current_text_if_valid(self):
+        """Add current text to combo box history if valid."""
+        directory, file, line_number = self.valid_text()
+        if file:
+            self.edit_goto.emit(file, line_number, "")
+        if directory != self.currentText():
+            self.add_text(directory)
+        if directory:
+            return True
+
+
+# ---- Container
+# ----------------------------------------------------------------------------
 class WorkingDirectorySpacer(QWidget):
     ID = 'working_directory_spacer'
 
@@ -107,6 +165,20 @@ class WorkingDirectoryContainer(PluginMainContainer):
         The new new working directory path.
     """
 
+    edit_goto = Signal(str, int, str)
+    """
+    This signal is emitted when a file has been requested.
+
+    Parameters
+    ----------
+    filename: str
+        The file to open.
+    line: int
+        The line to go to.
+    word: str
+        The word to go to in the line.
+    """
+
     # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
@@ -128,6 +200,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
         # Signals
         self.pathedit.open_dir.connect(self.chdir)
+        self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.activated[str].connect(self.chdir)
 
         # Actions
