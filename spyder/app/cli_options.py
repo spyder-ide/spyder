@@ -86,7 +86,7 @@ def get_options(argv=None):
         default=None,
         type=str,
         dest="project",
-        help="Path that contains an Spyder project"
+        help="Path that contains a Spyder project"
     )
     parser.add_argument(
         '--opengl',

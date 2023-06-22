@@ -16,14 +16,11 @@ from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.explorer.widgets.explorer import (
     DirViewActions, ExplorerTreeWidget, ExplorerTreeWidgetActions)
 from spyder.utils.misc import getcwd_or_home
-
-
-_ = get_translation('spyder')
 
 
 # ---- Constants

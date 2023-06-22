@@ -22,7 +22,6 @@ import pytest
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     ObjectExplorer)
-from spyder.py3compat import PY2
 
 # =============================================================================
 # Fixtures

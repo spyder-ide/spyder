@@ -7,6 +7,7 @@
 """Tests for config/manager.py."""
 
 # Standard library imports
+import configparser
 import os
 import os.path as osp
 import shutil
@@ -19,7 +20,6 @@ import pytest
 from spyder.config.base import get_conf_path, get_conf_paths
 from spyder.config.manager import ConfigurationManager
 from spyder.plugins.console.plugin import Console
-from spyder.py3compat import configparser
 
 
 def clear_site_config():

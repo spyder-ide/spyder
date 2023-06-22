@@ -31,8 +31,13 @@ def pylsp_hover(config, document, position):
     preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
 
     # Find first exact matching signature
-    signature = next((x.to_string() for x in definition.get_signatures()
-                      if x.name == word), '')
+    signature = next(
+        (
+            x.to_string() for x in definition.get_signatures()
+            if (x.name == word and x.type not in ["module"])
+        ),
+        ''
+    )
 
     return {
         'contents': _utils.format_docstring(

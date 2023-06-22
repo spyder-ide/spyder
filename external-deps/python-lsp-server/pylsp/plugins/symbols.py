@@ -2,7 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
-import os
+from pathlib import Path
 
 from pylsp import hookimpl
 from pylsp.lsp import SymbolKind
@@ -91,14 +91,7 @@ def pylsp_document_symbols(config, document):
                 else:
                     continue
 
-        try:
-            docismodule = os.path.samefile(document.path, d.module_path)
-        except (TypeError, FileNotFoundError):
-            # Python 2 on Windows has no .samefile, but then these are
-            # strings for sure
-            docismodule = document.path == d.module_path
-
-        if _include_def(d) and docismodule:
+        if _include_def(d) and Path(document.path) == Path(d.module_path):
             tuple_range = _tuple_range(d)
             if tuple_range in exclude:
                 continue

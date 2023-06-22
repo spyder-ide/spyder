@@ -9,9 +9,6 @@
 """
 Utilities to build a namespace view.
 """
-
-from __future__ import print_function
-
 from itertools import islice
 import inspect
 import re

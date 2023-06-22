@@ -9,8 +9,8 @@ import sys
 import re
 from subprocess import Popen, PIPE
 import os
+import shlex
 
-from pylint.epylint import py_run
 from pylsp import hookimpl, lsp
 
 try:
@@ -85,20 +85,21 @@ class PylintLinter:
             # save.
             return cls.last_diags[document.path]
 
-        # py_run will call shlex.split on its arguments, and shlex.split does
-        # not handle Windows paths (it will try to perform escaping). Turn
-        # backslashes into forward slashes first to avoid this issue.
-        path = document.path
-        if sys.platform.startswith('win'):
-            path = path.replace('\\', '/')
+        cmd = [
+            sys.executable,
+            '-c',
+            'import sys; from pylint.lint import Run; Run(sys.argv[1:])',
+            '-f',
+            'json',
+            document.path
+        ] + (shlex.split(str(flags)) if flags else [])
+        log.debug("Calling pylint with '%s'", ' '.join(cmd))
 
-        pylint_call = '{} -f json {}'.format(path, flags)
-        log.debug("Calling pylint with '%s'", pylint_call)
-        json_out, err = py_run(pylint_call, return_std=True)
-
-        # Get strings
-        json_out = json_out.getvalue()
-        err = err.getvalue()
+        with Popen(cmd, stdout=PIPE, stderr=PIPE,
+                   cwd=document._workspace.root_path, universal_newlines=True) as process:
+            process.wait()
+            json_out = process.stdout.read()
+            err = process.stderr.read()
 
         if err != '':
             log.error("Error calling pylint: '%s'", err)
@@ -126,6 +127,7 @@ class PylintLinter:
         # The type can be any of:
         #
         #  * convention
+        #  * information
         #  * error
         #  * fatal
         #  * refactor
@@ -150,6 +152,8 @@ class PylintLinter:
             }
 
             if diag['type'] == 'convention':
+                severity = lsp.DiagnosticSeverity.Information
+            elif diag['type'] == 'information':
                 severity = lsp.DiagnosticSeverity.Information
             elif diag['type'] == 'error':
                 severity = lsp.DiagnosticSeverity.Error
@@ -201,18 +205,19 @@ def pylsp_settings():
 
 
 @hookimpl
-def pylsp_lint(config, document, is_saved):
+def pylsp_lint(config, workspace, document, is_saved):
     """Run pylint linter."""
-    settings = config.plugin_settings('pylint')
-    log.debug("Got pylint settings: %s", settings)
-    # pylint >= 2.5.0 is required for working through stdin and only
-    # available with python3
-    if settings.get('executable') and sys.version_info[0] >= 3:
-        flags = build_args_stdio(settings)
-        pylint_executable = settings.get('executable', 'pylint')
-        return pylint_lint_stdin(pylint_executable, document, flags)
-    flags = _build_pylint_flags(settings)
-    return PylintLinter.lint(document, is_saved, flags=flags)
+    with workspace.report_progress("lint: pylint"):
+        settings = config.plugin_settings('pylint')
+        log.debug("Got pylint settings: %s", settings)
+        # pylint >= 2.5.0 is required for working through stdin and only
+        # available with python3
+        if settings.get('executable') and sys.version_info[0] >= 3:
+            flags = build_args_stdio(settings)
+            pylint_executable = settings.get('executable', 'pylint')
+            return pylint_lint_stdin(pylint_executable, document, flags)
+        flags = _build_pylint_flags(settings)
+        return PylintLinter.lint(document, is_saved, flags=flags)
 
 
 def build_args_stdio(settings):

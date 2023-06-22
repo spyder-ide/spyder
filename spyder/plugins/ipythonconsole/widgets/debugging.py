@@ -17,9 +17,10 @@ import re
 # Third-party imports
 from IPython.core.history import HistoryManager
 from IPython.core.inputtransformer2 import TransformerManager
-from IPython.lib.lexers import IPythonLexer, IPython3Lexer
-from pygments.lexer import bygroups
-from pygments.token import Keyword, Operator, Text
+from IPython.lib.lexers import (
+    IPython3Lexer, Python3Lexer, bygroups, using
+)
+from pygments.token import Keyword, Operator
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEvent
@@ -33,14 +34,11 @@ from spyder.config.base import get_conf_path
 class SpyderIPy3Lexer(IPython3Lexer):
     # Detect !cmd command and highlight them
     tokens = IPython3Lexer.tokens
-    tokens['root'].insert(
-        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
-
-
-class SpyderIPy2Lexer(IPythonLexer):
-    tokens = IPython3Lexer.tokens
-    tokens['root'].insert(
-        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
+    spyder_tokens = [
+        (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
+        (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
+    ]
+    tokens['root'] = spyder_tokens + tokens['root']
 
 
 class PdbHistory(HistoryManager):
@@ -198,8 +196,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         self._pdb_prompt = (None, None)  # prompt, password
         self._pdb_last_cmd = ''  # last command sent to pdb
         self._pdb_frame_loc = (None, None)  # fname, lineno
-        self._pdb_focus_to_editor = False  # Focus to editor after command
-                                          # execution
+        self._pdb_take_focus = True  # Focus to shell after command execution
         # Command queue
         self._pdb_input_queue = []  # List of (code, hidden, echo_stack_entry)
         # Temporary flags
@@ -270,11 +267,11 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             prefix = '!'
         return prefix
 
-    def pdb_execute_command(self, command, focus_to_editor=False):
+    def pdb_execute_command(self, command):
         """
         Execute a pdb command
         """
-        self._pdb_focus_to_editor = focus_to_editor
+        self._pdb_take_focus = False
         self.pdb_execute(
             self._pdb_cmd_prefix() + command, hidden=False,
             echo_stack_entry=False, add_history=False)
@@ -395,9 +392,10 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
         See publish_pdb_state and notify_spyder in spyder_kernels
         """
-        if 'step' in pdb_state and 'fname' in pdb_state['step']:
-            fname = pdb_state['step']['fname']
-            lineno = pdb_state['step']['lineno']
+        pdb_step = pdb_state.pop('step', None)
+        if pdb_step and 'fname' in pdb_step:
+            fname = pdb_step['fname']
+            lineno = pdb_step['lineno']
 
             last_pdb_loc = self._pdb_frame_loc
             self._pdb_frame_loc = (fname, lineno)
@@ -406,12 +404,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             if (fname, lineno) != last_pdb_loc:
                 self.sig_pdb_step.emit(fname, lineno)
 
-        if 'stack' in pdb_state:
-            pdb_stack, pdb_index = pdb_state['stack']
+        pdb_stack = pdb_state.pop('stack', None)
+        if pdb_stack:
+            pdb_stack, pdb_index = pdb_stack
             self.sig_pdb_stack.emit(pdb_stack, pdb_index)
 
-        if 'request_pdb_input' in pdb_state:
-            self.pdb_execute(pdb_state['request_pdb_input'])
+        request_pdb_input =  pdb_state.pop('request_pdb_input', None)
+        if request_pdb_input:
+            self.pdb_execute(request_pdb_input)
+
+        self.update_state(pdb_state)
 
     def show_pdb_output(self, text):
         """Show Pdb output."""
@@ -455,7 +457,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # Make sure the prompt is printed
         if clear and self.is_waiting_pdb_input():
             prompt, password = self._pdb_prompt
-            self.kernel_client.iopub_channel.flush()
+
+            try:
+                # This is necessary to avoid an error when the iopub channel is
+                # closed.
+                # See jupyter/qtconsole#574
+                if not self.kernel_client.iopub_channel.closed():
+                    self.kernel_client.iopub_channel.flush()
+            except AttributeError:
+                self.kernel_client.iopub_channel.flush()
+
             self._reading = False
             self._readline(prompt=prompt, callback=self._pdb_readline_callback,
                            password=password)
@@ -485,8 +496,6 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             # add custom lexer
             if pygments_lexer == 'ipython3':
                 lexer = SpyderIPy3Lexer()
-            elif pygments_lexer == 'ipython2':
-                lexer = SpyderIPy2Lexer()
             else:
                 return
             self._highlighter._lexer = lexer
@@ -598,7 +607,15 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if print_prompt:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
-            self.kernel_client.iopub_channel.flush()
+            try:
+                # This is necessary to avoid an error when the iopub channel is
+                # closed.
+                # See jupyter/qtconsole#574
+                if not self.kernel_client.iopub_channel.closed():
+                    self.kernel_client.iopub_channel.flush()
+            except AttributeError:
+                self.kernel_client.iopub_channel.flush()
+
             self._waiting_pdb_input = True
             self._readline(prompt=prompt, callback=self._pdb_readline_callback,
                            password=password)

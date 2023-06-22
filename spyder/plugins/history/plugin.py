@@ -15,13 +15,10 @@ from qtpy.QtCore import Signal
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.base import get_conf_path
 from spyder.plugins.history.confpage import HistoryConfigPage
 from spyder.plugins.history.widgets import HistoryWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class HistoryLog(SpyderDockablePlugin):

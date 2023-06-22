@@ -8,9 +8,6 @@
 # see NOTICE.txt in the Spyder root directory for details
 # -----------------------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 # Standard library imports
 import logging
 import traceback

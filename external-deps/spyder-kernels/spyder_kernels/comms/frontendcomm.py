@@ -18,6 +18,7 @@ from IPython.core.getipython import get_ipython
 import zmq
 
 from spyder_kernels.comms.commbase import CommBase, CommError
+from spyder_kernels.comms.utils import WriteContext
 
 
 def frontend_request(blocking, timeout=None):
@@ -45,7 +46,7 @@ class FrontendComm(CommBase):
         self.kernel = kernel
         self.kernel.comm_manager.register_target(
             self._comm_name, self._comm_open)
-        self.comm_lock = threading.RLock()
+        self.comm_lock = threading.Lock()
         self._cached_messages = {}
         self._pending_comms = {}
 
@@ -93,13 +94,14 @@ class FrontendComm(CommBase):
                 out_stream.flush(zmq.POLLOUT)
 
     def remote_call(self, comm_id=None, blocking=False, callback=None,
-                    timeout=None):
+                    timeout=None, display_error=False):
         """Get a handler for remote calls."""
         return super(FrontendComm, self).remote_call(
             blocking=blocking,
             comm_id=comm_id,
             callback=callback,
-            timeout=timeout)
+            timeout=timeout,
+            display_error=display_error)
 
     def wait_until(self, condition, timeout=None):
         """Wait until condition is met. Returns False if timeout."""
@@ -207,61 +209,7 @@ class FrontendComm(CommBase):
 
     def _remote_callback(self, call_name, call_args, call_kwargs):
         """Call the callback function for the remote call."""
-        with self.comm_lock:
-            current_stdout = sys.stdout
-            current_stderr = sys.stderr
-            saved_stdout_write = current_stdout.write
-            saved_stderr_write = current_stderr.write
-            thread_id = threading.get_ident()
-            current_stdout.write = WriteWrapper(
-                saved_stdout_write, call_name, thread_id)
-            current_stderr.write = WriteWrapper(
-                saved_stderr_write, call_name, thread_id)
-            try:
-                return super(FrontendComm, self)._remote_callback(
-                    call_name, call_args, call_kwargs)
-            finally:
-                current_stdout.write = saved_stdout_write
-                current_stderr.write = saved_stderr_write
+        with WriteContext(call_name):
+            return super(FrontendComm, self)._remote_callback(
+                call_name, call_args, call_kwargs)
 
-
-class WriteWrapper(object):
-    """Wrapper to warn user when text is printed."""
-
-    def __init__(self, write, name, thread_id):
-        self._write = write
-        self._name = name
-        self._thread_id = thread_id
-        self._warning_shown = False
-
-    def is_benign_message(self, message):
-        """Determine if a message is benign in order to filter it."""
-        benign_messages = [
-            # Fixes spyder-ide/spyder#14928
-            # Fixes spyder-ide/spyder-kernels#343
-            'DeprecationWarning',
-            # Fixes spyder-ide/spyder-kernels#365
-            'IOStream.flush timed out'
-        ]
-
-        return any([msg in message for msg in benign_messages])
-
-    def __call__(self, string):
-        """Print warning once."""
-        if self._thread_id != threading.get_ident():
-            return self._write(string)
-
-        if not self.is_benign_message(string):
-            if not self._warning_shown:
-                self._warning_shown = True
-
-                # Don't print handler name for `show_mpl_backend_errors`
-                # because we have a specific message for it.
-                # request_pdb_stop is expected to print messages.
-                if self._name not in [
-                        'show_mpl_backend_errors', 'request_pdb_stop']:
-                    self._write(
-                        "\nOutput from spyder call " + repr(self._name) + ":\n"
-                    )
-
-            return self._write(string)

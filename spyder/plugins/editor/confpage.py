@@ -205,24 +205,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         sourcecode_widget = QWidget()
         sourcecode_widget.setLayout(sourcecode_layout)
 
-        # --- Run code tab ---
-        saveall_box = newcb(_("Save all files before running script"),
-                            'save_all_before_run')
-        focus_box = newcb(
-            _("Maintain focus in the editor after running or debugging code"),
-            'focus_to_editor'
-        )
-        run_cell_box = newcb(_("Copy full cell contents to the console when "
-                               "running code cells"), 'run_cell_copy')
-
-        run_layout = QVBoxLayout()
-        run_layout.addWidget(saveall_box)
-        run_layout.addWidget(focus_box)
-        run_layout.addWidget(run_cell_box)
-
-        run_widget = QWidget()
-        run_widget.setLayout(run_layout)
-
         # --- Advanced tab ---
         # -- Templates
         template_btn = self.create_button(_("Edit template for new files"),
@@ -334,7 +316,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(display_widget), _("Display"))
         self.tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        self.tabs.addTab(self.create_tab(run_widget), _('Run code'))
         self.tabs.addTab(self.create_tab(template_btn, autosave_group,
                                          docstring_group, annotations_group,
                                          eol_group),

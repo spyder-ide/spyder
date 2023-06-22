@@ -8,7 +8,6 @@ This module contains the Scroll Flag panel
 """
 
 # Standard library imports
-from __future__ import division
 import sys
 from math import ceil
 
@@ -216,7 +215,7 @@ class ScrollFlagArea(Panel):
         }
         dict_flag_lists.update(self._dict_flag_list)
 
-        for flag_type in dict_flag_lists:
+        for flag_type in reversed(dict_flag_lists):
             painter.setBrush(self._facecolors[flag_type])
             painter.setPen(self._edgecolors[flag_type])
             if editor.verticalScrollBar().maximum() == 0:

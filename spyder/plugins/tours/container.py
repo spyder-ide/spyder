@@ -14,13 +14,11 @@ from collections import OrderedDict
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.tours.tours import TourIdentifiers
 from spyder.plugins.tours.widgets import AnimatedTour, OpenTourDialog
 
-# Localization
-_ = get_translation('spyder')
 
 # Set the index for the default tour
 DEFAULT_TOUR = TourIdentifiers.IntroductionTour

@@ -9,6 +9,10 @@ on:
     branches:
       - '*'
 
+concurrency:
+  group: test-linux-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Linux Py${{ matrix.PYTHON_VERSION }}
@@ -26,7 +30,7 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('setup.py') }}
+          key: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -34,7 +38,6 @@ jobs:
           python-version: ${{ matrix.PYTHON_VERSION }}
           architecture: 'x64'
       - name: Create Jedi environment for testing
-        if: matrix.PYTHON_VERSION != '2.7'
         run: |
           python3 -m venv /tmp/pyenv
           /tmp/pyenv/bin/python -m pip install loghub
@@ -42,7 +45,7 @@ jobs:
       - run: pip install -e .[all,test]
       - name: Show test environment
         run: pip list
-      - run: pytest -v test/
+      - run: pytest --color=yes -v test/
       # Enable this if SSH debugging is required
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
