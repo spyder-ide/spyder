@@ -175,10 +175,11 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.pane_empty = PaneEmptyWidget(
             self,
             "plots",
-            _("You haven't generated any plots yet."),
-            _("Run plot generating code in the Editor or IPython console to "
-              "see your plots appear here. This pane only supports Matplotlib "
-              "plots.")
+            _("No plots generated yet"),
+            _("Run plot-generating code in the Editor or IPython console to "
+              "see your figures appear here. This pane only supports "
+              "static images, so it can't display interactive plots "
+              "like Bokeh, Plotly or Altair.")
         )
 
         # Create the layout.

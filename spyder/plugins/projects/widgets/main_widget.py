@@ -172,9 +172,8 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.pane_empty = PaneEmptyWidget(
             self,
             "projects",
-            _("You haven't opened a project yet."),
-            _("To create a new project go to the menu entry Projects > "
-              "New project")
+            _("No project opened yet"),
+            _("Create one using the menu entry Projects > New project.")
         )
 
         # Watcher

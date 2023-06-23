@@ -319,10 +319,10 @@ class PylintWidget(PluginMainWidget):
         self.pane_empty = PaneEmptyWidget(
             self,
             "code-analysis",
-            _("You haven't analyzed any code yet."),
-            _("Run an analysis of your code to get feedback on style issues, "
-              "bad practices, potential bugs, and other quality problems "
-              "using Pylint.")
+            _("No code analyzed yet"),
+            _("Run an analysis using Pylint to get feedback on "
+              "style issues, bad practices, potential bugs, "
+              "and suggested improvements in your code.")
         )
 
         if osp.isfile(self.DATAPATH):

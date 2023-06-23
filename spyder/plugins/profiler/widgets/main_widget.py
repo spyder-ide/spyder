@@ -177,9 +177,10 @@ class ProfilerWidget(PluginMainWidget):
         self.pane_empty = PaneEmptyWidget(
             self,
             "code-profiler",
-            _("You haven't profiled any code yet."),
-            _("Profile your code to find the run time and number of calls "
-              "for every function and method called on it.")
+            _("No code profiled yet"),
+            _("Profile your code to explore which functions and methods "
+              "took the longest to run and were called the most, "
+              "and find out where to optimize it.")
         )
         self.datelabel = QLabel()
         self.datelabel.ID = ProfilerWidgetInformationToolbarItems.DateLabel
