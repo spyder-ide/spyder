@@ -17,9 +17,7 @@ from qtpy import PYQT5
 from qtpy.QtCore import (
     QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegExpValidator, QTextDocument, QImage,
-                        QPixmap)
-from qtpy.QtSvg import QSvgRenderer
+                        QPainter, QRegExpValidator, QTextDocument, QPixmap)
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
