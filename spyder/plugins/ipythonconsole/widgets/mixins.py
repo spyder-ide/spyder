@@ -166,7 +166,6 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self._notifier.setEnabled(False)
         #  Wait for next request from client
         message = self.socket.recv_pyobj()
-        print(message)
         cmd = message[0]
         if cmd == "new_kernel":
             cmd, connection_file, connection_info = message

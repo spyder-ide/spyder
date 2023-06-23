@@ -47,7 +47,6 @@ class Server(QObject):
         elif cmd == "open_kernel":
             try:
                 cf = self.kernel_server.open_kernel(message[1])
-                print(cf)
                 with open(cf, "br") as f:
                     cf = (cf, json.load(f))
 

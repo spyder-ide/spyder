@@ -325,9 +325,8 @@ def ipyconsole(qtbot, request, tmpdir):
         raise
 
     try:
-        # -1 from closed client
         qtbot.waitUntil(lambda: (
-            len(init_subprocesses) - 1 >= len(proc.children())),
+            len(init_subprocesses) >= len(proc.children())),
             timeout=SHELL_TIMEOUT)
     except Exception:
         subprocesses = [repr(f) for f in proc.children()]
