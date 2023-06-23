@@ -403,18 +403,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         if self.spyder_kernel_ready:
             self._reading = False
+            self.call_kernel(interrupt=True).raise_interrupt_signal()
 
-            # Check if there is a kernel that can be interrupted before trying
-            # to do it.
-            # Fixes spyder-ide/spyder#20212
-            if self.kernel_manager and self.kernel_manager.has_kernel:
-                self.call_kernel(interrupt=True).raise_interrupt_signal()
-            else:
-                self._append_html(
-                    _("<br><br>The kernel appears to be dead, so it can't be "
-                      "interrupted. Please open a new console to keep "
-                      "working.<br>")
-                )
         else:
             self._append_html(
                 _("<br><br>It is not possible to interrupt a non-Spyder "

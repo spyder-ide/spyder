@@ -178,7 +178,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             
             kernel_handler = self.kernel_handler_waitlist.pop(0)
             if connection_file == "error":
-                kernel_handler.sig_fault.emit(connection_info)
+                kernel_handler.sig_fault.emit(str(connection_info))
             else:
                 kernel_handler.set_connection(
                     connection_file, connection_info,
