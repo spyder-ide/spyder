@@ -319,7 +319,7 @@ class PylintWidget(PluginMainWidget):
         self.pane_empty = PaneEmptyWidget(
             self,
             "code-analysis",
-            _("No code analyzed yet"),
+            _("Code not analyzed yet"),
             _("Run an analysis using Pylint to get feedback on "
               "style issues, bad practices, potential bugs, "
               "and suggested improvements in your code.")

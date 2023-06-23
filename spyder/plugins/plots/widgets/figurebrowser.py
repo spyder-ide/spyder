@@ -175,7 +175,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.pane_empty = PaneEmptyWidget(
             self,
             "plots",
-            _("No plots generated yet"),
+            _("No plots to show"),
             _("Run plot-generating code in the Editor or IPython console to "
               "see your figures appear here. This pane only supports "
               "static images, so it can't display interactive plots "

@@ -177,7 +177,7 @@ class ProfilerWidget(PluginMainWidget):
         self.pane_empty = PaneEmptyWidget(
             self,
             "code-profiler",
-            _("No code profiled yet"),
+            _("Code not profiled yet"),
             _("Profile your code to explore which functions and methods "
               "took the longest to run and were called the most, "
               "and find out where to optimize it.")

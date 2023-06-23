@@ -172,7 +172,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.pane_empty = PaneEmptyWidget(
             self,
             "projects",
-            _("No project opened yet"),
+            _("No project opened"),
             _("Create one using the menu entry Projects > New project.")
         )
 

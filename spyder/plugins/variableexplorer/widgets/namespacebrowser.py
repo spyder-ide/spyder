@@ -76,7 +76,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.pane_empty = PaneEmptyWidget(
             self,
             "variable-explorer",
-            _("No variables defined yet"),
+            _("No variables to show"),
             _("Run code in the Editor or IPython console to see any "
               "global variables listed here for exploration and editing.")
         )
