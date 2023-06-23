@@ -9,6 +9,7 @@ Environment variable utilities.
 """
 
 # Standard library imports
+import logging
 import os
 from pathlib import Path
 import re
@@ -22,10 +23,38 @@ except Exception:
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, running_in_ci
+from spyder.config.base import _, running_in_ci, get_conf_path
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
+
+logger = logging.getLogger(__name__)
+
+if os.name == 'posix':
+    """
+    To get user environment variables from login and interactive startup files
+    on posix, both -l and -i flags must be used. Parsing the environment list
+    is problematic if the variable has a newline character, but Python's
+    os.environ can do this for us. However, executing Python in an interactive
+    shell in a subprocess causes Spyder to hang on Linux. Using a shell script
+    resolves the issue. Note that -i must be in the sha-bang line; if -i and
+    -l are swapped, Spyder will hang.
+    """
+    script_text = None
+    shell = os.getenv('SHELL', '/bin/bash')
+    user_env_script = Path(get_conf_path()) / 'user-env.sh'
+    if Path(shell).name in ('bash', 'zsh'):
+        script_text = (
+            f"#!{shell} -i\n"
+            f"""{shell} -l -c "{sys.executable} -c 'import os; print(dict(os.environ))'"\n"""
+        )
+    else:
+        logger.info("Getting user environment variables is not supported "
+                    "for shell '%s'", shell)
+
+    if script_text is not None:
+        user_env_script.write_text(script_text)
+        user_env_script.chmod(0o744)  # Make executable by user
 
 
 def envdict2listdict(envdict):
@@ -61,19 +90,16 @@ def get_user_environment_variables():
         env_var = dict(
             [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
         )
-    else:
-        shell = os.environ.get("SHELL", "/bin/bash")
-        # -i flag causes Spyder to hang, so ~/.bashrc cannot be sourced
-        cmd = (
-            f"{shell} -l -c \"{sys.executable} -c "
-            "'import os; print(dict(os.environ))'\""
-        )
-        proc = run_shell_command(cmd, env={}, text=True)
+    elif os.name == 'posix' and user_env_script.exists():
         try:
+            proc = run_shell_command(str(user_env_script), env={}, text=True)
             stdout, stderr = proc.communicate()
-            env_var = eval(stdout, None)
-        except Exception:
-            pass
+            if stderr:
+                logger.info(stderr.strip())
+            if stdout:
+                env_var = eval(stdout, None)
+        except Exception as exc:
+            logger.info(exc)
 
     return env_var
 
