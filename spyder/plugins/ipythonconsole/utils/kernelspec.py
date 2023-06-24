@@ -171,11 +171,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         """Env vars for kernels"""
         default_interpreter = self.get_conf(
             'default', section='main_interpreter')
-        env_vars = os.environ.copy()
 
-        # Ensure that user environment variables are included for posix
-        if sys.name == 'posix':
-            env_vars.update(get_user_environment_variables())
+        # Ensure that user environment variables are included, but don't
+        # override existing environ values
+        env_vars = get_user_environment_variables()
+        env_vars.update(os.environ)
 
         # Avoid IPython adding the virtualenv on which Spyder is running
         # to the kernel sys.path
