@@ -268,8 +268,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             KernelConnectionState.SpyderKernelReady
         ):
             self.kernel_client = self.kernel_handler.kernel_client
-            self.kernel_client.stopped_channels.connect(self.notify_deleted)
-            self.kernel_handler.sig_kernel_restarted.connect(self._handle_kernel_restarted)
             self.setup_spyder_kernel()
             return
 
@@ -347,6 +345,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not self._init_kernel_setup:
             # Only do this setup once
             self._init_kernel_setup = True
+            
+            self.kernel_client.stopped_channels.connect(self.notify_deleted)
+            self.kernel_handler.sig_kernel_restarted.connect(self._handle_kernel_restarted)
 
             # For errors
             self.kernel_handler.kernel_comm.sig_exception_occurred.connect(
@@ -362,6 +363,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             for request_id, handler in self.kernel_comm_handlers.items():
                 self.kernel_handler.kernel_comm.register_call_handler(
                     request_id, handler)
+        else:
+            # No reset please
+            self._starting = False
 
         # Setup to do after restart
         # Check for fault and send config
