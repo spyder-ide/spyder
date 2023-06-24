@@ -128,6 +128,8 @@ class IPythonConsoleWidget(
     """
 
     # Signals
+    sig_kernel_restarted = Signal(str)
+    
     sig_append_to_history_requested = Signal(str, str)
     """
     This signal is emitted when the plugin requires to add commands to a

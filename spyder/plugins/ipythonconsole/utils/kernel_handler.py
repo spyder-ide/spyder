@@ -12,7 +12,7 @@ import os
 import uuid
 
 # Third-party imports
-from qtpy.QtCore import QObject, Signal, QSocketNotifier
+from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 from zmq.ssh import tunnel as zmqtunnel
 import zmq
 
@@ -103,6 +103,7 @@ class KernelHandler(QObject):
     """
     
     sig_remote_close = Signal(str)
+    sig_kernel_restarted = Signal()
 
     def __init__(
         self,
@@ -141,6 +142,11 @@ class KernelHandler(QObject):
             # self.connect_std_pipes()
             self.kernel_client.start_channels()
             self.check_kernel_info()
+    
+    @Slot(str)
+    def kernel_restarted(self, connection_file):
+        if connection_file == self.connection_file:
+            self.sig_kernel_restarted.emit()
 
     def connect(self):
         """Connect to shellwidget."""

@@ -19,6 +19,7 @@ from threading import Thread
 
 # Third-party imports
 from jupyter_core.paths import jupyter_runtime_dir
+from qtpy.QtCore import QObject, Signal
 
 from spyder_kernels_server.kernel_manager import SpyderKernelManager
 from spyder_kernels_server.kernel_comm import KernelComm
@@ -77,9 +78,12 @@ class ShutdownThread(Thread):
             self.kernel_dict["stderr" ].join()
 
 
-class KernelServer:
+class KernelServer(QObject):
+    
+    sig_kernel_restarted = Signal(str)
 
     def __init__(self):
+        super().__init__()
         self._kernel_list = {}
 
     @staticmethod
@@ -141,6 +145,9 @@ class KernelServer:
         kernel_comm = KernelComm()
         kernel_comm.open_comm(kernel_client)
         self.connect_std_pipes(kernel_key, kernel_comm)
+        
+        kernel_manager.kernel_restarted.connect(
+            lambda connection_file=connection_file: self.sig_kernel_restarted.emit(connection_file))
 
         return connection_file
 

@@ -12,7 +12,7 @@ import json
 from spyder_kernels_server.kernel_server import KernelServer
 from zmq.ssh import tunnel as zmqtunnel
 # from qtpy.QtWidgets import QApplication
-from qtpy.QtCore import QSocketNotifier, QObject, QCoreApplication
+from qtpy.QtCore import QSocketNotifier, QObject, QCoreApplication, Slot
 
 
 class Server(QObject):
@@ -34,13 +34,24 @@ class Server(QObject):
         self._notifier = QSocketNotifier(self.socket.getsockopt(zmq.FD),
                                          QSocketNotifier.Read, self)
         self._notifier.activated.connect(self._socket_activity)
+        
+        if len(sys.argv) > 2:
+            self.port_pub = sys.argv[2]
+        else:
+            self.port_pub = str(zmqtunnel.select_random_ports(1)[0])
+        self.socket_pub = context.socket(zmq.PUB)
+        self.socket_pub.bind("tcp://*:%s" % self.port_pub)
+        
+        self.kernel_server.sig_kernel_restarted.connect(self._handle_kernel_restarted)
 
     def _socket_activity(self):
         self._notifier.setEnabled(False)
         #  Wait for next request from client
         message = self.socket.recv_pyobj()
         cmd = message[0]
-        if cmd == "shutdown":
+        if cmd == "get_port_pub":
+            self.socket.send_pyobj(["set_port_pub", self.port_pub])
+        elif cmd == "shutdown":
             self.socket.send_pyobj(["shutting_down"])
             self.kernel_server.shutdown()
 
@@ -67,6 +78,10 @@ class Server(QObject):
         self.socket.getsockopt(zmq.EVENTS)
 
 
+    @Slot(str)
+    def _handle_kernel_restarted(self, connection_file):
+        self.socket_pub.send_pyobj(["kernel_restarted", connection_file])
+    
 
 if __name__ == '__main__':
     app = QCoreApplication(sys.argv)

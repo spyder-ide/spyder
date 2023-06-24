@@ -269,6 +269,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         ):
             self.kernel_client = self.kernel_handler.kernel_client
             self.kernel_client.stopped_channels.connect(self.notify_deleted)
+            self.kernel_handler.sig_kernel_restarted.connect(self._handle_kernel_restarted)
             self.setup_spyder_kernel()
             return
 

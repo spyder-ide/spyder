@@ -12,7 +12,7 @@ import sys
 import os
 import queue
 
-from qtpy.QtCore import QProcess, QSocketNotifier
+from qtpy.QtCore import QProcess, QSocketNotifier, Slot
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
@@ -66,9 +66,9 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             return
         
         self.options = options
-        self.hostname = None
-        self.sshkey = None
-        self.password = None
+        self.ssh_remote_hostname = None
+        self.ssh_key = None
+        self.ssh_password = None
 
         is_remote = options['kernel_server/external_server']
 
@@ -86,34 +86,27 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         is_ssh = options['kernel_server/use_ssh']
 
         if not is_ssh:
-            self.connect_socket(f"{remote_ip}:{remote_port}")
+            self.connect_socket(remote_ip, remote_port)
             return
 
         username = options['kernel_server/username']
 
-        self.hostname = f"{username}@{remote_ip}:{remote_port}"
+        self.ssh_remote_hostname = f"{username}@{remote_ip}:{remote_port}"
 
         # Now we deal with ssh
         uses_password = options['kernel_server/password_auth']
         uses_keyfile = options['kernel_server/keyfile_auth']
 
         if uses_password:
-            self.password = options['kernel_server/password']
-            self.sshkey = None
+            self.ssh_password = options['kernel_server/password']
+            self.ssh_key = None
         elif uses_keyfile:
-            self.password = options['kernel_server/passphrase']
-            self.sshkey = options['kernel_server/keyfile']
+            self.ssh_password = options['kernel_server/passphrase']
+            self.ssh_key = options['kernel_server/keyfile']
         else:
             raise NotImplementedError("This should not be possible.")
 
-        local_port = zmqtunnel.select_random_ports(1)
-        local_ip = "localhost"
-        timeout = 10
-        ssh_tunnel(
-            local_port, remote_port,
-            local_ip, remote_ip,
-            self.sshkey, self.password, timeout)
-        self.connect_socket(f"{local_ip}:{local_port}")
+        self.connect_socket(remote_ip, remote_port)
 
     def start_local_server(self):
         """Start a server with the current interpreter."""
@@ -122,27 +115,48 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.server.start(
             sys.executable, ["-m", "spyder_kernels_server", port]
             )
-        self.connect_socket(f"localhost:{port}")
+        self.connect_socket("localhost", port)
 
-    def connect_socket(self, hostname):
+    def connect_socket(self, hostname, port):
+        self.hostname = hostname
+        
+        hostname, port = self.tunnel_ssh(hostname, port)
+        
         self.socket = self.context.socket(zmq.REQ)
-        self.socket.connect(f"tcp://{hostname}")
+        self.socket.connect(f"tcp://{hostname}:{port}")
         self._notifier = QSocketNotifier(
             self.socket.getsockopt(zmq.FD),
             QSocketNotifier.Read, self
         )
         self._notifier.activated.connect(self._socket_activity)
+        self.send_request(["get_port_pub"])
+    
+    def tunnel_ssh(self, hostname, port):
+        if self.ssh_remote_hostname is None:
+            return hostname, port
+        remote_hostname = hostname
+        remote_port = port
+        port = zmqtunnel.select_random_ports(1)
+        hostname = "localhost"
+        timeout = 10
+        ssh_tunnel(
+            port, remote_port,
+            hostname, remote_hostname,
+            self.ssh_key, self.ssh_password, timeout)
+        return hostname, port
+        
 
     def new_kernel(self, kernel_spec):
         """Get a new kernel"""
         kernel_handler = KernelHandler.new_from_spec(
             kernel_spec=kernel_spec,
-            hostname=self.hostname,
-            sshkey=self.sshkey,
-            password=self.password,
+            hostname=self.ssh_remote_hostname,
+            sshkey=self.ssh_key,
+            password=self.ssh_password,
         )
         
         kernel_handler.sig_remote_close.connect(self.request_close)
+        self.sig_kernel_restarted.connect(kernel_handler.kernel_restarted)
         self.kernel_handler_waitlist.append(kernel_handler)
         
         
@@ -159,7 +173,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             self.socket.send_pyobj(request)
         else:
             self.request_queue.put(request)
-        
+    
+    @Slot()
     def _socket_activity(self):
         if not self.socket.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             return
@@ -167,6 +182,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         #  Wait for next request from client
         message = self.socket.recv_pyobj()
         cmd = message[0]
+
         if cmd == "new_kernel":
             cmd, connection_file, connection_info = message
             
@@ -182,9 +198,24 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             else:
                 kernel_handler.set_connection(
                     connection_file, connection_info,
-                    self.hostname,
-                    self.sshkey,
-                    self.password)
+                    self.ssh_remote_hostname,
+                    self.ssh_key,
+                    self.ssh_password)
+
+        elif cmd == "set_port_pub":
+            port_pub = message[1]
+            self.socket_sub = self.context.socket(zmq.SUB)
+            # To recieve everything
+            self.socket_sub.setsockopt(zmq.SUBSCRIBE, b"")
+            hostname = self.hostname
+            hostname, port_pub = self.tunnel_ssh(hostname, port_pub)
+                
+            self.socket_sub.connect(f"tcp://{hostname}:{port_pub}")
+            self._notifier_sub = QSocketNotifier(
+                self.socket_sub.getsockopt(zmq.FD),
+                QSocketNotifier.Read, self
+            )
+            self._notifier_sub.activated.connect(self._socket_sub_activity)
             
         self._notifier.setEnabled(True)
         # This is necessary for some reason.
@@ -196,7 +227,23 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             self.send_request(request)
         except queue.Empty:
             pass
-
+    
+    @Slot()
+    def _socket_sub_activity(self):
+        if not self.socket_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+            return
+        self._notifier_sub.setEnabled(False)
+        #  Wait for next request from client
+        message = self.socket_sub.recv_pyobj()
+        cmd = message[0]
+        if cmd == "kernel_restarted":
+            self.sig_kernel_restarted.emit(message[1])
+        
+        self._notifier_sub.setEnabled(True)
+        # This is necessary for some reason.
+        # Otherwise the socket only works twice !
+        self.socket_sub.getsockopt(zmq.EVENTS)
+        
 
 class CachedKernelMixin:
     """Cached kernel mixin."""
