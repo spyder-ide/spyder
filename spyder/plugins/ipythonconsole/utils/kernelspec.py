@@ -27,7 +27,7 @@ from spyder.plugins.ipythonconsole import (
     SpyderKernelError)
 from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
                                 find_conda)
-from spyder.utils.environ import clean_env
+from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter, is_module_installed
 
@@ -173,6 +173,10 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'default', section='main_interpreter')
         env_vars = os.environ.copy()
 
+        # Ensure that user environment variables are included for posix
+        if sys.name == 'posix':
+            env_vars.update(get_user_environment_variables())
+
         # Avoid IPython adding the virtualenv on which Spyder is running
         # to the kernel sys.path
         env_vars.pop('VIRTUAL_ENV', None)
@@ -193,7 +197,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # Environment variables that we need to pass to the kernel
         env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': (not default_interpreter
-                or self.path_to_custom_interpreter),
+                                         or self.path_to_custom_interpreter),
             'SPY_UMR_ENABLED': self.get_conf(
                 'umr/enabled', section='main_interpreter'),
             'SPY_UMR_VERBOSE': self.get_conf(
