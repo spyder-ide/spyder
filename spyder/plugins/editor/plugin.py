@@ -501,10 +501,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             run.register_run_configuration_metadata(self, metadata)
     
     def deregister_file_run_metadata(self, filename):
-        """Unregister opened files with the Run plugin."""
+        """Unregister files with the Run plugin."""
         if filename not in self.id_per_file:
             return
-        
+
         file_id = self.id_per_file.pop(filename)
         self.file_per_id.pop(file_id)
         self.metadata_per_id.pop(file_id)
@@ -514,21 +514,26 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             run.deregister_run_configuration_metadata(file_id)
     
     def change_register_file_run_metadata(self, old_filename, new_filename):
-        """Change the register name."""
+        """Change registered run metadata when renaming files."""
         is_selected = False
         run = self.main.get_plugin(Plugins.Run, error=False)
+
         if run is not None:
             is_selected = (
                 run.get_currently_selected_configuration() 
                 == self.id_per_file.get(old_filename, None)
             )
+
         self.deregister_file_run_metadata(old_filename)
-        self.register_file_run_metadata(new_filename)
-        
+
+        # This avoids to register the run metadata of new_filename twice, which
+        # can happen for some rename operations.
+        if not self.id_per_file.get(new_filename):
+            self.register_file_run_metadata(new_filename)
+
         if is_selected:
             run.switch_focused_run_configuration(
                 self.id_per_file[new_filename])
-        
 
     @Slot(dict)
     def report_open_file(self, options):
@@ -1756,7 +1761,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(self.renamed)
         editorstack.opened_files_list_changed.connect(
-                                                self.opened_files_list_changed)
+            self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
             self.update_active_languages)
         editorstack.sig_go_to_definition.connect(
@@ -1770,7 +1775,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_update_code_analysis_actions.connect(
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
-                                           self.refresh_file_dependent_actions)
+            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
@@ -2687,6 +2692,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         filename = osp.abspath(to_text_string(source))
         index = self.get_filename_index(filename)
+
         if index is not None or editorstack_id_str is not None:
             self.change_register_file_run_metadata(filename, dest)
 
@@ -2696,9 +2702,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     str(id(editorstack)) != editorstack_id_str
                 ):
                     editorstack.rename_in_data(
-                        filename, new_filename=to_text_string(dest))
-            self.editorstacks[0].autosave.file_renamed(
-                filename, to_text_string(dest))
+                        filename, new_filename=str(dest)
+                    )
+
+            self.editorstacks[0].autosave.file_renamed(filename, str(dest))
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
