@@ -123,7 +123,9 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         """Start a server with the current interpreter."""
         port = str(zmqtunnel.select_random_ports(1)[0])
         self.server = QProcess(self)
-        self.server.start(sys.executable, ["-m", "spyder_kernels_server", port])
+        self.server.start(
+            sys.executable, ["-m", "spyder_kernels_server", port]
+        )
         self.server.readyReadStandardError.connect(self.print_server_stderr)
         self.server.readyReadStandardOutput.connect(self.print_server_stdout)
         self.connect_socket("localhost", port)
@@ -131,7 +133,9 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
     def stop_local_server(self):
         """Stop local server."""
         self.server.readyReadStandardError.disconnect(self.print_server_stderr)
-        self.server.readyReadStandardOutput.disconnect(self.print_server_stdout)
+        self.server.readyReadStandardOutput.disconnect(
+            self.print_server_stdout
+        )
         self.send_request(["shutdown"])
         self.server = None
 
@@ -312,7 +316,9 @@ class CachedKernelMixin:
         if "PYTEST_CURRENT_TEST" in cached_env:
             # Make tests faster by using cached kernels
             # hopefully the kernel will never use PYTEST_CURRENT_TEST
-            cached_env["PYTEST_CURRENT_TEST"] = kernel_spec.env["PYTEST_CURRENT_TEST"]
+            cached_env["PYTEST_CURRENT_TEST"] = kernel_spec.env[
+                "PYTEST_CURRENT_TEST"
+            ]
         return (
             cached_spec.__dict__ == kernel_spec.__dict__
             and kernel_spec.argv == cached_argv
