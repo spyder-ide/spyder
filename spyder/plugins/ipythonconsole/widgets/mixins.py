@@ -119,7 +119,17 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.server.start(
             sys.executable, ["-m", "spyder_kernels_server", port]
             )
+        self.server.readyReadStandardError.connect(self.print_server_stderr)
+        self.server.readyReadStandardOutput.connect(self.print_server_stdout)
         self.connect_socket("localhost", port)
+    
+    @Slot()
+    def print_server_stderr(self):
+        sys.stderr.write(self.server.readAllStandardError().data().decode())
+    
+    @Slot()
+    def print_server_stdout(self):
+        sys.stdout.write(self.server.readAllStandardOutput().data().decode())
 
     def connect_socket(self, hostname, port):
         self.hostname = hostname
