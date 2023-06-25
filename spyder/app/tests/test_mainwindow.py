@@ -69,7 +69,7 @@ from spyder.plugins.run.api import (
     WorkingDirSource, RunContext)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
-from spyder.utils.misc import remove_backslashes
+from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
@@ -6360,6 +6360,93 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_locals_namespace True False False" in control.toPlainText()
     assert "test_globals_namespace True False" in control.toPlainText()
     assert "test_globals True" in control.toPlainText()
+
+
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="No quotes on Windows file paths"
+)
+def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
+    """
+    Test that we can run files with quotes in name, renamed files,
+    and ipy files.
+    """
+    # create a file with a funky name
+    path = "a'b\"c\\.py"
+    file = tmpdir.join(path)
+    file.write("print(23 + 780)")
+    path = to_text_string(file)
+    main_window.editor.load(path)
+
+    # Run file
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
+    assert "803" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text("print(22 + 780)")
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+
+    assert "802" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+
+    # Make sure this works with ipy and renamed files too
+
+    # Rename the file to IPython and emit the signal for that
+    rename_file(path, path[:-2] + "ipy")
+    explorer = main_window.get_plugin(Plugins.Explorer)
+    explorer.sig_file_renamed.emit(path, path[:-2] + "ipy")
+
+    code_editor.set_text("print(21 + 780)")
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
+    assert "801" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "\\.ipy" in control.toPlainText()
+    
+    # Create an untitled file
+    main_window.editor.new()
+    
+    assert "untitled" in main_window.editor.get_current_filename()
+    
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text("print(20 + 780)")
+    
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+
+    assert "800" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "untitled" in control.toPlainText()
+    
+    # Save file in a new folder
+    code_editor.set_text("print(19 + 780)")
+    
+    with tempfile.TemporaryDirectory() as td:
+    
+        editorstack = main_window.editor.get_current_editorstack()
+        editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
+        main_window.editor.save()
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+    
+        assert "799" in control.toPlainText()
+        assert "error" not in control.toPlainText()
+        assert "fn.ipy" in control.toPlainText()
+        main_window.editor.close_file()
+    
 
 
 if __name__ == "__main__":
