@@ -196,11 +196,16 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.send_request(["close_kernel", connection_file])
 
     def send_request(self, request):
-
-        if self.socket.getsockopt(zmq.EVENTS) & zmq.POLLOUT:
+        # Check socket state
+        socket_state = self.socket.getsockopt(zmq.EVENTS)
+        if socket_state & zmq.POLLOUT:
             self.socket.send_pyobj(request)
         else:
             self.request_queue.put(request)
+        # Checking the socket state interferes with the notifier.
+        # If the socket is ready, read.
+        if socket_state & zmq.POLLIN:
+            self._socket_activity()
 
     @Slot()
     def _socket_activity(self):
