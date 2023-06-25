@@ -44,6 +44,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
     def __init__(self):
         super().__init__()
         self.options = None
+        self.server = None
         self.kernel_handler_waitlist = []
         self.request_queue = queue.Queue()
         self.context = zmq.Context()
@@ -64,11 +65,19 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         }
         if self.options == options:
             return
-        
+
+        if self.server is not None:
+            self.stop_local_server()
+
         if self.options is not None:
             # Close cached kernel
             self.close_cached_kernel()
-        
+            # Reset request_queue
+            self.request_queue = queue.Queue()
+            # Send new kernel request for waiting kernels
+            for kernel_handler in self.kernel_handler_waitlist:
+                self.send_request(["open_kernel", kernel_handler.kernel_spec])
+
         self.options = options
         self.ssh_remote_hostname = None
         self.ssh_key = None
@@ -79,6 +88,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         if not is_remote:
             self.start_local_server()
             return
+
         # Remote server
 
         remote_port = int(options['kernel_server/port'])
@@ -122,6 +132,13 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.server.readyReadStandardError.connect(self.print_server_stderr)
         self.server.readyReadStandardOutput.connect(self.print_server_stdout)
         self.connect_socket("localhost", port)
+    
+    def stop_local_server(self):
+        """Stop local server."""
+        self.server.readyReadStandardError.disconnect(self.print_server_stderr)
+        self.server.readyReadStandardOutput.disconnect(self.print_server_stdout)
+        self.send_request(["shutdown"])
+        self.server = None
     
     @Slot()
     def print_server_stderr(self):

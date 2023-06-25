@@ -172,5 +172,6 @@ class KernelServer(QObject):
         shutdown_thread.start()
 
     def shutdown(self):
-        for kernel_key in self._kernel_list:
+        kernel_key_list = list(self._kernel_list)
+        for kernel_key in kernel_key_list:
             self.close_kernel(kernel_key)
