@@ -129,7 +129,6 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
         self.ylabels = ylabels
         self.readonly = readonly
         self.test_array = np.array([0], dtype=data.dtype)
-        self._font = self.get_font(SpyderFontType.MonospaceInterface)
 
         # for complex numbers, shading will be based on absolute value
         # but for all other types it will be the real part
@@ -307,7 +306,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
             except (TypeError, ValueError):
                 return to_qvariant()
         elif role == Qt.FontRole:
-            return to_qvariant(self._font)
+            return self.get_font(SpyderFontType.MonospaceInterface)
         return to_qvariant()
 
     def setData(self, index, value, role=Qt.EditRole):

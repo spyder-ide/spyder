@@ -129,7 +129,6 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         self._format_spec = format_spec
         self.complex_intran = None
         self.display_error_idxs = []
-        self._font = self.get_font(SpyderFontType.MonospaceInterface)
 
         self.total_rows = self.df.shape[0]
         self.total_cols = self.df.shape[1]
@@ -377,7 +376,7 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return self._font
+            return self.get_font(SpyderFontType.MonospaceInterface)
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:
                 return _("It is not possible to display this value because\n"
@@ -695,7 +694,6 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
         self.model = model
         self.axis = axis
         self.use_monospace_font = use_monospace_font
-        self._font = self.get_font(SpyderFontType.MonospaceInterface)
 
         self.total_rows = self.model.shape[0]
         self.total_cols = self.model.shape[1]
@@ -811,7 +809,7 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
         )
 
         if self.use_monospace_font and role == Qt.FontRole:
-            return self._font
+            return self.get_font(SpyderFontType.MonospaceInterface)
 
         if role != Qt.DisplayRole:
             return None
@@ -848,7 +846,6 @@ class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
         super().__init__()
         self.model = model
         self._background = QColor(QStylePalette.COLOR_BACKGROUND_2)
-        self._font = self.get_font(SpyderFontType.Interface)
 
     def rowCount(self, index=None):
         """Get number of rows (number of levels for the header)."""
@@ -886,7 +883,7 @@ class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
         if not index.isValid():
             return None
         if role == Qt.FontRole:
-            return self._font
+            return self.get_font(SpyderFontType.Interface)
         label = ''
         if index.column() == self.model.header_shape[1] - 1:
             label = str(self.model.name(0, index.row()))
