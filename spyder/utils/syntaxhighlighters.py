@@ -505,7 +505,7 @@ def get_code_cell_name(text):
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
-    add_kw = ['async', 'await']
+    add_kw = ['async', 'await', 'match', 'case']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r"\b(as)\b")

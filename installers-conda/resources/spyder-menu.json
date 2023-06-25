@@ -27,7 +27,7 @@
                 "osx": {
                     "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"",
                     "command": [
-                        "{{ MENU_ITEM_LOCATION }}/Contents/MacOS/python",
+                        "$(dirname $0)/python",
                         "{{ PREFIX }}/bin/spyder",
                         "$@"
                     ],

@@ -324,10 +324,13 @@ class PathComboBox(EditableComboBox):
         If there is a single option available one tab completes the option.
         """
         opts = self._complete_options()
+        if len(opts) == 0:
+            return
         if len(opts) == 1:
             self.set_current_text(opts[0] + os.sep)
             self.hide_completer()
         else:
+            self.set_current_text(osp.commonprefix(opts))
             self.completer().complete()
 
     def is_valid(self, qstr=None):

@@ -1,4 +1,3 @@
-codecov
 cython
 dask
 flaky

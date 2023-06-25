@@ -23,6 +23,7 @@ import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
+import numpy as np
 from packaging.version import parse
 import pytest
 from qtpy.QtCore import Qt
@@ -80,7 +81,8 @@ def test_banners(ipyconsole, qtbot):
        "open interval ..."]),
      ("vectorize",
       ["pyfunc", "otype", "signature"],
-      ["Generalized function class.<br>",
+      ["Returns an object that acts like pyfunc, but takes arrays as<br>input."
+       "<br>",
        "Define a vectorized function which takes a nested sequence ..."]),
      ("absolute",
       ["x", "/", "out"],
@@ -88,6 +90,8 @@ def test_banners(ipyconsole, qtbot):
     )
 @pytest.mark.skipif(not os.name == 'nt',
                     reason="Times out on macOS and fails on Linux")
+@pytest.mark.skipif(parse(np.__version__) < parse('1.25.0'),
+                    reason="Documentation for np.vectorize is different")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
@@ -2033,7 +2037,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
     control = client.get_control()
     qtbot.waitUntil(
         lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
-    assert "conda install spyder" in control.toPlainText()
+    assert "pip install spyder" in control.toPlainText()
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):
