@@ -13,8 +13,9 @@ import os
 import os.path as osp
 from subprocess import PIPE
 import uuid
+import sys
 
-from threading import Thread
+from threading import Thread, Event
 
 
 # Third-party imports
@@ -33,19 +34,23 @@ PERMISSION_ERROR_MSG = (
 # kernel_comm needs a qthread
 class StdThread(Thread):
     """Poll for changes in std buffers."""
-    def __init__(self, std_buffer, buffer_key, kernel_comm):
+    def __init__(self, std_buffer, buffer_key, kernel_comm, file):
         self._std_buffer = std_buffer
 
         self.buffer_key = buffer_key
         self.kernel_comm = kernel_comm
+        self.print_file = file
+        self.closing = Event()
         super().__init__()
 
     def run(self):
         txt = True
         while txt:
             txt = self._std_buffer.read1()
+            if self.closing:
+                return
             if txt:
-                print(txt)
+                self.print_file.write(txt.decode())
                 # Needs to be on control so the message is sent to currently
                 # executing shell
                 self.kernel_comm.remote_call(
@@ -64,9 +69,16 @@ class ShutdownThread(Thread):
     def run(self):
         """Shutdown kernel."""
         kernel_manager = self.kernel_dict["kernel"]
+        
+        if "stdout" in self.kernel_dict:
+            self.kernel_dict["stdout" ].closing.set()
+        if "stderr" in self.kernel_dict:
+            self.kernel_dict["stderr" ].closing.set()
 
         if not kernel_manager.shutting_down:
             kernel_manager.shutting_down = True
+            self.kernel_dict["client"].stop_channels()
+            
             try:
                 kernel_manager.shutdown_kernel()
             except Exception:
@@ -136,19 +148,20 @@ class KernelServer(QObject):
         )
 
         kernel_key = connection_file
-        self._kernel_list[kernel_key] = {
-            "kernel": kernel_manager
-            }
-
         kernel_client = kernel_manager.client()
         kernel_client.start_channels()
         kernel_comm = KernelComm()
         kernel_comm.open_comm(kernel_client)
+        
+        self._kernel_list[kernel_key] = {
+            "kernel": kernel_manager,
+            "client": kernel_client
+            }
         self.connect_std_pipes(kernel_key, kernel_comm)
         
         kernel_manager.kernel_restarted.connect(
             lambda connection_file=connection_file: self.sig_kernel_restarted.emit(connection_file))
-
+        
         return connection_file
 
     def connect_std_pipes(self, kernel_key, kernel_comm):
@@ -160,12 +173,12 @@ class KernelServer(QObject):
 
         if stdout:
             stdout_thread = StdThread(
-                stdout, "stdout", kernel_comm)
+                stdout, "stdout", kernel_comm, sys.stdout)
             stdout_thread.start()
             self._kernel_list[kernel_key]["stdout"] = stdout_thread
         if stderr:
             stderr_thread = StdThread(
-                stderr, "stderr", kernel_comm)
+                stderr, "stderr", kernel_comm, sys.stderr)
             stderr_thread.start()
             self._kernel_list[kernel_key]["stderr"] = stderr_thread
 

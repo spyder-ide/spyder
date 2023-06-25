@@ -65,6 +65,10 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         if self.options == options:
             return
         
+        if self.options is not None:
+            # Close cached kernel
+            self.close_cached_kernel()
+        
         self.options = options
         self.ssh_remote_hostname = None
         self.ssh_key = None

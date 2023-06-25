@@ -9,40 +9,39 @@ import os
 import sys
 import zmq
 import json
+import argparse
 from spyder_kernels_server.kernel_server import KernelServer
 from zmq.ssh import tunnel as zmqtunnel
-# from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import QSocketNotifier, QObject, QCoreApplication, Slot
 
 
 class Server(QObject):
 
-    def __init__(self):
+    def __init__(self, main_port=None, pub_port=None):
         super().__init__()
 
-        if len(sys.argv) > 1:
-            port = sys.argv[1]
-        else:
-            port = str(zmqtunnel.select_random_ports(1)[0])
+        if main_port is None:
+            main_port = str(zmqtunnel.select_random_ports(1)[0])
 
         context = zmq.Context()
         self.socket = context.socket(zmq.REP)
-        self.socket.bind("tcp://*:%s" % port)
-        print(f"Server running on port {port}")
+        self.socket.bind("tcp://*:%s" % main_port)
+        print(f"Server running on port {main_port}")
         self.kernel_server = KernelServer()
 
         self._notifier = QSocketNotifier(self.socket.getsockopt(zmq.FD),
                                          QSocketNotifier.Read, self)
         self._notifier.activated.connect(self._socket_activity)
         
-        if len(sys.argv) > 2:
-            self.port_pub = sys.argv[2]
-        else:
+        self.port_pub = pub_port
+        if pub_port is None:
             self.port_pub = str(zmqtunnel.select_random_ports(1)[0])
         self.socket_pub = context.socket(zmq.PUB)
         self.socket_pub.bind("tcp://*:%s" % self.port_pub)
         
-        self.kernel_server.sig_kernel_restarted.connect(self._handle_kernel_restarted)
+        self.kernel_server.sig_kernel_restarted.connect(
+            self._handle_kernel_restarted)
 
     def _socket_activity(self):
         self._notifier.setEnabled(False)
@@ -84,6 +83,17 @@ class Server(QObject):
     
 
 if __name__ == '__main__':
-    app = QCoreApplication(sys.argv)
-    w = Server()
+    parser = argparse.ArgumentParser(
+                    prog='Spyder Kernels Server',
+                    description='Server to start and manage spyder kernels')
+    
+    parser.add_argument('port', default=None, nargs='?')         # positional argument
+    parser.add_argument('port_pub', default=None, nargs='?')      # option that takes a value
+    parser.add_argument('-i', "--interactive", action='store_true') 
+    args = parser.parse_args()
+    if args.interactive:
+        app = QApplication(sys.argv)
+    else:
+        app = QCoreApplication(sys.argv)
+    w = Server(args.port, args.port_pub)
     sys.exit(app.exec_())
