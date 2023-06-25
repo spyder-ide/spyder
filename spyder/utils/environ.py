@@ -9,6 +9,7 @@ Environment variable utilities.
 """
 
 # Standard library imports
+from functools import lru_cache
 import logging
 import os
 from pathlib import Path
@@ -30,7 +31,9 @@ from spyder.utils.programs import run_shell_command
 
 logger = logging.getLogger(__name__)
 
-if os.name == 'posix':
+
+@lru_cache
+def _get_user_env_script():
     """
     To get user environment variables from login and interactive startup files
     on posix, both -l and -i flags must be used. Parsing the environment list
@@ -43,10 +46,13 @@ if os.name == 'posix':
     script_text = None
     shell = os.getenv('SHELL', '/bin/bash')
     user_env_script = Path(get_conf_path()) / 'user-env.sh'
+
     if Path(shell).name in ('bash', 'zsh'):
         script_text = (
             f"#!{shell} -i\n"
-            f"""{shell} -l -c "{sys.executable} -c 'import os; print(dict(os.environ))'"\n"""
+            f"{shell} -l -c"
+            f" \"{sys.executable} -c 'import os; print(dict(os.environ))'\" "
+            f"\n"
         )
     else:
         logger.info("Getting user environment variables is not supported "
@@ -54,7 +60,9 @@ if os.name == 'posix':
 
     if script_text is not None:
         user_env_script.write_text(script_text)
-        user_env_script.chmod(0o744)  # Make executable by user
+        user_env_script.chmod(0o744)  # Make it executable for the user
+
+    return str(user_env_script)
 
 
 def envdict2listdict(envdict):
@@ -90,9 +98,10 @@ def get_user_environment_variables():
         env_var = dict(
             [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
         )
-    elif os.name == 'posix' and user_env_script.exists():
+    elif os.name == 'posix':
         try:
-            proc = run_shell_command(str(user_env_script), env={}, text=True)
+            user_env_script = _get_user_env_script()
+            proc = run_shell_command(user_env_script, env={}, text=True)
             stdout, stderr = proc.communicate()
             if stderr:
                 logger.info(stderr.strip())
