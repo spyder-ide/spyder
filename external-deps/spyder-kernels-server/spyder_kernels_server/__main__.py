@@ -72,7 +72,7 @@ class Server(QObject):
                 self.kernel_server.close_kernel(message[1])
             except Exception:
                 pass
-            
+
         self._notifier.setEnabled(True)
 
         # This is necessary for some reason.
