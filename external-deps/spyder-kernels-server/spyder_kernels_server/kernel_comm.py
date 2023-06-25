@@ -22,14 +22,14 @@ TIMEOUT_KERNEL_START = 30
 
 
 def get_debug_level():
-    debug_env = os.environ.get('SPYDER_DEBUG', '')
+    debug_env = os.environ.get("SPYDER_DEBUG", "")
     if not debug_env.isdigit():
         debug_env = bool(debug_env)
     return int(debug_env)
 
 
 def running_under_pytest():
-    return bool(os.environ.get('SPYDER_PYTEST'))
+    return bool(os.environ.get("SPYDER_PYTEST"))
 
 
 class KernelComm(CommBase, QObject):
@@ -47,8 +47,8 @@ class KernelComm(CommBase, QObject):
         self.kernel_client = None
 
         # Register handlers
-        self.register_call_handler('_async_error', self._async_error)
-        self.register_call_handler('_comm_ready', self._comm_ready)
+        self.register_call_handler("_async_error", self._async_error)
+        self.register_call_handler("_comm_ready", self._comm_ready)
 
     def is_open(self, comm_id=None):
         """
@@ -57,7 +57,7 @@ class KernelComm(CommBase, QObject):
         id_list = self.get_comm_id_list(comm_id)
         if len(id_list) == 0:
             return False
-        return all([self._comms[cid]['status'] == 'ready' for cid in id_list])
+        return all([self._comms[cid]["status"] == "ready" for cid in id_list])
 
     @contextmanager
     def comm_channel_manager(self, comm_id, queue_message=False):
@@ -69,24 +69,27 @@ class KernelComm(CommBase, QObject):
 
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
-            self._comms[comm_id]['comm']._send_channel = (
-                self.kernel_client.control_channel)
+            self._comms[comm_id][
+                "comm"
+            ]._send_channel = self.kernel_client.control_channel
         try:
             yield
         finally:
             id_list = self.get_comm_id_list(comm_id)
             for comm_id in id_list:
-                self._comms[comm_id]['comm']._send_channel = (
-                    self.kernel_client.shell_channel)
+                self._comms[comm_id][
+                    "comm"
+                ]._send_channel = self.kernel_client.shell_channel
 
     def _set_call_return_value(self, call_dict, data, is_error=False):
         """Override to use the comm_channel for all replies."""
         with self.comm_channel_manager(self.calling_comm_id, False):
             if is_error and (get_debug_level() or running_under_pytest()):
                 # Disable error muting when debugging or testing
-                call_dict['settings']['display_error'] = True
+                call_dict["settings"]["display_error"] = True
             super(KernelComm, self)._set_call_return_value(
-                call_dict, data, is_error)
+                call_dict, data, is_error
+            )
 
     def remove(self, comm_id=None, only_closing=False):
         """
@@ -96,7 +99,7 @@ class KernelComm(CommBase, QObject):
         """
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
-            if only_closing and self._comms[comm_id]['status'] != 'closing':
+            if only_closing and self._comms[comm_id]["status"] != "closing":
                 continue
             del self._comms[comm_id]
 
@@ -105,9 +108,10 @@ class KernelComm(CommBase, QObject):
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             # Send comm_close directly to avoid really closing the comm
-            self._comms[comm_id]['comm']._send_msg(
-                'comm_close', {}, None, None, None)
-            self._comms[comm_id]['status'] = 'closing'
+            self._comms[comm_id]["comm"]._send_msg(
+                "comm_close", {}, None, None, None
+            )
+            self._comms[comm_id]["status"] = "closing"
 
     def open_comm(self, kernel_client):
         """Open comm through the kernel client."""
@@ -115,20 +119,36 @@ class KernelComm(CommBase, QObject):
         try:
             self._register_comm(
                 # Create new comm and send the highest protocol
-                kernel_client.comm_manager.new_comm(self._comm_name, data={
-                    'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL}))
+                kernel_client.comm_manager.new_comm(
+                    self._comm_name,
+                    data={"pickle_highest_protocol": pickle.HIGHEST_PROTOCOL},
+                )
+            )
         except AttributeError:
             logger.info(
-                "Unable to open comm due to unexistent comm manager: " +
-                "kernel_client.comm_manager=" + str(kernel_client.comm_manager)
+                "Unable to open comm due to unexistent comm manager: "
+                + "kernel_client.comm_manager="
+                + str(kernel_client.comm_manager)
             )
 
-    def remote_call(self, interrupt=False, blocking=False, callback=None,
-                    comm_id=None, timeout=None, display_error=False):
+    def remote_call(
+        self,
+        interrupt=False,
+        blocking=False,
+        callback=None,
+        comm_id=None,
+        timeout=None,
+        display_error=False,
+    ):
         """Get a handler for remote calls."""
         return super(KernelComm, self).remote_call(
-            interrupt=interrupt, blocking=blocking, callback=callback,
-            comm_id=comm_id, timeout=timeout, display_error=display_error)
+            interrupt=interrupt,
+            blocking=blocking,
+            callback=callback,
+            comm_id=comm_id,
+            timeout=timeout,
+            display_error=display_error,
+        )
 
     def on_incoming_call(self, call_dict):
         """A call was received"""
@@ -139,15 +159,15 @@ class KernelComm(CommBase, QObject):
     # ---- Private -----
     def _comm_ready(self):
         """If this function is called, the comm is ready"""
-        if self._comms[self.calling_comm_id]['status'] != 'ready':
-            self._comms[self.calling_comm_id]['status'] = 'ready'
+        if self._comms[self.calling_comm_id]["status"] != "ready":
+            self._comms[self.calling_comm_id]["status"] = "ready"
             self.sig_comm_ready.emit()
 
     def _send_call(self, call_dict, call_data, comm_id):
         """Send call and interupt the kernel if needed."""
-        settings = call_dict['settings']
-        blocking = 'blocking' in settings and settings['blocking']
-        interrupt = 'interrupt' in settings and settings['interrupt']
+        settings = call_dict["settings"]
+        blocking = "blocking" in settings and settings["blocking"]
+        interrupt = "interrupt" in settings and settings["interrupt"]
         queue_message = not interrupt and not blocking
 
         if not self.kernel_client.is_alive():
@@ -157,14 +177,14 @@ class KernelComm(CommBase, QObject):
                 # The user has other problems
                 logger.info(
                     "Dropping message because kernel is dead: %s",
-                    str(call_dict)
+                    str(call_dict),
                 )
                 return
 
-        with self.comm_channel_manager(
-                comm_id, queue_message=queue_message):
+        with self.comm_channel_manager(comm_id, queue_message=queue_message):
             return super(KernelComm, self)._send_call(
-                call_dict, call_data, comm_id)
+                call_dict, call_data, comm_id
+            )
 
     def _get_call_return_value(self, call_dict, comm_id):
         """
@@ -172,10 +192,11 @@ class KernelComm(CommBase, QObject):
         """
         try:
             return super(KernelComm, self)._get_call_return_value(
-                call_dict, comm_id)
+                call_dict, comm_id
+            )
         except RuntimeError as e:
-            settings = call_dict['settings']
-            blocking = 'blocking' in settings and settings['blocking']
+            settings = call_dict["settings"]
+            blocking = "blocking" in settings and settings["blocking"]
             if blocking:
                 raise
             else:
@@ -183,7 +204,7 @@ class KernelComm(CommBase, QObject):
                 logger.info(
                     "Dropping message because of exception: ",
                     str(e),
-                    str(call_dict)
+                    str(call_dict),
                 )
                 return
 
@@ -194,7 +215,8 @@ class KernelComm(CommBase, QObject):
             return call_id in self._reply_inbox
 
         timeout_msg = "Timeout while waiting for {}".format(
-            self._reply_waitlist)
+            self._reply_waitlist
+        )
         self._wait(got_reply, self._sig_got_reply, timeout_msg, timeout)
 
     def _wait(self, condition, signal, timeout_msg, timeout):
@@ -227,7 +249,8 @@ class KernelComm(CommBase, QObject):
             if not wait_timeout.isActive():
                 signal.disconnect(wait_loop.quit)
                 self.kernel_client.hb_channel.kernel_died.disconnect(
-                    wait_loop.quit)
+                    wait_loop.quit
+                )
                 if condition():
                     return
                 if not self.kernel_client.is_alive():
@@ -237,15 +260,13 @@ class KernelComm(CommBase, QObject):
 
         wait_timeout.stop()
         signal.disconnect(wait_loop.quit)
-        self.kernel_client.hb_channel.kernel_died.disconnect(
-            wait_loop.quit)
+        self.kernel_client.hb_channel.kernel_died.disconnect(wait_loop.quit)
 
     def _handle_remote_call_reply(self, msg_dict, buffer):
         """
         A blocking call received a reply.
         """
-        super(KernelComm, self)._handle_remote_call_reply(
-            msg_dict, buffer)
+        super(KernelComm, self)._handle_remote_call_reply(msg_dict, buffer)
         self._sig_got_reply.emit()
 
     def _async_error(self, error_wrapper):

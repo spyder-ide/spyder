@@ -34,6 +34,7 @@ PERMISSION_ERROR_MSG = (
 # kernel_comm needs a qthread
 class StdThread(Thread):
     """Poll for changes in std buffers."""
+
     def __init__(self, std_buffer, buffer_key, kernel_comm, file):
         self._std_buffer = std_buffer
 
@@ -53,11 +54,8 @@ class StdThread(Thread):
                 self.print_file.write(txt.decode())
                 # Needs to be on control so the message is sent to currently
                 # executing shell
-                self.kernel_comm.remote_call(
-                    interrupt=True
-                ).print_remote(
-                    txt.decode(),
-                    self.buffer_key
+                self.kernel_comm.remote_call(interrupt=True).print_remote(
+                    txt.decode(), self.buffer_key
                 )
 
 
@@ -69,29 +67,29 @@ class ShutdownThread(Thread):
     def run(self):
         """Shutdown kernel."""
         kernel_manager = self.kernel_dict["kernel"]
-        
+
         if "stdout" in self.kernel_dict:
-            self.kernel_dict["stdout" ].closing.set()
+            self.kernel_dict["stdout"].closing.set()
         if "stderr" in self.kernel_dict:
-            self.kernel_dict["stderr" ].closing.set()
+            self.kernel_dict["stderr"].closing.set()
 
         if not kernel_manager.shutting_down:
             kernel_manager.shutting_down = True
             self.kernel_dict["client"].stop_channels()
-            
+
             try:
                 kernel_manager.shutdown_kernel()
             except Exception:
                 # kernel was externally killed
                 pass
         if "stdout" in self.kernel_dict:
-            self.kernel_dict["stdout" ].join()
+            self.kernel_dict["stdout"].join()
         if "stderr" in self.kernel_dict:
-            self.kernel_dict["stderr" ].join()
+            self.kernel_dict["stderr"].join()
 
 
 class KernelServer(QObject):
-    
+
     sig_kernel_restarted = Signal(str)
 
     def __init__(self):
@@ -118,7 +116,6 @@ class KernelServer(QObject):
             cf = os.path.join(jupyter_runtime_dir(), "kernel-%s.json" % ident)
             cf = cf if not os.path.exists(cf) else ""
         return cf
-
 
     def open_kernel(self, kernel_spec):
         """
@@ -152,16 +149,19 @@ class KernelServer(QObject):
         kernel_client.start_channels()
         kernel_comm = KernelComm()
         kernel_comm.open_comm(kernel_client)
-        
+
         self._kernel_list[kernel_key] = {
             "kernel": kernel_manager,
-            "client": kernel_client
-            }
+            "client": kernel_client,
+        }
         self.connect_std_pipes(kernel_key, kernel_comm)
-        
+
         kernel_manager.kernel_restarted.connect(
-            lambda connection_file=connection_file: self.sig_kernel_restarted.emit(connection_file))
-        
+            lambda connection_file=connection_file: self.sig_kernel_restarted.emit(
+                connection_file
+            )
+        )
+
         return connection_file
 
     def connect_std_pipes(self, kernel_key, kernel_comm):
@@ -173,12 +173,14 @@ class KernelServer(QObject):
 
         if stdout:
             stdout_thread = StdThread(
-                stdout, "stdout", kernel_comm, sys.stdout)
+                stdout, "stdout", kernel_comm, sys.stdout
+            )
             stdout_thread.start()
             self._kernel_list[kernel_key]["stdout"] = stdout_thread
         if stderr:
             stderr_thread = StdThread(
-                stderr, "stderr", kernel_comm, sys.stderr)
+                stderr, "stderr", kernel_comm, sys.stderr
+            )
             stderr_thread.start()
             self._kernel_list[kernel_key]["stderr"] = stderr_thread
 
