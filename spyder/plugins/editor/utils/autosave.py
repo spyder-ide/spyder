@@ -434,7 +434,7 @@ class AutosaveForStack(object):
             old_hash = self.file_hashes[old_name]
         except KeyError:
             # This should not happen, but it does: spyder-ide/spyder#12396
-            logger.error('KeyError when handling rename %s -> %s',
+            logger.debug('KeyError when handling rename %s -> %s',
                          old_name, new_name)
             old_hash = None
         self.remove_autosave_file(old_name)

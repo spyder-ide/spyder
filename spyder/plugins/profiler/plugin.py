@@ -79,7 +79,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
