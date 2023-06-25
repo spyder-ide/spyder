@@ -301,7 +301,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Adjustments when the widget is shown."""
         if self._update_when_shown:
             # We only do this the first time the widget is shown to not change
-            # the splitter widths that the user can set themselves.
+            # the splitter widths that users can set themselves.
             self.update_splitter_widths(self.width())
             self._update_when_shown = False
 

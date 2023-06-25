@@ -1190,7 +1190,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self._reset_model(self.table_header, DataFrameHeaderModel(model, 0))
 
         # We use our monospace font for the index so that it matches the one
-        # used for the data and things look consistent.
+        # used for data and things look consistent.
         # Fixes issue spyder-ide/spyder#20960
         self._reset_model(
             self.table_index,

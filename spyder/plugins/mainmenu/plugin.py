@@ -58,7 +58,7 @@ class MainMenu(SpyderPluginV2):
         # menu
         self._ITEM_QUEUE = {}  # type: ItemQueue
 
-        # Set main menu font for Windows and Linux
+        # Set main menu font. This is only necessary on Windows and Linux
         if not sys.platform == 'darwin':
             app_font = self.get_font(font_type=SpyderFontType.Interface)
             self.main.menuBar().setFont(app_font)

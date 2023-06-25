@@ -665,7 +665,6 @@ def _url_handler(url, content_type="text/html"):
 
             css_link = (
                 f'<link rel="stylesheet" type="text/css" href="/{css_path}">'
-
             )
 
             code_style = (

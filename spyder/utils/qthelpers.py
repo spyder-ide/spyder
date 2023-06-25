@@ -801,22 +801,26 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
             family = self.get_conf('app_font/family', section='appearance')
             size = self.get_conf('app_font/size', section='appearance')
 
-        font = self.font()
-        font.setFamily(family)
-        font.setPointSize(size)
+        app_font = self.font()
+        app_font.setFamily(family)
+        app_font.setPointSize(size)
 
-        self.set_monospace_font_size(font)
-        self.setFont(font)
+        self.set_monospace_interface_font(app_font)
+        self.setFont(app_font)
 
-    def set_monospace_font_size(self, font):
-        """Set monospace interface font in our config system."""
-        x_height = QFontMetrics(font).xHeight()
-        size = font.pointSize()
+    def set_monospace_interface_font(self, app_font):
+        """
+        Set monospace interface font in our config system according to the app
+        one.
+        """
+        x_height = QFontMetrics(app_font).xHeight()
+        size = app_font.pointSize()
         plain_font = self.get_font(SpyderFontType.Monospace)
         plain_font.setPointSize(size)
 
         # Select a size that matches the app font one, so that the UI looks
-        # consistent.
+        # consistent. We only check three point sizes above and below the app
+        # font to avoid getting stuck in an infinite loop.
         monospace_size = size
         while (
             QFontMetrics(plain_font).xHeight() != x_height

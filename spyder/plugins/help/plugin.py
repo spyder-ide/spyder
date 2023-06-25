@@ -177,11 +177,11 @@ class Help(SpyderDockablePlugin):
     def update_font(self):
         color_scheme = self.get_color_scheme()
         font = self.get_font(SpyderFontType.Monospace)
-        rich_font = self.get_font(SpyderFontType.Interface)
+        app_font = self.get_font(SpyderFontType.Interface)
 
         widget = self.get_widget()
         widget.set_plain_text_font(font, color_scheme=color_scheme)
-        widget.set_rich_text_font(rich_font, font)
+        widget.set_rich_text_font(app_font, font)
         widget.set_plain_text_color_scheme(color_scheme)
 
     def on_close(self, cancelable=False):

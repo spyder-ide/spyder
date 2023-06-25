@@ -689,16 +689,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     @classmethod
     def get_font(cls, font_type):
         """
-        Return plain or rich text font used in Spyder.
+        Return one of font types used in Spyder.
 
         Parameters
         ----------
         font_type: str
             There are three types of font types in Spyder:
             SpyderFontType.Monospace, used in the Editor, IPython console,
-            History, etc; SpyderFontType.Interface, used by the entire
-            Spyder app; and SpyderFontType.MonospaceInterface, used by the
-            Variable Explorer.
+            and History; SpyderFontType.Interface, used by the entire Spyder
+            app; and SpyderFontType.MonospaceInterface, used by the Variable
+            Explorer, Find, Debugger and others.
 
         Returns
         -------
@@ -707,10 +707,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        All plugins in Spyder use the same, global fonts. This is a convenience
-        method in case some plugins want to use a delta size based on the
-        default one. That can be controlled by using MONOSPACE_FONT_SIZE_DELTA
-        or INTERFACE_FONT_SIZE_DELTA.
+        All plugins in Spyder use the same, global fonts. In case some a plugin
+        wants to use a delta font size based on the default one, they can set
+        the MONOSPACE_FONT_SIZE_DELTA or INTERFACE_FONT_SIZE_DELTA class
+        constants.
         """
         if font_type == SpyderFontType.Monospace:
             font_size_delta = cls.MONOSPACE_FONT_SIZE_DELTA

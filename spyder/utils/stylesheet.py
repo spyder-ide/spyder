@@ -78,8 +78,8 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # Don't create the stylesheet here so that Spyder gets the app font
         # from the system when it starts for the first time. This also allows
         # us to display the splash screen more quickly because the stylesheet
-        # is computed only it's going to be applied to the app, not when this
-        # object is imported.
+        # is then computed only when it's going to be applied to the app, not
+        # when this object is imported.
         super().__init__(set_stylesheet=False)
         self._stylesheet_as_string = None
 
@@ -200,6 +200,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         )
 
         # Set font for widgets that don't inherit it from the application
+        # This is necessary for spyder-ide/spyder#5942.
         for widget in ['QToolTip', 'QDialog', 'QListView', 'QTreeView',
                        'QHeaderView::section', 'QTableView']:
             css[f'{widget}'].setValues(

@@ -26,8 +26,8 @@ APPEARANCE = {
     'font/size': MEDIUM,
     'font/italic': False,
     'font/bold': False,
-    # We set the app font used in the system when time Spyder starts, so we
-    # don't need to do it here.
+    # We set the app font used in the system when Spyder starts, so we don't
+    # need to do it here.
     'app_font/family': '',
     'app_font/size': 0,
     'app_font/italic': False,
