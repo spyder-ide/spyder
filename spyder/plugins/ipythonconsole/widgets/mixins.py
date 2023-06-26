@@ -74,7 +74,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             self.request_queue = queue.Queue()
             # Send new kernel request for waiting kernels
             for kernel_handler in self.kernel_handler_waitlist:
-                self.send_request(["open_kernel", kernel_handler.kernel_spec])
+                self.send_request(["open_kernel", kernel_handler.kernel_spec.to_dict()])
 
         self.options = options
         self.ssh_remote_hostname = None
@@ -196,7 +196,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.sig_kernel_restarted.connect(kernel_handler.kernel_restarted)
         self.kernel_handler_waitlist.append(kernel_handler)
 
-        self.send_request(["open_kernel", kernel_spec])
+        self.send_request(["open_kernel", kernel_spec.to_dict()])
 
         return kernel_handler
 
