@@ -2974,7 +2974,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         check_name = tab_widgets[tabname]
         check = getattr(tab, check_name)
         page.tabs.setCurrentIndex(idx)
-        check.animateClick()
+        check.checkbox.animateClick()
         qtbot.wait(500)
     dlg.ok_btn.animateClick()
 
