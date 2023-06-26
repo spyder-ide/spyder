@@ -1743,6 +1743,9 @@ class IPythonConsoleWidget(
         # Close cached kernel
         self.close_cached_kernel()
         self.filenames = []
+        
+        # Close local server
+        self.stop_local_server(wait=True)
         return True
 
     def get_client_index_from_id(self, client_id):

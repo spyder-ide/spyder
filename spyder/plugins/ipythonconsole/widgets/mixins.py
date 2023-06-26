@@ -130,13 +130,17 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.server.readyReadStandardOutput.connect(self.print_server_stdout)
         self.connect_socket("localhost", port)
 
-    def stop_local_server(self):
+    def stop_local_server(self, wait=False):
         """Stop local server."""
+        if self.server is None:
+            return
         self.server.readyReadStandardError.disconnect(self.print_server_stderr)
         self.server.readyReadStandardOutput.disconnect(
             self.print_server_stdout
         )
         self.send_request(["shutdown"])
+        if wait:
+            self.server.waitForFinished()
         self.server = None
 
     @Slot()
