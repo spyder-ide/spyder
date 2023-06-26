@@ -3148,7 +3148,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     # Change main interpreter on preferences
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'main_interpreter')
-    page.cus_exec_radio.setChecked(True)
+    page.cus_exec_radio.radiobutton.setChecked(True)
     page.cus_exec_combo.combobox.setCurrentText(sys.executable)
 
     mi_container = main_window.main_interpreter.get_container()
