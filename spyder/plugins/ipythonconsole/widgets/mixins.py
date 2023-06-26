@@ -214,6 +214,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
     @Slot()
     def _socket_activity(self):
         if not self.socket.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+            # Valid, see http://api.zeromq.org/master:zmq-getsockopt
             return
         self._notifier.setEnabled(False)
         #  Wait for next request from client
@@ -257,7 +258,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
 
         self._notifier.setEnabled(True)
         # This is necessary for some reason.
-        # Otherwise the socket only works twice !
+        # Otherwise the notifer is not really enabled
         self.socket.getsockopt(zmq.EVENTS)
 
         try:

@@ -375,25 +375,15 @@ class KernelHandler(QObject):
 
     def copy(self):
         """Copy kernel."""
-        # Copy kernel infos
-
-        # Get new kernel_client
-        kernel_client = self.init_kernel_client(
+        copy_handler = self.from_connection_file(
             self.connection_file,
             self.hostname,
             self.sshkey,
             self.password,
-        )
-
-        return self.__class__(
-            connection_file=self.connection_file,
-            kernel_spec=self.kernel_spec,
-            known_spyder_kernel=self.known_spyder_kernel,
-            hostname=self.hostname,
-            sshkey=self.sshkey,
-            password=self.password,
-            kernel_client=kernel_client,
-        )
+            )
+        copy_handler.kernel_spec = self.kernel_spec
+        copy_handler.known_spyder_kernel = self.known_spyder_kernel
+        return copy_handler
 
     def faulthandler_setup(self, args):
         """Setup faulthandler"""
