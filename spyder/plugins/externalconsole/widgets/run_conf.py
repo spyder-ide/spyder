@@ -174,7 +174,7 @@ class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         self.script_opts_cb = QCheckBox(_("Script arguments:"))
         script_layout.addWidget(self.script_opts_cb, 1, 0)
         self.script_opts_edit = QLineEdit()
-        self.script_opts_cb.checkbox.toggled.connect(
+        self.script_opts_cb.toggled.connect(
             self.script_opts_edit.setEnabled)
         self.script_opts_edit.setEnabled(False)
         script_layout.addWidget(self.script_opts_edit, 1, 1)
