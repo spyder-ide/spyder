@@ -60,7 +60,8 @@ def kernel(request):
             'False_',
             'True_'
         ],
-        'minmax': False}
+        'minmax': False,
+        'filter_on': True}
 
     # Teardown
     def reset_kernel():

@@ -590,7 +590,7 @@ def globalsfilter(input_dict, check_all=False, filters=None,
                   exclude_private=None, exclude_capitalized=None,
                   exclude_uppercase=None, exclude_unsupported=None,
                   excluded_names=None, exclude_callables_and_modules=None,
-                  filter_on=False):
+                  filter_on=True):
     """Keep objects in namespace view according to different criteria."""
     output_dict = {}
     def _is_string(obj):
