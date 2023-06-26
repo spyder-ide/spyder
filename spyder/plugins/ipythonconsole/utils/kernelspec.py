@@ -27,7 +27,7 @@ from spyder.plugins.ipythonconsole import (
     SpyderKernelError)
 from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
                                 find_conda)
-# from spyder.utils.environ import get_user_environment_variables
+from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter, is_module_installed
 
@@ -188,8 +188,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Ensure that user environment variables are included, but don't
         # override existing environ values
-        # env_vars = get_user_environment_variables()
-        env_vars = {}
+        env_vars = get_user_environment_variables()
         env_vars.update(os.environ)
 
         # Avoid IPython adding the virtualenv on which Spyder is running
