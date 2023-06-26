@@ -1462,7 +1462,6 @@ def main(options, args):
             "upgrade Windows or ask your system administrator for help to "
             "allow Spyder to start."
         )
-        CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred
         if splash is not None:
