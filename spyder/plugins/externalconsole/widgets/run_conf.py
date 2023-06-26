@@ -62,7 +62,7 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
         self.pclo_cb = QCheckBox(_("Command line options:"))
         external_layout.addWidget(self.pclo_cb, 3, 0)
         self.pclo_edit = QLineEdit()
-        self.pclo_cb.checkbox.toggled.connect(self.pclo_edit.setEnabled)
+        self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
         self.pclo_edit.setToolTip(_("<b>-u<_b> is added to the "
                                     "other options you set here"))
@@ -78,7 +78,7 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
         self.clo_edit = QLineEdit()
-        self.clo_cb.checkbox.toggled.connect(self.clo_edit.setEnabled)
+        self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
 
