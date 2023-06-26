@@ -23,7 +23,6 @@ from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.QtCore import QObject, Signal
 
 from spyder_kernels_server.kernel_manager import SpyderKernelManager
-from spyder_kernels_server.kernel_comm import KernelComm
 
 
 PERMISSION_ERROR_MSG = (
