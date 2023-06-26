@@ -82,7 +82,8 @@ class TabFilter(QObject):
         # Also add a border below selected tabs so they don't touch either the
         # window separator or the status bar.
         css['QTabBar::tab:bottom:selected'].setValues(
-            borderBottom=f'2px solid {QStylePalette.COLOR_BACKGROUND_1}'
+            borderBottom=f'2px solid {QStylePalette.COLOR_BACKGROUND_1}',
+            background=f'#259AE9'
         )
 
         return css.toString()
