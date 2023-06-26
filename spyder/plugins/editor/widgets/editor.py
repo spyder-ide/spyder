@@ -1898,8 +1898,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
             # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
-            self.file_renamed_in_data.emit(str(id(self)),
-                                           original_filename, filename)
+            self.file_renamed_in_data.emit(
+                original_filename, filename, str(id(self)))
 
             ok = self.save(index=new_index, force=True)
             self.refresh(new_index)
@@ -2463,6 +2463,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             # symbols for the clon are updated as expected.
             cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
                 editor.oe_proxy.update_outline_info)
+            cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
+                editor._update_classfuncdropdown)
             cloned_from.oe_proxy.sig_start_outline_spinner.connect(
                 editor.oe_proxy.emit_request_in_progress)
 
@@ -3546,8 +3548,9 @@ class EditorPluginExample(QSplitter):
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
     @Slot(str, str, str)
-    def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            original_filename, filename):
+    def file_renamed_in_data_in_editorstack(
+        self, original_filename, filename, editorstack_id_str
+    ):
         """A file was renamed in data in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:

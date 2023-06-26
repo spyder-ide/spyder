@@ -82,10 +82,12 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Build Environment
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: installers-conda/build-environment.yml
-          extra-specs: python=${{ matrix.python-version }}
+          create-args: python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-environment: true
 
       - name: Build Conda Packages
         run: python build_conda_pkgs.py --build $pkg
@@ -163,12 +165,12 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Build Environment
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: installers-conda/build-environment.yml
-          extra-specs: python=${{ matrix.python-version }}
+          create-args: python=${{ matrix.python-version }}
           cache-downloads: true
-          cache-env: true
+          cache-environment: true
 
       - name: Env Variables
         run: |
@@ -299,7 +301,8 @@ jobs:
       - name: Notarize or Compute Checksum
         if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
         run: |
-          if [[ $RUNNER_OS == "macOS" ]]; then
+          # Skip notarization for now because our Apple ID is expired.
+          if [[ $RUNNER_OS == "skip" ]]; then
               ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
           else
               cd $(dirname $PKG_PATH)
