@@ -162,7 +162,7 @@ class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         self.interpreter_opts_cb = QCheckBox(_("Interpreter arguments:"))
         interpreter_layout.addWidget(self.interpreter_opts_cb, 1, 0)
         self.interpreter_opts_edit = QLineEdit()
-        self.interpreter_opts_cb.checkbox.toggled.connect(
+        self.interpreter_opts_cb.toggled.connect(
             self.interpreter_opts_edit.setEnabled)
         self.interpreter_opts_edit.setEnabled(False)
         interpreter_layout.addWidget(self.interpreter_opts_edit, 1, 1)
