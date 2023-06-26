@@ -53,20 +53,6 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
     "</pre>")
 
 
-def clean_env(env_vars):
-    """
-    Remove non-ascii entries from a dictionary of environments variables.
-
-    The values will be converted to strings or bytes (on Python 2). If an
-    exception is raised, an empty string will be used.
-    """
-    new_env_vars = env_vars.copy()
-    for key, var in env_vars.items():
-        new_env_vars[key] = str(var)
-
-    return new_env_vars
-
-
 def is_different_interpreter(pyexec):
     """Check that pyexec is a different interpreter from sys.executable."""
     # Paths may be symlinks
