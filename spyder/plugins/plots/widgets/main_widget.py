@@ -225,6 +225,7 @@ class PlotsWidget(ShellConnectMainWidget):
             thumbnails_sb = widget.thumbnails_sb
             value = figviewer.figcanvas.fig is not None
 
+            widget.set_pane_empty(not value)
         for __, action in self.get_actions().items():
             try:
                 if action and action not in [self.mute_action,
