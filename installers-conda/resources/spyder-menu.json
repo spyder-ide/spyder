@@ -23,7 +23,6 @@
                     "StartupWMClass": "Spyder"
                 },
                 "osx": {
-                    "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"",
                     "command": [
                         "$(dirname $0)/python",
                         "{{ PREFIX }}/bin/spyder",
