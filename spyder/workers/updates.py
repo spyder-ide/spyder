@@ -216,8 +216,8 @@ class WorkerDownloadInstaller(QObject):
         mach = platform.machine().lower().replace("amd64", "x86_64")
         fname = f'Spyder-{self.latest_release_version}-{plat}-{mach}.{ext}'
 
-        url = ('https://github.com/spyder-ide/spyder/releases/latest/'
-               f'download/{fname}')
+        url = ('https://github.com/spyder-ide/spyder/releases/download/'
+               f'v{self.latest_release_version}/{fname}')
         dir_path = osp.join(tmpdir, 'spyder', 'updates')
         os.makedirs(dir_path, exist_ok=True)
         installer_dir_path = osp.join(
