@@ -168,7 +168,10 @@ class ApplicationUpdateStatus(StatusBarWidget):
         ):
             self.installer.show()
         elif value == PENDING and is_conda_based_app():
-            self.installer.continue_installation()
+            if self.installer.update_from_github:
+                self.installer.continue_installation()
+            else:
+                self.installer.confirm_installation()
         elif value == NO_STATUS:
             self.menu.clear()
             check_for_updates_action = create_action(
