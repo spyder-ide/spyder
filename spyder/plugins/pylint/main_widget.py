@@ -24,9 +24,9 @@ import time
 import pylint
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
-                         Slot, Qt)
+                         Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QVBoxLayout, QStackedLayout, QWidget)
+                            QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -37,18 +37,12 @@ from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
-from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.misc import getcwd_or_home, get_home_dir
 from spyder.utils.misc import get_python_executable
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
-from spyder.widgets.helperwidgets import PanelEmptyWidget
-
-
-# Localization
-#_ = get_translation("spyder")
 
 
 # --- Constants
@@ -152,7 +146,6 @@ class CategoryItem(QTreeWidgetItem):
 # ---- Widgets
 # ----------------------------------------------------------------------------
 # TODO: display results on 3 columns instead of 1: msg_id, lineno, message
-
 class ResultsTree(OneColumnTree):
 
     sig_edit_goto_requested = Signal(str, int, str)
@@ -361,9 +354,6 @@ class PylintWidget(PluginMainWidget):
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
         self.treewidget = ResultsTree(self)
-        self.panelempty = PanelEmptyWidget(self)
-        self.panelempty.set_attributes('code-analysis',
-                                       'You havent analyzed any code yet.')
 
         if osp.isfile(self.DATAPATH):
             try:
@@ -381,10 +371,10 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(fname)
 
         # Layout
-        self.stack_layout = layout = QStackedLayout()
-        self.stack_layout.addWidget(self.panelempty)
-        self.stack_layout.addWidget(self.treewidget)
-        self.setLayout(self.stack_layout)
+        layout = QVBoxLayout()
+        layout.addWidget(self.treewidget)
+        self.setLayout(layout)
+
         # Signals
         self.filecombo.currentTextChanged.connect(self.sig_open_file_requested)
         self.filecombo.valid.connect(self._check_new_file)
@@ -889,17 +879,14 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
-            self.stack_layout.setCurrentWidget(self.panelempty)
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
-                self.stack_layout.setCurrentWidget(self.treewidget)
                 text = _("Analysis did not succeed "
                          "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
-                self.stack_layout.setCurrentWidget(self.treewidget)
                 text_style = "<span style=\"color: %s\"><b>%s </b></span>"
                 rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
                 prevrate_style = "<span style=\"color: %s\">%s</span>"
