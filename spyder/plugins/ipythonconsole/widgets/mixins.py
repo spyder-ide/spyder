@@ -194,6 +194,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
 
         kernel_handler.sig_remote_close.connect(self.request_close)
         self.sig_kernel_restarted.connect(kernel_handler.kernel_restarted)
+        self.sig_kernel_stderr.connect(kernel_handler.handle_stderr)
+        self.sig_kernel_stdout.connect(kernel_handler.handle_stdout)
         self.kernel_handler_waitlist.append(kernel_handler)
 
         self.send_request(["open_kernel", kernel_spec.to_dict()])
@@ -281,6 +283,10 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         cmd = message[0]
         if cmd == "kernel_restarted":
             self.sig_kernel_restarted.emit(message[1])
+        elif cmd == "stderr":
+            self.sig_kernel_stderr.emit(message[1], message[2])
+        elif cmd == "stdout":
+            self.sig_kernel_stdout.emit(message[1], message[2])
 
         self._notifier_sub.setEnabled(True)
         # This is necessary for some reason.

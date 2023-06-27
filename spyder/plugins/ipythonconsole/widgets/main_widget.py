@@ -129,6 +129,8 @@ class IPythonConsoleWidget(
 
     # Signals
     sig_kernel_restarted = Signal(str)
+    sig_kernel_stderr = Signal(str, str)
+    sig_kernel_stdout = Signal(str, str)
     
     sig_append_to_history_requested = Signal(str, str)
     """

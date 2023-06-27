@@ -86,6 +86,15 @@ class KernelHandler(QObject):
     A class to handle the kernel in several ways and store kernel connection
     information.
     """
+    sig_stdout = Signal(str)
+    """
+    A stdout message was received on the process stdout.
+    """
+    
+    sig_stderr = Signal(str)
+    """
+    A stderr message was received on the process stderr.
+    """
 
     sig_fault = Signal(str)
     """
@@ -136,6 +145,8 @@ class KernelHandler(QObject):
         self._fault_args = None
         self._spyder_kernel_info_uuid = None
         self._shellwidget_connected = False
+        self._init_stderr = ""
+        self._init_stdout = ""
         
         if self.kernel_client:
             # Start kernel
@@ -148,6 +159,26 @@ class KernelHandler(QObject):
         if connection_file == self.connection_file:
             self.sig_kernel_restarted.emit()
 
+    @Slot(str, str)
+    def handle_stderr(self, connection_file, err):
+        """Handle stderr"""
+        if connection_file != self.connection_file:
+            return
+        if self._shellwidget_connected:
+            self.sig_stderr.emit(err)
+        else:
+            self._init_stderr += err
+    
+    @Slot(str, str)
+    def handle_stdout(self, connection_file, out):
+        """Handle stdout"""
+        if connection_file != self.connection_file:
+            return
+        if self._shellwidget_connected:
+            self.sig_stdout.emit(out)
+        else:
+            self._init_stdout += out
+
     def connect(self):
         """Connect to shellwidget."""
         self._shellwidget_connected = True
@@ -159,13 +190,13 @@ class KernelHandler(QObject):
         elif self.connection_state == KernelConnectionState.Error:
             self.sig_kernel_connection_error.emit()
 
-        # # Show initial io
-        # if self._init_stderr:
-        #     self.sig_stderr.emit(self._init_stderr)
-        # self._init_stderr = None
-        # if self._init_stdout:
-        #     self.sig_stdout.emit(self._init_stdout)
-        # self._init_stdout = None
+        # Show initial io
+        if self._init_stderr:
+            self.sig_stderr.emit(self._init_stderr)
+        self._init_stderr = None
+        if self._init_stdout:
+            self.sig_stdout.emit(self._init_stdout)
+        self._init_stdout = None
         
 
     def check_kernel_info(self):

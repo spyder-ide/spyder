@@ -20,7 +20,7 @@ from threading import Thread, Event
 
 # Third-party imports
 from jupyter_core.paths import jupyter_runtime_dir
-from qtpy.QtCore import QObject, Signal
+from qtpy.QtCore import QObject, Signal, QThread
 
 from spyder_kernels_server.kernel_manager import SpyderKernelManager
 
@@ -31,12 +31,13 @@ PERMISSION_ERROR_MSG = (
 )
 
 # kernel_comm needs a qthread
-class StdThread(Thread):
+class StdThread(QThread):
     """Poll for changes in std buffers."""
+    
+    sig_text = Signal(str)
 
-    def __init__(self, std_buffer, file):
+    def __init__(self, std_buffer):
         self._std_buffer = std_buffer
-        self.print_file = file
         self.closing = Event()
         super().__init__()
 
@@ -47,7 +48,7 @@ class StdThread(Thread):
             if self.closing:
                 return
             if txt:
-                self.print_file.write(txt.decode())
+                self.sig_text.emit(txt.decode())
 
 
 class ShutdownThread(Thread):
@@ -80,6 +81,8 @@ class ShutdownThread(Thread):
 class KernelServer(QObject):
 
     sig_kernel_restarted = Signal(str)
+    sig_stdout = Signal(str, str)
+    sig_stderr = Signal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -156,10 +159,20 @@ class KernelServer(QObject):
 
         if stdout:
             stdout_thread = StdThread(stdout, sys.stdout)
+            stdout_thread.sig_text.connect(
+                lambda txt, connection_file=kernel_key: self.sig_stdout.emit(
+                    connection_file, txt
+                ))
+            stdout_thread.finished.connect(stdout_thread.deleteLater)
             stdout_thread.start()
             self._kernel_list[kernel_key]["stdout"] = stdout_thread
         if stderr:
             stderr_thread = StdThread(stderr, sys.stderr)
+            stderr_thread.sig_text.connect(
+                lambda txt, connection_file=kernel_key: self.sig_stderr.emit(
+                    connection_file, txt
+                ))
+            stderr_thread.finished.connect(stderr_thread.deleteLater)
             stderr_thread.start()
             self._kernel_list[kernel_key]["stderr"] = stderr_thread
 

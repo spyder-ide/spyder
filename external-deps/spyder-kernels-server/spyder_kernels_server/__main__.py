@@ -44,6 +44,12 @@ class Server(QObject):
         self.kernel_server.sig_kernel_restarted.connect(
             self._handle_kernel_restarted
         )
+        self.kernel_server.sig_stderr.connect(
+            self._handle_stderr
+        )
+        self.kernel_server.sig_stdout.connect(
+            self._handle_stdout
+        )
 
     def _socket_activity(self):
         self._notifier.setEnabled(False)
@@ -87,6 +93,14 @@ class Server(QObject):
     @Slot(str)
     def _handle_kernel_restarted(self, connection_file):
         self.socket_pub.send_pyobj(["kernel_restarted", connection_file])
+    
+    @Slot(str, str)
+    def _handle_stderr(self, connection_file, txt):
+        self.socket_pub.send_pyobj(["stderr", connection_file, txt])
+        
+    @Slot(str, str)
+    def _handle_stdout(self, connection_file, txt):
+        self.socket_pub.send_pyobj(["stdout", connection_file, txt])
 
 
 if __name__ == "__main__":
