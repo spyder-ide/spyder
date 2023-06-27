@@ -291,7 +291,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self._notifier_sub.setEnabled(True)
         # This is necessary for some reason.
         # Otherwise the socket only works twice !
-        self.socket_sub.getsockopt(zmq.EVENTS)
+        if self.socket_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+            self._socket_sub_activity()
 
 
 class CachedKernelMixin:

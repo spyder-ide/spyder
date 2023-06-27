@@ -150,7 +150,6 @@ class KernelHandler(QObject):
         
         if self.kernel_client:
             # Start kernel
-            # self.connect_std_pipes()
             self.kernel_client.start_channels()
             self.check_kernel_info()
     
@@ -481,6 +480,5 @@ class KernelHandler(QObject):
         self.kernel_client.hb_channel.time_to_dead = 25.0
         
         # Start kernel
-        # self.connect_std_pipes()
         self.kernel_client.start_channels()
         self.check_kernel_info()
