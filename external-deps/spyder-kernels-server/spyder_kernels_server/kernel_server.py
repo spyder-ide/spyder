@@ -45,7 +45,7 @@ class StdThread(QThread):
         txt = True
         while txt:
             txt = self._std_buffer.read1()
-            if self.closing:
+            if self.closing.is_set():
                 return
             if txt:
                 self.sig_text.emit(txt.decode())
@@ -73,9 +73,9 @@ class ShutdownThread(Thread):
                 # kernel was externally killed
                 pass
         if "stdout" in self.kernel_dict:
-            self.kernel_dict["stdout"].join()
+            self.kernel_dict["stdout"].wait()
         if "stderr" in self.kernel_dict:
-            self.kernel_dict["stderr"].join()
+            self.kernel_dict["stderr"].wait()
 
 
 class KernelServer(QObject):
@@ -158,21 +158,19 @@ class KernelServer(QObject):
         stderr = kernel_manager.provisioner.process.stderr
 
         if stdout:
-            stdout_thread = StdThread(stdout, sys.stdout)
+            stdout_thread = StdThread(stdout)
             stdout_thread.sig_text.connect(
                 lambda txt, connection_file=kernel_key: self.sig_stdout.emit(
                     connection_file, txt
                 ))
-            stdout_thread.finished.connect(stdout_thread.deleteLater)
             stdout_thread.start()
             self._kernel_list[kernel_key]["stdout"] = stdout_thread
         if stderr:
-            stderr_thread = StdThread(stderr, sys.stderr)
+            stderr_thread = StdThread(stderr)
             stderr_thread.sig_text.connect(
                 lambda txt, connection_file=kernel_key: self.sig_stderr.emit(
                     connection_file, txt
                 ))
-            stderr_thread.finished.connect(stderr_thread.deleteLater)
             stderr_thread.start()
             self._kernel_list[kernel_key]["stderr"] = stderr_thread
 
