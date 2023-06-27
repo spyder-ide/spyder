@@ -172,12 +172,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         dlg = container.dialog
         index = dlg.get_index_by_name("pylint")
         dlg.set_current_index(index)
-        if self.run_action is not None:
-            mainmenu.remove_item_from_application_menu(
-                self.run_action.name,
-                menu_id=ApplicationMenus.Source
-            )
-            
+
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
         run = self.get_plugin(Plugins.Run)
@@ -189,7 +184,6 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-
     @Slot()
     def _set_filename(self):
         """
@@ -259,7 +253,6 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         If this method is called while still running it will stop the code
         analysis.
         """
-        
         editor = self.get_plugin(Plugins.Editor)
         if editor:
             if self.get_conf("save_before", True) and not editor.save():
