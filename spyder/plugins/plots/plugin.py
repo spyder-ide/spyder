@@ -37,7 +37,7 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
         return _('Display, explore and save console generated plots.')
 
     def get_icon(self):
-        return self.create_icon('hist')
+        return self.create_icon('plot')
 
     def on_initialize(self):
         # If a figure is loaded, raise the dockwidget the first time

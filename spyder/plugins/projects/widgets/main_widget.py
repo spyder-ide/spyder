@@ -38,6 +38,7 @@ from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
 
@@ -168,8 +169,12 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        # Empty widget to show when there's no active project
-        self.emptywidget = ProjectExplorerTreeWidget(self)
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "projects",
+            _("No project opened"),
+            _("Create one using the menu entry Projects > New project.")
+        )
 
         # Watcher
         self.watcher = WorkspaceWatcher(self)
@@ -180,7 +185,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         # Layout
         layout = QVBoxLayout()
-        layout.addWidget(self.emptywidget)
+        layout.addWidget(self.pane_empty)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
         self.setMinimumWidth(200)
@@ -243,6 +248,11 @@ class ProjectExplorerWidget(PluginMainWidget):
                 action,
                 menu=menu,
                 section=ProjectExplorerOptionsMenuSections.Main)
+            
+    def set_pane_empty(self):
+        self.treewidget.hide()
+        self.pane_empty.show()
+        
 
     def update_actions(self):
         pass
@@ -750,11 +760,11 @@ class ProjectExplorerWidget(PluginMainWidget):
     def _clear(self):
         """Show an empty view"""
         self.treewidget.hide()
-        self.emptywidget.show()
+        self.pane_empty.show()
 
     def _setup_project(self, directory):
         """Setup project"""
-        self.emptywidget.hide()
+        self.pane_empty.hide()
         self.treewidget.show()
 
         # Setup the directory shown by the tree

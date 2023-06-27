@@ -363,6 +363,11 @@ class ApplicationContainer(PluginMainContainer):
         """Check for spyder updates on github releases using a QThread."""
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
+        # !!! >>> Disable signals until alpha1
+        if is_conda_based_app():
+            self.application_update_status.blockSignals(True)
+            return
+        # !!! <<< Disable signals until alpha1
         if self.application_update_status:
             self.application_update_status.set_status_checking()
 

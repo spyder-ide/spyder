@@ -19,6 +19,7 @@ import sys
 # Third-party imports
 from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
+from qtpy import PYSIDE2
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -34,6 +35,8 @@ from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 from spyder.plugins.completion.providers.languageserver.widgets import (
     ClientStatus, LSPStatusWidget, ServerDisabledMessageBox)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
+from spyder.utils.programs import is_module_installed
+
 
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
@@ -187,7 +190,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.clients_hearbeat[language].stop()
                     self.clients_hearbeat[language].setParent(None)
                     del self.clients_hearbeat[language]
-                    client['instance'].disconnect()
+                    if PYSIDE2:
+                        client['instance'].disconnect(None, None, None)
+                    else:
+                        client['instance'].disconnect()
                     client['instance'].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
@@ -369,7 +375,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.start_completion_services_for_language(language)
 
 
-    @Slot(str)
     def report_server_error(self, error):
         """Report server errors in our error report dialog."""
         error_data = dict(
@@ -662,7 +667,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             if language_client['status'] == self.RUNNING:
                 logger.info("Stopping LSP client for {}...".format(language))
                 try:
-                    language_client['instance'].disconnect()
+                    if PYSIDE2:
+                        language_client['instance'].disconnect(None, None, None)
+                    else:
+                        language_client['instance'].disconnect()
                 except TypeError:
                     pass
                 try:
@@ -776,12 +784,22 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Autoformatting configuration
         formatter = self.get_conf('formatting')
 
-        # This is necessary because PyLSP third-party plugins can only be
-        # disabled with their module name.
-        formatter = 'pylsp_black' if formatter == 'black' else formatter
+        # This is necessary to support python-lsp-black 1 and 2 in the same
+        # codebase. See python-lsp/python-lsp-black#41 for details.
+        # TODO: Remove this in Spyder 6 to only support version 2.
+        old_pylsp_black = is_module_installed(
+            'pylsp_black', '<2.0.0', distribution_name='python_lsp_black'
+        )
+
+        if old_pylsp_black:
+            black_formatter = 'pylsp_black'
+            if formatter == 'black':
+                formatter = 'pylsp_black'
+        else:
+            black_formatter = 'black'
 
         # Enabling/disabling formatters
-        formatters = ['autopep8', 'yapf', 'pylsp_black']
+        formatters = ['autopep8', 'yapf', black_formatter]
         formatter_options = {
             fmt: {
                 'enabled': fmt == formatter
@@ -789,12 +807,14 @@ class LanguageServerProvider(SpyderCompletionProvider):
             for fmt in formatters
         }
 
-        # Setting max line length for formatters
-        # The autopep8 plugin shares the same maxLineLength value with the
-        # pycodestyle one. That's why it's not necessary to set it here.
-        # NOTE: We need to use `black` and not `pylsp_black` because that's
-        # the options' namespace of that plugin.
-        formatter_options['black'] = {'line_length': cs_max_line_length}
+        # Setting max line length for formatters.
+        # Notes:
+        # 1. The autopep8 plugin shares the same maxLineLength value with the
+        #    pycodestyle one. That's why it's not necessary to set it here.
+        # 2. The yapf pylsp plugin doesn't support this yet.
+        if not old_pylsp_black:
+            # TODO: Remove this if in Spyder 6.
+            formatter_options['black']['line_length'] = cs_max_line_length
 
         # PyLS-Spyder configuration
         group_cells = self.get_conf(
@@ -868,6 +888,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
         plugins['jedi_signature_help'].update(jedi_signature_help)
         plugins['jedi_definition'].update(jedi_definition)
         plugins['preload']['modules'] = self.get_conf('preload_modules')
-        plugins.update(formatter_options)
+        for fmt in formatters:
+            plugins[fmt].update(formatter_options[fmt])
+
+        # TODO: Remove the code in this if in Spyder 6 because it won't be
+        # necessary.
+        if old_pylsp_black:
+            plugins['black']['line_length'] = cs_max_line_length
 
         return python_config

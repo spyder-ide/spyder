@@ -7,7 +7,6 @@
 """Tests for editor codeanalysis warnings."""
 
 # Stdlib imports
-import os
 import sys
 
 # Third party imports
@@ -36,7 +35,7 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
              True)
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values','pycodestyle'),
+             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
              True)
 
     # After this call the manager needs to be reinitialized
@@ -49,7 +48,7 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
                  False)
 
         CONF.set('completions',
-                 ('provider_configuration', 'lsp', 'values','pycodestyle'),
+                 ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
                  False)
 
         # After this call the manager needs to be reinitialized
@@ -75,7 +74,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
              'D100')
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values','pycodestyle/ignore'),
+             ('provider_configuration', 'lsp', 'values', 'pycodestyle/ignore'),
              'E261')
 
     # After this call the manager needs to be reinitialized
@@ -103,7 +102,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
              '')
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values','pycodestyle/ignore'),
+             ('provider_configuration', 'lsp', 'values', 'pycodestyle/ignore'),
              '')
 
     completion_plugin.after_configuration_update([])

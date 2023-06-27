@@ -151,9 +151,16 @@ class SearchThread(QThread):
                     filename = os.path.join(path, f)
                     ext = osp.splitext(filename)[1]
 
-                    # Only search in regular files (i.e. not pipes)
-                    st_file_mode = os.stat(filename).st_mode
-                    if not stat.S_ISREG(st_file_mode):
+                    # Only search in regular files (i.e. not pipes).
+                    # The try/except is necessary to catch an error when
+                    # Python can't get the file status due to too many levels
+                    # of symbolic links.
+                    # Fixes spyder-ide/spyder#20798
+                    try:
+                        st_file_mode = os.stat(filename).st_mode
+                        if not stat.S_ISREG(st_file_mode):
+                            continue
+                    except OSError:
                         continue
 
                     # Exclude patterns defined by the user
@@ -263,10 +270,13 @@ class SearchThread(QThread):
                             found = line.find(text, found + 1)
                             if found > -1:
                                 break
-
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
+
+        # Process any pending results
+        if self.is_file and self.partial_results:
+            self.process_results()
 
         self.completed = True
 

@@ -7,5 +7,6 @@ dependencies:
   - conda-standalone
   - constructor
   - gitpython
+  - menuinst
   - ruamel.yaml.jinja2
   - setuptools_scm

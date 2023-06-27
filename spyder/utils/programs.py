@@ -1004,8 +1004,8 @@ def is_module_installed(module_name, version=None, interpreter=None,
     consistent with ``version``. The module must have an attribute named
     '__version__' or 'VERSION'.
 
-    version may start with =, >=, > or < to specify the exact requirement ;
-    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
+    ``version`` may start with =, >=, > or < to specify the exact requirement;
+    multiple conditions may be separated by ',' (e.g. '>=0.13,<1.0')
 
     If ``interpreter`` is not None, checks if a module is installed with a
     given ``version`` in the ``interpreter``'s environment. Otherwise checks

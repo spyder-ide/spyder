@@ -21,8 +21,8 @@ from qtpy import PYQT5
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QInputDialog,
-                            QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QInputDialog, QMessageBox,
+                            QVBoxLayout, QStackedLayout, QWidget)
 from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -36,7 +36,7 @@ from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
-from spyder.widgets.helperwidgets import FinderWidget
+from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
 
 
 # Constants
@@ -73,6 +73,13 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "variable-explorer",
+            _("No variables to show"),
+            _("Run code in the Editor or IPython console to see any "
+              "global variables listed here for exploration and editing.")
+        )
 
     def toggle_finder(self, show):
         """Show and hide the finder."""
@@ -133,12 +140,27 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.sig_hide_finder_requested)
 
             # Layout
+            self.stack_layout = QStackedLayout()
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.editor)
             layout.addSpacing(1)
             layout.addWidget(self.finder)
-            self.setLayout(layout)
+
+            self.table_widget = QWidget(self)
+            self.table_widget.setLayout(layout)
+            self.stack_layout.addWidget(self.table_widget)
+            self.stack_layout.addWidget(self.pane_empty)
+            self.setLayout(self.stack_layout)
+            self.set_pane_empty()
+            self.editor.source_model.sig_setting_data.connect(
+                self.set_pane_empty)
+
+    def set_pane_empty(self):
+        if not self.editor.source_model.get_data():
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.table_widget)
 
     def get_view_settings(self):
         """Return dict editor view settings"""
@@ -157,6 +179,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.refresh_namespacebrowser()
         try:
             self.editor.resizeRowToContents()
+            self.set_pane_empty()
         except TypeError:
             pass
 

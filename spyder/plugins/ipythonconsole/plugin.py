@@ -44,7 +44,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run,
                 Plugins.Projects, Plugins.PythonpathManager,
-                Plugins.WorkingDirectory]
+                Plugins.WorkingDirectory, Plugins.StatusBar]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -228,7 +228,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': 'py',
+            'extension': ['py', 'ipy'],
             'contexts': [
                 {
                     'name': 'File'
@@ -244,7 +244,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -254,7 +254,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Cell'
                 },
@@ -264,7 +264,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Selection'
                 },
@@ -284,6 +284,22 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
         ]
+
+    @on_plugin_available(plugin=Plugins.StatusBar)
+    def on_statusbar_available(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        matplotlib_status = self.get_widget().matplotlib_status
+        statusbar.add_status_widget(matplotlib_status)
+        matplotlib_status.register_ipythonconsole(self)
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        # Add status widget
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        matplotlib_status = self.get_widget().matplotlib_status
+        matplotlib_status.unregister_ipythonconsole(self)
+        statusbar.remove_status_widget(matplotlib_status.ID)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):

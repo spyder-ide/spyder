@@ -11,7 +11,7 @@ import sys
 # Third party imports
 from qtpy import QT_VERSION
 from qtpy.QtCore import Qt, QEvent
-from qtpy.QtGui import QFont, QTextCursor, QMouseEvent
+from qtpy.QtGui import QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QTextEdit
 import pytest
 
