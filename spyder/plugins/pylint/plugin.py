@@ -109,7 +109,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         widget.sig_edit_goto_requested.connect(editor.load)
         widget.sig_open_file_requested.connect(editor.load)
         editor.sig_editor_focus_changed.connect(self._set_filename)
-        editor.sig_diagnostics_update.connect(self._code_analysis_real_time)
+        editor.sig_diagnostics_update.connect(self._set_code_analysis_results)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -164,15 +164,6 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         projects.sig_project_loaded.disconnect(self._set_project_dir)
         projects.sig_project_closed.disconnect(self._unset_project_dir)
 
-    def _open_interpreter_preferences(self):
-        """Open the Preferences dialog in the Code analysis section."""
-        self._main.show_preferences()
-        preferences = self._main.preferences
-        container = preferences.get_container()
-        dlg = container.dialog
-        index = dlg.get_index_by_name("pylint")
-        dlg.set_current_index(index)
-
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
         run = self.get_plugin(Plugins.Run)
@@ -197,11 +188,10 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             # Editor was deleted
             pass
 
-    def _code_analysis_real_time(self, list):
-        if self.get_conf("real_time_analysis", True):
-            self.start_code_analysis(list=list)
-        else:
-            pass
+    def _set_code_analysis_results(self, filename, diagnostics):
+        if self.get_conf("real_time_analysis"):
+            widget = self.get_widget()
+            widget.set_code_analysis_results(filename, diagnostics)
 
     def _set_project_dir(self, value):
         widget = self.get_widget()
@@ -210,6 +200,15 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
     def _unset_project_dir(self, _unused):
         widget = self.get_widget()
         widget.set_conf("project_dir", None)
+
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the Code analysis section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("pylint")
+        dlg.set_current_index(index)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -244,7 +243,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         self.start_code_analysis(filename)
 
     @Slot()
-    def start_code_analysis(self, filename=None, list=None):
+    def start_code_analysis(self, filename=None):
         """
         Perform code analysis for given `filename`.
 
@@ -260,9 +259,9 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
         if filename is None or isinstance(filename, bool):
             filename = self.get_widget().get_filename()
-        if not self.get_conf("real_time_analysis", True):
-            self.switch_to_plugin(force_focus=True)
-        self.get_widget().start_code_analysis(filename, list)
+
+        self.switch_to_plugin(force_focus=True)
+        self.get_widget().start_code_analysis(filename)
 
     def stop_code_analysis(self):
         """

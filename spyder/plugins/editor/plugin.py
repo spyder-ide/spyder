@@ -166,14 +166,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     This signal is emitted when a codeeditor is created.
     """
 
-    sig_diagnostics_update = Signal(list)
+    sig_diagnostics_update = Signal(str, list)
     """
-    This signal is emitted when a diagnostics is created.
+    This signal is emitted when new code analysis diagnostics are available.
 
     Parameters
     ----------
-    codeeditor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
-        The codeeditor.
+    filename: str
+        The file filename.
+    diagnostics: list
+        The file code analysis diagnostics.
     """
 
     sig_codeeditor_deleted = Signal(object)

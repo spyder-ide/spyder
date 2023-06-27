@@ -64,7 +64,7 @@ MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
-    ChangeHistoryContext = "change_history_depth_action_from_context_menu"
+    ChangeHistoryPreferencesPage = "change_history_depth_action_preferences_page"
     LoadData = 'load_data_action'
     RunCodeAnalysis = "run_analysis_action"
     ShowLog = "log_action"
@@ -479,8 +479,9 @@ class PylintWidget(PluginMainWidget):
         self.stop_spinner()
 
     def _check_new_file(self):
-        self.code_analysis_action.setEnabled(not self.get_conf(
-            "real_time_analysis", False))
+        self.code_analysis_action.setEnabled(
+            not self.get_conf("real_time_analysis")
+        )
         fname = self.get_filename()
         if fname != self.filename:
             self.filename = fname
@@ -528,6 +529,34 @@ class PylintWidget(PluginMainWidget):
         else:
             self.curr_filenames = []
 
+    def _parse_diagnostics(self, filename, diagnostics):
+        """
+        Parse code analysis diagnostics results following treewidget format.
+        """
+        results = {}
+        results['C:'] = []
+        results['R:'] = []
+        results['E:'] = []
+        results['W:'] = []
+        results['I:'] = []
+        results['H:'] = []
+        for result in diagnostics:
+            code = " " if not result.get('code') else result['code']
+            data = (filename, result['range']['end']['line'],
+                    result['message'],
+                    code,
+                    result['source'])
+            severity = result['severity']
+            if severity == 1:
+                results['E:'].append(data)
+            if severity == 2:
+                results['W:'].append(data)
+            if severity == 3:
+                results['I:'].append(data)
+            if severity == 4:
+                results['H:'].append(data)
+        return results
+
     def load_data(self):
         filename, _selfilter = getopenfilename(
             self,
@@ -572,12 +601,12 @@ class PylintWidget(PluginMainWidget):
             icon=self.create_icon("history"),
             triggered=self.change_history_depth,
         )
-        change_history_depth_context_action = self.create_action(
-            PylintWidgetActions.ChangeHistoryContext,
+        change_history_depth_preferences_page = self.create_action(
+            PylintWidgetActions.ChangeHistoryPreferencesPage,
             text=_("History results"),
             tip=_("Set history maximum entries"),
             icon=self.create_icon("history"),
-            triggered=self.change_history_depth_from_context,
+            triggered=self.change_history_depth_from_preferences_page,
         )
         self.code_analysis_action = self.create_action(
             PylintWidgetActions.RunCodeAnalysis,
@@ -619,7 +648,7 @@ class PylintWidget(PluginMainWidget):
 
         # Update OneColumnTree contextual menu
         self.add_item_to_menu(
-            change_history_depth_context_action,
+            change_history_depth_preferences_page,
             menu=self.treewidget.menu,
             section=PylintWidgetOptionsMenuSections.History,
         )
@@ -655,10 +684,10 @@ class PylintWidget(PluginMainWidget):
         if self.rdata:
             self.remove_obsolete_items()
             self.filecombo.insertItems(0, self.get_filenames())
-            self.code_analysis_action.setEnabled(self.filecombo.is_valid() and
-                                                 not self.get_conf(
-                                                    "real_time_analysis",
-                                                    False))
+            self.code_analysis_action.setEnabled(
+                self.filecombo.is_valid()
+                and not self.get_conf("real_time_analysis")
+            )
         else:
             self.code_analysis_action.setEnabled(False)
 
@@ -689,7 +718,7 @@ class PylintWidget(PluginMainWidget):
 
     @Slot()
     @Slot(int)
-    def change_history_depth_from_context(self, value=None):
+    def change_history_depth(self, value=None):
         """
         Set history maximum entries.
         Parameters
@@ -718,7 +747,7 @@ class PylintWidget(PluginMainWidget):
         else:
             self.set_conf("max_entries", value)
 
-    def change_history_depth(self):
+    def change_history_depth_from_preferences_page(self):
         """Request to open the main interpreter preferences."""
         self.sig_open_preferences_requested.emit()
 
@@ -768,7 +797,16 @@ class PylintWidget(PluginMainWidget):
 
         self.filecombo.selected()
 
-    def start_code_analysis(self, filename=None, list=None):
+    @Slot(str, list)
+    def set_code_analysis_results(self, filename, diagnostics):
+        """
+        Set code analysis results from pre calculated diagnostics.
+        """
+        results = self._parse_diagnostics(filename, diagnostics)
+        self.treewidget.set_results(filename, results)
+        self.update_actions()
+
+    def start_code_analysis(self, filename=None):
         """
         Perform code analysis for given `filename`.
 
@@ -777,44 +815,15 @@ class PylintWidget(PluginMainWidget):
         If this method is called while still running it will stop the code
         analysis.
         """
-        if not self.get_conf("real_time_analysis", True):
-            if self._is_running():
-                self._kill_process()
-            else:
-                if filename is not None:
-                    self.set_filename(filename)
-
-                if self.filecombo.is_valid():
-                    self._start()
+        if self._is_running():
+            self._kill_process()
         else:
-            results = self._parse_list_real_time(filename, list)
-            self.treewidget.set_results(filename, results)
-        self.update_actions()
+            if filename is not None:
+                self.set_filename(filename)
 
-    def _parse_list_real_time(self, filename, list=[]):
-        results = {}
-        results['C:'] = []
-        results['R:'] = []
-        results['E:'] = []
-        results['W:'] = []
-        results['I:'] = []
-        results['H:'] = []
-        for result in list:
-            code = " " if not result.get('code') else result['code']
-            data = (filename, result['range']['end']['line'],
-                    result['message'],
-                    code,
-                    result['source'])
-            type = result['severity']
-            if type == 1:
-                results['E:'].append(data)
-            if type == 2:
-                results['W:'].append(data)
-            if type == 3:
-                results['I:'].append(data)
-            if type == 4:
-                results['H:'].append(data)
-        return results
+            if self.filecombo.is_valid():
+                self._start()
+        self.update_actions()
 
     def stop_code_analysis(self):
         """
