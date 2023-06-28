@@ -258,19 +258,65 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_handler = None
 
     def handle_kernel_is_ready(self):
-        """The kernel is ready"""
-        if self._shellwidget_state == "starting":
-            # Let plugins know that a new kernel is connected
-            # At that point it is safe to call comms and client
-            self.sig_shellwidget_created.emit(self)
+        """
+        The kernel is ready
 
-        if self.connection_state in [
+        Note:
+            qtconsole still want to have an extra round trip message when
+            setting self.kernel_client, so the setup can wait until
+            _handle_kernel_info_reply
+        """
+        wait_for_info_reply = False
+        if self.kernel_handler.connection_state in [
                 KernelConnectionState.IpykernelReady,
                 KernelConnectionState.SpyderKernelReady
         ]:
             if self.kernel_client != self.kernel_handler.kernel_client:
                 # If the kernel crashed, the right client is already connected
                 self.kernel_client = self.kernel_handler.kernel_client
+                wait_for_info_reply = True
+
+        if not wait_for_info_reply:
+            # True if the kernel restarted without being asked (restarter)
+            # If self.kernel_client is not set _handle_kernel_info_reply will
+            # not be called.
+            if (
+                self.kernel_handler.connection_state ==
+                KernelConnectionState.SpyderKernelReady
+            ):
+                self.setup_spyder_kernel()
+
+    def _handle_kernel_info_reply(self, rep):
+        """
+        Handle kernel info replies.
+
+        Note:
+            This is called after handle_kernel_is_ready.
+            When the code reaches this point the kernel /and/ the shell are
+            ready.
+            We avoid sending sig_shellwidget_created before this point because
+            the shellwidget is cleared here if self._starting == True.
+            if self._starting is True then we send /another/ round trip
+            message to ask for a prompt.
+            (TODO: The number of round trip messages to get the kernel running
+             could be optimised)
+        """
+        if self._shellwidget_state == "started":
+            # Set _starting to False to avoid reset if kernel restart without
+            # user interaction. If self._shellwidget_state == "user_restart",
+            # We clear the console as usual
+            self._starting = False
+
+        super()._handle_kernel_info_reply(rep)
+
+        if self._shellwidget_state == "user_restart":
+            # If the user asked for a restart, pring the restart message
+            self.print_restart_message()
+
+        if self._shellwidget_state == "starting":
+            # Let plugins know that a new kernel is connected
+            # At that point it is safe to call comms and client
+            self.sig_shellwidget_created.emit(self)
 
         if (
             self.kernel_handler.connection_state ==
@@ -278,18 +324,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         ):
             self.setup_spyder_kernel()
 
-    def _handle_kernel_info_reply(self, rep):
-        """Handle kernel info replies."""
-        if self._shellwidget_state == "started":
-            # Set _starting to False to avoid reset if kernel restart without
-            # user interaction. If self._shellwidget_state == "restarting",
-            # We clear the console as usual
-            self._starting = False
-
-        super()._handle_kernel_info_reply(rep)
-        if self._shellwidget_state == "user_restart":
-            # If the user asked for a restart, pring the restart message
-            self.print_restart_message()
         if self._shellwidget_state != "started":
             self._shellwidget_state = "started"
 
