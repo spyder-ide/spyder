@@ -162,7 +162,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_client = None
         self._init_kernel_setup = False
-        self._shellwidget_starting = True
+        self._shellwidget_state = "starting"
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
             'set_debug_state': self.set_debug_state,
@@ -259,7 +259,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def handle_kernel_is_ready(self):
         """The kernel is ready"""
-        if self._shellwidget_starting:
+        if self._shellwidget_state == "starting":
             # Let plugins know that a new kernel is connected
             # At that point it is safe to call comms and client
             self.sig_shellwidget_created.emit(self)
@@ -271,11 +271,20 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.kernel_client = self.kernel_handler.kernel_client
             self.setup_spyder_kernel()
 
-        if self._shellwidget_starting:
-            self._shellwidget_starting = False
-        else:
-            # Set _starting to False to avoid reset at first prompt
+    def _handle_kernel_info_reply(self, rep):
+        """Handle kernel info replies."""
+        if self._shellwidget_state == "started":
+            # Set _starting to False to avoid reset if kernel restart without
+            # user interaction. If self._shellwidget_state == "restarting", 
+            # We clear the console as usual
             self._starting = False
+            
+        super()._handle_kernel_info_reply(rep)
+        if self._shellwidget_state == "user_restart":
+            # If the user asked for a restart, pring the restart message
+            self.print_restart_message()
+        if self._shellwidget_state != "started":
+            self._shellwidget_state = "started"
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
