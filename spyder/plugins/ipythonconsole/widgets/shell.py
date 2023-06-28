@@ -163,6 +163,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_client = None
         self._init_kernel_setup = False
         self._shellwidget_state = "starting"
+        if handlers is None:
+            handlers = {}
+        else:
+            # Avoid changing the plugin dict
+            handlers = handlers.copy()
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
             'set_debug_state': self.set_debug_state,
