@@ -321,7 +321,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return None
         return self.kernel_handler.connection_file
 
-    def connect_kernel(self, kernel_handler, first_connect=True):
+    def connect_kernel(self, kernel_handler):
         """Connect kernel to client using our handler."""
         self.kernel_handler = kernel_handler
 
@@ -334,7 +334,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self._show_loading_page()
 
         # Actually do the connection
-        self.shellwidget.connect_kernel(kernel_handler, first_connect)
+        self.shellwidget.connect_kernel(kernel_handler)
 
     def disconnect_kernel(self, shutdown_kernel):
         """Disconnect from current kernel."""
@@ -605,7 +605,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """
         # Connect kernel to client
         self.disconnect_kernel(shutdown_kernel)
-        self.connect_kernel(kernel_handler, first_connect=False)
+        self.connect_kernel(kernel_handler)
 
         # Reset shellwidget and print restart message
         self.shellwidget.reset(clear=True)

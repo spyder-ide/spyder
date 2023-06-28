@@ -162,6 +162,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_client = None
         self._init_kernel_setup = False
+        self._shellwidget_starting = True
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
             'set_debug_state': self.set_debug_state,
@@ -200,17 +201,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady)
 
-    def connect_kernel(self, kernel_handler, first_connect=True):
+    def connect_kernel(self, kernel_handler):
         """Connect to the kernel using our handler."""
         # Kernel client
         self.kernel_handler = kernel_handler
-
-        if first_connect:
-            # Let plugins know that a new kernel is connected
-            self.sig_shellwidget_created.emit(self)
-        else:
-            # Set _starting to False to avoid reset at first prompt
-            self._starting = False
 
         # Connect signals
         kernel_handler.sig_kernel_is_ready.connect(
@@ -247,6 +241,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self._init_kernel_setup:
             self._init_kernel_setup = False
 
+            kernel_client.stopped_channels.disconnect(self.notify_deleted)
+            kernel_handler.sig_kernel_restarted.disconnect(
+                self._handle_kernel_restarted)
+
             kernel_handler.kernel_comm.sig_exception_occurred.disconnect(
                 self.sig_exception_occurred)
             kernel_client.control_channel.message_received.disconnect(
@@ -263,13 +261,23 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def handle_kernel_is_ready(self):
         """The kernel is ready"""
+        if self._shellwidget_starting:
+            # Let plugins know that a new kernel is connected
+            # At that point it is safe to call comms and client
+            self.sig_shellwidget_created.emit(self)
+
         if (
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
         ):
             self.kernel_client = self.kernel_handler.kernel_client
             self.setup_spyder_kernel()
-            return
+
+        if self._shellwidget_starting:
+            self._shellwidget_starting = False
+        else:
+            # Set _starting to False to avoid reset at first prompt
+            self._starting = False
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
@@ -345,7 +353,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not self._init_kernel_setup:
             # Only do this setup once
             self._init_kernel_setup = True
-            
+
             self.kernel_client.stopped_channels.connect(self.notify_deleted)
             self.kernel_handler.sig_kernel_restarted.connect(self._handle_kernel_restarted)
 
@@ -363,9 +371,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             for request_id, handler in self.kernel_comm_handlers.items():
                 self.kernel_handler.kernel_comm.register_call_handler(
                     request_id, handler)
-        else:
-            # No reset please
-            self._starting = False
 
         # Setup to do after restart
         # Check for fault and send config
