@@ -264,21 +264,28 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # At that point it is safe to call comms and client
             self.sig_shellwidget_created.emit(self)
 
+        if self.connection_state in [
+                KernelConnectionState.IpykernelReady,
+                KernelConnectionState.SpyderKernelReady
+        ]:
+            if self.kernel_client != self.kernel_handler.kernel_client:
+                # If the kernel crashed, the right client is already connected
+                self.kernel_client = self.kernel_handler.kernel_client
+
         if (
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
         ):
-            self.kernel_client = self.kernel_handler.kernel_client
             self.setup_spyder_kernel()
 
     def _handle_kernel_info_reply(self, rep):
         """Handle kernel info replies."""
         if self._shellwidget_state == "started":
             # Set _starting to False to avoid reset if kernel restart without
-            # user interaction. If self._shellwidget_state == "restarting", 
+            # user interaction. If self._shellwidget_state == "restarting",
             # We clear the console as usual
             self._starting = False
-            
+
         super()._handle_kernel_info_reply(rep)
         if self._shellwidget_state == "user_restart":
             # If the user asked for a restart, pring the restart message
