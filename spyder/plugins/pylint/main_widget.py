@@ -42,7 +42,7 @@ from spyder.utils.misc import get_python_executable
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
-from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
+from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
@@ -290,7 +290,6 @@ class ResultsTree(OneColumnTree):
                     lineno=lineno, message=message)
                 msg_item = QTreeWidgetItem(
                     parent, [message_string], QTreeWidgetItem.Type)
-                #msg_item.setIcon(0, ima.icon("arrow"))
                 self.data[id(msg_item)] = (modname, lineno)
 
 
@@ -641,14 +640,14 @@ class PylintWidget(PluginMainWidget):
         options_menu = self.get_options_menu()
 
         self.add_item_to_menu(
-            change_history_depth_action,
+            change_history_depth_preferences_page,
             menu=options_menu,
             section=PylintWidgetOptionsMenuSections.History,
         )
 
         # Update OneColumnTree contextual menu
         self.add_item_to_menu(
-            change_history_depth_preferences_page,
+            change_history_depth_action,
             menu=self.treewidget.menu,
             section=PylintWidgetOptionsMenuSections.History,
         )
@@ -692,15 +691,27 @@ class PylintWidget(PluginMainWidget):
             self.code_analysis_action.setEnabled(False)
 
         # Signals
-        #self.filecombo.valid.connect(self.code_analysis_action.setEnabled)
+        self.filecombo.valid.connect(
+            lambda valid: self.code_analysis_action.setEnabled(
+                    valid and not self.get_conf("real_time_analysis")
+                )
+        )
 
-    @on_conf_change(option=['max_entries', 'history_filenames'])
+    @on_conf_change(
+        option=[
+            'max_entries', 'history_filenames', 'real_time_analysis'
+        ]
+    )
     def on_conf_update(self, option, value):
         if option == "max_entries":
             self._update_combobox_history()
         elif option == "history_filenames":
             self.curr_filenames = value
             self._update_combobox_history()
+        elif option == "real_time_analysis":
+            self.code_analysis_action.setEnabled(
+                not self.get_conf("real_time_analysis")
+            )
 
     def update_actions(self):
         if self._is_running():
@@ -732,8 +743,11 @@ class PylintWidget(PluginMainWidget):
 
             # Set dialog properties
             dialog.setModal(False)
-            dialog.setWindowTitle(_("History"))
-            dialog.setLabelText(_("Maximum entries"))
+            dialog.setWindowTitle(_("History results"))
+            dialog.setLabelText(
+                _("Choose how many results you want to store <br>"
+                  "in the history results, pick a number between 1-100")
+            )
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(MIN_HISTORY_ENTRIES, MAX_HISTORY_ENTRIES)
             dialog.setIntStep(1)
@@ -748,7 +762,7 @@ class PylintWidget(PluginMainWidget):
             self.set_conf("max_entries", value)
 
     def change_history_depth_from_preferences_page(self):
-        """Request to open the main interpreter preferences."""
+        """Request to open the pylint preferences."""
         self.sig_open_preferences_requested.emit()
 
     def get_filename(self):

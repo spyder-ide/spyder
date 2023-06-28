@@ -14,17 +14,23 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
 from spyder.plugins.pylint.main_widget import (MAX_HISTORY_ENTRIES,
-                                               MIN_HISTORY_ENTRIES,
-                                               PylintWidget)
+                                               MIN_HISTORY_ENTRIES)
 
 
 class PylintConfigPage(PluginConfigPage):
 
     def setup_page(self):
-        settings_group = QGroupBox(_("Settings"))
-        real_time_box = self.create_checkbox(_("Real time analysis"),
-                                             'real_time_analysis',
-                                             default=False)
+        settings_group = QGroupBox(_("Real time code analysis"))
+        linter_selection_label = QLabel(
+            _("Choose if real time code analysis results or "
+              "manually requested Pylint executions results "
+              "should be shown")
+        )
+        real_time_box = self.create_checkbox(
+            _("Enable real time code analysis"),
+            'real_time_analysis',
+            default=False
+        )
         hist_group = QGroupBox(_("History"))
         hist_label1 = QLabel(_("Choose how many results you want to store in "
                                "the history results, pick a number between "
@@ -40,17 +46,8 @@ class PylintConfigPage(PluginConfigPage):
             step=1,
         )
 
-        results_group = QGroupBox(_("Results"))
-
-        # Warning: do not try to regroup the following QLabel contents with
-        # widgets above -- this string was isolated here in a single QLabel
-        # on purpose: to fix spyder-ide/spyder#863.
-        results_label2 = QLabel(PylintWidget.DATAPATH)
-
-        results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        results_label2.setWordWrap(True)
-
         settings_layout = QVBoxLayout()
+        settings_layout.addWidget(linter_selection_label)
         settings_layout.addWidget(real_time_box)
         settings_group.setLayout(settings_layout)
 
@@ -59,13 +56,8 @@ class PylintConfigPage(PluginConfigPage):
         hist_layout.addWidget(hist_spin)
         hist_group.setLayout(hist_layout)
 
-        results_layout = QVBoxLayout()
-        results_layout.addWidget(results_label2)
-        results_group.setLayout(results_layout)
-
         vlayout = QVBoxLayout()
         vlayout.addWidget(settings_group)
         vlayout.addWidget(hist_group)
-        vlayout.addWidget(results_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)

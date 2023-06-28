@@ -21,7 +21,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun
-from spyder.plugins.mainmenu.api import ApplicationMenus, SourceMenuSections
+from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import PylintWidget
 from spyder.plugins.run.api import (
@@ -138,8 +138,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             shortcut_context='pylint',
             register_shortcut=True,
             add_to_menu={
-                "menu": ApplicationMenus.Source,
-                "section": SourceMenuSections.CodeAnalysis
+                "menu": ApplicationMenus.Run,
+                "section": RunMenuSections.RunInExecutors
             }
         )
 
