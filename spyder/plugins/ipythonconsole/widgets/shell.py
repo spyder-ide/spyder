@@ -235,8 +235,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.handle_kernel_is_ready)
         kernel_handler.sig_kernel_connection_error.disconnect(
             self.handle_kernel_connection_error)
-        kernel_handler.kernel_client.stopped_channels.disconnect(
-            self.notify_deleted)
 
         if self._init_kernel_setup:
             self._init_kernel_setup = False
