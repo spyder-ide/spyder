@@ -1949,14 +1949,14 @@ def test_varexp_edit_inline(main_window, qtbot):
                     reason="It times out sometimes on Windows and macOS")
 def test_c_and_n_pdb_commands(main_window, qtbot):
     """Test that c and n Pdb commands update the Variable Explorer."""
-    nsb = main_window.variableexplorer.current_widget()
-
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+
+    nsb = main_window.variableexplorer.current_widget()
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -2107,13 +2107,13 @@ def test_change_cwd_dbg(main_window, qtbot):
 @pytest.mark.skipif(os.name == 'nt', reason="Times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
     """Test that %varexp is working while debugging."""
-    nsb = main_window.variableexplorer.current_widget()
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    nsb = main_window.variableexplorer.current_widget()
 
     # Load test file to be able to enter in debugging mode
     test_file = osp.join(LOCATION, 'script.py')
@@ -2155,12 +2155,12 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     """
     assert CONF.get('plots', 'mute_inline_plotting') is False
     shell = main_window.ipyconsole.get_current_shellwidget()
-    figbrowser = main_window.plots.current_widget()
 
     # Wait until the window is fully up.
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    figbrowser = main_window.plots.current_widget()
 
     # Generate a plot inline.
     with qtbot.waitSignal(shell.executed):
@@ -2194,12 +2194,12 @@ def test_plots_scroll(main_window, qtbot):
     """Test plots plugin scrolling"""
     CONF.set('plots', 'mute_inline_plotting', True)
     shell = main_window.ipyconsole.get_current_shellwidget()
-    figbrowser = main_window.plots.current_widget()
 
     # Wait until the window is fully up.
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    figbrowser = main_window.plots.current_widget()
 
     # Generate a plot inline.
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):

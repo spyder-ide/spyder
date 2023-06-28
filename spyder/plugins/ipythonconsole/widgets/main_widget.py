@@ -889,6 +889,9 @@ class IPythonConsoleWidget(
             # interactive backend.
             clients_backend_require_restart = []
             for client in self.clients:
+                if client.shellwidget._shellwidget_starting:
+                    clients_backend_require_restart.append(False)
+                    continue
                 interactive_backend = (
                     client.shellwidget.get_mpl_interactive_backend())
 

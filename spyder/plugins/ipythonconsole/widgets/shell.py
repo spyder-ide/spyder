@@ -344,6 +344,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     @property
     def is_external_kernel(self):
         """Check if this is an external kernel."""
+        if self.kernel_handler is None:
+            return False
         return self.kernel_handler.kernel_spec is None
 
     def setup_spyder_kernel(self):
