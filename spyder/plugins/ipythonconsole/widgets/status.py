@@ -98,8 +98,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def remove_shellwidget(self, shellwidget):
         """Remove shellwidget."""
-        shellwidget.kernel_handler.kernel_comm.register_call_handler(
-            "update_matplotlib_gui", None)
+        shellwidget.kernel_handler.kernel_comm.unregister_call_handler(
+            "update_matplotlib_gui")
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
             del self._shellwidget_dict[shellwidget_id]

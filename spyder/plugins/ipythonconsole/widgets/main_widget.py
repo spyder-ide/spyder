@@ -889,7 +889,7 @@ class IPythonConsoleWidget(
             # interactive backend.
             clients_backend_require_restart = []
             for client in self.clients:
-                if client.shellwidget._shellwidget_starte != "started":
+                if client.shellwidget._shellwidget_state != "started":
                     clients_backend_require_restart.append(False)
                     continue
                 interactive_backend = (

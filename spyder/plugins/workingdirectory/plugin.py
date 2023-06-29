@@ -237,27 +237,33 @@ class WorkingDirectory(SpyderPluginV2):
     # -------------------------- Private API ----------------------------------
     def _editor_change_dir(self, path):
         editor = self.get_plugin(Plugins.Editor)
-        self.chdir(path, editor)
+        if editor is not None:
+            self.chdir(path, editor)
 
     def _explorer_change_dir(self, path):
         explorer = self.get_plugin(Plugins.Explorer)
-        explorer.chdir(path, emit=False)
+        if explorer is not None:
+            explorer.chdir(path, emit=False)
 
     def _explorer_dir_opened(self, path):
         explorer = self.get_plugin(Plugins.Explorer)
-        self.chdir(path, explorer)
+        if explorer is not None:
+            self.chdir(path, explorer)
 
     def _ipyconsole_change_dir(self, path):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.chdir(path, ipyconsole)
+        if ipyconsole is not None:
+            self.chdir(path, ipyconsole)
 
     def _project_loaded(self, path):
         projects = self.get_plugin(Plugins.Projects)
-        self.chdir(directory=path, sender_plugin=projects)
+        if projects is not None:
+            self.chdir(directory=path, sender_plugin=projects)
 
     def _project_closed(self, path):
         projects = self.get_plugin(Plugins.Projects)
-        self.chdir(
-            directory=projects.get_last_working_dir(),
-            sender_plugin=projects
-        )
+        if projects is not None:
+            self.chdir(
+                directory=projects.get_last_working_dir(),
+                sender_plugin=projects
+            )
