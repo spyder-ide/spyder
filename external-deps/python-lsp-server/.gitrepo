@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/python-lsp/python-lsp-server.git
-	branch = develop
-	commit = f36fb785ec914c2787fa0c55751088866886f3a3
-	parent = a87794026e485b8eeba76b4d58daf9df40f5c90d
+	remote = https://github.com/syphar/python-lsp-server.git
+	branch = optional-progress-init
+	commit = 07ddfca7a081bdea9e4ecc54e9f668c385e3db78
+	parent = 6ab9f6ef49590240bba5c5d2aac526507dd0ac26
 	method = merge
 	cmdver = 0.4.3
