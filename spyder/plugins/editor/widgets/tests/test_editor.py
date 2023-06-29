@@ -683,13 +683,18 @@ def test_update_matches_in_find_replace(editor_find_replace_bot, qtbot):
     # Open a new file and only write "spam" on it
     editor_stack.new('foo.py', 'utf-8', 'spam')
 
-    # Focus new file and check the number of matches was updated
+    # Focus new file and check the number of matches and highlights was updated
     editor_stack.set_stack_index(1)
+    codeeditor = editor_stack.get_current_editor()
     assert finder.number_matches_text.text() == '1 matches'
+    assert len(codeeditor.decorations._decorations['find']) == 1
     qtbot.wait(500)
 
-    # Focus initial file and check the number of matches was updated
+    # Focus initial file and check the number of matches and highlights was
+    # updated
     editor_stack.set_stack_index(0)
+    codeeditor = editor_stack.get_current_editor()
+    assert len(codeeditor.decorations._decorations['find']) == 3
     qtbot.wait(500)
     assert finder.number_matches_text.text() == '3 matches'
 
