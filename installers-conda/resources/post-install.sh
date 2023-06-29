@@ -125,7 +125,7 @@ Spyder can be launched by standard methods in Gnome and KDE desktop
 environments. Additionally, Spyder can be launched in Gtk-based desktop
 environments (e.g. Xfce) from the command line:
 
-$ gtk-launch spyder
+$ gtk-launch spyder_spyder
 
 Spyder can also be launched from the command line for all Linux variants by:
 
@@ -140,10 +140,10 @@ $ uninstall-spyder
 #####################
 
 The spyder and uninstall-spyder commands will only be available in new shell
-sessions. To make them available in this session you must source your .bashrc
-file with:
+sessions. To make them available in this session you must source your
+$shell_init file with:
 
-$ source ~/.bashrc
+$ source $shell_init
 
 ###############################################################################
 
@@ -151,3 +151,11 @@ EOF
 fi
 
 echo "*** Post install script for ${INSTALLER_NAME} complete"
+
+# ----
+[[ -n "$CI" ]] && exit 0  # Running in CI, don't launch Spyder
+if [[ "$OSTYPE" = "darwin"* ]]; then
+    open -a $shortcut_path
+elif [[ "$XDG_CURRENT_DESKTOP" =~ .*(Unity|GNOME|XFCE).* ]]; then
+    gtk-launch spyder_spyder
+fi
