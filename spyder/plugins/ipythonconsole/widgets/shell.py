@@ -478,9 +478,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Needed for cases where there is no kernel initialized but
         # an execution is triggered like when setting initial configs.
         # See spyder-ide/spyder#16896
-        if self.kernel_client is None:
-            return
-        if self._executing or self._shellwidget_state != "started":
+        if (
+            self.kernel_client is None 
+            or self._executing 
+            or self._shellwidget_state != "started"
+            or len(self._execute_queue) > 0
+        ):
             self._execute_queue.append((source, hidden, interactive))
             return
         super(ShellWidget, self).execute(source, hidden, interactive)
