@@ -329,8 +329,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         ):
             self.setup_spyder_kernel()
 
+    def _prompt_started_hook(self):
+        """Emit a signal when the prompt is ready."""
+        if not self._reading:
+            self._highlighter.highlighting_on = True
+            self.sig_prompt_ready.emit()
         if self._shellwidget_state != "started":
             self._shellwidget_state = "started"
+            self.pop_execute_queue()
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
@@ -486,7 +492,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # See spyder-ide/spyder#16896
         if self.kernel_client is None:
             return
-        if self._executing:
+        if self._executing or self._shellwidget_state != "started":
             self._execute_queue.append((source, hidden, interactive))
             return
         super(ShellWidget, self).execute(source, hidden, interactive)
@@ -1226,12 +1232,6 @@ the sympy module (e.g. plot)
             bgcolor=color_scheme['background'],
             select=color_scheme['background'],
             fgcolor=color_scheme['normal'][0])[color]
-
-    def _prompt_started_hook(self):
-        """Emit a signal when the prompt is ready."""
-        if not self._reading:
-            self._highlighter.highlighting_on = True
-            self.sig_prompt_ready.emit()
 
     def _handle_execute_input(self, msg):
         """Handle an execute_input message"""
