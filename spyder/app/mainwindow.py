@@ -382,17 +382,32 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if status_bar.isVisible():
             status_bar.showMessage(message, timeout)
 
-    def show_plugin_compatibility_message(self, message):
+    def show_plugin_compatibility_message(self, plugin_name, message):
         """
         Show a compatibility message.
         """
         messageBox = QMessageBox(self)
+
+        # Set attributes
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
-        messageBox.setWindowTitle(_('Compatibility Check'))
-        messageBox.setText(message)
+        messageBox.setWindowTitle(_('Spyder compatibility check'))
+        messageBox.setText(
+            _("It was not possible to load the {} plugin. The problem "
+              "was:<br><br>{}").format(plugin_name, message)
+        )
         messageBox.setStandardButtons(QMessageBox.Ok)
+
+        # Show message.
+        # Note: All adjustments that require graphical properties of the widget
+        # need to be done after this point.
         messageBox.show()
+
+        # Center message
+        screen_geometry = QApplication.desktop().screenGeometry()
+        x = (screen_geometry.width() - messageBox.width()) / 2
+        y = (screen_geometry.height() - messageBox.height()) / 2
+        messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
@@ -409,7 +424,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         plugin.get_description()
 
         if not is_compatible:
-            self.show_plugin_compatibility_message(message)
+            self.show_plugin_compatibility_message(plugin.get_name(), message)
             return
 
         # Connect plugin signals to main window methods
