@@ -271,7 +271,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             setting self.kernel_client, so the setup can wait until
             _handle_kernel_info_reply
         """
-        wait_for_info_reply = False
         if self.kernel_handler.connection_state in [
                 KernelConnectionState.IpykernelReady,
                 KernelConnectionState.SpyderKernelReady
@@ -279,17 +278,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             if self.kernel_client != self.kernel_handler.kernel_client:
                 # If the kernel crashed, the right client is already connected
                 self.kernel_client = self.kernel_handler.kernel_client
-                wait_for_info_reply = True
 
-        if not wait_for_info_reply:
-            # True if the kernel restarted without being asked (restarter)
-            # If self.kernel_client is not set _handle_kernel_info_reply will
-            # not be called.
-            if (
-                self.kernel_handler.connection_state ==
-                KernelConnectionState.SpyderKernelReady
-            ):
-                self.setup_spyder_kernel()
+        if self._shellwidget_state == "starting":
+            # Let plugins know that a new kernel is connected
+            # At that point it is safe to call comms and client
+            self.sig_shellwidget_created.emit(self)
+
+        if (
+            self.kernel_handler.connection_state ==
+            KernelConnectionState.SpyderKernelReady
+        ):
+            self.setup_spyder_kernel()
 
     def _handle_kernel_info_reply(self, rep):
         """
@@ -317,17 +316,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self._shellwidget_state == "user_restart":
             # If the user asked for a restart, pring the restart message
             self.print_restart_message()
-
-        if self._shellwidget_state == "starting":
-            # Let plugins know that a new kernel is connected
-            # At that point it is safe to call comms and client
-            self.sig_shellwidget_created.emit(self)
-
-        if (
-            self.kernel_handler.connection_state ==
-            KernelConnectionState.SpyderKernelReady
-        ):
-            self.setup_spyder_kernel()
 
     def _prompt_started_hook(self):
         """Emit a signal when the prompt is ready."""
