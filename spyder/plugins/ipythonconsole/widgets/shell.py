@@ -208,6 +208,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def connect_kernel(self, kernel_handler):
         """Connect to the kernel using our handler."""
+        
+        if self._shellwidget_state == "starting":
+            self.sig_shellwidget_created.emit(self)
+
         # Kernel client
         self.kernel_handler = kernel_handler
 
@@ -278,11 +282,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             if self.kernel_client != self.kernel_handler.kernel_client:
                 # If the kernel crashed, the right client is already connected
                 self.kernel_client = self.kernel_handler.kernel_client
-
-        if self._shellwidget_state == "starting":
-            # Let plugins know that a new kernel is connected
-            # At that point it is safe to call comms and client
-            self.sig_shellwidget_created.emit(self)
 
         if (
             self.kernel_handler.connection_state ==

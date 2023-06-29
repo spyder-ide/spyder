@@ -72,12 +72,10 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         # window is visible. We do this because Matplotlib takes a long time
         # to be imported, so it makes Spyder appear slow to start to users.
         from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
+        
+        shellwidget.sig_config_spyder_kernel.connect(
+            lambda sw=shellwidget: self.config_spyder_kernel(sw))
 
-        shellwidget.kernel_handler.kernel_comm.register_call_handler(
-            "update_matplotlib_gui",
-            lambda gui, sid=id(shellwidget):
-                self.update_matplotlib_gui(gui, sid)
-        )
         backend = MPL_BACKENDS_FROM_SPYDER[
             str(self.get_conf('pylab/backend'))
         ]
@@ -87,6 +85,13 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             "widget": shellwidget,
         }
         self.set_shellwidget(shellwidget)
+    
+    def config_spyder_kernel(self, shellwidget):
+        shellwidget.kernel_handler.kernel_comm.register_call_handler(
+            "update_matplotlib_gui",
+            lambda gui, sid=id(shellwidget):
+                self.update_matplotlib_gui(gui, sid)
+        )
 
     def set_shellwidget(self, shellwidget):
         """Set current shellwidget."""

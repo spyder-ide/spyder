@@ -605,10 +605,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         """
         # Connect kernel to client
         self.disconnect_kernel(shutdown_kernel)
-        self.connect_kernel(kernel_handler)
-
         # Reset shellwidget and print restart message
         self.shellwidget._shellwidget_state = "user_restart"
+        
+        self.connect_kernel(kernel_handler)
 
     def print_fault(self, fault):
         """Print fault text."""
