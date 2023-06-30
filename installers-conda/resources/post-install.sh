@@ -121,13 +121,11 @@ if [[ $OSTYPE = "linux"* ]]; then
     cat <<EOF
 
 ###############################################################################
+#                             !!! IMPORTANT !!!
+###############################################################################
 Spyder can be launched by standard methods in Gnome and KDE desktop
-environments. Additionally, Spyder can be launched in Gtk-based desktop
-environments (e.g. Xfce) from the command line:
-
-$ gtk-launch spyder_spyder
-
-Spyder can also be launched from the command line for all Linux variants by:
+environments. It can also be launched from the command line on all Linux
+distros with the command:
 
 $ spyder
 
@@ -135,13 +133,8 @@ To uninstall Spyder, run the following from the command line:
 
 $ uninstall-spyder
 
-#####################
-# !!! IMPORTANT !!! #
-#####################
-
-The spyder and uninstall-spyder commands will only be available in new shell
-sessions. To make them available in this session you must source your
-$shell_init file with:
+These commands will only be available in new shell sessions. To make them
+available in this session, you must source your $shell_init file with:
 
 $ source $shell_init
 
