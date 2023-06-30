@@ -176,9 +176,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'update_state': self.update_state,
         })
         self.kernel_comm_handlers = handlers
-
-        self._execute_queue = []
-        self.executed.connect(self.pop_execute_queue)
+        # To queue all messages during startup
+        self._execute_startup_queue = []
+        # To queue user messages if the shell is already executing
+        self._execute_user_queue = []
+        self.executed.connect(self.pop_execute_user_queue)
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
@@ -323,7 +325,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.sig_prompt_ready.emit()
         if self._shellwidget_state != "started":
             self._shellwidget_state = "started"
-            self.pop_execute_queue()
+            # The kernel is ready, send all messages
+            self.pop_execute_startup_queue()
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
@@ -448,16 +451,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
 
-    def pop_execute_queue(self):
+    def pop_execute_startup_queue(self):
+        for item in self._execute_startup_queue:
+            self.execute(*item)
+        self._execute_startup_queue = []
+
+    def pop_execute_user_queue(self):
         """Pop one waiting instruction."""
-        if self._execute_queue:
-            self.execute(*self._execute_queue.pop(0))
+        if self._execute_user_queue:
+            self.execute(*self._execute_user_queue.pop(0))
 
     def interrupt_kernel(self):
         """Attempts to interrupt the running kernel."""
         # Empty queue when interrupting
         # Fixes spyder-ide/spyder#7293.
-        self._execute_queue = []
+        self._execute_user_queue = []
 
         if self.spyder_kernel_ready:
             self._reading = False
@@ -469,7 +477,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   "kernel I did not start.<br>")
             )
 
-    def execute(self, source=None, hidden=False, interactive=False):
+    def execute(
+            self, source=None, hidden=False, interactive=False, queue=True):
         """
         Executes source or the input buffer, possibly prompting for more
         input.
@@ -477,13 +486,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Needed for cases where there is no kernel initialized but
         # an execution is triggered like when setting initial configs.
         # See spyder-ide/spyder#16896
-        if (
-            self.kernel_client is None 
-            or self._executing 
-            or self._shellwidget_state != "started"
-            or len(self._execute_queue) > 0
-        ):
-            self._execute_queue.append((source, hidden, interactive))
+        if self._shellwidget_state != "started":
+            self._execute_startup_queue.append((source, hidden, interactive))
+            return
+        # Avoid multiple execution
+        if not hidden and self._executing:
+            self._execute_user_queue.append((source, hidden, interactive))
             return
         super(ShellWidget, self).execute(source, hidden, interactive)
 
