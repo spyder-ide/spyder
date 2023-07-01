@@ -117,7 +117,7 @@ class KernelHandler(QObject):
     def __init__(
         self,
         connection_file=None,
-        kernel_spec=None,
+        kernel_spec_dict=None,
         kernel_client=None,
         known_spyder_kernel=False,
         hostname=None,
@@ -127,7 +127,7 @@ class KernelHandler(QObject):
         super().__init__()
         # Connection Informations
         self.connection_file = connection_file
-        self.kernel_spec = kernel_spec
+        self.kernel_spec_dict = kernel_spec_dict
         self.kernel_client = kernel_client
         self.known_spyder_kernel = known_spyder_kernel
         self.hostname = hostname
@@ -305,13 +305,13 @@ class KernelHandler(QObject):
 
     @classmethod
     def new_from_spec(
-            cls, kernel_spec, hostname=None, sshkey=None, password=None
+            cls, kernel_spec_dict, hostname=None, sshkey=None, password=None
     ):
         """
         Create a new kernel.
         """
         return cls(
-            kernel_spec=kernel_spec,
+            kernel_spec_dict=kernel_spec_dict,
             known_spyder_kernel=True,
             hostname=hostname,
             sshkey=sshkey,
@@ -389,7 +389,7 @@ class KernelHandler(QObject):
         """Close kernel"""
         self.close_comm()
 
-        if shutdown_kernel and self.kernel_spec is not None:
+        if shutdown_kernel and self.kernel_spec_dict is not None:
             self.sig_remote_close.emit(self.connection_file)
 
         if (
@@ -411,7 +411,7 @@ class KernelHandler(QObject):
             self.sshkey,
             self.password,
             )
-        copy_handler.kernel_spec = self.kernel_spec
+        copy_handler.kernel_spec_dict = self.kernel_spec_dict
         copy_handler.known_spyder_kernel = self.known_spyder_kernel
         return copy_handler
 

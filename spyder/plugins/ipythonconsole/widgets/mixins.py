@@ -74,7 +74,9 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
             self.request_queue = queue.Queue()
             # Send new kernel request for waiting kernels
             for kernel_handler in self.kernel_handler_waitlist:
-                self.send_request(["open_kernel", kernel_handler.kernel_spec.to_dict()])
+                self.send_request(
+                    ["open_kernel", kernel_handler.kernel_spec_dict]
+                )
 
         self.options = options
         self.ssh_remote_hostname = None
@@ -183,10 +185,11 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         )
         return hostname, port
 
-    def new_kernel(self, kernel_spec):
+    def new_kernel(self, kernel_spec_dict):
         """Get a new kernel"""
+        
         kernel_handler = KernelHandler.new_from_spec(
-            kernel_spec=kernel_spec,
+            kernel_spec_dict=kernel_spec_dict,
             hostname=self.ssh_remote_hostname,
             sshkey=self.ssh_key,
             password=self.ssh_password,
@@ -198,7 +201,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.sig_kernel_stdout.connect(kernel_handler.handle_stdout)
         self.kernel_handler_waitlist.append(kernel_handler)
 
-        self.send_request(["open_kernel", kernel_spec.to_dict()])
+        self.send_request(["open_kernel", kernel_spec_dict])
 
         return kernel_handler
 
@@ -310,37 +313,31 @@ class CachedKernelMixin:
         kernel.close(now=True)
         self._cached_kernel_properties = None
 
-    def check_cached_kernel_spec(self, kernel_spec):
+    def check_cached_kernel_spec(self, kernel_spec_dict):
         """Test if kernel_spec corresponds to the cached kernel_spec."""
         if self._cached_kernel_properties is None:
             return False
         (
-            cached_spec,
-            cached_env,
-            cached_argv,
+            cached_spec_dict,
             _,
         ) = self._cached_kernel_properties
 
-        # Call interrupt_mode so the dict will be the same
-        kernel_spec.interrupt_mode
-        cached_spec.interrupt_mode
 
-        if "PYTEST_CURRENT_TEST" in cached_env:
+        if "PYTEST_CURRENT_TEST" in cached_spec_dict["env"]:
             # Make tests faster by using cached kernels
             # hopefully the kernel will never use PYTEST_CURRENT_TEST
-            cached_env["PYTEST_CURRENT_TEST"] = kernel_spec.env[
+            cached_spec_dict["env"][
+                "PYTEST_CURRENT_TEST"] = kernel_spec_dict["env"][
                 "PYTEST_CURRENT_TEST"
             ]
         return (
-            cached_spec.__dict__ == kernel_spec.__dict__
-            and kernel_spec.argv == cached_argv
-            and kernel_spec.env == cached_env
+            kernel_spec_dict == cached_spec_dict
         )
 
-    def get_cached_kernel(self, kernel_spec, cache=True):
+    def get_cached_kernel(self, kernel_spec_dict, cache=True):
         """Get a new kernel, and cache one for next time."""
         # Cache another kernel for next time.
-        new_kernel_handler = self.new_kernel(kernel_spec)
+        new_kernel_handler = self.new_kernel(kernel_spec_dict)
 
         if not cache:
             # remove/don't use cache if requested
@@ -351,20 +348,18 @@ class CachedKernelMixin:
         cached_kernel_handler = None
         if self._cached_kernel_properties is not None:
             cached_kernel_handler = self._cached_kernel_properties[-1]
-            if not self.check_cached_kernel_spec(kernel_spec):
+            if not self.check_cached_kernel_spec(kernel_spec_dict):
                 # Close the kernel
                 self.close_cached_kernel()
                 cached_kernel_handler = None
 
         # Cache the new kernel
         self._cached_kernel_properties = (
-            kernel_spec,
-            kernel_spec.env,
-            kernel_spec.argv,
+            kernel_spec_dict,
             new_kernel_handler,
         )
 
         if cached_kernel_handler is None:
-            return self.new_kernel(kernel_spec)
+            return self.new_kernel(kernel_spec_dict)
 
         return cached_kernel_handler

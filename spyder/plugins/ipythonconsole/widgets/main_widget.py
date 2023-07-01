@@ -889,7 +889,25 @@ class IPythonConsoleWidget(
             # interactive backend.
             clients_backend_require_restart = []
             for client in self.clients:
-                if client.shellwidget._shellwidget_state != "started":
+                sw = client.shellwidget
+                if (
+                    sw.kernel_handler 
+                    and sw.kernel_handler.kernel_spec_dict
+                    and "SPY_BACKEND_O" in sw.kernel_handler.kernel_spec_dict[
+                        "env"]
+                ):
+                    start_backend = sw.kernel_handler.kernel_spec_dict[
+                        "env"]["SPY_BACKEND_O"]
+                    if start_backend != inline_backend:
+                        must_restart = (
+                            pylab_backend_o != inline_backend and
+                            pylab_backend_o != start_backend
+                        )
+                        # An interactive backend was set at startup
+                        clients_backend_require_restart.append(must_restart)
+                        continue
+                if sw._shellwidget_state != "started":
+                    # No env could be set
                     clients_backend_require_restart.append(False)
                     continue
                 interactive_backend = (
@@ -1468,15 +1486,16 @@ class IPythonConsoleWidget(
             give_focus=give_focus)
 
         # Create new kernel
-        kernel_spec = SpyderKernelSpec(
+        kernel_spec_dict = SpyderKernelSpec(
             is_cython=is_cython,
             is_pylab=is_pylab,
             is_sympy=is_sympy,
             path_to_custom_interpreter=path_to_custom_interpreter
-        )
+        ).to_dict()
 
         try:
-            kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
+            kernel_handler = self.get_cached_kernel(
+                kernel_spec_dict, cache=cache)
         except Exception as e:
             client.show_kernel_error(e)
             return
@@ -1870,8 +1889,8 @@ class IPythonConsoleWidget(
         if client is None:
             return
 
-        ks = client.kernel_handler.kernel_spec
-        if ks is None:
+        ks_dict = client.kernel_handler.kernel_spec_dict
+        if ks_dict is None:
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -1896,7 +1915,7 @@ class IPythonConsoleWidget(
 
         # Get new kernel
         try:
-            kernel_handler = self.get_cached_kernel(ks)
+            kernel_handler = self.get_cached_kernel(ks_dict)
         except Exception as e:
             client.show_kernel_error(e)
             return

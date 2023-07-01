@@ -397,7 +397,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Check if this is an external kernel."""
         if self.kernel_handler is None:
             return False
-        return self.kernel_handler.kernel_spec is None
+        return self.kernel_handler.kernel_spec_dict is None
 
     def setup_spyder_kernel(self):
         """Setup spyder kernel"""
@@ -801,7 +801,7 @@ the sympy module (e.g. plot)
         # kernels.
         # See spyder-ide/spyder#9505.
         try:
-            kernel_env = self.kernel_handler.kernel_spec.env
+            kernel_env = self.kernel_handler.kernel_spec_dict["env"]
         except AttributeError:
             kernel_env = {}
 
