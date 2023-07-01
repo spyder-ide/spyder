@@ -2029,7 +2029,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         # See spyder-ide/spyder#9688.
         self.find_widget.set_editor(editor, refresh=False)
 
-        # Update total number of matches when switching files.
+        # Update highlighted matches and its total number when switching files.
+        self.find_widget.highlight_matches()
         self.find_widget.update_matches()
 
         if editor is not None:
