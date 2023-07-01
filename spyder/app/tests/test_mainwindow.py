@@ -49,7 +49,7 @@ from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
     generate_run_parameters, find_desired_tab_in_window, LOCATION,
-    open_file_in_editor, preferences_dialog_helper, PY37, read_asset_file,
+    open_file_in_editor, preferences_dialog_helper, read_asset_file,
     reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
@@ -3012,10 +3012,11 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
 
-@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Makes other tests hang on Linux")
 def test_preferences_change_font_regression(main_window, qtbot):
     """
-    Test for spyder-ide/spyder/#10284 regression.
+    Test for spyder-ide/spyder#10284 regression.
 
     Changing font resulted in error.
     """
@@ -3025,19 +3026,33 @@ def test_preferences_change_font_regression(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
+    # Open Preferences and select monospace font combobox
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'appearance')
-    for fontbox in [page.plain_text_font.fontbox,
-                    page.rich_text_font.fontbox]:
-        fontbox.setFocus()
-        idx = fontbox.currentIndex()
-        fontbox.setCurrentIndex(idx + 1)
+    fontbox = page.plain_text_font.fontbox
 
+    # Get current font family
+    current_family = fontbox.currentFont().family()
+
+    # Change font
+    fontbox.setFocus()
+    idx = fontbox.currentIndex()
+    fontbox.setCurrentIndex(idx + 1)
+
+    dlg.apply_btn.animateClick()
+    qtbot.wait(1000)
+
+    new_family = fontbox.currentFont().family()
+    assert new_family != current_family
+
+    # Check that the new font was applied
+    ipyconsole = main_window.ipyconsole
+    assert ipyconsole.get_current_shellwidget().font.family() == new_family
+
+    # Close Preferences
     preferences = main_window.preferences
     container = preferences.get_container()
-
     dlg.ok_btn.animateClick()
-
     qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 

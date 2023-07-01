@@ -900,7 +900,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         # --- Edit Toolbar ---
         create_new_cell = create_action(self, _("Create new cell at the "
                                                 "current line"),
-                                        icon=ima.icon('cell'),
+                                        icon=ima.icon('new_cell'),
                                         tip=_("Create new cell"),
                                         triggered=self.create_cell,
                                         context=Qt.WidgetShortcut)

@@ -24,10 +24,10 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
-from spyder.config.gui import get_font
 from spyder.widgets.helperwidgets import FinderWidget
 
 
@@ -454,7 +454,8 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
+class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
+                     SpyderFontsMixin):
     CONF_SECTION = 'debugger'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
@@ -462,7 +463,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
 
     def __init__(self, parent, color_scheme):
         super().__init__(parent)
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.threads = None
         self.color_scheme = color_scheme

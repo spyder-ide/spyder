@@ -46,8 +46,7 @@ requirements.check_qt()
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QMainWindow, QMessageBox, QShortcut,
-                            QStyleFactory)
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox, QShortcut
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -78,7 +77,7 @@ from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import IMPORT_EXT
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
@@ -1251,14 +1250,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def apply_settings(self):
         """Apply main window settings."""
         qapp = QApplication.instance()
-
-        # Set 'gtk+' as the default theme in Gtk-based desktops
-        # Fixes spyder-ide/spyder#2036.
-        if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
-            try:
-                qapp.setStyle('gtk+')
-            except:
-                pass
 
         default = self.DOCKOPTIONS
         if self.get_conf('vertical_tabs'):

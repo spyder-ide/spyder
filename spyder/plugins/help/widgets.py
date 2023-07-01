@@ -1094,7 +1094,6 @@ class HelpWidget(PluginMainWidget):
         fixed_font: QFont
             The current rich text font to use.
         """
-
         self.rich_text.set_font(font, fixed_font=fixed_font)
 
     def set_plain_text_font(self, font, color_scheme=None):
