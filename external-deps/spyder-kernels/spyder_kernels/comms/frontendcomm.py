@@ -49,6 +49,7 @@ class FrontendComm(CommBase):
         self.comm_lock = threading.Lock()
         self._cached_messages = {}
         self._pending_comms = {}
+        self._is_comm_ready = False
 
     def close(self, comm_id=None):
         """Close the comm and notify the other side."""
@@ -148,6 +149,9 @@ class FrontendComm(CommBase):
         comm = self._pending_comms.pop(self.calling_comm_id, None)
         if not comm:
             return
+        # This is a bit hacky but works if at least one client connected to 
+        # the kernel
+        self._is_comm_ready = True
         # Cached messages for that comm
         if comm.comm_id in self._cached_messages:
             for msg in self._cached_messages[comm.comm_id]:
