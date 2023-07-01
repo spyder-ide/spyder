@@ -117,7 +117,7 @@ if [[ -n "$shell_init" ]]; then
 fi
 
 # ----
-if [[ $OSTYPE = "linux"* ]]; then
+if [[ "$OSTYPE" = "linux"* ]]; then
     cat <<EOF
 
 ###############################################################################
@@ -147,8 +147,22 @@ echo "*** Post install script for ${INSTALLER_NAME} complete"
 
 # ----
 [[ -n "$CI" ]] && exit 0  # Running in CI, don't launch Spyder
+
 if [[ "$OSTYPE" = "darwin"* ]]; then
-    open -a $shortcut_path
+    tmp_dir=${TMPDIR}spyder
+    launch_script=${tmp_dir}/post-install-launch.sh
+    echo "Creating post-install launch script ..."
+    mkdir -p $tmp_dir
+    cat <<EOF > $launch_script
+#!/bin/bash
+while [[ \$(pgrep -fq Installer.app) ]]; do
+    sleep 1
+done
+open -a $shortcut_path
+EOF
+    chmod +x $launch_script
+
+    nohup $launch_script &>/dev/null &
 elif [[ "$XDG_CURRENT_DESKTOP" =~ .*(Unity|GNOME|XFCE).* ]]; then
     gtk-launch spyder_spyder
 fi
