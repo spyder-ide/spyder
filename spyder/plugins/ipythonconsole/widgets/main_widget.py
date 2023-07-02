@@ -889,6 +889,12 @@ class IPythonConsoleWidget(
             # interactive backend.
             clients_backend_require_restart = []
             for client in self.clients:
+                if pylab_backend_o == inline_backend:
+                    # No restart is needed if the new backend is inline
+                    clients_backend_require_restart.append(False)
+                    continue
+                # Need to know the interactive state
+                interactive_backend = None
                 sw = client.shellwidget
                 if (
                     sw.kernel_handler 
@@ -899,23 +905,22 @@ class IPythonConsoleWidget(
                     start_backend = sw.kernel_handler.kernel_spec_dict[
                         "env"]["SPY_BACKEND_O"]
                     if start_backend != inline_backend:
-                        must_restart = (
-                            pylab_backend_o != inline_backend and
-                            pylab_backend_o != start_backend
-                        )
-                        # An interactive backend was set at startup
-                        clients_backend_require_restart.append(must_restart)
-                        continue
-                if sw._shellwidget_state != "started":
-                    # No env could be set
-                    clients_backend_require_restart.append(False)
-                    continue
-                interactive_backend = (
-                    client.shellwidget.get_mpl_interactive_backend())
+                        # If the state ever was non interactive, can not change
+                        interactive_backend = start_backend
+                if (
+                    interactive_backend is None 
+                    and sw._shellwidget_state != "started"
+                ):
+                    # If the kernel didn't start and no backend was requested,
+                    # the backend is inline
+                    interactive_backend = inline_backend
+                if interactive_backend is None:
+                    # Must ask the kernel. Will not work if the kernel was set
+                    # to another backend and is not now inline
+                    interactive_backend = (
+                        client.shellwidget.get_mpl_interactive_backend())
 
                 if (
-                    # No restart is needed if the new backend is inline
-                    pylab_backend_o != inline_backend and
                     # There was an error getting the interactive backend in
                     # the kernel, so we can't proceed.
                     interactive_backend is not None and
