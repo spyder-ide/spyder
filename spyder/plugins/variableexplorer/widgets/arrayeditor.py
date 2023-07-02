@@ -31,9 +31,8 @@ from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
@@ -114,7 +113,7 @@ def get_idx_rect(index_list):
 #==============================================================================
 # Main classes
 #==============================================================================
-class ArrayModel(QAbstractTableModel):
+class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
     """Array Editor Table Model"""
 
     ROWS_TO_LOAD = 500
@@ -307,7 +306,7 @@ class ArrayModel(QAbstractTableModel):
             except (TypeError, ValueError):
                 return to_qvariant()
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return self.get_font(SpyderFontType.MonospaceInterface)
         return to_qvariant()
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -384,7 +383,7 @@ class ArrayModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class ArrayDelegate(QItemDelegate):
+class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
     """Array Editor Item Delegate"""
     def __init__(self, dtype, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -403,7 +402,9 @@ class ArrayDelegate(QItemDelegate):
             return
         elif value is not np.ma.masked:
             editor = QLineEdit(parent)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            editor.setFont(
+                self.get_font(SpyderFontType.MonospaceInterface)
+            )
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
                 validator = QDoubleValidator(editor)

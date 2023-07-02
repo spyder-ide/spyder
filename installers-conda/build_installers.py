@@ -132,8 +132,6 @@ SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
 specs = {
     "python": "=" + PY_VER,
     "spyder": "=" + SPYVER,
-    "paramiko": "",
-    "pyxdg": "",
 }
 specs.update(scientific_packages)
 
@@ -223,6 +221,7 @@ def _definitions():
         "version": SPYVER,
         "channels": [
             "napari/label/bundle_tools_2",
+            "conda-forge/label/spyder_kernels_rc",
             "conda-forge",
         ],
         "conda_default_channels": ["conda-forge"],

@@ -50,10 +50,9 @@ from qtpy.QtWidgets import (
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
@@ -61,10 +60,13 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.utils.palette import QStylePalette
+
 
 # Supported Numbers and complex numbers
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
+
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', 'f', '0', '0.', '0.0', ' ']
 
@@ -84,8 +86,7 @@ BACKGROUND_NUMBER_HUERANGE = 0.33 # (hue for smallest) minus (hue for largest)
 BACKGROUND_NUMBER_SATURATION = 0.7
 BACKGROUND_NUMBER_VALUE = 1.0
 BACKGROUND_NUMBER_ALPHA = 0.6
-BACKGROUND_NONNUMBER_COLOR = Qt.lightGray
-BACKGROUND_INDEX_ALPHA = 0.8
+BACKGROUND_NONNUMBER_COLOR = QStylePalette.COLOR_BACKGROUND_2
 BACKGROUND_STRING_ALPHA = 0.05
 BACKGROUND_MISC_ALPHA = 0.3
 
@@ -108,7 +109,7 @@ def global_max(col_vals, index):
     return max(max_col), min(min_col)
 
 
-class DataFrameModel(QAbstractTableModel):
+class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
     """
     DataFrame Table Model.
 
@@ -375,7 +376,7 @@ class DataFrameModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return self.get_font(SpyderFontType.MonospaceInterface)
         elif role == Qt.ToolTipRole:
             if index in self.display_error_idxs:
                 return _("It is not possible to display this value because\n"
@@ -670,9 +671,9 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         clipboard.setText(contents)
 
 
-class DataFrameHeaderModel(QAbstractTableModel):
+class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
     """
-    This class is the model for the header or index of the DataFrameEditor.
+    This class is the model for the header and index of the DataFrameEditor.
 
     Taken from gtabview project (Header4ExtModel).
     For more information please see:
@@ -681,7 +682,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
 
     COLUMN_INDEX = -1  # Makes reference to the index of the table.
 
-    def __init__(self, model, axis, palette):
+    def __init__(self, model, axis, use_monospace_font=False):
         """
         Header constructor.
 
@@ -689,10 +690,11 @@ class DataFrameHeaderModel(QAbstractTableModel):
         to acknowledge if is for the header (horizontal - 0) or for the
         index (vertical - 1) and the palette is the set of colors to use.
         """
-        super(DataFrameHeaderModel, self).__init__()
+        super().__init__()
         self.model = model
         self.axis = axis
-        self._palette = palette
+        self.use_monospace_font = use_monospace_font
+
         self.total_rows = self.model.shape[0]
         self.total_cols = self.model.shape[1]
         size = self.total_rows * self.total_cols
@@ -794,14 +796,24 @@ class DataFrameHeaderModel(QAbstractTableModel):
 
         This is used when a header has levels.
         """
-        if not index.isValid() or \
-           index.row() >= self._shape[0] or \
-           index.column() >= self._shape[1]:
+        if (
+            not index.isValid()
+            or index.row() >= self._shape[0]
+            or index.column() >= self._shape[1]
+        ):
             return None
-        row, col = ((index.row(), index.column()) if self.axis == 0
-                    else (index.column(), index.row()))
+
+        row, col = (
+            (index.row(), index.column()) if self.axis == 0
+            else (index.column(), index.row())
+        )
+
+        if self.use_monospace_font and role == Qt.FontRole:
+            return self.get_font(SpyderFontType.MonospaceInterface)
+
         if role != Qt.DisplayRole:
             return None
+
         if self.axis == 0 and self._shape[0] <= 1:
             return None
 
@@ -817,7 +829,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
         return header
 
 
-class DataFrameLevelModel(QAbstractTableModel):
+class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
     """
     Data Frame level class.
 
@@ -830,17 +842,10 @@ class DataFrameLevelModel(QAbstractTableModel):
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
 
-    def __init__(self, model, palette, font):
-        super(DataFrameLevelModel, self).__init__()
+    def __init__(self, model):
+        super().__init__()
         self.model = model
-        self._background = palette.dark().color()
-        if self._background.lightness() > 127:
-            self._foreground = palette.text()
-        else:
-            self._foreground = palette.highlightedText()
-        self._palette = palette
-        font.setBold(True)
-        self._font = font
+        self._background = QColor(QStylePalette.COLOR_BACKGROUND_2)
 
     def rowCount(self, index=None):
         """Get number of rows (number of levels for the header)."""
@@ -878,7 +883,7 @@ class DataFrameLevelModel(QAbstractTableModel):
         if not index.isValid():
             return None
         if role == Qt.FontRole:
-            return self._font
+            return self.get_font(SpyderFontType.Interface)
         label = ''
         if index.column() == self.model.header_shape[1] - 1:
             label = str(self.model.name(0, index.row()))
@@ -886,8 +891,6 @@ class DataFrameLevelModel(QAbstractTableModel):
             label = str(self.model.name(1, index.column()))
         if role == Qt.DisplayRole and label:
             return label
-        elif role == Qt.ForegroundRole:
-            return self._foreground
         elif role == Qt.BackgroundRole:
             return self._background
         elif role == Qt.BackgroundRole:
@@ -1037,14 +1040,14 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.table_level.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.table_level.setFrameStyle(QFrame.Plain)
         self.table_level.horizontalHeader().sectionResized.connect(
-                                                        self._index_resized)
+            self._index_resized)
         self.table_level.verticalHeader().sectionResized.connect(
-                                                        self._header_resized)
+            self._header_resized)
         self.table_level.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_level, 0, 0)
         self.table_level.setContentsMargins(0, 0, 0, 0)
         self.table_level.horizontalHeader().sectionClicked.connect(
-                                                            self.sortByIndex)
+            self.sortByIndex)
 
     def create_table_header(self):
         """Create the QTableView that will hold the header model."""
@@ -1057,7 +1060,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.table_header.setHorizontalScrollBar(self.hscroll)
         self.table_header.setFrameStyle(QFrame.Plain)
         self.table_header.horizontalHeader().sectionResized.connect(
-                                                        self._column_resized)
+            self._column_resized)
         self.table_header.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_header, 0, 1)
 
@@ -1072,7 +1075,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.table_index.setVerticalScrollBar(self.vscroll)
         self.table_index.setFrameStyle(QFrame.Plain)
         self.table_index.verticalHeader().sectionResized.connect(
-                                                            self._row_resized)
+            self._row_resized)
         self.table_index.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_index, 1, 0)
         self.table_index.setContentsMargins(0, 0, 0, 0)
@@ -1180,17 +1183,16 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         # Asociate the models (level, vertical index and horizontal header)
         # with its corresponding view.
-        self._reset_model(self.table_level, DataFrameLevelModel(model,
-                                                                self.palette(),
-                                                                self.font()))
-        self._reset_model(self.table_header, DataFrameHeaderModel(
-                                                            model,
-                                                            0,
-                                                            self.palette()))
-        self._reset_model(self.table_index, DataFrameHeaderModel(
-                                                            model,
-                                                            1,
-                                                            self.palette()))
+        self._reset_model(self.table_level, DataFrameLevelModel(model))
+        self._reset_model(self.table_header, DataFrameHeaderModel(model, 0))
+
+        # We use our monospace font for the index so that it matches the one
+        # used for data and things look consistent.
+        # Fixes issue spyder-ide/spyder#20960
+        self._reset_model(
+            self.table_index,
+            DataFrameHeaderModel(model, 1, use_monospace_font=True)
+        )
 
         # Needs to be called after setting all table models
         if relayout:

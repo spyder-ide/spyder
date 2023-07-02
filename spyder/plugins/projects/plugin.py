@@ -303,6 +303,7 @@ class Projects(SpyderDockablePlugin):
                 workdir=cli_options.working_directory
             )
         else:
+            self.get_widget().set_pane_empty()
             logger.debug('Reopening project from last session')
             self.get_widget().reopen_last_project()
 

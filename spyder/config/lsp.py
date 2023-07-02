@@ -48,12 +48,17 @@ PYTHON_CONFIG = {
                     'enabled': True
                 },
                 'pylsp_black': {
+                    # This is necessary for python-lsp-black less than 2.0.
+                    # See python-lsp/python-lsp-black#41
                     'enabled': False
                 },
                 'black': {
+                    'enabled': False,
                     'line_length': 79,
                     'preview': False,
                     'cache_config': False,
+                    'skip_magic_trailing_comma': False,
+                    'skip_string_normalization': False,
                 },
                 'yapf': {
                     'enabled': False

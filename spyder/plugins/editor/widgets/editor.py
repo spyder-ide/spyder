@@ -26,8 +26,8 @@ from qtpy.QtCore import (QByteArray, QEvent, QFileInfo, QPoint, QSize, Qt,
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QLabel, QMainWindow, QMessageBox, QMenu,
-                            QSplitter, QVBoxLayout, QWidget, QListWidget,
-                            QListWidgetItem, QSizePolicy, QToolBar)
+                            QSplitter, QVBoxLayout, QWidget, QSizePolicy,
+                            QToolBar)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -44,6 +44,7 @@ from spyder.plugins.editor.widgets.editorstack_helpers import (
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
+from spyder.plugins.editor.widgets.tabswitcher import TabSwitcherWidget
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
 from spyder.plugins.explorer.widgets.utils import fixpath
@@ -65,117 +66,6 @@ from spyder.widgets.tabs import BaseTabs
 
 
 logger = logging.getLogger(__name__)
-
-
-class TabSwitcherWidget(QListWidget, SpyderConfigurationAccessor):
-    """Show tabs in mru order and change between them."""
-
-    CONF_SECTION = "editor"
-
-    def __init__(self, parent, stack_history, tabs):
-        QListWidget.__init__(self, parent)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
-
-        self.editor = parent
-        self.stack_history = stack_history
-        self.tabs = tabs
-
-        self.setSelectionMode(QListWidget.SingleSelection)
-        self.itemActivated.connect(self.item_selected)
-
-        self.id_list = []
-        self.load_data()
-        size = self.get_conf('completion/size', section='main')
-        self.resize(*size)
-        self.set_dialog_position()
-        self.setCurrentRow(0)
-
-        self.config_shortcut(
-            lambda: self.select_row(-1),
-            context='Editor',
-            name='Go to previous file',
-            parent=self
-        )
-        self.config_shortcut(
-            lambda: self.select_row(1),
-            context='Editor',
-            name='Go to next file',
-            parent=self
-        )
-
-    def load_data(self):
-        """Fill ListWidget with the tabs texts.
-
-        Add elements in inverse order of stack_history.
-        """
-        for index in reversed(self.stack_history):
-            text = self.tabs.tabText(index)
-            text = text.replace('&', '')
-            item = QListWidgetItem(ima.icon('TextFileIcon'), text)
-            self.addItem(item)
-
-    def item_selected(self, item=None):
-        """Change to the selected document and hide this widget."""
-        if item is None:
-            item = self.currentItem()
-
-        # stack history is in inverse order
-        try:
-            index = self.stack_history[-(self.currentRow()+1)]
-        except IndexError:
-            pass
-        else:
-            self.editor.set_stack_index(index)
-            self.editor.current_changed(index)
-        self.hide()
-
-    def select_row(self, steps):
-        """Move selected row a number of steps.
-
-        Iterates in a cyclic behaviour.
-        """
-        row = (self.currentRow() + steps) % self.count()
-        self.setCurrentRow(row)
-
-    def set_dialog_position(self):
-        """Positions the tab switcher in the top-center of the editor."""
-        left = int(self.editor.geometry().width()/2 - self.width()/2)
-        top = int(self.editor.tabs.tabBar().geometry().height() +
-                  self.editor.fname_label.geometry().height())
-
-        self.move(self.editor.mapToGlobal(QPoint(left, top)))
-
-    def keyReleaseEvent(self, event):
-        """Reimplement Qt method.
-
-        Handle "most recent used" tab behavior,
-        When ctrl is released and tab_switcher is visible, tab will be changed.
-        """
-        if self.isVisible():
-            qsc = self.get_shortcut(context='Editor', name='Go to next file')
-
-            for key in qsc.split('+'):
-                key = key.lower()
-                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
-                        (key == 'alt' and event.key() == Qt.Key_Alt)):
-                    self.item_selected()
-        event.accept()
-
-    def keyPressEvent(self, event):
-        """Reimplement Qt method to allow cyclic behavior."""
-        if event.key() == Qt.Key_Down:
-            self.select_row(1)
-        elif event.key() == Qt.Key_Up:
-            self.select_row(-1)
-
-    def focusOutEvent(self, event):
-        """Reimplement Qt method to close the widget when loosing focus."""
-        event.ignore()
-        if sys.platform == "darwin":
-            if event.reason() != Qt.ActiveWindowFocusReason:
-                self.close()
-        else:
-            self.close()
 
 
 class EditorStack(QWidget, SpyderConfigurationAccessor):
@@ -1718,7 +1608,15 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
-            finfo = self.data[index]
+
+            # Prevent error when trying to remove several unsaved files from
+            # Projects or Files.
+            # Fixes spyder-ide/spyder#20998
+            try:
+                finfo = self.data[index]
+            except IndexError:
+                return False
+
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(index):
                     return False
@@ -2003,8 +1901,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
             # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
-            self.file_renamed_in_data.emit(str(id(self)),
-                                           original_filename, filename)
+            self.file_renamed_in_data.emit(
+                original_filename, filename, str(id(self)))
 
             ok = self.save(index=new_index, force=True)
             self.refresh(new_index)
@@ -2134,7 +2032,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         # See spyder-ide/spyder#9688.
         self.find_widget.set_editor(editor, refresh=False)
 
-        # Update total number of matches when switching files.
+        # Update highlighted matches and its total number when switching files.
+        self.find_widget.highlight_matches()
         self.find_widget.update_matches()
 
         if editor is not None:
@@ -2568,6 +2467,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             # symbols for the clon are updated as expected.
             cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
                 editor.oe_proxy.update_outline_info)
+            cloned_from.oe_proxy.sig_outline_explorer_data_changed.connect(
+                editor._update_classfuncdropdown)
             cloned_from.oe_proxy.sig_start_outline_spinner.connect(
                 editor.oe_proxy.emit_request_in_progress)
 
@@ -3651,8 +3552,9 @@ class EditorPluginExample(QSplitter):
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
     @Slot(str, str, str)
-    def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            original_filename, filename):
+    def file_renamed_in_data_in_editorstack(
+        self, original_filename, filename, editorstack_id_str
+    ):
         """A file was renamed in data in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:

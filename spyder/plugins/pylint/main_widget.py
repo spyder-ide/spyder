@@ -25,7 +25,7 @@ from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QVBoxLayout)
+                            QStackedLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -42,6 +42,7 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # --- Constants
@@ -315,6 +316,14 @@ class PylintWidget(PluginMainWidget):
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
         self.treewidget = ResultsTree(self)
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "code-analysis",
+            _("Code not analyzed yet"),
+            _("Run an analysis using Pylint to get feedback on "
+              "style issues, bad practices, potential bugs, "
+              "and suggested improvements in your code.")
+        )
 
         if osp.isfile(self.DATAPATH):
             try:
@@ -332,9 +341,10 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(fname)
 
         # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.treewidget)
-        self.setLayout(layout)
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(self.pane_empty)
+        self.stack_layout.addWidget(self.treewidget)
+        self.setLayout(self.stack_layout)
 
         # Signals
         self.filecombo.valid.connect(self._check_new_file)
@@ -780,14 +790,17 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
+            self.stack_layout.setCurrentWidget(self.pane_empty)
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
+                self.stack_layout.setCurrentWidget(self.treewidget)
                 text = _("Analysis did not succeed "
                          "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
+                self.stack_layout.setCurrentWidget(self.treewidget)
                 text_style = "<span style=\"color: %s\"><b>%s </b></span>"
                 rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
                 prevrate_style = "<span style=\"color: %s\">%s</span>"

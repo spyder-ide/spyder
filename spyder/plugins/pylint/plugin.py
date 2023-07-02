@@ -86,7 +86,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         # Run configuration
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py'],
                 'context': {
                     'name': 'File'
                 },
@@ -94,7 +94,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
                 'configuration_widget': None,
                 'requires_cwd': False,
                 'priority': 4
-            }
+            },
         ]
 
     @on_plugin_available(plugin=Plugins.Editor)
@@ -238,7 +238,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             if self.get_conf("save_before", True) and not editor.save():
                 return
 
-        if filename is None:
+        if filename is None or isinstance(filename, bool):
             filename = self.get_widget().get_filename()
 
         self.switch_to_plugin(force_focus=True)
