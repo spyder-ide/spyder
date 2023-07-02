@@ -1028,21 +1028,35 @@ class ProjectExplorerWidget(PluginMainWidget):
         project_path = self.get_active_project_path()
         if project_path is None:
             return []
+
         # command = fzf --filter <search_str>
         cmd_list = ["fzf", "--filter", search_text]
         shell = False
         env = os.environ.copy()
-        startupinfo = subprocess.STARTUPINFO()
+
+        # This is only available on Windows
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+        else:
+            startupinfo = None
+
         try:
-            out = subprocess.check_output(cmd_list, cwd=project_path,
-                                          shell=shell, env=env,
-                                          startupinfo=startupinfo,
-                                          stderr=subprocess.STDOUT)
+            out = subprocess.check_output(
+                cmd_list,
+                cwd=project_path,
+                shell=shell,
+                env=env,
+                startupinfo=startupinfo,
+                stderr=subprocess.STDOUT
+            )
+
             relative_path_list = out.decode('UTF-8').strip().split("\n")
+
             # List of tuples with the absolute path
             result_list = [
                 osp.normpath(os.path.join(project_path, path)).lower()
                 for path in relative_path_list]
+
             # Limit the number of results to 500
             if (len(result_list) > 500):
                 result_list = result_list[:500]
