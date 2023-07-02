@@ -1491,12 +1491,14 @@ class IPythonConsoleWidget(
             give_focus=give_focus)
 
         # Create new kernel
-        kernel_spec_dict = SpyderKernelSpec(
+        kernel_spec_kwargs = dict(
             is_cython=is_cython,
             is_pylab=is_pylab,
             is_sympy=is_sympy,
             path_to_custom_interpreter=path_to_custom_interpreter
-        ).to_dict()
+            )
+        kernel_spec_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
+        kernel_spec_dict["setup_kwargs"] = kernel_spec_kwargs
 
         try:
             kernel_handler = self.get_cached_kernel(
@@ -1917,6 +1919,11 @@ class IPythonConsoleWidget(
 
         if not do_restart:
             return
+        
+        # Update the kernel because settings might have changed
+        kernel_spec_kwargs = ks_dict["setup_kwargs"]
+        ks_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
+        ks_dict["setup_kwargs"] = kernel_spec_kwargs
 
         # Get new kernel
         try:
