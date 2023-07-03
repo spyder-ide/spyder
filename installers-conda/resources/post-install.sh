@@ -149,13 +149,13 @@ echo "*** Post install script for ${INSTALLER_NAME} complete"
 [[ -n "$CI" ]] && exit 0  # Running in CI, don't launch Spyder
 
 if [[ "$OSTYPE" = "darwin"* ]]; then
-    tmp_dir=${TMPDIR}spyder
+    tmp_dir=${SHARED_INSTALLER_TEMP}/spyder
     launch_script=${tmp_dir}/post-install-launch.sh
     echo "Creating post-install launch script ..."
     mkdir -p $tmp_dir
     cat <<EOF > $launch_script
 #!/bin/bash
-while [[ \$(pgrep -fq Installer.app) ]]; do
+while pgrep -fq Installer.app; do
     sleep 1
 done
 open -a $shortcut_path
