@@ -897,17 +897,6 @@ class IPythonConsoleWidget(
                 interactive_backend = None
                 sw = client.shellwidget
                 if (
-                    sw.kernel_handler 
-                    and sw.kernel_handler.kernel_spec_dict
-                    and "SPY_BACKEND_O" in sw.kernel_handler.kernel_spec_dict[
-                        "env"]
-                ):
-                    start_backend = sw.kernel_handler.kernel_spec_dict[
-                        "env"]["SPY_BACKEND_O"]
-                    if start_backend != inline_backend:
-                        # If the state ever was non interactive, can not change
-                        interactive_backend = start_backend
-                if (
                     interactive_backend is None 
                     and sw._shellwidget_state != "started"
                 ):
@@ -1411,7 +1400,7 @@ class IPythonConsoleWidget(
 
         return versions
 
-    def additional_options(self, is_pylab=False, is_sympy=False):
+    def additional_options(self, special=None):
         """
         Additional options for shell widgets that are not defined
         in JupyterWidget config options
@@ -1423,10 +1412,10 @@ class IPythonConsoleWidget(
             show_banner=self.get_conf('show_banner')
         )
 
-        if is_pylab is True:
+        if special == "pylab":
             options['autoload_pylab'] = True
             options['sympy'] = False
-        if is_sympy is True:
+        elif special == "sympy":
             options['autoload_pylab'] = False
             options['sympy'] = True
 
@@ -1459,9 +1448,8 @@ class IPythonConsoleWidget(
     @Slot(bool, str, str)
     @Slot(bool, bool)
     @Slot(bool, str, bool)
-    def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None,
+    def create_new_client(self, give_focus=True, filename='', special=None,
+                          given_name=None, cache=True, initial_cwd=None,
                           path_to_custom_interpreter=None):
         """Create a new client"""
         self.master_clients += 1
@@ -1473,8 +1461,7 @@ class IPythonConsoleWidget(
             id_=client_id,
             config_options=self.config_options(),
             additional_options=self.additional_options(
-                    is_pylab=is_pylab,
-                    is_sympy=is_sympy),
+                    special=special),
             interpreter_versions=self.interpreter_versions(
                 path_to_custom_interpreter),
             context_menu_actions=self.context_menu_actions,
@@ -1492,17 +1479,23 @@ class IPythonConsoleWidget(
 
         # Create new kernel
         kernel_spec_kwargs = dict(
-            is_cython=is_cython,
-            is_pylab=is_pylab,
-            is_sympy=is_sympy,
             path_to_custom_interpreter=path_to_custom_interpreter
             )
         kernel_spec_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
         kernel_spec_dict["setup_kwargs"] = kernel_spec_kwargs
 
         try:
+            kernel_spec_dict["env"]["SPY_RUN_CYTHON"] = str(special == "cython")
             kernel_handler = self.get_cached_kernel(
-                kernel_spec_dict, cache=cache)
+                kernel_spec_dict,
+                cache=cache,
+                )
+            if special is not None:
+                kernel_handler.special = special
+            elif self.get_conf('pylab/autoload'):
+                kernel_handler.special = "pylab"
+            elif self.get_conf('symbolic_math'):
+                kernel_handler.special = "sympy"
         except Exception as e:
             client.show_kernel_error(e)
             return
@@ -1589,15 +1582,15 @@ class IPythonConsoleWidget(
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
-        self.create_new_client(is_pylab=True, given_name="Pylab")
+        self.create_new_client(special="pylab", given_name="Pylab")
 
     def create_sympy_client(self):
         """Force creation of SymPy client"""
-        self.create_new_client(is_sympy=True, given_name="SymPy")
+        self.create_new_client(special="sympy", given_name="SymPy")
 
     def create_cython_client(self):
         """Force creation of Cython client"""
-        self.create_new_client(is_cython=True, given_name="Cython")
+        self.create_new_client(special="cython", given_name="Cython")
 
     def create_environment_client(
         self, environment, path_to_custom_interpreter
@@ -1615,9 +1608,12 @@ class IPythonConsoleWidget(
 
     def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
+        special = None
+        if is_cython:
+            special = "cython"
         # Create client
         client = self.create_new_client(
-            filename=filename, is_cython=is_cython)
+            filename=filename, special=special)
 
         # Don't increase the count of master clients
         self.master_clients -= 1
@@ -1928,6 +1924,7 @@ class IPythonConsoleWidget(
         # Get new kernel
         try:
             kernel_handler = self.get_cached_kernel(ks_dict)
+            kernel_handler.special = client.kernel_handler.special
         except Exception as e:
             client.show_kernel_error(e)
             return

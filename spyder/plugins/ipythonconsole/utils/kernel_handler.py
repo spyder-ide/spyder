@@ -148,6 +148,9 @@ class KernelHandler(QObject):
         self._init_stderr = ""
         self._init_stdout = ""
         
+        # Special kernel
+        self.special = None
+        
         if self.kernel_client:
             # Start kernel
             self.kernel_client.start_channels()

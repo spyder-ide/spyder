@@ -536,9 +536,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().rename_client_tab(client, given_name)
 
-    def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None,
-                          path_to_custom_interpreter=None):
+    def create_new_client(self, give_focus=True, filename='', special=None,
+                          given_name=None, path_to_custom_interpreter=None):
         """
         Create a new client.
 
@@ -549,15 +548,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             focus, False otherwise. The default is True.
         filename : str, optional
             Filename associated with the client. The default is ''.
-        is_cython : bool, optional
-            True if the client is expected to preload Cython support,
-            False otherwise. The default is False.
-        is_pylab : bool, optional
-            True if the client is expected to preload PyLab support,
-            False otherwise. The default is False.
-        is_sympy : bool, optional
-            True if the client is expected to preload Sympy support,
-            False otherwise. The default is False.
+        special : str, optional
+            Type of special support to preload. Can be "pylab", "cython",
+            "sympy", or None
         given_name : str, optional
             Initial name displayed in the tab of the client.
             The default is None.
@@ -573,9 +566,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.get_widget().create_new_client(
             give_focus=give_focus,
             filename=filename,
-            is_cython=is_cython,
-            is_pylab=is_pylab,
-            is_sympy=is_sympy,
+            special=special,
             given_name=given_name,
             path_to_custom_interpreter=path_to_custom_interpreter)
 

@@ -645,27 +645,27 @@ class SpyderKernel(IPythonKernel):
         except:
             pass
 
-    def is_special_kernel_valid(self):
+    def is_special_kernel_valid(self, special):
         """
         Check if optional dependencies are available for special consoles.
         """
-        try:
-            if os.environ.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
-                import matplotlib
-            elif os.environ.get('SPY_SYMPY_O') == 'True':
-                import sympy
-            elif os.environ.get('SPY_RUN_CYTHON') == 'True':
-                import cython
-        except Exception:
-            # Use Exception instead of ImportError here because modules can
-            # fail to be imported due to a lot of issues.
-            if os.environ.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
-                return u'matplotlib'
-            elif os.environ.get('SPY_SYMPY_O') == 'True':
-                return u'sympy'
-            elif os.environ.get('SPY_RUN_CYTHON') == 'True':
-                return u'cython'
-        return None
+        if special is None:
+            return
+        elif special == "pylab":
+            try:
+               import matplotlib
+            except Exception:
+                return "matplotlib"
+        elif special == "sympy":
+            try:
+               import sympy
+            except Exception:
+                return "sympy"
+        elif special == "cython":
+            try:
+               import cython
+            except Exception:
+                return "cython"
 
     def update_syspath(self, path_dict, new_path_dict):
         """
@@ -904,15 +904,14 @@ class SpyderKernel(IPythonKernel):
 
     def set_sympy_forecolor(self, background_color='dark'):
         """Set SymPy forecolor depending on console background."""
-        if os.environ.get('SPY_SYMPY_O') == 'True':
-            try:
-                from sympy import init_printing
-                if background_color == 'dark':
-                    init_printing(forecolor='White', ip=self.shell)
-                elif background_color == 'light':
-                    init_printing(forecolor='Black', ip=self.shell)
-            except Exception:
-                pass
+        try:
+            from sympy import init_printing
+            if background_color == 'dark':
+                init_printing(forecolor='White', ip=self.shell)
+            elif background_color == 'light':
+                init_printing(forecolor='Black', ip=self.shell)
+        except Exception:
+            pass
 
     # --- Others
     def _load_autoreload_magic(self):

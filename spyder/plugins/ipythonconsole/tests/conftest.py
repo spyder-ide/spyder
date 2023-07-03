@@ -146,15 +146,15 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Start a Pylab client if requested
     pylab_client = request.node.get_closest_marker('pylab_client')
-    is_pylab = True if pylab_client else False
+    special = "pylab" if pylab_client else None
 
     # Start a Sympy client if requested
     sympy_client = request.node.get_closest_marker('sympy_client')
-    is_sympy = True if sympy_client else False
+    special = "sympy" if sympy_client else special
 
     # Start a Cython client if requested
     cython_client = request.node.get_closest_marker('cython_client')
-    is_cython = True if cython_client else False
+    special = "cython" if cython_client else special
 
     # Start a specific env client if requested
     environment_client = request.node.get_closest_marker(
@@ -207,9 +207,7 @@ def ipyconsole(qtbot, request, tmpdir):
     console.on_initialize()
     console._register()
     console.create_new_client(
-        is_pylab=is_pylab,
-        is_sympy=is_sympy,
-        is_cython=is_cython,
+        special=special,
         given_name=given_name,
         path_to_custom_interpreter=path_to_custom_interpreter
     )

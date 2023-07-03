@@ -343,10 +343,10 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
     # Get a CONF env var
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; a = os.environ.get('SPY_SYMPY_O')")
+        shell.execute("import os; a = os.environ.get('SPY_TESTING')")
 
     # Assert we get the assigned value correctly
-    assert shell.get_value('a') == 'False'
+    assert shell.get_value('a') == 'True'
 
 
 @flaky(max_runs=3)

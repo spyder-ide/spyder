@@ -99,13 +99,9 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     CONF_SECTION = 'ipython_console'
 
-    def __init__(self, is_cython=False, is_pylab=False,
-                 is_sympy=False, path_to_custom_interpreter=None,
+    def __init__(self, path_to_custom_interpreter=None,
                  **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
-        self.is_cython = is_cython
-        self.is_pylab = is_pylab
-        self.is_sympy = is_sympy
         self.path_to_custom_interpreter = path_to_custom_interpreter
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
@@ -204,37 +200,15 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 'umr/verbose', section='main_interpreter'),
             'SPY_UMR_NAMELIST': ','.join(umr_namelist),
             'SPY_RUN_LINES_O': self.get_conf('startup/run_lines'),
-            'SPY_PYLAB_O': self.get_conf('pylab'),
-            'SPY_BACKEND_O': self.get_conf('pylab/backend'),
-            'SPY_AUTOLOAD_PYLAB_O': self.get_conf('pylab/autoload'),
-            'SPY_FORMAT_O': self.get_conf('pylab/inline/figure_format'),
-            'SPY_BBOX_INCHES_O': self.get_conf('pylab/inline/bbox_inches'),
-            'SPY_RESOLUTION_O': self.get_conf('pylab/inline/resolution'),
-            'SPY_WIDTH_O': self.get_conf('pylab/inline/width'),
-            'SPY_HEIGHT_O': self.get_conf('pylab/inline/height'),
             'SPY_USE_FILE_O': self.get_conf('startup/use_run_file'),
             'SPY_RUN_FILE_O': self.get_conf('startup/run_file'),
             'SPY_AUTOCALL_O': self.get_conf('autocall'),
             'SPY_GREEDY_O': self.get_conf('greedy_completer'),
             'SPY_JEDI_O': self.get_conf('jedi_completer'),
-            'SPY_SYMPY_O': self.get_conf('symbolic_math'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
             'SPY_PYTHONPATH': pypath
         })
-
-        if self.is_pylab is True:
-            env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
-            env_vars['SPY_SYMPY_O'] = False
-            env_vars['SPY_RUN_CYTHON'] = False
-        if self.is_sympy is True:
-            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
-            env_vars['SPY_SYMPY_O'] = True
-            env_vars['SPY_RUN_CYTHON'] = False
-        if self.is_cython is True:
-            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
-            env_vars['SPY_SYMPY_O'] = False
-            env_vars['SPY_RUN_CYTHON'] = True
 
         # App considerations
         # ??? Do we need this?
