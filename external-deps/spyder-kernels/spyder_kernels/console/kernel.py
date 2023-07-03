@@ -800,15 +800,6 @@ class SpyderKernel(IPythonKernel):
         pylab: Is the pylab magic should be used in order to populate the
                namespace from numpy and matplotlib
         """
-        if backend != "inline" and not self.frontend_comm._is_comm_ready:
-            # Non - inline backends interfere with the ability to use 
-            # call_later. They block the eventloop until a message is recieved
-            # on the shell. Therefore, they can not be activated before the 
-            # comm is ready.
-            self.io_loop.call_later(
-                .3, lambda: self._set_mpl_backend(backend, pylab)
-            )
-            return
         import traceback
 
         # Don't proceed further if there's any error while importing Matplotlib
