@@ -36,9 +36,6 @@ from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
 
-from spyder_kernels.utils.mpl import (
-    MPL_BACKENDS_FROM_SPYDER, INLINE_FIGURE_FORMATS)
-
 
 MODULES_FAQ_URL = (
     "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
@@ -556,7 +553,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         backend_o = self.get_conf(pylab_backend_n)
 
         if pylab_o and backend_o is not None:
-            mpl_backend = MPL_BACKENDS_FROM_SPYDER[backend_o]
+            mpl_backend = backend_o
             # Inline backend configuration
             if mpl_backend == 'inline':
                 # Figure format
