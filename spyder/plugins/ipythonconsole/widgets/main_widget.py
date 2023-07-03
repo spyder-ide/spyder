@@ -1477,15 +1477,15 @@ class IPythonConsoleWidget(
             client, name=client.get_name(), filename=filename,
             give_focus=give_focus)
 
-        # Create new kernel
-        kernel_spec_kwargs = dict(
-            path_to_custom_interpreter=path_to_custom_interpreter
-            )
-        kernel_spec_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
-        kernel_spec_dict["setup_kwargs"] = kernel_spec_kwargs
-
         try:
-            kernel_spec_dict["env"]["SPY_RUN_CYTHON"] = str(special == "cython")
+            # Create new kernel
+            kernel_spec_kwargs = dict(
+                path_to_custom_interpreter=path_to_custom_interpreter
+                )
+            kernel_spec_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
+            kernel_spec_dict["setup_kwargs"] = kernel_spec_kwargs
+            kernel_spec_dict["env"]["SPY_RUN_CYTHON"] = str(
+                special == "cython")
             kernel_handler = self.get_cached_kernel(
                 kernel_spec_dict,
                 cache=cache,
@@ -1915,14 +1915,13 @@ class IPythonConsoleWidget(
 
         if not do_restart:
             return
-        
-        # Update the kernel because settings might have changed
-        kernel_spec_kwargs = ks_dict["setup_kwargs"]
-        ks_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
-        ks_dict["setup_kwargs"] = kernel_spec_kwargs
 
         # Get new kernel
         try:
+            # Update the kernel because settings might have changed
+            kernel_spec_kwargs = ks_dict["setup_kwargs"]
+            ks_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
+            ks_dict["setup_kwargs"] = kernel_spec_kwargs
             kernel_handler = self.get_cached_kernel(ks_dict)
             kernel_handler.special = client.kernel_handler.special
         except Exception as e:
