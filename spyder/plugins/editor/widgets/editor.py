@@ -193,10 +193,13 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         switcher_action = None
         symbolfinder_action = None
-        if use_switcher:
+        if use_switcher and self.get_plugin().main:
             self.switcher_plugin = self.get_plugin().main.switcher
-            switcher_action = self.switcher_plugin.get_action("file switcher")
-            symbolfinder_action = self.switcher_plugin.get_action("symbol finder")
+            if self.switcher_plugin:
+                switcher_action = self.switcher_plugin.get_action(
+                    "file switcher")
+                symbolfinder_action = self.switcher_plugin.get_action(
+                    "symbol finder")
 
         self.stack_history = StackHistory(self)
 

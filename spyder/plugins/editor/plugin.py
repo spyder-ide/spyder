@@ -1396,13 +1396,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 'run_cell', self.handle_run_cell)
 
         self.add_dockwidget()
-
-        self.switcher_manager = EditorSwitcherManager(
-            self,
-            self.main.switcher,
-            self.get_current_editor,
-            self.get_current_editorstack,
-            section=self.get_plugin_title())
+        if self.main.switcher is not None:
+            self.switcher_manager = EditorSwitcherManager(
+                self,
+                self.main.switcher,
+                self.get_current_editor,
+                self.get_current_editorstack,
+                section=self.get_plugin_title())
 
     def base_edit_actions_callback(self):
         """Callback for base edit actions of text based widgets."""

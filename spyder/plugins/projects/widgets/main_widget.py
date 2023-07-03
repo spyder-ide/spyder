@@ -14,6 +14,7 @@ import os
 import os.path as osp
 import pathlib
 import shutil
+import subprocess
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -38,6 +39,7 @@ from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
+from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
@@ -608,6 +610,101 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.raise_()
         self.update()
 
+    def handle_switcher_modes(self):
+        """
+        Populate switcher with files in active project.
+
+        List the file names of the current active project with their
+        directories in the switcher.
+        """
+        paths = self._execute_fzf_subprocess()
+        if paths == []:
+            return []
+        # the paths that are opened in the editor need to be excluded because
+        # they are shown already in the switcher in the "editor" section.
+        open_files = self.get_plugin()._get_open_filenames()
+        for file in open_files:
+            normalized_path = osp.normpath(file).lower()
+            if normalized_path in paths:
+                paths.remove(normalized_path)
+
+        is_unsaved = [False] * len(paths)
+        short_paths = shorten_paths(paths, is_unsaved)
+        section = self.get_title()
+
+        items = []
+        for i, (path, short_path) in enumerate(zip(paths, short_paths)):
+            title = osp.basename(path)
+            icon = get_file_icon(path)
+            description = osp.dirname(path)
+            if len(path) > 75:
+                description = short_path
+            is_last_item = (i+1 == len(paths))
+
+            item_tuple = (title, description, icon,
+                          section, path, is_last_item)
+            items.append(item_tuple)
+        return items
+
+    def handle_switcher_selection(self, item, mode, search_text):
+        """
+        Handle user selecting item in switcher.
+
+        If the selected item is not in the section of the switcher that
+        corresponds to this plugin, then ignore it. Otherwise, switch to
+        selected project file and hide the switcher.
+
+        Parameters
+        ----------
+        item: object
+            The current selected item from the switcher list (QStandardItem).
+        mode: str
+            The current selected mode (open files "", symbol "@" or line ":").
+        search_text: str
+            Cleaned search/filter text.
+        """
+
+        if item.get_section() != self.get_title():
+            return
+
+        # Open file in editor
+        self.sig_open_file_requested.emit(item.get_data())
+
+    def handle_switcher_results(self, search_text, items_data):
+        """
+        Handle user typing in switcher to filter results.
+
+        Load switcher results when a search text is typed for projects.
+        Parameters
+        ----------
+        text: str
+            The current search text in the switcher dialog box.
+        items_data: list
+            List of items shown in the switcher.
+        """
+        paths = self._execute_fzf_subprocess(search_text)
+        for sw_path in items_data:
+            if (sw_path in paths):
+                paths.remove(sw_path)
+
+        is_unsaved = [False] * len(paths)
+        short_paths = shorten_paths(paths, is_unsaved)
+        section = self.get_title()
+
+        items = []
+        for i, (path, short_path) in enumerate(zip(paths, short_paths)):
+            title = osp.basename(path)
+            icon = get_file_icon(path)
+            description = osp.dirname(path).lower()
+            if len(path) > 75:
+                description = short_path
+            is_last_item = (i+1 == len(paths))
+
+            item_tuple = (title, description, icon,
+                          section, path, is_last_item)
+            items.append(item_tuple)
+        return items
+
     # ---- Public API for the LSP
     # -------------------------------------------------------------------------
     def start_workspace_services(self):
@@ -917,6 +1014,55 @@ class ProjectExplorerWidget(PluginMainWidget):
         ]
 
         return valid_projects
+
+    def _execute_fzf_subprocess(self, search_text=""):
+        """
+        Execute fzf subprocess to get the list of files in the current
+        project filtered by `search_text`.
+
+        Parameters
+        ----------
+        search_text: str
+            The current search text in the switcher dialog box.
+        """
+        project_path = self.get_active_project_path()
+        if project_path is None:
+            return []
+
+        # command = fzf --filter <search_str>
+        cmd_list = ["fzf", "--filter", search_text]
+        shell = False
+        env = os.environ.copy()
+
+        # This is only available on Windows
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+        else:
+            startupinfo = None
+
+        try:
+            out = subprocess.check_output(
+                cmd_list,
+                cwd=project_path,
+                shell=shell,
+                env=env,
+                startupinfo=startupinfo,
+                stderr=subprocess.STDOUT
+            )
+
+            relative_path_list = out.decode('UTF-8').strip().split("\n")
+
+            # List of tuples with the absolute path
+            result_list = [
+                osp.normpath(os.path.join(project_path, path)).lower()
+                for path in relative_path_list]
+
+            # Limit the number of results to 500
+            if (len(result_list) > 500):
+                result_list = result_list[:500]
+            return result_list
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return []
 
 
 # =============================================================================
