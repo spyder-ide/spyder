@@ -84,7 +84,7 @@ If you proceed, aliases will be removed from ${shell_init}
 Do you wish to continue?
 EOF
     read -p " [yes|NO]: " confirm
-    if [[ \$confirm != [yY] && \$confirm != [yY][eE][sS] ]]; then
+    if [[ "\${confirm,,}" =~ ^y(es)?$ ]]; then
         echo "Uninstall aborted."
         exit 1
     fi
@@ -163,6 +163,8 @@ EOF
     chmod +x $launch_script
 
     nohup $launch_script &>/dev/null &
-elif [[ "$XDG_CURRENT_DESKTOP" =~ .*(Unity|GNOME|XFCE).* ]]; then
-    gtk-launch spyder_spyder
+elif [[ -n "$(which gtk-launch)" ]]; then
+    gtk-launch $(basename $shortcut_path)
+else
+    $spy_exe
 fi
