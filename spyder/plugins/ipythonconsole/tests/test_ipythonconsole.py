@@ -128,8 +128,6 @@ def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
-    
-    qtbot.wait(5000)
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("get_ipython().kernel.eventloop")
@@ -152,8 +150,6 @@ def test_tk_backend(ipyconsole, qtbot):
     """Test that the Tkinter backend was set correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
-    
-    qtbot.wait(5000)
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("get_ipython().kernel.eventloop")
