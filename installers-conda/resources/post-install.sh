@@ -84,7 +84,8 @@ If you proceed, aliases will be removed from ${shell_init}
 Do you wish to continue?
 EOF
     read -p " [yes|NO]: " confirm
-    if [[ "\${confirm,,}" =~ ^y(es)?$ ]]; then
+    confirm=\$(echo \$confirm | tr '[:upper:]' '[:lower:]')
+    if [[ ! "\$confirm" =~ ^y(es)?$ ]]; then
         echo "Uninstall aborted."
         exit 1
     fi
