@@ -25,4 +25,4 @@ echo     exit
 echo ^)
 ) > %launch_script%
 
-start "" /MIN %launch_script%
+C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle hidden -Command "& {Start-Process -FilePath %launch_script% -NoNewWindow}"
