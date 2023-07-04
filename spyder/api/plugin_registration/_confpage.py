@@ -28,8 +28,9 @@ class PluginsConfigPage(PluginConfigPage):
         )
         header_label.setWordWrap(True)
 
-        # To save the plugin elements attributes
-        plugin_elements = []
+        # To save the plugin elements
+        internal_elements = []
+        external_elements = []
 
         # ------------------ Internal plugins ---------------------------------
         for plugin_name in self.plugin.all_internal_plugins:
@@ -45,7 +46,7 @@ class PluginsConfigPage(PluginConfigPage):
             cb = newcb('', 'enable', default=True, section=conf_section_name,
                        restart=True)
 
-            plugin_elements.append(
+            internal_elements.append(
                 dict(
                     title=PluginClass.get_name(),
                     description=PluginClass.get_description(),
@@ -75,7 +76,7 @@ class PluginsConfigPage(PluginConfigPage):
                        section=self.plugin._external_plugins_conf_section,
                        restart=True)
 
-            plugin_elements.append(
+            external_elements.append(
                 dict(
                     title=PluginClass.get_name(),
                     description=PluginClass.get_description(),
@@ -86,8 +87,14 @@ class PluginsConfigPage(PluginConfigPage):
 
             self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
 
-        # Build plugins table
-        plugins_table = ElementsTable(self, plugin_elements)
+        # Sort elements by title for easy searching
+        internal_elements.sort(key=lambda e: e['title'])
+        external_elements.sort(key=lambda e: e['title'])
+
+        # Build plugins table, showing external plugins first.
+        plugins_table = ElementsTable(
+            self, external_elements + internal_elements
+        )
 
         # Layout
         layout = QVBoxLayout()
