@@ -146,16 +146,14 @@ class ElementsModel(QAbstractTableModel):
 
 class ElementsTable(HoverRowsTableView):
 
-    def __init__(
-        self,
-        parent: QWidget,
-        elements: List[Element],
-        with_icons: bool = False,
-        with_addtional_info: bool = False,
-        with_widgets: bool = False
-    ):
+    def __init__(self, parent: Optional[QWidget], elements: List[Element]):
         HoverRowsTableView.__init__(self, parent)
         self.elements = elements
+
+        # Check for additional features
+        with_icons = self._with_feature('icon')
+        with_addtional_info = self._with_feature('additional_info')
+        with_widgets = self._with_feature('widget')
 
         # To keep track of the current row widget (e.g. a checkbox) in order to
         # change its background color when its row is hovered.
@@ -311,6 +309,10 @@ class ElementsTable(HoverRowsTableView):
         # changes row heights in unpredictable ways.
         self.resizeRowsToContents()
 
+    def _with_feature(self, feature_name: str) -> bool:
+        """Check if it's necessary to build the table with `feature_name`"""
+        return len([e for e in self.elements if e.get(feature_name)]) > 0
+
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def showEvent(self, event):
@@ -349,24 +351,43 @@ def test_elements_table():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()  # noqa
 
-    elements = [
+    elements_with_title = [
+        {'title': 'IPython console', 'description': 'Execute code'},
+        {'title': 'Help', 'description': 'Look for help'}
+    ]
+
+    table = ElementsTable(None, elements_with_title)
+    table.show()
+
+    elements_with_icons = [
+        {'title': 'IPython console', 'description': 'Execute code',
+         'icon': ima.icon('ipython_console')},
+        {'title': 'Help', 'description': 'Look for help',
+         'icon': ima.icon('help')}
+    ]
+
+    table_with_icons = ElementsTable(None, elements_with_icons)
+    table_with_icons.show()
+
+    elements_with_widgets = [
         {'title': 'IPython console', 'description': 'Execute code',
          'icon': ima.icon('ipython_console'), 'widget': QCheckBox()},
         {'title': 'Help', 'description': 'Look for help',
          'icon': ima.icon('help'), 'widget': QCheckBox()}
     ]
 
-    table = ElementsTable(None, elements)
-    table.show()
-
-    table_with_icons = ElementsTable(None, elements, with_icons=True)
-    table_with_icons.show()
-
-    table_with_widgets = ElementsTable(None, elements, with_widgets=True)
+    table_with_widgets = ElementsTable(None, elements_with_widgets)
     table_with_widgets.show()
 
-    table_with_widgets_and_icons = ElementsTable(
-        None, elements, with_icons=True, with_widgets=True)
+    elements_with_info = [
+        {'title': 'IPython console', 'description': 'Execute code',
+         'icon': ima.icon('ipython_console'), 'widget': QCheckBox(),
+         'additional_info': 'Core plugin'},
+        {'title': 'Help', 'description': 'Look for help',
+         'icon': ima.icon('help'), 'widget': QCheckBox()}
+    ]
+
+    table_with_widgets_and_icons = ElementsTable(None, elements_with_info)
     table_with_widgets_and_icons.show()
 
     app.exec_()

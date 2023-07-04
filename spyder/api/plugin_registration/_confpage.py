@@ -87,11 +87,9 @@ class PluginsConfigPage(PluginConfigPage):
             self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
 
         # Build plugins table
-        plugins_table = ElementsTable(
-            self, plugin_elements, with_icons=True, with_widgets=True,
-            with_addtional_info=True
-        )
+        plugins_table = ElementsTable(self, plugin_elements)
 
+        # Layout
         layout = QVBoxLayout()
         layout.addWidget(header_label)
         layout.addSpacing(15)
