@@ -154,7 +154,7 @@ class ApplicationConfigPage(PluginConfigPage):
                 _("Open files from Finder with Spyder"),
                 'mac_open_file',
                 tip=_("Register Spyder with the Launch Services"))
-            mac_open_file_box.toggled.connect(set_open_file)
+            mac_open_file_box.checkbox.toggled.connect(set_open_file)
             macOS_layout = QVBoxLayout()
             macOS_layout.addWidget(mac_open_file_box)
             if als.get_bundle_identifier() is None:
