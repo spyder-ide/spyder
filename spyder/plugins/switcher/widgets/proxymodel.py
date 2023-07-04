@@ -58,4 +58,3 @@ class SwitcherProxyModel(QSortFilterProxyModel):
             left_data = getattr(left_item, self.__sort_by)
             right_data = getattr(right_item, self.__sort_by)
             return left_data < right_data
-

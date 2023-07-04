@@ -17,18 +17,20 @@ from qtpy import PYQT5
 from qtpy.QtCore import (
     QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegExpValidator, QTextDocument, )
+                        QPainter, QRegExpValidator, QTextDocument, QPixmap)
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
                             QToolButton, QToolTip, QVBoxLayout,
-                            QWidget, QHBoxLayout)
+                            QWidget, QHBoxLayout, QLabel, QFrame)
 
 # Local imports
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.stylesheet import DialogStyle
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
@@ -410,6 +412,7 @@ class FinderWidget(QWidget):
         else:
             self.sig_find_text.emit("")
 
+
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom column filter based on regex."""
 
@@ -440,6 +443,90 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
             return False
         else:
             return True
+
+
+class PaneEmptyWidget(QFrame):
+    """Widget to show a pane/plugin functionality description."""
+
+    def __init__(self, parent, icon_filename, text, description):
+        super().__init__(parent)
+        # Image
+        image_path = get_image_path(icon_filename)
+        image = QPixmap(image_path)
+        image_height = int(image.height() * 0.8)
+        image_width = int(image.width() * 0.8)
+        image = image.scaled(
+            image_width, image_height,
+            Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
+        image_label = QLabel(self)
+        image_label.setPixmap(image)
+        image_label.setAlignment(Qt.AlignCenter)
+        image_label_qss = qstylizer.style.StyleSheet()
+        image_label_qss.QLabel.setValues(border="0px")
+        image_label.setStyleSheet(image_label_qss.toString())
+
+        # Main text
+        text_label = QLabel(text, parent=self)
+        text_label.setAlignment(Qt.AlignCenter)
+        text_label.setWordWrap(True)
+        text_label_qss = qstylizer.style.StyleSheet()
+        text_label_qss.QLabel.setValues(
+            fontSize=DialogStyle.ContentFontSize,
+            border="0px"
+        )
+        text_label.setStyleSheet(text_label_qss.toString())
+
+        # Description text
+        description_label = QLabel(description, parent=self)
+        description_label.setAlignment(Qt.AlignCenter)
+        description_label.setWordWrap(True)
+        description_label_qss = qstylizer.style.StyleSheet()
+        description_label_qss.QLabel.setValues(
+            fontSize="10pt",
+            backgroundColor=SpyderPalette.COLOR_OCCURRENCE_3,
+            border="0px",
+            padding="20px"
+        )
+        description_label.setStyleSheet(description_label_qss.toString())
+
+        # Setup layout
+        pane_empty_layout = QVBoxLayout()
+        pane_empty_layout.addStretch(1)
+        pane_empty_layout.addWidget(image_label)
+        pane_empty_layout.addWidget(text_label)
+        pane_empty_layout.addWidget(description_label)
+        pane_empty_layout.addStretch(2)
+        pane_empty_layout.setContentsMargins(10, 0, 10, 8)
+        self.setLayout(pane_empty_layout)
+
+        # Setup border style
+        self.setFocusPolicy(Qt.StrongFocus)
+        self._apply_stylesheet(False)
+
+    def focusInEvent(self, event):
+        self._apply_stylesheet(True)
+        super().focusOutEvent(event)
+
+    def focusOutEvent(self, event):
+        self._apply_stylesheet(False)
+        super().focusOutEvent(event)
+
+    def _apply_stylesheet(self, focus):
+        if focus:
+            border_color = QStylePalette.COLOR_ACCENT_3
+        else:
+            border_color = QStylePalette.COLOR_BACKGROUND_4
+
+        qss = qstylizer.style.StyleSheet()
+        qss.QFrame.setValues(
+            border=f'1px solid {border_color}',
+            margin='5px 1px 0px 1px',
+            padding='0px 0px 1px 0px',
+            borderRadius='3px'
+        )
+
+        self.setStyleSheet(qss.toString())
 
 
 def test_msgcheckbox():

@@ -24,9 +24,8 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
                                          is_known_type)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _, is_conda_based_app
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
@@ -38,7 +37,7 @@ LARGE_COLLECTION = 1e5
 LARGE_ARRAY = 5e6
 
 
-class CollectionsDelegate(QItemDelegate):
+class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     """CollectionsEditor Item Delegate"""
     sig_free_memory_requested = Signal()
     sig_editor_creation_started = Signal()
@@ -229,7 +228,9 @@ class CollectionsDelegate(QItemDelegate):
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
@@ -249,7 +250,9 @@ class CollectionsDelegate(QItemDelegate):
                 return None
             else:
                 editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after
@@ -510,7 +513,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 return editor
         # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40:
@@ -528,7 +533,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 return None
             else:
                 editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after

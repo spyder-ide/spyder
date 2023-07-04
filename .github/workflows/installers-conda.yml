@@ -58,14 +58,47 @@ env:
   ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
 
 jobs:
-  build-noarch-pkgs:
-    name: Build ${{ matrix.pkg }}
+  build-matrix:
+    name: Determine Build Matrix
     runs-on: ubuntu-latest
+    outputs:
+      target_platform: ${{ steps.build-matrix.outputs.target_platform }}
+      include: ${{ steps.build-matrix.outputs.include }}
+      python_version: ${{ steps.build-matrix.outputs.python_version }}
+
+    steps:
+    - name: Determine Build Matrix
+      id: build-matrix
+      run: |
+        if [[ $BUILD_MAC == "true" ]]; then
+            target_platform="'osx-64'"
+            include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
+        fi
+        if [[ $BUILD_LNX == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
+            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64'}"
+        fi
+        if [[ $BUILD_WIN == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'win-64'"
+            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64'}"
+        fi
+
+        python_version="'3.10'"
+
+        echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
+        echo "include=[$include]" >> $GITHUB_OUTPUT
+        echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
+
+  build-noarch-pkgs:
+    name: Build ${{ matrix.pkg }} Python-${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    needs:
+      - build-matrix
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     strategy:
       matrix:
         pkg: ["python-lsp-server", "qtconsole"]
-        python-version: ["3.9"]
+        python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
     defaults:
       run:
         shell: bash -l {0}
@@ -100,37 +133,6 @@ jobs:
         with:
           path: ${{ github.workspace }}/installers-conda/${{ env.artifact_name }}.tar.bz2
           name: ${{ env.artifact_name }}
-
-  build-matrix:
-    name: Determine Build Matrix
-    runs-on: ubuntu-latest
-    outputs:
-      target_platform: ${{ steps.build-matrix.outputs.target_platform }}
-      include: ${{ steps.build-matrix.outputs.include }}
-      python_version: ${{ steps.build-matrix.outputs.python_version }}
-
-    steps:
-    - name: Determine Build Matrix
-      id: build-matrix
-      run: |
-        if [[ $BUILD_MAC == "true" ]]; then
-            target_platform="'osx-64'"
-            include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
-        fi
-        if [[ $BUILD_LNX == "true" ]]; then
-            target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
-            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64'}"
-        fi
-        if [[ $BUILD_WIN == "true" ]]; then
-            target_platform=${target_platform:+"$target_platform, "}"'win-64'"
-            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64'}"
-        fi
-
-        python_version="'3.9'"
-
-        echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
-        echo "include=[$include]" >> $GITHUB_OUTPUT
-        echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
 
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}

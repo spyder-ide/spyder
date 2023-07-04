@@ -227,6 +227,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     self.restart_options[option] = checkbox.text()
                 else:
                     self.restart_options[(sec, option)] = checkbox.text()
+
         for radiobutton, (sec, option, default) in list(
                 self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default,
@@ -238,6 +239,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     self.restart_options[option] = radiobutton.label_text
                 else:
                     self.restart_options[(sec, option)] = radiobutton.label_text
+
         for lineedit, (sec, option, default) in list(self.lineedits.items()):
             data = self.get_option(option, default, section=sec)
             if getattr(lineedit, 'content_type', None) == list:
@@ -255,6 +257,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     self.restart_options[option] = lineedit.label_text
                 else:
                     self.restart_options[(sec, option)] = lineedit.label_text
+
         for textedit, (sec, option, default) in list(self.textedits.items()):
             data = self.get_option(option, default, section=sec)
             if getattr(textedit, 'content_type', None) == list:
@@ -269,10 +272,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     self.restart_options[option] = textedit.label_text
                 else:
                     self.restart_options[(sec, option)] = textedit.label_text
+
         for spinbox, (sec, option, default) in list(self.spinboxes.items()):
             spinbox.setValue(self.get_option(option, default, section=sec))
             spinbox.valueChanged.connect(lambda _foo, opt=option, sect=sec:
                                          self.has_been_modified(sect, opt))
+
         for combobox, (sec, option, default) in list(self.comboboxes.items()):
             value = self.get_option(option, default, section=sec)
             for index in range(combobox.count()):
@@ -297,22 +302,22 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     self.restart_options[(sec, option)] = combobox.label_text
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            rich_font = True if "rich" in option.lower() else False
-            font = self.get_font(rich_font)
+            font = self.get_font(option)
             fontbox.setCurrentFont(font)
             sizebox.setValue(font.pointSize())
-            if option is None:
-                property = 'plugin_font'
-            else:
-                property = option
-            fontbox.currentIndexChanged.connect(lambda _foo, opt=property:
-                                                self.has_been_modified(
-                                                    self.CONF_SECTION, opt))
-            sizebox.valueChanged.connect(lambda _foo, opt=property:
-                                         self.has_been_modified(
-                                             self.CONF_SECTION, opt))
+
+            fontbox.currentIndexChanged.connect(
+                lambda _foo, opt=option: self.has_been_modified(None, opt))
+            sizebox.valueChanged.connect(
+                lambda _foo, opt=option: self.has_been_modified(None, opt))
+
+            if fontbox.restart_required:
+                self.restart_options[option] = fontbox.label_text
+
+            if sizebox.restart_required:
+                self.restart_options[option] = sizebox.label_text
+
         for clayout, (sec, option, default) in list(self.coloredits.items()):
-            property = to_qvariant(option)
             edit = clayout.lineedit
             btn = clayout.colorbtn
             edit.setText(self.get_option(option, default, section=sec))
@@ -325,6 +330,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                     self.has_been_modified(sect, opt))
             edit.textChanged.connect(lambda _foo, opt=option, sect=sec:
                                      self.has_been_modified(sect, opt))
+
         for (clayout, cb_bold, cb_italic
              ), (sec, option, default) in list(self.scedits.items()):
             edit = clayout.lineedit
@@ -354,12 +360,14 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 value = checkbox.isChecked()
                 self.set_option(option, value, section=sec,
                                 recursive_notification=False)
+
         for radiobutton, (sec, option, _default) in list(
                 self.radiobuttons.items()):
             if (option in self.changed_options or
                     (sec, option) in self.changed_options):
                 self.set_option(option, radiobutton.isChecked(), section=sec,
                                 recursive_notification=False)
+
         for lineedit, (sec, option, _default) in list(self.lineedits.items()):
             if (option in self.changed_options or
                     (sec, option) in self.changed_options):
@@ -371,6 +379,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     data = to_text_string(data)
                 self.set_option(option, data, section=sec,
                                 recursive_notification=False)
+
         for textedit, (sec, option, _default) in list(self.textedits.items()):
             if (option in self.changed_options or
                     (sec, option) in self.changed_options):
@@ -387,28 +396,33 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                     data = to_text_string(data)
                 self.set_option(option, data, section=sec,
                                 recursive_notification=False)
+
         for spinbox, (sec, option, _default) in list(self.spinboxes.items()):
             if (option in self.changed_options or
                     (sec, option) in self.changed_options):
                 self.set_option(option, spinbox.value(), section=sec,
                                 recursive_notification=False)
+
         for combobox, (sec, option, _default) in list(self.comboboxes.items()):
             if (option in self.changed_options or
                     (sec, option) in self.changed_options):
                 data = combobox.itemData(combobox.currentIndex())
                 self.set_option(option, from_qvariant(data, to_text_string),
                                 section=sec, recursive_notification=False)
+
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            if (self.CONF_SECTION, option) in self.changed_options:
+            if option in self.changed_options:
                 font = fontbox.currentFont()
                 font.setPointSize(sizebox.value())
                 self.set_font(font, option)
+
         for clayout, (sec, option, _default) in list(self.coloredits.items()):
             if (option in self.changed_options or
                     (sec, option) in self.changed_options):
                 self.set_option(option,
                                 to_text_string(clayout.lineedit.text()),
                                 section=sec, recursive_notification=False)
+
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
                 self.scedits.items()):
             if (option in self.changed_options or
@@ -819,14 +833,17 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_fontgroup(self, option=None, text=None, title=None,
                          tip=None, fontfilters=None, without_group=False,
-                         help_info=False):
+                         help_info=False, restart=False):
         """Option=None -> setting plugin font"""
 
         if title:
             fontlabel = QLabel(title)
         else:
             fontlabel = QLabel(_("Font"))
+
         fontbox = QFontComboBox()
+        fontbox.restart_required = restart
+        fontbox.label_text = _("{} font").format(title)
 
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
@@ -834,9 +851,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         sizelabel = QLabel("  " + _("Size"))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
-        self.fontboxes[(fontbox, sizebox)] = option
-        layout = QHBoxLayout()
+        sizebox.restart_required = restart
+        sizebox.label_text = _("{} font size").format(title)
 
+        self.fontboxes[(fontbox, sizebox)] = option
+
+        layout = QHBoxLayout()
         for subwidget in (fontlabel, fontbox, sizelabel, sizebox):
             layout.addWidget(subwidget)
         layout.addStretch(1)

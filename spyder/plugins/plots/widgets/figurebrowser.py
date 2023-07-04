@@ -23,13 +23,14 @@ from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget)
+                            QVBoxLayout, QWidget, QStackedLayout)
 
 # Local library imports
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # TODO:
@@ -141,12 +142,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.shellwidget = None
-        self.is_visible = True
         self.figviewer = None
         self.setup_in_progress = False
         self.background_color = background_color
         self.mute_inline_plotting = None
         self.zoom_disp_value = None
+        self._update_when_shown = True
 
         # Setup the figure viewer.
         self.figviewer = FigureViewer(parent=self,
@@ -170,6 +171,17 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
 
+        # Widget empty pane
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "plots",
+            _("No plots to show"),
+            _("Run plot-generating code in the Editor or IPython console to "
+              "see your figures appear here. This pane only supports "
+              "static images, so it can't display interactive plots "
+              "like Bokeh, Plotly or Altair.")
+        )
+
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
         splitter.addWidget(self.figviewer)
@@ -177,11 +189,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
 
-        layout = QHBoxLayout(self)
-        layout.addWidget(splitter)
-        self.setLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(splitter)
+        self.stack_layout.addWidget(self.pane_empty)
+        self.setLayout(self.stack_layout)
+        self.stack_layout.setContentsMargins(0, 0, 0, 0)
+        self.stack_layout.setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)
 
     def _update_zoom_value(self, value):
@@ -205,6 +218,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
                 self.show_fig_outline_in_viewer(value)
             elif option == 'save_dir':
                 self.thumbnails_sb.save_dir = value
+
+    def set_pane_empty(self, empty):
+        if empty:
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.splitter)
 
     def update_splitter_widths(self, base_width):
         """
@@ -295,6 +314,17 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Copy figure from figviewer to clipboard."""
         if self.figviewer and self.figviewer.figcanvas.fig:
             self.figviewer.figcanvas.copy_figure()
+
+    # ---- Qt methods
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if self._update_when_shown:
+            # We only do this the first time the widget is shown to not change
+            # the splitter widths that users can set themselves.
+            self.update_splitter_widths(self.width())
+            self._update_when_shown = False
+
+        super().showEvent(event)
 
 
 class FigureViewer(QScrollArea, SpyderWidgetMixin):

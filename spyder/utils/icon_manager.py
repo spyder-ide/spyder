@@ -316,6 +316,7 @@ class IconManager():
             'constructor':             [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'function':                [('mdi.alpha-f-box',), {'color': SpyderPalette.COLOR_WARN_3, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'blockcomment':            [('mdi.pound',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.SMALL_ATTR_FACTOR}],
+            'cell':                    [('mdi.percent',), {'color':SpyderPalette.GROUP_9, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'no_match':                [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'github':                  [('mdi.github',), {'color': self.MAIN_FG_COLOR}],
             # --- Spyder Tour --------------------------------------------------------
