@@ -14,7 +14,7 @@ from typing import List, Optional, TypedDict
 
 # Third-party imports
 import qstylizer.style
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
+from qtpy.QtCore import QAbstractTableModel, QEvent, QModelIndex, QSize, Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 
@@ -291,8 +291,10 @@ class ElementsTable(HoverRowsTableView):
 
         self.setStyleSheet(css.toString())
 
-    def _adjust_columns_and_rows_size(self):
+    def _set_layout(self):
         """
+        Set rows and columns layout.
+
         This is necessary to make the table look good at different sizes.
         """
         # Resize title column so that the table fits into the available
@@ -319,7 +321,7 @@ class ElementsTable(HoverRowsTableView):
     # -------------------------------------------------------------------------
     def showEvent(self, event):
         if not self._is_shown:
-            self._adjust_columns_and_rows_size()
+            self._set_layout()
 
             # To not run the adjustments above every time the widget is shown
             self._is_shown = True
@@ -345,8 +347,17 @@ class ElementsTable(HoverRowsTableView):
         self._set_stylesheet()
 
     def resizeEvent(self, event):
-        self._adjust_columns_and_rows_size()
+        # This is necessary to readjust the layout when the parent widget is
+        # resized.
+        self._set_layout()
         super().resizeEvent(event)
+
+    def event(self, event):
+        # This is necessary to readjust the layout when the parent widget is
+        # maximized.
+        if event.type() == QEvent.LayoutRequest:
+            self._set_layout()
+        return super().event(event)
 
 
 def test_elements_table():
