@@ -1110,12 +1110,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- General
     # -------------------------------------------------------------------------
-    def update_font(self, font, rich_font):
+    def update_font(self, font, app_font):
         self._font = font
-        self._rich_font = rich_font
+        self._app_font = app_font
 
         if self.enable_infowidget:
-            self.infowidget.set_font(rich_font)
+            self.infowidget.set_font(app_font)
 
         for client in self.clients:
             client.set_font(font)

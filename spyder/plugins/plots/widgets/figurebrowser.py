@@ -142,12 +142,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.shellwidget = None
-        self.is_visible = True
         self.figviewer = None
         self.setup_in_progress = False
         self.background_color = background_color
         self.mute_inline_plotting = None
         self.zoom_disp_value = None
+        self._update_when_shown = True
 
         # Setup the figure viewer.
         self.figviewer = FigureViewer(parent=self,
@@ -314,6 +314,17 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Copy figure from figviewer to clipboard."""
         if self.figviewer and self.figviewer.figcanvas.fig:
             self.figviewer.figcanvas.copy_figure()
+
+    # ---- Qt methods
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if self._update_when_shown:
+            # We only do this the first time the widget is shown to not change
+            # the splitter widths that users can set themselves.
+            self.update_splitter_widths(self.width())
+            self._update_when_shown = False
+
+        super().showEvent(event)
 
 
 class FigureViewer(QScrollArea, SpyderWidgetMixin):
