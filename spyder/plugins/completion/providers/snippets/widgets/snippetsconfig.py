@@ -22,9 +22,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QTableView, QVBoxLayout)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.manager import CONF
-from spyder.config.gui import get_font
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.snippets.ast import build_snippet_ast
 from spyder.widgets.helperwidgets import ItemDelegate
@@ -215,7 +214,7 @@ class Snippet:
                             recursive_notification=False)
 
 
-class SnippetEditor(QDialog):
+class SnippetEditor(QDialog, SpyderFontsMixin):
     SNIPPET_VALID = _('Valid snippet')
     SNIPPET_INVALID = _('Invalid snippet')
     INVALID_CB_CSS = "QComboBox {border: 1px solid red;}"
@@ -305,7 +304,7 @@ class SnippetEditor(QDialog):
             color_scheme=get_option('selected', section='appearance'),
             wrap=False,
             highlight_current_line=True,
-            font=get_font()
+            font=self.get_font(SpyderFontType.MonospaceInterface)
         )
         self.snippet_input.set_language(language)
         self.snippet_input.setToolTip(_('Snippet text completion to insert'))

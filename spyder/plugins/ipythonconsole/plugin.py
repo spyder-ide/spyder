@@ -15,6 +15,7 @@ from typing import List
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -228,7 +229,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': 'py',
+            'extension': ['py', 'ipy'],
             'contexts': [
                 {
                     'name': 'File'
@@ -244,7 +245,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -254,7 +255,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Cell'
                 },
@@ -264,7 +265,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Selection'
                 },
@@ -440,9 +441,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_font()
-        rich_font = self.get_font(rich_text=True)
-        self.get_widget().update_font(font, rich_font)
+        font = self.get_font(SpyderFontType.Monospace)
+        app_font = self.get_font(SpyderFontType.Interface)
+        self.get_widget().update_font(font, app_font)
 
     def on_close(self, cancelable=False):
         """Perform actions when plugin is closed"""

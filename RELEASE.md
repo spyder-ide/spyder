@@ -161,7 +161,10 @@ To release a new version of Spyder you need to follow these steps:
 
 * git pull or git fetch/merge
 
-* Update `changelogs/Spyder-5.md` with `loghub spyder-ide/spyder -m vX.X.X`
+* Update `changelogs/Spyder-6.md` with `loghub spyder-ide/spyder -m vX.X.X`
+
+    - When releasing the first alpha of a new major version (e.g. Spyder 7), you need to add a new file called `changelogs/Spyder-7.md` to the tree.
+    - After that, add `changelogs/Spyder-7.md` to `MANIFEST.in`, remove `changelogs/Spyder-6.md` from it and add that path to the `check-manifest/ignore` section of `setup.cfg`.
 
 * Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-5.md`. For this take a look at closed issues and PRs for the current milestone.
 

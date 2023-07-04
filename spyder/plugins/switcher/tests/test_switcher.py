@@ -76,24 +76,28 @@ def test_switcher_filter_and_mode(dlg_switcher, qtbot):
 
     # Help mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText("?")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 5
 
     # Symbol mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText("@")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 2
 
     # Commands mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText(">")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 7
 
     # Text mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText(":")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 1

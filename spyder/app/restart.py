@@ -91,7 +91,7 @@ class Restarter(QWidget):
 
         # Widgets
         self.timer_ellipsis = QTimer(self)
-        self.splash = create_splash_screen()
+        self.splash = create_splash_screen(use_previous_factor=True)
 
         # Widget setup
         self.setVisible(False)
@@ -179,6 +179,7 @@ def main():
     # -------------------------------------------------------------------------
     # Start Qt Splash to inform the user of the current status
     app = qapplication()
+    app.set_font()
     restarter = Restarter()
 
     APP_ICON = QIcon(get_image_path("spyder"))

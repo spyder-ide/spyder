@@ -114,6 +114,7 @@ def test_formatting_on_save(completions_editor, formatter, qtbot):
     # Make a simple change to the file
     code_editor.moveCursor(QTextCursor.EndOfLine)
     qtbot.keyPress(code_editor, Qt.Key_Space)
+    current_position = cursor.position()
     qtbot.wait(500)
 
     # Save the file
@@ -125,4 +126,4 @@ def test_formatting_on_save(completions_editor, formatter, qtbot):
     # Check that auto-formatting was applied on save and that we restored the
     # previous line.
     assert code_editor.get_text_with_eol() == expected
-    assert code_editor.textCursor().blockNumber() == current_line
+    assert code_editor.textCursor().position() == current_position
