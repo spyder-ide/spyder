@@ -19,6 +19,7 @@ from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.widgets.helperwidgets import HoverRowsTableView, HTMLDelegate
@@ -48,13 +49,12 @@ class Element(TypedDict):
     """
 
 
-class ElementsModel(QAbstractTableModel):
+class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
 
     def __init__(
         self,
         parent: QWidget,
         elements: List[Element],
-        title_font_size: int,
         with_icons: bool,
         with_addtional_info: bool,
         with_widgets: bool,
@@ -83,7 +83,11 @@ class ElementsModel(QAbstractTableModel):
             else:
                 self.columns['widgets'] = 1
 
+        # Text styles
         text_color = QStylePalette.COLOR_TEXT_1
+        title_font_size = self.get_font(
+            SpyderFontType.Interface, font_size_delta=1).pointSize()
+
         self.title_style = f'color:{text_color}; font-size:{title_font_size}pt'
         self.additional_info_style = f'color:{QStylePalette.COLOR_TEXT_4}'
         self.description_style = f'color:{text_color}'
@@ -168,10 +172,8 @@ class ElementsTable(HoverRowsTableView):
         self.sig_hover_index_changed.connect(self._on_hover_index_changed)
 
         # Set model
-        title_font_size = self.horizontalHeader().font().pointSize() + 1
         self.model = ElementsModel(
-            self, elements, title_font_size, with_icons, with_addtional_info,
-            with_widgets
+            self, elements, with_icons, with_addtional_info, with_widgets
         )
         self.setModel(self.model)
 
