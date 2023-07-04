@@ -9,9 +9,13 @@ Table widget to display a set of elements with title, description, icon and an
 associated widget.
 """
 
+# Standard library imports
+from typing import List, Optional, TypedDict
+
 # Third-party imports
 import qstylizer.style
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 
 # Local imports
@@ -20,23 +24,68 @@ from spyder.utils.palette import QStylePalette
 from spyder.widgets.helperwidgets import HoverRowsTableView, HTMLDelegate
 
 
-class ElementsTableColumns:
-    Text = 0
-    Widgets = 1
+class Element(TypedDict):
+    """Spec for elements that can be displayed in ElementsTable."""
+
+    title: str
+    """Element title"""
+
+    description: str
+    """Element description"""
+
+    additional_info: Optional[str]
+    """
+    Additional info that needs to be displayed in a separate column (optional)
+    """
+
+    icon: Optional[QIcon]
+    """Element icon (optional)"""
+
+    widget: Optional[QWidget]
+    """
+    Element widget, e.g. a checkbox or radio button associated to the element
+    (optional)
+    """
 
 
 class ElementsModel(QAbstractTableModel):
 
-    def __init__(self, parent, elements, title_font_size, with_icons,
-                 with_widgets):
+    def __init__(
+        self,
+        parent: QWidget,
+        elements: List[Element],
+        title_font_size: int,
+        with_icons: bool,
+        with_addtional_info: bool,
+        with_widgets: bool,
+    ):
         QAbstractTableModel.__init__(self)
 
         self.elements = elements
         self.with_icons = with_icons
-        self.with_widgets = with_widgets
+
+        # Number of columns
+        self.n_columns = 1
+
+        # Index corresponding to columns. The 'title' column is always expected
+        self.columns = {'title': 0}
+
+        # Extra columns
+        if with_addtional_info:
+            self.n_columns += 1
+            self.columns['additional_info'] = 1
+
+        if with_widgets:
+            self.n_columns += 1
+
+            if self.n_columns == 3:
+                self.columns['widgets'] = 2
+            else:
+                self.columns['widgets'] = 1
 
         text_color = QStylePalette.COLOR_TEXT_1
         self.title_style = f'color:{text_color}; font-size:{title_font_size}pt'
+        self.additional_info_style = f'color:{QStylePalette.COLOR_TEXT_4}'
         self.description_style = f'color:{text_color}'
 
     # ---- Qt overrides
@@ -46,17 +95,17 @@ class ElementsModel(QAbstractTableModel):
         element = self.elements[index.row()]
 
         if role == Qt.DisplayRole:
-            if self.with_widgets:
-                if index.column() == ElementsTableColumns.Text:
-                    return self.get_html_representation(element)
+            if index.column() == self.columns['title']:
+                return self.get_title_repr(element)
+            elif index.column() == self.columns.get('additional_info'):
+                return self.get_info_repr(element)
             else:
-                return self.get_html_representation(element)
+                return None
         elif role == Qt.DecorationRole and self.with_icons:
-            if self.with_widgets:
-                if index.column() == ElementsTableColumns.Text:
-                    return element['icon']
-            else:
+            if index.column() == self.columns['title']:
                 return element['icon']
+            else:
+                return None
 
         return None
 
@@ -64,14 +113,11 @@ class ElementsModel(QAbstractTableModel):
         return len(self.elements)
 
     def columnCount(self, index=QModelIndex()):
-        if self.with_widgets:
-            return 2
-        else:
-            return 1
+        return self.n_columns
 
     # ---- Own methods
     # -------------------------------------------------------------------------
-    def get_html_representation(self, element):
+    def get_title_repr(self, element: Element) -> str:
         return (
             f'<table cellspacing="0" cellpadding="3">'
             # Title
@@ -85,14 +131,31 @@ class ElementsModel(QAbstractTableModel):
             f'</table>'
         )
 
+    def get_info_repr(self, element: Element) -> str:
+        if element.get('additional_info'):
+            additional_info = f' {element["additional_info"]}'
+        else:
+            return ''
+
+        return (
+            f'<span style="{self.additional_info_style}">'
+            f'{additional_info}'
+            f'</span>'
+        )
+
 
 class ElementsTable(HoverRowsTableView):
 
-    def __init__(self, parent, elements, with_icons=False, with_widgets=False):
+    def __init__(
+        self,
+        parent: QWidget,
+        elements: List[Element],
+        with_icons: bool = False,
+        with_addtional_info: bool = False,
+        with_widgets: bool = False
+    ):
         HoverRowsTableView.__init__(self, parent)
-
         self.elements = elements
-        self.with_widgets = with_widgets
 
         # To keep track of the current row widget (e.g. a checkbox) in order to
         # change its background color when its row is hovered.
@@ -102,34 +165,78 @@ class ElementsTable(HoverRowsTableView):
         # To do adjustments when the widget is shown only once
         self._is_shown = False
 
-        # Set model and item delegate.
+        # This is used to paint the entire row's background color when its
+        # hovered.
+        self.sig_hover_index_changed.connect(self._on_hover_index_changed)
+
+        # Set model
         title_font_size = self.horizontalHeader().font().pointSize() + 1
         self.model = ElementsModel(
-            self, elements, title_font_size, with_icons, with_widgets
+            self, elements, title_font_size, with_icons, with_addtional_info,
+            with_widgets
         )
         self.setModel(self.model)
-        self.setItemDelegate(HTMLDelegate(self, margin=9, wrap_text=True))
 
-        # To paint the entire row's background color when its hovered.
-        if with_widgets:
-            self.sig_hover_index_changed.connect(self._on_hover_index_changed)
+        # Adjustments for the title column
+        title_delegate = HTMLDelegate(self, margin=9, wrap_text=True)
+        self.setItemDelegateForColumn(
+            self.model.columns['title'], title_delegate)
+        self.sig_hover_index_changed.connect(
+             title_delegate.on_hover_index_changed)
+
+        # Adjustments for the additional info column
+        self._info_column_width = 0
+        if with_addtional_info:
+            info_delegate = HTMLDelegate(self, margin=10)
+            self.setItemDelegateForColumn(
+                self.model.columns['additional_info'], info_delegate)
             self.sig_hover_index_changed.connect(
-                self.itemDelegate().on_hover_index_changed
-            )
+                 info_delegate.on_hover_index_changed)
 
-        if with_widgets:
-            # Adjust columns size. This is necessary for the next step
+            # This is necessary to get this column's width below
             self.resizeColumnsToContents()
 
-            # Get the width that Qt gives to the widgets column, so that we can
-            # resize the text column afterwards by substracting this value from
-            # the horizontal header width.
+            self._info_column_width = self.horizontalHeader().sectionSize(
+                self.model.columns['additional_info'])
+
+        # Adjustments for the widgets column
+        self._widgets_column_width = 0
+        if with_widgets:
+            widgets_delegate = HTMLDelegate(self, margin=0)
+            self.setItemDelegateForColumn(
+                self.model.columns['widgets'], widgets_delegate)
+            self.sig_hover_index_changed.connect(
+                 widgets_delegate.on_hover_index_changed)
+
+            # This is necessary to get this column's width below
+            self.resizeColumnsToContents()
+
             # Note: We add 15 pixels to the Qt width so that the widgets are
             # not so close to the right border of the table, which doesn't look
             # good.
-            self._widget_column_width = self.horizontalHeader().sectionSize(
-                ElementsTableColumns.Widgets) + 15
+            self._widgets_column_width = self.horizontalHeader().sectionSize(
+                self.model.columns['widgets']) + 15
 
+            # Add widgets
+            for i in range(len(elements)):
+                layout = QHBoxLayout()
+                layout.addWidget(elements[i]['widget'])
+                layout.setAlignment(Qt.AlignHCenter)
+
+                container_widget = QWidget(self)
+                container_widget.setLayout(layout)
+
+                # This key is not accounted for in Element because it's only
+                # used internally, so it doesn't need to provided in a list of
+                # Element's.
+                elements[i]['row_widget'] = container_widget
+
+                self.setIndexWidget(
+                    self.model.index(i, self.model.columns['widgets']),
+                    container_widget
+                )
+
+        # Make last column take the available space to the right
         self.horizontalHeader().setStretchLastSection(True)
 
         # Hide headers
@@ -142,22 +249,6 @@ class ElementsTable(HoverRowsTableView):
 
         # Hide grid to only paint horizontal lines with css
         self.setShowGrid(False)
-
-        # Add widgets
-        if with_widgets:
-            for i in range(len(elements)):
-                layout = QHBoxLayout()
-                layout.addWidget(elements[i]['widget'])
-                layout.setAlignment(Qt.AlignHCenter)
-
-                container_widget = QWidget(self)
-                container_widget.setLayout(layout)
-                elements[i]['row_widget'] = container_widget
-
-                self.setIndexWidget(
-                    self.model.index(i, ElementsTableColumns.Widgets),
-                    container_widget
-                )
 
         # Set selection behavior
         self.setSelectionMode(QAbstractItemView.NoSelection)
@@ -204,18 +295,19 @@ class ElementsTable(HoverRowsTableView):
         """
         This is necessary to make the table look good at different sizes.
         """
-        # Resize text column so that the widgets one always has the same width
-        if self.with_widgets:
-            text_column_width = (
+        # Resize title column so that the table fits into the available
+        # horizontal space.
+        if self._info_column_width > 0 or self._widgets_column_width > 0:
+            title_column_width = (
                 self.horizontalHeader().size().width() -
-                self._widget_column_width
+                (self._info_column_width + self._widgets_column_width)
             )
 
             self.horizontalHeader().resizeSection(
-                ElementsTableColumns.Text, text_column_width
+                self.model.columns['title'], title_column_width
             )
 
-        # Resize rows. This is done because wrapping text in HTMLDelegate
+        # Resize rows. This is done because wrapping text in HTMLDelegate's
         # changes row heights in unpredictable ways.
         self.resizeRowsToContents()
 

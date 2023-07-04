@@ -50,7 +50,8 @@ class PluginsConfigPage(PluginConfigPage):
                     title=PluginClass.get_name(),
                     description=PluginClass.get_description(),
                     icon=PluginClass.get_icon(),
-                    widget=cb
+                    widget=cb,
+                    additional_info=_("Core plugin")
                 )
             )
 
@@ -87,7 +88,8 @@ class PluginsConfigPage(PluginConfigPage):
 
         # Build plugins table
         plugins_table = ElementsTable(
-            self, plugin_elements, with_icons=True, with_widgets=True
+            self, plugin_elements, with_icons=True, with_widgets=True,
+            with_addtional_info=True
         )
 
         layout = QVBoxLayout()
