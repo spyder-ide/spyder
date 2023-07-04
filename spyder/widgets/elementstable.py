@@ -173,7 +173,7 @@ class ElementsTable(HoverRowsTableView):
 
         # Set model
         self.model = ElementsModel(
-            self, elements, with_icons, with_addtional_info, with_widgets
+            self, self.elements, with_icons, with_addtional_info, with_widgets
         )
         self.setModel(self.model)
 
@@ -218,9 +218,9 @@ class ElementsTable(HoverRowsTableView):
                 self.model.columns['widgets']) + 15
 
             # Add widgets
-            for i in range(len(elements)):
+            for i in range(len(self.elements)):
                 layout = QHBoxLayout()
-                layout.addWidget(elements[i]['widget'])
+                layout.addWidget(self.elements[i]['widget'])
                 layout.setAlignment(Qt.AlignHCenter)
 
                 container_widget = QWidget(self)
@@ -229,7 +229,7 @@ class ElementsTable(HoverRowsTableView):
                 # This key is not accounted for in Element because it's only
                 # used internally, so it doesn't need to provided in a list of
                 # Element's.
-                elements[i]['row_widget'] = container_widget
+                self.elements[i]['row_widget'] = container_widget
 
                 self.setIndexWidget(
                     self.model.index(i, self.model.columns['widgets']),
@@ -314,7 +314,7 @@ class ElementsTable(HoverRowsTableView):
         self.resizeRowsToContents()
 
     def _with_feature(self, feature_name: str) -> bool:
-        """Check if it's necessary to build the table with `feature_name`"""
+        """Check if it's necessary to build the table with `feature_name`."""
         return len([e for e in self.elements if e.get(feature_name)]) > 0
 
     # ---- Qt methods
