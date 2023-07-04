@@ -77,10 +77,6 @@ class PlotsWidget(ShellConnectMainWidget):
         self.zoom_disp.setRange(0, 9999)
         self.zoom_disp.setValue(100)
 
-        # Resize to a huge width to get the right size of the thumbnail
-        # scrollbar at startup.
-        self.resize(50000, self.height())
-
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -272,13 +268,11 @@ class PlotsWidget(ShellConnectMainWidget):
                 widget.setup({option: value})
                 self.update_actions()
 
-    # ---- Public API:
+    # ---- Public API
     # ------------------------------------------------------------------------
-
     def create_new_widget(self, shellwidget):
         fig_browser = FigureBrowser(parent=self,
                                     background_color=MAIN_BG_COLOR)
-        fig_browser.update_splitter_widths(self.width())
         fig_browser.set_shellwidget(shellwidget)
         fig_browser.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)

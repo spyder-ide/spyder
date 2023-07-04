@@ -90,6 +90,18 @@ class Switcher(SpyderPluginV2):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
+    sig_search_text_available = Signal(str, list)
+    """
+    This signal is emitted when the user stops typing the search/filter text.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search/filter text.
+    items_data: list
+        List of items shown in the switcher.
+    """
+
     # --- SpyderPluginV2 API
     # ------------------------------------------------------------------------
     @staticmethod
@@ -111,6 +123,8 @@ class Switcher(SpyderPluginV2):
         self._switcher.sig_item_changed.connect(self.sig_item_changed)
         self._switcher.sig_item_selected.connect(self.sig_item_selected)
         self._switcher.sig_mode_selected.connect(self.sig_mode_selected)
+        self._switcher.sig_search_text_available.connect(
+            self.sig_search_text_available)
 
     def on_close(self, cancellable=True):
         """Close switcher widget."""
@@ -190,11 +204,15 @@ class Switcher(SpyderPluginV2):
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True):
+                 last_item=True, score=None):
         """Add a switcher list item."""
         self._switcher.add_item(icon, title, description, shortcut,
                                 section, data, tool_tip, action_item,
-                                last_item)
+                                last_item, score)
+
+    def set_current_row(self, row):
+        """Set the current selected row in the switcher."""
+        self._switcher.set_current_row(row)
 
     def add_separator(self):
         """Add a separator item."""

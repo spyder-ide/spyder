@@ -43,11 +43,10 @@ from spyder_kernels.utils.nsview import (
 )
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_text_string,
                               is_type_text_string)
 from spyder.utils.icon_manager import ima
@@ -128,7 +127,7 @@ class ProxyObject(object):
                 raise
 
 
-class ReadOnlyCollectionsModel(QAbstractTableModel):
+class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
     """CollectionsEditor Read-Only Table Model"""
 
     sig_setting_data = Signal()
@@ -197,6 +196,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
+
         if not isinstance(self._data, ProxyObject):
             if len(self.keys) > 1:
                 elements = _("elements")
@@ -206,17 +206,21 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             data_type = get_type_string(data)
             self.title += data_type
+
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
+
         self.sig_setting_data.emit()
         self.set_size_and_type()
+
         if len(self.keys):
             # Needed to update search scores when
             # adding values to the namespace
             self.update_search_letters()
+
         self.reset()
 
     def set_size_and_type(self, start=None, stop=None):
@@ -440,7 +444,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return to_qvariant(
+                self.get_font(SpyderFontType.MonospaceInterface)
+            )
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -617,6 +623,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.setHorizontalHeader(BaseHeaderView(parent=self))
         self.horizontalHeader().sig_user_resized_section.connect(
             self.user_resize_columns)
+
+        # There is no need for us to show this header because we're not using
+        # it to show any information on it.
+        self.verticalHeader().hide()
 
     def setup_table(self):
         """Setup table"""
@@ -963,6 +973,17 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.sig_files_dropped.emit(urls)
         else:
             event.ignore()
+
+    def showEvent(self, event):
+        """Resize columns when the widget is shown."""
+        # This is probably the best we can do to adjust the columns width to
+        # their header contents at startup. However, it doesn't work for all
+        # fonts and font sizes and perhaps it depends on the user's screen dpi
+        # as well. See the discussion in
+        # https://github.com/spyder-ide/spyder/pull/20933#issuecomment-1585474443
+        # and the comments below for more details.
+        self.adjust_columns()
+        super().showEvent(event)
 
     def _deselect_index(self, index):
         """
