@@ -209,7 +209,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def connect_kernel(self, kernel_handler):
         """Connect to the kernel using our handler."""
-        
+
         if self._shellwidget_state == "starting":
             self.sig_shellwidget_created.emit(self)
 
@@ -435,7 +435,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Send kernel configuration to spyder kernel."""
         # Set matplotlib backend
         self.send_mpl_backend()
-        
+
         # Make sure special kernel is correctly set up
         self.reset_special_kernel()
 
@@ -536,11 +536,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._cwd = dirname
         if emit_cwd_change:
             self.sig_working_directory_changed.emit(self._cwd)
-    
+
     def send_mpl_backend(self):
         """Send matplotlib backend."""
         # Set Matplotlib backend with Spyder options
-        
+
         pylab_n = 'pylab'
         pylab_o = self.get_conf(pylab_n)
         pylab_autoload_n = 'pylab/autoload'
@@ -552,10 +552,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
         backend_o = self.get_conf(pylab_backend_n)
 
+        inline_backend = 0
+
         if pylab_o and backend_o is not None:
             mpl_backend = backend_o
             # Inline backend configuration
-            if mpl_backend == 'inline':
+            if mpl_backend == inline_backend:
                 # Figure format
                 format_o = self.get_conf(inline_backend_figure_format_n)
                 if format_o:
@@ -565,7 +567,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 resolution_o = self.get_conf(inline_backend_resolution_n)
                 if resolution_o is not None:
                     self.set_mpl_inline_resolution(resolution_o)
-                    
+
                 # Figure size
                 width_o = float(self.get_conf(inline_backend_width_n))
                 height_o = float(self.get_conf(inline_backend_height_n))
@@ -579,7 +581,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         else:
             # Set Matplotlib backend to inline for external kernels.
             # Fixes issue 108
-            mpl_backend = 'inline'
+            mpl_backend = inline_backend
 
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
@@ -869,22 +871,22 @@ the sympy module (e.g. plot)
                     self.send_spyder_kernel_configuration()
         except AttributeError:
             pass
-    
+
     def reset_special_kernel(self):
         """Reset special kernel"""
         if self.kernel_handler is None:
             # This is not a special kernel
             return
-        
+
         if self.kernel_handler.special is None:
             return
-        
-        
+
+
         # Check if the dependecies for special consoles are available.
         self.call_kernel(
             callback=self.ipyclient._show_special_console_error
             ).is_special_kernel_valid(self.kernel_handler.special)
-        
+
         if self.kernel_handler.special == "pylab":
             self.silent_execute("from pylab import *")
         if self.kernel_handler.special == "sympy":
