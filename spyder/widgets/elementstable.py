@@ -185,7 +185,7 @@ class ElementsTable(HoverRowsTableView):
         # Adjustments for the additional info column
         self._info_column_width = 0
         if with_addtional_info:
-            info_delegate = HTMLDelegate(self, margin=10)
+            info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
             self.setItemDelegateForColumn(
                 self.model.columns['additional_info'], info_delegate)
             self.sig_hover_index_changed.connect(

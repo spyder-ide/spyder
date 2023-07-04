@@ -119,11 +119,12 @@ class HTMLDelegate(QStyledItemDelegate):
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
 
-    def __init__(self, parent, margin=0, wrap_text=False):
+    def __init__(self, parent, margin=0, wrap_text=False, align_vcenter=False):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
         self._wrap_text = wrap_text
         self._hovered_row = -1
+        self._align_vcenter = align_vcenter
 
     def _prepare_text_document(self, option, index):
         # This logic must be shared between paint and sizeHint for consistency
@@ -181,7 +182,16 @@ class HTMLDelegate(QStyledItemDelegate):
             else:
                 painter.translate(textRect.topLeft() + QPoint(2, 4))
         else:
-            painter.translate(textRect.topLeft() + QPoint(0, -3))
+            if not self._align_vcenter:
+                painter.translate(textRect.topLeft() + QPoint(0, -3))
+
+        # Center text vertically if requested.
+        # Take from https://stackoverflow.com/a/32911270/438386
+        if self._align_vcenter:
+            doc.setTextWidth(option.rect.width())
+            offset_y = (option.rect.height() - doc.size().height()) / 2
+            painter.translate(options.rect.x(), options.rect.y() + offset_y)
+            doc.drawContents(painter)
 
         # Type check: Prevent error in PySide where using
         # doc.documentLayout().draw() may fail because doc.documentLayout()
