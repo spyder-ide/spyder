@@ -49,7 +49,7 @@ from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
     generate_run_parameters, find_desired_tab_in_window, LOCATION,
-    open_file_in_editor, preferences_dialog_helper, PY37, read_asset_file,
+    open_file_in_editor, preferences_dialog_helper, read_asset_file,
     reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
@@ -2432,7 +2432,7 @@ def example_def_2():
     for search_text, expected_path in zip(search_texts, expected_paths):
         switcher.open_switcher()
         qtbot.keyClicks(switcher_widget.edit, search_text)
-        qtbot.wait(200)
+        qtbot.wait(500)
         assert switcher_widget.count() == bool(expected_path)
         switcher.on_close()
 
@@ -2452,7 +2452,7 @@ def example_def_2():
 
     switcher.open_switcher()
     qtbot.keyClicks(switcher_widget.edit, '@')
-    qtbot.wait(200)
+    qtbot.wait(500)
     assert switcher_widget.count() == 2
     switcher.on_close()
 
@@ -2528,9 +2528,68 @@ def example_def_2():
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
     editorstack.switcher_plugin.open_symbolfinder()
+    qtbot.wait(500)
     assert editorstack.switcher_plugin
     assert editorstack.switcher_plugin.is_visible()
     assert editorstack.switcher_plugin.count() == 2
+
+
+@flaky(max_runs=3)
+def test_switcher_project_files(main_window, qtbot, tmpdir):
+    """Test the number of items in the switcher when a project is active."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    switcher = main_window.switcher
+    switcher_widget = switcher._switcher
+    projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Create a temp project directory
+    project_dir = to_text_string(tmpdir.mkdir('test'))
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects.create_project(project_dir)
+
+    # Create four empty files in the project dir
+    for i in range(3):
+        main_window.editor.new("test_file"+str(i)+".py")
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+
+    # Assert that the number of items in the switcher is correct
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Close all files opened in editorstack
+    main_window.editor.close_all_files()
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Select file in the project explorer
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'test_file0.py'))
+    projects.get_widget().treewidget.setCurrentIndex(idx)
+
+    # Press Enter there
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
 
 
 @flaky(max_runs=3)
@@ -3012,10 +3071,11 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
 
-@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Makes other tests hang on Linux")
 def test_preferences_change_font_regression(main_window, qtbot):
     """
-    Test for spyder-ide/spyder/#10284 regression.
+    Test for spyder-ide/spyder#10284 regression.
 
     Changing font resulted in error.
     """
@@ -3025,19 +3085,33 @@ def test_preferences_change_font_regression(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
+    # Open Preferences and select monospace font combobox
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'appearance')
-    for fontbox in [page.plain_text_font.fontbox,
-                    page.rich_text_font.fontbox]:
-        fontbox.setFocus()
-        idx = fontbox.currentIndex()
-        fontbox.setCurrentIndex(idx + 1)
+    fontbox = page.plain_text_font.fontbox
 
+    # Get current font family
+    current_family = fontbox.currentFont().family()
+
+    # Change font
+    fontbox.setFocus()
+    idx = fontbox.currentIndex()
+    fontbox.setCurrentIndex(idx + 1)
+
+    dlg.apply_btn.animateClick()
+    qtbot.wait(1000)
+
+    new_family = fontbox.currentFont().family()
+    assert new_family != current_family
+
+    # Check that the new font was applied
+    ipyconsole = main_window.ipyconsole
+    assert ipyconsole.get_current_shellwidget().font.family() == new_family
+
+    # Close Preferences
     preferences = main_window.preferences
     container = preferences.get_container()
-
     dlg.ok_btn.animateClick()
-
     qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
@@ -4992,12 +5066,10 @@ def test_pdb_ipykernel(main_window, qtbot):
     control = ipyconsole.get_widget().get_focus_widget()
 
     shell.execute("%debug print()")
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: "IPdb [1]:" in control.toPlainText())
     qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: "IPdb [2]:" in control.toPlainText())
 
     assert "Two: 2" in control.toPlainText()
 

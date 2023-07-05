@@ -8,7 +8,7 @@
 
 
 # Third party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex
+from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex, QTimer
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,
@@ -139,6 +139,18 @@ class Switcher(QDialog):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
+    sig_search_text_available = Signal(str, list)
+    """
+    This signal is emitted when the user stops typing in the filter line edit.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search text.
+    items_data: list
+        List of items shown in the switcher.
+    """
+
     _MAX_NUM_ITEMS = 15
     _MIN_WIDTH = 580
     _MIN_HEIGHT = 200
@@ -155,6 +167,7 @@ class Switcher(QDialog):
         self._item_separator_styles = item_separator_styles
 
         # Widgets
+        self.timer = QTimer()
         self.edit = QLineEdit(self)
         self.list = QListView(self)
         self.model = QStandardItemModel(self.list)
@@ -162,6 +175,10 @@ class Switcher(QDialog):
         self.filter = KeyPressFilter()
 
         # Widgets setup
+        self.timer.setInterval(300)
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.setup)
+
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
 #        self.setMinimumHeight(self._MIN_HEIGHT)
@@ -187,8 +204,8 @@ class Switcher(QDialog):
         self.filter.sig_up_key_pressed.connect(self.previous_row)
         self.filter.sig_down_key_pressed.connect(self.next_row)
         self.filter.sig_enter_key_pressed.connect(self.enter)
-        self.edit.textChanged.connect(self.setup)
         self.edit.textChanged.connect(self.sig_text_changed)
+        self.edit.textChanged.connect(lambda: self.timer.start())
         self.edit.returnPressed.connect(self.enter)
         self.list.clicked.connect(self.enter)
         self.list.clicked.connect(self.edit.setFocus)
@@ -197,10 +214,20 @@ class Switcher(QDialog):
         self.edit.setFocus()
 
     # ---- Helper methods
-    def _add_item(self, item, last_item=True):
+    def _add_item(self, item, last_item=True, score=None):
         """Perform common actions when adding items."""
+        if score is not None:
+            item.set_score(score)
+
         item.set_width(self._ITEM_WIDTH)
-        self.model.appendRow(item)
+        if isinstance(item, SwitcherItem):
+            if item._section == "Editor":
+                self.model.insertRow(0, item)
+            else:
+                self.model.appendRow(item)
+        else:
+            self.model.appendRow(item)
+
         if last_item:
             # Only set the current row to the first item when the added item is
             # the last one in order to prevent performance issues when
@@ -245,7 +272,7 @@ class Switcher(QDialog):
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True):
+                 last_item=True, score=None):
         """Add switcher list item."""
         item = SwitcherItem(
             parent=self.list,
@@ -259,7 +286,7 @@ class Switcher(QDialog):
             tool_tip=tool_tip,
             styles=self._item_styles
         )
-        self._add_item(item, last_item=last_item)
+        self._add_item(item, last_item=last_item, score=score)
 
     def add_separator(self):
         """Add separator item."""
@@ -293,14 +320,22 @@ class Switcher(QDialog):
 
         # Filter by text
         titles = []
-        for row in range(self.model.rowCount()):
+        items_data = []
+        for row in range(self.model.rowCount() - 1, -1, -1):
+            # As we are removing items from the model, we need to iterate
+            # backwards so that the indexes are not affected
             item = self.model.item(row)
             if isinstance(item, SwitcherItem):
-                title = item.get_title()
+                if item._section == "Projects":
+                    self.model.removeRow(row)
+                    continue
+                else:
+                    title = item.get_title()
+                    if item._data is not None:
+                        items_data.append(item._data._filename.lower())
             else:
                 title = ''
-            titles.append(title)
-
+            titles.insert(0, title)
         search_text = clean_string(search_text)
         scores = get_search_scores(to_text_string(search_text),
                                    titles, template=u"<b>{0}</b>")
@@ -311,6 +346,8 @@ class Switcher(QDialog):
                 rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
             item.set_score(score_value)
+
+        self.sig_search_text_available.emit(search_text, items_data)
         self.proxy.set_filter_by_score(True)
 
         self.setup_sections()
