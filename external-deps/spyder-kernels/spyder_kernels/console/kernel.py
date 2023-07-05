@@ -577,7 +577,7 @@ class SpyderKernel(IPythonKernel):
         if figure_format_n in conf:
             self._set_config_option(
                 'InlineBackend.figure_format',
-                INLINE_FIGURE_FORMATS[conf[figure_format_n]]
+                INLINE_FIGURE_FORMATS[str(conf[figure_format_n])]
             )
         if resolution_n in conf:
             self._set_mpl_inline_rc_config('figure.dpi', conf[resolution_n])
