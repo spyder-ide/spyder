@@ -57,9 +57,6 @@ EVAL_TIMEOUT = 3000
 # Time to wait for the completion services to be up or give a response
 COMPLETION_TIMEOUT = 30000
 
-# Python 3.7
-PY37 = sys.version_info[:2] == (3, 7)
-
 
 # =============================================================================
 # ---- Auxiliary functions
@@ -252,8 +249,8 @@ def generate_run_parameters(mainwindow, filename, selected=None,
     file_run_params = StoredRunConfigurationExecutor(
         executor=executor,
         selected=selected,
-        display_dialog=False,
-        first_execution=False)
+        display_dialog=False
+    )
 
     return {file_uuid: file_run_params}
 
@@ -348,8 +345,10 @@ def main_window(request, tmpdir, qtbot):
     preload_complex_project = request.node.get_closest_marker(
         'preload_complex_project')
     if preload_complex_project:
+        CONF.set('editor', 'show_class_func_dropdown', True)
         create_complex_project(tmpdir)
     else:
+        CONF.set('editor', 'show_class_func_dropdown', False)
         if not preload_project:
             CONF.set('project_explorer', 'current_project_path', None)
 

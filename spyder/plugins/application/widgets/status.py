@@ -64,10 +64,9 @@ class ApplicationUpdateStatus(StatusBarWidget):
         # Check for updates action menu
         self.menu = QMenu(self)
 
-        # Set font size and aligment attributes fro custom widget to
-        # match default label values
+        # Set aligment attributes for custom widget to match default label
+        # values
         self.custom_widget.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.custom_widget.setFont(self.text_font)
 
         # Signals
         self.sig_clicked.connect(self.show_installation_dialog_or_menu)

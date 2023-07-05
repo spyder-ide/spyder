@@ -49,7 +49,7 @@ from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
     generate_run_parameters, find_desired_tab_in_window, LOCATION,
-    open_file_in_editor, preferences_dialog_helper, PY37, read_asset_file,
+    open_file_in_editor, preferences_dialog_helper, read_asset_file,
     reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
@@ -69,7 +69,7 @@ from spyder.plugins.run.api import (
     WorkingDirSource, RunContext)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
-from spyder.utils.misc import remove_backslashes
+from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
@@ -2432,7 +2432,7 @@ def example_def_2():
     for search_text, expected_path in zip(search_texts, expected_paths):
         switcher.open_switcher()
         qtbot.keyClicks(switcher_widget.edit, search_text)
-        qtbot.wait(200)
+        qtbot.wait(500)
         assert switcher_widget.count() == bool(expected_path)
         switcher.on_close()
 
@@ -2452,7 +2452,7 @@ def example_def_2():
 
     switcher.open_switcher()
     qtbot.keyClicks(switcher_widget.edit, '@')
-    qtbot.wait(200)
+    qtbot.wait(500)
     assert switcher_widget.count() == 2
     switcher.on_close()
 
@@ -2528,9 +2528,68 @@ def example_def_2():
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
     editorstack.switcher_plugin.open_symbolfinder()
+    qtbot.wait(500)
     assert editorstack.switcher_plugin
     assert editorstack.switcher_plugin.is_visible()
     assert editorstack.switcher_plugin.count() == 2
+
+
+@flaky(max_runs=3)
+def test_switcher_project_files(main_window, qtbot, tmpdir):
+    """Test the number of items in the switcher when a project is active."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    switcher = main_window.switcher
+    switcher_widget = switcher._switcher
+    projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Create a temp project directory
+    project_dir = to_text_string(tmpdir.mkdir('test'))
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects.create_project(project_dir)
+
+    # Create four empty files in the project dir
+    for i in range(3):
+        main_window.editor.new("test_file"+str(i)+".py")
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+
+    # Assert that the number of items in the switcher is correct
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Close all files opened in editorstack
+    main_window.editor.close_all_files()
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Select file in the project explorer
+    idx = projects.get_widget().treewidget.get_index(
+        osp.join(project_dir, 'test_file0.py'))
+    projects.get_widget().treewidget.setCurrentIndex(idx)
+
+    # Press Enter there
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
+
+    switcher.open_switcher()
+    n_files_project = len(projects.get_project_filenames())
+    n_files_open = editorstack.get_stack_count()
+    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.on_close()
 
 
 @flaky(max_runs=3)
@@ -3012,10 +3071,11 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
 
-@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Makes other tests hang on Linux")
 def test_preferences_change_font_regression(main_window, qtbot):
     """
-    Test for spyder-ide/spyder/#10284 regression.
+    Test for spyder-ide/spyder#10284 regression.
 
     Changing font resulted in error.
     """
@@ -3025,19 +3085,33 @@ def test_preferences_change_font_regression(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
+    # Open Preferences and select monospace font combobox
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'appearance')
-    for fontbox in [page.plain_text_font.fontbox,
-                    page.rich_text_font.fontbox]:
-        fontbox.setFocus()
-        idx = fontbox.currentIndex()
-        fontbox.setCurrentIndex(idx + 1)
+    fontbox = page.plain_text_font.fontbox
 
+    # Get current font family
+    current_family = fontbox.currentFont().family()
+
+    # Change font
+    fontbox.setFocus()
+    idx = fontbox.currentIndex()
+    fontbox.setCurrentIndex(idx + 1)
+
+    dlg.apply_btn.animateClick()
+    qtbot.wait(1000)
+
+    new_family = fontbox.currentFont().family()
+    assert new_family != current_family
+
+    # Check that the new font was applied
+    ipyconsole = main_window.ipyconsole
+    assert ipyconsole.get_current_shellwidget().font.family() == new_family
+
+    # Close Preferences
     preferences = main_window.preferences
     container = preferences.get_container()
-
     dlg.ok_btn.animateClick()
-
     qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
@@ -4582,6 +4656,39 @@ def test_update_outline(main_window, qtbot, tmpdir):
     qtbot.wait(500)
     root_1 = treewidget.editor_items[treewidget.current_editor.get_id()]
     assert root_1.node.childCount() == 2
+
+    # Check that class/function selector of cloned editor is populated
+    editorstack_1.set_stack_index(idx)
+    editor_1 = editorstack_1.get_current_editor()
+    editor_2 = editorstack_2.get_current_editor()
+    assert editor_2.is_cloned
+    # one class + "<None>" entry
+    assert editor_2.classfuncdropdown.class_cb.count() == 2
+    # one function + two methods + "<None>" entry
+    assert editor_2.classfuncdropdown.method_cb.count() == 4
+    assert editor_1.classfuncdropdown._data == editor_2.classfuncdropdown._data
+
+    def get_cb_list(cb):
+        return [cb.itemText(i) for i in range(cb.count())]
+    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.class_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.method_cb)
+
+    # Check that class/function selector of cloned editor is updated
+    with qtbot.waitSignal(editor_2.oe_proxy.sig_outline_explorer_data_changed,
+                          timeout=5000):
+        editor_2.set_text('def baz(x):\n    return x')
+    assert editor_2.is_cloned
+    # "<None>" entry
+    assert editor_2.classfuncdropdown.class_cb.count() == 1
+    # one function + "<None>" entry
+    assert editor_2.classfuncdropdown.method_cb.count() == 2
+    assert editor_1.classfuncdropdown._data == editor_2.classfuncdropdown._data
+    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.class_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.method_cb)
 
     # Hide outline from view
     outline_explorer.toggle_view_action.setChecked(False)
@@ -6327,6 +6434,93 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_locals_namespace True False False" in control.toPlainText()
     assert "test_globals_namespace True False" in control.toPlainText()
     assert "test_globals True" in control.toPlainText()
+
+
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="No quotes on Windows file paths"
+)
+def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
+    """
+    Test that we can run files with quotes in name, renamed files,
+    and ipy files.
+    """
+    # create a file with a funky name
+    path = "a'b\"c\\.py"
+    file = tmpdir.join(path)
+    file.write("print(23 + 780)")
+    path = to_text_string(file)
+    main_window.editor.load(path)
+
+    # Run file
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
+    assert "803" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text("print(22 + 780)")
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+
+    assert "802" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+
+    # Make sure this works with ipy and renamed files too
+
+    # Rename the file to IPython and emit the signal for that
+    rename_file(path, path[:-2] + "ipy")
+    explorer = main_window.get_plugin(Plugins.Explorer)
+    explorer.sig_file_renamed.emit(path, path[:-2] + "ipy")
+
+    code_editor.set_text("print(21 + 780)")
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
+    assert "801" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "\\.ipy" in control.toPlainText()
+    
+    # Create an untitled file
+    main_window.editor.new()
+    
+    assert "untitled" in main_window.editor.get_current_filename()
+    
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text("print(20 + 780)")
+    
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+
+    assert "800" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "untitled" in control.toPlainText()
+    
+    # Save file in a new folder
+    code_editor.set_text("print(19 + 780)")
+    
+    with tempfile.TemporaryDirectory() as td:
+    
+        editorstack = main_window.editor.get_current_editorstack()
+        editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
+        main_window.editor.save()
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+    
+        assert "799" in control.toPlainText()
+        assert "error" not in control.toPlainText()
+        assert "fn.ipy" in control.toPlainText()
+        main_window.editor.close_file()
+    
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.gui import OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
@@ -31,9 +32,10 @@ WIN = os.name == 'nt'
 class SpyderStyleSheet:
     """Base class for Spyder stylesheets."""
 
-    def __init__(self):
+    def __init__(self, set_stylesheet=True):
         self._stylesheet = qstylizer.style.StyleSheet()
-        self.set_stylesheet()
+        if set_stylesheet:
+            self.set_stylesheet()
 
     def get_stylesheet(self):
         return self._stylesheet
@@ -66,19 +68,25 @@ class SpyderStyleSheet:
 # =============================================================================
 # ---- Application stylesheet
 # =============================================================================
-class AppStylesheet(SpyderStyleSheet):
+class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
     """
     Class to build and access the stylesheet we use in the entire
     application.
     """
 
     def __init__(self):
-        super().__init__()
+        # Don't create the stylesheet here so that Spyder gets the app font
+        # from the system when it starts for the first time. This also allows
+        # us to display the splash screen more quickly because the stylesheet
+        # is then computed only when it's going to be applied to the app, not
+        # when this object is imported.
+        super().__init__(set_stylesheet=False)
         self._stylesheet_as_string = None
 
     def to_string(self):
         "Save stylesheet as a string for quick access."
         if self._stylesheet_as_string is None:
+            self.set_stylesheet()
             self._stylesheet_as_string = self._stylesheet.toString()
         return self._stylesheet_as_string
 
@@ -96,6 +104,10 @@ class AppStylesheet(SpyderStyleSheet):
     def _customize_stylesheet(self):
         """Apply our customizations to the stylesheet."""
         css = self._stylesheet
+
+        # App font properties
+        font_family = self.get_conf('app_font/family', section='appearance')
+        font_size = int(self.get_conf('app_font/size', section='appearance'))
 
         # Remove padding and border for QStackedWidget (used in Plots
         # and the Variable Explorer)
@@ -135,11 +147,10 @@ class AppStylesheet(SpyderStyleSheet):
 
         # Set menu item properties
         css["QMenu::item"].setValues(
-            height='1.4em',
-            fontSize='0.7em',
+            height='1.6em',
             padding='4px 24px 4px 8px',
-            # TODO: This requires a fix in qstylizer
-            # iconSize='0.8em'
+            fontFamily=font_family,
+            fontSize=f'{font_size}pt'
         )
 
         if OLD_PYQT:
@@ -188,6 +199,15 @@ class AppStylesheet(SpyderStyleSheet):
             padding='3px 0px 3px 0px',
         )
 
+        # Set font for widgets that don't inherit it from the application
+        # This is necessary for spyder-ide/spyder#5942.
+        for widget in ['QToolTip', 'QDialog', 'QListView', 'QTreeView',
+                       'QHeaderView::section', 'QTableView']:
+            css[f'{widget}'].setValues(
+                fontFamily=font_family,
+                fontSize=f'{font_size}pt'
+            )
+
 
 APP_STYLESHEET = AppStylesheet()
 
@@ -197,10 +217,10 @@ APP_STYLESHEET = AppStylesheet()
 class ApplicationToolbarStylesheet(SpyderStyleSheet):
     """Stylesheet for application toolbars."""
 
-    BUTTON_WIDTH = '2.7em'
-    BUTTON_HEIGHT = '2.7em'
-    BUTTON_MARGIN_LEFT = '0.25em'
-    BUTTON_MARGIN_RIGHT = '0.25em'
+    BUTTON_WIDTH = '47px'
+    BUTTON_HEIGHT = '47px'
+    BUTTON_MARGIN_LEFT = '3px'
+    BUTTON_MARGIN_RIGHT = '3px'
 
     def set_stylesheet(self):
         css = self._stylesheet
@@ -238,14 +258,15 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
 class PanesToolbarStyleSheet(SpyderStyleSheet):
     """Stylesheet for pane toolbars."""
 
-    BUTTON_WIDTH = '2.2em'
-    BUTTON_HEIGHT = '2.2em'
+    # These values make buttons to be displayed at 44px according to Gammaray
+    BUTTON_WIDTH = '37px'
+    BUTTON_HEIGHT = '37px'
 
     def set_stylesheet(self):
         css = self._stylesheet
 
         css.QToolBar.setValues(
-            spacing='0.3em'
+            spacing='4px'
         )
 
         css.QToolButton.setValues(
@@ -271,9 +292,7 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     """Stylesheet for pane tabbars"""
 
-    # TODO: This needs to be changed to 1.0em when the IPython console
-    # and the Editor are migrated.
-    TOP_MARGIN = '0.8em'
+    TOP_MARGIN = '15px'
 
     def set_stylesheet(self):
         super().set_stylesheet()
@@ -335,14 +354,14 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # center it. But a bigger negative padding-bottom crops it even
         # more.
         css['QTabBar::close-button'].setValues(
-            paddingBottom='-5px' if MAC else '-6px',
+            paddingBottom='-6px' if MAC else '-7px',
         )
 
         # Set style for scroller buttons
         css['QTabBar#pane-tabbar QToolButton'].setValues(
             background=QStylePalette.COLOR_BACKGROUND_1,
             borderRadius='0px',
-            borderRight=f'0.3em solid {QStylePalette.COLOR_BACKGROUND_1}'
+            borderRight=f'5px solid {QStylePalette.COLOR_BACKGROUND_1}'
         )
 
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
@@ -357,7 +376,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         # This makes one button huge and the other very small in PyQt 5.9
         if not OLD_PYQT:
             css['QTabBar::scroller'].setValues(
-                width='4.0em',
+                width='67px',
             )
 
         # Remove border between selected tab and pane below
