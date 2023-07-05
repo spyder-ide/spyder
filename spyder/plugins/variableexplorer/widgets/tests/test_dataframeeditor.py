@@ -26,7 +26,7 @@ from pandas import (
 from pandas.testing import assert_frame_equal
 import pytest
 from qtpy.QtGui import QColor
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import QItemSelection, QItemSelectionModel, Qt, QTimer
 from qtpy.QtWidgets import QDialog, QInputDialog, QMessageBox
 
 # Local imports
@@ -1122,6 +1122,58 @@ def test_no_convert_strings_to_unicode():
                              Qt.DisplayRole) != u"кодирование"
     assert data_index(index, 0, 0) != u'пример'
     assert data(dfm, 0, 0) != u'файла'
+
+
+def test_dataframeeditor_plot():
+    """
+    Test plotting a dataframe from the editor.
+    """
+    # Set up editor
+    test_df = DataFrame(
+        [[1,1], [2,2], [1,2], [1,3]],
+        columns=['first', 'second']
+    )
+    mock_namespacebrowser = Mock()
+    dialog = DataFrameEditor(namespacebrowser=mock_namespacebrowser)
+    assert dialog.setup_and_check(test_df, 'Test Dataframe')
+
+    # Initially, nothing is selected so action should be disabled
+    view = dialog.dataTable
+    assert view.histogram_action.isEnabled() is False
+
+    # Select first entry and check action is now enabled
+    view.setCurrentIndex(view.model().index(0, 0))
+    assert view.histogram_action.isEnabled() is True
+
+    # Trigger action and check that function in namespacebrowser is called
+    view.histogram_action.trigger()
+    mock_namespacebrowser.plot.assert_called_once()
+
+    # Check that calling the plot function passed to the namespacebrowser
+    # calls the `hist` member function of the dataframe
+    mock_figure = Mock()
+    axis = mock_figure.subplots.return_value
+    plot_function = mock_namespacebrowser.plot.call_args.args[0]
+    with patch.object(test_df, 'hist') as mock_hist:
+        plot_function(mock_figure)
+    mock_hist.assert_called_once_with(ax=axis, column=['first'])
+
+    # Select the (0,0) and (0,1) items
+    top_left = view.model().index(0, 0)
+    top_right = view.model().index(0, 1)
+    view.selectionModel().select(
+        QItemSelection(top_left, top_right),
+        QItemSelectionModel.Select
+    )
+
+    # Trigger action and check as before
+    mock_namespacebrowser.plot.reset_mock()
+    view.histogram_action.trigger()
+    mock_namespacebrowser.plot.assert_called_once()
+    plot_function = mock_namespacebrowser.plot.call_args.args[0]
+    with patch.object(test_df, 'hist') as mock_hist:
+        plot_function(mock_figure)
+    mock_hist.assert_called_once_with(ax=axis, column=['first', 'second'])
 
 
 if __name__ == "__main__":
