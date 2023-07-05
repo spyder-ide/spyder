@@ -211,6 +211,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             r'^({})?('.format(re.escape(self.other_output_prefix)) +
             r'[ \t]*\(*IPdb \[\d+\]\)*: |' +
             r'[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )')
+
         # Reset debug state when debugging is done
         self.sig_prompt_ready.connect(self.reset_debug_state)
 
@@ -226,6 +227,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         except TypeError:
             # Already disconnected
             pass
+
         if self._pdb_history_file is not None:
             try:
                 self._pdb_history_file.save_thread.stop()
