@@ -157,6 +157,9 @@ class HTMLDelegate(QStyledItemDelegate):
                  else options.widget.style())
         options.text = ""
 
+        # This paints the entire row associated to the delegate when it's
+        # hovered and the table that holds it informs it what's the current
+        # row (see HoverRowsTableView for an example).
         if index.row() == self._hovered_row:
             painter.fillRect(
                 options.rect, QColor(QStylePalette.COLOR_BACKGROUND_3)
