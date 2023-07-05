@@ -1,5 +1,6 @@
 #!/bin/bash -i
 set -e
+unset HISTFILE
 
 echo "*** Running post install script for ${INSTALLER_NAME} ..."
 
@@ -149,6 +150,7 @@ echo "*** Post install script for ${INSTALLER_NAME} complete"
 # ----
 [[ -n "$CI" ]] && exit 0  # Running in CI, don't launch Spyder
 
+echo "Launching Spyder now..."
 if [[ "$OSTYPE" = "darwin"* ]]; then
     tmp_dir=${SHARED_INSTALLER_TEMP}/spyder
     launch_script=${tmp_dir}/post-install-launch.sh
@@ -167,5 +169,5 @@ EOF
 elif [[ -n "$(which gtk-launch)" ]]; then
     gtk-launch $(basename $shortcut_path)
 else
-    $spy_exe
+    nohup $spy_exe &>/dev/null &
 fi
