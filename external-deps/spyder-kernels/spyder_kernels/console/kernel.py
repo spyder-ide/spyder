@@ -90,6 +90,7 @@ class SpyderKernel(IPythonKernel):
             'request_pdb_stop': self.shell.request_pdb_stop,
             'raise_interrupt_signal': self.shell.raise_interrupt_signal,
             'get_fault_text': self.get_fault_text,
+            'set_matplotlib_conf': self.set_matplotlib_conf,
         }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -555,26 +556,39 @@ class SpyderKernel(IPythonKernel):
             # which users can set interactively with the %matplotlib
             # magic but not through our Preferences.
             return -1
-
-    def set_matplotlib_backend(self, backend, pylab=False):
-        """Set matplotlib backend given a Spyder backend option."""
-        mpl_backend = MPL_BACKENDS_FROM_SPYDER[str(backend)]
-        self._set_mpl_backend(mpl_backend, pylab=pylab)
-
-    def set_mpl_inline_figure_format(self, figure_format):
-        """Set the inline figure format to use with matplotlib."""
-        mpl_figure_format = INLINE_FIGURE_FORMATS[figure_format]
-        self._set_config_option(
-            'InlineBackend.figure_format', mpl_figure_format)
-
-    def set_mpl_inline_resolution(self, resolution):
-        """Set inline figure resolution."""
-        self._set_mpl_inline_rc_config('figure.dpi', resolution)
-
-    def set_mpl_inline_figure_size(self, width, height):
-        """Set inline figure size."""
-        value = (width, height)
-        self._set_mpl_inline_rc_config('figure.figsize', value)
+    
+    def set_matplotlib_conf(self, conf):
+        """Set matplotlib configuration"""
+        pylab_autoload_n = 'pylab/autoload'
+        pylab_backend_n = 'pylab/backend'
+        figure_format_n = 'pylab/inline/figure_format'
+        resolution_n = 'pylab/inline/resolution'
+        width_n = 'pylab/inline/width'
+        height_n = 'pylab/inline/height'
+        bbox_inches_n = 'pylab/inline/bbox_inches'
+        inline_backend = 0
+        
+        if pylab_autoload_n in conf or pylab_backend_n in conf:
+            self._set_mpl_backend(
+                MPL_BACKENDS_FROM_SPYDER[str(
+                    conf.get(pylab_backend_n, inline_backend))],
+                pylab=conf.get(pylab_backend_n, False)
+            )
+        if figure_format_n in conf:
+            self._set_config_option(
+                'InlineBackend.figure_format',
+                INLINE_FIGURE_FORMATS[conf[figure_format_n]]
+            )
+        if resolution_n in conf:
+            self._set_mpl_inline_rc_config('figure.dpi', conf[resolution_n])
+        if width_n in conf and height_n in conf:
+            self._set_mpl_inline_rc_config(
+                'figure.figsize',
+                (conf[width_n], conf[height_n])
+            )
+        if bbox_inches_n in conf:
+            self.set_mpl_inline_bbox_inches(conf[bbox_inches_n])
+        
 
     def set_mpl_inline_bbox_inches(self, bbox_inches):
         """

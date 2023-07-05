@@ -1017,44 +1017,7 @@ class IPythonConsoleWidget(
 
     def _change_client_mpl_conf(self, options, client):
         """Apply Matplotlib related configurations to a client."""
-        # Matplotlib options
-        pylab_n = 'pylab'
-        pylab_o = self.get_conf(pylab_n)
-        pylab_autoload_n = 'pylab/autoload'
-        pylab_backend_n = 'pylab/backend'
-        inline_backend_figure_format_n = 'pylab/inline/figure_format'
-        inline_backend_resolution_n = 'pylab/inline/resolution'
-        inline_backend_width_n = 'pylab/inline/width'
-        inline_backend_height_n = 'pylab/inline/height'
-        inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
-
-        # Client widgets
-        sw = client.shellwidget
-        if pylab_o:
-            if pylab_backend_n in options or pylab_autoload_n in options:
-                pylab_autoload_o = self.get_conf(pylab_autoload_n)
-                pylab_backend_o = self.get_conf(pylab_backend_n)
-                sw.set_matplotlib_backend(pylab_backend_o, pylab_autoload_o)
-            if inline_backend_figure_format_n in options:
-                inline_backend_figure_format_o = self.get_conf(
-                    inline_backend_figure_format_n)
-                sw.set_mpl_inline_figure_format(inline_backend_figure_format_o)
-            if inline_backend_resolution_n in options:
-                inline_backend_resolution_o = self.get_conf(
-                    inline_backend_resolution_n)
-                sw.set_mpl_inline_resolution(inline_backend_resolution_o)
-            if (inline_backend_width_n in options or
-                    inline_backend_height_n in options):
-                inline_backend_width_o = self.get_conf(
-                    inline_backend_width_n)
-                inline_backend_height_o = self.get_conf(
-                    inline_backend_height_n)
-                sw.set_mpl_inline_figure_size(
-                    inline_backend_width_o, inline_backend_height_o)
-            if inline_backend_bbox_inches_n in options:
-                inline_backend_bbox_inches_o = self.get_conf(
-                    inline_backend_bbox_inches_n)
-                sw.set_mpl_inline_bbox_inches(inline_backend_bbox_inches_o)
+        client.shellwidget.send_mpl_backend(options)
 
     def _init_asyncio_patch(self):
         """

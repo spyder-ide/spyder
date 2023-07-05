@@ -537,46 +537,63 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if emit_cwd_change:
             self.sig_working_directory_changed.emit(self._cwd)
 
-    def send_mpl_backend(self):
-        """Send matplotlib backend."""
+    def send_mpl_backend(self, option=None):
+        """
+        Send matplotlib backend.
+        
+        If option is not None only send the related options
+        """
         # Set Matplotlib backend with Spyder options
 
         pylab_n = 'pylab'
         pylab_o = self.get_conf(pylab_n)
+        
+        if option is not None and not pylab_o:
+            # The options are only related to pylab_o
+            # So no need to change the backend
+            return
+        
         pylab_autoload_n = 'pylab/autoload'
         pylab_backend_n = 'pylab/backend'
-        inline_backend_figure_format_n = 'pylab/inline/figure_format'
-        inline_backend_resolution_n = 'pylab/inline/resolution'
-        inline_backend_width_n = 'pylab/inline/width'
-        inline_backend_height_n = 'pylab/inline/height'
-        inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
+        figure_format_n = 'pylab/inline/figure_format'
+        resolution_n = 'pylab/inline/resolution'
+        width_n = 'pylab/inline/width'
+        height_n = 'pylab/inline/height'
+        bbox_inches_n = 'pylab/inline/bbox_inches'
         backend_o = self.get_conf(pylab_backend_n)
 
         inline_backend = 0
+        
+        matplotlib_conf = {}
+        
+        if pylab_o:
+            # Figure format
+            format_o = self.get_conf(figure_format_n)
+            if format_o and (option is None or figure_format_n in option):
+                matplotlib_conf[figure_format_n] = format_o
+    
+            # Resolution
+            resolution_o = self.get_conf(resolution_n)
+            if resolution_o is not None and (
+                    option is None or resolution_n in option):
+                matplotlib_conf[resolution_n] = resolution_o
+    
+            # Figure size
+            width_o = float(self.get_conf(width_n))
+            height_o = float(self.get_conf(height_n))
+            if option is None or (width_n in option or height_n in option):
+                if width_o is not None:
+                    matplotlib_conf[width_n] = width_o
+                if height_o is not None:
+                    matplotlib_conf[height_n] = height_o
+    
+            # Print figure kwargs
+            bbox_inches_o = self.get_conf(bbox_inches_n)
+            if option is None or bbox_inches_n in option:
+                matplotlib_conf[bbox_inches_n] = bbox_inches_o
 
         if pylab_o and backend_o is not None:
             mpl_backend = backend_o
-            # Inline backend configuration
-            if mpl_backend == inline_backend:
-                # Figure format
-                format_o = self.get_conf(inline_backend_figure_format_n)
-                if format_o:
-                    self.set_mpl_inline_figure_format(format_o)
-
-                # Resolution
-                resolution_o = self.get_conf(inline_backend_resolution_n)
-                if resolution_o is not None:
-                    self.set_mpl_inline_resolution(resolution_o)
-
-                # Figure size
-                width_o = float(self.get_conf(inline_backend_width_n))
-                height_o = float(self.get_conf(inline_backend_height_n))
-                if width_o is not None and height_o is not None:
-                    self.set_mpl_inline_figure_size(width_o, height_o)
-
-                # Print figure kwargs
-                bbox_inches_o = self.get_conf(inline_backend_bbox_inches_n)
-                self.set_mpl_inline_bbox_inches(bbox_inches_o)
         else:
             # Set Matplotlib backend to inline for external kernels.
             # Fixes issue 108
@@ -585,7 +602,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
         autoload_pylab_o = self.get_conf(pylab_autoload_n)
-        self.set_matplotlib_backend(mpl_backend, autoload_pylab_o)
+        if option is None or pylab_backend_n in option:
+            matplotlib_conf[pylab_backend_n] = mpl_backend
+        if option is None or pylab_autoload_n in option:
+            matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
+        
+        if matplotlib_conf:
+            self.call_kernel().set_matplotlib_conf(
+                matplotlib_conf)
 
 
     def get_cwd(self):
@@ -690,31 +714,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         return self.call_kernel(
             interrupt=True,
             blocking=True).get_mpl_interactive_backend()
-
-    def set_matplotlib_backend(self, backend_option, pylab=False):
-        """Set matplotlib backend given a backend name."""
-        cmd = "get_ipython().kernel.set_matplotlib_backend('{}', {})"
-        self.execute(cmd.format(backend_option, pylab), hidden=True)
-
-    def set_mpl_inline_figure_format(self, figure_format):
-        """Set matplotlib inline figure format."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_format('{}')"
-        self.execute(cmd.format(figure_format), hidden=True)
-
-    def set_mpl_inline_resolution(self, resolution):
-        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_resolution({})"
-        self.execute(cmd.format(resolution), hidden=True)
-
-    def set_mpl_inline_figure_size(self, width, height):
-        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_size({}, {})"
-        self.execute(cmd.format(width, height), hidden=True)
-
-    def set_mpl_inline_bbox_inches(self, bbox_inches):
-        """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_bbox_inches({})"
-        self.execute(cmd.format(bbox_inches), hidden=True)
 
     def set_jedi_completer(self, use_jedi):
         """Set if jedi completions should be used."""
