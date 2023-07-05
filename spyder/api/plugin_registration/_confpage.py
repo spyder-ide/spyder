@@ -7,6 +7,7 @@
 """Plugin registry configuration page."""
 
 # Third party imports
+from pyuca import Collator
 from qtpy.QtWidgets import QVBoxLayout, QLabel
 
 # Local imports
@@ -88,8 +89,9 @@ class PluginsConfigPage(PluginConfigPage):
             self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
 
         # Sort elements by title for easy searching
-        internal_elements.sort(key=lambda e: e['title'])
-        external_elements.sort(key=lambda e: e['title'])
+        collator = Collator()
+        internal_elements.sort(key=lambda e: collator.sort_key(e['title']))
+        external_elements.sort(key=lambda e: collator.sort_key(e['title']))
 
         # Build plugins table, showing external plugins first.
         plugins_table = ElementsTable(
