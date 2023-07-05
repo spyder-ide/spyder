@@ -64,11 +64,14 @@ if TARGET_PLATFORM == "osx-arm64":
 else:
     ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 if WINDOWS:
-    EXT, OS = "exe", "Windows"
+    OS = "Windows"
+    INSTALL_CHOICES = ["exe"]
 elif LINUX:
-    EXT, OS = "sh", "Linux"
+    OS = "Linux"
+    INSTALL_CHOICES = ["sh"]
 elif MACOS:
-    EXT, OS = "pkg", "macOS"
+    OS = "macOS"
+    INSTALL_CHOICES = ["pkg", "sh"]
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
 
@@ -121,6 +124,10 @@ p.add_argument(
     "--cert-id", default=None,
     help="Apple Developer ID Application certificate common name."
 )
+p.add_argument(
+    "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
+    help="Installer type."
+)
 args = p.parse_args()
 
 yaml = YAML()
@@ -148,7 +155,7 @@ for spec in args.extra_specs:
     if k == "spyder":
         SPYVER = v[-1]
 
-OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
+OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{args.install_type}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
 WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
@@ -230,6 +237,7 @@ def _definitions():
             "mamba",
         ],
         "installer_filename": OUTPUT_FILE.name,
+        "installer_type": args.install_type,
         "initialize_by_default": False,
         "initialize_conda": False,
         "register_python": False,
@@ -255,7 +263,6 @@ def _definitions():
                     "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
                 ),
                 "license_file": str(SPYREPO / "LICENSE.txt"),
-                "installer_type": "sh",
                 "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
@@ -273,7 +280,6 @@ def _definitions():
             {
                 "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
                 "default_location_pkg": "Library",
-                "installer_type": "pkg",
                 "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
                 "post_install": str(RESOURCES / "post-install.sh"),
@@ -303,7 +309,6 @@ def _definitions():
                     "%ALLUSERSPROFILE%", INSTALLER_DEFAULT_PATH_STEM
                 ),
                 "check_path_length": False,
-                "installer_type": "exe",
                 "post_install": str(RESOURCES / "post-install.bat"),
             }
         )
@@ -392,7 +397,7 @@ if __name__ == "__main__":
         print(ARCH)
         sys.exit()
     if args.ext:
-        print(EXT)
+        print(args.install_type)
         sys.exit()
     if args.artifact_name:
         print(OUTPUT_FILE)
