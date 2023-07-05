@@ -246,6 +246,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if recursion_level == self._pdb_recursion_level:
             # Nothing to change
             return
+
         if recursion_level > self._pdb_recursion_level:
             # Start debugging
             if self._pdb_recursion_level > 0:
@@ -295,12 +296,16 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             text = cursor.selection().toPlainText()
             match = re.search(r"> (.*\.py)\((\d+)\)", text)
             state = None
+
             if match:
                 fname, lineno = match.groups()
-                state = {'step': {
-                    'fname': fname,
-                    'lineno': int(lineno)
-                    }}
+                state = {
+                    'step': {
+                        'fname': fname,
+                        'lineno': int(lineno)
+                    }
+                }
+
             prompt = msg['content']['prompt']
             password = msg['content']['password']
             self.pdb_input(prompt, password, state, from_input=True)
