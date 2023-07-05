@@ -50,9 +50,9 @@ def _get_user_env_script():
     if Path(shell).name in ('bash', 'zsh'):
         script_text = (
             f"#!{shell} -i\n"
-            f"{shell} -l -c"
-            f" \"{sys.executable} -c 'import os; print(dict(os.environ))'\" "
-            f"\n"
+            "unset HISTFILE\n"
+            f"{shell} -l -c "
+            f"\"{sys.executable} -c 'import os; print(dict(os.environ))'\"\n"
         )
     else:
         logger.info("Getting user environment variables is not supported "
