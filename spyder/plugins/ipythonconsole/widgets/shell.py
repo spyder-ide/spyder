@@ -576,8 +576,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
                 # Print figure kwargs
                 bbox_inches_o = self.get_conf(inline_backend_bbox_inches_n)
-                bbox_inches = 'tight' if bbox_inches_o else None
-                self.set_mpl_inline_bbox_inches(bbox_inches)
+                self.set_mpl_inline_bbox_inches(bbox_inches_o)
         else:
             # Set Matplotlib backend to inline for external kernels.
             # Fixes issue 108
