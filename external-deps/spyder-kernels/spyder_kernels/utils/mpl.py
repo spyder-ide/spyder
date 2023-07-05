@@ -11,13 +11,6 @@
 from spyder_kernels.utils.misc import is_module_installed
 
 
-# Mapping of inline figure formats
-INLINE_FIGURE_FORMATS = {
-    '0': 'png',
-    '1': 'svg'
-}
-
-
 # Inline backend
 if is_module_installed('matplotlib_inline'):
     inline_backend = 'module://matplotlib_inline.backend_inline'

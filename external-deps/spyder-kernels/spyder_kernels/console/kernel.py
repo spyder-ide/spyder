@@ -32,7 +32,7 @@ from zmq.utils.garbage import gc
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import (
-    MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
+    MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER)
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
 from spyder_kernels.console.shell import SpyderShell
@@ -577,7 +577,7 @@ class SpyderKernel(IPythonKernel):
         if figure_format_n in conf:
             self._set_config_option(
                 'InlineBackend.figure_format',
-                INLINE_FIGURE_FORMATS[str(conf[figure_format_n])]
+                conf[figure_format_n]
             )
         if resolution_n in conf:
             self._set_mpl_inline_rc_config('figure.dpi', conf[resolution_n])

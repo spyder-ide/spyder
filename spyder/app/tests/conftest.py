@@ -309,7 +309,7 @@ def main_window(request, tmpdir, qtbot):
 
     # Test assume the plots are rendered in the console as png
     CONF.set('plots', 'mute_inline_plotting', False)
-    CONF.set('ipython_console', 'pylab/inline/figure_format', 0)
+    CONF.set('ipython_console', 'pylab/inline/figure_format', "png")
 
     # Set exclamation mark to True
     CONF.set('debugger', 'pdb_use_exclamation_mark', True)
