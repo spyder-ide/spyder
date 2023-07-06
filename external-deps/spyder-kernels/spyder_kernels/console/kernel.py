@@ -556,7 +556,7 @@ class SpyderKernel(IPythonKernel):
         if pylab_autoload_n in conf or pylab_backend_n in conf:
             self._set_mpl_backend(
                 conf.get(pylab_backend_n, inline_backend),
-                pylab=conf.get(pylab_backend_n, False)
+                pylab=conf.get(pylab_autoload_n, False)
             )
         if figure_format_n in conf:
             self._set_config_option(
