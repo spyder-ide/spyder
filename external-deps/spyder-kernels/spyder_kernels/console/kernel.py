@@ -551,7 +551,7 @@ class SpyderKernel(IPythonKernel):
         width_n = 'pylab/inline/width'
         height_n = 'pylab/inline/height'
         bbox_inches_n = 'pylab/inline/bbox_inches'
-        inline_backend = 0
+        inline_backend = 'inline'
 
         if pylab_autoload_n in conf or pylab_backend_n in conf:
             self._set_mpl_backend(
