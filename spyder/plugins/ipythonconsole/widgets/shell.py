@@ -609,7 +609,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.call_kernel().set_matplotlib_conf(
                 matplotlib_conf)
 
-
     def get_cwd(self):
         """
         Get current working directory.
