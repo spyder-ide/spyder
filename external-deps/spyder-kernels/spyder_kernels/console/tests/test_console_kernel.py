@@ -32,7 +32,6 @@ import numpy as np
 
 # Local imports
 from spyder_kernels.utils.iofuncs import iofunctions
-from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
 from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.commbase import CommBase
@@ -1145,9 +1144,9 @@ def test_get_interactive_backend(backend):
 
         # Assert we got the right interactive backend
         if backend is not None:
-            assert MPL_BACKENDS_FROM_SPYDER[value] == backend
+            assert value == backend
         else:
-            assert value == '0'
+            assert value == 'inline'
 
 
 def test_global_message(tmpdir):

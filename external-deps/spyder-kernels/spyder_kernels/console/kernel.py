@@ -33,8 +33,7 @@ from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.comms.decorators import (
     register_comm_handlers, comm_handler)
 from spyder_kernels.utils.iofuncs import iofunctions
-from spyder_kernels.utils.mpl import (
-    MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER)
+from spyder_kernels.utils.mpl import automatic_backend, MPL_BACKENDS_TO_SPYDER
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
 from spyder_kernels.console.shell import SpyderShell
@@ -556,8 +555,7 @@ class SpyderKernel(IPythonKernel):
 
         if pylab_autoload_n in conf or pylab_backend_n in conf:
             self._set_mpl_backend(
-                MPL_BACKENDS_FROM_SPYDER[str(
-                    conf.get(pylab_backend_n, inline_backend))],
+                conf.get(pylab_backend_n, inline_backend),
                 pylab=conf.get(pylab_backend_n, False)
             )
         if figure_format_n in conf:
@@ -822,6 +820,9 @@ class SpyderKernel(IPythonKernel):
         )
 
         magic = 'pylab' if pylab else 'matplotlib'
+        
+        if backend == "auto":
+            backend = automatic_backend()
 
         error = None
         try:
