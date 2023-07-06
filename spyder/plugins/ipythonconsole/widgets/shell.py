@@ -541,6 +541,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         
         If option is not None only send the related options
         """
+        if not self.spyder_kernel_ready:
+            # will be sent later
+            return
         # Set Matplotlib backend with Spyder options
 
         pylab_n = 'pylab'
