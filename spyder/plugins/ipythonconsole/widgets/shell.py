@@ -560,7 +560,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         bbox_inches_n = 'pylab/inline/bbox_inches'
         backend_o = self.get_conf(pylab_backend_n)
 
-        inline_backend = 0
+        inline_backend = 'inline'
         
         matplotlib_conf = {}
         

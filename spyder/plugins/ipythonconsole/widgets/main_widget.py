@@ -877,7 +877,7 @@ class IPythonConsoleWidget(
                             symbolic_math_n, hide_cmd_windows_n]
         restart_needed = option in restart_options
 
-        inline_backend = 0
+        inline_backend = 'inline'
         pylab_restart = False
         clients_backend_require_restart = [False] * len(self.clients)
         current_client = self.get_current_client()

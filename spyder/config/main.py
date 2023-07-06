@@ -153,7 +153,7 @@ DEFAULTS = [
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
-              'pylab/backend': 0,
+              'pylab/backend': 'inline',
               'pylab/inline/figure_format': 'png',
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
