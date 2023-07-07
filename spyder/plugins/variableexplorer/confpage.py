@@ -27,7 +27,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
              _("Exclude callables and modules"))
         ]
         filter_boxes = [self.create_checkbox(
-            text, option, help_info=True,
+            text, option,
             tip='Excludes variables that fit the description')
                         for option, text in filter_data]
 

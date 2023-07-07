@@ -181,7 +181,7 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button.clicked.connect(self.delete_scheme)
         self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
-        system_font_checkbox.stateChanged.connect(self.update_app_font_group)
+        system_font_checkbox.checkbox.stateChanged.connect(self.update_app_font_group)
 
         # Setup
         for name in names:
@@ -191,8 +191,8 @@ class AppearanceConfigPage(PluginConfigPage):
             self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
 
         if sys.platform == 'darwin':
-            system_font_checkbox.setEnabled(False)
-        self.update_app_font_group(system_font_checkbox.isChecked())
+            system_font_checkbox.checkbox.setEnabled(False)
+        self.update_app_font_group(system_font_checkbox.checkbox.isChecked())
         self.update_combobox()
         self.update_preview()
 

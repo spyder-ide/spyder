@@ -455,7 +455,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
                         msg_if_enabled=False, section=None, restart=False,
-                        help_info=False):
+                        help_info=True):
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         checkbox = QCheckBox(text)
@@ -487,7 +487,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
                            msg_if_enabled=False, button_group=None,
-                           restart=False, section=None, help_info=False):
+                           restart=False, section=None, help_info=True):
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         radiobutton = QRadioButton(text)
@@ -525,7 +525,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
-                        content_type=None, section=None, help_info=False):
+                        content_type=None, section=None, help_info=True):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -555,7 +555,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_textedit(self, text, option, default=NoDefault,
                         tip=None, restart=False, content_type=None,
-                        section=None, help_info=False):
+                        section=None, help_info=True):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -581,7 +581,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_browsedir(self, text, option, default=NoDefault, tip=None,
-                         section=None, help_info=False):
+                         section=None, help_info=True):
         widget = self.create_lineedit(text, option, default, section=section,
                                       alignment=Qt.Horizontal)
         for edit in self.lineedits:
@@ -613,7 +613,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit.setText(directory)
 
     def create_browsefile(self, text, option, default=NoDefault, tip=None,
-                          filters=None, section=None, help_info=False):
+                          filters=None, section=None, help_info=True):
         widget = self.create_lineedit(text, option, default, section=section,
                                       alignment=Qt.Horizontal)
         for edit in self.lineedits:
@@ -649,7 +649,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None,
-                       section=None, help_info=False):
+                       section=None, help_info=True):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         widget = QWidget(self)
@@ -693,7 +693,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_coloredit(self, text, option, default=NoDefault, tip=None,
-                         without_layout=False, section=None, help_info=False):
+                         without_layout=False, section=None, help_info=True):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -717,7 +717,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_scedit(self, text, option, default=NoDefault, tip=None,
-                      without_layout=False, section=None, help_info=False):
+                      without_layout=False, section=None, help_info=True):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -751,7 +751,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
     def create_combobox(self, text, choices, option, default=NoDefault,
-                        tip=None, restart=False, section=None, help_info=False):
+                        tip=None, restart=False, section=None, help_info=True):
         """choices: couples (name, key)"""
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
@@ -790,7 +790,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                              tip=None, restart=False, filters=None,
                              adjust_to_contents=False,
                              default_line_edit=False, section=None,
-                             validate_callback=None, help_info=False):
+                             validate_callback=None, help_info=True):
         """choices: couples (name, key)"""
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
@@ -833,7 +833,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_fontgroup(self, option=None, text=None, title=None,
                          tip=None, fontfilters=None, without_group=False,
-                         help_info=False, restart=False):
+                         help_info=True, restart=False):
         """Option=None -> setting plugin font"""
 
         if title:
