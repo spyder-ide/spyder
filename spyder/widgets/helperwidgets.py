@@ -25,12 +25,12 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QWidget, QHBoxLayout, QLabel, QFrame)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.stylesheet import DialogStyle
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
@@ -445,11 +445,15 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
             return True
 
 
-class PaneEmptyWidget(QFrame):
+class PaneEmptyWidget(QFrame, SpyderFontsMixin):
     """Widget to show a pane/plugin functionality description."""
 
     def __init__(self, parent, icon_filename, text, description):
         super().__init__(parent)
+
+        interface_font_size = self.get_font(
+            SpyderFontType.Interface).pointSize()
+
         # Image
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
@@ -472,7 +476,7 @@ class PaneEmptyWidget(QFrame):
         text_label.setWordWrap(True)
         text_label_qss = qstylizer.style.StyleSheet()
         text_label_qss.QLabel.setValues(
-            fontSize=DialogStyle.ContentFontSize,
+            fontSize=f'{interface_font_size + 5}pt',
             border="0px"
         )
         text_label.setStyleSheet(text_label_qss.toString())
@@ -483,7 +487,7 @@ class PaneEmptyWidget(QFrame):
         description_label.setWordWrap(True)
         description_label_qss = qstylizer.style.StyleSheet()
         description_label_qss.QLabel.setValues(
-            fontSize="10pt",
+            fontSize=f"{interface_font_size}pt",
             backgroundColor=SpyderPalette.COLOR_OCCURRENCE_3,
             border="0px",
             padding="20px"
@@ -495,9 +499,9 @@ class PaneEmptyWidget(QFrame):
         pane_empty_layout.addStretch(1)
         pane_empty_layout.addWidget(image_label)
         pane_empty_layout.addWidget(text_label)
-        pane_empty_layout.addWidget(description_label)
         pane_empty_layout.addStretch(2)
-        pane_empty_layout.setContentsMargins(10, 0, 10, 8)
+        pane_empty_layout.addWidget(description_label)
+        pane_empty_layout.setContentsMargins(10, 0, 10, 10)
         self.setLayout(pane_empty_layout)
 
         # Setup border style
