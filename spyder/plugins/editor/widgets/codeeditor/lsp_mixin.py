@@ -515,7 +515,7 @@ class LSPMixin:
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
         self.cleanup_code_analysis()
-        self.sig_diagnostics_update.emit(self.filename, diagnostics)
+        # self.sig_diagnostics_update.emit(self.filename, diagnostics)
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.
