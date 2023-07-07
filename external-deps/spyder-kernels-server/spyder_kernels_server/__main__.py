@@ -5,16 +5,15 @@
 # Licensed under the terms of the MIT License
 # (see spyder_kernels/__init__.py for details)
 # -----------------------------------------------------------------------------
-import os
 import sys
 import zmq
 import json
 import argparse
 from spyder_kernels_server.kernel_server import KernelServer
-from jupyter_client.kernelspec import KernelSpec
 from zmq.ssh import tunnel as zmqtunnel
 from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import QSocketNotifier, QObject, QCoreApplication, Slot
+from spyder_kernels_server.kernel_spec import get_kernel_spec
 
 
 class Server(QObject):
@@ -65,10 +64,7 @@ class Server(QObject):
 
         elif cmd == "open_kernel":
             try:
-                kernel_spec = KernelSpec()
-                kernel_spec_dict = message[1]
-                for key in kernel_spec_dict:
-                    setattr(kernel_spec, key, kernel_spec_dict[key])
+                kernel_spec = get_kernel_spec(message[1])
                 cf = self.kernel_server.open_kernel(kernel_spec)
                 with open(cf, "br") as f:
                     cf = (cf, json.load(f))
