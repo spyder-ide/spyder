@@ -17,6 +17,7 @@ import sys
 import traceback
 import threading
 from collections import namedtuple
+from functools import lru_cache
 
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.debugger import Pdb as ipyPdb
@@ -677,6 +678,21 @@ class SpyderPdb(ipyPdb):
                 print("--KeyboardInterrupt--\n"
                       "For copying text while debugging, use Ctrl+Shift+C",
                       file=self.stdout)
+
+    @lru_cache
+    def canonic(self, filename):
+        """Return canonical form of filename."""
+        return super().canonic(filename)
+
+    def do_exitdb(self, arg):
+        """Exit the debugger"""
+        self._set_stopinfo(self.botframe, None, -1)
+        sys.settrace(None)
+        frame = sys._getframe().f_back
+        while frame and frame is not self.botframe:
+            del frame.f_trace
+            frame = frame.f_back
+        return 1
 
     def cmdloop(self, intro=None):
         """
