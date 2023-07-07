@@ -12,23 +12,25 @@ Working Directory widget.
 import logging
 import os
 import os.path as osp
+import re
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Signal, Slot
+from qtpy.QtWidgets import QSizePolicy, QWidget
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.config.base import get_home_dir
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 from spyder.widgets.comboboxes import PathComboBox
 
 
-# Localization and logging
-_ = get_translation('spyder')
+# Logging
 logger = logging.getLogger(__name__)
 
 
@@ -48,6 +50,7 @@ class WorkingDirectoryToolbarSections:
 class WorkingDirectoryToolbarItems:
     PathComboBox = 'path_combo'
 
+
 # ---- Widgets
 # ----------------------------------------------------------------------------
 class WorkingDirectoryToolbar(ApplicationToolbar):
@@ -55,20 +58,95 @@ class WorkingDirectoryToolbar(ApplicationToolbar):
 
 
 class WorkingDirectoryComboBox(PathComboBox):
+    """Working directory combo box."""
 
-    def __init__(self, parent, adjust_to_contents=False, id_=None):
-        super().__init__(parent, adjust_to_contents, id_=id_)
+    edit_goto = Signal(str, int, str)
+
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            adjust_to_contents=False,
+            id_=WorkingDirectoryToolbarItems.PathComboBox,
+            elide_text=True
+        )
 
         # Set min width
         self.setMinimumWidth(140)
 
     def sizeHint(self):
         """Recommended size when there are toolbars to the right."""
-        return QSize(250, 10)
+        return QSize(400, 10)
 
     def enterEvent(self, event):
         """Set current path as the tooltip of the widget on hover."""
         self.setToolTip(self.currentText())
+
+    def focusOutEvent(self, event):
+        """Handle focus out event restoring the last valid selected path."""
+        if self.add_current_text_if_valid():
+            self.selected()
+            self.hide_completer()
+        hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
+        if hide_status:
+            hide_status()
+        super().focusOutEvent(event)
+
+    # ---- Own methods
+    def valid_text(self):
+        """Get valid version of current text."""
+        directory = self.currentText()
+        file = None
+        line_number = None
+
+        if directory:
+            # Search for path/to/file.py:10 where 10 is the line number
+            match = re.fullmatch(r"(?:(\d+):)?(.+)", directory[::-1])
+            if match:
+                line_number, directory = match.groups()
+                if line_number:
+                    line_number = int(line_number[::-1])
+                directory = directory[::-1]
+
+            directory = osp.abspath(directory)
+
+            # If the directory is actually a file, open containing directory
+            if osp.isfile(directory):
+                file = osp.basename(directory)
+                directory = osp.dirname(directory)
+
+            # If the directory name is malformed, open parent directory
+            if not osp.isdir(directory):
+                directory = osp.dirname(directory)
+
+            if self.is_valid(directory):
+                return directory, file, line_number
+
+        return self.selected_text, file, line_number
+
+    def add_current_text_if_valid(self):
+        """Add current text to combo box history if valid."""
+        directory, file, line_number = self.valid_text()
+        if file:
+            self.edit_goto.emit(file, line_number, "")
+        if directory != self.currentText():
+            self.add_text(directory)
+        if directory:
+            return True
+
+
+# ---- Container
+# ----------------------------------------------------------------------------
+class WorkingDirectorySpacer(QWidget):
+    ID = 'working_directory_spacer'
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # Make it expand
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        # Set style
+        self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
 
 
 # ---- Container
@@ -87,6 +165,20 @@ class WorkingDirectoryContainer(PluginMainContainer):
         The new new working directory path.
     """
 
+    edit_goto = Signal(str, int, str)
+    """
+    This signal is emitted when a file has been requested.
+
+    Parameters
+    ----------
+    filename: str
+        The file to open.
+    line: int
+        The line to go to.
+    word: str
+        The word to go to in the line.
+    """
+
     # ---- PluginMainContainer API
     # ------------------------------------------------------------------------
     def setup(self):
@@ -97,11 +189,8 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Widgets
         title = _('Current working directory')
         self.toolbar = WorkingDirectoryToolbar(self, title)
-        self.pathedit = WorkingDirectoryComboBox(
-            self,
-            adjust_to_contents=self.get_conf('working_dir_adjusttocontents'),
-            id_=WorkingDirectoryToolbarItems.PathComboBox
-        )
+        self.pathedit = WorkingDirectoryComboBox(self)
+        spacer = WorkingDirectorySpacer(self)
 
         # Widget Setup
         self.toolbar.setWindowTitle(title)
@@ -111,6 +200,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
         # Signals
         self.pathedit.open_dir.connect(self.chdir)
+        self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.activated[str].connect(self.chdir)
 
         # Actions
@@ -143,8 +233,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
             triggered=self._parent_directory,
         )
 
-        for item in [self.pathedit,
-                     browse_action, parent_action]:
+        for item in [spacer, self.pathedit, browse_action, parent_action]:
             self.add_item_to_toolbar(
                 item,
                 self.toolbar,

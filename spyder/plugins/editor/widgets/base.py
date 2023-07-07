@@ -23,18 +23,23 @@ from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
 from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
 # Local imports
-from spyder.config.gui import get_font
-from spyder.config.manager import CONF
-from spyder.py3compat import PY3, to_text_string
-from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
-from spyder.widgets.mixins import BaseEditMixin
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
+from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
+from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
+from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
+from spyder.widgets.mixins import BaseEditMixin
 
-class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
+
+class TextEditBaseWidget(
+    QPlainTextEdit, BaseEditMixin, SpyderConfigurationAccessor,
+    SpyderFontsMixin
+):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
     focus_in = Signal()
@@ -119,8 +124,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self._current_line_block = None
 
     def setup_completion(self):
-        size = CONF.get('main', 'completion/size')
-        font = get_font()
+        size = self.get_conf('completion/size', section='main')
+        font = self.get_font(SpyderFontType.Monospace)
         self.completion_widget.setup_appearance(size, font)
 
     def set_indent_chars(self, indent_chars):
@@ -483,7 +488,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
         # spyder-ide/spyder#1546).
-        if os.name == 'nt' and PY3:
+        if os.name == 'nt':
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
                        .replace('\u0085', '\n')
@@ -507,13 +512,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         return []
 
     def get_selection_as_executable_code(self, cursor=None):
-        """Return selected text as a processed text,
-        to be executable in a Python/IPython interpreter"""
+        """Get selected text in a way that allows other plugins executed it."""
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
 
         line_from, line_to = self.get_selection_bounds(cursor)
+        line_col_from, line_col_to = self.get_selection_start_end(cursor)
+        line_from_off, line_to_off = self.get_selection_offsets(cursor)
+
         text = self.get_selected_text(cursor)
         if not text:
             return
@@ -560,7 +567,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
 
-        return leading_lines_str + ls.join(lines)
+        return (
+            leading_lines_str + ls.join(lines),
+            (line_from_off, line_to_off),
+            (line_col_from, line_col_to)
+        )
 
     def get_cell_as_executable_code(self, cursor=None):
         """Return cell contents as executable code."""
@@ -575,10 +586,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if not is_cell_header(block) and start > 0:
             block = self.document().findBlock(start - 1)
         # Get text
-        text = self.get_selection_as_executable_code(cursor)
+        text, off_pos, col_pos = self.get_selection_as_executable_code(cursor)
         if text is not None:
             text = ls * line_from + text
-        return text, block
+        return text, block, off_pos, col_pos
 
     def select_current_cell(self, cursor=None):
         """
@@ -909,7 +920,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_widget.item_selected()
 
     def insert_completion(self, completion, completion_position):
-        """Insert a completion into the editor.
+        """
+        Insert a completion into the editor.
 
         completion_position is where the completion was generated.
 
@@ -937,25 +949,86 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 end = self.get_position_line_number(end_line, end_col)
             cursor.setPosition(start)
             cursor.setPosition(end, QTextCursor.KeepAnchor)
-            text = to_text_string(completion['textEdit']['newText'])
+            text = str(completion['textEdit']['newText'])
         else:
             text = completion
+            kind = None
             if isinstance(completion, dict):
                 text = completion['insertText']
-            text = to_text_string(text)
+                kind = completion['kind']
+            text = str(text)
 
-            # Get word on the left of the cursor.
-            result = self.get_current_word_and_position(completion=True)
+            # Get word to the left of the cursor.
+            result = self.get_current_word_and_position(
+                completion=True, valid_python_variable=False)
             if result is not None:
                 current_text, start_position = result
                 end_position = start_position + len(current_text)
-                # Check if the completion position is in the expected range
-                if not start_position <= completion_position <= end_position:
-                    return
-                cursor.setPosition(start_position)
-                # Remove the word under the cursor
-                cursor.setPosition(end_position,
-                                   QTextCursor.KeepAnchor)
+
+                # Remove text under cursor only if it's not an autocompletion
+                # character
+                is_auto_completion_character = False
+                if self.objectName() == 'console':
+                    if current_text == '.':
+                        is_auto_completion_character = True
+                else:
+                    if (
+                        kind != CompletionItemKind.FILE and
+                        current_text in self.auto_completion_characters
+                    ):
+                        is_auto_completion_character = True
+
+                # Adjustments for file completions
+                if kind == CompletionItemKind.FILE:
+                    special_chars = ['"', "'", '/', '\\']
+
+                    if any(
+                        [current_text.endswith(c) for c in special_chars]
+                    ):
+                        # This is necessary when completions are requested next
+                        # to special characters.
+                        start_position = end_position
+                    elif current_text.endswith('.') and len(current_text) > 1:
+                        # This inserts completions for files or directories
+                        # that start with a dot
+                        start_position = end_position - 1
+                    elif current_text == '.':
+                        # This is needed if users are asking for file
+                        # completions to the right of a dot when some of its
+                        # name is part of the completed text
+                        cursor_1 = self.textCursor()
+                        found_start = False
+
+                        # Select text backwards until we find where the file
+                        # name starts
+                        while not found_start:
+                            cursor_1.movePosition(
+                                QTextCursor.PreviousCharacter,
+                                QTextCursor.KeepAnchor,
+                            )
+
+                            selection = str(cursor_1.selectedText())
+                            if text.startswith(selection):
+                                found_start = True
+
+                        current_text = str(cursor_1.selectedText())
+                        start_position = cursor_1.selectionStart()
+                        end_position = cursor_1.selectionEnd()
+
+                if not is_auto_completion_character:
+                    # Check if the completion position is in the expected range
+                    if not (
+                        start_position <= completion_position <= end_position
+                    ):
+                        return
+                    cursor.setPosition(start_position)
+
+                    # Remove the word under the cursor
+                    cursor.setPosition(end_position, QTextCursor.KeepAnchor)
+                else:
+                    # Check if we are in the correct position
+                    if cursor.position() != completion_position:
+                        return
             else:
                 # Check if we are in the correct position
                 if cursor.position() != completion_position:

@@ -16,13 +16,10 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QPushButton,
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.shortcuts.widgets.table import (ShortcutFinder,
                                                     ShortcutsTable)
 from spyder.utils.icon_manager import ima
-
-# Localization
-_ = get_translation('spyder')
 
 
 class ShortcutsConfigPage(PluginConfigPage):

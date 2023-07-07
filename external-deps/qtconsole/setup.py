@@ -73,7 +73,8 @@ setup_args = dict(
         'pygments',
         'ipykernel>=4.1', # not a real dependency, but require the reference kernel
         'qtpy>=2.0.1',
-        'pyzmq>=17.1'
+        'pyzmq>=17.1',
+        'packaging'
     ],
     extras_require = {
         'test': ['flaky', 'pytest', 'pytest-qt'],

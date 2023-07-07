@@ -19,8 +19,8 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
 import datetime
+import io
 import re
 import sys
 import warnings
@@ -43,13 +43,12 @@ from spyder_kernels.utils.nsview import (
 )
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
-from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
-                              is_type_text_string, NUMERIC_TYPES)
+from spyder.py3compat import (is_binary_string, to_text_string,
+                              is_type_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (
@@ -67,8 +66,12 @@ from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6
 
+# To handle large collections
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
+
+# Numeric types
+NUMERIC_TYPES = (int, float) + get_numeric_numpy_types()
 
 
 def natsort(s):
@@ -124,7 +127,7 @@ class ProxyObject(object):
                 raise
 
 
-class ReadOnlyCollectionsModel(QAbstractTableModel):
+class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
     """CollectionsEditor Read-Only Table Model"""
 
     sig_setting_data = Signal()
@@ -144,7 +147,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.total_rows = None
         self.showndata = None
         self.keys = None
-        self.title = to_text_string(title) # in case title is not a string
+        self.title = to_text_string(title)  # in case title is not a string
         if self.title:
             self.title = self.title + ' - '
         self.sizes = []
@@ -193,6 +196,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
+
         if not isinstance(self._data, ProxyObject):
             if len(self.keys) > 1:
                 elements = _("elements")
@@ -202,17 +206,21 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             data_type = get_type_string(data)
             self.title += data_type
+
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
+
         self.sig_setting_data.emit()
         self.set_size_and_type()
+
         if len(self.keys):
             # Needed to update search scores when
             # adding values to the namespace
             self.update_search_letters()
+
         self.reset()
 
     def set_size_and_type(self, start=None, stop=None):
@@ -349,13 +357,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def get_value(self, index):
         """Return current value"""
         if index.column() == 0:
-            return self.keys[ index.row() ]
+            return self.keys[index.row()]
         elif index.column() == 1:
-            return self.types[ index.row() ]
+            return self.types[index.row()]
         elif index.column() == 2:
-            return self.sizes[ index.row() ]
+            return self.sizes[index.row()]
         else:
-            return self._data[ self.keys[index.row()] ]
+            return self._data[self.keys[index.row()]]
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
@@ -412,14 +420,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            elif not isinstance(
-                value, NUMERIC_TYPES + get_numeric_numpy_types()
-            ):
+            elif not isinstance(value, NUMERIC_TYPES):
                 display = to_text_string(value)
             else:
                 display = value
         if role == Qt.UserRole:
-            if isinstance(value, NUMERIC_TYPES + get_numeric_numpy_types()):
+            if isinstance(value, NUMERIC_TYPES):
                 return to_qvariant(value)
             else:
                 return to_qvariant(display)
@@ -430,15 +436,17 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             if index.column() == 3:
                 if len(display.splitlines()) < 3:
-                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
                 else:
-                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignTop))
+                    return to_qvariant(int(Qt.AlignLeft | Qt.AlignTop))
             else:
-                return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
-            return to_qvariant( self.get_bgcolor(index) )
+            return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return to_qvariant(
+                self.get_font(SpyderFontType.MonospaceInterface)
+            )
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -449,7 +457,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if orientation == Qt.Horizontal:
             headers = (self.header0, _("Type"), _("Size"), _("Value"),
                        _("Score"))
-            return to_qvariant( headers[i_column] )
+            return to_qvariant(headers[i_column])
         else:
             return to_qvariant()
 
@@ -472,8 +480,8 @@ class CollectionsModel(ReadOnlyCollectionsModel):
 
     def set_value(self, index, value):
         """Set value"""
-        self._data[ self.keys[index.row()] ] = value
-        self.showndata[ self.keys[index.row()] ] = value
+        self._data[self.keys[index.row()]] = value
+        self.showndata[self.keys[index.row()]] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_human_readable_type(value)
         self.sig_setting_data.emit()
@@ -616,6 +624,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.horizontalHeader().sig_user_resized_section.connect(
             self.user_resize_columns)
 
+        # There is no need for us to show this header because we're not using
+        # it to show any information on it.
+        self.verticalHeader().hide()
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -645,13 +657,17 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.edit_action = create_action(self, _("Edit"),
                                          icon=ima.icon('edit'),
                                          triggered=self.edit_item)
-        self.plot_action = create_action(self, _("Plot"),
-                                    icon=ima.icon('plot'),
-                                    triggered=lambda: self.plot_item('plot'))
+        self.plot_action = create_action(
+            self, _("Plot"),
+            icon=ima.icon('plot'),
+            triggered=lambda: self.plot_item('plot')
+        )
         self.plot_action.setVisible(False)
-        self.hist_action = create_action(self, _("Histogram"),
-                                    icon=ima.icon('hist'),
-                                    triggered=lambda: self.plot_item('hist'))
+        self.hist_action = create_action(
+            self, _("Histogram"),
+            icon=ima.icon('hist'),
+            triggered=lambda: self.plot_item('hist')
+        )
         self.hist_action.setVisible(False)
         self.imshow_action = create_action(self, _("Show image"),
                                            icon=ima.icon('imshow'),
@@ -722,7 +738,6 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         )
 
         return menu
-
 
     # ------ Remote/local API -------------------------------------------------
     def remove_values(self, keys):
@@ -959,6 +974,17 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         else:
             event.ignore()
 
+    def showEvent(self, event):
+        """Resize columns when the widget is shown."""
+        # This is probably the best we can do to adjust the columns width to
+        # their header contents at startup. However, it doesn't work for all
+        # fonts and font sizes and perhaps it depends on the user's screen dpi
+        # as well. See the discussion in
+        # https://github.com/spyder-ide/spyder/pull/20933#issuecomment-1585474443
+        # and the comments below for more details.
+        self.adjust_columns()
+        super().showEvent(event)
+
     def _deselect_index(self, index):
         """
         Deselect index after any operation that adds or removes rows to/from
@@ -1136,7 +1162,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         except:
             try:
                 if 'matplotlib' not in sys.modules:
-                    import matplotlib
+                    import matplotlib  # noqa
                 return True
             except Exception:
                 QMessageBox.warning(self, _("Import error"),
@@ -1190,11 +1216,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
-                                               _("NumPy arrays")+" (*.npy)")
+                                               _("NumPy arrays") + " (*.npy)")
         self.redirect_stdio.emit(True)
         if filename:
             self.array_filename = filename
-            data = self.delegate.get_value( self.currentIndex() )
+            data = self.delegate.get_value(self.currentIndex())
             try:
                 import numpy as np
                 np.save(self.array_filename, data)
@@ -1217,10 +1243,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             # to copy the whole thing in a tab separated format
             if (isinstance(obj, (np.ndarray, np.ma.MaskedArray)) and
                     np.ndarray is not FakeObject):
-                if PY3:
-                    output = io.BytesIO()
-                else:
-                    output = io.StringIO()
+                output = io.BytesIO()
                 try:
                     np.savetxt(output, obj, delimiter='\t')
                 except Exception:
@@ -1240,10 +1263,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                                         _("It was not possible to copy "
                                           "this dataframe"))
                     return
-                if PY3:
-                    obj = output.getvalue()
-                else:
-                    obj = output.getvalue().decode('utf-8')
+                obj = output.getvalue()
                 output.close()
             elif is_binary_string(obj):
                 obj = to_text_string(obj, 'utf8')
@@ -1281,6 +1301,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
+
     def __init__(self, parent, data, readonly=False, title="",
                  names=False):
         BaseTableView.__init__(self, parent)
@@ -1345,7 +1366,10 @@ class CollectionsEditorTableView(BaseTableView):
     def get_len(self, key):
         """Return sequence length"""
         data = self.source_model.get_data()
-        return len(data[key])
+        if self.is_array(key):
+            return self.get_array_ndim(key)
+        else:
+            return len(data[key])
 
     def is_array(self, key):
         """Return True if variable is a numpy array"""
@@ -1376,7 +1400,7 @@ class CollectionsEditorTableView(BaseTableView):
         """Edit item"""
         data = self.source_model.get_data()
         from spyder.plugins.variableexplorer.widgets.objecteditor import (
-                oedit)
+            oedit)
         oedit(data[key])
 
     def plot(self, key, funcname):
@@ -1408,10 +1432,12 @@ class CollectionsEditorTableView(BaseTableView):
 
 class CollectionsEditorWidget(QWidget):
     """Dictionary Editor Widget"""
+
     def __init__(self, parent, data, readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
-            self.editor = RemoteCollectionsEditorTableView(self, data, readonly)
+            self.editor = RemoteCollectionsEditorTableView(self, data,
+                                                           readonly)
         else:
             self.editor = CollectionsEditorTableView(self, data, readonly,
                                                      title)
@@ -1441,6 +1467,7 @@ class CollectionsEditorWidget(QWidget):
 
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -1461,11 +1488,9 @@ class CollectionsEditor(BaseDialog):
         if isinstance(data, (dict, set)):
             # dictionary, set
             self.data_copy = data.copy()
-            datalen = len(data)
         elif isinstance(data, (tuple, list)):
             # list, tuple
             self.data_copy = data[:]
-            datalen = len(data)
         else:
             # unknown object
             import copy
@@ -1476,7 +1501,6 @@ class CollectionsEditor(BaseDialog):
             except (TypeError, AttributeError):
                 readonly = True
                 self.data_copy = data
-            datalen = len(get_object_attrs(data))
 
         # If the copy has a different type, then do not allow editing, because
         # this would change the type after saving; cf. spyder-ide/spyder#6936.
@@ -1542,6 +1566,7 @@ class CollectionsEditor(BaseDialog):
 #==============================================================================
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
+
     def __init__(self, parent=None):
         CollectionsDelegate.__init__(self, parent)
 
@@ -1560,6 +1585,7 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
+
     def __init__(self, parent, data, shellwidget=None, remote_editing=False,
                  create_menu=False):
         BaseTableView.__init__(self, parent)
@@ -1855,8 +1881,8 @@ def get_test_data():
             'date': testdate,
             'datetime': datetime.datetime(1945, 5, 8, 23, 1, 0, int(1.5e5)),
             'timedelta': test_timedelta,
-            'complex': 2+1j,
-            'complex64': np.complex64(2+1j),
+            'complex': 2 + 1j,
+            'complex64': np.complex64(2 + 1j),
             'complex128': np.complex128(9j),
             'int8_scalar': np.int8(8),
             'int16_scalar': np.int16(16),
@@ -1865,7 +1891,6 @@ def get_test_data():
             'float16_scalar': np.float16(16),
             'float32_scalar': np.float32(32),
             'float64_scalar': np.float64(64),
-            'bool_scalar': np.bool(8),
             'bool__scalar': np.bool_(8),
             'timestamp': test_timestamp,
             'timedelta_pd': test_pd_td,

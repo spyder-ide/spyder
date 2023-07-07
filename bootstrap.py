@@ -14,10 +14,6 @@ Bootstrap Spyder.
 Execute Spyder from source checkout.
 """
 
-# pylint: disable=C0103
-# pylint: disable=C0412
-# pylint: disable=C0413
-
 # Standard library imports
 import argparse
 import os
@@ -28,9 +24,13 @@ import time
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 
-from install_dev_repos import REPOS, install_repo
+# Local imports
+from install_dev_repos import DEVPATH, REPOS, install_repo
 
+
+# =============================================================================
 # ---- Setup logger
+# =============================================================================
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
 h.setFormatter(fmt)
@@ -40,8 +40,10 @@ logger.setLevel('INFO')
 
 time_start = time.time()
 
-# ---- Parse command line
 
+# =============================================================================
+# ---- Parse command line
+# =============================================================================
 parser = argparse.ArgumentParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="""\
@@ -72,16 +74,39 @@ args = parser.parse_args()
 assert args.gui in (None, 'pyqt5', 'pyside2'), \
        "Invalid GUI toolkit option '%s'" % args.gui
 
-# ---- Install sub repos
 
+# =============================================================================
+# ---- Install sub repos
+# =============================================================================
 installed_dev_repo = False
 if not args.no_install:
+    prev_branch = None
+    boot_branch_file = DEVPATH / ".boot_branch.txt"
+    if boot_branch_file.exists():
+        prev_branch = boot_branch_file.read_text()
+
+    result = subprocess.run(
+        ["git", "-C", DEVPATH, "merge-base", "--fork-point", "master"],
+        capture_output=True
+    )
+    branch = "master" if result.stdout else "not master"
+    boot_branch_file.write_text(branch)
+
+    logger.info("Previous root branch: %s; current root branch: %s",
+                prev_branch, branch)
+
+    if branch != prev_branch:
+        logger.info("Detected root branch change to/from master. "
+                    "Will reinstall Spyder in editable mode.")
+        REPOS[DEVPATH.name]["editable"] = False
+
     for name in REPOS.keys():
         if not REPOS[name]['editable']:
             install_repo(name)
             installed_dev_repo = True
         else:
             logger.info("%s installed in editable mode", name)
+
 if installed_dev_repo:
     logger.info("Restarting bootstrap to pick up installed subrepos")
     if '--' in sys.argv:
@@ -91,14 +116,20 @@ if installed_dev_repo:
     result = subprocess.run([sys.executable, *sys.argv])
     sys.exit(result.returncode)
 
+# Local imports
+# Must follow install_repo in case Spyder was not originally installed.
+from spyder import get_versions
+
 logger.info("Executing Spyder from source checkout")
 
 # Prepare arguments for Spyder's main script
 original_sys_argv = sys.argv.copy()
 sys.argv = [sys.argv[0]] + args.spyder_options
 
-# ---- Update os.environ
 
+# =============================================================================
+# ---- Update os.environ
+# =============================================================================
 # Store variable to be used in self.restart (restart Spyder instance)
 os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(original_sys_argv[1:])
 
@@ -134,11 +165,12 @@ else:
     logger.info("Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
 
-# ---- Check versions
 
+# =============================================================================
+# ---- Check versions
+# =============================================================================
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
-from spyder import get_versions
 versions = get_versions(reporev=True)
 logger.info("Imported Spyder %s - Revision %s, Branch: %s; "
             "[Python %s %dbits, Qt %s, %s %s on %s]",
@@ -152,8 +184,10 @@ if not programs.is_module_installed('qtpy', '>=1.1.0'):
     sys.exit("ERROR: Your qtpy version is outdated. Please install qtpy "
              "1.1.0 or higher to be able to work with Spyder!")
 
-# ---- Execute Spyder
 
+# =============================================================================
+# ---- Execute Spyder
+# =============================================================================
 if args.hide_console and os.name == 'nt':
     logger.info("Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console

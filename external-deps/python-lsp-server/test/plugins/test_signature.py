@@ -46,7 +46,7 @@ def test_no_signature(workspace):
     sig_position = {'line': 9, 'character': 0}
     doc = Document(DOC_URI, workspace, DOC)
 
-    sigs = signature.pylsp_signature_help(doc, sig_position)['signatures']
+    sigs = signature.pylsp_signature_help(doc._config, doc, sig_position)['signatures']
     assert not sigs
 
 
@@ -55,13 +55,13 @@ def test_signature(workspace):
     sig_position = {'line': 10, 'character': 5}
     doc = Document(DOC_URI, workspace, DOC)
 
-    sig_info = signature.pylsp_signature_help(doc, sig_position)
+    sig_info = signature.pylsp_signature_help(doc._config, doc, sig_position)
 
     sigs = sig_info['signatures']
     assert len(sigs) == 1
     assert sigs[0]['label'] == 'main(param1, param2)'
     assert sigs[0]['parameters'][0]['label'] == 'param1'
-    assert sigs[0]['parameters'][0]['documentation'] == 'Docs for param1'
+    assert sigs[0]['parameters'][0]['documentation'] == {'kind': 'markdown', 'value': 'Docs for param1'}
 
     assert sig_info['activeParameter'] == 0
 
@@ -71,7 +71,7 @@ def test_multi_line_signature(workspace):
     sig_position = {'line': 17, 'character': 5}
     doc = Document(DOC_URI, workspace, MULTI_LINE_DOC)
 
-    sig_info = signature.pylsp_signature_help(doc, sig_position)
+    sig_info = signature.pylsp_signature_help(doc._config, doc, sig_position)
 
     sigs = sig_info['signatures']
     assert len(sigs) == 1
@@ -80,7 +80,7 @@ def test_multi_line_signature(workspace):
         'param5=None, param6=None, param7=None, param8=None)'
     )
     assert sigs[0]['parameters'][0]['label'] == 'param1'
-    assert sigs[0]['parameters'][0]['documentation'] == 'Docs for param1'
+    assert sigs[0]['parameters'][0]['documentation'] == {'kind': 'markdown', 'value': 'Docs for param1'}
 
     assert sig_info['activeParameter'] == 0
 

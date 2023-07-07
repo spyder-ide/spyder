@@ -38,16 +38,16 @@ def test_numpy_hover(workspace):
     doc = Document(DOC_URI, workspace, NUMPY_DOC)
 
     contents = ''
-    assert contents in pylsp_hover(doc, no_hov_position)['contents']
+    assert contents in pylsp_hover(doc._config, doc, no_hov_position)['contents']
 
     contents = 'NumPy\n=====\n\nProvides\n'
-    assert contents in pylsp_hover(doc, numpy_hov_position_1)['contents'][0]
+    assert contents in pylsp_hover(doc._config, doc, numpy_hov_position_1)['contents']['value']
 
     contents = 'NumPy\n=====\n\nProvides\n'
-    assert contents in pylsp_hover(doc, numpy_hov_position_2)['contents'][0]
+    assert contents in pylsp_hover(doc._config, doc, numpy_hov_position_2)['contents']['value']
 
     contents = 'NumPy\n=====\n\nProvides\n'
-    assert contents in pylsp_hover(doc, numpy_hov_position_3)['contents'][0]
+    assert contents in pylsp_hover(doc._config, doc, numpy_hov_position_3)['contents']['value']
 
     # https://github.com/davidhalter/jedi/issues/1746
     # pylint: disable=import-outside-toplevel
@@ -55,8 +55,8 @@ def test_numpy_hover(workspace):
 
     if np.lib.NumpyVersion(np.__version__) < '1.20.0':
         contents = 'Trigonometric sine, element-wise.\n\n'
-        assert contents in pylsp_hover(
-            doc, numpy_sin_hov_position)['contents'][0]
+        assert contents in pylsp_hover(doc._config,
+                                       doc, numpy_sin_hov_position)['contents']['value']
 
 
 def test_hover(workspace):
@@ -67,13 +67,13 @@ def test_hover(workspace):
 
     doc = Document(DOC_URI, workspace, DOC)
 
-    contents = [{'language': 'python', 'value': 'main()'}, 'hello world']
+    contents = {'kind': 'markdown', 'value': '```python\nmain()\n```\n\n\nhello world'}
 
     assert {
         'contents': contents
-    } == pylsp_hover(doc, hov_position)
+    } == pylsp_hover(doc._config, doc, hov_position)
 
-    assert {'contents': ''} == pylsp_hover(doc, no_hov_position)
+    assert {'contents': ''} == pylsp_hover(doc._config, doc, no_hov_position)
 
 
 def test_document_path_hover(workspace_other_root_path, tmpdir):
@@ -96,6 +96,6 @@ foo"""
     doc = Document(doc_uri, workspace_other_root_path, doc_content)
 
     cursor_pos = {'line': 1, 'character': 3}
-    contents = pylsp_hover(doc, cursor_pos)['contents']
+    contents = pylsp_hover(doc._config, doc, cursor_pos)['contents']
 
-    assert contents[1] == 'A docstring for foo.'
+    assert 'A docstring for foo.' in contents['value']

@@ -13,12 +13,8 @@ console, such as the Variable Explorer or Plots.
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class ShellConnectMainWidget(PluginMainWidget):

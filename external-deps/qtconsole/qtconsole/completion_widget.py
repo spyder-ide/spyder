@@ -15,7 +15,7 @@ class CompletionWidget(QtWidgets.QListWidget):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, console_widget):
+    def __init__(self, console_widget, height=0):
         """ Create a completion widget that is attached to the specified Qt
             text edit widget.
         """
@@ -24,6 +24,7 @@ class CompletionWidget(QtWidgets.QListWidget):
         super().__init__(parent=console_widget)
 
         self._text_edit = text_edit
+        self._height_max = height if height > 0 else self.sizeHint().height()
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
@@ -104,7 +105,6 @@ class CompletionWidget(QtWidgets.QListWidget):
         """ Shows the completion widget with 'items' at the position specified
             by 'cursor'.
         """
-        text_edit = self._text_edit
         point = self._get_top_left_position(cursor)
         self.clear()
         path_items = []
@@ -132,15 +132,16 @@ class CompletionWidget(QtWidgets.QListWidget):
             list_item.setText(text)
             self.addItem(list_item)
 
-        height = self.sizeHint().height()
         if QT6:
             screen_rect = self.screen().availableGeometry()
         else:
             screen_rect = QtWidgets.QApplication.desktop().availableGeometry(self)
-        if (screen_rect.size().height() + screen_rect.y() -
-                point.y() - height < 0):
-            point = text_edit.mapToGlobal(text_edit.cursorRect().topRight())
-            point.setY(int(point.y() - height))
+        screen_height = screen_rect.height()
+        height = int(min(self._height_max, screen_height - 50)) # -50px
+        if ((screen_height - point.y() - height) < 0):
+            point = self._text_edit.mapToGlobal(self._text_edit.cursorRect().topRight())
+            py = point.y()
+            point.setY(int(py - min(height, py - 10))) # -10px
         w = (self.sizeHintForColumn(0) +
              self.verticalScrollBar().sizeHint().width() +
              2 * self.frameWidth())
@@ -161,20 +162,7 @@ class CompletionWidget(QtWidgets.QListWidget):
     def _get_top_left_position(self, cursor):
         """ Get top left position for this widget.
         """
-        point = self._text_edit.cursorRect(cursor).center()
-        point_size = self._text_edit.font().pointSize()
-
-        if sys.platform == 'darwin':
-            delta = int((point_size * 1.20) ** 0.98)
-        elif os.name == 'nt':
-            delta = int((point_size * 1.20) ** 1.05)
-        else:
-            delta = int((point_size * 1.20) ** 0.98)
-
-        y = delta - (point_size / 2)
-        point.setY(int(point.y() + y))
-        point = self._text_edit.mapToGlobal(point)
-        return point
+        return self._text_edit.mapToGlobal(self._text_edit.cursorRect().bottomRight())
 
     def _complete_current(self):
         """ Perform the completion with the currently selected item.
@@ -200,6 +188,7 @@ class CompletionWidget(QtWidgets.QListWidget):
         # Update widget position
         cursor = self._text_edit.textCursor()
         point = self._get_top_left_position(cursor)
+        point.setY(self.y())
         self.move(point)
 
         # Update current item

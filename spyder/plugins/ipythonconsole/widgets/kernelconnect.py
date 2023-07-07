@@ -129,7 +129,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         # Remote kernel layout
         rm_layout = QVBoxLayout()
         rm_layout.addLayout(ssh_layout)
-        rm_layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 8)))
+        rm_layout.addSpacerItem(QSpacerItem(0, 8))
         rm_layout.addWidget(auth_group)
         self.rm_group.setLayout(rm_layout)
         self.rm_group.setCheckable(True)
@@ -155,9 +155,9 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         # Dialog layout
         layout = QVBoxLayout(self)
         layout.addWidget(main_label)
-        layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 8)))
+        layout.addSpacerItem(QSpacerItem(0, 8))
         layout.addLayout(cf_layout)
-        layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 12)))
+        layout.addSpacerItem(QSpacerItem(0, 12))
         layout.addWidget(self.rm_group)
         layout.addLayout(btns_layout)
 

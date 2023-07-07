@@ -20,16 +20,14 @@ from difflib import SequenceMatcher
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QBrush, QColor
-from spyder_kernels.utils.nsview import is_editable_type
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.gui import get_font
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
     TreeItem)
-from spyder.py3compat import to_unichr
 from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
@@ -46,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 # The main window inherits from a Qt class, therefore it has many
 # ancestors public methods and attributes.
-class TreeModel(QAbstractItemModel):
+class TreeModel(QAbstractItemModel, SpyderFontsMixin):
     """
     Model that provides an interface to an objectree
     that is build of TreeItems.
@@ -55,9 +53,7 @@ class TreeModel(QAbstractItemModel):
                  obj,
                  obj_name='',
                  attr_cols=None,
-                 parent=None,
-                 regular_font=None,
-                 special_attribute_font=None):
+                 parent=None):
         """
         Constructor
 
@@ -71,12 +67,12 @@ class TreeModel(QAbstractItemModel):
         self._attr_cols = attr_cols
 
         # Font for members (non-functions)
-        self.regular_font = regular_font if regular_font else get_font()
-        # Font for __special_attributes__
-        self.special_attribute_font = (special_attribute_font
-                                       if special_attribute_font
-                                       else get_font())
-        self.special_attribute_font.setItalic(False)
+        self.regular_font = self.get_font(SpyderFontType.MonospaceInterface)
+
+        # Font for __special_attributes__ (in case we want to change it in the
+        # future).
+        self.special_attribute_font = self.get_font(
+            SpyderFontType.MonospaceInterface)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))
         self.callable_color = QBrush(
@@ -146,9 +142,9 @@ class TreeModel(QAbstractItemModel):
                 attr = self._attr_cols[col].data_fn(tree_item)
                 # Replace carriage returns and line feeds with unicode glyphs
                 # so that all table rows fit on one line.
-                return (attr.replace('\r\n', to_unichr(0x21B5))
-                            .replace('\n', to_unichr(0x21B5))
-                            .replace('\r', to_unichr(0x21B5)))
+                return (attr.replace('\r\n', chr(0x21B5))
+                            .replace('\n', chr(0x21B5))
+                            .replace('\r', chr(0x21B5)))
             except Exception as ex:
                 # logger.exception(ex)
                 return "**ERROR**: {}".format(ex)

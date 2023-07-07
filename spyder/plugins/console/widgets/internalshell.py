@@ -14,9 +14,10 @@
 #FIXME: Internal shell MT: for i in range(100000): print i -> bug
 
 # Standard library imports
-from time import time
+import builtins
 import os
 import threading
+from time import time
 
 # Third party imports
 from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
@@ -26,10 +27,9 @@ from spyder_kernels.utils.dochelpers import (getargtxt, getdoc, getobjdir,
 
 # Local imports
 from spyder import get_versions
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.console.utils.interpreter import Interpreter
-from spyder.py3compat import (builtins, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import to_binary_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.misc import get_error_match, getcwd_or_home
@@ -39,8 +39,6 @@ from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
 from spyder.config.base import get_conf_path, get_debug_level
 
 
-# Localization
-_ = get_translation('spyder')
 builtins.oedit = oedit
 
 

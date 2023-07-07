@@ -162,6 +162,40 @@ Files covered:
 Source Code
 ===========
 
+Electrum
+--------
+
+
+Copyright (C) 2018 The Electrum Developers
+
+
+Author: Thomas Voegtlin and others | electrumdev@gmail.com
+https://github.com/spesmilo/electrum/graphs/contributors
+Site: https://electrum.org/
+Source: https://github.com/spesmilo/electrum
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to add ellipsis to displayed text in a QLineEdit.
+
+
+See below for the full text of the MIT License.
+
+The current Electrum license can be viewed at:
+https://github.com/spesmilo/electrum/blob/master/LICENCE
+
+The current versions of the original files can be viewed at:
+https://github.com/spesmilo/electrum/blob/master/electrum/gui/qt/amountedit.py
+
+
+Files covered:
+
+spyder/widgets/helperwidgets.py
+
+
+-------------------------------------------------------------------------------
+
+
+
 QDarkStyleSheet
 ---------------
 
@@ -1286,273 +1320,7 @@ https://github.com/spyder-ide/spyder/blob/master/LICENSE.txt
 
 Files covered:
 
-spyder/images/actions/hist.png
-spyder/images/actions/window_nofullscreen.png
-spyder/images/console/ipython_console.png
-spyder/images/editor/attribute.png
-spyder/images/editor/blockcomment.png
-spyder/images/editor/cell.png
-spyder/images/editor/filelist.png
-spyder/images/editor/function.png
-spyder/images/editor/method.png
-spyder/images/editor/module.png
-spyder/images/editor/no_match.png
-spyder/images/editor/private1.png
-spyder/images/editor/private2.png
-spyder/images/editor/refactor.png
-spyder/images/old_svg/options.svg
 spyder/images/spyder.svg
-spyder/images/spyder2_icon_theme/dictedit.png
-spyder/images/spyder2_icon_theme/not_found.png
-spyder/images/spyder2_icon_theme/whole_words.png
-spyder/images/spyder2_icon_theme/win_env.png
-
-
--------------------------------------------------------------------------------
-
-
-
-Crystal Project Icons
----------------------
-
-
-Copyright (c) 2006-2007 Everaldo Coelho
-
-
-Author: Everaldo Coelho | everaldo@everaldo.com
-Site: https://www.everaldo.com
-Source: https://store.kde.org/p/1002590/
-Download (mirror): https://github.com/thecodingmachine/crystal-project
-License: GNU Lesser General Public License 2.1 or later
-https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
-
-No modifications made.
-
-
-All Icons are free software; you can redistribute it and/or modify it under the
-terms of the GNU Lesser General Public License as published by the Free
-Software Foundation; either version 2.1 of the License, or (at your option) any
-later version. This library is distributed in the hope that it will be useful,
-but without any warranty; without even the implied warranty of merchantability
-or fitness for a particular purpose.
-
-
-See below for full text of the GNU LGPL 2.1.
-
-Later versions of the GNU LGPL may be found at:
-https://www.gnu.org/licenses/lgpl.html
-
-
-Files covered:
-
-spyder/images/actions/1downarrow.png
-spyder/images/actions/1uparrow.png
-spyder/images/actions/2downarrow.png
-spyder/images/actions/2uparrow.png
-spyder/images/actions/browse_tab.png
-spyder/images/actions/check.png
-spyder/images/actions/configure.png
-spyder/images/actions/copywop.png
-spyder/images/actions/delete.png
-spyder/images/actions/edit.png
-spyder/images/actions/edit24.png
-spyder/images/actions/edit_add.png
-spyder/images/actions/edit_remove.png
-spyder/images/actions/editcopy.png
-spyder/images/actions/editcut.png
-spyder/images/actions/editpaste.png
-spyder/images/actions/eraser.png
-spyder/images/actions/exit.png
-spyder/images/actions/filter.png
-spyder/images/actions/find.png
-spyder/images/actions/findf.png
-spyder/images/actions/folder_new.png
-spyder/images/actions/hide.png
-spyder/images/actions/home.png
-spyder/images/actions/imshow.png
-spyder/images/actions/insert.png
-spyder/images/actions/lock.png
-spyder/images/actions/lock_open.png
-spyder/images/actions/magnifier.png
-spyder/images/actions/next.png
-spyder/images/actions/options_less.png
-spyder/images/actions/options_more.png
-spyder/images/actions/plot.png
-spyder/images/actions/previous.png
-spyder/images/actions/redo.png
-spyder/images/actions/rename.png
-spyder/images/actions/replace.png
-spyder/images/actions/show.png
-spyder/images/actions/special_paste.png
-spyder/images/actions/synchronize.png
-spyder/images/actions/tooloptions.png
-spyder/images/actions/undo.png
-spyder/images/actions/up.png
-spyder/images/console/console.png
-spyder/images/console/history.png
-spyder/images/console/kill.png
-spyder/images/console/prompt.png
-spyder/images/console/restart.png
-spyder/images/editor/bug.png
-spyder/images/editor/close_panel.png
-spyder/images/editor/comment.png
-spyder/images/editor/error.png
-spyder/images/editor/file.png
-spyder/images/editor/fromcursor.png
-spyder/images/editor/gotoline.png
-spyder/images/editor/highlight.png
-spyder/images/editor/indent.png
-spyder/images/editor/newwindow.png
-spyder/images/editor/next_cursor.png
-spyder/images/editor/next_wng.png
-spyder/images/editor/outline_explorer.png
-spyder/images/editor/outline_explorer_vis.png
-spyder/images/editor/prev_cursor.png
-spyder/images/editor/prev_wng.png
-spyder/images/editor/select.png
-spyder/images/editor/selectall.png
-spyder/images/editor/todo_list.png
-spyder/images/editor/uncomment.png
-spyder/images/editor/unindent.png
-spyder/images/editor/wng_list.png
-spyder/images/file/fileclose.png
-spyder/images/file/fileimport.png
-spyder/images/file/filenew.png
-spyder/images/file/fileopen.png
-spyder/images/file/filesave.png
-spyder/images/file/filesaveas.png
-spyder/images/file/print.png
-spyder/images/file/save_all.png
-spyder/images/projects/add_to_path.png
-spyder/images/projects/folder.png
-spyder/images/projects/package.png
-spyder/images/projects/pp_folder.png
-spyder/images/projects/pp_package.png
-spyder/images/projects/pp_project.png
-spyder/images/projects/project.png
-spyder/images/projects/project_closed.png
-spyder/images/projects/pythonpath.png
-spyder/images/projects/remove_from_path.png
-spyder/images/projects/show_all.png
-spyder/images/spyder2_icon_theme/advanced.png
-spyder/images/spyder2_icon_theme/help.png
-spyder/images/spyder2_icon_theme/italic.png
-spyder/images/spyder2_icon_theme/vcs_browse.png
-spyder/images/spyder2_icon_theme/vcs_commit.png
-
-
--------------------------------------------------------------------------------
-
-
-
-Yusuke Kamiyamane Icons
------------------------
-
-
-Copyright (C) 2013 Yusuke Kamiyamane
-
-
-Author: Yusuke Kamiyamane | p@yusukekamiyamane.com
-Source/Download: http://p.yusukekamiyamane.com/
-License: Creative Commons Attribution 3.0 International
-https://creativecommons.org/licenses/by/3.0/
-
-No modifications made.
-
-
-These icons are licensed under a Creative Commons
-Attribution 3.0 License.
-<https://creativecommons.org/licenses/by/3.0/>
-
-If you can't or don't want to provide attribution, please
-purchase a royalty-free license.
-<http://p.yusukekamiyamane.com/>
-
-I'm unavailable for custom icon design work. But your
-suggestions are always welcome!
-<mailto:p@yusukekamiyamane.com>
-
-
-See below for the full text of the CC-BY 3.0 International license.
-
-The license summary and text can be found online at:
-https://creativecommons.org/licenses/by/3.0/
-
-
-Files covered:
-
-spyder/images/actions/arrow-continue.png
-spyder/images/actions/arrow-step-in.png
-spyder/images/actions/arrow-step-out.png
-spyder/images/actions/arrow-step-over.png
-spyder/images/actions/stop.png
-spyder/images/actions/stop_debug.png
-spyder/images/actions/unmaximize.png
-spyder/images/actions/window_fullscreen.png
-spyder/images/editor/breakpoint_big.png
-spyder/images/editor/breakpoint_cond_big.png
-spyder/images/editor/breakpoint_cond_small.png
-spyder/images/editor/breakpoint_small.png
-spyder/images/editor/debug.png
-
-
--------------------------------------------------------------------------------
-
-
-
-FamFamFam Silk Icons 1.3
-------------------------
-
-
-Copyright 2006 Mark James
-
-
-Author: Mark James | mjames@gmail.com
-Site: http://www.famfamfam.com/
-Source/Download: http://www.famfamfam.com/lab/icons/silk/
-License: Creative Commons Attribution 2.5 Generic
-https://creativecommons.org/licenses/by/2.5/
-or
-Creative Commons Attribution 3.0 International
-https://creativecommons.org/licenses/by/3.0/
-
-No modifications made.
-
-
-I also love to hear of my work being used, feel encouraged to send an email
-with a link or screenshot of the icons in their new home to mjames@gmail.com.
-This work is licensed under a Creative Commons Attribution 2.5 License.
-This means you may use it for any purpose, and make any changes you like.
-All I ask is that you include a link back to this page in your credits
-(although a giant link on every page of your website really isn't needed,
-contact me to discuss specifics).
-
-The icons can also be used under Creative Commons Attribution 3.0 License
-(Hi Debian folks!) with the following requirements:
-
-    As an author, I would appreciate a reference to my authorship of the Silk
-    icon set contents within a readme file or equivalent documentation for the
-    software which includes the set or a subset of the icons contained within.
-
-
-See below for the full text of the CC-BY-3.0 license.
-
-The license summaries and text can be found online at:
-https://creativecommons.org/licenses/by/2.5/
-https://creativecommons.org/licenses/by/3.0/
-
-
-Files covered:
-
-spyder/images/actions/collapse.png
-spyder/images/actions/collapse_selection.png
-spyder/images/actions/expand.png
-spyder/images/actions/expand_selection.png
-spyder/images/actions/restore.png
-spyder/images/editor/class.png
-spyder/images/editor/convention.png
-spyder/images/editor/todo.png
-spyder/images/editor/warning.png
 
 
 -------------------------------------------------------------------------------
@@ -1636,59 +1404,6 @@ img_src/configure.svgz
 img_src/edit-undo.svgz
 
 
-Files covered:
-
-spyder/images/console/run_small.png
-spyder/images/editor/run.png
-
-
--------------------------------------------------------------------------------
-
-
-
-Python Logo
------------
-
-
-Copyright (c) 2008 Python Software Foundation
-
-
-Author: Python Software Foundation | https://www.python.org/
-Source/Download: https://www.python.org/community/logos/
-License: Python Software Foundation License Version 2
-https://docs.python.org/3/license.html
-Trademark: Python Software Foundation Trademark Usage Policy
-https://www.python.org/psf/trademarks/
-
-No modifications made.
-
-
-The Python logo is a trademark of the Python Software Foundation,
-which is responsible for defending against
-any damaging or confusing uses of the trademark.
-
-See the PSF Trademark Usage Policy: https://www.python.org/psf/trademarks/
-
-In general, we want the logo to be used as widely as possible to indicate
-use of Python or suitability for Python. However, please ask first when using
-a derived version of the logo or when in doubt.
-
-Projects and companies that use Python are encouraged to incorporate the
-Python logo on their websites, brochures, packaging, and elsewhere to indicate
-suitability for use with Python or implementation in Python. Use of the
-"two snakes" logo element alone, without the accompanying wordmark is permitted
-on the same terms as the combined logo.
-
-
-See below for the full text of the PSF License Version 2.
-
-The license history and text can be found online at:
-https://docs.python.org/3/license.html
-
-
-Files covered:
-
-spyder/images/console/python.png
 
 
 -------------------------------------------------------------------------------

@@ -15,10 +15,9 @@ in Spyder, both internal and external.
 import os
 import logging
 from typing import Union
-from packaging.version import Version
-from pkg_resources import parse_version
 
 # Third-party imports
+from packaging.version import parse, Version
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMessageBox
@@ -33,6 +32,7 @@ from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
 from spyder.plugins.preferences.widgets.container import (
     PreferencesActions, PreferencesContainer)
+from spyder.plugins.pythonpath.api import PythonpathActions
 from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ class Preferences(SpyderPluginV2):
             self.config_pages[plugin.NAME] = (self.NEW_API, Widget, plugin)
 
             plugin_conf_version = plugin.CONF_VERSION or CONF_VERSION
-            plugin_conf_version = parse_version(plugin_conf_version)
+            plugin_conf_version = parse(plugin_conf_version)
 
             # Check if the plugin adds new configuration options to other
             # sections
@@ -121,9 +121,14 @@ class Preferences(SpyderPluginV2):
                 for tab in tabs:
                     self.config_tabs[plugin_name].remove(tab)
 
-    def check_version_and_merge(self, conf_section: str, conf_key: str,
-                                new_value: BasicType,
-                                current_version: Version, plugin):
+    def check_version_and_merge(
+        self,
+        conf_section: str,
+        conf_key: str,
+        new_value: BasicType,
+        current_version: Version,
+        plugin
+    ):
         """Add a versioned additional option to a configuration section."""
         current_value = self.get_conf(
             conf_key, section=conf_section, default=None)
@@ -135,7 +140,7 @@ class Preferences(SpyderPluginV2):
         if conf_key in plugin_additional:
             conf_key_info = plugin_additional[conf_key]
             prev_default = conf_key_info['default']
-            prev_version = parse_version(conf_key_info['version'])
+            prev_version = parse(conf_key_info['version'])
 
             allow_replacement = current_version > prev_version
             allow_deletions = current_version.major > prev_version.major
@@ -299,7 +304,8 @@ class Preferences(SpyderPluginV2):
         toolbar.add_item_to_application_toolbar(
             container.show_action,
             toolbar_id=ApplicationToolbars.Main,
-            section=MainToolbarSections.ApplicationSection
+            section=MainToolbarSections.ApplicationSection,
+            before=PythonpathActions.Manager
         )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)

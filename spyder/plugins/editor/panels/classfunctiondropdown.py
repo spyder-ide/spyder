@@ -81,6 +81,15 @@ class ClassFunctionDropdown(Panel):
         """Override Qt method."""
         return QSize(0, self._getVerticalSize())
 
+    def showEvent(self, event):
+        """
+        Update contents in case there is available data and the widget hasn't
+        been updated.
+        """
+        if self._data is not None and self.classes == [] and self.funcs == []:
+            self.update_data(self._data, force=True)
+        super().showEvent(event)
+
     def combobox_activated(self):
         """Move the cursor to the selected definition."""
         sender = self.sender()
@@ -193,9 +202,13 @@ class ClassFunctionDropdown(Panel):
         line, __ = self._editor.get_cursor_line_column()
         self.update_selected(line)
 
-    def update_data(self, data):
+    def set_data(self, data):
+        """Set data in internal attribute to use it when necessary."""
+        self._data = data
+
+    def update_data(self, data, force=False):
         """Update and process symbol data."""
-        if data == self._data:
+        if not force and data == self._data:
             return
 
         self._data = data

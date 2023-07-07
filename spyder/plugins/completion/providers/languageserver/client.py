@@ -28,7 +28,8 @@ import psutil
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, is_pynsist, running_under_pytest)
+    DEV, get_conf_path, get_debug_level, is_conda_based_app,
+    running_under_pytest)
 from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
@@ -158,26 +159,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         return location
 
-    def _clean_sys_path(self):
-        """
-        Remove from sys.path entries that come from our config system.
-
-        They will be passed to the server in the extra_paths option
-        and are not needed for the transport layer.
-        """
-        spyder_pythonpath = self.get_conf(
-            'spyder_pythonpath',
-            section='main',
-            default=[]
-        )
-
-        sys_path = sys.path[:]
-        for path in spyder_pythonpath:
-            if path in sys_path:
-                sys_path.remove(path)
-
-        return sys_path
-
     @property
     def server_log_file(self):
         """
@@ -300,7 +281,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 # that directory.
                 # Fixes spyder-ide/spyder#17661
                 if (
-                    not (is_anaconda() or is_pynsist())
+                    not (is_anaconda() or is_conda_based_app())
                     and "APPDATA" in os.environ
                 ):
                     env.insert("APPDATA", os.environ["APPDATA"])

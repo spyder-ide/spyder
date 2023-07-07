@@ -25,25 +25,24 @@ from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QVBoxLayout)
+                            QStackedLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import get_conf_path, is_pynsist, running_in_mac_app
+from spyder.config.base import get_conf_path, is_conda_based_app
 from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home, get_home_dir
+from spyder.utils.misc import get_python_executable
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
-
-# Localization
-_ = get_translation("spyder")
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # --- Constants
@@ -60,7 +59,6 @@ SUCCESS_COLOR = SpyderPalette.COLOR_SUCCESS_1
 # is easier to use
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
-
 
 
 class PylintWidgetActions:
@@ -318,6 +316,14 @@ class PylintWidget(PluginMainWidget):
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
         self.treewidget = ResultsTree(self)
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "code-analysis",
+            _("Code not analyzed yet"),
+            _("Run an analysis using Pylint to get feedback on "
+              "style issues, bad practices, potential bugs, "
+              "and suggested improvements in your code.")
+        )
 
         if osp.isfile(self.DATAPATH):
             try:
@@ -335,9 +341,10 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(fname)
 
         # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.treewidget)
-        self.setLayout(layout)
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(self.pane_empty)
+        self.stack_layout.addWidget(self.treewidget)
+        self.setLayout(self.stack_layout)
 
         # Signals
         self.filecombo.valid.connect(self._check_new_file)
@@ -374,13 +381,8 @@ class PylintWidget(PluginMainWidget):
             processEnvironment.insert("USERPROFILE", user_profile)
             # Needed for Windows installations using standalone Python and pip.
             # See spyder-ide/spyder#19385
-            if not is_pynsist() and not is_anaconda():
+            if not is_conda_based_app() and not is_anaconda():
                 processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
-
-        # resolve spyder-ide/spyder#14262
-        if running_in_mac_app():
-            pyhome = os.environ.get("PYTHONHOME")
-            processEnvironment.insert("PYTHONHOME", pyhome)
 
         process.setProcessEnvironment(processEnvironment)
         process.start(sys.executable, command_args)
@@ -788,14 +790,17 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
+            self.stack_layout.setCurrentWidget(self.pane_empty)
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
+                self.stack_layout.setCurrentWidget(self.treewidget)
                 text = _("Analysis did not succeed "
                          "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
+                self.stack_layout.setCurrentWidget(self.treewidget)
                 text_style = "<span style=\"color: %s\"><b>%s </b></span>"
                 rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
                 prevrate_style = "<span style=\"color: %s\">%s</span>"
@@ -875,6 +880,38 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(filename)
             self.start_code_analysis()
 
+    def test_for_custom_interpreter(self):
+        """
+        Check if custom interpreter is active and if so, return path for the
+        environment that contains it.
+        """
+        custom_interpreter = osp.normpath(
+            self.get_conf('executable', section='main_interpreter')
+        )
+
+        if (
+            self.get_conf('default', section='main_interpreter')
+            or get_python_executable() == custom_interpreter
+        ):
+            path_of_custom_interpreter = None
+        else:
+            # Check if custom interpreter is still present
+            if osp.isfile(custom_interpreter):
+                # Pylint-venv requires the root path to a virtualenv, but what
+                # we save in Preferences is the path to its Python interpreter.
+                # So, we need to make the following adjustments here to get the
+                # right path to pass to it.
+                if os.name == 'nt':
+                    path_of_custom_interpreter = osp.dirname(
+                        custom_interpreter)
+                else:
+                    path_of_custom_interpreter = osp.dirname(osp.dirname(
+                        custom_interpreter))
+            else:
+                path_of_custom_interpreter = None
+
+        return path_of_custom_interpreter
+
     def get_command(self, filename):
         """
         Return command to use to run code analysis on given filename
@@ -887,6 +924,16 @@ class PylintWidget(PluginMainWidget):
                 "--output-format=text",
                 "--msg-template="
                 '{msg_id}:{symbol}:{line:3d},{column}: {msg}"',
+            ]
+
+        path_of_custom_interpreter = self.test_for_custom_interpreter()
+        if path_of_custom_interpreter is not None:
+            command_args += [
+                "--init-hook="
+                'import pylint_venv; \
+                    pylint_venv.inithook(\'{}\',\
+                    force_venv_activation=True)'.format(
+                        path_of_custom_interpreter.replace("\\", "\\\\")),
             ]
 
         pylintrc_path = self.get_pylintrc_path(filename=filename)

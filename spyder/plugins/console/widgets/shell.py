@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import builtins
 import keyword
 import locale
 import os
@@ -22,15 +23,14 @@ import time
 
 # Third party imports
 from qtpy.compat import getsavefilename
-from qtpy.QtCore import Property, QCoreApplication, Qt, QTimer, Signal, Slot
+from qtpy.QtCore import Property, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
-from qtpy.QtWidgets import QApplication, QMenu, QToolTip
+from qtpy.QtWidgets import QApplication, QMenu
 
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
-from spyder.py3compat import (builtins, is_string, is_text_string,
-                              PY3, str_lower, to_text_string)
+from spyder.py3compat import is_string, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -498,10 +498,16 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def load_history(self):
         """Load history from a .py file in user home directory"""
         if osp.isfile(self.history_filename):
-            rawhistory, _ = encoding.readlines(self.history_filename)
-            rawhistory = [line.replace('\n', '') for line in rawhistory]
-            if rawhistory[1] != self.INITHISTORY[1]:
-                rawhistory[1] = self.INITHISTORY[1]
+            # This is necessary to catch any error while reading or processing
+            # history_filename, which causes a crash at startup.
+            # Fixes spyder-ide/spyder#19850
+            try:
+                rawhistory, _ = encoding.readlines(self.history_filename)
+                rawhistory = [line.replace('\n', '') for line in rawhistory]
+                if rawhistory[1] != self.INITHISTORY[1]:
+                    rawhistory[1] = self.INITHISTORY[1]
+            except Exception:
+                rawhistory = self.INITHISTORY
         else:
             rawhistory = self.INITHISTORY
         history = [line for line in rawhistory \
@@ -550,17 +556,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
         # Fix for spyder-ide/spyder#2452
-        if PY3:
-            try:
-                text = "".join(self.__buffer)
-            except TypeError:
-                text = b"".join(self.__buffer)
-                try:
-                    text = text.decode( locale.getdefaultlocale()[1] )
-                except:
-                    pass
-        else:
+        try:
             text = "".join(self.__buffer)
+        except TypeError:
+            text = b"".join(self.__buffer)
+            try:
+                text = text.decode(locale.getdefaultlocale()[1])
+            except:
+                pass
 
         self.__buffer = []
         self.insert_text(text, at_end=True, error=error, prompt=prompt)
@@ -924,8 +927,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                           if comp.startswith('_')])
 
         completions = sorted(set(completions) - underscore,
-                             key=lambda x: str_lower(x[0]))
-        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
+                             key=lambda x: str.lower(x[0]))
+        completions += sorted(underscore, key=lambda x: str.lower(x[0]))
         self.show_completion_widget(completions)
 
     def show_code_completion(self):

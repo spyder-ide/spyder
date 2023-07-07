@@ -4,15 +4,18 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-from spyder.config.base import _, load_lang_conf
-from spyder.config.manager import CONF
-from spyder.utils.icon_manager import ima
-
+# Third party imports
+import qstylizer.style
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListView, QListWidget, QListWidgetItem,
                             QPushButton, QScrollArea, QSplitter,
                             QStackedWidget, QVBoxLayout)
+
+# Local imports
+from spyder.config.base import _, load_lang_conf
+from spyder.config.manager import CONF
+from spyder.utils.icon_manager import ima
 
 
 class ConfigDialog(QDialog):
@@ -70,6 +73,9 @@ class ConfigDialog(QDialog):
         vlayout.addLayout(btnlayout)
 
         self.setLayout(vlayout)
+
+        # Stylesheet
+        self.setStyleSheet(self._stylesheet)
 
         # Signals and slots
         self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
@@ -170,3 +176,14 @@ class ConfigDialog(QDialog):
         """
         QDialog.resizeEvent(self, event)
         self.size_change.emit(self.size())
+
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # Show tabs aligned to the left
+        css['QTabWidget::tab-bar'].setValues(
+            alignment='left'
+        )
+
+        return css.toString()

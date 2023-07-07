@@ -24,12 +24,6 @@ jobs:
                "close": true
              },
              {
-               "pattern": "PermissionError: [Errno 13] Permission denied",
-               "reply": "Thanks for reporting. To fix this, please open the Anaconda Prompt and run there the following commands:<br><br>`conda update anaconda`<br>`conda install jupyter_client=5.3.4`",
-               "labels": ["resolution:Duplicate"],
-               "close": true
-             },
-             {
                "pattern": "AttributeError: 'NoneType' object has no attribute 'execute'",
                "reply": "Thanks for reporting. This issue is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
                "labels": ["resolution:Duplicate"],
@@ -103,7 +97,7 @@ jobs:
              },
              {
                "pattern": "TypeError: _show_prompt() got an unexpected keyword argument 'separator'",
-               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt and run the following commands there:<br><br>`conda update anaconda`<br>`conda install spyder=5.2.2`",
+               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt and run there the commands mentioned in [our documentation](http://docs.spyder-ide.org/current/installation.html#updating-with-anaconda).",
                "labels": ["resolution:Duplicate"],
                "close": true
              },

@@ -34,7 +34,6 @@ class _StreamHandlerWrapper(socketserver.StreamRequestHandler):
 
     def setup(self):
         super().setup()
-        # pylint: disable=no-member
         self.delegate = self.DELEGATE_CLASS(self.rfile, self.wfile)
 
     def handle(self):
@@ -48,7 +47,6 @@ class _StreamHandlerWrapper(socketserver.StreamRequestHandler):
                 if isinstance(e, WindowsError) and e.winerror == 10054:
                     pass
 
-        # pylint: disable=no-member
         self.SHUTDOWN_CALL()
 
 
@@ -154,7 +152,7 @@ class PythonLSPServer(MethodDispatcher):
 
     # pylint: disable=too-many-public-methods,redefined-builtin
 
-    def __init__(self, rx, tx, check_parent_process=False, consumer=None):
+    def __init__(self, rx, tx, check_parent_process=False, consumer=None, *, endpoint_cls=None):
         self.workspace = None
         self.config = None
         self.root_uri = None
@@ -174,11 +172,13 @@ class PythonLSPServer(MethodDispatcher):
         else:
             self._jsonrpc_stream_writer = None
 
+        endpoint_cls = endpoint_cls or Endpoint
+
         # if consumer is None, it is assumed that the default streams-based approach is being used
         if consumer is None:
-            self._endpoint = Endpoint(self, self._jsonrpc_stream_writer.write, max_workers=MAX_WORKERS)
+            self._endpoint = endpoint_cls(self, self._jsonrpc_stream_writer.write, max_workers=MAX_WORKERS)
         else:
-            self._endpoint = Endpoint(self, consumer, max_workers=MAX_WORKERS)
+            self._endpoint = endpoint_cls(self, consumer, max_workers=MAX_WORKERS)
 
         self._dispatchers = []
         self._shutdown = False
@@ -212,6 +212,8 @@ class PythonLSPServer(MethodDispatcher):
         raise KeyError()
 
     def m_shutdown(self, **_kwargs):
+        for workspace in self.workspaces.values():
+            workspace.close()
         self._shutdown = True
 
     def m_exit(self, **_kwargs):
@@ -351,11 +353,14 @@ class PythonLSPServer(MethodDispatcher):
     def document_symbols(self, doc_uri):
         return flatten(self._hook('pylsp_document_symbols', doc_uri))
 
+    def document_did_save(self, doc_uri):
+        return self._hook("pylsp_document_did_save", doc_uri)
+
     def execute_command(self, command, arguments):
         return self._hook('pylsp_execute_command', command=command, arguments=arguments)
 
     def format_document(self, doc_uri, options):
-        return self._hook('pylsp_format_document', doc_uri, options=options)
+        return lambda: self._hook('pylsp_format_document', doc_uri, options=options)
 
     def format_range(self, doc_uri, range, options):
         return self._hook('pylsp_format_range', doc_uri, range=range, options=options)
@@ -417,6 +422,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_text_document__did_save(self, textDocument=None, **_kwargs):
         self.lint(textDocument['uri'], is_saved=True)
+        self.document_did_save(textDocument['uri'])
 
     def m_text_document__code_action(self, textDocument=None, range=None, context=None, **_kwargs):
         return self.code_actions(textDocument['uri'], range, context)

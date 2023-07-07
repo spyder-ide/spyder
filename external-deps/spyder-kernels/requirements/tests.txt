@@ -1,4 +1,3 @@
-codecov
 cython
 dask
 flaky
@@ -11,3 +10,6 @@ pytest-cov
 scipy
 xarray
 pillow
+django
+h5py
+pydicom

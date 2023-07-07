@@ -3,7 +3,10 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+
 """This module contains the close quotes editor extension."""
+
+import re
 
 # Third party imports
 from qtpy.QtGui import QTextCursor
@@ -27,10 +30,14 @@ def unmatched_quotes_in_line(text):
 
     Distributed under the terms of the BSD License.
     """
+    # Remove escaped quotes from counting, but only if they are not to the
+    # right of a backslash because in that case the backslash is the char that
+    # is escaped.
+    text = re.sub(r"(?<!\\)\\'", '', text)
+    text = re.sub(r'(?<!\\)\\"', '', text)
+
     # We check " first, then ', so complex cases with nested quotes will
     # get the " to take precedence.
-    text = text.replace("\\'", "")
-    text = text.replace('\\"', '')
     if text.count('"') % 2:
         return '"'
     elif text.count("'") % 2:

@@ -3,9 +3,12 @@
 
 import io
 import logging
+from contextlib import contextmanager
 import os
 import re
+import uuid
 import functools
+from typing import Optional, Generator, Callable
 from threading import RLock
 
 import jedi
@@ -13,6 +16,8 @@ import jedi
 from . import lsp, uris, _utils
 
 log = logging.getLogger(__name__)
+
+DEFAULT_AUTO_IMPORT_MODULES = ["numpy"]
 
 # TODO: this is not the best e.g. we capture numbers
 RE_START_WORD = re.compile('[A-Za-z_0-9]*$')
@@ -31,6 +36,8 @@ def lock(method):
 class Workspace:
 
     M_PUBLISH_DIAGNOSTICS = 'textDocument/publishDiagnostics'
+    M_PROGRESS = '$/progress'
+    M_INITIALIZE_PROGRESS = 'window/workDoneProgress/create'
     M_APPLY_EDIT = 'workspace/applyEdit'
     M_SHOW_MESSAGE = 'window/showMessage'
 
@@ -48,6 +55,15 @@ class Workspace:
         # Whilst incubating, keep rope private
         self.__rope = None
         self.__rope_config = None
+        self.__rope_autoimport = None
+
+    def _rope_autoimport(self, rope_config: Optional, memory: bool = False):
+        # pylint: disable=import-outside-toplevel
+        from rope.contrib.autoimport.sqlite import AutoImport
+        if self.__rope_autoimport is None:
+            project = self._rope_project_builder(rope_config)
+            self.__rope_autoimport = AutoImport(project, memory=memory)
+        return self.__rope_autoimport
 
     def _rope_project_builder(self, rope_config):
         # pylint: disable=import-outside-toplevel
@@ -56,8 +72,12 @@ class Workspace:
         # TODO: we could keep track of dirty files and validate only those
         if self.__rope is None or self.__rope_config != rope_config:
             rope_folder = rope_config.get('ropeFolder')
-            self.__rope = Project(self._root_path, ropefolder=rope_folder)
-            self.__rope.prefs.set('extension_modules', rope_config.get('extensionModules', []))
+            if rope_folder:
+                self.__rope = Project(self._root_path, ropefolder=rope_folder)
+            else:
+                self.__rope = Project(self._root_path)
+            self.__rope.prefs.set('extension_modules',
+                                  rope_config.get('extensionModules', []))
             self.__rope.prefs.set('ignore_syntax_errors', True)
             self.__rope.prefs.set('ignore_bad_imports', True)
         self.__rope.validate()
@@ -109,6 +129,116 @@ class Workspace:
     def publish_diagnostics(self, doc_uri, diagnostics):
         self._endpoint.notify(self.M_PUBLISH_DIAGNOSTICS, params={'uri': doc_uri, 'diagnostics': diagnostics})
 
+    @contextmanager
+    def report_progress(
+        self,
+        title: str,
+        message: Optional[str] = None,
+        percentage: Optional[int] = None,
+    ) -> Generator[Callable[[str, Optional[int]], None], None, None]:
+        if self._config:
+            client_supports_progress_reporting = (
+                self._config.capabilities.get("window", {}).get("workDoneProgress", False)
+            )
+        else:
+            client_supports_progress_reporting = False
+
+        if client_supports_progress_reporting:
+            try:
+                token = self._progress_begin(title, message, percentage)
+            except Exception:  # pylint: disable=broad-exception-caught
+                log.warning(
+                    "There was an error while trying to initialize progress reporting."
+                    "Likely progress reporting was used in a synchronous LSP handler, "
+                    "which is not supported by progress reporting yet.",
+                    exc_info=True
+                )
+
+            else:
+                def progress_message(message: str, percentage: Optional[int] = None) -> None:
+                    self._progress_report(token, message, percentage)
+
+                try:
+                    yield progress_message
+                finally:
+                    self._progress_end(token)
+
+                return
+
+        # FALLBACK:
+        # If the client doesn't support progress reporting, or if we failed to
+        # initialize it, we have a dummy method for the caller to use.
+        def dummy_progress_message(message: str, percentage: Optional[int] = None) -> None:
+            # pylint: disable=unused-argument
+            pass
+
+        yield dummy_progress_message
+
+    def _progress_begin(
+        self,
+        title: str,
+        message: Optional[str] = None,
+        percentage: Optional[int] = None,
+    ) -> str:
+        token = str(uuid.uuid4())
+
+        self._endpoint.request(self.M_INITIALIZE_PROGRESS, {'token': token}).result(timeout=1.0)
+
+        value = {
+            "kind": "begin",
+            "title": title,
+        }
+        if message is not None:
+            value["message"] = message
+        if percentage is not None:
+            value["percentage"] = percentage
+
+        self._endpoint.notify(
+            self.M_PROGRESS,
+            params={
+                "token": token,
+                "value": value,
+            },
+        )
+        return token
+
+    def _progress_report(
+        self,
+        token: str,
+        message: Optional[str] = None,
+        percentage: Optional[int] = None,
+    ) -> None:
+        value = {
+            "kind": "report",
+        }
+        if message:
+            value["message"] = message
+        if percentage:
+            value["percentage"] = percentage
+
+        self._endpoint.notify(
+            self.M_PROGRESS,
+            params={
+                "token": token,
+                "value": value,
+            },
+        )
+
+    def _progress_end(self, token: str, message: Optional[str] = None) -> None:
+        value = {
+            "kind": "end",
+        }
+        if message:
+            value["message"] = message
+
+        self._endpoint.notify(
+            self.M_PROGRESS,
+            params={
+                "token": token,
+                "value": value,
+            },
+        )
+
     def show_message(self, message, msg_type=lsp.MessageType.Info):
         self._endpoint.notify(self.M_SHOW_MESSAGE, params={'type': msg_type, 'message': message})
 
@@ -127,6 +257,10 @@ class Workspace:
             extra_sys_path=self.source_roots(path),
             rope_project_builder=self._rope_project_builder,
         )
+
+    def close(self):
+        if self.__rope_autoimport is not None:
+            self.__rope_autoimport.close()
 
 
 class Document:
@@ -252,6 +386,8 @@ class Document:
 
         if self._config:
             jedi_settings = self._config.plugin_settings('jedi', document_path=self.path)
+            jedi.settings.auto_import_modules = jedi_settings.get('auto_import_modules',
+                                                                  DEFAULT_AUTO_IMPORT_MODULES)
             environment_path = jedi_settings.get('environment')
             extra_paths = jedi_settings.get('extra_paths') or []
             env_vars = jedi_settings.get('env_vars')

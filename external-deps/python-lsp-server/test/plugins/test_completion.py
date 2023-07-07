@@ -160,10 +160,15 @@ def test_jedi_completion_item_resolve(config, workspace):
     assert 'detail' not in documented_hello_item
 
     resolved_documented_hello = pylsp_jedi_completion_item_resolve(
+        doc._config,
         completion_item=documented_hello_item,
         document=doc
     )
-    assert 'Sends a polite greeting' in resolved_documented_hello['documentation']
+    expected_doc = {
+        'kind': 'markdown',
+        'value': '```python\ndocumented_hello()\n```\n\n\nSends a polite greeting'
+    }
+    assert resolved_documented_hello['documentation'] == expected_doc
 
 
 def test_jedi_completion_with_fuzzy_enabled(config, workspace):
@@ -498,8 +503,8 @@ def test_jedi_completion_environment(workspace):
     completions = pylsp_jedi_completions(doc._config, doc, com_position)
     assert completions[0]['label'] == 'loghub'
 
-    resolved = pylsp_jedi_completion_item_resolve(completions[0], doc)
-    assert 'changelog generator' in resolved['documentation'].lower()
+    resolved = pylsp_jedi_completion_item_resolve(doc._config, completions[0], doc)
+    assert 'changelog generator' in resolved['documentation']['value'].lower()
 
 
 def test_document_path_completions(tmpdir, workspace_other_root_path):
@@ -523,3 +528,26 @@ mymodule.f"""
     com_position = {'line': 1, 'character': 10}
     completions = pylsp_jedi_completions(doc._config, doc, com_position)
     assert completions[0]['label'] == 'foo()'
+
+
+def test_file_completions(workspace, tmpdir):
+    # Create directory and a file to get completions for them.
+    # Note: `tmpdir`` is the root dir of the `workspace` fixture. That's why we use
+    # it here.
+    tmpdir.mkdir('bar')
+    file = tmpdir.join('foo.txt')
+    file.write('baz')
+
+    # Content of doc to test completion
+    doc_content = '"'
+    doc = Document(DOC_URI, workspace, doc_content)
+
+    # Request for completions
+    com_position = {'line': 0, 'character': 1}
+    completions = pylsp_jedi_completions(doc._config, doc, com_position)
+
+    # Check completions
+    assert len(completions) == 2
+    assert [c['kind'] == lsp.CompletionItemKind.File for c in completions]
+    assert completions[0]['insertText'] == ('bar' + '\\\\') if os.name == 'nt' else ('bar' + '\\/')
+    assert completions[1]['insertText'] == 'foo.txt"'

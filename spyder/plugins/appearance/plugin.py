@@ -14,11 +14,8 @@ Appearance Plugin.
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.appearance.confpage import AppearanceConfigPage
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Plugin

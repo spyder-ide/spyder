@@ -17,19 +17,23 @@ from jupyter_client.manager import KernelManager
 from qtpy.QtCore import Qt
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+# This is required to run our tests in VSCode or Spyder-unittest
+from qtpy import QtWebEngineWidgets  # noqa
 import psutil
 import pytest
 
 # Spyder imports
 from spyder.api.plugins import Plugins
 from spyder.app import start
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.manager import CONF
-from spyder.plugins.debugger.api import DebuggerToolbarActions
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.run.api import RunActions, StoredRunConfigurationExecutor
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
+from spyder.utils.environ import (get_user_env, set_user_env,
+                                  amend_user_shell_init)
 
 
 # =============================================================================
@@ -52,9 +56,6 @@ EVAL_TIMEOUT = 3000
 
 # Time to wait for the completion services to be up or give a response
 COMPLETION_TIMEOUT = 30000
-
-# Python 3.7
-PY37 = sys.version_info[:2] == (3, 7)
 
 
 # =============================================================================
@@ -215,6 +216,45 @@ def create_namespace_project(tmpdir):
     spy_project.set_recent_files(abs_filenames)
 
 
+def preferences_dialog_helper(qtbot, main_window, section):
+    """
+    Open preferences dialog and select page with `section` (CONF_SECTION).
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    main_window.show_preferences()
+    preferences = main_window.preferences
+    container = preferences.get_container()
+
+    qtbot.waitUntil(lambda: container.dialog is not None,
+                    timeout=5000)
+    dlg = container.dialog
+    index = dlg.get_index_by_name(section)
+    page = dlg.get_page(index)
+    dlg.set_current_index(index)
+    return dlg, index, page
+
+
+def generate_run_parameters(mainwindow, filename, selected=None,
+                            executor=None):
+    """Generate run configuration parameters for a given filename."""
+    file_uuid = mainwindow.editor.id_per_file[filename]
+    if executor is None:
+        executor = mainwindow.ipyconsole.NAME
+
+    file_run_params = StoredRunConfigurationExecutor(
+        executor=executor,
+        selected=selected,
+        display_dialog=False
+    )
+
+    return {file_uuid: file_run_params}
+
+
 # =============================================================================
 # ---- Pytest hooks
 # =============================================================================
@@ -305,8 +345,10 @@ def main_window(request, tmpdir, qtbot):
     preload_complex_project = request.node.get_closest_marker(
         'preload_complex_project')
     if preload_complex_project:
+        CONF.set('editor', 'show_class_func_dropdown', True)
         create_complex_project(tmpdir)
     else:
+        CONF.set('editor', 'show_class_func_dropdown', False)
         if not preload_project:
             CONF.set('project_explorer', 'current_project_path', None)
 
@@ -350,10 +392,30 @@ def main_window(request, tmpdir, qtbot):
     # it's used a lot.
     toolbar = window.get_plugin(Plugins.Toolbar)
     debug_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Debug)
-    debug_action = window.debugger.get_action(
-        DebuggerToolbarActions.DebugCurrentFile)
+    debug_action = window.run.get_action(
+        "run file in debugger")
     debug_button = debug_toolbar.widgetForAction(debug_action)
     window.debug_button = debug_button
+
+    # Add a handle to the run buttons to access it quickly because they are
+    # used a lot.
+    run_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Run)
+    run_action = window.run.get_action(RunActions.Run)
+    run_button = run_toolbar.widgetForAction(run_action)
+    window.run_button = run_button
+
+    run_cell_action = window.run.get_action('run cell')
+    run_cell_button = run_toolbar.widgetForAction(run_cell_action)
+    window.run_cell_button = run_cell_button
+
+    run_cell_and_advance_action = window.run.get_action('run cell and advance')
+    run_cell_and_advance_button = run_toolbar.widgetForAction(
+        run_cell_and_advance_action)
+    window.run_cell_and_advance_button = run_cell_and_advance_button
+
+    run_selection_action = window.run.get_action('run selection and advance')
+    run_selection_button = run_toolbar.widgetForAction(run_selection_action)
+    window.run_selection_button = run_selection_button
 
     QApplication.processEvents()
 
@@ -414,8 +476,8 @@ def main_window(request, tmpdir, qtbot):
                     for editorwindow in window.editor.editorwindows:
                         editorwindow.close()
                     editorstack = window.editor.get_current_editorstack()
-                    if editorstack.switcher_dlg:
-                        editorstack.switcher_dlg.close()
+                    if editorstack.switcher_plugin:
+                        editorstack.switcher_plugin.on_close()
 
                     window.projects.close_project()
 
@@ -427,8 +489,10 @@ def main_window(request, tmpdir, qtbot):
 
                     # Restore default Spyder Python Path
                     CONF.set(
-                        'main', 'spyder_pythonpath',
-                        CONF.get_default('main', 'spyder_pythonpath'))
+                        'pythonpath_manager', 'spyder_pythonpath',
+                        CONF.get_default('pythonpath_manager',
+                                         'spyder_pythonpath')
+                    )
 
                     # Restore run configurations
                     CONF.set('run', 'configurations', [])
@@ -522,3 +586,20 @@ def main_window(request, tmpdir, qtbot):
                     window = None
                     CONF.reset_to_defaults(notification=False)
                     raise
+
+
+@pytest.fixture
+def restore_user_env():
+    """Set user environment variables and restore upon test exit"""
+    if not running_in_ci():
+        pytest.skip("Skipped because not in CI.")
+
+    if os.name == "nt":
+        orig_env = get_user_env()
+
+    yield
+
+    if os.name == "nt":
+        set_user_env(orig_env)
+    else:
+        amend_user_shell_init(restore=True)

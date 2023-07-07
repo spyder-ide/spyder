@@ -23,21 +23,18 @@ from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget)
+                            QVBoxLayout, QWidget, QStackedLayout)
 
 # Local library imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # TODO:
 # - [ ] Generalize style updates, handle dark_interface with widget option
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 def save_figure_tofile(fig, fmt, fname):
@@ -145,12 +142,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.shellwidget = None
-        self.is_visible = True
         self.figviewer = None
         self.setup_in_progress = False
         self.background_color = background_color
         self.mute_inline_plotting = None
         self.zoom_disp_value = None
+        self._update_when_shown = True
 
         # Setup the figure viewer.
         self.figviewer = FigureViewer(parent=self,
@@ -174,6 +171,17 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
 
+        # Widget empty pane
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "plots",
+            _("No plots to show"),
+            _("Run plot-generating code in the Editor or IPython console to "
+              "see your figures appear here. This pane only supports "
+              "static images, so it can't display interactive plots "
+              "like Bokeh, Plotly or Altair.")
+        )
+
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
         splitter.addWidget(self.figviewer)
@@ -181,11 +189,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
 
-        layout = QHBoxLayout(self)
-        layout.addWidget(splitter)
-        self.setLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(splitter)
+        self.stack_layout.addWidget(self.pane_empty)
+        self.setLayout(self.stack_layout)
+        self.stack_layout.setContentsMargins(0, 0, 0, 0)
+        self.stack_layout.setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)
 
     def _update_zoom_value(self, value):
@@ -209,6 +218,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
                 self.show_fig_outline_in_viewer(value)
             elif option == 'save_dir':
                 self.thumbnails_sb.save_dir = value
+
+    def set_pane_empty(self, empty):
+        if empty:
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.splitter)
 
     def update_splitter_widths(self, base_width):
         """
@@ -243,6 +258,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.shellwidget = shellwidget
         self.shellwidget.set_mute_inline_plotting(self.mute_inline_plotting)
         shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
+        shellwidget.executing.connect(self._handle_new_execution)
 
     def _handle_new_figure(self, fig, fmt):
         """
@@ -250,6 +266,10 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         kernel.
         """
         self.thumbnails_sb.add_thumbnail(fig, fmt)
+
+    def _handle_new_execution(self):
+        """Handle a new execution in the console."""
+        self.thumbnails_sb._first_thumbnail_shown = False
 
     # ---- Toolbar Handlers
     def zoom_in(self):
@@ -294,6 +314,17 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Copy figure from figviewer to clipboard."""
         if self.figviewer and self.figviewer.figcanvas.fig:
             self.figviewer.figcanvas.copy_figure()
+
+    # ---- Qt methods
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if self._update_when_shown:
+            # We only do this the first time the widget is shown to not change
+            # the splitter widths that users can set themselves.
+            self.update_splitter_widths(self.width())
+            self._update_when_shown = False
+
+        super().showEvent(event)
 
 
 class FigureViewer(QScrollArea, SpyderWidgetMixin):
@@ -587,7 +618,8 @@ class ThumbnailScrollBar(QFrame):
         # is added to the scrollarea, we need to do it instead in a slot
         # connected to the scrollbar's rangeChanged signal.
         # See spyder-ide/spyder#10914 for more details.
-        self._new_thumbnail_added = False
+        self._scroll_to_last_thumbnail = False
+        self._first_thumbnail_shown = False
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
             self._scroll_to_newest_item)
 
@@ -768,6 +800,15 @@ class ThumbnailScrollBar(QFrame):
         """
         Add a new thumbnail to that thumbnail scrollbar.
         """
+        # Always stick at end for the first thumbnail
+        is_first = not self._first_thumbnail_shown
+
+        # Stick at end if we are already at the end
+        stick_at_end = False
+        sb = self.scrollarea.verticalScrollBar()
+        if sb.value() == sb.maximum():
+            stick_at_end = True
+
         thumbnail = FigureThumbnail(
             parent=self, background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
@@ -777,15 +818,27 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_context_menu_requested.connect(
             lambda point: self.show_context_menu(point, thumbnail))
         self._thumbnails.append(thumbnail)
-        self._new_thumbnail_added = True
+        self._scroll_to_last_thumbnail = True
+        self._first_thumbnail_shown = True
 
         self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
         self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
         self.scene.setRowStretch(self.scene.rowCount(), 100)
-        self.set_current_thumbnail(thumbnail)
+
+        # Only select a new thumbnail if the last one was selected
+        select_last = (
+            len(self._thumbnails) < 2
+            or self.current_thumbnail == self._thumbnails[-2]
+            or is_first
+        )
+        if select_last:
+            self.set_current_thumbnail(thumbnail)
 
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
+
+        if not is_first and not stick_at_end:
+            self._scroll_to_last_thumbnail = False
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
@@ -912,8 +965,8 @@ class ThumbnailScrollBar(QFrame):
         Note that this method is called each time the rangeChanged signal
         is emitted by the scrollbar.
         """
-        if self._new_thumbnail_added:
-            self._new_thumbnail_added = False
+        if self._scroll_to_last_thumbnail:
+            self._scroll_to_last_thumbnail = False
             self.scrollarea.verticalScrollBar().setValue(vsb_max)
 
     # ---- ScrollBar Handlers

@@ -61,6 +61,36 @@ def test_setup_open_files(editor_plugin_open_files, last_focused_filename,
     assert filenames == expected_filenames
 
 
+def test_restore_open_files(qtbot, editor_plugin_open_files):
+    """Test restoring of opened files without Projects plugin"""
+    editor_factory = editor_plugin_open_files
+    editor, expected_filenames, expected_current_filename = (
+        editor_factory(None, None))
+
+    # Pre-condition: Projects plugin is disabled
+    assert editor.projects is None
+
+    # `expected_filenames` is modified. A copy is required because
+    # `expected_filenames` and `editor.get_option("filesnames")` are the same
+    # object.
+    expected_filenames = expected_filenames.copy()
+    assert expected_filenames is not editor.get_option("filenames")
+    for i in range(2):
+        filename = expected_filenames.pop()
+        editor.close_file_from_name(filename)
+
+    # Close editor and check that opened files are saved
+    editor.closing_plugin()
+    filenames = [osp.normcase(f) for f in editor.get_option("filenames")]
+    assert filenames == expected_filenames
+
+    # “Re-open” editor and check the opened files are restored
+    editor.setup_open_files(close_previous_files=True)
+    filenames = editor.get_current_editorstack().get_filenames()
+    filenames = [osp.normcase(f) for f in filenames]
+    assert filenames == expected_filenames
+
+
 def test_setup_open_files_cleanprefs(editor_plugin_open_files):
     """Test that Editor successfully opens files if layout is not defined.
 
@@ -417,6 +447,43 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
         text = f.read()
 
     assert get_eol_chars(text) == os.linesep
+
+
+def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
+    """
+    Check that editor stacks and windows are removed from the list maintained
+    for them in the editor when closing editor windows and split editors.
+
+    This is a regression test for spyder-ide/spyder#20144.
+    """
+    # Create empty file
+    editor_plugin.new()
+
+    # Create editor window
+    editor_window = editor_plugin.create_new_window()
+    qtbot.wait(500)  # To check visually that the window was created
+
+    # This is not done automatically by Qt when running our tests (don't know
+    # why), but it's done in normal usage. So we need to do it manually
+    editor_window.editorwidget.editorstacks[0].deleteLater()
+
+    # Close editor window
+    editor_window.close()
+    qtbot.wait(500)  # Wait for bit so window objects are actually deleted
+
+    # Check the window objects were removed
+    assert len(editor_plugin.editorstacks) == 1
+    assert len(editor_plugin.editorwindows) == 0
+
+    # Split editor and check the focus is given to the cloned editorstack
+    editor_plugin.editorsplitter.split()
+    qtbot.wait(500)  # To check visually that the split was done
+    assert editor_plugin.get_current_editor().is_cloned
+
+    # Close editorstack
+    editor_plugin.get_current_editorstack().close()
+    qtbot.wait(500)  # Wait for bit so the editorstack is actually deleted
+    assert len(editor_plugin.editorstacks) == 1
 
 
 if __name__ == "__main__":

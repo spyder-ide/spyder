@@ -15,7 +15,9 @@ import pickle
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
 from spyder_kernels.comms.commbase import CommBase
-from spyder.py3compat import TimeoutError
+
+from spyder.config.base import (
+    get_debug_level, running_under_pytest)
 
 logger = logging.getLogger(__name__)
 TIMEOUT_KERNEL_START = 30
@@ -29,6 +31,7 @@ class KernelComm(CommBase, QObject):
 
     _sig_got_reply = Signal()
     sig_exception_occurred = Signal(dict)
+    sig_comm_ready = Signal()
 
     def __init__(self):
         super(KernelComm, self).__init__()
@@ -36,16 +39,16 @@ class KernelComm(CommBase, QObject):
 
         # Register handlers
         self.register_call_handler('_async_error', self._async_error)
+        self.register_call_handler('_comm_ready', self._comm_ready)
 
     def is_open(self, comm_id=None):
-        """Check to see if the comm is open."""
-        valid_comms = [
-            comm for comm in self._comms
-            if self._comms[comm]['status'] in ['opening', 'ready']
-        ]
-        if comm_id is None:
-            return len(valid_comms) > 0
-        return comm_id in valid_comms
+        """
+        Check to see if the comm is open and ready to communicate.
+        """
+        id_list = self.get_comm_id_list(comm_id)
+        if len(id_list) == 0:
+            return False
+        return all([self._comms[cid]['status'] == 'ready' for cid in id_list])
 
     @contextmanager
     def comm_channel_manager(self, comm_id, queue_message=False):
@@ -70,6 +73,9 @@ class KernelComm(CommBase, QObject):
     def _set_call_return_value(self, call_dict, data, is_error=False):
         """Override to use the comm_channel for all replies."""
         with self.comm_channel_manager(self.calling_comm_id, False):
+            if is_error and (get_debug_level() or running_under_pytest()):
+                # Disable error muting when debugging or testing
+                call_dict['settings']['display_error'] = True
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
 
@@ -115,7 +121,19 @@ class KernelComm(CommBase, QObject):
             interrupt=interrupt, blocking=blocking, callback=callback,
             comm_id=comm_id, timeout=timeout, display_error=display_error)
 
+    def on_incoming_call(self, call_dict):
+        """A call was received"""
+        super().on_incoming_call(call_dict)
+        # Just in case the call was not received
+        self._comm_ready()
+
     # ---- Private -----
+    def _comm_ready(self):
+        """If this function is called, the comm is ready"""
+        if self._comms[self.calling_comm_id]['status'] != 'ready':
+            self._comms[self.calling_comm_id]['status'] = 'ready'
+            self.sig_comm_ready.emit()
+
     def _send_call(self, call_dict, call_data, comm_id):
         """Send call and interupt the kernel if needed."""
         settings = call_dict['settings']
@@ -165,9 +183,6 @@ class KernelComm(CommBase, QObject):
 
         def got_reply():
             return call_id in self._reply_inbox
-
-        if not self.is_ready(comm_id):
-            timeout = max(timeout, TIMEOUT_KERNEL_START)
 
         timeout_msg = "Timeout while waiting for {}".format(
             self._reply_waitlist)

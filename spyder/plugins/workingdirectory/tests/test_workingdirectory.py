@@ -6,6 +6,7 @@
 """Tests for workingdirectory plugin."""
 
 # Standard library imports
+import os
 import os.path as osp
 import sys
 from unittest.mock import Mock
@@ -13,6 +14,7 @@ from unittest.mock import Mock
 # Third-party imports
 import pytest
 from qtpy.QtWidgets import QMainWindow
+from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.app.cli_options import get_options
@@ -114,6 +116,35 @@ def test_get_workingdir_cli(setup_workingdirectory):
     # Asert working directory is the expected one
     assert folders[-1] == NEW_DIR + '_cli'
     CONF.reset_to_defaults()
+
+
+def test_file_goto(qtbot, setup_workingdirectory):
+    """
+    Test that putting a file in the workingdirectory emits a edit_goto signal.
+    """
+    container = setup_workingdirectory.get_container()
+    
+    signal_res = {}
+    
+    def test_slot(filename, line, word):
+        signal_res["filename"] = filename
+        signal_res["line"] = line
+    
+    container.edit_goto.connect(test_slot)
+    
+    pathedit = container.pathedit
+    wd = setup_workingdirectory.get_workdir()
+    filename = osp.join(wd, "myfile_workingdirectory_test.py")
+    with open(filename, "w") as f:
+        f.write("\n" * 5)
+    with qtbot.waitSignal(container.edit_goto):
+        pathedit.add_text(filename + ":1")
+        qtbot.keyClick(pathedit, Qt.Key_Return)
+    
+    assert signal_res["filename"] in filename
+    assert signal_res["line"] == 1
+    
+    os.remove(filename)
 
 
 if __name__ == "__main__":

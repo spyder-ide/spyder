@@ -11,11 +11,11 @@ import re
 
 # Third party imports
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel
+from qtpy.QtWidgets import QInputDialog, QLabel, QStackedLayout
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.findinfiles.widgets.results_browser import (
     ON, ResultsBrowser)
@@ -25,10 +25,7 @@ from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import PatternComboBox
-
-
-# Localization
-_ = get_translation('spyder')
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # ---- Constants
@@ -146,6 +143,13 @@ class FindInFilesWidget(PluginMainWidget):
             path_history = [path_history]
 
         # Widgets
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "find_empty",
+            _("Nothing searched for yet"),
+            _("Search the content of text files in any directory using the search box.")
+        )
+        
         self.search_text_edit = PatternComboBox(
             self,
             search_text,
@@ -190,9 +194,10 @@ class FindInFilesWidget(PluginMainWidget):
             search_in_index)
 
         # Layout
-        layout = QHBoxLayout()
-        layout.addWidget(self.result_browser)
-        self.setLayout(layout)
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(self.result_browser)
+        self.stack_layout.addWidget(self.pane_empty)
+        self.setLayout(self.stack_layout)
 
         # Signals
         self.path_selection_combo.sig_redirect_stdio_requested.connect(
@@ -316,6 +321,13 @@ class FindInFilesWidget(PluginMainWidget):
             self.set_max_results_action,
             menu=menu,
         )
+        self.set_pane_empty()
+
+    def set_pane_empty(self):
+        if self.result_browser.data:
+            self.stack_layout.setCurrentWidget(self.result_browser)
+        else:
+            self.stack_layout.setCurrentWidget(self.pane_empty)
 
     def update_actions(self):
         self.find_action.setIcon(self.create_icon(
@@ -324,6 +336,7 @@ class FindInFilesWidget(PluginMainWidget):
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(
                 self.more_options_action.isChecked())
+        self.set_pane_empty()
 
     @on_conf_change(option='more_options')
     def on_more_options_update(self, value):
@@ -466,7 +479,7 @@ class FindInFilesWidget(PluginMainWidget):
             if self.search_thread.isRunning():
                 if ignore_results:
                     self.search_thread.sig_finished.disconnect(
-                        self.search_complete)
+                        self._handle_search_complete)
                 self.search_thread.stop()
                 self.search_thread.wait()
 

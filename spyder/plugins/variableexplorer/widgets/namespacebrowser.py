@@ -14,31 +14,30 @@ This is the main widget used in the Variable Explorer plugin
 import os
 import os.path as osp
 from pickle import UnpicklingError
+import tarfile
 
 # Third library imports
 from qtpy import PYQT5
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import (QApplication, QInputDialog,
-                            QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QInputDialog, QMessageBox,
+                            QVBoxLayout, QStackedLayout, QWidget)
 from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.config.utils import IMPORT_EXT
 from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
-from spyder.widgets.helperwidgets import FinderWidget
+from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
 
-
-# Localization
-_ = get_translation('spyder')
 
 # Constants
 VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
@@ -74,6 +73,13 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "variable-explorer",
+            _("No variables to show"),
+            _("Run code in the Editor or IPython console to see any "
+              "global variables listed here for exploration and editing.")
+        )
 
     def toggle_finder(self, show):
         """Show and hide the finder."""
@@ -134,12 +140,27 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.sig_hide_finder_requested)
 
             # Layout
+            self.stack_layout = QStackedLayout()
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.editor)
             layout.addSpacing(1)
             layout.addWidget(self.finder)
-            self.setLayout(layout)
+
+            self.table_widget = QWidget(self)
+            self.table_widget.setLayout(layout)
+            self.stack_layout.addWidget(self.table_widget)
+            self.stack_layout.addWidget(self.pane_empty)
+            self.setLayout(self.stack_layout)
+            self.set_pane_empty()
+            self.editor.source_model.sig_setting_data.connect(
+                self.set_pane_empty)
+
+    def set_pane_empty(self):
+        if not self.editor.source_model.get_data():
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.table_widget)
 
     def get_view_settings(self):
         """Return dict editor view settings"""
@@ -158,11 +179,30 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.refresh_namespacebrowser()
         try:
             self.editor.resizeRowToContents()
+            self.set_pane_empty()
         except TypeError:
             pass
 
+    @Slot(dict)
+    def update_view(self, kernel_state):
+        """
+        Update namespace view and other properties from a new kernel state.
+        
+        Parameters
+        ----------
+        kernel_state: dict
+            A new kernel state. The structure of this dictionary is defined in
+            the `SpyderKernel.get_state` method of Spyder-kernels.
+        """
+        if "namespace_view" in kernel_state:
+            self.process_remote_view(kernel_state.pop("namespace_view"))
+        if "var_properties" in kernel_state:
+            self.set_var_properties(kernel_state.pop("var_properties"))
+
     def refresh_namespacebrowser(self, *, interrupt=True):
         """Refresh namespace browser"""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         self.shellwidget.call_kernel(
             interrupt=interrupt,
             callback=self.process_remote_view
@@ -175,6 +215,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def set_namespace_view_settings(self, interrupt=True):
         """Set the namespace view settings"""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         settings = self.get_view_settings()
         self.shellwidget.call_kernel(
             interrupt=interrupt
@@ -222,13 +264,32 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.filename = remove_backslashes(self.filename)
             extension = osp.splitext(self.filename)[1].lower()
 
+            if extension == '.spydata':
+                buttons = QMessageBox.Yes | QMessageBox.Cancel
+                answer = QMessageBox.warning(
+                    self,
+                    title,
+                    _("<b>Warning: %s files can contain malicious code!</b>"
+                      "<br><br>"
+                      "Do not continue unless this file is from a trusted "
+                      "source. Would you like to import it "
+                      "anyway?") % extension,
+                    buttons
+                )
+
+                if answer == QMessageBox.Cancel:
+                    return
             if extension not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
-                answer = QMessageBox.question(self, title,
-                            _("<b>Unsupported file extension '%s'</b><br><br>"
-                              "Would you like to import it anyway "
-                              "(by selecting a known file format)?"
-                              ) % extension, buttons)
+                answer = QMessageBox.question(
+                    self,
+                    title,
+                    _("<b>Unsupported file extension '%s'</b>"
+                      "<br><br>"
+                      "Would you like to import it anyway by selecting a "
+                      "known file format?") % extension,
+                    buttons
+                )
                 if answer == QMessageBox.Cancel:
                     return
                 formats = list(iofunctions.load_extensions.keys())
@@ -273,6 +334,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def load_data(self, filename, ext):
         """Load data from a file."""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         overwrite = False
         if self.editor.var_properties:
             message = _('Do you want to overwrite old '
@@ -299,6 +362,14 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         except TimeoutError:
             msg = _("Data is too big to be loaded")
             return msg
+        except tarfile.ReadError:
+            # Fixes spyder-ide/spyder#19126
+            msg = _("The file could not be opened successfully. Recall that "
+                    "the Variable Explorer supports the following file "
+                    "extensions to import data:"
+                    "<br><br><tt>{extensions}</tt>").format(
+                        extensions=', '.join(IMPORT_EXT))
+            return msg
         except (UnpicklingError, RuntimeError, CommError):
             return None
 
@@ -312,6 +383,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def save_data(self):
         """Save data"""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         filename = self.filename
         if filename is None:
             filename = getcwd_or_home()

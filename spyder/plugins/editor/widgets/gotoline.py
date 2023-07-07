@@ -9,11 +9,7 @@ from qtpy.QtGui import QIntValidator
 from qtpy.QtWidgets import (QDialog, QLabel, QLineEdit, QGridLayout,
                             QDialogButtonBox, QVBoxLayout, QHBoxLayout)
 
-from spyder.api.translations import get_translation
-
-
-# Translations
-_ = get_translation('spyder')
+from spyder.api.translations import _
 
 
 class GoToLineDialog(QDialog):
@@ -62,8 +58,10 @@ class GoToLineDialog(QDialog):
 
         ok_button = bbox.button(QDialogButtonBox.Ok)
         ok_button.setEnabled(False)
+        # QIntValidator does not handle '+' sign
+        # See spyder-ide/spyder#20070
         self.lineedit.textChanged.connect(
-                     lambda text: ok_button.setEnabled(len(text) > 0))
+                     lambda text: ok_button.setEnabled(len(text) > 0 and text != '+'))
 
         layout = QHBoxLayout()
         layout.addLayout(glayout)
@@ -75,10 +73,14 @@ class GoToLineDialog(QDialog):
     def text_has_changed(self, text):
         """Line edit's text has changed."""
         text = str(text)
-        if text:
+
+        # QIntValidator does not handle '+' sign
+        # See spyder-ide/spyder#12693
+        if text and text != '+':
             self.lineno = int(text)
         else:
             self.lineno = None
+            self.lineedit.clear()
 
     def get_line_number(self):
         """Return line number."""

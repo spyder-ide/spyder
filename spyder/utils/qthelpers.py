@@ -7,6 +7,7 @@
 """Qt utilities."""
 
 # Standard library imports
+import configparser
 import functools
 from math import pi
 import logging
@@ -15,21 +16,26 @@ import os.path as osp
 import re
 import sys
 import types
+from urllib.parse import unquote
+
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, QUrl, Signal, Slot)
-from qtpy.QtGui import QDesktopServices, QKeyEvent, QKeySequence, QPixmap
+from qtpy.QtGui import (
+    QDesktopServices, QFontMetrics, QKeyEvent, QKeySequence, QPixmap)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
                             QProxyStyle, QPushButton, QStyle,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import running_in_mac_app
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
-from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
@@ -38,13 +44,8 @@ from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
 # Third party imports
-if sys.platform == "darwin" and not running_in_mac_app():
+if sys.platform == "darwin" and not is_conda_based_app():
     import applaunchservices as als
-
-if PY2:
-    from urllib import unquote
-else:
-    from urllib.parse import unquote
 
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -102,22 +103,17 @@ def qapplication(translate=True, test_time=3):
     test_time: Time to maintain open the application when testing. It's given
     in seconds
     """
-    if sys.platform == "darwin":
-        SpyderApplication = MacApplication
-    else:
-        SpyderApplication = QApplication
-
-    app = SpyderApplication.instance()
+    app = QApplication.instance()
     if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
-        app = SpyderApplication(['Spyder'])
+        app = SpyderApplication(['Spyder', '--no-sandbox'])
 
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
 
     if (sys.platform == "darwin"
-            and not running_in_mac_app()
+            and not is_conda_based_app()
             and CONF.get('main', 'mac_open_file', False)):
         # Register app if setting is set
         register_app_launchservices()
@@ -166,6 +162,35 @@ def keybinding(attr):
     """Return keybinding"""
     ks = getattr(QKeySequence, attr)
     return from_qvariant(QKeySequence.keyBindings(ks)[0], str)
+
+
+def keyevent_to_keysequence_str(event):
+    """Get key sequence corresponding to a key event as a string."""
+    try:
+        # See https://stackoverflow.com/a/20656496/438386 for context
+        return QKeySequence(event.modifiers() | event.key()).toString()
+    except TypeError:
+        # This error appears in old PyQt versions (e.g. 5.12) which are
+        # running under Python 3.10+. In that case, we need to build the
+        # key sequence as an int.
+        # See https://stackoverflow.com/a/23919177/438386 for context.
+        key = event.key()
+        alt = event.modifiers() & Qt.AltModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
+        meta = event.modifiers() & Qt.MetaModifier
+
+        key_sequence = key
+        if ctrl:
+            key_sequence += Qt.CTRL
+        if shift:
+            key_sequence += Qt.SHIFT
+        if alt:
+            key_sequence += Qt.ALT
+        if meta:
+            key_sequence += Qt.META
+
+        return QKeySequence(key_sequence).toString()
 
 
 def _process_mime_path(path, extlist):
@@ -734,22 +759,23 @@ class QInputDialogMultiline(QDialog):
         cancel_button.clicked.connect(self.reject)
 
 
-# =============================================================================
-# Only for macOS
-# =============================================================================
-class MacApplication(QApplication):
-    """Subclass to be able to open external files with our Mac app"""
+class SpyderApplication(QApplication, SpyderConfigurationAccessor,
+                        SpyderFontsMixin):
+    """Subclass with several adjustments for Spyder."""
+
     sig_open_external_file = Signal(str)
 
     def __init__(self, *args):
         QApplication.__init__(self, *args)
+
         self._never_shown = True
         self._has_started = False
         self._pending_file_open = []
         self._original_handlers = {}
 
     def event(self, event):
-        if event.type() == QEvent.FileOpen:
+
+        if sys.platform == 'darwin' and event.type() == QEvent.FileOpen:
             fname = str(event.file())
             if sys.argv and sys.argv[0] == fname:
                 # Ignore requests to open own script
@@ -759,7 +785,65 @@ class MacApplication(QApplication):
                 self.sig_open_external_file.emit(fname)
             else:
                 self._pending_file_open.append(fname)
+
         return QApplication.event(self, event)
+
+    def set_font(self):
+        """Set font for the entire application."""
+        # This selects the system font by default
+        if self.get_conf('use_system_font', section='appearance'):
+            family = self.font().family()
+            size = self.font().pointSize()
+
+            self.set_conf('app_font/family', family, section='appearance')
+            self.set_conf('app_font/size', size, section='appearance')
+        else:
+            family = self.get_conf('app_font/family', section='appearance')
+            size = self.get_conf('app_font/size', section='appearance')
+
+        app_font = self.font()
+        app_font.setFamily(family)
+        app_font.setPointSize(size)
+
+        self.set_monospace_interface_font(app_font)
+        self.setFont(app_font)
+
+    def set_monospace_interface_font(self, app_font):
+        """
+        Set monospace interface font in our config system according to the app
+        one.
+        """
+        x_height = QFontMetrics(app_font).xHeight()
+        size = app_font.pointSize()
+        plain_font = self.get_font(SpyderFontType.Monospace)
+        plain_font.setPointSize(size)
+
+        # Select a size that matches the app font one, so that the UI looks
+        # consistent. We only check three point sizes above and below the app
+        # font to avoid getting stuck in an infinite loop.
+        monospace_size = size
+        while (
+            QFontMetrics(plain_font).xHeight() != x_height
+            and ((size - 4) < monospace_size < (size + 4))
+        ):
+            if QFontMetrics(plain_font).xHeight() > x_height:
+                monospace_size -= 1
+            else:
+                monospace_size += 1
+            plain_font.setPointSize(monospace_size)
+
+        # There are some fonts (e.g. MS Serif) for which it seems that Qt
+        # can't detect their xHeight's as expected. So, we check below
+        # if the monospace font size ends up being too big or too small after
+        # the above xHeight comparison and set it to the interface size if
+        # that's the case.
+        if not ((size - 4) < monospace_size < (size + 4)):
+            monospace_size = size
+
+        self.set_conf('monospace_app_font/family', plain_font.family(),
+                      section='appearance')
+        self.set_conf('monospace_app_font/size', monospace_size,
+                      section='appearance')
 
 
 def restore_launchservices():

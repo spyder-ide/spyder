@@ -24,9 +24,8 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
                                          is_known_type)
 
 # Local imports
-from spyder.config.base import _, is_pynsist, running_in_mac_app
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.config.base import _, is_conda_based_app
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
@@ -38,7 +37,7 @@ LARGE_COLLECTION = 1e5
 LARGE_ARRAY = 5e6
 
 
-class CollectionsDelegate(QItemDelegate):
+class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     """CollectionsEditor Item Delegate"""
     sig_free_memory_requested = Signal()
     sig_editor_creation_started = Signal()
@@ -115,26 +114,21 @@ class CollectionsDelegate(QItemDelegate):
                 if module == 'numpy':
                     val_type = 'array'
                 else:
-                    val_type = 'dataframe, series'
-                message = _("Spyder is unable to show the {val_type} or object"
-                            " you're trying to view because <tt>{module}</tt>"
-                            " is not installed. ")
-                if running_in_mac_app():
-                    message += _("Please consider using the full version of "
-                                 "the Spyder MacOS application.<br>")
-                else:
-                    message += _("Please install this package in your Spyder "
-                                 "environment.<br>")
+                    val_type = 'dataframe or series'
+                message = _("Spyder is unable to show the {val_type} object "
+                            "you're trying to view because <tt>{module}</tt> "
+                            "is missing. Please install that package in your "
+                            "Spyder environment to fix this problem.")
                 QMessageBox.critical(
                     self.parent(), _("Error"),
                     message.format(val_type=val_type, module=module))
                 return
             else:
-                if running_in_mac_app() or is_pynsist():
+                if is_conda_based_app():
                     message = _("Spyder is unable to show the variable you're"
                                 " trying to view because the module "
-                                "<tt>{module}</tt> is not supported in the "
-                                "Spyder Lite application.<br>")
+                                "<tt>{module}</tt> is not supported "
+                                "by Spyder's standalone application.<br>")
                 else:
                     message = _("Spyder is unable to show the variable you're"
                                 " trying to view because the module "
@@ -145,6 +139,7 @@ class CollectionsDelegate(QItemDelegate):
                                      message.format(module=module))
                 return
         except Exception as msg:
+            self.sig_editor_shown.emit()
             QMessageBox.critical(
                 self.parent(), _("Error"),
                 _("Spyder was unable to retrieve the value of "
@@ -179,6 +174,7 @@ class CollectionsDelegate(QItemDelegate):
             from .arrayeditor import ArrayEditor
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
+                self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
@@ -195,6 +191,7 @@ class CollectionsDelegate(QItemDelegate):
             arr = np.array(value)
             editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
+                self.sig_editor_shown.emit()
                 return
             conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -231,7 +228,9 @@ class CollectionsDelegate(QItemDelegate):
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
@@ -251,7 +250,9 @@ class CollectionsDelegate(QItemDelegate):
                 return None
             else:
                 editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after
@@ -512,7 +513,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 return editor
         # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40:
@@ -530,7 +533,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 return None
             else:
                 editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after

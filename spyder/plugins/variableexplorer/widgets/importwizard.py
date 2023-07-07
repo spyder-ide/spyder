@@ -11,6 +11,8 @@ Text data Importing Wizard based on Qt
 # Standard library imports
 import datetime
 from functools import partial as ft_partial
+import io
+from itertools import zip_longest
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -26,8 +28,7 @@ from spyder_kernels.utils.lazymodules import (
 
 # Local import
 from spyder.config.base import _
-from spyder.py3compat import (INT_TYPES, io, TEXT_TYPES, to_text_string,
-                              zip_longest)
+from spyder.py3compat import INT_TYPES, TEXT_TYPES, to_text_string
 from spyder.utils import programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
@@ -176,6 +177,8 @@ class ContentsWidget(QWidget):
         intvalid = QIntValidator(0, len(to_text_string(text).splitlines()),
                                  self.skiprows_edt)
         self.skiprows_edt.setValidator(intvalid)
+        self.skiprows_edt.textChanged.connect(
+                     lambda text: self.get_skiprows())
         other_layout.addWidget(self.skiprows_edt, 0, 1)
 
         other_layout.setColumnMinimumWidth(2, 5)
@@ -236,7 +239,14 @@ class ContentsWidget(QWidget):
 
     def get_skiprows(self):
         """Return number of lines to be skipped"""
-        return int(to_text_string(self.skiprows_edt.text()))
+        skip_rows = to_text_string(self.skiprows_edt.text())
+        # QIntValidator does not handle '+' sign
+        # See spyder-ide/spyder#20070
+        if skip_rows and skip_rows != '+':
+            return int(skip_rows)
+        else:
+            self.skiprows_edt.clear()
+            return 0
 
     def get_comments(self):
         """Return comment string"""
@@ -364,12 +374,15 @@ class PreviewTable(QTableView):
     def _shape_text(self, text, colsep=u"\t", rowsep=u"\n",
                     transpose=False, skiprows=0, comments='#'):
         """Decode the shape of the given text"""
-        assert colsep != rowsep
+        assert colsep != rowsep, 'Column sep should not equal Row sep'
         out = []
-        text_rows = text.split(rowsep)[skiprows:]
+        text_rows = text.split(rowsep)
+        assert skiprows < len(text_rows), 'Skip Rows > Line Count'
+        text_rows = text_rows[skiprows:]
         for row in text_rows:
             stripped = to_text_string(row).strip()
-            if len(stripped) == 0 or stripped.startswith(comments):
+            if len(stripped) == 0 or (comments and
+                                      stripped.startswith(comments)):
                 continue
             line = to_text_string(row).split(colsep)
             line = [try_to_parse(to_text_string(x)) for x in line]

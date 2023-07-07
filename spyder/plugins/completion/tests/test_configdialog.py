@@ -21,7 +21,6 @@ from spyder.plugins.preferences.tests.conftest import config_dialog  # noqa
 
 class MainWindowMock(QMainWindow):
     sig_setup_finished = Signal()
-    sig_pythonpath_changed = Signal(object, object)
 
     def __init__(self, parent):
         super(MainWindowMock, self).__init__(parent)

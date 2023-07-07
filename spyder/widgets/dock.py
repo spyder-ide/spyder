@@ -13,14 +13,10 @@ from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
 import qstylizer.style
 
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import PanesToolbarStyleSheet
-
-
-# For translations
-_ = get_translation('spyder')
 
 
 # =============================================================================
@@ -75,21 +71,21 @@ class TabFilter(QObject):
 
     @property
     def _tabbar_stylesheet(self):
-        # - Center tabs to differentiate them from plugin ones.
-        #   See spyder-ide/spyder#9763
-        # - Also add a border below selected tabs so they don't touch
-        #   either the window separator or the status bar.
-        stylesheet = """
-            QTabBar {
-                alignment: center;
-            }
+        css = qstylizer.style.StyleSheet()
 
-            QTabBar::tab:bottom:selected {
-                border-bottom: 2px solid %s;
-            }
-        """ % QStylePalette.COLOR_BACKGROUND_1
+        # Center tabs to differentiate them from plugin ones.
+        # See spyder-ide/spyder#9763
+        css.QTabBar.setValues(
+            alignment='center'
+        )
 
-        return stylesheet
+        # Also add a border below selected tabs so they don't touch either the
+        # window separator or the status bar.
+        css['QTabBar::tab:bottom:selected'].setValues(
+            borderBottom=f'2px solid {QStylePalette.COLOR_BACKGROUND_1}'
+        )
+
+        return css.toString()
 
 
 # =============================================================================

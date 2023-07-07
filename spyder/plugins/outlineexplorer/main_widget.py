@@ -6,14 +6,12 @@
 
 """Outline explorer main widget."""
 
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout
 
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerTreeWidget
-
-_ = get_translation('spyder')
 
 
 # ---- Enums
@@ -165,11 +163,27 @@ class OutlineExplorerWidget(PluginMainWidget):
         pass
 
     def change_visibility(self, enable, force_focus=None):
-        """
-        Reimplemented to tell treewidget what the visibility state is.
-        """
+        """Reimplemented to tell treewidget what the visibility state is."""
         super().change_visibility(enable, force_focus)
-        self._change_treewidget_visibility(self.is_visible)
+
+        if self.windowwidget is not None:
+            # When the plugin is undocked Qt changes its visibility to False,
+            # probably because it's not part of the main window anymore. So, we
+            # need to set the treewidget visibility to True for it to be
+            # updated after writing new content in the editor.
+            # Fixes spyder-ide/spyder#16634
+            self.change_tree_visibility(True)
+        else:
+            self.change_tree_visibility(self.is_visible)
+
+    def create_window(self):
+        """
+        Reimplemented to tell treewidget what the visibility of the undocked
+        plugin is.
+        """
+        super().create_window()
+        self.windowwidget.sig_window_state_changed.connect(
+            self._handle_undocked_window_state)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -200,10 +214,25 @@ class OutlineExplorerWidget(PluginMainWidget):
         """Update all editors with an associated LSP server."""
         self.treewidget.update_all_editors()
 
+    def get_supported_languages(self):
+        """List of languages with symbols support."""
+        return self.treewidget._languages
+
+    def change_tree_visibility(self, is_visible):
+        "Change treewidget's visibility."
+        self.treewidget.change_visibility(is_visible)
+
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _change_treewidget_visibility(self, is_visible):
-        """Set visibility state in treewidget."""
-        self.treewidget.is_visible = is_visible
-        if is_visible:
-            self.treewidget.update_all_editors()
+    @Slot(object)
+    def _handle_undocked_window_state(self, window_state):
+        """
+        Change treewidget visibility when the plugin is undocked and its
+        window state changes.
+        """
+        if window_state == Qt.WindowMinimized:
+            # There's no need to update the treewidget when the plugin is
+            # minimized.
+            self.change_tree_visibility(False)
+        else:
+            self.change_tree_visibility(True)

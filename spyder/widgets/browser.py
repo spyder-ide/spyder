@@ -21,7 +21,7 @@ from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
 from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
 from spyder.config.gui import OLD_PYQT
@@ -32,10 +32,6 @@ from spyder.utils.qthelpers import (action2button, create_plugin_layout,
                                     create_toolbutton)
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 # --- Constants
@@ -385,7 +381,14 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         url is loaded.
         """
         super().load(url)
-        self.focusProxy().installEventFilter(self)
+
+        # This is required to catch an error with some compilations of Qt/PyQt
+        # packages, for which it seems this functionality is not working.
+        # Fixes spyder-ide/spyder#19818
+        try:
+            self.focusProxy().installEventFilter(self)
+        except AttributeError:
+            pass
 
     def eventFilter(self, widget, event):
         """

@@ -62,26 +62,23 @@ def get_versions(reporev=True):
     import qtpy.QtCore
 
     from spyder.utils.conda import is_conda_env
-    from spyder.config.base import is_pynsist, running_in_mac_app
+    from spyder.config.base import is_conda_based_app
 
     revision = branch = None
     if reporev:
-        if running_in_mac_app():
-            revision = os.environ.get('SPY_COMMIT', None)
-            branch = os.environ.get('SPY_BRANCH', None)
-        else:
-            from spyder.utils import vcs
-            revision, branch = vcs.get_git_revision(
-                os.path.dirname(__current_directory__))
+        from spyder.utils import vcs
+        revision, branch = vcs.get_git_revision(
+            os.path.dirname(__current_directory__)
+        )
 
-    if is_pynsist() or running_in_mac_app():
+    if is_conda_based_app():
         installer = 'standalone'
     elif is_conda_env(pyexec=sys.executable):
         installer = 'conda'
     else:
         installer = 'pip'
 
-    return {
+    versions = {
         'spyder': __version__,
         'installer': installer,
         'python': platform.python_version(),  # "2.7.3"
@@ -93,8 +90,14 @@ def get_versions(reporev=True):
         'system': platform.system(),   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
         'revision': revision,  # '9fdf926eccce',
-        'branch': branch,  # '4.x' or master
+        'branch': branch,  # '4.x' or master,
+        'machine': platform.machine(),  # 'arm64', 'x86_64', 'AMD64', ...
+        'platform': platform.platform(aliased=True),
     }
+    if sys.platform == 'darwin':
+        versions.update(system='macOS', release=platform.mac_ver()[0])
+
+    return versions
 
 
 def get_versions_text(reporev=True):
@@ -109,5 +112,5 @@ def get_versions_text(reporev=True):
 * Python version: {versions['python']} {versions['bitness']}-bit
 * Qt version: {versions['qt']}
 * {versions['qt_api']} version: {versions['qt_api_ver']}
-* Operating System: {versions['system']} {versions['release']}
+* Operating System: {versions['platform']}
 """

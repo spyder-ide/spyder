@@ -16,9 +16,11 @@ from qtpy.QtGui import QFontMetrics, QFocusEvent
 from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
+from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
@@ -26,7 +28,7 @@ DEFAULT_COMPLETION_ITEM_HEIGHT = 15
 DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 
-class CompletionWidget(QListWidget):
+class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     """Completion list widget."""
     ITEM_TYPE_MAP = {
         CompletionItemKind.TEXT: 'text',
@@ -238,6 +240,7 @@ class CompletionWidget(QListWidget):
 
         item_widget.setText(item_text)
         item_widget.setIcon(self._get_cached_icon(item_type))
+
         # Set data for accessible readers using item label and type
         # See spyder-ide/spyder#17047 and
         # https://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
@@ -314,10 +317,12 @@ class CompletionWidget(QListWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         altgr = event.modifiers() and (key == Qt.Key_AltGr)
+
         # Needed to properly handle Neo2 and other keyboard layouts
         # See spyder-ide/spyder#11293
         neo2_level4 = (key == 0)  # AltGr (ISO_Level5_Shift) in Neo2 on Linux
         modifier = shift or ctrl or alt or altgr or neo2_level4
+
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
             # otherwise timing issues
@@ -335,8 +340,10 @@ class CompletionWidget(QListWidget):
         elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
-        elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End) and not modifier:
+        elif (
+            key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown)
+            and not modifier
+        ):
             self.textedit._completions_hint_idle = True
             if key == Qt.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
@@ -344,7 +351,35 @@ class CompletionWidget(QListWidget):
                 self.setCurrentRow(0)
             else:
                 QListWidget.keyPressEvent(self, event)
-        elif len(text) or key == Qt.Key_Backspace:
+        elif key in (Qt.Key_Home, Qt.Key_End):
+            # This allows users to easily move to the beginning/end of the
+            # current line when this widget is visible.
+            # Fixes spyder-ide/spyder#19989
+            self.hide()
+            self.textedit.keyPressEvent(event)
+        elif key == Qt.Key_Backspace:
+            self.textedit.keyPressEvent(event)
+            self.update_current(new=False)
+        elif len(text):
+            # Determine the key sequence introduced by the user to check if
+            # we need to call the action associated to it in textedit. This
+            # way is not necessary to hide this widget for the sequence to
+            # take effect in textedit.
+            # Fixes spyder-ide/spyder#19372
+            if modifier:
+                key_sequence = keyevent_to_keysequence_str(event)
+
+                # Ask to save file if the user pressed the sequence for that.
+                # Fixes spyder-ide/spyder#14806
+                save_shortcut = self.get_conf(
+                    'editor/save file', section='shortcuts')
+                if key_sequence == save_shortcut:
+                    self.textedit.sig_save_requested.emit()
+
+                    # Hiding the widget reassures users that the save operation
+                    # took place.
+                    self.hide()
+
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)
         elif modifier:
@@ -511,6 +546,10 @@ class CompletionWidget(QListWidget):
     def augment_completion_info(self, item):
         if self.current_selected_item_label == item['label']:
             insert_text = self._get_insert_text(item)
+
+            if isinstance(item['documentation'], dict):
+                item['documentation'] = item['documentation']['value']
+
             self.sig_completion_hint.emit(
                 insert_text,
                 item['documentation'],

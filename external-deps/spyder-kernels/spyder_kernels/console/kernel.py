@@ -15,13 +15,15 @@ import faulthandler
 import json
 import logging
 import os
+import re
 import sys
 import traceback
+import tempfile
 import threading
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
-from ipykernel import get_connection_info
+from ipykernel import eventloops, get_connection_info
 from traitlets.config.loader import LazyConfigValue
 import zmq
 from zmq.utils.garbage import gc
@@ -34,6 +36,7 @@ from spyder_kernels.utils.mpl import (
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
 from spyder_kernels.console.shell import SpyderShell
+from spyder_kernels.comms.utils import WriteContext
 
 
 
@@ -69,7 +72,6 @@ class SpyderKernel(IPythonKernel):
             'remove_value': self.remove_value,
             'copy_value': self.copy_value,
             'set_cwd': self.set_cwd,
-            'get_cwd': self.get_cwd,
             'get_syspath': self.get_syspath,
             'get_env': self.get_env,
             'close_all_mpl_figures': self.close_all_mpl_figures,
@@ -84,19 +86,19 @@ class SpyderKernel(IPythonKernel):
             'get_mpl_interactive_backend': self.get_mpl_interactive_backend,
             'pdb_input_reply': self.shell.pdb_input_reply,
             'enable_faulthandler': self.enable_faulthandler,
-            "flush_std": self.flush_std,
             'get_current_frames': self.get_current_frames,
             'request_pdb_stop': self.shell.request_pdb_stop,
             'raise_interrupt_signal': self.shell.raise_interrupt_signal,
-            }
+            'get_fault_text': self.get_fault_text,
+        }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
                 call_id, handlers[call_id])
 
         self.namespace_view_settings = {}
         self._mpl_backend_error = None
-        self._running_namespace = None
         self.faulthandler_handle = None
+        self._cwd_initialised = False
 
         # Add handlers to control to process messages while debugging
         self.control_handlers['comm_msg'] = self.control_comm_msg
@@ -107,13 +109,8 @@ class SpyderKernel(IPythonKernel):
         self.loopback_socket = None
 
     # -- Public API -----------------------------------------------------------
-    def do_shutdown(self, restart):
-        """Disable faulthandler if enabled before proceeding."""
-        self.disable_faulthandler()
-        super(SpyderKernel, self).do_shutdown(restart)
-
     def frontend_call(self, blocking=False, broadcast=True,
-                      timeout=None, callback=None):
+                      timeout=None, callback=None, display_error=False):
         """Call the frontend."""
         # If not broadcast, send only to the calling comm
         if broadcast:
@@ -125,37 +122,113 @@ class SpyderKernel(IPythonKernel):
             blocking=blocking,
             comm_id=comm_id,
             callback=callback,
-            timeout=timeout)
+            timeout=timeout,
+            display_error=display_error)
 
-    def flush_std(self):
-        """Flush C standard streams."""
-        sys.__stderr__.flush()
-        sys.__stdout__.flush()
+    def get_state(self):
+        """"get current state to send to the frontend"""
+        state = {}
+        with WriteContext("get_state"):
+            if self._cwd_initialised:
+                state["cwd"] = self.get_cwd()
+            state["namespace_view"] = self.get_namespace_view()
+            state["var_properties"] = self.get_var_properties()
+        return state
 
-    def enable_faulthandler(self, fn):
+    def publish_state(self):
+        """Publish the current kernel state"""
+        if not self.frontend_comm.is_open():
+            # No one to send to
+            return
+        try:
+            self.frontend_call(blocking=False).update_state(self.get_state())
+        except Exception:
+            pass
+
+    def enable_faulthandler(self):
         """
         Open a file to save the faulthandling and identifiers for
         internal threads.
         """
-        self.disable_faulthandler()
-        f = open(fn, 'w')
-        self.faulthandler_handle = f
-        f.write("Main thread id:\n")
-        f.write(hex(threading.main_thread().ident))
-        f.write('\nSystem threads ids:\n')
-        f.write(" ".join([hex(thread.ident) for thread in threading.enumerate()
-                          if thread is not threading.main_thread()]))
-        f.write('\n')
-        faulthandler.enable(f)
+        fault_dir = None
+        if sys.platform.startswith('linux'):
+            # Do not use /tmp for temporary files
+            try:
+                from xdg.BaseDirectory import xdg_data_home
+                fault_dir = xdg_data_home
+                os.makedirs(fault_dir, exist_ok=True)
+            except Exception:
+                fault_dir = None
 
-    def disable_faulthandler(self):
-        """
-        Cancel the faulthandling, close the file handle and remove the file.
-        """
-        if self.faulthandler_handle:
-            faulthandler.disable()
-            self.faulthandler_handle.close()
-            self.faulthandler_handle = None
+        self.faulthandler_handle = tempfile.NamedTemporaryFile(
+            'wt', suffix='.fault', dir=fault_dir)
+        main_id = threading.main_thread().ident
+        system_ids = [
+            thread.ident for thread in threading.enumerate()
+            if thread is not threading.main_thread()
+        ]
+        faulthandler.enable(self.faulthandler_handle)
+        return self.faulthandler_handle.name, main_id, system_ids
+
+    def get_fault_text(self, fault_filename, main_id, ignore_ids):
+        """Get fault text from old run."""
+        # Read file
+        try:
+            with open(fault_filename, 'r') as f:
+                fault = f.read()
+        except FileNotFoundError:
+            return
+        except UnicodeDecodeError as e:
+            return (
+                "Can not read fault file!\n"
+                + "UnicodeDecodeError: " + str(e))
+
+        # Remove file
+        try:
+            os.remove(fault_filename)
+        except FileNotFoundError:
+            pass
+        except PermissionError:
+            pass
+
+        # Process file
+        if not fault:
+            return
+
+        thread_regex = (
+            r"(Current thread|Thread) "
+            r"(0x[\da-f]+) \(most recent call first\):"
+            r"(?:.|\r\n|\r|\n)+?(?=Current thread|Thread|\Z)")
+        # Keep line for future improvements
+        # files_regex = r"File \"([^\"]+)\", line (\d+) in (\S+)"
+
+        text = ""
+        start_idx = 0
+        for idx, match in enumerate(re.finditer(thread_regex, fault)):
+            # Add anything non-matched
+            text += fault[start_idx:match.span()[0]]
+            start_idx = match.span()[1]
+            thread_id = int(match.group(2), base=16)
+            if thread_id != main_id:
+                if thread_id in ignore_ids:
+                    continue
+                if "wurlitzer.py" in match.group(0):
+                    # Wurlitzer threads are launched later
+                    continue
+                text += "\n" + match.group(0) + "\n"
+            else:
+                try:
+                    pattern = (r".*(?:/IPython/core/interactiveshell\.py|"
+                               r"\\IPython\\core\\interactiveshell\.py).*")
+                    match_internal = next(re.finditer(pattern, match.group(0)))
+                    end_idx = match_internal.span()[0]
+                except StopIteration:
+                    end_idx = None
+                text += "\nMain thread:\n" + match.group(0)[:end_idx] + "\n"
+
+        # Add anything after match
+        text += fault[start_idx:]
+        return text
 
     def get_system_threads_id(self):
         """Return the list of system threads id."""
@@ -252,7 +325,7 @@ class SpyderKernel(IPythonKernel):
 
         settings = self.namespace_view_settings
         if settings:
-            ns = self._get_current_namespace(frame=frame)
+            ns = self.shell._get_current_namespace(frame=frame)
             view = make_remote_view(ns, settings, EXCLUDED_NAMES)
             return view
         else:
@@ -265,16 +338,16 @@ class SpyderKernel(IPythonKernel):
         """
         settings = self.namespace_view_settings
         if settings:
-            ns = self._get_current_namespace()
+            ns = self.shell._get_current_namespace()
             data = get_remote_data(ns, settings, mode='editable',
                                    more_excluded_names=EXCLUDED_NAMES)
 
             properties = {}
             for name, value in list(data.items()):
                 properties[name] = {
-                    'is_list':  isinstance(value, (tuple, list)),
-                    'is_dict':  isinstance(value, dict),
-                    'is_set': isinstance(value, set),
+                    'is_list':  self._is_list(value),
+                    'is_dict':  self._is_dict(value),
+                    'is_set': self._is_set(value),
                     'len': self._get_len(value),
                     'is_array': self._is_array(value),
                     'is_image': self._is_image(value),
@@ -290,23 +363,23 @@ class SpyderKernel(IPythonKernel):
 
     def get_value(self, name):
         """Get the value of a variable"""
-        ns = self._get_current_namespace()
+        ns = self.shell._get_current_namespace()
         return ns[name]
 
     def set_value(self, name, value):
         """Set the value of a variable"""
-        ns = self._get_reference_namespace(name)
+        ns = self.shell._get_reference_namespace(name)
         ns[name] = value
         self.log.debug(ns)
 
     def remove_value(self, name):
         """Remove a variable"""
-        ns = self._get_reference_namespace(name)
+        ns = self.shell._get_reference_namespace(name)
         ns.pop(name)
 
     def copy_value(self, orig_name, new_name):
         """Copy a variable"""
-        ns = self._get_reference_namespace(orig_name)
+        ns = self.shell._get_reference_namespace(orig_name)
         ns[new_name] = ns[orig_name]
 
     def load_data(self, filename, ext, overwrite=False):
@@ -347,7 +420,7 @@ class SpyderKernel(IPythonKernel):
 
     def save_namespace(self, filename):
         """Save namespace into filename"""
-        ns = self._get_current_namespace()
+        ns = self.shell._get_current_namespace()
         settings = self.namespace_view_settings
         data = get_remote_data(ns, settings, mode='picklable',
                                more_excluded_names=EXCLUDED_NAMES).copy()
@@ -402,7 +475,7 @@ class SpyderKernel(IPythonKernel):
         """Return True if object is defined in current namespace"""
         from spyder_kernels.utils.dochelpers import isdefined
 
-        ns = self._get_current_namespace(with_magics=True)
+        ns = self.shell._get_current_namespace(with_magics=True)
         return isdefined(obj, force_import=force_import, namespace=ns)
 
     def get_doc(self, objtxt):
@@ -446,48 +519,42 @@ class SpyderKernel(IPythonKernel):
         """
         # Mapping from frameworks to backend names.
         mapping = {
-            'qt': 'QtAgg',  # For Matplotlib 3.5+
-            'qt5': 'Qt5Agg',
+            'qt': 'QtAgg',
             'tk': 'TkAgg',
             'macosx': 'MacOSX'
         }
 
-        try:
-            # --- Get interactive framework
-            framework = None
+        # --- Get interactive framework
+        framework = None
 
-            # This is necessary because _get_running_interactive_framework
-            # can't detect Tk in a Jupyter kernel.
-            if hasattr(self, 'app_wrapper'):
-                if hasattr(self.app_wrapper, 'app'):
-                    import tkinter
-                    if isinstance(self.app_wrapper.app, tkinter.Tk):
-                        framework = 'tk'
+        # Detect if there is a graphical framework running by checking the
+        # eventloop function attached to the kernel.eventloop attribute (see
+        # `ipykernel.eventloops.enable_gui` for context).
+        loop_func = self.eventloop
 
-            if framework is None:
-                try:
-                    # This is necessary for Matplotlib 3.3.0+
-                    from matplotlib import cbook
-                    framework = cbook._get_running_interactive_framework()
-                except AttributeError:
-                    # For older versions
-                    from matplotlib import backends
-                    framework = backends._get_running_interactive_framework()
-
-            # --- Return backend according to framework
-            if framework is None:
-                # Since no interactive backend has been set yet, this is
-                # equivalent to having the inline one.
-                return 0
-            elif framework in mapping:
-                return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+        if loop_func is not None:
+            if loop_func == eventloops.loop_tk:
+                framework = 'tk'
+            elif loop_func == eventloops.loop_qt5:
+                framework = 'qt'
+            elif loop_func == eventloops.loop_cocoa:
+                framework = 'macosx'
             else:
-                # This covers the case of other backends (e.g. Wx or Gtk)
-                # which users can set interactively with the %matplotlib
-                # magic but not through our Preferences.
-                return -1
-        except Exception:
-            return None
+                # Spyder doesn't handle other backends
+                framework = 'other'
+
+        # --- Return backend according to framework
+        if framework is None:
+            # Since no interactive backend has been set yet, this is
+            # equivalent to having the inline one.
+            return 0
+        elif framework in mapping:
+            return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+        else:
+            # This covers the case of other backends (e.g. Wx or Gtk)
+            # which users can set interactively with the %matplotlib
+            # magic but not through our Preferences.
+            return -1
 
     def set_matplotlib_backend(self, backend, pylab=False):
         """Set matplotlib backend given a Spyder backend option."""
@@ -515,8 +582,7 @@ class SpyderKernel(IPythonKernel):
 
         The change is done by updating the 'print_figure_kwargs' config dict.
         """
-        from IPython.core.getipython import get_ipython
-        config = get_ipython().kernel.config
+        config = self.config
         inline_config = (
             config['InlineBackend'] if 'InlineBackend' in config else {})
         print_figure_kwargs = (
@@ -552,7 +618,9 @@ class SpyderKernel(IPythonKernel):
     # --- Additional methods
     def set_cwd(self, dirname):
         """Set current working directory."""
+        self._cwd_initialised = True
         os.chdir(dirname)
+        self.publish_state()
 
     def get_cwd(self):
         """Get current working directory."""
@@ -624,57 +692,6 @@ class SpyderKernel(IPythonKernel):
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
-    def _get_current_namespace(self, with_magics=False, frame=None):
-        """
-        Return current namespace
-
-        This is globals() if not debugging, or a dictionary containing
-        both locals() and globals() for current frame when debugging
-        """
-        if frame is not None:
-            ns = frame.f_globals.copy()
-            if self.shell._pdb_frame is frame:
-                ns.update(self.shell._pdb_locals)
-            else:
-                ns.update(frame.f_locals)
-            return ns
-
-        ns = {}
-        if self.shell.is_debugging() and self.shell.pdb_session.curframe:
-            # Stopped at a pdb prompt
-            ns.update(self.shell.user_ns)
-            ns.update(self.shell._pdb_locals)
-        else:
-            # Give access to the running namespace if there is one
-            if self._running_namespace is None:
-                ns.update(self.shell.user_ns)
-            else:
-                # This is true when a file is executing.
-                running_globals, running_locals = self._running_namespace
-                ns.update(running_globals)
-                if running_locals is not None:
-                    ns.update(running_locals)
-
-        # Add magics to ns so we can show help about them on the Help
-        # plugin
-        if with_magics:
-            line_magics = self.shell.magics_manager.magics['line']
-            cell_magics = self.shell.magics_manager.magics['cell']
-            ns.update(line_magics)
-            ns.update(cell_magics)
-        return ns
-
-    def _get_reference_namespace(self, name):
-        """
-        Return namespace where reference name is defined
-
-        It returns the globals() if reference has not yet been defined
-        """
-        lcls = self.shell._pdb_locals
-        if name in lcls:
-            return lcls
-        return self.shell.user_ns
-
     def _get_len(self, var):
         """Return sequence length"""
         try:
@@ -714,6 +731,30 @@ class SpyderKernel(IPythonKernel):
         except:
             return False
 
+    def _is_list(self, var):
+        """Return True if variable is a list or tuple."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, (tuple, list))
+        except Exception:
+            return False
+
+    def _is_dict(self, var):
+        """Return True if variable is a dictionary."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, dict)
+        except Exception:
+            return False
+
+    def _is_set(self, var):
+        """Return True if variable is a set."""
+        # The try/except is necessary to fix spyder-ide/spyder#19516.
+        try:
+            return isinstance(var, set)
+        except Exception:
+            return False
+
     def _get_array_shape(self, var):
         """Return array's shape"""
         try:
@@ -743,7 +784,7 @@ class SpyderKernel(IPythonKernel):
         """
 
         assert isinstance(text, str)
-        ns = self._get_current_namespace(with_magics=True)
+        ns = self.shell._get_current_namespace(with_magics=True)
         try:
             return eval(text, ns), True
         except:
@@ -760,7 +801,6 @@ class SpyderKernel(IPythonKernel):
                namespace from numpy and matplotlib
         """
         import traceback
-        from IPython.core.getipython import get_ipython
 
         # Don't proceed further if there's any error while importing Matplotlib
         try:
@@ -784,7 +824,7 @@ class SpyderKernel(IPythonKernel):
             matplotlib.rcParams['backend'] = 'Agg'
 
             # Set the backend
-            get_ipython().run_line_magic(magic, backend)
+            self.shell.run_line_magic(magic, backend)
         except RuntimeError as err:
             # This catches errors generated by ipykernel when
             # trying to set a backend. See issue 5541
@@ -826,13 +866,12 @@ class SpyderKernel(IPythonKernel):
             option: config option, for example 'InlineBackend.figure_format'.
             value: value of the option, for example 'SVG', 'Retina', etc.
         """
-        from IPython.core.getipython import get_ipython
         try:
             base_config = "{option} = "
             value_line = (
                 "'{value}'" if isinstance(value, str) else "{value}")
             config_line = base_config + value_line
-            get_ipython().run_line_magic(
+            self.shell.run_line_magic(
                 'config',
                 config_line.format(option=option, value=value))
         except Exception:
@@ -859,21 +898,19 @@ class SpyderKernel(IPythonKernel):
         if os.environ.get('SPY_SYMPY_O') == 'True':
             try:
                 from sympy import init_printing
-                from IPython.core.getipython import get_ipython
                 if background_color == 'dark':
-                    init_printing(forecolor='White', ip=get_ipython())
+                    init_printing(forecolor='White', ip=self.shell)
                 elif background_color == 'light':
-                    init_printing(forecolor='Black', ip=get_ipython())
+                    init_printing(forecolor='Black', ip=self.shell)
             except Exception:
                 pass
 
     # --- Others
     def _load_autoreload_magic(self):
         """Load %autoreload magic."""
-        from IPython.core.getipython import get_ipython
         try:
-            get_ipython().run_line_magic('reload_ext', 'autoreload')
-            get_ipython().run_line_magic('autoreload', '2')
+            self.shell.run_line_magic('reload_ext', 'autoreload')
+            self.shell.run_line_magic('autoreload', '2')
         except Exception:
             pass
 
@@ -881,12 +918,11 @@ class SpyderKernel(IPythonKernel):
         """Load wurlitzer extension."""
         # Wurlitzer has no effect on Windows
         if not os.name == 'nt':
-            from IPython.core.getipython import get_ipython
             # Enclose this in a try/except because if it fails the
             # console will be totally unusable.
             # Fixes spyder-ide/spyder#8668
             try:
-                get_ipython().run_line_magic('reload_ext', 'wurlitzer')
+                self.shell.run_line_magic('reload_ext', 'wurlitzer')
             except Exception:
                 pass
 

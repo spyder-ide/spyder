@@ -15,28 +15,41 @@ DOC_REGEX = [SPHINX, EPYDOC, GOOGLE]
 
 
 @hookimpl
-def pylsp_signature_help(document, position):
+def pylsp_signature_help(config, document, position):
     code_position = _utils.position_to_jedi_linecolumn(document, position)
     signatures = document.jedi_script().get_signatures(**code_position)
 
     if not signatures:
         return {'signatures': []}
 
+    signature_capabilities = config.capabilities.get('textDocument', {}).get('signatureHelp', {})
+    signature_information_support = signature_capabilities.get('signatureInformation', {})
+    supported_markup_kinds = signature_information_support.get('documentationFormat', ['markdown'])
+    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+
     s = signatures[0]
 
+    docstring = s.docstring()
+
     # Docstring contains one or more lines of signature, followed by empty line, followed by docstring
-    function_sig_lines = (s.docstring().split('\n\n') or [''])[0].splitlines()
+    function_sig_lines = (docstring.split('\n\n') or [''])[0].splitlines()
     function_sig = ' '.join([line.strip() for line in function_sig_lines])
     sig = {
         'label': function_sig,
-        'documentation': _utils.format_docstring(s.docstring(raw=True))
+        'documentation': _utils.format_docstring(
+            s.docstring(raw=True),
+            markup_kind=preferred_markup_kind
+        )
     }
 
     # If there are params, add those
     if s.params:
         sig['parameters'] = [{
             'label': p.name,
-            'documentation': _param_docs(s.docstring(), p.name)
+            'documentation': _utils.format_docstring(
+                _param_docs(docstring, p.name),
+                markup_kind=preferred_markup_kind
+            )
         } for p in s.params]
 
     # We only return a single signature because Python doesn't allow overloading

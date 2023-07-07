@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QSpacerItem, QTableView, QVBoxLayout)
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
@@ -29,9 +29,6 @@ from spyder.widgets.helperwidgets import (VALID_FINDER_CHARS,
                                           CustomSortFilterProxy,
                                           HelperToolButton,
                                           HTMLDelegate)
-
-# Localization
-_ = get_translation('spyder')
 
 
 # Valid shortcut keys
@@ -403,7 +400,7 @@ class ShortcutEditor(QDialog):
             icon = QIcon()
         elif conflicts:
             warning = SEQUENCE_CONFLICT
-            template = '<p style="margin-bottom: 0.3em">{0}</p>{1}{2}'
+            template = '<p style="margin-bottom: 5px">{0}</p>{1}{2}'
             tip_title = _('This key sequence conflicts with:')
             tip_body = ''
             for s in conflicts:

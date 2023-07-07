@@ -7,8 +7,6 @@
 Tests for namespacebrowser.py
 """
 
-from __future__ import division
-
 # Standard library imports
 import string
 from unittest.mock import Mock

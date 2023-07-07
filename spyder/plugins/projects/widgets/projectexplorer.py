@@ -9,8 +9,6 @@
 # pylint: disable=C0103
 
 # Standard library imports
-from __future__ import print_function
-
 import os
 import os.path as osp
 import shutil
@@ -20,12 +18,10 @@ from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal, Slot
 from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.py3compat import to_text_string
 from spyder.utils import misc
 from spyder.plugins.explorer.widgets.explorer import DirView
-
-_ = get_translation('spyder')
 
 
 class ProxyModel(QSortFilterProxyModel):

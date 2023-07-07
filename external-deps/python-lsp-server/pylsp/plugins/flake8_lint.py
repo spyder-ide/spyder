@@ -30,56 +30,58 @@ def pylsp_settings():
 
 @hookimpl
 def pylsp_lint(workspace, document):
-    config = workspace._config
-    settings = config.plugin_settings('flake8', document_path=document.path)
-    log.debug("Got flake8 settings: %s", settings)
+    with workspace.report_progress("lint: flake8"):
+        config = workspace._config
+        settings = config.plugin_settings('flake8', document_path=document.path)
+        log.debug("Got flake8 settings: %s", settings)
 
-    ignores = settings.get("ignore", [])
-    per_file_ignores = settings.get("perFileIgnores")
+        ignores = settings.get("ignore", [])
+        per_file_ignores = settings.get("perFileIgnores")
 
-    if per_file_ignores:
-        prev_file_pat = None
-        for path in per_file_ignores:
-            try:
-                file_pat, errors = path.split(":")
-                prev_file_pat = file_pat
-            except ValueError:
-                # It's legal to just specify another error type for the same
-                # file pattern:
-                if prev_file_pat is None:
-                    log.warning(
-                        "skipping a Per-file-ignore with no file pattern")
-                    continue
-                file_pat = prev_file_pat
-                errors = path
-            if PurePath(document.path).match(file_pat):
-                ignores.extend(errors.split(","))
+        if per_file_ignores:
+            prev_file_pat = None
+            for path in per_file_ignores:
+                try:
+                    file_pat, errors = path.split(":")
+                    prev_file_pat = file_pat
+                except ValueError:
+                    # It's legal to just specify another error type for the same
+                    # file pattern:
+                    if prev_file_pat is None:
+                        log.warning(
+                            "skipping a Per-file-ignore with no file pattern")
+                        continue
+                    file_pat = prev_file_pat
+                    errors = path
+                if PurePath(document.path).match(file_pat):
+                    ignores.extend(errors.split(","))
 
-    opts = {
-        'config': settings.get('config'),
-        'exclude': settings.get('exclude'),
-        'filename': settings.get('filename'),
-        'hang-closing': settings.get('hangClosing'),
-        'ignore': ignores or None,
-        'max-line-length': settings.get('maxLineLength'),
-        'indent-size': settings.get('indentSize'),
-        'select': settings.get('select'),
-    }
+        opts = {
+            'config': settings.get('config'),
+            'exclude': settings.get('exclude'),
+            'filename': settings.get('filename'),
+            'hang-closing': settings.get('hangClosing'),
+            'ignore': ignores or None,
+            'max-complexity': settings.get('maxComplexity'),
+            'max-line-length': settings.get('maxLineLength'),
+            'indent-size': settings.get('indentSize'),
+            'select': settings.get('select'),
+        }
 
-    # flake takes only absolute path to the config. So we should check and
-    # convert if necessary
-    if opts.get('config') and not os.path.isabs(opts.get('config')):
-        opts['config'] = os.path.abspath(os.path.expanduser(os.path.expandvars(
-            opts.get('config')
-        )))
-        log.debug("using flake8 with config: %s", opts['config'])
+        # flake takes only absolute path to the config. So we should check and
+        # convert if necessary
+        if opts.get('config') and not os.path.isabs(opts.get('config')):
+            opts['config'] = os.path.abspath(os.path.expanduser(os.path.expandvars(
+                opts.get('config')
+            )))
+            log.debug("using flake8 with config: %s", opts['config'])
 
-    # Call the flake8 utility then parse diagnostics from stdout
-    flake8_executable = settings.get('executable', 'flake8')
+        # Call the flake8 utility then parse diagnostics from stdout
+        flake8_executable = settings.get('executable', 'flake8')
 
-    args = build_args(opts)
-    output = run_flake8(flake8_executable, args, document)
-    return parse_stdout(document, output)
+        args = build_args(opts)
+        output = run_flake8(flake8_executable, args, document)
+        return parse_stdout(document, output)
 
 
 def run_flake8(flake8_executable, args, document):
@@ -89,6 +91,9 @@ def run_flake8(flake8_executable, args, document):
     # a quick temporary fix to deal with Atom
     args = [(i if not i.startswith('--ignore=') else FIX_IGNORES_RE.sub('', i))
             for i in args if i is not None]
+
+    if document.path and document.path.startswith(document._workspace.root_path):
+        args.extend(["--stdin-display-name", os.path.relpath(document.path, document._workspace.root_path)])
 
     # if executable looks like a path resolve it
     if not os.path.isfile(flake8_executable) and os.sep in flake8_executable:
@@ -100,12 +105,14 @@ def run_flake8(flake8_executable, args, document):
     try:
         cmd = [flake8_executable]
         cmd.extend(args)
-        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=document._workspace.root_path)
     except IOError:
         log.debug("Can't execute %s. Trying with '%s -m flake8'", flake8_executable, sys.executable)
         cmd = [sys.executable, '-m', 'flake8']
         cmd.extend(args)
-        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)  # pylint: disable=consider-using-with
+        p = Popen(  # pylint: disable=consider-using-with
+            cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=document._workspace.root_path
+        )
     (stdout, stderr) = p.communicate(document.source.encode())
     if stderr:
         log.error("Error while running flake8 '%s'", stderr.decode())

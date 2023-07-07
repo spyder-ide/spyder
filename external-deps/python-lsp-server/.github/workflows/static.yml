@@ -9,6 +9,10 @@ on:
     branches:
       - '*'
 
+concurrency:
+  group: static-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Static code analysis
@@ -21,7 +25,7 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: static-pip-${{ hashFiles('setup.py') }}
+          key: static-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: static-pip-
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2

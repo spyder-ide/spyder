@@ -1,3 +1,4 @@
+import os
 import unittest
 import sys
 
@@ -259,6 +260,49 @@ while user_input != '':
     assert output in control.toPlainText()
 
 
+@flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+def test_restart_after_kill(qtconsole, qtbot):
+    """
+    Test that the kernel correctly restarts after a kill.
+    """
+    window = qtconsole.window
+    shell = window.active_frontend
+    control = shell._control
+
+    def wait_for_restart():
+        qtbot.waitUntil(
+            lambda: 'Kernel died, restarting' in control.toPlainText()
+        )
+
+    # Wait until the console is fully up
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # This checks that we are able to restart the kernel even after the number
+    # of consecutive auto-restarts is reached (which by default is five).
+    for _ in range(10):
+        # Clear console
+        with qtbot.waitSignal(shell.executed):
+            shell.execute('%clear')
+        qtbot.wait(500)
+
+        # Run some code that kills the kernel
+        code = "import os, signal; os.kill(os.getpid(), signal.SIGTERM)"
+        shell.execute(code)
+
+        # Check that the restart message is printed
+        qtbot.waitUntil(
+            lambda: 'Kernel died, restarting' in control.toPlainText()
+        )
+
+        # Check that a new prompt is available after the restart
+        qtbot.waitUntil(
+            lambda: control.toPlainText().splitlines()[-1] == 'In [1]: '
+        )
+        qtbot.wait(500)
+
+
 @pytest.mark.skipif(no_display, reason="Doesn't work without a display")
 class TestConsoleWidget(unittest.TestCase):
 
@@ -278,7 +322,7 @@ class TestConsoleWidget(unittest.TestCase):
         QtWidgets.QApplication.quit()
 
     def assert_text_equal(self, cursor, text):
-        cursor.select(cursor.Document)
+        cursor.select(QtGui.QTextCursor.Document)
         selection = cursor.selectedText()
         self.assertEqual(selection, text)
 

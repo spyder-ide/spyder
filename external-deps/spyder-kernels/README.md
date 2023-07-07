@@ -8,7 +8,7 @@
 Package that provides Jupyter kernels for use with the consoles of Spyder, the
 Scientific Python Development Environment.
 
-These kernels can launched either through Spyder itself or in an independent
+These kernels can be launched either through Spyder itself or in an independent
 Python session, and allow for interactive or file-based execution of Python
 code inside Spyder.
 

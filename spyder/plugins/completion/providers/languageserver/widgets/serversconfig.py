@@ -22,8 +22,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
                             QSpinBox, QTableView, QVBoxLayout)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.gui import get_font
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
 from spyder.utils.programs import find_program
@@ -107,7 +107,7 @@ class LSPServer(object):
             self.remove_option(language)
 
 
-class LSPServerEditor(QDialog):
+class LSPServerEditor(QDialog, SpyderFontsMixin):
     DEFAULT_HOST = '127.0.0.1'
     DEFAULT_PORT = 2084
     DEFAULT_CMD = ''
@@ -208,7 +208,7 @@ class LSPServerEditor(QDialog):
             color_scheme=get_option('selected', section='appearance'),
             wrap=False,
             highlight_current_line=True,
-            font=get_font()
+            font=self.get_font(SpyderFontType.MonospaceInterface)
         )
         self.conf_input.set_language('json')
         self.conf_input.setToolTip(_('Additional LSP server configuration '

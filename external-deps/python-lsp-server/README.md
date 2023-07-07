@@ -51,12 +51,12 @@ If you use Anaconda/Miniconda, you can install `python-lsp-server` using this co
 conda install -c conda-forge python-lsp-server 
 ```
 
-Python-lsp-server is available in the repos of every major Linux distribution, and it is usually called `python-lsp-server`.
+Python-lsp-server is available in the repos of every major Linux distribution, and it is usually called `python-lsp-server` or `python3-pylsp`.
 
 For example, here is how to install it in Debian and Debian-based distributions (E.g. Ubuntu, Pop!_OS, Linux Mint)
 
 ```
-sudo apt-get install python-lsp-server
+sudo apt-get install python3-pylsp
 ```
 
 or Fedora Linux
@@ -80,6 +80,7 @@ Installing these plugins will add extra functionality to the language server:
 - [python-lsp-black](https://github.com/python-lsp/python-lsp-black): code formatting using [Black](https://github.com/psf/black).
 - [pyls-memestra](https://github.com/QuantStack/pyls-memestra): detecting the use of deprecated APIs.
 - [pylsp-rope](https://github.com/python-rope/pylsp-rope): Extended refactoring capabilities using [Rope](https://github.com/python-rope/rope).
+- [python-lsp-ruff](https://github.com/python-lsp/python-lsp-ruff): Extensive and fast linting using [ruff](https://github.com/charliermarsh/ruff).
 
 Please see the above repositories for examples on how to write plugins for the Python LSP Server.
 
@@ -140,7 +141,9 @@ pip install 'python-lsp-server[websockets]'
 ## LSP Server Features
 
 * Auto Completion
+* [Autoimport](docs/autoimport.md)
 * Code Linting
+* Code actions
 * Signature Help
 * Go to definition
 * Hover

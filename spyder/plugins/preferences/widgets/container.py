@@ -7,15 +7,12 @@
 # Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QAction
+from qtpy import PYSIDE2
 
 # Local imports
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
-
-
-# Localization
-_ = get_translation('spyder')
 
 
 class PreferencesActions:
@@ -40,14 +37,15 @@ class PreferencesContainer(PluginMainContainer):
 
         def _dialog_finished(result_code):
             """Restore preferences dialog instance variable."""
-            self.dialog.disconnect()
+            if PYSIDE2:
+                self.dialog.disconnect(None, None, None)
+            else:
+                self.dialog.disconnect()
             self.dialog = None
 
         if self.dialog is None:
             # TODO: Remove all references to main window
             dlg = ConfigDialog(main_window)
-            dlg.setStyleSheet("QTabWidget::tab-bar {"
-                                "alignment: left;}")
             self.dialog = dlg
 
             if prefs_dialog_size is not None:

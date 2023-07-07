@@ -3,6 +3,47 @@
 Changes in Jupyter Qt console
 =============================
 
+.. _5.4:
+
+5.4
+~~~
+
+5.4.2
+-----
+
+`5.4.2 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.2>`__
+
+* Check if the iopub channel is not closed before flushing it.
+* Fix kernel autorestart after it's killed for Jupyter-client 8+.
+
+5.4.1
+-----
+
+`5.4.1 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.1>`__
+
+* Fix crash at startup with PySide6.
+* Cast images width and height to int when trying to insert them.
+
+5.4.0
+-----
+
+`5.4.0 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.0>`__
+
+Additions
++++++++++
+
+* Add ConsoleWidget.gui_completion_height option to configure the maximum
+  number of rows or height in pixels of completions when the
+  ConsoleWidget.gui_completion option has values 'ncurses' or 'droplist',
+  respectively.
+
+Changes
++++++++
+
+* Fix some errors with PySide6 6.4.0.
+* Fix mixed input and print statements on macOS.
+* Drop usage of disutils.
+
 .. _5.3:
 
 5.3

@@ -7,11 +7,12 @@ input, there is no real readline support, among other limitations.
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from distutils.version import LooseVersion
 import os
 import signal
 import sys
 from warnings import warn
+
+from packaging.version import parse
 
 # If run on Windows:
 #
@@ -416,8 +417,11 @@ class JupyterQtConsoleApp(JupyterApp, JupyterConsoleApp):
     def initialize(self, argv=None):
         # Fixes launching issues with Big Sur
         # https://bugreports.qt.io/browse/QTBUG-87014, fixed in qt 5.15.2
-        if sys.platform == 'darwin' and LooseVersion(QT_VERSION) < LooseVersion('5.15.2'):
-            os.environ['QT_MAC_WANTS_LAYER'] = '1'
+        if sys.platform == 'darwin':
+            v_5_15_2 = parse('5.15.2')
+            v_current = parse(QT_VERSION)
+            if v_current < v_5_15_2:
+                os.environ['QT_MAC_WANTS_LAYER'] = '1'
         self._init_asyncio_patch()
         self.init_qt_app()
         super().initialize(argv)

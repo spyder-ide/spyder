@@ -77,6 +77,7 @@ def create_outlineexplorer(qtbot):
         outlineexplorer.set_current_editor(editor, False, False)
         outlineexplorer.show()
         outlineexplorer.setFixedSize(400, 350)
+        outlineexplorer.treewidget.is_visible = True
 
         editor.update_outline_info(symbol_info)
         qtbot.addWidget(outlineexplorer)

@@ -9,12 +9,17 @@ on:
     - master
   workflow_dispatch:
 
+concurrency:
+  group: linux-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   linux:
     name: Linux Py${{ matrix.PYTHON_VERSION }} - ${{ matrix.INSTALL_TYPE }} - ${{ matrix.QT_LIB }}
     runs-on: ubuntu-latest
     env:
       CI: True
+      QTCONSOLE_TESTING: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'ubuntu'
       COVERALLS_REPO_TOKEN: XWVhJf2AsO7iouBLuCsh0pPhwHy81Uz1v
@@ -34,7 +39,7 @@ jobs:
       - name: Install System Packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+          sudo apt-get install -y --no-install-recommends '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1
       - name: Install Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -54,7 +59,11 @@ jobs:
         shell: bash -l {0}
         run: |
           pip install -e .[test]
-          pip install ${{ matrix.QT_LIB }} coveralls pytest-cov
+          if [ ${{ matrix.QT_LIB }} = "pyqt6" ]; then
+            pip install pyqt6!=6.4.0 pyqt6-qt6!=6.4.0 coveralls pytest-cov
+          else
+            pip install ${{ matrix.QT_LIB }} coveralls pytest-cov
+          fi
       - name: Show environment information
         shell: bash -l {0}
         run: |
@@ -63,7 +72,7 @@ jobs:
           pip list
       - name: Run tests
         shell: bash -l {0}
-        run: xvfb-run --auto-servernum pytest -x -vv -s --full-trace --color=yes --cov=qtconsole qtconsole
+        run: xvfb-run --auto-servernum pytest -vv -s --full-trace --color=yes --cov=qtconsole qtconsole
         env:
           QT_API: ${{ matrix.QT_LIB }}
           PYTEST_QT_API: ${{ matrix.QT_LIB }}

@@ -48,12 +48,17 @@ PYTHON_CONFIG = {
                     'enabled': True
                 },
                 'pylsp_black': {
+                    # This is necessary for python-lsp-black less than 2.0.
+                    # See python-lsp/python-lsp-black#41
                     'enabled': False
                 },
                 'black': {
+                    'enabled': False,
                     'line_length': 79,
                     'preview': False,
                     'cache_config': False,
+                    'skip_magic_trailing_comma': False,
+                    'skip_string_normalization': False,
                 },
                 'yapf': {
                     'enabled': False
@@ -77,8 +82,13 @@ PYTHON_CONFIG = {
                 },
                 'jedi': {
                     'environment': None,
-                    'extra_paths': None,
+                    'extra_paths': [],
                     'env_vars': None,
+                    # Until we have a graphical way for users to add modules to
+                    # this option
+                    'auto_import_modules': [
+                        'numpy', 'matplotlib', 'pandas', 'scipy'
+                    ]
                 },
                 'jedi_completion': {
                     'enabled': True,
@@ -128,6 +138,12 @@ PYTHON_CONFIG = {
                     'group_cells': True
                 },
                 'pyls_flake8': {
+                    # This third-party plugin is deprecated now.
+                    'enabled': False,
+                },
+                'ruff': {
+                    # Disable it until we have a graphical option for users to
+                    # enable it.
                     'enabled': False,
                 }
             },

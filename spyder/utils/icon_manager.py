@@ -12,7 +12,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QBuffer, QByteArray
-from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
+from qtpy.QtGui import QColor, QIcon, QImage, QPainter
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -112,6 +112,9 @@ class IconManager():
             'environment':             [('mdi.cube-outline',), {'color': self.MAIN_FG_COLOR}],
             'drag_dock_widget':        [('mdi.drag-variant',), {'color': self.MAIN_FG_COLOR}],
             'format_letter_case':      [('mdi.format-letter-case',), {'color': self.MAIN_FG_COLOR}],
+            'format_letter_matches':   [('mdi.format-letter-matches',), {'color': self.MAIN_FG_COLOR}],
+            'no_matches':              [('mdi.do-not-disturb',), {'color': SpyderPalette.COLOR_WARN_2}],
+            'clear_text':              [('mdi.backspace',), {'color': self.MAIN_FG_COLOR}],
             'regex':                   [('mdi.regex',), {'color': self.MAIN_FG_COLOR}],
             'log':                     [('mdi.file-document',), {'color': self.MAIN_FG_COLOR}],
             'configure':               [('mdi.wrench',), {'color': self.MAIN_FG_COLOR, 'rotated': 90}],
@@ -136,7 +139,6 @@ class IconManager():
             'breakpoint_cond_big':     [('mdi.help-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9},],
             'breakpoints':             [('mdi.dots-vertical',), {'color': self.MAIN_FG_COLOR}],
             'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': SpyderPalette.ICON_2, 'scale_factor': 1.5}],
-            'debug':                   [('mdi.step-forward-2',), {'color': SpyderPalette.ICON_2}],
             'arrow-step-over':         [('mdi.debug-step-over',), {'color': SpyderPalette.ICON_2}],
             'arrow-continue':          [('mdi.fast-forward',), {'color': SpyderPalette.ICON_2}],
             'arrow-step-in':           [('mdi.debug-step-into',), {'color': SpyderPalette.ICON_2}],
@@ -177,6 +179,7 @@ class IconManager():
             'spyder':                  [('spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'),  {'options': [{'color': SpyderPalette.SPYDER_LOGO_BACKGROUND}, {'color': SpyderPalette.SPYDER_LOGO_WEB}, {'color': SpyderPalette.SPYDER_LOGO_SNAKE}]}],
             'find':                    [('mdi.magnify',), {'color': self.MAIN_FG_COLOR}],
             'replace':                 [('mdi.find-replace',), {'color': self.MAIN_FG_COLOR}],
+            'number_matches':          [('mdi.pound-box-outline',), {'color': self.MAIN_FG_COLOR}],
             'undo':                    [('mdi.undo',), {'color': self.MAIN_FG_COLOR}],
             'redo':                    [('mdi.redo',), {'color': self.MAIN_FG_COLOR}],
             'refresh':                 [('mdi.refresh',), {'color': self.MAIN_FG_COLOR}],
@@ -194,7 +197,7 @@ class IconManager():
             'arredit':                 [('mdi.table-edit',), {'color': self.MAIN_FG_COLOR}],
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
             'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
-            'plot':                    [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
+            'plot':                    [('mdi.chart-bar',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
@@ -202,7 +205,7 @@ class IconManager():
             'insert_below':            [('mdi.table-arrow-down',), {'color': self.MAIN_FG_COLOR}],
             'rename':                  [('mdi.rename-box',), {'color': self.MAIN_FG_COLOR}],
             'move':                    [('mdi.file-move',), {'color': self.MAIN_FG_COLOR}],
-            'edit_add':                [('mdi.plus',), {'color': self.MAIN_FG_COLOR}],
+            'edit_add':                [('mdi.plus-box',), {'color': self.MAIN_FG_COLOR}],
             'collapse_column':         [('mdi.arrow-collapse-horizontal',), {'color': self.MAIN_FG_COLOR}],
             'collapse_row':            [('mdi.arrow-collapse-vertical',), {'color': self.MAIN_FG_COLOR}],
             'edit_remove':             [('mdi.minus',), {'color': self.MAIN_FG_COLOR}],
@@ -267,10 +270,10 @@ class IconManager():
             'edit':                    [('mdi.pencil',), {'color': self.MAIN_FG_COLOR}],
             'convention':              [('mdi.alpha-c-circle',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'refactor':                [('mdi.alpha-r-circle',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.BIG_ATTR_FACTOR}],
-            '2uparrow':                [('mdi.chevron-double-up',), {'color': self.MAIN_FG_COLOR}],
-            '1uparrow':                [('mdi.chevron-up',), {'color': self.MAIN_FG_COLOR}],
-            '2downarrow':              [('mdi.chevron-double-down',), {'color': self.MAIN_FG_COLOR}],
-            '1downarrow':              [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR}],
+            '2uparrow':                [('mdi.arrow-collapse-up',), {'color': self.MAIN_FG_COLOR}],
+            '1uparrow':                [('mdi.arrow-up',), {'color': self.MAIN_FG_COLOR}],
+            '2downarrow':              [('mdi.arrow-collapse-down',), {'color': self.MAIN_FG_COLOR}],
+            '1downarrow':              [('mdi.arrow-down',), {'color': self.MAIN_FG_COLOR}],
             'undock':                  [('mdi.open-in-new',), {'color': self.MAIN_FG_COLOR}],
             'close_pane':              [('mdi.window-close',), {'color': self.MAIN_FG_COLOR}],
             'toolbar_ext_button':      [('mdi.dots-horizontal',), {'color': self.MAIN_FG_COLOR}],
@@ -383,19 +386,27 @@ class IconManager():
             QMainWindow icons created from SVG images on non-Windows
             platforms due to a Qt bug. See spyder-ide/spyder#1314.
         """
+        # Icon image path
         icon_path = get_image_path(name)
+
+        # This is used to wrap the image into a QIcon container so we can get
+        # pixmaps for it.
+        wrapping_icon = QIcon(icon_path)
+
+        # This is the icon object that will be returned by this method.
+        icon = QIcon()
+
         if resample:
             # This only applies to the Spyder 2 icons
-            icon = QIcon(icon_path)
-            icon0 = QIcon()
             for size in (16, 24, 32, 48, 96, 128, 256, 512):
-                icon0.addPixmap(icon.pixmap(size, size))
-            return icon0
+                icon.addPixmap(wrapping_icon.pixmap(size, size))
+            return icon
         else:
-            icon = QIcon()
-
             # Normal state
-            normal_state = QPixmap(icon_path)
+            # NOTE: We take pixmaps as large as the ones below to not have
+            # pixelated icons on high dpi screens.
+            # Fixes spyder-ide/spyder#19520
+            normal_state = wrapping_icon.pixmap(512, 512)
             icon.addPixmap(normal_state, QIcon.Normal)
 
             # This is the color GammaRay reports for icons in disabled
@@ -404,7 +415,7 @@ class IconManager():
 
             # Paint icon with the previous color to get the disabled state.
             # Taken from https://stackoverflow.com/a/65618075/438386
-            disabled_state = QPixmap(icon_path)
+            disabled_state = wrapping_icon.pixmap(512, 512)
             qp = QPainter(disabled_state)
             qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
             qp.fillRect(disabled_state.rect(), disabled_color)
@@ -430,9 +441,6 @@ class IconManager():
                 # Load custom icons
                 icon = QIcon(self.get_icon(name))
                 return icon if icon is not None else QIcon()
-        elif theme == 'spyder 2':
-            icon = self.get_icon(name, resample=resample)
-            return icon if icon is not None else QIcon()
 
     def get_icon_by_extension_or_type(self, fname, scale_factor):
         """Return the icon depending on the file extension"""

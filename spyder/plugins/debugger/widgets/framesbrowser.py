@@ -24,14 +24,11 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.translations import get_translation
-from spyder.config.gui import get_font
+from spyder.api.translations import _
 from spyder.widgets.helperwidgets import FinderWidget
-
-# Localization
-_ = get_translation('spyder')
 
 
 class FramesBrowserState:
@@ -91,7 +88,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, shellwidget, color_scheme):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme
@@ -106,9 +103,9 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Handle pdb has stopped"""
         # this will set the focus to the editor
         self.sig_load_pdb_file.emit(fname, lineno)
-        if self.shellwidget._pdb_focus_to_editor:
-            # Focus to editor will be requested each time
-            self.shellwidget._pdb_focus_to_editor = False
+        if not self.shellwidget._pdb_take_focus:
+            # Not taking focus will be required on each call to the debugger
+            self.shellwidget._pdb_take_focus = True
         else:
             # take back focus
             self.shellwidget._control.setFocus()
@@ -279,11 +276,16 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def on_unconfig_kernel(self):
         """Ask shellwidget to stop sending stack."""
+        if not self.shellwidget.spyder_kernel_ready:
+            return
         self.shellwidget.call_kernel().set_pdb_configuration(
             {'pdb_publish_stack': False})
 
     def set_pdb_configuration(self, configuration):
         """Set configuration into a debugging session."""
+        if not self.shellwidget.spyder_kernel_ready:
+            # will be sent by on_config_kernel
+            return
         self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
             configuration)
 
@@ -452,7 +454,8 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
+class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
+                     SpyderFontsMixin):
     CONF_SECTION = 'debugger'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
@@ -460,7 +463,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
 
     def __init__(self, parent, color_scheme):
         super().__init__(parent)
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.threads = None
         self.color_scheme = color_scheme

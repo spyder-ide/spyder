@@ -23,7 +23,7 @@ from spyder.api.plugins import (
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.translations import get_translation
+from spyder.api.translations import _
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.layout.container import (
@@ -37,9 +37,6 @@ from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
 from spyder.py3compat import qbytearray_to_str  # FIXME:
 
-
-# Localization
-_ = get_translation("spyder")
 
 # For logging
 logger = logging.getLogger(__name__)
@@ -833,7 +830,12 @@ class Layout(SpyderPluginV2):
                 plugin._toggle_view_action.setChecked(True)
                 plugin._widget._is_visible = False
 
-        plugin.change_visibility(True, force_focus=force_focus)
+        try:
+            # New API
+            plugin.change_visibility(True, force_focus=force_focus)
+        except AttributeError:
+            # Old API
+            plugin._visibility_changed(True)
 
     # ---- Menus and actions
     # -------------------------------------------------------------------------
@@ -903,7 +905,13 @@ class Layout(SpyderPluginV2):
                 action.action_id = f'switch to {plugin.CONF_SECTION}'
 
             if action:
-                action.setChecked(plugin.dockwidget.isVisible())
+                # Plugins that fail their compatibility checks don't have a
+                # dockwidget. So, we need to skip them from the plugins menu.
+                # Fixes spyder-ide/spyder#21074
+                if plugin.dockwidget is None:
+                    continue
+                else:
+                    action.setChecked(plugin.dockwidget.isVisible())
 
             try:
                 name = plugin.CONF_SECTION
@@ -933,6 +941,12 @@ class Layout(SpyderPluginV2):
         self._update_lock_interface_action()
         # Apply lock to panes
         for plugin in self.get_dockable_plugins():
+            # Plugins that fail their compatibility checks don't have a
+            # dockwidget. So, we need to skip them from the code below.
+            # Fixes spyder-ide/spyder#21074
+            if plugin.dockwidget is None:
+                continue
+
             if self._interface_locked:
                 if plugin.dockwidget.isFloating():
                     plugin.dockwidget.setFloating(False)
@@ -963,7 +977,12 @@ class Layout(SpyderPluginV2):
         # Restore visible plugins
         for plugin in visible_plugins:
             plugin_class = self.get_plugin(plugin, error=False)
-            if plugin_class and plugin_class.dockwidget.isVisible():
+            if (
+                plugin_class
+                # This check is necessary for spyder-ide/spyder#21074
+                and plugin_class.dockwidget is not None
+                and plugin_class.dockwidget.isVisible()
+            ):
                 plugin_class.dockwidget.raise_()
 
     def save_visible_plugins(self):

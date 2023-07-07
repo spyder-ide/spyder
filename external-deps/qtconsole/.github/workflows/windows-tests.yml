@@ -8,12 +8,17 @@ on:
     branches:
     - master
 
+concurrency:
+  group: windows-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows:
     name: Windows Py${{ matrix.PYTHON_VERSION }}
     runs-on: windows-latest
     env:
       CI: True
+      QTCONSOLE_TESTING: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'windows'
     strategy:
@@ -44,4 +49,4 @@ jobs:
           conda list
       - name: Run tests
         shell: bash -l {0}
-        run: pytest -x -vv --color=yes --cov=qtconsole qtconsole
+        run: pytest -vv --color=yes --cov=qtconsole qtconsole

@@ -10,8 +10,6 @@ the Help plugin
 """
 
 # Standard library imports
-from __future__ import absolute_import
-
 import re
 
 # Third party imports
@@ -21,7 +19,6 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEventLoop
 
 # Local imports
-from spyder.py3compat import TimeoutError
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
                                              getsignaturefromtext)
 from spyder_kernels.comms.commbase import CommError
@@ -130,6 +127,9 @@ class HelpWidget(RichJupyterWidget):
 
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
+        if not self.spyder_kernel_ready:
+            # No way of checking
+            return False
         try:
             return self.call_kernel(
                 blocking=True

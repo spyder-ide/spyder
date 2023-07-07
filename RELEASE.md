@@ -111,9 +111,9 @@ To release a new version of Spyder you need to follow these steps:
   - `spyder/dependencies.py`
   - `requirements/{main,windows,macos,linux}.yml`
   - `binder/environment.yml`
-  - `spyder/plugins/ipythonconsole/widgets/main_widget.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
+  - `spyder/plugins/ipythonconsole/__init__.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
-**Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
+      **Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
 
 * Commit with
 
@@ -128,19 +128,49 @@ To release a new version of Spyder you need to follow these steps:
 
 * Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
 
+### Check release candidate
+
+* Update version in `__init__.py` (set release version, remove '.dev0', add 'rcX'), then
+
+      git add .
+      git commit -m "Release X.X.XrcX [ci skip]"
+      git push upstream 5.x
+
+* Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)):
+    - Create Windows Installer *
+    - Create macOS App Bundle and DMG *
+    - Create conda-based installers for Linux
+
+      **Note:** For the Windows and macOS installers you need to trigger their workflows through the [GitHub REST API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event) or using the [GitHub CLI](https://cli.github.com/manual/gh_workflow_run) (the GitHub CLI is available at https://cli.github.com/). In case the GitHub CLI is used, you need to run:
+
+      * For the `Create Windows Installer` workflow:
+
+            gh workflow run installer-win.yml --ref 5.x
+
+      * For the `Create macOS App Bundle and DMG` workflow:
+
+            gh workflow run installer-macos.yml --ref 5.x
+
+* Download and test the installation of the resulting artifacts.
+
+* If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
+
 ## To do the release
 
 * Close the current milestone on Github
 
 * git pull or git fetch/merge
 
-* Update `changelogs/Spyder-5.md` with `loghub spyder-ide/spyder -m vX.X.X`
+* Update `changelogs/Spyder-6.md` with `loghub spyder-ide/spyder -m vX.X.X`
+
+    - When releasing the first alpha of a new major version (e.g. Spyder 7), you need to add a new file called `changelogs/Spyder-7.md` to the tree.
+    - After that, add `changelogs/Spyder-7.md` to `MANIFEST.in`, remove `changelogs/Spyder-6.md` from it and add that path to the `check-manifest/ignore` section of `setup.cfg`.
 
 * Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-5.md`. For this take a look at closed issues and PRs for the current milestone.
 
 * `git add .` and `git commit -m "Update Changelog"`
 
-* Update Announcements.md (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
+* Update [Announcements.md](Announcements.md) (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
 
 * `git add .` and `git commit -m "Update Announcements"`
 
@@ -201,5 +231,9 @@ To release a new version of Spyder you need to follow these steps:
 
     https://github.com/spyder-ide/spyder/blob/5.x/setup.py
   - After merging, give a ping to `@anaconda-pkg-build` about the new release.
+
+* Update Binder related elements when the new Spyder version is available in Conda-forge:
+  - Update the Spyder version on the environment file ([`binder/environment.yml`](https://github.com/spyder-ide/binder-environments/blob/spyder-stable/binder/environment.yml)) of the ([`spyder-stable` branch](https://github.com/spyder-ide/binder-environments/tree/spyder-stable)) in the `binder-environments` repo.
+  - Update `environment.yml` files of the [`master`](https://github.com/spyder-ide/binder-environments/blob/master/binder/environment.yml) and [`5.x`](https://github.com/spyder-ide/binder-environments/blob/5.x/binder/environment.yml) branches of `binder-environments` with the contents of the `binder/environment.yml` file present on this repo.
 
 * Publish release announcement to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been built.

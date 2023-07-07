@@ -16,11 +16,12 @@ import functools
 import inspect
 import logging
 import os
-from pkg_resources import parse_version, iter_entry_points
 from typing import List, Union
 import weakref
 
 # Third-party imports
+from packaging.version import parse
+from pkg_resources import iter_entry_points
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 
 # Local imports
@@ -71,7 +72,7 @@ class CompletionPlugin(SpyderPluginV2):
     NAME = 'completions'
     CONF_SECTION = 'completions'
     REQUIRES = [Plugins.Preferences, Plugins.MainInterpreter]
-    OPTIONAL = [Plugins.StatusBar, Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu, Plugins.PythonpathManager, Plugins.StatusBar]
 
     CONF_FILE = False
 
@@ -258,7 +259,7 @@ class CompletionPlugin(SpyderPluginV2):
             CompletionConfigPage, providers=conf_providers)
         self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
 
-    # ---------------- Public Spyder API required methods ---------------------
+    # ---- SpyderPluginV2 API
     @staticmethod
     def get_name() -> str:
         return _('Completion and linting')
@@ -273,10 +274,6 @@ class CompletionPlugin(SpyderPluginV2):
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)
-
-        if self.main:
-            self.main.sig_pythonpath_changed.connect(
-                self.sig_pythonpath_changed)
 
         # Do not start providers on tests unless necessary
         if running_under_pytest():
@@ -326,6 +323,12 @@ class CompletionPlugin(SpyderPluginV2):
         for args, kwargs in self.items_to_add_to_application_menus:
             main_menu.add_item_to_application_menu(*args, **kwargs)
 
+    @on_plugin_available(plugin=Plugins.PythonpathManager)
+    def on_pythonpath_manager_available(self):
+        pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
+        pythonpath_manager.sig_pythonpath_changed.connect(
+            self.sig_pythonpath_changed)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -370,6 +373,13 @@ class CompletionPlugin(SpyderPluginV2):
                 main_menu.remove_item_from_application_menu(
                     item_id, menu_id=menu_id)
 
+    @on_plugin_teardown(plugin=Plugins.PythonpathManager)
+    def on_pythonpath_manager_teardown(self):
+        pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
+        pythonpath_manager.sig_pythonpath_changed.disconnect(
+            self.sig_pythonpath_changed)
+
+    # ---- Public API
     def stop_all_providers(self):
         """Stop all running completion providers."""
         for provider_name in self.providers:
@@ -730,8 +740,8 @@ class CompletionPlugin(SpyderPluginV2):
 
         # Check if there were any version changes between configurations
         provider_config = provider_configurations[provider_name]
-        provider_conf_version = parse_version(Provider.CONF_VERSION)
-        current_conf_version = parse_version(provider_config['version'])
+        provider_conf_version = parse(Provider.CONF_VERSION)
+        current_conf_version = parse(provider_config['version'])
 
         current_conf_values = provider_config['values']
         current_defaults = provider_config['defaults']

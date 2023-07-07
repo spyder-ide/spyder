@@ -25,7 +25,6 @@ class CachedKernelMixin:
             return
         kernel = self._cached_kernel_properties[-1]
         kernel.close(now=True)
-        kernel.remove_files()
         self._cached_kernel_properties = None
 
     def check_cached_kernel_spec(self, kernel_spec):

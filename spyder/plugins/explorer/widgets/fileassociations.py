@@ -8,8 +8,6 @@
 File associations widget for use in global and project preferences.
 """
 
-from __future__ import print_function
-
 # Standard library imports
 import os
 import re
@@ -149,7 +147,13 @@ class ApplicationsDialog(QDialog):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
         if applications is None:
-            apps = get_installed_applications()
+            # This is necessary to avoid an error on Windows for non-admin
+            # accounts.
+            # Fixes spyder-ide/spyder#20907
+            try:
+                apps = get_installed_applications()
+            except PermissionError:
+                apps = []
         else:
             apps = applications
 
@@ -445,7 +449,7 @@ class FileAssociationsWidget(QWidget):
     @Slot()
     def add_association(self, value=None):
         """Add extension file association."""
-        if value is None:
+        if value is None or isinstance(value, bool):
             text, ok_pressed = '', False
             self._dlg_input.set_text('')
 
