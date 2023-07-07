@@ -385,7 +385,7 @@ class PylintWidget(PluginMainWidget):
         self.setLayout(self.stack_layout)
 
         # Signals
-        self.filecombo.currentTextChanged.connect(self.sig_open_file_requested)
+        # self.filecombo.currentTextChanged.connect(self.sig_open_file_requested)
         self.filecombo.valid.connect(self._check_new_file)
         self.treewidget.sig_edit_goto_requested.connect(
             self.sig_edit_goto_requested)
