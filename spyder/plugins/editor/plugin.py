@@ -2452,16 +2452,17 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         def _convert(fname):
             fname = encoding.to_unicode_from_fs(fname)
             if os.name == 'nt':
-                # Try to get the correct capitalisation and the absolute path
+                # Try to get the correct capitalization and absolute path
                 try:
-                    # This should correctly capitalise the path on windows
+                    # This should correctly capitalize the path on Windows
                     fname = str(Path(fname).resolve())
                 except OSError:
-                    # On windows, "<string>" is not a valid path
+                    # On Windows, "<string>" is not a valid path
                     # But it can be used as filename while debugging
                     fname = osp.abspath(fname)
             else:
                 fname = osp.abspath(fname)
+
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
