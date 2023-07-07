@@ -138,16 +138,6 @@ class AboutDialog(QDialog):
             (&copy; 2016 David Gandy; SIL OFL 1.1) and
             <a href="http://materialdesignicons.com/">Material Design</a>
             (&copy; 2014 Austin Andrews; SIL OFL 1.1).
-            Most Spyder 2 theme icons sourced from the
-            <a href="https://www.everaldo.com">Crystal Project iconset</a>
-            (&copy; 2006-2007 Everaldo Coelho; LGPL 2.1+).
-            Other icons from
-            <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a>
-            (&copy; 2013 Yusuke Kamiyamane; CC-BY 3.0),
-            the <a href="http://www.famfamfam.com/lab/icons/silk/">FamFamFam
-            Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
-            the <a href="https://www.kde.org/">KDE Oxygen icons</a>
-            (&copy; 2007 KDE Artists; LGPL 3.0+).
             </p>
             <p>
             Splash screen photo by

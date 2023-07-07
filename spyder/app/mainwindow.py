@@ -1459,12 +1459,15 @@ def main(options, args):
     except FontError:
         QMessageBox.information(
             None, "Spyder",
-            "Spyder was unable to load the <i>Spyder 3</i> "
-            "icon theme. That's why it's going to fallback to the "
-            "theme used in Spyder 2.<br><br>"
-            "For that, please close this window and start Spyder again."
+            "It was not possible to load Spyder's icon theme, so Spyder "
+            "cannot start on your system. The most probable causes for this "
+            "are either that you are using a Windows version earlier than "
+            "Windows 10 1803/Windows Server 2019, which is no longer "
+            "supported by Spyder or Microsoft, or your system administrator "
+            "has disabled font installation for non-admin users. Please "
+            "upgrade Windows or ask your system administrator for help to "
+            "allow Spyder to start."
         )
-        CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred
         if splash is not None:
