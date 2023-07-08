@@ -505,7 +505,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or not hasattr(widget, 'shellwidget'):
             return False
         sw = widget.shellwidget
         if sw is not None:
@@ -515,7 +515,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     def get_pdb_last_step(self):
         """Get last pdb step of the current console."""
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or not hasattr(widget, 'shellwidget'):
             return None, None
         sw = widget.shellwidget
         if sw is not None:

@@ -34,7 +34,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def toggle_matplotlib(self):
         """Toggle matplotlib interactive backend."""
-        if self._current_id is None:
+        if self._current_id is None or self._gui == 'failed':
             return
         backend = "inline" if self._gui != "inline" else "auto"
         sw = self._shellwidget_dict[self._current_id]["widget"]
@@ -61,6 +61,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         self._gui = gui
         if gui == "inline":
             text = _("Inline")
+        elif gui == 'failed':
+            text = _('No backend')
         else:
             text = _("Interactive")
         self.set_value(text)
@@ -103,6 +105,15 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
             del self._shellwidget_dict[shellwidget_id]
-    
+
+    def add_errored_shellwidget(self, shellwidget):
+        """Add errored shellwidget."""
+        swid = id(shellwidget)
+        self._shellwidget_dict[swid] = {
+            "gui": 'failed',
+            "widget": shellwidget,
+        }
+        self.set_shellwidget(shellwidget)
+
     def get_icon(self):
         return self.create_icon('plot')

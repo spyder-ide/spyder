@@ -15,6 +15,7 @@ from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 class ShellConnectMainWidget(PluginMainWidget):
@@ -82,10 +83,7 @@ class ShellConnectMainWidget(PluginMainWidget):
     # ---- Public API
     # ------------------------------------------------------------------------
     def add_shellwidget(self, shellwidget):
-        """
-        Create a new widget in the stack and associate it to
-        shellwidget.
-        """
+        """Create a new widget in the stack and associate it to shellwidget."""
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self._shellwidgets:
             widget = self.create_new_widget(shellwidget)
@@ -111,16 +109,42 @@ class ShellConnectMainWidget(PluginMainWidget):
             self.update_actions()
 
     def set_shellwidget(self, shellwidget):
-        """
-        Set widget associated with shellwidget as the current widget.
-        """
+        """Set widget associated with shellwidget as the current widget."""
         old_widget = self.current_widget()
         widget = self.get_widget_for_shellwidget(shellwidget)
         if widget is None:
             return
         self._stack.setCurrentWidget(widget)
-        self.switch_widget(widget, old_widget)
-        self.update_actions()
+
+        # This prevents errors when the widget we're switching to is a
+        # PaneEmptyWidget
+        try:
+            self.switch_widget(widget, old_widget)
+            self.update_actions()
+        except AttributeError:
+            pass
+
+    def add_errored_shellwidget(self, shellwidget):
+        """
+        Create a new PaneEmptyWidget in the stack and associate it to
+        shellwidget.
+
+        This is necessary to show a meaningful message when switching to
+        consoles with dead kernels.
+        """
+        shellwidget_id = id(shellwidget)
+        if shellwidget_id not in self._shellwidgets:
+            widget = PaneEmptyWidget(
+                self,
+                "variable-explorer",  # TODO: Use custom icon here
+                _("No connected console"),
+                _("The associated console failed to start, so it is not "
+                  "possible to show any content here.")
+            )
+
+            self._stack.addWidget(widget)
+            self._shellwidgets[shellwidget_id] = widget
+            self.set_shellwidget(shellwidget)
 
     def create_new_widget(self, shellwidget):
         """Create a widget to communicate with shellwidget."""

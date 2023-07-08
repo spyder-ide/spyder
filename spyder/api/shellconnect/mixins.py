@@ -35,6 +35,8 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
+        ipyconsole.sig_shellwidget_errored.connect(
+            self.add_errored_shellwidget)
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
@@ -44,10 +46,11 @@ class ShellConnectMixin:
 
     def unregister_ipythonconsole(self, ipyconsole):
         """Unregister the console."""
-
         ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
         ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.disconnect(self.remove_shellwidget)
+        ipyconsole.sig_shellwidget_errored.disconnect(
+            self.add_errored_shellwidget)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -86,6 +89,17 @@ class ShellConnectMixin:
             The shell widget.
         """
         self.get_widget().remove_shellwidget(shellwidget)
+
+    def add_errored_shellwidget(self, shellwidget):
+        """
+        Add a new shellwidget whose kernel failed to start.
+
+        Parameters
+        ----------
+        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+            The shell widget.
+        """
+        self.get_widget().add_errored_shellwidget(shellwidget)
 
     def current_widget(self):
         """

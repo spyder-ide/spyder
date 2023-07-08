@@ -508,6 +508,13 @@ class PaneEmptyWidget(QFrame, SpyderFontsMixin):
         self.setFocusPolicy(Qt.StrongFocus)
         self._apply_stylesheet(False)
 
+    def setup(self, *args, **kwargs):
+        """
+        This method is needed when using this widget to show a "no connected
+        console" message in plugins that inherit from ShellConnectMainWidget.
+        """
+        pass
+
     def focusInEvent(self, event):
         self._apply_stylesheet(True)
         super().focusOutEvent(event)

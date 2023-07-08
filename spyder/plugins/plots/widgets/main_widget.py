@@ -216,7 +216,7 @@ class PlotsWidget(ShellConnectMainWidget):
         value = False
         widget = self.current_widget()
         figviewer = None
-        if widget:
+        if widget and hasattr(widget, 'figviewer'):
             figviewer = widget.figviewer
             thumbnails_sb = widget.thumbnails_sb
             value = figviewer.figcanvas.fig is not None
