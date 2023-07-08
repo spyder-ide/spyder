@@ -131,10 +131,6 @@ def is_conda_based_app(pyexec=sys.executable):
     else:
         return False
 
-def is_type_text_string(obj):
-    """Return True if `obj` is type text string, False if it is anything else,
-    like an instance of a class that extends the basestring class."""
-    return type(obj) in [str, bytes]
 
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,

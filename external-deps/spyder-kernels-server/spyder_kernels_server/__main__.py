@@ -9,6 +9,7 @@ import sys
 import zmq
 import json
 import argparse
+import traceback
 from spyder_kernels_server.kernel_server import KernelServer
 from zmq.ssh import tunnel as zmqtunnel
 from qtpy.QtWidgets import QApplication
@@ -68,9 +69,8 @@ class Server(QObject):
                 cf = self.kernel_server.open_kernel(kernel_spec)
                 with open(cf, "br") as f:
                     cf = (cf, json.load(f))
-
-            except Exception as e:
-                cf = ("error", e)
+            except Exception:
+                cf = ("error", traceback.format_exc())
             self.socket.send_pyobj(["new_kernel", *cf])
 
         elif cmd == "close_kernel":
