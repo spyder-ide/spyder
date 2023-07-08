@@ -241,7 +241,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
 
             kernel_handler = self.kernel_handler_waitlist.pop(0)
             if connection_file == "error":
-                kernel_handler.sig_fault.emit(str(connection_info))
+                kernel_handler.handle_stderr(str(connection_info))
             else:
                 kernel_handler.set_connection(
                     connection_file,
@@ -287,9 +287,9 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         if cmd == "kernel_restarted":
             self.sig_kernel_restarted.emit(message[1])
         elif cmd == "stderr":
-            self.sig_kernel_stderr.emit(message[1], message[2])
+            self.sig_kernel_stderr.emit(message[2], message[1])
         elif cmd == "stdout":
-            self.sig_kernel_stdout.emit(message[1], message[2])
+            self.sig_kernel_stdout.emit(message[2], message[1])
 
         self._notifier_sub.setEnabled(True)
         # This is necessary for some reason.
