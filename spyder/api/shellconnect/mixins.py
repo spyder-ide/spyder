@@ -15,11 +15,54 @@ from spyder.api.plugins import Plugins
 
 class ShellConnectMixin:
     """
-    Mixin to connect a plugin composed of stacked widgets to the shell
-    widgets in the IPython console.
+    Mixin to connect any widget or object to the shell widgets in the IPython
+    console.
+    """
+
+    # ---- Connection to the IPython console
+    # -------------------------------------------------------------------------
+    def register_ipythonconsole(self, ipyconsole):
+        """Register signals from the console."""
+        ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
+        ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
+        ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
+        ipyconsole.sig_shellwidget_errored.connect(
+            self.add_errored_shellwidget)
+
+    def unregister_ipythonconsole(self, ipyconsole):
+        """Unregister signals from the console."""
+        ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
+        ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
+        ipyconsole.sig_shellwidget_deleted.disconnect(self.remove_shellwidget)
+        ipyconsole.sig_shellwidget_errored.disconnect(
+            self.add_errored_shellwidget)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def set_shellwidget(self, shellwidget):
+        """Update the current shellwidget."""
+        raise NotImplementedError
+
+    def add_shellwidget(self, shellwidget):
+        """Add a new shellwidget to be registered."""
+        raise NotImplementedError
+
+    def remove_shellwidget(self, shellwidget):
+        """Remove a registered shellwidget."""
+        raise NotImplementedError
+
+    def add_errored_shellwidget(self, shellwidget):
+        """Register a new shellwidget whose kernel failed to start."""
+        raise NotImplementedError
+
+
+class ShellConnectPluginMixin(ShellConnectMixin):
+    """
+    Mixin to connect a plugin composed of stacked widgets to the shell widgets
+    in the IPython console.
 
     It is assumed that self.get_widget() returns an instance of
-    ShellConnectMainWidget
+    ShellConnectMainWidget.
     """
 
     # ---- Connection to the IPython console
@@ -30,27 +73,11 @@ class ShellConnectMixin:
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         self.register_ipythonconsole(ipyconsole)
 
-    def register_ipythonconsole(self, ipyconsole):
-        """Register the console."""
-        ipyconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
-        ipyconsole.sig_shellwidget_errored.connect(
-            self.add_errored_shellwidget)
-
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self):
         """Disconnect from the IPython console."""
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         self.unregister_ipythonconsole(ipyconsole)
-
-    def unregister_ipythonconsole(self, ipyconsole):
-        """Unregister the console."""
-        ipyconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
-        ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
-        ipyconsole.sig_shellwidget_deleted.disconnect(self.remove_shellwidget)
-        ipyconsole.sig_shellwidget_errored.disconnect(
-            self.add_errored_shellwidget)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -81,7 +108,7 @@ class ShellConnectMixin:
 
     def remove_shellwidget(self, shellwidget):
         """
-        Remove the registered shellwidget.
+        Remove a registered shellwidget.
 
         Parameters
         ----------

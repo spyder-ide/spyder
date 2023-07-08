@@ -10,12 +10,12 @@ Plots Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.shellconnect.mixins import ShellConnectMixin
+from spyder.api.shellconnect.mixins import ShellConnectPluginMixin
 from spyder.api.translations import _
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
 
 
-class Plots(SpyderDockablePlugin, ShellConnectMixin):
+class Plots(SpyderDockablePlugin, ShellConnectPluginMixin):
     """
     Plots plugin.
     """

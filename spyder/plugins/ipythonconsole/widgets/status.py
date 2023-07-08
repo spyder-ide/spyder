@@ -19,8 +19,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     CONF_SECTION = 'ipython_console'
 
     def __init__(self, parent):
-        super(MatplotlibStatus, self).__init__(
-            parent)
+        super().__init__(parent)
         self._gui = None
         self._shellwidget_dict = {}
         self._current_id = None
