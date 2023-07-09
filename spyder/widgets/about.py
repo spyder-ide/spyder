@@ -10,6 +10,7 @@
 import sys
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
@@ -28,7 +29,7 @@ from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import APP_STYLESHEET, DialogStyle
+from spyder.utils.stylesheet import DialogStyle
 
 
 class AboutDialog(QDialog):
@@ -39,6 +40,7 @@ class AboutDialog(QDialog):
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         versions = get_versions()
+
         # Show Git revision for development version
         revlink = ''
         if versions['revision']:
@@ -229,9 +231,10 @@ class AboutDialog(QDialog):
         tabslayout.setContentsMargins(0, 15, 15, 0)
 
         btmhlayout = QHBoxLayout()
+        btmhlayout.addStretch(1)
         btmhlayout.addWidget(btn)
         btmhlayout.addWidget(bbox)
-        btmhlayout.setContentsMargins(100, 20, 0, 20)
+        btmhlayout.setContentsMargins(0, 20, 15, 20)
         btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
@@ -251,11 +254,13 @@ class AboutDialog(QDialog):
         self.resize(550, 430)
 
         # Style
-        css = APP_STYLESHEET.get_copy()
-        css = css.get_stylesheet()
+        css = qstylizer.style.StyleSheet()
         css.QDialog.setValues(backgroundColor=dialog_background_color)
         css.QLabel.setValues(backgroundColor=dialog_background_color)
-        self.setStyleSheet(str(css))
+        css.QTabBar.setValues(fontSize=font_size)
+        css['QTabBar::tab!selected'].setValues(
+            borderBottomColor=dialog_background_color)
+        self.setStyleSheet(css.toString())
 
     def copy_to_clipboard(self):
         QApplication.clipboard().setText(get_versions_text())
