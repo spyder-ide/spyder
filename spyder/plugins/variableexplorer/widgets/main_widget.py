@@ -348,8 +348,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 menu=options_menu,
                 section=VariableExplorerWidgetOptionsMenuSections.Display,
             )
+        
+        self._enable_filter_actions()
 
-        self.filter_variables()
 
         # Resize
         for item in [resize_rows_action, resize_columns_action]:
@@ -617,7 +618,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self.filter_on = self.get_conf('filter_on')
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter variables"))
-        self.filter_variables()
+        self._enable_filter_actions()
 
     def _enable_filter_actions(self):
         self.exclude_private_action.setEnabled(self.filter_on)
