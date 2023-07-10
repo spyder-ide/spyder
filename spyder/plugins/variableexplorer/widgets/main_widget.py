@@ -125,7 +125,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             text=_("Exclude private variables"),
             tip=_("Exclude variables that start with an underscore"),
             toggled=True,
-            option=self.get_conf('exclude_private'),
+            option='exclude_private',
         )
 
         self.exclude_uppercase_action = self.create_action(
@@ -133,7 +133,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             text=_("Exclude all-uppercase variables"),
             tip=_("Exclude variables whose name is uppercase"),
             toggled=True,
-            option=self.get_conf('exclude_uppercase'),
+            option='exclude_uppercase',
         )
 
         self.exclude_capitalized_action = self.create_action(
@@ -142,7 +142,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Exclude variables whose name starts with a capital "
                   "letter"),
             toggled=True,
-            option=self.get_conf('exclude_capitalized'),
+            option='exclude_capitalized',
         )
 
         self.exclude_unsupported_action = self.create_action(
@@ -151,7 +151,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Exclude references to data types that don't have "
                   "an specialized viewer or can't be edited."),
             toggled=True,
-            option=self.get_conf('exclude_unsupported'),
+            option='exclude_unsupported',
         )
 
         self.exclude_callables_and_modules_action = self.create_action(
@@ -160,7 +160,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Exclude references to functions, modules and "
                   "any other callable."),
             toggled=True,
-            option=self.get_conf('exclude_callables_and_modules')
+            option='exclude_callables_and_modules'
         )
 
         self.show_minmax_action = self.create_action(
@@ -618,7 +618,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter variables"))
         self.filter_variables()
-    
+
     def _enable_filter_actions(self):
         self.exclude_private_action.setEnabled(self.filter_on)
         self.exclude_uppercase_action.setEnabled(self.filter_on)
