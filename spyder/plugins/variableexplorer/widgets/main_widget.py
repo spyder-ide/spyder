@@ -108,7 +108,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
-        self.filter_on = True
 
         # Widgets
         self.context_menu = None
@@ -225,7 +224,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='filter_on'
         )
         self.filter_button.setCheckable(True)
-
+        self.filter_on = self.get_conf('filter_on')
         # ---- Context menu actions
         resize_rows_action = self.create_action(
             VariableExplorerWidgetActions.ResizeRowsAction,
@@ -615,7 +614,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def _change_filter_state(self, value):
         """Handle the change of the filter state."""
-        self.filter_on = not self.filter_on
+        self.filter_on = self.get_conf('filter_on')
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter variables"))
         self.filter_variables()
