@@ -46,8 +46,7 @@ requirements.check_qt()
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QMainWindow, QMessageBox, QShortcut,
-                            QStyleFactory)
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox, QShortcut
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -78,7 +77,7 @@ from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import IMPORT_EXT
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
@@ -357,17 +356,32 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if status_bar.isVisible():
             status_bar.showMessage(message, timeout)
 
-    def show_plugin_compatibility_message(self, message):
+    def show_plugin_compatibility_message(self, plugin_name, message):
         """
         Show a compatibility message.
         """
         messageBox = QMessageBox(self)
+
+        # Set attributes
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
-        messageBox.setWindowTitle(_('Compatibility Check'))
-        messageBox.setText(message)
+        messageBox.setWindowTitle(_('Spyder compatibility check'))
+        messageBox.setText(
+            _("It was not possible to load the {} plugin. The problem "
+              "was:<br><br>{}").format(plugin_name, message)
+        )
         messageBox.setStandardButtons(QMessageBox.Ok)
+
+        # Show message.
+        # Note: All adjustments that require graphical properties of the widget
+        # need to be done after this point.
         messageBox.show()
+
+        # Center message
+        screen_geometry = QApplication.desktop().screenGeometry()
+        x = (screen_geometry.width() - messageBox.width()) / 2
+        y = (screen_geometry.height() - messageBox.height()) / 2
+        messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
@@ -384,7 +398,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         plugin.get_description()
 
         if not is_compatible:
-            self.show_plugin_compatibility_message(message)
+            self.show_plugin_compatibility_message(plugin.get_name(), message)
             return
 
         # Connect plugin signals to main window methods
@@ -1237,14 +1251,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Apply main window settings."""
         qapp = QApplication.instance()
 
-        # Set 'gtk+' as the default theme in Gtk-based desktops
-        # Fixes spyder-ide/spyder#2036.
-        if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
-            try:
-                qapp.setStyle('gtk+')
-            except:
-                pass
-
         default = self.DOCKOPTIONS
         if self.get_conf('vertical_tabs'):
             default = default|QMainWindow.VerticalTabs
@@ -1453,12 +1459,15 @@ def main(options, args):
     except FontError:
         QMessageBox.information(
             None, "Spyder",
-            "Spyder was unable to load the <i>Spyder 3</i> "
-            "icon theme. That's why it's going to fallback to the "
-            "theme used in Spyder 2.<br><br>"
-            "For that, please close this window and start Spyder again."
+            "It was not possible to load Spyder's icon theme, so Spyder "
+            "cannot start on your system. The most probable causes for this "
+            "are either that you are using a Windows version earlier than "
+            "Windows 10 1803/Windows Server 2019, which is no longer "
+            "supported by Spyder or Microsoft, or your system administrator "
+            "has disabled font installation for non-admin users. Please "
+            "upgrade Windows or ask your system administrator for help to "
+            "allow Spyder to start."
         )
-        CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred
         if splash is not None:

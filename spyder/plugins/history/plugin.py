@@ -12,6 +12,7 @@ Console History Plugin.
 from qtpy.QtCore import Signal
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -98,7 +99,7 @@ class HistoryLog(SpyderDockablePlugin):
 
     def update_font(self):
         color_scheme = self.get_color_scheme()
-        font = self.get_font()
+        font = self.get_font(SpyderFontType.Monospace)
         self.get_widget().update_font(font, color_scheme)
 
     # --- Plubic API

@@ -315,6 +315,7 @@ class IconManager():
             'constructor':             [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'function':                [('mdi.alpha-f-box',), {'color': SpyderPalette.COLOR_WARN_3, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'blockcomment':            [('mdi.pound',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.SMALL_ATTR_FACTOR}],
+            'cell':                    [('mdi.percent',), {'color':SpyderPalette.GROUP_9, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'no_match':                [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'github':                  [('mdi.github',), {'color': self.MAIN_FG_COLOR}],
             # --- Spyder Tour --------------------------------------------------------
@@ -439,9 +440,6 @@ class IconManager():
                 # Load custom icons
                 icon = QIcon(self.get_icon(name))
                 return icon if icon is not None else QIcon()
-        elif theme == 'spyder 2':
-            icon = self.get_icon(name, resample=resample)
-            return icon if icon is not None else QIcon()
 
     def get_icon_by_extension_or_type(self, fname, scale_factor):
         """Return the icon depending on the file extension"""

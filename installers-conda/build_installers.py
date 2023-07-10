@@ -132,8 +132,6 @@ SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
 specs = {
     "python": "=" + PY_VER,
     "spyder": "=" + SPYVER,
-    "paramiko": "",
-    "pyxdg": "",
 }
 specs.update(scientific_packages)
 
@@ -306,6 +304,7 @@ def _definitions():
                 ),
                 "check_path_length": False,
                 "installer_type": "exe",
+                "post_install": str(RESOURCES / "post-install.bat"),
             }
         )
 
