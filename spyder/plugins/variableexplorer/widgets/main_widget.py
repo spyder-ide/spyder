@@ -113,6 +113,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self.context_menu = None
         self.empty_context_menu = None
 
+        self.filter_button = None
+
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -220,9 +222,10 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             VariableExplorerWidgetActions.ToggleFilter,
             text="",
             icon=ima.icon('filter'),
-            toggled=self._change_filter_state,
-            option='filter_on'
-        )
+            toggled=self._enable_filter_actions,
+            option='filter_on',
+            tip=_("Filter variables")
+            )
         self.filter_button.setCheckable(True)
         # ---- Context menu actions
         resize_rows_action = self.create_action(
@@ -611,14 +614,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         editor.insert_action_above = QAction()
         editor.insert_action_below = QAction()
 
-    def _change_filter_state(self, value):
-        """Handle the change of the filter state."""
-        value = self.get_conf('filter_on')
-        self.filter_button.setChecked(value)
-        self.filter_button.setToolTip(_("Filter variables"))
-        self._enable_filter_actions(value)
-
     def _enable_filter_actions(self, value):
+        """Handle the change of the filter state."""
         self.exclude_private_action.setEnabled(value)
         self.exclude_uppercase_action.setEnabled(value)
         self.exclude_capitalized_action.setEnabled(value)
