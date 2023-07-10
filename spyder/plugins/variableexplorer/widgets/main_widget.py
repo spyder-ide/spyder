@@ -347,9 +347,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 menu=options_menu,
                 section=VariableExplorerWidgetOptionsMenuSections.Display,
             )
-        
-        self._enable_filter_actions()
 
+        self._enable_filter_actions(self.get_conf('filter_on'))
 
         # Resize
         for item in [resize_rows_action, resize_columns_action]:
