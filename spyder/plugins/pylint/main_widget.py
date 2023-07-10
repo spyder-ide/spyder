@@ -304,6 +304,14 @@ class PylintWidget(PluginMainWidget):
 
     # --- Signals
     sig_open_file_requested = Signal(str)
+    """
+    This signal will request to open a file using a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    """
     sig_edit_goto_requested = Signal(str, int, str)
     """
     This signal will request to open a file in a given row and column
@@ -320,7 +328,7 @@ class PylintWidget(PluginMainWidget):
     """
     sig_open_preferences_requested = Signal()
     """
-    Signal to open the main interpreter preferences.
+    Signal to open the pylint preferences.
     """
 
     sig_start_analysis_requested = Signal()
@@ -385,7 +393,6 @@ class PylintWidget(PluginMainWidget):
         self.setLayout(self.stack_layout)
 
         # Signals
-        # self.filecombo.currentTextChanged.connect(self.sig_open_file_requested)
         self.filecombo.valid.connect(self._check_new_file)
         self.treewidget.sig_edit_goto_requested.connect(
             self.sig_edit_goto_requested)
@@ -638,7 +645,6 @@ class PylintWidget(PluginMainWidget):
         )
 
         options_menu = self.get_options_menu()
-
         self.add_item_to_menu(
             change_history_depth_preferences_page,
             menu=options_menu,
@@ -709,9 +715,7 @@ class PylintWidget(PluginMainWidget):
             self.curr_filenames = value
             self._update_combobox_history()
         elif option == "real_time_analysis":
-            self.code_analysis_action.setEnabled(
-                not self.get_conf("real_time_analysis")
-            )
+            self.code_analysis_action.setEnabled(not value)
 
     def update_actions(self):
         if self._is_running():
@@ -726,12 +730,12 @@ class PylintWidget(PluginMainWidget):
 
     # --- Public API
     # ------------------------------------------------------------------------
-
     @Slot()
     @Slot(int)
     def change_history_depth(self, value=None):
         """
         Set history maximum entries.
+
         Parameters
         ----------
         value: int or None, optional
@@ -837,6 +841,7 @@ class PylintWidget(PluginMainWidget):
 
             if self.filecombo.is_valid():
                 self._start()
+
         self.update_actions()
 
     def stop_code_analysis(self):
@@ -948,6 +953,7 @@ class PylintWidget(PluginMainWidget):
 
         self.ratelabel.setText(text)
         self.datelabel.setText(date_text)
+        self.sig_open_file_requested.emit(filename)
 
     @Slot()
     def show_log(self):
