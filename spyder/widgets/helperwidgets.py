@@ -145,8 +145,8 @@ class HTMLDelegate(QStyledItemDelegate):
     def on_hover_index_changed(self, index):
         """
         This can be used by a widget that inherits from HoverRowsTableView to
-        connect its sig_hover_index_changed signal to paint an entire row when
-        it's hovered.
+        connect its sig_hover_index_changed signal to this method to paint an
+        entire row when it's hovered.
         """
         self._hovered_row = index.row()
 
