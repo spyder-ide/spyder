@@ -224,7 +224,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='filter_on'
         )
         self.filter_button.setCheckable(True)
-        self.filter_on = self.get_conf('filter_on')
         # ---- Context menu actions
         resize_rows_action = self.create_action(
             VariableExplorerWidgetActions.ResizeRowsAction,
@@ -615,14 +614,14 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def _change_filter_state(self, value):
         """Handle the change of the filter state."""
-        self.filter_on = self.get_conf('filter_on')
-        self.filter_button.setChecked(self.filter_on)
+        value = self.get_conf('filter_on')
+        self.filter_button.setChecked(value)
         self.filter_button.setToolTip(_("Filter variables"))
-        self._enable_filter_actions()
+        self._enable_filter_actions(value)
 
-    def _enable_filter_actions(self):
-        self.exclude_private_action.setEnabled(self.filter_on)
-        self.exclude_uppercase_action.setEnabled(self.filter_on)
-        self.exclude_capitalized_action.setEnabled(self.filter_on)
-        self.exclude_unsupported_action.setEnabled(self.filter_on)
-        self.exclude_callables_and_modules_action.setEnabled(self.filter_on)
+    def _enable_filter_actions(self, value):
+        self.exclude_private_action.setEnabled(value)
+        self.exclude_uppercase_action.setEnabled(value)
+        self.exclude_capitalized_action.setEnabled(value)
+        self.exclude_unsupported_action.setEnabled(value)
+        self.exclude_callables_and_modules_action.setEnabled(value)
