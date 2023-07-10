@@ -220,7 +220,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             VariableExplorerWidgetActions.ToggleFilter,
             text="",
             icon=ima.icon('filter'),
-            toggled=self.change_filter_state,
+            toggled=self._change_filter_state,
             option='filter_on'
         )
         self.filter_button.setCheckable(True)
