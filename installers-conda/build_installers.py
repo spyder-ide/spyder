@@ -304,6 +304,7 @@ def _definitions():
                 ),
                 "check_path_length": False,
                 "installer_type": "exe",
+                "post_install": str(RESOURCES / "post-install.bat"),
             }
         )
 
