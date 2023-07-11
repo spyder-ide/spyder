@@ -274,7 +274,7 @@ jobs:
 
           shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
           if [[ -e $shortcut_path ]]; then
-              echo "\nContents of" $HOME/.local/spyder-* :
+              echo -e "\nContents of" $HOME/.local/spyder-* :
               ls -al $HOME/.local/spyder-*
               echo -e "\nContents of ${shortcut_path}:"
               cat $shortcut_path
