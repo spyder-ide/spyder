@@ -8,15 +8,16 @@
 Dock widgets for plugins
 """
 
+import qstylizer.style
 from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
 from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
-import qstylizer.style
 
 from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import PanesToolbarStyleSheet
+from spyder.utils.stylesheet import (
+    PanesToolbarStyleSheet, DOCK_TABBAR_STYLESHEET)
 
 
 # =============================================================================
@@ -24,12 +25,15 @@ from spyder.utils.stylesheet import PanesToolbarStyleSheet
 # =============================================================================
 class TabFilter(QObject):
     """Filter event attached to each DockWidget QTabBar."""
+
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
         self.dock_tabbar = dock_tabbar
         self.main = main
         self.from_index = None
-        self.dock_tabbar.setStyleSheet(self._tabbar_stylesheet)
+
+        self.dock_tabbar.setStyleSheet(str(DOCK_TABBAR_STYLESHEET))
+        self.dock_tabbar.setElideMode(Qt.ElideNone)
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.
@@ -68,24 +72,6 @@ class TabFilter(QObject):
         """Show the context menu assigned to nontabs section."""
         menu = self.main.createPopupMenu()
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
-
-    @property
-    def _tabbar_stylesheet(self):
-        css = qstylizer.style.StyleSheet()
-
-        # Center tabs to differentiate them from plugin ones.
-        # See spyder-ide/spyder#9763
-        css.QTabBar.setValues(
-            alignment='center'
-        )
-
-        # Also add a border below selected tabs so they don't touch either the
-        # window separator or the status bar.
-        css['QTabBar::tab:bottom:selected'].setValues(
-            borderBottom=f'2px solid {QStylePalette.COLOR_BACKGROUND_1}'
-        )
-
-        return css.toString()
 
 
 # =============================================================================

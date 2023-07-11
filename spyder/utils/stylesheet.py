@@ -13,12 +13,13 @@ import sys
 
 # Third-party imports
 import qdarkstyle
+from qdarkstyle.colorsystem import Gray
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.config.gui import OLD_PYQT
+from spyder.config.gui import is_dark_interface, OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
 
@@ -287,7 +288,7 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 
 
 # =============================================================================
-# ---- Tabbar stylesheet
+# ---- Tabbar stylesheets
 # =============================================================================
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
     """Stylesheet for pane tabbars"""
@@ -397,7 +398,98 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         )
 
 
+class DockTabBarStyleSheet(SpyderStyleSheet):
+    """
+    This implements the design for tabs discussed on issue
+    spyder-ide/ux-improvements#4.
+    """
+
+    def set_stylesheet(self):
+        # Main constants
+        css = self._stylesheet
+        color_tabs_separator = f'{Gray.B70}'
+        if is_dark_interface():
+            color_selected_tab = f'{QStylePalette.COLOR_ACCENT_2}'
+        else:
+            color_selected_tab = f'{QStylePalette.COLOR_ACCENT_5}'
+
+        # Center tabs to differentiate them from the regular ones.
+        # See spyder-ide/spyder#9763 for details.
+        css.QTabBar.setValues(
+            alignment='center'
+        )
+
+        # Basic style
+        css['QTabBar::tab'].setValues(
+            # No margins to left and right
+            marginRight='0px',
+            marginLeft='0px',
+            # Add top and bottom margins to separate tabbar from the dockwidget
+            # areas.
+            marginTop='6px',
+            marginBottom='6px',
+            # Border radius is added for specific tabs (see below)
+            borderRadius='0px',
+            # Remove a colored border added by QDarkStyle
+            borderTop='0px',
+            # Add right border to make it work as our tabs separator
+            borderRight=f'1px solid {color_tabs_separator}',
+            # Padding for text inside tabs
+            paddingTop='4px',
+            paddingBottom='4px',
+            paddingRight='10px',
+            paddingLeft='10px'
+        )
+
+        # Style for selected tabs
+        css['QTabBar::tab:selected'].setValues(
+            color=(
+                f'{QStylePalette.COLOR_TEXT_1}' if is_dark_interface() else
+                f'{QStylePalette.COLOR_BACKGROUND_1}'
+            ),
+            backgroundColor=f'{color_selected_tab}',
+        )
+
+        # Hide tabs separator for the selected tab and the one to its left.
+        # Note: For some strange reason, Qt uses the `next-selected` state for
+        # the left tab.
+        for state in ['QTabBar::tab:selected', 'QTabBar::tab:next-selected']:
+            css[state].setValues(
+                borderRight=f'1px solid {color_selected_tab}',
+            )
+
+        # Style for hovered tabs
+        css['QTabBar::tab:!selected:hover'].setValues(
+            border='0px',
+            borderRight=f'1px solid {color_tabs_separator}',
+            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+        )
+
+        css['QTabBar::tab:previous-selected:hover'].setValues(
+            borderLeft=f'1px solid {color_tabs_separator}',
+        )
+
+        # First and last tabs have rounded borders
+        css['QTabBar::tab:first'].setValues(
+            borderTopLeftRadius='4px',
+            borderBottomLeftRadius='4px'
+        )
+
+        css['QTabBar::tab:last'].setValues(
+            borderTopRightRadius='4px',
+            borderBottomRightRadius='4px'
+        )
+
+        # Last tab doesn't need to show the separator
+        for state in ['QTabBar::tab:last:!selected:hover',
+                      'QTabBar::tab:last']:
+            css[state].setValues(
+                borderRightColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
+            )
+
+
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
+DOCK_TABBAR_STYLESHEET = DockTabBarStyleSheet()
 
 
 # =============================================================================
