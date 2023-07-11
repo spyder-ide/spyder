@@ -8,20 +8,15 @@
 Dock widgets for plugins
 """
 
-import os
-import sys
-
 from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
 from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
 import qstylizer.style
 
 from spyder.api.translations import _
-from spyder.utils import programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import PanesToolbarStyleSheet
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 
 
 # =============================================================================
@@ -77,7 +72,6 @@ class TabFilter(QObject):
 
     @property
     def _tabbar_stylesheet(self):
-
         css = qstylizer.style.StyleSheet()
 
         # Center tabs to differentiate them from plugin ones.
@@ -96,7 +90,7 @@ class TabFilter(QObject):
         # window separator or the status bar.
         css['QTabBar::tab:bottom:selected'].setValues(
             borderBottom=f'2px solid {QStylePalette.COLOR_BACKGROUND_1}',
-            background=f'#259AE9'
+            background=f'{QStylePalette.COLOR_ACCENT_4}'
         )
 
         return css.toString()
