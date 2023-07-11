@@ -35,6 +35,7 @@ class TabFilter(QObject):
         self.main = main
         self.from_index = None
         self.dock_tabbar.setStyleSheet(self._tabbar_stylesheet)
+        self.dock_tabbar.setElideMode(Qt.ElideNone)
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.
@@ -77,15 +78,19 @@ class TabFilter(QObject):
     @property
     def _tabbar_stylesheet(self):
 
-        tabs_stylesheet = PANES_TABBAR_STYLESHEET.get_copy()
-        css = tabs_stylesheet.get_stylesheet()
-        # css = qstylizer.style.StyleSheet()
+        css = qstylizer.style.StyleSheet()
 
         # Center tabs to differentiate them from plugin ones.
         # See spyder-ide/spyder#9763
         css.QTabBar.setValues(
             alignment='center'
         )
+
+        css['QTabBar::scroller QToolButton'].setValues(
+                backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+                border='0px',
+                margin='0px'
+            )
 
         # Also add a border below selected tabs so they don't touch either the
         # window separator or the status bar.
