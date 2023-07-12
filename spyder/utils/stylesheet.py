@@ -290,13 +290,50 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 # =============================================================================
 # ---- Tabbar stylesheets
 # =============================================================================
-class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
+class BaseTabBarStyleSheet(SpyderStyleSheet):
+    """Base style for tabbars."""
+
+    OBJECT_NAME = ''
+    BORDER_RIGHT_WIDTH = '0px'
+
+    def set_stylesheet(self):
+        css = self.get_stylesheet()
+        buttons_color = QStylePalette.COLOR_BACKGROUND_1
+
+        # Set style for scroller buttons
+        css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+            background=buttons_color,
+            borderRadius='0px',
+            borderRight=f'{self.BORDER_RIGHT_WIDTH} solid {buttons_color}'
+        )
+
+        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
+            if state == 'hover':
+                color = QStylePalette.COLOR_BACKGROUND_2
+            else:
+                color = QStylePalette.COLOR_BACKGROUND_3
+            css[f'QTabBar{self.OBJECT_NAME} QToolButton:{state}'].setValues(
+                background=color
+            )
+
+        # This makes one button huge and the other very small in PyQt 5.9
+        if not OLD_PYQT:
+            css['QTabBar::scroller'].setValues(
+                width='66px',
+            )
+
+
+class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
     """Stylesheet for pane tabbars"""
 
     TOP_MARGIN = '15px'
+    OBJECT_NAME = '#pane-tabbar'
+    BORDER_RIGHT_WIDTH = '5px'
 
     def set_stylesheet(self):
-        super().set_stylesheet()
+        # Calling super().set_stylesheet() here doesn't work.
+        PanesToolbarStyleSheet.set_stylesheet(self)
+        BaseTabBarStyleSheet.set_stylesheet(self)
         css = self.get_stylesheet()
 
         # This removes a white dot that appears to the left of right corner
@@ -358,28 +395,6 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
             paddingBottom='-6px' if MAC else '-7px',
         )
 
-        # Set style for scroller buttons
-        css['QTabBar#pane-tabbar QToolButton'].setValues(
-            background=QStylePalette.COLOR_BACKGROUND_1,
-            borderRadius='0px',
-            borderRight=f'5px solid {QStylePalette.COLOR_BACKGROUND_1}'
-        )
-
-        for state in ['hover', 'pressed', 'checked', 'checked:hover']:
-            if state == 'hover':
-                color = QStylePalette.COLOR_BACKGROUND_2
-            else:
-                color = QStylePalette.COLOR_BACKGROUND_3
-            css[f'QTabBar#pane-tabbar QToolButton:{state}'].setValues(
-                background=color
-            )
-
-        # This makes one button huge and the other very small in PyQt 5.9
-        if not OLD_PYQT:
-            css['QTabBar::scroller'].setValues(
-                width='67px',
-            )
-
         # Remove border between selected tab and pane below
         css['QTabWidget::pane'].setValues(
             borderTop='0px',
@@ -398,15 +413,19 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet):
         )
 
 
-class DockTabBarStyleSheet(SpyderStyleSheet):
+class DockTabBarStyleSheet(BaseTabBarStyleSheet):
     """
-    This implements the design for tabs discussed on issue
+    This implements the design for dockwidget tabs discussed on issue
     spyder-ide/ux-improvements#4.
     """
 
+    BORDER_RIGHT_WIDTH = '2px'
+
     def set_stylesheet(self):
+        super().set_stylesheet()
+
         # Main constants
-        css = self._stylesheet
+        css = self.get_stylesheet()
         color_tabs_separator = f'{Gray.B70}'
         if is_dark_interface():
             color_selected_tab = f'{QStylePalette.COLOR_ACCENT_2}'
@@ -469,15 +488,18 @@ class DockTabBarStyleSheet(SpyderStyleSheet):
             borderLeft=f'1px solid {color_tabs_separator}',
         )
 
-        # First and last tabs have rounded borders
+        # First and last tabs have rounded borders. Also, add margin to avoid
+        # them touch the left and right areas, respectively.
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
-            borderBottomLeftRadius='4px'
+            borderBottomLeftRadius='4px',
+            marginLeft='6px',
         )
 
         css['QTabBar::tab:last'].setValues(
             borderTopRightRadius='4px',
-            borderBottomRightRadius='4px'
+            borderBottomRightRadius='4px',
+            marginRight='6px',
         )
 
         # Last tab doesn't need to show the separator
