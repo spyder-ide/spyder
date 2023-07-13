@@ -227,6 +227,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Filter variables")
             )
         self.filter_button.setCheckable(True)
+
         # ---- Context menu actions
         resize_rows_action = self.create_action(
             VariableExplorerWidgetActions.ResizeRowsAction,
