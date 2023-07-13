@@ -252,16 +252,20 @@ jobs:
 
           installer -pkg $PKG_PATH -target CurrentUserHomeDirectory >/dev/null
 
+          echo "Install info:"
+          echo "Contents of" $HOME/Library/spyder-* :
+          ls -al $HOME/Library/spyder-*
+          echo -e "\nContents of" $HOME/Library/spyder-*/uninstall-spyder.sh :
+          cat $HOME/Library/spyder-*/uninstall-spyder.sh
+
           app_path=$HOME/Applications/Spyder.app
           if [[ -e "$app_path" ]]; then
-              echo "\nContents of $app_path/Contents/MacOS:"
+              echo "Contents of $app_path/Contents/MacOS:"
               ls -al $app_path/Contents/MacOS
               echo -e "\nContents of $app_path/Contents/Info.plist:"
               cat $app_path/Contents/Info.plist
               echo -e "\nContents of $app_path/Contents/MacOS/spyder-script:"
               cat $app_path/Contents/MacOS/spyder-script
-              echo -e "\n\nContents of" $HOME/Library/spyder-*/uninstall-spyder.sh :
-              cat $HOME/Library/spyder-*/uninstall-spyder.sh
           else
               echo "$app_path does not exist"
               exit 1
@@ -272,9 +276,15 @@ jobs:
         run: |
           $PKG_PATH -b
 
+          echo "Install info:"
+          echo "Contents of" $HOME/.local/spyder-* :
+          ls -al $HOME/.local/spyder-*
+          echo -e "\nContents of" $HOME/.local/spyder-*/uninstall-spyder.sh :
+          cat $HOME/.local/spyder-*/uninstall-spyder.sh
+
           shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
           if [[ -e $shortcut_path ]]; then
-              echo -e "\nContents of" $HOME/.local/spyder-* :
+              echo "Contents of" $HOME/.local/spyder-* :
               ls -al $HOME/.local/spyder-*
               echo -e "\nContents of ${shortcut_path}:"
               cat $shortcut_path
