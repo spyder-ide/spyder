@@ -17,11 +17,12 @@ u_spy_exe=${PREFIX}/uninstall-spyder.sh
 sed_opts=("-i")
 alias_text="alias uninstall-spyder=${u_spy_exe}"
 if [[ $OSTYPE = "darwin"* ]]; then
-    shortcut_path="/Applications/Spyder.app"
-    [[ ${PREFIX} = "$HOME"* ]] && shortcut_path="${HOME}${shortcut_path}"
+    shortcut_path="/Applications/${INSTALLER_NAME}.app"
+    [[ -e ${PREFIX}/.nonadmin ]] && shortcut_path="${HOME}${shortcut_path}"
     sed_opts+=("", "-e")
 else
-    shortcut_path="$HOME/.local/share/applications/${name_lower}_${name_lower}.desktop"
+    shortcut_path="/.local/share/applications/${name_lower}_${name_lower}.desktop"
+    [[ -e ${PREFIX}/.nonadmin ]] && shortcut_path="${HOME}${shortcut_path}" || shortcut_path="/usr${shortcut_path}"
     alias_text="alias spyder=${spy_exe}\n${alias_text}"
 fi
 
