@@ -64,6 +64,7 @@ from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.utils.palette import QStylePalette
 
 
 # Supported Numbers and complex numbers
