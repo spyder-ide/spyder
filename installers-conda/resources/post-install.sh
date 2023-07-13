@@ -152,7 +152,7 @@ echo "*** Post install script for ${INSTALLER_NAME} complete"
 
 echo "Launching Spyder now..."
 if [[ "$OSTYPE" = "darwin"* ]]; then
-    tmp_dir=${SHARED_INSTALLER_TEMP}/spyder
+    tmp_dir=${TMPDIR:-$SHARED_INSTALLER_TEMP/}spyder
     launch_script=${tmp_dir}/post-install-launch.sh
     echo "Creating post-install launch script ..."
     mkdir -p $tmp_dir
