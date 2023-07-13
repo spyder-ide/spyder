@@ -241,7 +241,6 @@ def _definitions():
         "initialize_by_default": False,
         "initialize_conda": False,
         "register_python": False,
-        "license_file": str(RESOURCES / "bundle_license.rtf"),
         "extra_envs": {
             "spyder-runtime": {
                 "specs": [k + v for k, v in specs.items()],
@@ -256,13 +255,16 @@ def _definitions():
     if not args.no_local:
         definitions["channels"].insert(0, "local")
 
+    definitions["license_file"] = str(RESOURCES / "bundle_license.rtf")
+    if args.install_type == "sh":
+        definitions["license_file"] = str(SPYREPO / "LICENSE.txt")
+
     if LINUX:
         definitions.update(
             {
                 "default_prefix": os.path.join(
                     "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
                 ),
-                "license_file": str(SPYREPO / "LICENSE.txt"),
                 "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
@@ -274,17 +276,20 @@ def _definitions():
         welcome_file.write_text(
             welcome_text_tmpl.replace("__VERSION__", SPYVER))
 
-        # These two options control the default install location:
-        # ~/<default_location_pkg>/<pkg_name>
         definitions.update(
             {
+                "post_install": str(RESOURCES / "post-install.sh"),
+                "conclusion_text": "",
+                "readme_text": "",
+                # For sh installer
+                "default_prefix": os.path.join(
+                    "$HOME", "Library", INSTALLER_DEFAULT_PATH_STEM
+                ),
+                # For pkg installer
                 "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
                 "default_location_pkg": "Library",
                 "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
-                "post_install": str(RESOURCES / "post-install.sh"),
-                "conclusion_text": "",
-                "readme_text": "",
             }
         )
 
