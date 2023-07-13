@@ -52,16 +52,6 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
             self._open_preferences
         )
 
-    def _open_preferences(self):
-        """Open the Preferences dialog in the Variable Explorer section."""
-        self._main.show_preferences()
-        preferences = self.get_plugin(Plugins.Preferences)
-        if preferences:
-            container = preferences.get_container()
-            dlg = container.dialog
-            index = dlg.get_index_by_name(self.NAME)
-            dlg.set_current_index(index)
-
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -71,3 +61,15 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _open_preferences(self):
+        """Open the Preferences dialog in the Variable Explorer section."""
+        self._main.show_preferences()
+        preferences = self.get_plugin(Plugins.Preferences)
+        if preferences:
+            container = preferences.get_container()
+            dlg = container.dialog
+            index = dlg.get_index_by_name(self.NAME)
+            dlg.set_current_index(index)
