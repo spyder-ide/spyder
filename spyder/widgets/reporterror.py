@@ -212,13 +212,12 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox(_("Hide all future errors during this "
                                        "session"))
+        self.dismiss_box.setStyleSheet('margin-left: 2px')
 
         # Checkbox to include IPython console environment
         self.include_env = QCheckBox(_("Include IPython console environment"))
+        self.include_env.setStyleSheet('margin-left: 2px')
         self.include_env.hide()
-        include_env_layout = QHBoxLayout()
-        include_env_layout.addWidget(self.include_env)
-        include_env_layout.setContentsMargins(2, 0, 0, 0)
 
         # Dialog buttons
         gh_icon = ima.icon('github')
@@ -257,6 +256,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         layout.addWidget(self.desc_chars_label)
 
         if not self.is_report:
+            layout.addSpacing(15)
             layout.addWidget(self.dismiss_box)
 
         # Only provide checkbox if not an installer default interpreter
@@ -265,8 +265,9 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
             or not self.get_conf('default', section='main_interpreter')
         ):
             self.include_env.show()
-            layout.addSpacing(15)
-            layout.addLayout(include_env_layout)
+            if self.is_report:
+                layout.addSpacing(15)
+            layout.addWidget(self.include_env)
             layout.addSpacing(5)
         else:
             layout.addSpacing(5)
