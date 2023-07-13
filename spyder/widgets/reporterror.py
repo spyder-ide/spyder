@@ -50,7 +50,9 @@ class DescriptionWidget(SimpleCodeEditor, SpyderFontsMixin):
         # Editor options
         self.setup_editor(
             language='md',
-            font=self.get_font(SpyderFontType.MonospaceInterface),
+            font=self.get_font(
+                SpyderFontType.MonospaceInterface, font_size_delta=1
+            ),
             wrap=True,
             linenumbers=False,
             highlight_current_line=False,
@@ -112,7 +114,8 @@ class DescriptionWidget(SimpleCodeEditor, SpyderFontsMixin):
         pass
 
 
-class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
+class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin,
+                      SpyderFontsMixin):
     """Widget to show errors as they appear in the Internal console."""
     QT_CLASS = QPlainTextEdit
     sig_go_to_error_requested = Signal(str)
@@ -121,10 +124,14 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
         ConsoleBaseWidget.__init__(self, parent)
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
+
         self.setReadOnly(True)
+        self.set_pythonshell_font(
+            self.get_font(SpyderFontType.MonospaceInterface, font_size_delta=1)
+        )
 
 
-class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
+class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor):
     """Custom error dialog for error reporting."""
 
     def __init__(self, parent=None, is_report=False):
@@ -195,9 +202,7 @@ class SpyderErrorDialog(QDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
 
         # Widget to show errors
         self.details = ShowErrorWidget(self)
-        self.details.set_pythonshell_font(
-            self.get_font(SpyderFontType.MonospaceInterface)
-        )
+        self.details.setStyleSheet('margin-left: 4px')
         self.details.hide()
 
         self.description_minimum_length = DESC_MIN_CHARS
