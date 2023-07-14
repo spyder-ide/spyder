@@ -9,7 +9,7 @@ Variable Explorer Main Plugin Widget.
 """
 
 # Third party imports
-from qtpy.QtCore import QTimer, Slot
+from qtpy.QtCore import QTimer, Slot, Signal
 from qtpy.QtWidgets import QAction
 
 # Local imports
@@ -18,6 +18,7 @@ from spyder.api.translations import _
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import is_module_installed
 
 
@@ -41,11 +42,17 @@ class VariableExplorerWidgetActions:
     ToggleExcludeCallablesAndModules = (
         'toggle_exclude_callables_and_modules_action')
     ToggleMinMax = 'toggle_minmax_action'
+    ToggleFilter = 'toggle_filter_variable_action'
+
+    # Resize
+    ResizeRowsAction = 'resize_rows_action'
+    ResizeColumnsAction = 'resize_columns_action'
 
 
 class VariableExplorerWidgetOptionsMenuSections:
     Display = 'excludes_section'
-    Highlight = 'highlight_section'
+    Highlight = 'highlight_section'    
+    Resize = 'resize_section'
 
 
 class VariableExplorerWidgetMainToolBarSections:
@@ -58,8 +65,6 @@ class VariableExplorerWidgetMenus:
 
 
 class VariableExplorerContextMenuActions:
-    ResizeRowsAction = 'resize_rows_action'
-    ResizeColumnsAction = 'resize_columns_action'
     PasteAction = 'paste_action'
     CopyAction = 'copy'
     EditAction = 'edit_action'
@@ -72,13 +77,14 @@ class VariableExplorerContextMenuActions:
     RenameAction = 'rename_action'
     DuplicateAction = 'duplicate_action'
     ViewAction = 'view_action'
+    EditFiltersAction = 'edit_filters_action'
 
 
 class VariableExplorerContextMenuSections:
     Edit = 'edit_section'
     Insert = 'insert_section'
     View = 'view_section'
-    Resize = 'resize_section'
+    Filter = 'Filter_section'
 
 
 # =============================================================================
@@ -94,12 +100,20 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
     SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
 
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the variable explorer preferences.
+    """
+
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
+
 
         # Widgets
         self.context_menu = None
         self.empty_context_menu = None
+
+        self.filter_button = None
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -108,7 +122,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def setup(self):
         # ---- Options menu actions
-        exclude_private_action = self.create_action(
+        self.exclude_private_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludePrivate,
             text=_("Exclude private variables"),
             tip=_("Exclude variables that start with an underscore"),
@@ -116,7 +130,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_private',
         )
 
-        exclude_uppercase_action = self.create_action(
+        self.exclude_uppercase_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeUpperCase,
             text=_("Exclude all-uppercase variables"),
             tip=_("Exclude variables whose name is uppercase"),
@@ -124,7 +138,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_uppercase',
         )
 
-        exclude_capitalized_action = self.create_action(
+        self.exclude_capitalized_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCapitalized,
             text=_("Exclude capitalized variables"),
             tip=_("Exclude variables whose name starts with a capital "
@@ -133,7 +147,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_capitalized',
         )
 
-        exclude_unsupported_action = self.create_action(
+        self.exclude_unsupported_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeUnsupported,
             text=_("Exclude unsupported data types"),
             tip=_("Exclude references to data types that don't have "
@@ -142,7 +156,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             option='exclude_unsupported',
         )
 
-        exclude_callables_and_modules_action = self.create_action(
+        self.exclude_callables_and_modules_action = self.create_action(
             VariableExplorerWidgetActions.ToggleExcludeCallablesAndModules,
             text=_("Exclude callables and modules"),
             tip=_("Exclude references to functions, modules and "
@@ -204,16 +218,26 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             register_shortcut=True,
         )
 
+        self.filter_button = self.create_action(
+            VariableExplorerWidgetActions.ToggleFilter,
+            text="",
+            icon=ima.icon('filter'),
+            toggled=self._enable_filter_actions,
+            option='filter_on',
+            tip=_("Filter variables")
+            )
+        self.filter_button.setCheckable(True)
+
         # ---- Context menu actions
         resize_rows_action = self.create_action(
-            VariableExplorerContextMenuActions.ResizeRowsAction,
+            VariableExplorerWidgetActions.ResizeRowsAction,
             text=_("Resize rows to contents"),
             icon=self.create_icon('collapse_row'),
             triggered=self.resize_rows
         )
 
         resize_columns_action = self.create_action(
-            VariableExplorerContextMenuActions.ResizeColumnsAction,
+            VariableExplorerWidgetActions.ResizeColumnsAction,
             _("Resize columns to contents"),
             icon=self.create_icon('collapse_column'),
             triggered=self.resize_columns
@@ -279,6 +303,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             triggered=self.insert_item
         )
 
+        self.edit_filters = self.create_action(
+            VariableExplorerContextMenuActions.EditFiltersAction,
+            _("Edit filters"),
+            icon=self.create_icon('filter'),
+            triggered=self.sig_open_preferences_requested
+        )
+
         self.remove_action = self.create_action(
             VariableExplorerContextMenuActions.RemoveAction,
             _("Remove"),
@@ -309,9 +340,11 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # Options menu
         options_menu = self.get_options_menu()
-        for item in [exclude_private_action, exclude_uppercase_action,
-                     exclude_capitalized_action, exclude_unsupported_action,
-                     exclude_callables_and_modules_action,
+        for item in [self.exclude_private_action,
+                     self.exclude_uppercase_action,
+                     self.exclude_capitalized_action,
+                     self.exclude_unsupported_action,
+                     self.exclude_callables_and_modules_action,
                      self.show_minmax_action]:
             self.add_item_to_menu(
                 item,
@@ -319,10 +352,21 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 section=VariableExplorerWidgetOptionsMenuSections.Display,
             )
 
+        self._enable_filter_actions(self.get_conf('filter_on'))
+
+        # Resize
+        for item in [resize_rows_action, resize_columns_action]:
+            self.add_item_to_menu(
+                item,
+                menu=options_menu,
+                section=VariableExplorerWidgetOptionsMenuSections.Resize,
+            )
+
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
         for item in [import_data_action, save_action, save_as_action,
-                     reset_namespace_action, search_action, refresh_action]:
+                     reset_namespace_action, search_action, refresh_action,
+                     self.filter_button]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -349,19 +393,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 section=VariableExplorerContextMenuSections.Insert,
             )
 
+        for item in [self.edit_filters]:
+            self.add_item_to_menu(
+                item,
+                menu=self.context_menu,
+                section=VariableExplorerContextMenuSections.Filter,
+            )
+        
         for item in [self.view_action, self.plot_action, self.hist_action,
-                     self.imshow_action, self.show_minmax_action]:
+                     self.imshow_action]:
             self.add_item_to_menu(
                 item,
                 menu=self.context_menu,
                 section=VariableExplorerContextMenuSections.View,
-            )
-
-        for item in [resize_rows_action, resize_columns_action]:
-            self.add_item_to_menu(
-                item,
-                menu=self.context_menu,
-                section=VariableExplorerContextMenuSections.Resize,
             )
 
         # ---- Context menu when the variable explorer is empty
@@ -557,7 +601,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         editor.save_array_action = self.save_array_action
         editor.insert_action = self.insert_action
         editor.remove_action = self.remove_action
-        editor.minmax_action = self.show_minmax_action
         editor.rename_action = self.rename_action
         editor.duplicate_action = self.duplicate_action
         editor.view_action = self.view_action
@@ -571,3 +614,11 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         # several places in CollectionsEditor.
         editor.insert_action_above = QAction()
         editor.insert_action_below = QAction()
+
+    def _enable_filter_actions(self, value):
+        """Handle the change of the filter state."""
+        self.exclude_private_action.setEnabled(value)
+        self.exclude_uppercase_action.setEnabled(value)
+        self.exclude_capitalized_action.setEnabled(value)
+        self.exclude_unsupported_action.setEnabled(value)
+        self.exclude_callables_and_modules_action.setEnabled(value)
