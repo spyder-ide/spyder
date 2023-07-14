@@ -22,17 +22,17 @@ class StatusBarConfigPage(PluginConfigPage):
         # --- Status bar
         sbar_group = QGroupBox(_("Display"))
 
-        memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
-                           tip=self.plugin.mem_status.toolTip())
+        memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable')
         memory_spin = self.create_spinbox("", _(" ms"), 'memory_usage/timeout',
-                                          min_=100, max_=1000000, step=100)
+                                          min_=100, max_=1000000, step=100,
+                                          tip=self.plugin.mem_status.toolTip())
         memory_box.checkbox.toggled.connect(memory_spin.setEnabled)
         memory_spin.setEnabled(self.get_option('memory_usage/enable'))
 
-        cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
-                        tip=self.plugin.cpu_status.toolTip())
+        cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable')
         cpu_spin = self.create_spinbox("", _(" ms"), 'cpu_usage/timeout',
-                                       min_=100, max_=1000000, step=100)
+                                       min_=100, max_=1000000, step=100,
+                                       tip=self.plugin.cpu_status.toolTip())
         cpu_box.checkbox.toggled.connect(cpu_spin.setEnabled)
         cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
 
