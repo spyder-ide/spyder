@@ -338,8 +338,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         prompts_g_layout = QGridLayout()
         prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
         prompts_g_layout.addWidget(in_prompt_edit.textbox, 0, 1)
+        prompts_g_layout.addWidget(in_prompt_edit.help_label, 0, 2)
         prompts_g_layout.addWidget(out_prompt_edit.label, 1, 0)
         prompts_g_layout.addWidget(out_prompt_edit.textbox, 1, 1)
+        prompts_g_layout.addWidget(out_prompt_edit.help_label, 1, 2)
         prompts_layout.addLayout(prompts_g_layout)
         prompts_group.setLayout(prompts_layout)
 

@@ -207,10 +207,12 @@ class ApplicationConfigPage(PluginConfigPage):
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
 
-        normal_radio.radiobutton.toggled.connect(self.custom_scaling_edit.setDisabled)
-        auto_scale_radio.radiobutton.toggled.connect(self.custom_scaling_edit.setDisabled)
+        normal_radio.radiobutton.toggled.connect(
+            self.custom_scaling_edit.textbox.setDisabled)
+        auto_scale_radio.radiobutton.toggled.connect(
+            self.custom_scaling_edit.textbox.setDisabled)
         custom_scaling_radio.radiobutton.toggled.connect(
-            self.custom_scaling_edit.setEnabled)
+            self.custom_scaling_edit.textbox.setEnabled)
 
         # Layout Screen resolution
         screen_resolution_layout = QVBoxLayout()
@@ -218,10 +220,19 @@ class ApplicationConfigPage(PluginConfigPage):
 
         screen_resolution_inner_layout = QGridLayout()
         screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
-        screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
-        screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
         screen_resolution_inner_layout.addWidget(
-            self.custom_scaling_edit, 2, 1)
+            auto_scale_radio.radiobutton, 1, 0)
+        screen_resolution_inner_layout.addWidget(
+            auto_scale_radio.radiobutton.help_label, 1, 1)
+        screen_resolution_inner_layout.addWidget(
+            custom_scaling_radio.radiobutton, 2, 0)
+        screen_resolution_inner_layout.addWidget(
+            custom_scaling_radio.radiobutton.help_label, 2, 1)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_edit.textbox, 2, 2)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_edit.help_label, 2, 3)
+        screen_resolution_inner_layout.setColumnStretch(2, 1)
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
