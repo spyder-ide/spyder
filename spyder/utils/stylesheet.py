@@ -300,13 +300,14 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
         css = self.get_stylesheet()
         buttons_color = QStylePalette.COLOR_BACKGROUND_1
 
-        # Set style for scroller buttons
+        # Set style for scroll buttons
         css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
             background=buttons_color,
             borderRadius='0px',
             borderRight=f'{self.BORDER_RIGHT_WIDTH} solid {buttons_color}'
         )
 
+        # Hover and pressed state for scroll buttons
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
             if state == 'hover':
                 color = QStylePalette.COLOR_BACKGROUND_2
@@ -316,6 +317,7 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
                 background=color
             )
 
+        # Set width for scroll buttons
         # This makes one button huge and the other very small in PyQt 5.9
         if not OLD_PYQT:
             css['QTabBar::scroller'].setValues(
@@ -412,6 +414,12 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
             right='-3px' if WIN else '-1px'
         )
 
+        # Make scroll button icons smaller on Windows and Mac
+        if WIN or MAC:
+            css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+                padding='9px',
+            )
+
 
 class DockTabBarStyleSheet(BaseTabBarStyleSheet):
     """
@@ -507,6 +515,12 @@ class DockTabBarStyleSheet(BaseTabBarStyleSheet):
                       'QTabBar::tab:last']:
             css[state].setValues(
                 borderRightColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
+            )
+
+        # Make scroll button icons smaller on Windows and Mac
+        if WIN or MAC:
+            css['QTabBar QToolButton'].setValues(
+                padding='10px',
             )
 
 
