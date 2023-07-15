@@ -21,8 +21,8 @@ if [[ $OSTYPE = "darwin"* ]]; then
     [[ -e ${PREFIX}/.nonadmin ]] && shortcut_path="${HOME}${shortcut_path}"
     sed_opts+=("", "-e")
 else
-    shortcut_path="/.local/share/applications/${name_lower}_${name_lower}.desktop"
-    [[ -e ${PREFIX}/.nonadmin ]] && shortcut_path="${HOME}${shortcut_path}" || shortcut_path="/usr${shortcut_path}"
+    shortcut_path="/share/applications/${name_lower}_${name_lower}.desktop"
+    [[ -e ${PREFIX}/.nonadmin ]] && shortcut_path="${HOME}/.local${shortcut_path}" || shortcut_path="/usr${shortcut_path}"
     alias_text="alias spyder=${spy_exe}\n${alias_text}"
 fi
 

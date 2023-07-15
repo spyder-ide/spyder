@@ -288,8 +288,8 @@ jobs:
           echo -e "\nContents of ${root_prefix}/uninstall-spyder.sh:"
           cat ${root_prefix}/uninstall-spyder.sh
 
-          shortcut_path=/.local/share/applications/spyder_spyder.desktop
-          [[ -e ${root_prefix}/.nonadmin ]] && shortcut_path=${HOME}${shortcut_path} || shortcut_path=/usr${shortcut_path}
+          shortcut_path=/share/applications/spyder_spyder.desktop
+          [[ -e ${root_prefix}/.nonadmin ]] && shortcut_path=${HOME}/.local${shortcut_path} || shortcut_path=/usr${shortcut_path}
 
           if [[ -e $shortcut_path ]]; then
               echo -e "\nContents of ${shortcut_path}:"
