@@ -14,8 +14,7 @@ from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
 
 from spyder.api.translations import _
-from spyder.api.config.decorators import on_conf_change
-from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import (
@@ -26,7 +25,7 @@ from spyder.utils.stylesheet import (
 # =============================================================================
 # Tab filter
 # =============================================================================
-class TabFilter(QObject, SpyderConfigurationObserver):
+class TabFilter(QObject, SpyderConfigurationAccessor):
     """Filter event attached to each DockWidget QTabBar."""
 
     CONF_SECTION = 'main'
@@ -37,7 +36,7 @@ class TabFilter(QObject, SpyderConfigurationObserver):
         self.main = main
         self.from_index = None
 
-        self._set_tabbar_stylesheet(self.get_conf('vertical_tabs'))
+        self._set_tabbar_stylesheet()
         self.dock_tabbar.setElideMode(Qt.ElideNone)
 
     def eventFilter(self, obj, event):
@@ -78,17 +77,13 @@ class TabFilter(QObject, SpyderConfigurationObserver):
         menu = self.main.createPopupMenu()
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
 
-    def _set_tabbar_stylesheet(self, vertical_tabs):
-        if vertical_tabs:
+    def _set_tabbar_stylesheet(self):
+        if self.get_conf('vertical_tabs'):
             self.dock_tabbar.setStyleSheet(
                 str(VERTICAL_DOCK_TABBAR_STYLESHEET))
         else:
             self.dock_tabbar.setStyleSheet(
                 str(HORIZONTAL_DOCK_TABBAR_STYLESHEET))
-
-    @on_conf_change(option='vertical_tabs')
-    def _on_tabs_orientation_change(self, value):
-        self._set_tabbar_stylesheet(value)
 
 
 # =============================================================================
